@@ -266,3 +266,73 @@ func TestAuthUserInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthGetToken(t *testing.T) {
+	mock := new(mocks.Store)
+
+	ctx := context.TODO()
+
+	type Expected struct {
+		userAuthResponse *models.UserAuthResponse
+		err              error
+	}
+
+	tests := []struct {
+		description   string
+		userID        string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "success when try to get a token",
+			userID:      "user",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "id",
+					TenantID: "xxxxxx",
+					Members: []models.Member{
+						{
+							ID:   "memberID",
+							Role: "owner",
+						},
+					},
+				}
+
+				mock.On("UserGetByID", ctx, "user", false).Return(&models.User{
+					UserData: models.UserData{
+						Username: "user",
+						Name:     "user",
+						Email:    "email@email.com",
+					},
+					ID: "id",
+				}, 1, nil).Once()
+				mock.On("NamespaceGetFirst", ctx, "id").Return(namespace, nil).Once()
+
+				clockMock.On("Now").Return(now).Twice()
+			},
+			expected: Expected{
+				userAuthResponse: &models.UserAuthResponse{},
+				err:              nil,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			mock.ExpectedCalls = nil
+			tc.requiredMocks()
+
+			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+			assert.NoError(t, err)
+
+			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+
+			authRes, err := service.AuthGetToken(ctx, tc.userID)
+			assert.NotNil(t, authRes)
+			assert.Equal(t, tc.expected.err, err)
+
+			mock.AssertExpectations(t)
+		})
+	}
+}
