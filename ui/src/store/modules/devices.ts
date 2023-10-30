@@ -42,6 +42,7 @@ export const devices: Module<DevicesState, State> = {
   getters: {
     list: (state) => state.devices,
     get: (state) => state.device,
+    getName: (state) => state.device.name,
     getNumberDevices: (state) => state.numberDevices,
     getPage: (state) => state.page,
     getPerPage: (state) => state.perPage,
