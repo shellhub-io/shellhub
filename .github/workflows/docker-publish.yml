@@ -24,6 +24,10 @@ jobs:
         id: get_version
         run: echo RELEASE_VERSION=$(echo ${GITHUB_REF:10}) >> $GITHUB_ENV
 
+      - name: Set docker build args
+        if: matrix.project == 'connector'
+        run: echo "BUILD_ARGS=SHELLHUB_VERSION=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+
       - name: Build and publish '${{ matrix.project }}' to Docker Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -32,3 +36,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "latest,${{ env.RELEASE_VERSION }}"
           dockerfile: ${{ matrix.project }}/Dockerfile
+          buildargs: ${{ env.BUILD_ARGS }}
