@@ -186,6 +186,7 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*mod
 	as := &models.ActiveSession{
 		UID:      models.UID(session.UID),
 		LastSeen: session.StartedAt,
+		TenantID: session.TenantID,
 	}
 
 	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &as); err != nil {
@@ -215,12 +216,7 @@ func (s *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
 		return FromMongoError(err)
 	}
 
-	activeSession := &models.ActiveSession{
-		UID:      uid,
-		LastSeen: clock.Now(),
-	}
-
-	if _, err := s.db.Collection("active_sessions").InsertOne(ctx, &activeSession); err != nil {
+	if _, err := s.db.Collection("active_sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": clock.Now()}}); err != nil {
 		return FromMongoError(err)
 	}
 

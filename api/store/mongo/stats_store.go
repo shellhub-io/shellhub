@@ -105,26 +105,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		return nil, err
 	}
 
-	query = []bson.M{
-		{
-			"$lookup": bson.M{
-				"from":         "active_sessions",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "active",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
-			},
-		},
-		{
-			"$match": bson.M{
-				"active": true,
-			},
-		},
-	}
+	query = []bson.M{}
 
 	// Only match for the respective tenant if requested
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
@@ -139,7 +120,7 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		"$count": "count",
 	})
 
-	activeSessions, err := AggregateCount(ctx, s.db.Collection("sessions"), query)
+	activeSessions, err := AggregateCount(ctx, s.db.Collection("active_sessions"), query)
 	if err != nil {
 		return nil, err
 	}
