@@ -105,7 +105,7 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		server.authenticator = host.NewAuthenticator(api, authData, singleUserPassword, &server.deviceName)
 		server.sessioner = host.NewSessioner(&server.deviceName, server.cmds)
 	case modes.ConnectorMode:
-		cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv)
+		cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 		if err != nil {
 			log.Fatal(err)
 		}
