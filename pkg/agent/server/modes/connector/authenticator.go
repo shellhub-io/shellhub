@@ -146,7 +146,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 			"container": *a.container,
 			"username":  username,
 		},
-	).Error("using password authentication")
+	).Info("using password authentication")
 
 	return true
 }
@@ -201,15 +201,17 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 
 	sigHash := sha256.Sum256(sigBytes)
 
+	fingerprint := gossh.FingerprintLegacyMD5(key)
 	res, err := a.api.AuthPublicKey(&models.PublicKeyAuthRequest{
-		Fingerprint: gossh.FingerprintLegacyMD5(key),
+		Fingerprint: fingerprint,
 		Data:        string(sigBytes),
 	}, a.authData.Token)
 	if err != nil {
 		log.WithFields(
 			log.Fields{
-				"container": *a.container,
-				"username":  username,
+				"container":   *a.container,
+				"username":    username,
+				"fingerprint": fingerprint,
 			},
 		).WithError(err).Error("failed to authenticate the user via public key")
 
@@ -221,8 +223,9 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 		if err != nil {
 			log.WithFields(
 				log.Fields{
-					"container": *a.container,
-					"username":  username,
+					"container":   *a.container,
+					"username":    username,
+					"fingerprint": fingerprint,
 				},
 			).WithError(err).Error("failed to decode the signature")
 
@@ -236,10 +239,11 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 	if !ok {
 		log.WithFields(
 			log.Fields{
-				"container": *a.container,
-				"username":  username,
+				"container":   *a.container,
+				"username":    username,
+				"fingerprint": fingerprint,
 			},
-		).WithError(err).Error("failed to get the crypto public key")
+		).Error("failed to get the crypto public key")
 
 		return false
 	}
@@ -250,10 +254,11 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 	if !ok {
 		log.WithFields(
 			log.Fields{
-				"container": *a.container,
-				"username":  username,
+				"container":   *a.container,
+				"username":    username,
+				"fingerprint": fingerprint,
 			},
-		).WithError(err).Error("failed to get the crypto public key")
+		).Error("failed to convert the crypto public key")
 
 		return false
 	}
@@ -261,8 +266,9 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, sigHash[:], digest); err != nil {
 		log.WithFields(
 			log.Fields{
-				"container": *a.container,
-				"username":  username,
+				"container":   *a.container,
+				"username":    username,
+				"fingerprint": fingerprint,
 			},
 		).WithError(err).Error("failed to verify the signature")
 
@@ -274,10 +280,11 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 
 	log.WithFields(
 		log.Fields{
-			"container": *a.container,
-			"username":  username,
+			"container":   *a.container,
+			"username":    username,
+			"fingerprint": fingerprint,
 		},
-	).Error("using public key authentication")
+	).Info("using public key authentication")
 
 	return true
 }

@@ -67,7 +67,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 	}
 
 	if ok {
-		log.Info("Accepted password")
+		log.Info("Using password authentication")
 	} else {
 		log.Info("Failed password")
 	}
@@ -93,26 +93,58 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh
 
 	sigBytes, err := json.Marshal(sig)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container": *a.deviceName,
+				"username":  ctx.User(),
+			},
+		).WithError(err).Error("failed to marshal signature")
+
 		return false
 	}
 
 	sigHash := sha256.Sum256(sigBytes)
 
+	fingerprint := gossh.FingerprintLegacyMD5(key)
 	res, err := a.api.AuthPublicKey(&models.PublicKeyAuthRequest{
-		Fingerprint: gossh.FingerprintLegacyMD5(key),
+		Fingerprint: fingerprint,
 		Data:        string(sigBytes),
 	}, a.authData.Token)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container":   *a.deviceName,
+				"username":    ctx.User(),
+				"fingerprint": fingerprint,
+			},
+		).WithError(err).Error("failed to authenticate the user via public key")
+
 		return false
 	}
 
 	digest, err := base64.StdEncoding.DecodeString(res.Signature)
 	if err != nil {
+		log.WithFields(
+			log.Fields{
+				"container":   *a.deviceName,
+				"username":    ctx.User(),
+				"fingerprint": fingerprint,
+			},
+		).WithError(err).Error("failed to decode the signature")
+
 		return false
 	}
 
 	cryptoKey, ok := key.(gossh.CryptoPublicKey)
 	if !ok {
+		log.WithFields(
+			log.Fields{
+				"container":   *a.deviceName,
+				"username":    ctx.User(),
+				"fingerprint": fingerprint,
+			},
+		).Error("failed to get the crypto public key")
+
 		return false
 	}
 
@@ -120,12 +152,36 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh
 
 	pubKey, ok := pubCrypto.(*rsa.PublicKey)
 	if !ok {
+		log.WithFields(
+			log.Fields{
+				"container":   *a.deviceName,
+				"username":    ctx.User(),
+				"fingerprint": fingerprint,
+			},
+		).Error("failed to convert the crypto public key")
+
 		return false
 	}
 
 	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, sigHash[:], digest); err != nil {
+		log.WithFields(
+			log.Fields{
+				"container":   *a.deviceName,
+				"username":    ctx.User(),
+				"fingerprint": fingerprint,
+			},
+		).WithError(err).Error("failed to verify the signature")
+
 		return false
 	}
+
+	log.WithFields(
+		log.Fields{
+			"container":   *a.deviceName,
+			"username":    ctx.User(),
+			"fingerprint": fingerprint,
+		},
+	).Info("using public key authentication")
 
 	return true
 }

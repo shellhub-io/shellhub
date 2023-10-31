@@ -406,6 +406,14 @@ func (a *Agent) Listen(ctx context.Context) error {
 	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
 	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
 	if modes.Mode(a.config.Mode) == modes.ConnectorMode {
+		log.WithFields(log.Fields{
+			"version":            AgentVersion,
+			"mode":               a.config.Mode,
+			"tenant_id":          a.config.TenantID,
+			"server_address":     a.config.ServerAddress,
+			"preferred_hostname": a.config.PreferredHostname,
+		}).Info("Starting ShellHub Agent in Connector mode")
+
 		a.server.SetContainerID(a.Identity.MAC)
 	}
 
@@ -481,6 +489,15 @@ func (a *Agent) Listen(ctx context.Context) error {
 		id := c.Param("id")
 		serv.CloseSession(id)
 
+		log.WithFields(
+			log.Fields{
+				"id":             id,
+				"version":        AgentVersion,
+				"tenant_id":      a.authData.Namespace,
+				"server_address": a.config.ServerAddress,
+			},
+		).Info("A tunnel connection was closed")
+
 		return nil
 	}
 
@@ -495,7 +512,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 					"version":        AgentVersion,
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
-				}).Debug("Stopped listening for connections")
+				}).Info("Stopped listening for connections")
 
 				done <- true
 
@@ -504,13 +521,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 				return
 			}
 			a.mux.RUnlock()
-
-			listener, err := a.NewReverseListener()
-			if err != nil {
-				time.Sleep(time.Second * 10)
-
-				continue
-			}
 
 			namespace := a.authData.Namespace
 			tenantName := a.authData.Name
@@ -522,6 +532,20 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
+			listener, err := a.NewReverseListener()
+			if err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"version":        AgentVersion,
+					"tenant_id":      a.authData.Namespace,
+					"server_address": a.config.ServerAddress,
+					"ssh_server":     sshEndpoint,
+					"sshid":          sshid,
+				}).Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+				time.Sleep(time.Second * 10)
+
+				continue
+			}
+
 			log.WithFields(log.Fields{
 				"namespace":      namespace,
 				"hostname":       tenantName,
@@ -531,17 +555,35 @@ func (a *Agent) Listen(ctx context.Context) error {
 			}).Info("Server connection established")
 
 			a.listening <- true
+
 			if err := a.tunnel.Listen(listener); err != nil {
 				// NOTICE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
 				// "keep-alive" connection fails. As a result, it will take this interval to reconnect to its server.
 				//
 				// It can be observed in the logs, that prints something like:
 				//  0000/00/00 00:00:00 revdial.Listener: error writing message to server: write tcp [::1]:00000->[::1]:80: write: broken pipe
+				log.WithError(err).WithFields(log.Fields{
+					"namespace":      namespace,
+					"hostname":       tenantName,
+					"server_address": a.config.ServerAddress,
+					"ssh_server":     sshEndpoint,
+					"sshid":          sshid,
+				}).Error("Tunnel listener closed")
+
 				listener.Close() // nolint:errcheck
 				a.listening <- false
 
 				continue
 			}
+
+			log.WithError(err).WithFields(log.Fields{
+				"namespace":      namespace,
+				"hostname":       tenantName,
+				"server_address": a.config.ServerAddress,
+				"ssh_server":     sshEndpoint,
+				"sshid":          sshid,
+			}).Info("Tunnel listener closed")
+
 			listener.Close() // nolint:errcheck
 			a.listening <- false
 		}
@@ -598,7 +640,7 @@ func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
-				}).Debug("Restarted pinging server")
+				}).Info("Restarted pinging server")
 
 				ticker.Reset(durantion)
 			} else {
@@ -607,7 +649,7 @@ func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
-				}).Debug("Stopped pinging server due listener status")
+				}).Info("Stopped pinging server due listener status")
 
 				ticker.Stop()
 			}

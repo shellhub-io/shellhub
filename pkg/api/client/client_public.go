@@ -98,6 +98,11 @@ func Dial(url string, header http.Header) (*websocket.Conn, *http.Response, erro
 	if err != nil {
 		switch res.StatusCode {
 		case http.StatusTemporaryRedirect, http.StatusPermanentRedirect:
+			log.WithFields(log.Fields{
+				"url":    url,
+				"status": res.StatusCode,
+			}).Info("Redirecting to the received URL")
+
 			location, err := res.Location()
 			if err != nil {
 				return nil, nil, err
@@ -119,12 +124,35 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 
 	conn, res, err := Dial(req.URL, req.Header)
 	if err != nil {
+		log.WithError(err).WithFields(
+			log.Fields{
+				"scheme":   c.scheme,
+				"server":   c.host,
+				"port":     c.port,
+				"path":     "/ssh/connection",
+				"response": res,
+				"url":      req.URL,
+			}).Error("Failed to dial to ShellHub SSH server")
+
 		return nil, err
 	}
 
 	listener := revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-			return tunnelDial(ctx, strings.Replace(res.Request.URL.Scheme, "http", "ws", 1), res.Request.URL.Hostname(), path)
+			conn, r, err := tunnelDial(ctx, strings.Replace(res.Request.URL.Scheme, "http", "ws", 1), res.Request.URL.Hostname(), path)
+			if err != nil {
+				log.WithError(err).WithFields(
+					log.Fields{
+						"scheme":   c.scheme,
+						"server":   c.host,
+						"port":     c.port,
+						"path":     path,
+						"response": r,
+						"url":      res.Request.URL.String(),
+					}).Error("Failed to dial to ShellHub SSH server through websocket")
+			}
+
+			return conn, res, err
 		},
 	)
 
