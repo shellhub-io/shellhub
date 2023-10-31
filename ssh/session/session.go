@@ -124,6 +124,7 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 
 	clientCtx := client.Context()
 
+	uid := clientCtx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 	device := metadata.RestoreDevice(clientCtx)
 	tag := metadata.RestoreTarget(clientCtx)
 	api := metadata.RestoreAPI(clientCtx)
@@ -134,6 +135,10 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 
 	if envs.IsCloud() || envs.IsEnterprise() {
 		if err := api.FirewallEvaluate(lookup); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+				Error("Error when trying to evaluate firewall rules")
+
 			switch {
 			case errors.Is(err, internalclient.ErrFirewallConnection):
 				return nil, ErrFirewallConnection
@@ -148,23 +153,37 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 	if envs.IsCloud() && envs.HasBilling() {
 		device, err := api.GetDevice(device.UID)
 		if err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+				Error("Error when trying to get device")
+
 			return nil, ErrFindDevice
 		}
 
 		if evaluatation, status, _ := api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
+			log.WithError(err).
+				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+				Error("Error when trying to evaluate billing")
+
 			return nil, ErrBillingBlock
 		}
 	}
 
 	dialed, err := tunnel.Dial(client.Context(), device.UID)
 	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+			Error("Error when trying to dial")
+
 		return nil, ErrDial
 	}
 
-	uid := client.Context().Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
-
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", uid), nil)
 	if err = req.Write(dialed); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+			Error("Error when trying to write the request")
+
 		return nil, err
 	}
 
@@ -196,17 +215,29 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 
 	if config.Timeout > 0 {
 		if err := s.Dialed.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+				Error("Error when trying to set dial deadline")
+
 			return nil, nil, err
 		}
 	}
 
 	cli, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
 	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+			Error("Error when trying to create the client's connection")
+
 		return nil, nil, err
 	}
 
 	if config.Timeout > 0 {
 		if err := s.Dialed.SetReadDeadline(time.Time{}); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+				Error("Error when trying to set dial deadline with Time{}")
+
 			return nil, nil, err
 		}
 	}
@@ -219,9 +250,12 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 
 // Register registers a new Client at the api.
 func (s *Session) Register(_ gliderssh.Session) error {
-	if _, err := resty.New().R().
-		SetBody(*s).
-		Post("http://api:8080/internal/sessions"); err != nil {
+	_, err := resty.New().R().SetBody(*s).Post("http://api:8080/internal/sessions")
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+			Error("Error when trying to register the client on API")
+
 		return err
 	}
 
@@ -233,13 +267,17 @@ func (s *Session) Finish() error {
 		request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
 		if err := request.Write(s.Dialed); err != nil {
-			log.WithFields(log.Fields{
-				"session": s.UID,
-			}).Error(err)
+			log.WithError(err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+				Warning("Error when trying write the request to /ssh/close")
 		}
 	}
 
 	if errs := internalclient.NewClient().FinishSession(s.UID); len(errs) > 0 {
+		log.WithError(errs[0]).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+			Error("Error when trying to finish the session")
+
 		return errs[0]
 	}
 
