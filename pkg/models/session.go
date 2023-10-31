@@ -30,6 +30,7 @@ type Session struct {
 type ActiveSession struct {
 	UID      UID       `json:"uid"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 }
 
 type RecordedSession struct {
