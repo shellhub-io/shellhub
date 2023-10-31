@@ -128,26 +128,29 @@ func main() {
 
 				if err := ag.Ping(ctx, 0); err != nil {
 					log.WithError(err).WithFields(log.Fields{
-						"version":        AgentVersion,
-						"mode":           mode,
-						"tenant_id":      cfg.TenantID,
-						"server_address": cfg.ServerAddress,
+						"version":            AgentVersion,
+						"mode":               mode,
+						"tenant_id":          cfg.TenantID,
+						"server_address":     cfg.ServerAddress,
+						"preferred_hostname": cfg.PreferredHostname,
 					}).Fatal("Failed to ping server")
 				}
 
 				log.WithFields(log.Fields{
-					"version":        AgentVersion,
-					"mode":           mode,
-					"tenant_id":      cfg.TenantID,
-					"server_address": cfg.ServerAddress,
+					"version":            AgentVersion,
+					"mode":               mode,
+					"tenant_id":          cfg.TenantID,
+					"server_address":     cfg.ServerAddress,
+					"preferred_hostname": cfg.PreferredHostname,
 				}).Info("Stopped pinging server")
 			}()
 
 			log.WithFields(log.Fields{
-				"version":        AgentVersion,
-				"mode":           mode,
-				"tenant_id":      cfg.TenantID,
-				"server_address": cfg.ServerAddress,
+				"version":            AgentVersion,
+				"mode":               mode,
+				"tenant_id":          cfg.TenantID,
+				"server_address":     cfg.ServerAddress,
+				"preferred_hostname": cfg.PreferredHostname,
 			}).Info("Listening for connections")
 
 			// Disable check update in development mode
@@ -156,26 +159,47 @@ func main() {
 					for {
 						nextVersion, err := ag.CheckUpdate()
 						if err != nil {
-							log.Error(err)
+							log.WithError(err).WithFields(log.Fields{
+								"version":            AgentVersion,
+								"mode":               mode,
+								"tenant_id":          cfg.TenantID,
+								"server_address":     cfg.ServerAddress,
+								"preferred_hostname": cfg.PreferredHostname,
+							}).Error("Failed to check update")
 
 							goto sleep
 						}
 
 						if nextVersion.GreaterThan(currentVersion) {
 							if err := updater.ApplyUpdate(nextVersion); err != nil {
-								log.Error(err)
+								log.WithError(err).WithFields(log.Fields{
+									"version":            AgentVersion,
+									"mode":               mode,
+									"tenant_id":          cfg.TenantID,
+									"server_address":     cfg.ServerAddress,
+									"preferred_hostname": cfg.PreferredHostname,
+								}).Error("Failed to apply update")
 							}
 
 							log.WithFields(log.Fields{
-								"version":        currentVersion,
-								"next_version":   nextVersion.String(),
-								"mode":           mode,
-								"tenant_id":      cfg.TenantID,
-								"server_address": cfg.ServerAddress,
-							}).Info("update successfully applied")
+								"version":            currentVersion,
+								"next_version":       nextVersion.String(),
+								"mode":               mode,
+								"tenant_id":          cfg.TenantID,
+								"server_address":     cfg.ServerAddress,
+								"preferred_hostname": cfg.PreferredHostname,
+							}).Info("Update successfully applied")
 						}
 
 					sleep:
+						log.WithFields(log.Fields{
+							"version":            AgentVersion,
+							"mode":               mode,
+							"tenant_id":          cfg.TenantID,
+							"server_address":     cfg.ServerAddress,
+							"preferred_hostname": cfg.PreferredHostname,
+						}).Info("Sleeping for 24 hours")
+
 						time.Sleep(time.Hour * 24)
 					}
 				}()
@@ -183,18 +207,20 @@ func main() {
 
 			if err := ag.Listen(ctx); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"version":        AgentVersion,
-					"mode":           mode,
-					"tenant_id":      cfg.TenantID,
-					"server_address": cfg.ServerAddress,
+					"version":            AgentVersion,
+					"mode":               mode,
+					"tenant_id":          cfg.TenantID,
+					"server_address":     cfg.ServerAddress,
+					"preferred_hostname": cfg.PreferredHostname,
 				}).Fatal("Failed to listen for connections")
 			}
 
 			log.WithFields(log.Fields{
-				"version":        AgentVersion,
-				"mode":           mode,
-				"tenant_id":      cfg.TenantID,
-				"server_address": cfg.ServerAddress,
+				"version":            AgentVersion,
+				"mode":               mode,
+				"tenant_id":          cfg.TenantID,
+				"server_address":     cfg.ServerAddress,
+				"preferred_hostname": cfg.PreferredHostname,
 			}).Info("Stopped listening for connections")
 		},
 	}
