@@ -26,9 +26,17 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Set github reference env
+        run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+
+      - name: Set docker build args
+        if: matrix.project == 'connector'
+        run: echo "BUILD_ARGS=SHELLHUB_VERSION=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+
       - name: Build '${{ matrix.project }}' Docker container
         uses: docker/build-push-action@v5
         with:
           tags: shellhubio/${{ matrix.project }}:latest
+          build-args: ${{ env.BUILD_ARGS }}
           push: false
           file: ${{ matrix.project }}/Dockerfile
