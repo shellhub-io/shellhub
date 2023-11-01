@@ -35,6 +35,49 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 				},
 			},
 		},
+	}
+
+	// Apply filters if any
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
+	}
+
+	// Only match for the respective tenant if requested
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		})
+	}
+
+	if status != "" {
+		query = append([]bson.M{{"$match": bson.M{"status": status}}}, query...)
+	}
+
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := AggregateCount(ctx, s.db.Collection("devices"), queryCount)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
+	}
+
+	if sort != "" {
+		orderVal := map[string]int{
+			"asc":  1,
+			"desc": -1,
+		}
+
+		query = append(query, bson.M{
+			"$sort": bson.M{sort: orderVal[order]},
+		})
+	} else {
+		query = append(query, bson.M{
+			"$sort": bson.M{"last_seen": -1},
+		})
+	}
+
+	query = append(query, queries.BuildPaginationQuery(pagination)...)
+	query = append(query, []bson.M{
 		{
 			"$lookup": bson.M{
 				"from":         "connected_devices",
@@ -64,15 +107,10 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		{
 			"$unwind": "$namespace",
 		},
-	}
+	}...)
 
+	// To improve performance, we process the status filter after the count.
 	if status != "" {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"status": status,
-			},
-		}}, query...)
-
 		// As we have added to device the field called "acceptable" we needed, also, to add the correct value to it.
 		// The value of "acceptable" is based on the device status and the list mode. If the list status is "accepted"
 		// we need to add the field "acceptable" with the value "false", because the device is already accepted.
@@ -118,44 +156,6 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		}
 	}
 
-	orderVal := map[string]int{
-		"asc":  1,
-		"desc": -1,
-	}
-
-	if sort != "" {
-		query = append(query, bson.M{
-			"$sort": bson.M{sort: orderVal[order]},
-		})
-	} else {
-		query = append(query, bson.M{
-			"$sort": bson.M{"last_seen": -1},
-		})
-	}
-
-	// Apply filters if any
-	if len(queryMatch) > 0 {
-		query = append(query, queryMatch...)
-	}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
-
-	queryCount := query
-	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("devices"), queryCount)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	query = append(query, queries.BuildPaginationQuery(pagination)...)
-
 	devices := make([]models.Device, 0)
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
@@ -164,12 +164,14 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 	}
 	defer cursor.Close(ctx)
 
+	device := new(models.Device)
 	for cursor.Next(ctx) {
-		device := new(models.Device)
 		err = cursor.Decode(&device)
+
 		if err != nil {
 			return devices, count, err
 		}
+
 		devices = append(devices, *device)
 	}
 
