@@ -164,11 +164,10 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 	}
 	defer cursor.Close(ctx)
 
-	device := new(models.Device)
 	for cursor.Next(ctx) {
-		err = cursor.Decode(&device)
+		device := new(models.Device)
 
-		if err != nil {
+		if err = cursor.Decode(&device); err != nil {
 			return devices, count, err
 		}
 
