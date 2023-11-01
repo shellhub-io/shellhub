@@ -23,25 +23,6 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 				},
 			},
 		},
-		{
-			"$sort": bson.M{
-				"started_at": -1,
-			},
-		},
-
-		{
-			"$lookup": bson.M{
-				"from":         "active_sessions",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "active",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
-			},
-		},
 	}
 
 	// Only match for the respective tenant if requested
@@ -60,7 +41,28 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 		return nil, 0, FromMongoError(err)
 	}
 
+	query = append(query, bson.M{
+		"$sort": bson.M{
+			"started_at": -1,
+		},
+	})
+
 	query = append(query, queries.BuildPaginationQuery(pagination)...)
+	query = append(query, []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "active_sessions",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "active",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+			},
+		},
+	}...)
 
 	sessions := make([]models.Session, 0)
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
