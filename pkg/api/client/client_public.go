@@ -96,6 +96,10 @@ func (c *client) Endpoints() (*models.Endpoints, error) {
 func Dial(url string, header http.Header) (*websocket.Conn, *http.Response, error) {
 	conn, res, err := websocket.DefaultDialer.Dial(url, header)
 	if err != nil {
+		if res == nil {
+			return nil, nil, err
+		}
+
 		switch res.StatusCode {
 		case http.StatusTemporaryRedirect, http.StatusPermanentRedirect:
 			log.WithFields(log.Fields{
