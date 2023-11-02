@@ -1,12 +1,10 @@
 package session
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -19,17 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
-)
-
-// Errors returned by the NewSession to the client.
-var (
-	ErrBillingBlock       = fmt.Errorf("Connection to this device is not available as your current namespace doesn't qualify for the free plan. To gain access, you'll need to contact the namespace owner to initiate an upgrade.\n\nFor a detailed estimate of costs based on your use-cases with ShellHub Cloud, visit our pricing page at https://www.shellhub.io/pricing. If you wish to upgrade immediately, navigate to https://cloud.shellhub.io/settings/billing. Your cooperation is appreciated.") //nolint:all
-	ErrFirewallBlock      = fmt.Errorf("you cannot connect to this device because a firewall rule block your connection")
-	ErrFirewallConnection = fmt.Errorf("failed to communicate to the firewall")
-	ErrFirewallUnknown    = fmt.Errorf("failed to evaluate the firewall rule")
-	ErrHost               = fmt.Errorf("failed to get the device address")
-	ErrFindDevice         = fmt.Errorf("failed to find the device")
-	ErrDial               = fmt.Errorf("failed to connect to device agent, please check the device connection")
 )
 
 type Session struct {
@@ -46,66 +33,6 @@ type Session struct {
 	Lookup        map[string]string
 	Pty           bool
 	Dialed        net.Conn
-}
-
-const (
-	Web     = "web"     // web terminal.
-	Term    = "term"    // interactive session
-	Exec    = "exec"    // command execution
-	HereDoc = "heredoc" // heredoc pty.
-	SCP     = "scp"     // scp.
-	SFTP    = "sftp"    // sftp subsystem.
-	Unk     = "unknown" // unknown.
-)
-
-// setPty sets the connection's pty.
-func (s *Session) setPty() {
-	pty, _, isPty := s.Client.Pty()
-	if isPty {
-		s.Term = pty.Term
-	}
-
-	s.Pty = isPty
-}
-
-// setType sets the connection`s type to session.
-//
-// Connection types possible are: Web, SFTP, SCP, Exec, HereDoc, Term, Unk (unknown)
-func (s *Session) setType() {
-	ctx := s.Client.Context()
-
-	env := loadEnv(s.Client.Environ())
-	if value, ok := env["WS"]; ok && value == "true" {
-		env["WS"] = "false"
-		s.Type = Web
-
-		return
-	}
-
-	if s.Client.Subsystem() == SFTP {
-		s.Type = SFTP
-
-		return
-	}
-
-	var cmd string
-	commands := s.Client.Command()
-	if len(commands) != 0 {
-		cmd = commands[0]
-	}
-
-	switch {
-	case !s.Pty && strings.HasPrefix(cmd, SCP):
-		s.Type = SCP
-	case !s.Pty && metadata.RestoreRequest(ctx) == "shell":
-		s.Type = HereDoc
-	case cmd != "":
-		s.Type = Exec
-	case s.Pty:
-		s.Type = Term
-	default:
-		s.Type = Unk
-	}
 }
 
 // NewSession creates a new Client from a client to agent, validating data, instance and payment.
@@ -282,51 +209,4 @@ func (s *Session) Finish() error {
 	}
 
 	return nil
-}
-
-func loadEnv(env []string) map[string]string {
-	m := make(map[string]string, cap(env))
-
-	for _, s := range env {
-		sp := strings.Split(s, "=")
-		if len(sp) == 2 {
-			k := sp[0]
-			v := sp[1]
-			m[k] = v
-		}
-	}
-
-	return m
-}
-
-func HandleRequests(ctx context.Context, reqs <-chan *gossh.Request, c internalclient.Client, done <-chan struct{}) {
-	for {
-		select {
-		case req := <-reqs:
-			if req == nil {
-				break
-			}
-
-			switch req.Type {
-			case "keepalive":
-				if id, ok := ctx.Value(gliderssh.ContextKeySessionID).(string); ok {
-					if errs := c.KeepAliveSession(id); len(errs) > 0 {
-						log.Error(errs[0])
-					}
-				}
-
-				if err := req.Reply(false, nil); err != nil {
-					log.Error(err)
-				}
-			default:
-				if req.WantReply {
-					if err := req.Reply(false, nil); err != nil {
-						log.Error(err)
-					}
-				}
-			}
-		case <-done:
-			return
-		}
-	}
 }
