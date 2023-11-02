@@ -20,21 +20,22 @@ const SFTPSubsystem = "sftp"
 // SFTPSubsystemHandler handlers a SFTP connection.
 func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler {
 	return func(client gliderssh.Session) {
-		log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection started")
-		defer log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection closed")
-
 		defer client.Close()
 
+		log.WithFields(log.Fields{
+			"sshid": client.User(),
+		}).Info("SFTP connection started")
+		defer log.WithFields(log.Fields{
+			"sshid": client.User(),
+		}).Info("SFTP connection closed")
+
 		ctx := client.Context()
+
 		api := metadata.RestoreAPI(ctx)
 
 		sess, err := session.NewSession(client, tunnel)
 		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"sshid": client.User()}).
-				Error("Error when trying to create a new session")
-
-			client.Write([]byte("failed to create a new session\n")) // nolint: errcheck
+			sendAndInformError(client, err, err)
 
 			return
 		}
@@ -50,7 +51,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 		case metadata.PublicKeyAuthenticationMethod:
 			privateKey, err := api.CreatePrivateKey()
 			if err != nil {
-				writeError(sess, "Error while creating private key", err, ErrPrivateKey)
+				sendAndInformError(client, err, ErrPrivateKey)
 
 				return
 			}
@@ -59,14 +60,14 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 
 			parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 			if err != nil {
-				writeError(sess, "Error while parsing private key", err, ErrPublicKey)
+				sendAndInformError(client, err, ErrPublicKey)
 
 				return
 			}
 
 			signer, err := gossh.NewSignerFromKey(parsed)
 			if err != nil {
-				writeError(sess, "Error while creating signer from private key", err, ErrSigner)
+				sendAndInformError(client, err, ErrSigner)
 
 				return
 			}
@@ -83,7 +84,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 		}
 
 		if err = connectSFTP(ctx, client, sess, api, config); err != nil {
-			writeError(sess, "Error during SSH connection", err, err)
+			sendAndInformError(client, err, err)
 
 			return
 		}
@@ -93,50 +94,28 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 func connectSFTP(ctx context.Context, client gliderssh.Session, sess *session.Session, api internalclient.Client, config *gossh.ClientConfig) error {
 	connection, reqs, err := sess.NewClientConnWithDeadline(config)
 	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("Error when trying to authenticate the connection")
-
 		return ErrAuthentication
 	}
 
 	agent, err := connection.NewSession()
 	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("Error when trying to start the agent's session")
-
 		return ErrSession
 	}
 
 	defer agent.Close()
 
-	log.WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-		Debug("requesting a subsystem for session")
 	if err = agent.RequestSubsystem(SFTPSubsystem); err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("failed to request a subsystem")
-
 		return err
 	}
 
 	go session.HandleRequests(ctx, reqs, api, ctx.Done())
 
 	if errs := api.SessionAsAuthenticated(sess.UID); len(errs) > 0 {
-		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("failed to authenticate the session")
-
 		return errs[0]
 	}
 
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("failed to create a flow of data from agent")
-
 		return err
 	}
 
