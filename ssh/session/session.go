@@ -158,6 +158,57 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 	return session, nil
 }
 
+// NewSessionWithoutClient creates a new session to connect the agent, validating data, instance and payment.
+//
+// This function is used to create a new session when the client is not available, what is true when the SSH client
+// indicate that the request type is `none` or in the case of a port forwarding
+func NewSessionWithoutClient(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
+	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
+
+	device := metadata.RestoreDevice(ctx)
+	target := metadata.RestoreTarget(ctx)
+	lookup := metadata.RestoreLookup(ctx)
+
+	lookup["username"] = target.Username
+	// lookup["ip_address"] = hos.Host
+
+	session := new(Session)
+	if ok, err := session.checkFirewall(ctx); err != nil || !ok {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": target.Username}).
+			Error("Error when trying to evaluate firewall rules")
+
+		return nil, err
+	}
+
+	if ok, err := session.checkBilling(ctx, device.UID); err != nil || !ok {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": target.Username}).
+			Error("Error when trying to evaluate billing")
+
+		return nil, err
+	}
+
+	dialed, err := session.dial(ctx, tunnel, device.UID, uid)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": target.Username}).
+			Error("Error when trying to dial")
+
+		return nil, ErrDial
+	}
+
+	session.Client = nil
+	session.UID = uid
+	session.Username = target.Username
+	// session.IPAddress = hos.Host
+	session.Device = device.UID
+	session.Lookup = lookup
+	session.Dialed = dialed
+
+	return session, nil
+}
+
 func (s *Session) GetType() string {
 	return s.Type
 }
