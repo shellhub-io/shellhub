@@ -1,6 +1,8 @@
 package session
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -35,8 +37,64 @@ type Session struct {
 	Dialed        net.Conn
 }
 
+// checkFirewall evaluates if there are firewall rules that block the connection.
+func (s *Session) checkFirewall(ctx gliderssh.Context) (bool, error) {
+	api := metadata.RestoreAPI(ctx)
+	lookup := metadata.RestoreLookup(ctx)
+
+	if envs.IsCloud() || envs.IsEnterprise() {
+		if err := api.FirewallEvaluate(lookup); err != nil {
+			switch {
+			case errors.Is(err, internalclient.ErrFirewallConnection):
+				return false, errors.Join(ErrFirewallConnection, err)
+			case errors.Is(err, internalclient.ErrFirewallBlock):
+				return false, errors.Join(ErrFirewallBlock, err)
+			default:
+				return false, errors.Join(ErrFirewallUnknown, err)
+			}
+		}
+	}
+
+	return true, nil
+}
+
+// checkBilling evaluates if the device's namespace has pending payment questions.
+func (s *Session) checkBilling(ctx gliderssh.Context, device string) (bool, error) {
+	api := metadata.RestoreAPI(ctx)
+
+	if envs.IsCloud() && envs.HasBilling() {
+		device, err := api.GetDevice(device)
+		if err != nil {
+			return false, errors.Join(ErrFindDevice, err)
+		}
+
+		if evaluatation, status, _ := api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
+			return false, errors.Join(ErrBillingBlock, err)
+		}
+	}
+
+	return true, nil
+}
+
+// dial dials the a connection between SSH server and the device agent.
+func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, device string, session string) (net.Conn, error) {
+	dialed, err := tunnel.Dial(ctx, device)
+	if err != nil {
+		return nil, errors.Join(ErrDial, err)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", session), nil)
+	if err = req.Write(dialed); err != nil {
+		return nil, err
+	}
+
+	return dialed, nil
+}
+
 // NewSession creates a new Client from a client to agent, validating data, instance and payment.
 func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, error) {
+	ctx := client.Context()
+
 	hos, err := host.NewHost(client.RemoteAddr().String())
 	if err != nil {
 		return nil, ErrHost
@@ -49,54 +107,33 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 		}
 	}
 
-	clientCtx := client.Context()
+	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 
-	uid := clientCtx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
-	device := metadata.RestoreDevice(clientCtx)
-	tag := metadata.RestoreTarget(clientCtx)
-	api := metadata.RestoreAPI(clientCtx)
-	lookup := metadata.RestoreLookup(clientCtx)
+	device := metadata.RestoreDevice(ctx)
+	target := metadata.RestoreTarget(ctx)
+	lookup := metadata.RestoreLookup(ctx)
 
-	lookup["username"] = tag.Username
+	lookup["username"] = target.Username
 	lookup["ip_address"] = hos.Host
 
-	if envs.IsCloud() || envs.IsEnterprise() {
-		if err := api.FirewallEvaluate(lookup); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-				Error("Error when trying to evaluate firewall rules")
+	session := new(Session)
+	if ok, err := session.checkFirewall(ctx); err != nil || !ok {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+			Error("Error when trying to evaluate firewall rules")
 
-			switch {
-			case errors.Is(err, internalclient.ErrFirewallConnection):
-				return nil, ErrFirewallConnection
-			case errors.Is(err, internalclient.ErrFirewallBlock):
-				return nil, ErrFirewallBlock
-			default:
-				return nil, ErrFirewallUnknown
-			}
-		}
+		return nil, err
 	}
 
-	if envs.IsCloud() && envs.HasBilling() {
-		device, err := api.GetDevice(device.UID)
-		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-				Error("Error when trying to get device")
+	if ok, err := session.checkBilling(ctx, device.UID); err != nil || !ok {
+		log.WithError(err).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+			Error("Error when trying to evaluate billing")
 
-			return nil, ErrFindDevice
-		}
-
-		if evaluatation, status, _ := api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
-			log.WithError(err).
-				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-				Error("Error when trying to evaluate billing")
-
-			return nil, ErrBillingBlock
-		}
+		return nil, err
 	}
 
-	dialed, err := tunnel.Dial(client.Context(), device.UID)
+	dialed, err := session.dial(ctx, tunnel, device.UID, uid)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
@@ -105,24 +142,13 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 		return nil, ErrDial
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", uid), nil)
-	if err = req.Write(dialed); err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("Error when trying to write the request")
-
-		return nil, err
-	}
-
-	session := &Session{ //nolint:exhaustruct
-		Client:    client,
-		UID:       uid,
-		Username:  tag.Username,
-		IPAddress: hos.Host,
-		Device:    device.UID,
-		Lookup:    lookup,
-		Dialed:    dialed,
-	}
+	session.Client = client
+	session.UID = uid
+	session.Username = target.Username
+	session.IPAddress = hos.Host
+	session.Device = device.UID
+	session.Lookup = lookup
+	session.Dialed = dialed
 
 	session.setPty()
 	session.setType()
@@ -153,7 +179,7 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 	cli, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
 	if err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
 
 		return nil, nil, err
