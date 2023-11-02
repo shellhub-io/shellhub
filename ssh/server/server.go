@@ -40,6 +40,13 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		SessionRequestCallback: func(client gliderssh.Session, request string) bool {
 			metadata.StoreRequest(client.Context(), request)
 
+			target := metadata.RestoreTarget(client.Context())
+			log.WithFields(log.Fields{
+				"username": target.Username,
+				"sshid":    target.Data,
+				"request":  request,
+			}).Info("Session request")
+
 			return true
 		},
 		Handler: handler.SSHHandler(tunnel),
@@ -54,7 +61,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			"session":                   gliderssh.DefaultSessionHandler,
-			channels.DirectTCPIPChannel: channels.DefaultTCPIPHandler,
+			channels.DirectTCPIPChannel: channels.TunnelDefaultDirectTCPIPHandler(tunnel),
 		},
 	}
 

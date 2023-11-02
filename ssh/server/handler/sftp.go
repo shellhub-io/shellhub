@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -42,45 +40,11 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 
 		defer sess.Finish() // nolint:errcheck
 
-		config := &gossh.ClientConfig{ // nolint: exhaustruct
-			User:            sess.Username,
-			HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint:gosec
-		}
+		config, err := session.NewClientConfiguration(ctx)
+		if err != nil {
+			writeError(sess, "Error while creating client configuration", err, err)
 
-		switch metadata.RestoreAuthenticationMethod(ctx) {
-		case metadata.PublicKeyAuthenticationMethod:
-			privateKey, err := api.CreatePrivateKey()
-			if err != nil {
-				writeError(sess, "Error while creating private key", err, ErrPrivateKey)
-
-				return
-			}
-
-			block, _ := pem.Decode(privateKey.Data)
-
-			parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-			if err != nil {
-				writeError(sess, "Error while parsing private key", err, ErrPublicKey)
-
-				return
-			}
-
-			signer, err := gossh.NewSignerFromKey(parsed)
-			if err != nil {
-				writeError(sess, "Error while creating signer from private key", err, ErrSigner)
-
-				return
-			}
-
-			config.Auth = []gossh.AuthMethod{
-				gossh.PublicKeys(signer),
-			}
-		case metadata.PasswordAuthenticationMethod:
-			password := metadata.RestorePassword(ctx)
-
-			config.Auth = []gossh.AuthMethod{
-				gossh.Password(password),
-			}
+			return
 		}
 
 		if err = connectSFTP(ctx, client, sess, api, config); err != nil {

@@ -3,8 +3,6 @@ package handler
 import (
 	"bytes"
 	"context"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -81,6 +79,13 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		}
 		defer sess.Finish() // nolint: errcheck
 
+		opts, err := envs.ParseWithPrefix[ConfigOptions]("")
+		if err != nil {
+			writeError(sess, "Error while parsing envs", err, ErrEnvs)
+
+			return
+		}
+
 		if wh := webhook.NewClient(); wh != nil {
 			res, err := wh.Connect(sess.Lookup)
 			if errors.Is(err, webhook.ErrForbidden) {
@@ -95,58 +100,16 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 			time.Sleep(time.Duration(res.Timeout) * time.Second)
 		}
+		ctx := client.Context()
 
-		opts, err := envs.ParseWithPrefix[ConfigOptions]("")
+		config, err := session.NewClientConfiguration(ctx)
 		if err != nil {
-			writeError(sess, "Error while parsing envs", err, ErrEnvs)
+			writeError(sess, "Error while creating client configuration", err, err)
 
 			return
 		}
 
-		config := &gossh.ClientConfig{ // nolint: exhaustruct
-			User:            sess.Username,
-			HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
-		}
-
-		ctx := client.Context()
 		api := metadata.RestoreAPI(ctx)
-
-		switch metadata.RestoreAuthenticationMethod(ctx) {
-		case metadata.PublicKeyAuthenticationMethod:
-			privateKey, err := api.CreatePrivateKey()
-			if err != nil {
-				writeError(sess, "Error while creating private key", err, ErrPrivateKey)
-
-				return
-			}
-
-			block, _ := pem.Decode(privateKey.Data)
-
-			parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-			if err != nil {
-				writeError(sess, "Error while parsing private key", err, ErrPublicKey)
-
-				return
-			}
-
-			signer, err := gossh.NewSignerFromKey(parsed)
-			if err != nil {
-				writeError(sess, "Error while creating signer from private key", err, ErrSigner)
-
-				return
-			}
-
-			config.Auth = []gossh.AuthMethod{
-				gossh.PublicKeys(signer),
-			}
-		case metadata.PasswordAuthenticationMethod:
-			password := metadata.RestorePassword(ctx)
-
-			config.Auth = []gossh.AuthMethod{
-				gossh.Password(password),
-			}
-		}
-
 		err = connectSSH(ctx, client, sess, config, api, *opts)
 		if err != nil {
 			writeError(sess, "Error during SSH connection", err, err)
@@ -177,7 +140,6 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 
 		return ErrSession
 	}
-
 	defer agent.Close()
 
 	go session.HandleRequests(ctx, reqs, api, ctx.Done())
