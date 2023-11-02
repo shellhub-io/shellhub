@@ -236,3 +236,54 @@ func (s *Session) Finish() error {
 
 	return nil
 }
+
+// NewClientConfiguration creates a [gossh.ClientConfig] with the default configuration required by ShellHub
+// to connect to the device agent that are inside the [gliderssh.Context].
+func NewClientConfiguration(ctx gliderssh.Context) (*gossh.ClientConfig, error) {
+	target := metadata.RestoreTarget(ctx)
+	if target == nil {
+		return nil, errors.New("failed to get the target from context")
+	}
+
+	config := &gossh.ClientConfig{
+		User:            target.Username,
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
+	}
+
+	api := metadata.RestoreAPI(ctx)
+	if api == nil {
+		return nil, errors.New("failed to get the API from context")
+	}
+
+	switch metadata.RestoreAuthenticationMethod(ctx) {
+	case metadata.PublicKeyAuthenticationMethod:
+		privateKey, err := api.CreatePrivateKey()
+		if err != nil {
+			return nil, err
+		}
+
+		block, _ := pem.Decode(privateKey.Data)
+
+		parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+
+		signer, err := gossh.NewSignerFromKey(parsed)
+		if err != nil {
+			return nil, err
+		}
+
+		config.Auth = []gossh.AuthMethod{
+			gossh.PublicKeys(signer),
+		}
+	case metadata.PasswordAuthenticationMethod:
+		password := metadata.RestorePassword(ctx)
+
+		config.Auth = []gossh.AuthMethod{
+			gossh.Password(password),
+		}
+	}
+
+	return config, nil
+}
