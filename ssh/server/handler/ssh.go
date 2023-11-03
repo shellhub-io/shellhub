@@ -53,6 +53,7 @@ var (
 	ErrTarget             = fmt.Errorf("failed to get client target")
 	ErrAuthentication     = fmt.Errorf("failed to authenticate to device")
 	ErrEnvs               = fmt.Errorf("failed to parse server envs")
+	ErrConfiguration      = fmt.Errorf("failed to create communication configuration")
 )
 
 type ConfigOptions struct {
@@ -104,7 +105,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 
 		config, err := session.NewClientConfiguration(ctx)
 		if err != nil {
-			writeError(sess, "Error while creating client configuration", err, err)
+			writeError(sess, "Error while creating client configuration", err, ErrConfiguration)
 
 			return
 		}

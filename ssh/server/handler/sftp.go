@@ -42,7 +42,7 @@ func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler 
 
 		config, err := session.NewClientConfiguration(ctx)
 		if err != nil {
-			writeError(sess, "Error while creating client configuration", err, err)
+			writeError(sess, "Error while creating client configuration", err, ErrConfiguration)
 
 			return
 		}
