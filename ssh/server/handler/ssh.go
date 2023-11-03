@@ -294,7 +294,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 		buffer := make([]byte, 1024)
 		for {
 			read, err := flw.Stdout.Read(buffer)
-			if err != nil && err != io.EOF {
+			if err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
 					Warning("failed to read from stdout in pty client")
