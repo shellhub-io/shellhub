@@ -257,6 +257,14 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 		buffer := make([]byte, 1024)
 		for {
 			read, err := flw.Stdout.Read(buffer)
+			// The occurrence of io.EOF is expected when the connection ends.
+			// This indicates that we have reached the end of the input stream, and we need
+			// to break out of the loop to handle the termination of the connection
+			if err == io.EOF {
+				break
+			}
+			// Unlike io.EOF, when 'err' is simply not nil, it signifies an unexpected error,
+			// and we need to log to handle it appropriately.
 			if err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
