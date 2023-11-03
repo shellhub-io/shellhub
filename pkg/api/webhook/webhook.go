@@ -36,7 +36,7 @@ type Options struct {
 func NewClient() Webhook {
 	httpClient := resty.New()
 	httpClient.SetRetryCount(3)
-	opts, err := envs.ParseWithPrefix[Options]("")
+	opts, err := envs.Parse[Options]()
 	if err != nil {
 		return nil
 	}

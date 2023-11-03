@@ -80,7 +80,7 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 		}
 		defer sess.Finish() // nolint: errcheck
 
-		opts, err := envs.ParseWithPrefix[ConfigOptions]("")
+		opts, err := envs.Parse[ConfigOptions]()
 		if err != nil {
 			writeError(sess, "Error while parsing envs", err, ErrEnvs)
 
