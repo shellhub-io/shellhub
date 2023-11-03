@@ -22,6 +22,7 @@ import (
 
 func init() {
 	loglevel.SetLogLevel()
+	log.SetFormatter(&log.JSONFormatter{})
 }
 
 func main() {
