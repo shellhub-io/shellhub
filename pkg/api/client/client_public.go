@@ -48,7 +48,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 				"tenant_id":   req.TenantID,
 				"identity":    identity(req.Identity.MAC, req.Hostname),
 				"status_code": r.StatusCode(),
-			}).Debug("failed to authenticate device")
+			}).Warn("failed to authenticate device")
 
 			return r.IsError()
 		}).
