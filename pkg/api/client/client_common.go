@@ -7,15 +7,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"regexp"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	DeviceUIDHeader = "X-Device-UID"
 )
 
 // NewClient creates a new ShellHub HTTP client.
@@ -90,9 +85,4 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 	}
 
 	return device, nil
-}
-
-// parseToWS gets a HTTP URI and change its values to meet the WebSocket format.
-func parseToWS(uri string) string {
-	return regexp.MustCompile(`^http`).ReplaceAllString(uri, "ws")
 }

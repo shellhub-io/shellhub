@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
@@ -13,12 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	apiHost   = "ssh.shellhub.io"
-	apiPort   = 80
-	apiScheme = "https"
 )
 
 func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
@@ -134,16 +127,4 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 	}
 
 	return res, nil
-}
-
-func tunnelDial(ctx context.Context, protocol, address string, path string) (*websocket.Conn, *http.Response, error) {
-	getPortFromProtocol := func(protocol string) int {
-		if protocol == "wss" {
-			return 443
-		}
-
-		return 80
-	}
-
-	return websocket.DefaultDialer.DialContext(ctx, strings.Join([]string{fmt.Sprintf("%s://%s:%d", protocol, address, getPortFromProtocol(protocol)), path}, ""), nil)
 }
