@@ -191,6 +191,11 @@ func NewAgentWithConfig(config *Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "failed to parse address")
 	}
 
+	cli, err := client.NewClient(config.ServerAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	if config.TenantID == "" {
 		return nil, errors.New("tenantID is empty")
 	}
@@ -202,7 +207,7 @@ func NewAgentWithConfig(config *Config) (*Agent, error) {
 	a := &Agent{
 		config:        config,
 		serverAddress: serverAddress,
-		cli:           client.NewClient(client.WithURL(serverAddress)),
+		cli:           cli,
 		listening:     make(chan bool),
 	}
 
