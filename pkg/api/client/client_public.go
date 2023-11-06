@@ -30,7 +30,7 @@ type publicAPI interface {
 	GetInfo(agentVersion string) (*models.Info, error)
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
-	NewReverseListener(token string) (*revdial.Listener, error)
+	NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 }
 
@@ -103,87 +103,31 @@ func (c *client) Endpoints() (*models.Endpoints, error) {
 	return endpoints, nil
 }
 
-// Dial creates a websocket connection to ShellHub's SSH server.
-//
-// It receivees the endpoint to connect and the necessary headers for authentication on the server. If the server
-// redirect the connection with status [http.StatusTemporaryRedirect] or [http.StatusPermanentRedirect], the Dial method
-// will follow. Any other response from the server will result in an error as result of this function.
-func Dial(url string, header http.Header) (*websocket.Conn, *http.Response, error) {
-	conn, res, err := websocket.DefaultDialer.Dial(url, header)
-	if err != nil {
-		if res == nil {
-			return nil, nil, err
-		}
-
-		switch res.StatusCode {
-		case http.StatusTemporaryRedirect, http.StatusPermanentRedirect:
-			log.WithFields(log.Fields{
-				"url":    url,
-				"status": res.StatusCode,
-			}).Info("Redirecting to the received URL")
-
-			location, err := res.Location()
-			if err != nil {
-				return nil, nil, err
-			}
-
-			return Dial(parseToWS(location.String()), header)
-		default:
-			return nil, nil, err
-		}
-	}
-
-	return conn, res, nil
-}
-
-func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
+func (c *client) NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error) {
 	var err error
 
 	req := c.http.R()
 	req.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
-
-	u, err := url.JoinPath(c.http.BaseURL, "/ssh/connection")
+	req.URL, err = url.JoinPath(c.http.BaseURL, "/ssh/connection")
 	if err != nil {
 		return nil, err
 	}
 
-	req.URL = parseToWS(u)
-
-	conn, res, err := Dial(req.URL, req.Header)
+	conn, _, err := DialContext(ctx, req.URL, req.Header)
 	if err != nil {
-		log.WithError(err).WithFields(
-			log.Fields{
-				"scheme":   c.scheme,
-				"server":   c.host,
-				"port":     c.port,
-				"path":     "/ssh/connection",
-				"response": res,
-				"url":      req.URL,
-			}).Error("Failed to dial to ShellHub SSH server")
-
 		return nil, err
 	}
 
-	listener := revdial.NewListener(wsconnadapter.New(conn),
+	return revdial.NewListener(wsconnadapter.New(conn),
 		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-			conn, r, err := tunnelDial(ctx, strings.Replace(res.Request.URL.Scheme, "http", "ws", 1), res.Request.URL.Hostname(), path)
+			req.URL, err = url.JoinPath(c.http.BaseURL, path)
 			if err != nil {
-				log.WithError(err).WithFields(
-					log.Fields{
-						"scheme":   c.scheme,
-						"server":   c.host,
-						"port":     c.port,
-						"path":     path,
-						"response": r,
-						"url":      res.Request.URL.String(),
-					}).Error("Failed to dial to ShellHub SSH server through websocket")
+				return nil, nil, err
 			}
 
-			return conn, res, err
+			return DialContext(ctx, req.URL, nil)
 		},
-	)
-
-	return listener, nil
+	), nil
 }
 
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {

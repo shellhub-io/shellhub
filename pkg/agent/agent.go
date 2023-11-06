@@ -364,8 +364,8 @@ func (a *Agent) authorize() error {
 	return err
 }
 
-func (a *Agent) NewReverseListener() (*revdial.Listener, error) {
-	return a.cli.NewReverseListener(a.authData.Token)
+func (a *Agent) NewReverseListener(ctx context.Context) (*revdial.Listener, error) {
+	return a.cli.NewReverseListener(ctx, a.authData.Token)
 }
 
 func (a *Agent) Close() error {
@@ -524,7 +524,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			listener, err := a.NewReverseListener()
+			listener, err := a.NewReverseListener(ctx)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
