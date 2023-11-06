@@ -59,10 +59,10 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {
-	list := []models.Device{}
+	devices := make([]models.Device, 0)
 
 	response, err := c.http.R().
-		SetResult(&list).
+		SetResult(&devices).
 		Get("/api/devices")
 	if err != nil {
 		return nil, err
@@ -72,11 +72,12 @@ func (c *client) ListDevices() ([]models.Device, error) {
 		return nil, err
 	}
 
-	return list, nil
+	return devices, nil
 }
 
 func (c *client) GetDevice(uid string) (*models.Device, error) {
 	var device *models.Device
+
 	response, err := c.http.R().
 		SetResult(&device).
 		Get(fmt.Sprintf("/api/devices/%s", uid))
