@@ -26,7 +26,7 @@ func WithURL(u *url.URL) Opt {
 				c.port = 443
 			} else {
 				// use default port
-				c.port = apiPort
+				c.port = 80
 			}
 		}
 
