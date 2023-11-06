@@ -19,12 +19,6 @@ const (
 	DeviceUIDHeader = "X-Device-UID"
 )
 
-var (
-	ErrConnectionFailed = errors.New("connection failed")
-	ErrNotFound         = errors.New("not found")
-	ErrUnknown          = errors.New("unknown error")
-)
-
 // NewClient creates a new ShellHub HTTP client.
 //
 // Server address must contain the scheme, the host and the port. For instance: `https://cloud.shellhub.io:443/`.
@@ -80,10 +74,15 @@ type client struct {
 
 func (c *client) ListDevices() ([]models.Device, error) {
 	list := []models.Device{}
-	_, err := c.http.R().
+
+	response, err := c.http.R().
 		SetResult(&list).
 		Get("/api/devices")
 	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
 		return nil, err
 	}
 
@@ -92,21 +91,18 @@ func (c *client) ListDevices() ([]models.Device, error) {
 
 func (c *client) GetDevice(uid string) (*models.Device, error) {
 	var device *models.Device
-	resp, err := c.http.R().
+	response, err := c.http.R().
 		SetResult(&device).
 		Get(fmt.Sprintf("/api/devices/%s", uid))
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}
 
-	switch resp.StatusCode() {
-	case 400:
-		return nil, ErrNotFound
-	case 200:
-		return device, nil
-	default:
-		return nil, ErrUnknown
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
 	}
+
+	return device, nil
 }
 
 // parseToWS gets a HTTP URI and change its values to meet the WebSocket format.

@@ -37,10 +37,14 @@ type publicAPI interface {
 func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	var info *models.Info
 
-	_, err := c.http.R().
+	response, err := c.http.R().
 		SetResult(&info).
 		Get("/info?agent_version=" + agentVersion)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
 		return nil, err
 	}
 
@@ -49,7 +53,8 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 
 func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error) {
 	var res *models.DeviceAuthResponse
-	_, err := c.http.R().
+
+	response, err := c.http.R().
 		AddRetryCondition(func(r *resty.Response, err error) bool {
 			identity := func(mac, hostname string) string {
 				if mac != "" {
@@ -74,15 +79,24 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 		return nil, err
 	}
 
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
+	}
+
 	return res, nil
 }
 
 func (c *client) Endpoints() (*models.Endpoints, error) {
 	var endpoints *models.Endpoints
-	_, err := c.http.R().
+
+	response, err := c.http.R().
 		SetResult(&endpoints).
 		Get("/endpoints")
 	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
 		return nil, err
 	}
 
@@ -174,12 +188,17 @@ func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
 
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {
 	var res *models.PublicKeyAuthResponse
-	_, err := c.http.R().
+
+	response, err := c.http.R().
 		SetBody(req).
 		SetResult(&res).
 		SetAuthToken(token).
 		Post("/api/auth/ssh")
 	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
 		return nil, err
 	}
 
