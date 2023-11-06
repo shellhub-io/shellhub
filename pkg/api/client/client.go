@@ -22,6 +22,7 @@ type publicAPI interface {
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 }
 
+//go:generate mockery --name=Client --filename=client.go
 type Client interface {
 	commonAPI
 	publicAPI
