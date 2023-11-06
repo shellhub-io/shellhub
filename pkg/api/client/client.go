@@ -12,6 +12,7 @@ import (
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -24,36 +25,44 @@ var (
 	ErrUnknown          = errors.New("unknown error")
 )
 
-func NewClient(opts ...Opt) Client {
-	httpClient := resty.New()
-	httpClient.SetRetryCount(math.MaxInt32)
-	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
+// NewClient creates a new ShellHub HTTP client.
+//
+// Server address must contain the scheme, the host and the port. For instance: `https://cloud.shellhub.io:443/`.
+func NewClient(address string, opts ...Opt) (Client, error) {
+	uri, err := url.Parse(address)
+	if err != nil {
+		return nil, errors.Join(fmt.Errorf("could not parse the address to the required format"), err)
+	}
+
+	client := new(client)
+	client.http = resty.New()
+	client.http.SetRetryCount(math.MaxInt32)
+	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())
+	client.http.SetBaseURL(uri.String())
+	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok {
 			return true
 		}
 
+		log.WithFields(log.Fields{
+			"status_code": r.StatusCode(),
+			"url":         r.Request.URL,
+		}).Warn("failed to achieve the server")
+
 		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
 	})
-	httpClient.SetRedirectPolicy(SameDomainRedirectPolicy())
 
-	c := &client{
-		host:   apiHost,
-		port:   apiPort,
-		scheme: apiScheme,
-		http:   httpClient,
+	if client.logger != nil {
+		client.http.SetLogger(&LeveledLogger{client.logger})
 	}
 
 	for _, opt := range opts {
-		if err := opt(c); err != nil {
-			return nil
+		if err := opt(client); err != nil {
+			return nil, err
 		}
 	}
 
-	if c.logger != nil {
-		httpClient.SetLogger(&LeveledLogger{c.logger})
-	}
-
-	return c
+	return client, nil
 }
 
 type commonAPI interface {
@@ -73,7 +82,7 @@ func (c *client) ListDevices() ([]models.Device, error) {
 	list := []models.Device{}
 	_, err := c.http.R().
 		SetResult(&list).
-		Get(buildURL(c, "/api/devices"))
+		Get("/api/devices")
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +94,7 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 	var device *models.Device
 	resp, err := c.http.R().
 		SetResult(&device).
-		Get(buildURL(c, fmt.Sprintf("/api/devices/%s", uid)))
+		Get(fmt.Sprintf("/api/devices/%s", uid))
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}
@@ -98,12 +107,6 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 	default:
 		return nil, ErrUnknown
 	}
-}
-
-func buildURL(c *client, uri string) string {
-	u, _ := url.Parse(fmt.Sprintf("%s://%s:%d%s", c.scheme, c.host, c.port, uri))
-
-	return u.String()
 }
 
 // parseToWS gets a HTTP URI and change its values to meet the WebSocket format.

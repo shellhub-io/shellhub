@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	resty "github.com/go-resty/resty/v2"
@@ -38,7 +39,7 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 
 	_, err := c.http.R().
 		SetResult(&info).
-		Get(buildURL(c, "/info?agent_version="+agentVersion))
+		Get("/info?agent_version=" + agentVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 		}).
 		SetBody(req).
 		SetResult(&res).
-		Post(buildURL(c, "/api/devices/auth"))
+		Post("/api/devices/auth")
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ func (c *client) Endpoints() (*models.Endpoints, error) {
 	var endpoints *models.Endpoints
 	_, err := c.http.R().
 		SetResult(&endpoints).
-		Get(buildURL(c, "/endpoints"))
+		Get("/endpoints")
 	if err != nil {
 		return nil, err
 	}
@@ -122,9 +123,17 @@ func Dial(url string, header http.Header) (*websocket.Conn, *http.Response, erro
 }
 
 func (c *client) NewReverseListener(token string) (*revdial.Listener, error) {
+	var err error
+
 	req := c.http.R()
 	req.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.URL = parseToWS(buildURL(c, "/ssh/connection"))
+
+	u, err := url.JoinPath(c.http.BaseURL, "/ssh/connection")
+	if err != nil {
+		return nil, err
+	}
+
+	req.URL = parseToWS(u)
 
 	conn, res, err := Dial(req.URL, req.Header)
 	if err != nil {
@@ -169,7 +178,7 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 		SetBody(req).
 		SetResult(&res).
 		SetAuthToken(token).
-		Post(buildURL(c, "/api/auth/ssh"))
+		Post("/api/auth/ssh")
 	if err != nil {
 		return nil, err
 	}
