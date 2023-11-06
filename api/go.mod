@@ -15,7 +15,7 @@ require (
 	github.com/shellhub-io/mongotest v0.0.0-20230928124937-e33b07010742
 	github.com/shellhub-io/shellhub v0.5.2
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/square/mongo-lock v0.0.0-20201208161834-4db518ed7fb2
 	github.com/stretchr/testify v1.8.4
 	github.com/undefinedlabs/go-mpatch v1.0.7
