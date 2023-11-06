@@ -11,7 +11,6 @@ import (
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -57,19 +56,6 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	}
 
 	return client, nil
-}
-
-type commonAPI interface {
-	ListDevices() ([]models.Device, error)
-	GetDevice(uid string) (*models.Device, error)
-}
-
-type client struct {
-	scheme string
-	host   string
-	port   int
-	http   *resty.Client
-	logger *logrus.Logger
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {

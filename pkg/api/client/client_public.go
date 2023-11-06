@@ -21,19 +21,6 @@ const (
 	apiScheme = "https"
 )
 
-type Client interface {
-	commonAPI
-	publicAPI
-}
-
-type publicAPI interface {
-	GetInfo(agentVersion string) (*models.Info, error)
-	Endpoints() (*models.Endpoints, error)
-	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
-	NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error)
-	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
-}
-
 func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	var info *models.Info
 
