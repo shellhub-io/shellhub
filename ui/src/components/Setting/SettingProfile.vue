@@ -3,7 +3,7 @@
     <v-row align="center" justify="center" class="mt-4">
       <v-col sm="8">
         <v-row>
-          <v-col>
+          <v-col data-test="account-header">
             <h3>Account</h3>
           </v-col>
 
@@ -13,17 +13,18 @@
             <v-btn
               v-if="!editDataStatus"
               color="primary"
+              data-test="change-data-btn"
               @click="editDataStatus = !editDataStatus"
             >
               Change Data
             </v-btn>
 
             <div v-if="editDataStatus" class="d-flex align-center">
-              <v-btn class="mr-2" color="primary" @click="cancel('data')">
+              <v-btn data-test="cancel-btn" class="mr-2" color="primary" @click="cancel('data')">
                 Cancel
               </v-btn>
 
-              <v-btn color="primary" @click="updateUserData"> Save </v-btn>
+              <v-btn data-test="update-user-btn" color="primary" @click="updateUserData"> Save </v-btn>
             </div>
           </v-col>
         </v-row>
@@ -64,7 +65,7 @@
         <v-divider class="mb-6" />
 
         <v-row>
-          <v-col>
+          <v-col data-test="password-header">
             <h3>Password</h3>
           </v-col>
 
@@ -75,17 +76,19 @@
               v-if="!editPasswordStatus"
               color="primary"
               @click="editPasswordStatus = !editPasswordStatus"
+              data-test="change-password-btn"
             >
               Change Password
             </v-btn>
 
             <div v-if="editPasswordStatus" class="d-flex align-center">
-              <v-btn class="mr-2" color="primary" @click="cancel('password')">
+              <v-btn data-test="cancel-password-btn" class="mr-2" color="primary" @click="cancel('password')">
                 Cancel
               </v-btn>
 
               <v-btn
                 color="primary"
+                data-test="update-password-btn"
                 @click="updatePassword"
                 :disabled="hasUpdatePasswordError"
               > Save </v-btn>
@@ -141,9 +144,9 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { defineComponent, ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
@@ -151,225 +154,197 @@ import { useStore } from "../../store";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const editDataStatus = ref(false);
-    const editPasswordStatus = ref(false);
-    const show = ref(false);
-    const showCurrentPassword = ref(false);
-    const showNewPassword = ref(false);
-    const showConfirmPassword = ref(false);
+const store = useStore();
+const editDataStatus = ref(false);
+const editPasswordStatus = ref(false);
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 
-    const {
-      value: name,
-      errorMessage: nameError,
-      setErrors: setNameError,
-    } = useField<string>("name", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: name,
+  errorMessage: nameError,
+  setErrors: setNameError,
+} = useField<string>("name", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: username,
-      errorMessage: usernameError,
-      setErrors: setUsernameError,
-    } = useField<string>("username", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: username,
+  errorMessage: usernameError,
+  setErrors: setUsernameError,
+} = useField<string>("username", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: email,
-      errorMessage: emailError,
-      setErrors: setEmailError,
-    } = useField<string>("email", yup.string().email().required(), {
-      initialValue: "",
-    });
+const {
+  value: email,
+  errorMessage: emailError,
+  setErrors: setEmailError,
+} = useField<string>("email", yup.string().email().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: currentPassword,
-      errorMessage: currentPasswordError,
-      resetField: resetCurrentPassword,
-    } = useField<string>("currentPassword", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: currentPassword,
+  errorMessage: currentPasswordError,
+  resetField: resetCurrentPassword,
+} = useField<string>("currentPassword", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: newPassword,
-      errorMessage: newPasswordError,
-      setErrors: setNewPasswordError,
-      resetField: resetNewPassword,
-    } = useField<string>(
-      "newPassword",
-      yup.string().required().min(5).max(30),
-      {
-        initialValue: "",
-      },
-    );
+const {
+  value: newPassword,
+  errorMessage: newPasswordError,
+  setErrors: setNewPasswordError,
+  resetField: resetNewPassword,
+} = useField<string>(
+  "newPassword",
+  yup.string().required().min(5).max(30),
+  {
+    initialValue: "",
+  },
+);
 
-    const {
-      value: newPasswordConfirm,
-      errorMessage: newPasswordConfirmError,
-      setErrors: setNewPasswordConfirmError,
-      resetField: resetNewPasswordConfirm,
-    } = useField<string>(
-      "newPasswordConfirm",
-      yup
-        .string()
-        .required()
-        .test(
-          "passwords-match",
-          "Passwords do not match",
-          (value) => newPassword.value === value,
-        ),
-      {
-        initialValue: "",
-      },
-    );
+const {
+  value: newPasswordConfirm,
+  errorMessage: newPasswordConfirmError,
+  setErrors: setNewPasswordConfirmError,
+  resetField: resetNewPasswordConfirm,
+} = useField<string>(
+  "newPasswordConfirm",
+  yup
+    .string()
+    .required()
+    .test(
+      "passwords-match",
+      "Passwords do not match",
+      (value) => newPassword.value === value,
+    ),
+  {
+    initialValue: "",
+  },
+);
 
-    const setUserData = () => {
-      name.value = store.getters["auth/currentName"];
-      username.value = store.getters["auth/currentUser"];
-      email.value = store.getters["auth/email"];
+const setUserData = () => {
+  name.value = store.getters["auth/currentName"];
+  username.value = store.getters["auth/currentUser"];
+  email.value = store.getters["auth/email"];
+};
+
+onMounted(() => {
+  setUserData();
+});
+
+const hasUserDataError = computed(() => nameError.value || usernameError.value || emailError.value);
+
+const enableEdit = (form: string) => {
+  if (form === "data") {
+    editDataStatus.value = !editDataStatus.value;
+  } else if (form === "password") {
+    editPasswordStatus.value = !editPasswordStatus.value;
+  }
+};
+
+const updateUserData = async () => {
+  if (!hasUserDataError.value) {
+    const data = {
+      id: store.getters["auth/id"],
+      name: name.value,
+      username: username.value,
+      email: email.value,
     };
 
-    onMounted(() => {
-      setUserData();
-    });
-
-    const hasUserDataError = computed(() => nameError.value || usernameError.value || emailError.value);
-
-    const enableEdit = (form: string) => {
-      if (form === "data") {
-        editDataStatus.value = !editDataStatus.value;
-      } else if (form === "password") {
-        editPasswordStatus.value = !editPasswordStatus.value;
+    try {
+      await store.dispatch("users/patchData", data);
+      store.dispatch("auth/changeUserData", data);
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.profileData,
+      );
+      enableEdit("data");
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      switch (axios.isAxiosError(error)) {
+        case axiosError.response?.status === 409:
+          // @ts-expect-error axiosError.response.data is an array
+          axiosError.response.data.forEach((field: string) => {
+            if (field === "username") setUsernameError("This username already exists");
+            else if (field === "name") setNameError("This name already exists");
+            else if (field === "email") setEmailError("This email already exists");
+          });
+          break;
+        case axiosError.response?.status === 400:
+          // @ts-expect-error axiosError.response.data is an array
+          axiosError.response.data.forEach((field: string) => {
+            if (field === "username") setUsernameError("This username is invalid !");
+            else if (field === "name") setNameError("This name is invalid !");
+            else if (field === "email") setEmailError("This email is invalid !");
+          });
+          break;
+        default:
+          store.dispatch("snackbar/showSnackbarErrorDefault");
+          handleError(error);
+          break;
       }
-    };
+    }
+  }
+};
 
-    const updateUserData = async () => {
-      if (!hasUserDataError.value) {
-        const data = {
-          id: store.getters["auth/id"],
-          name: name.value,
-          username: username.value,
-          email: email.value,
-        };
-
-        try {
-          await store.dispatch("users/patchData", data);
-          store.dispatch("auth/changeUserData", data);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.profileData,
-          );
-          enableEdit("data");
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            if (axiosError.response?.status === 409) {
-              // @ts-expect-error axiosError.response.data is an array
-              axiosError.response.data.forEach((field: string) => {
-                if (field === "username") setUsernameError("This username already exists");
-                else if (field === "name") setNameError("This name already exists");
-                else if (field === "email") setEmailError("This email already exists");
-              });
-            } else if (axiosError.response?.status === 400) {
-              // @ts-expect-error axiosError.response.data is an array
-              axiosError.response.data.forEach((field: string) => {
-                if (field === "username") setUsernameError("This username is invalid !");
-                else if (field === "name") setNameError("This name is invalid !");
-                else if (field === "email") setEmailError("This email is invalid !");
-              });
-            }
-          } else {
-            store.dispatch("snackbar/showSnackbarErrorDefault");
-            handleError(error);
-          }
-        }
-      }
-    };
-
-    const hasUpdatePasswordError = computed(() => (
-      Boolean(currentPasswordError.value)
+const hasUpdatePasswordError = computed(() => (
+  Boolean(currentPasswordError.value)
         || Boolean(newPasswordError.value)
         || Boolean(newPasswordConfirmError.value)
         || newPassword.value === ""
         || newPasswordConfirm.value === ""
         || currentPassword.value === ""
-    ));
+));
 
-    const resetPasswordFields = () => {
-      resetCurrentPassword();
-      resetNewPassword();
-      resetNewPasswordConfirm();
+const resetPasswordFields = () => {
+  resetCurrentPassword();
+  resetNewPassword();
+  resetNewPasswordConfirm();
+};
+
+const updatePassword = async () => {
+  if (!hasUpdatePasswordError.value) {
+    const data = {
+      id: store.getters["auth/id"],
+      currentPassword: currentPassword.value,
+      newPassword: newPassword.value,
     };
 
-    const updatePassword = async () => {
-      if (!hasUpdatePasswordError.value) {
-        const data = {
-          id: store.getters["auth/id"],
-          currentPassword: currentPassword.value,
-          newPassword: newPassword.value,
-        };
-
-        try {
-          await store.dispatch("users/patchPassword", data);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.profilePassword,
-          );
-          enableEdit("password");
-          resetPasswordFields();
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            if (axiosError.response?.status === 403) {
-              // failed password
-              setNewPasswordError("Your password doesn't match");
-              setNewPasswordConfirmError("Your password doesn't match");
-            }
-          } else {
-            store.dispatch("snackbar/showSnackbarErrorDefault");
-            handleError(error);
-          }
+    try {
+      await store.dispatch("users/patchPassword", data);
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.profilePassword,
+      );
+      enableEdit("password");
+      resetPasswordFields();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 403) {
+          // failed password
+          setNewPasswordError("Your password doesn't match");
+          setNewPasswordConfirmError("Your password doesn't match");
         }
+      } else {
+        store.dispatch("snackbar/showSnackbarErrorDefault");
+        handleError(error);
       }
-    };
+    }
+  }
+};
 
-    const cancel = (type: string) => {
-      if (type === "data") {
-        setUserData();
-        editDataStatus.value = !editDataStatus.value;
-      } else if (type === "password") {
-        resetPasswordFields();
-        editPasswordStatus.value = !editPasswordStatus.value;
-      }
-    };
-
-    return {
-      editDataStatus,
-      name,
-      nameError,
-      username,
-      usernameError,
-      email,
-      emailError,
-      editPasswordStatus,
-      currentPassword,
-      currentPasswordError,
-      newPassword,
-      newPasswordError,
-      newPasswordConfirm,
-      newPasswordConfirmError,
-      show,
-      showCurrentPassword,
-      showNewPassword,
-      showConfirmPassword,
-      hasUpdatePasswordError,
-      updateUserData,
-      updatePassword,
-      cancel,
-    };
-  },
-});
+const cancel = (type: string) => {
+  if (type === "data") {
+    setUserData();
+    editDataStatus.value = !editDataStatus.value;
+  } else if (type === "password") {
+    resetPasswordFields();
+    editPasswordStatus.value = !editPasswordStatus.value;
+  }
+};
 </script>

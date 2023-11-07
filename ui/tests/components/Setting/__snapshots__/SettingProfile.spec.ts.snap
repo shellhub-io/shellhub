@@ -1,0 +1,306 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Settings Namespace > Renders the component 1`] = `
+"<div class=\\"v-container v-locale--is-ltr\\">
+  <div class=\\"v-row align-center justify-center mt-4\\">
+    <div class=\\"v-col-sm-8 v-col\\">
+      <div class=\\"v-row\\">
+        <div class=\\"v-col\\" data-test=\\"account-header\\">
+          <h3>Account</h3>
+        </div>
+        <div class=\\"v-spacer\\"></div>
+        <div class=\\"v-col-md-auto v-col ml-auto\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"change-data-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Change Data </span>
+            <!---->
+            <!---->
+          </button>
+          <!--v-if-->
+        </div>
+      </div>
+      <div class=\\"mt-4 pl-4 pr-4\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-input--disabled v-text-field v-text-field--plain-underlined\\" data-test=\\"name-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
+                  <!---->Name
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-1\\" aria-describedby=\\"input-1-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-1\\">
+                  <!---->Name
+                </label>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-1-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-input--disabled v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\">
+                  <!---->Username
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-3\\" aria-describedby=\\"input-3-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-3\\">
+                  <!---->Username
+                </label>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-3-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-input--disabled v-text-field v-text-field--plain-underlined\\" data-test=\\"email-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\">
+                  <!---->Email
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-5\\" aria-describedby=\\"input-5-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-5\\">
+                  <!---->Email
+                </label>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-5-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
+      </div>
+      <hr class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <hr class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <div class=\\"v-row\\">
+        <div class=\\"v-col\\" data-test=\\"password-header\\">
+          <h3>Password</h3>
+        </div>
+        <div class=\\"v-spacer\\"></div>
+        <div class=\\"v-col-md-auto v-col ml-auto\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"change-password-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Change Password </span>
+            <!---->
+            <!---->
+          </button>
+          <!--v-if-->
+        </div>
+      </div>
+      <div class=\\"mt-4 pl-4 pr-4\\">
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-text-field v-text-field--plain-underlined mb-4\\" data-test=\\"password-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
+                  <!---->Current password
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-8\\">
+                  <!---->Current password
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class=\\"v-input__append\\"><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Current password appended action\\"></i>
+            <!---->
+          </div>
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-8-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-text-field v-text-field--plain-underlined mb-4\\" data-test=\\"newPassword-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-10\\">
+                  <!---->New password
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-10\\" aria-describedby=\\"input-10-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-10\\">
+                  <!---->New password
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class=\\"v-input__append\\"><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"New password appended action\\"></i>
+            <!---->
+          </div>
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-10-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
+        <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-text-field v-text-field--plain-underlined mb-4\\" data-test=\\"confirmNewPassword-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-12\\">
+                  <!---->Confirm new password
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-12\\" aria-describedby=\\"input-12-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-12\\">
+                  <!---->Confirm new password
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class=\\"v-input__append\\"><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Confirm new password appended action\\"></i>
+            <!---->
+          </div>
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-12-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
