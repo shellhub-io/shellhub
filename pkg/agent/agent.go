@@ -144,28 +144,6 @@ type Config struct {
 	Mode Mode `env:"MODE,default=host"`
 }
 
-// ConfigConnector provides the configuration for the agent connector service.
-type ConfigConnector struct {
-	// Set the ShellHub server address the agent will use to connect.
-	// This is required.
-	ServerAddress string `env:"SERVER_ADDRESS,required"`
-
-	// Specify the path to store the devices/containers private keys.
-	// If not provided, the agent will generate a new one.
-	// This is required.
-	PrivateKeys string `env:"PRIVATE_KEYS,required"`
-
-	// Sets the account tenant id used during communication to associate the
-	// devices to a specific tenant.
-	// This is required.
-	TenantID string `env:"TENANT_ID,required"`
-
-	// Determine the interval to send the keep alive message to the server. This
-	// has a direct impact of the bandwidth used by the device when in idle
-	// state. Default is 30 seconds.
-	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,default=30"`
-}
-
 type Agent struct {
 	config        *Config
 	pubKey        *rsa.PublicKey

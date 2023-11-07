@@ -4,12 +4,33 @@ import (
 	"path"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+// Config provides the configuration for the agent connector service.
+type Config struct {
+	// Set the ShellHub server address the agent will use to connect.
+	// This is required.
+	ServerAddress string `env:"SERVER_ADDRESS,required"`
+
+	// Specify the path to store the devices/containers private keys.
+	// If not provided, the agent will generate a new one.
+	// This is required.
+	PrivateKeys string `env:"PRIVATE_KEYS,required"`
+
+	// Sets the account tenant id used during communication to associate the
+	// devices to a specific tenant.
+	// This is required.
+	TenantID string `env:"TENANT_ID,required"`
+
+	// Determine the interval to send the keep alive message to the server. This
+	// has a direct impact of the bandwidth used by the device when in idle
+	// state. Default is 30 seconds.
+	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,default=30"`
+}
 
 // ConnectorVersion store the version to be embed inside the binary. This is
 // injected using `-ldflags` build option (e.g: `go build -ldflags "-X
@@ -22,7 +43,7 @@ func main() {
 		Short: "Starts the Docker Connector",
 		Long:  "Starts the Docker Connector, a service what turns all containers in a docker engine into a ShelHub device",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg, err := envs.ParseWithPrefix[agent.ConfigConnector]("SHELLHUB_")
+			cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
 			if err != nil {
 				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
 				log.Fatal(err)
