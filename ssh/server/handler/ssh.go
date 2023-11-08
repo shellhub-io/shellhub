@@ -3,15 +3,12 @@ package handler
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/webhook"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -87,20 +84,6 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 			return
 		}
 
-		if wh := webhook.NewClient(); wh != nil {
-			res, err := wh.Connect(sess.Lookup)
-			if errors.Is(err, webhook.ErrForbidden) {
-				writeError(sess, "Error while trying to connect to webhook", err, ErrWebhook)
-
-				return
-			}
-
-			if sess.Pty {
-				client.Write([]byte(fmt.Sprintf("Wait %d seconds while the agent starts\n", res.Timeout))) // nolint:errcheck
-			}
-
-			time.Sleep(time.Duration(res.Timeout) * time.Second)
-		}
 		ctx := client.Context()
 
 		config, err := session.NewClientConfiguration(ctx)
