@@ -25,7 +25,6 @@ var (
 	ErrRequestExec        = fmt.Errorf("failed to exec the command in the device")
 	ErrRequestHeredoc     = fmt.Errorf("failed to exec the command as heredoc in the device")
 	ErrRequestUnsupported = fmt.Errorf("failed to get the request type")
-	ErrWebhook            = fmt.Errorf("failed to accept a request at webhook")
 	ErrPublicKey          = fmt.Errorf("failed to get the parsed public key")
 	ErrPrivateKey         = fmt.Errorf("failed to get a key data from the server")
 	ErrSigner             = fmt.Errorf("failed to create a signer from the private key")
