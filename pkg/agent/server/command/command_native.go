@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	log "github.com/sirupsen/logrus"
 )
 
 func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
@@ -34,7 +35,14 @@ func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		"SHELL=" + shell,
 		"SHELLHUB_HOST=" + host,
 	}
-	cmd.Dir = u.HomeDir
+
+	if _, err := os.Stat(u.HomeDir); err != nil {
+		log.WithError(err).WithField("dir", u.HomeDir).Warn("setting user's home directory to /")
+
+		cmd.Dir = "/"
+	} else {
+		cmd.Dir = u.HomeDir
+	}
 
 	if os.Geteuid() == 0 {
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
