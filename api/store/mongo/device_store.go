@@ -37,11 +37,6 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		},
 	}
 
-	// Apply filters if any
-	if len(queryMatch) > 0 {
-		query = append(query, queryMatch...)
-	}
-
 	// Only match for the respective tenant if requested
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
@@ -108,6 +103,11 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 			"$unwind": "$namespace",
 		},
 	}...)
+
+	// Apply filters if any
+	if len(queryMatch) > 0 {
+		query = append(query, queryMatch...)
+	}
 
 	// To improve performance, we process the status filter after the count.
 	if status != "" {
