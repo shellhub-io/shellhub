@@ -1,6 +1,9 @@
 package workers
 
-import "github.com/shellhub-io/shellhub/pkg/envs"
+import (
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	log "github.com/sirupsen/logrus"
+)
 
 type Envs struct {
 	MongoURI                      string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
@@ -30,6 +33,8 @@ type Envs struct {
 func getEnvs() (*Envs, error) {
 	env, err := envs.ParseWithPrefix[Envs]("API_")
 	if err != nil {
+		log.WithError(err).Error("Failed to parse environment variables with prefix 'api'")
+
 		return nil, err
 	}
 

@@ -59,7 +59,7 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 
 			i, err := strconv.ParseInt(parts[1], 10, 64)
 			if err != nil {
-				log.Error(err)
+				log.WithError(err).Error("Failed to parse environment variables")
 
 				continue
 			}

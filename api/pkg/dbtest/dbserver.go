@@ -36,6 +36,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/dockerutils"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -78,15 +79,16 @@ func (dbs *DBServer) SetTimeout(timeout int) {
 
 func (dbs *DBServer) start() {
 	if dbs.server != nil {
-		panic("DBServer already started")
+		log.Panic("DBServer already started")
 	}
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		panic("unable to listen on a local address: " + err.Error())
+		log.WithError(err).Panic("unable to listen on a local address")
 	}
+
 	addr, ok := l.Addr().(*net.TCPAddr)
 	if !ok {
-		panic("Type assertion failed")
+		log.Panic("Type assertion failed")
 	}
 
 	l.Close()
@@ -97,7 +99,7 @@ func (dbs *DBServer) start() {
 	if dockerutils.IsRunningInDocker() {
 		containerID, err := dockerutils.CurrentContainerID()
 		if err != nil {
-			panic("failed to get current container id: " + err.Error())
+			log.Panic("failed to get current container id: " + err.Error())
 		}
 
 		if containerID != "" {
@@ -122,7 +124,8 @@ func (dbs *DBServer) start() {
 	if err != nil {
 		// print error to facilitate troubleshooting as the panic will be caught in a panic handler
 		fmt.Fprintf(os.Stderr, "mongod failed to start: %v\n", err)
-		panic(err)
+		log.WithError(err).Warning("mongod failed to start")
+		log.Panic(err)
 	}
 	dbs.tomb.Go(dbs.monitor)
 	dbs.Wipe()
@@ -130,25 +133,28 @@ func (dbs *DBServer) start() {
 
 func (dbs *DBServer) monitor() error {
 	if _, err := dbs.server.Process.Wait(); err != nil {
+		log.WithError(err).Warning("mongod container process wait error")
+
 		return err
 	}
 
 	if dbs.tomb.Alive() {
 		// Present some debugging information.
-		fmt.Fprintf(os.Stderr, "---- mongod container died unexpectedly:\n")
+		log.Error("---- mongod container died unexpectedly ----")
 		fmt.Fprintf(os.Stderr, "%s", dbs.output.Bytes())
-		fmt.Fprintf(os.Stderr, "---- mongod containers running right now:\n")
+		log.Error("---- mongod containers running right now ----")
 
 		cmd := exec.Command("/bin/sh", "-c", "docker ps --filter ancestor=mongo")
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
+			log.WithError(err).Warning("Failed to list running mongo containers")
+
 			return err
 		}
 
-		fmt.Fprintf(os.Stderr, "----------------------------------------\n")
-
-		panic("mongod container died unexpectedly")
+		log.Error("----------------------------------------")
+		log.Panic("mongod container died unexpectedly")
 	}
 
 	return nil
@@ -165,7 +171,7 @@ func (dbs *DBServer) monitor() error {
 func (dbs *DBServer) Stop() {
 	if dbs.client != nil {
 		if err := dbs.client.Disconnect(dbs.Ctx); err != nil {
-			panic("fail to disconnect the database")
+			log.Panic("fail to disconnect the database")
 		}
 
 		dbs.client = nil
@@ -177,18 +183,18 @@ func (dbs *DBServer) Stop() {
 		// Windows doesn't support Interrupt
 		if runtime.GOOS == "windows" {
 			if err := dbs.server.Process.Signal(os.Kill); err != nil {
-				panic("fail to send os.Kill to the server")
+				log.Panic("fail to send os.Kill to the server")
 			}
 		} else {
 			if err := dbs.server.Process.Signal(os.Interrupt); err != nil {
-				panic("fail to send os.Interrupt to the server")
+				log.Panic("fail to send os.Interrupt to the server")
 			}
 		}
 
 		select {
 		case <-dbs.tomb.Dead():
 		case <-time.After(5 * time.Second):
-			panic("timeout waiting for mongod process to die")
+			log.Panic("timeout waiting for mongod process to die")
 		}
 		dbs.server = nil
 	}
@@ -219,7 +225,7 @@ ticker:
 	for {
 		select {
 		case <-time.After(dbs.timeout):
-			panic("mongodb connection timeout")
+			log.Panic("mongodb connection timeout")
 		case <-ticker.C:
 			if _, err := net.Dial("tcp", dbs.Host); err != nil {
 				continue
@@ -242,7 +248,7 @@ ticker:
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", out)
-		panic(err)
+		log.Panic(err)
 	}
 
 	clientOptions := options.Client().ApplyURI("mongodb://" + dbs.Host + "/test")
@@ -250,15 +256,15 @@ ticker:
 
 	dbs.client, err = mongo.Connect(dbs.Ctx, clientOptions)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	if dbs.client == nil {
-		panic("cant connect")
+		log.Panic("cant connect")
 	}
 
 	// Verify that the server is accepting connections
 	if err := dbs.client.Ping(dbs.Ctx, nil); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return dbs.client
@@ -276,7 +282,7 @@ func (dbs *DBServer) Wipe() {
 	client := dbs.Client()
 	names, err := client.ListDatabaseNames(dbs.Ctx, bson.M{})
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for _, name := range names {
 		switch name {
@@ -284,7 +290,7 @@ func (dbs *DBServer) Wipe() {
 		default:
 			err = dbs.client.Database(name).Drop(dbs.Ctx)
 			if err != nil {
-				panic(err)
+				log.Panic(err)
 			}
 		}
 	}

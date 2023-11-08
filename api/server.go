@@ -110,8 +110,11 @@ func startSentry(dsn string) (*sentry.Client, error) {
 			TracesSampleRate: 1,
 		})
 		if err != nil {
+			log.WithError(err).Error("Failed to create Sentry client")
+
 			return nil, err
 		}
+		log.Info("Sentry client started")
 
 		return reporter, nil
 	}

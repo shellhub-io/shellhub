@@ -9,7 +9,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -56,12 +56,16 @@ func StartCleaner(_ context.Context, store store.Store) error {
 		if _, err := mongoStore.Database().Collection("recorded_sessions").DeleteMany(ctx,
 			bson.M{"time": bson.D{{"$lte", limit}}},
 		); err != nil {
+			log.WithError(err).Error("Failed to delete recorded sessions")
+
 			return err
 		}
 
 		if _, err := mongoStore.Database().Collection("sessions").UpdateMany(ctx,
 			bson.M{"started_at": bson.D{{"$lte", limit}}, "recorded": bson.M{"$eq": true}},
 			bson.M{"$set": bson.M{"recorded": false}}); err != nil {
+			log.WithError(err).Error("Failed to update sessions")
+
 			return err
 		}
 
@@ -70,7 +74,7 @@ func StartCleaner(_ context.Context, store store.Store) error {
 
 	go func() {
 		if err := srv.Run(mux); err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 	}()
 
@@ -79,7 +83,7 @@ func StartCleaner(_ context.Context, store store.Store) error {
 	// Schedule session_record:cleanup to run once a day
 	if _, err := scheduler.Register(envs.SessionRecordCleanupSchedule,
 		asynq.NewTask("session_record:cleanup", nil, asynq.TaskID("session_record:cleanup"))); err != nil {
-		logrus.Error(err)
+		log.Error(err)
 	}
 
 	return scheduler.Run() //nolint:contextcheck
