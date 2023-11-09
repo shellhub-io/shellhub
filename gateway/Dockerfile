@@ -1,10 +1,9 @@
-FROM openresty/openresty:1.21.4.2-alpine AS base
+FROM nginx:1.25.3-alpine AS base
 
 RUN ["rm", "/etc/nginx/conf.d/default.conf"]
 
 COPY --from=hairyhenderson/gomplate:v2.5.0-slim /gomplate /bin/gomplate
 
-RUN apk add --no-cache perl curl && opm get bungle/lua-resty-template
 RUN apk add inotify-tools
 RUN apk add certbot certbot-nginx
 
@@ -20,7 +19,7 @@ COPY ./gateway/entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
 
 FROM base as development 
 
