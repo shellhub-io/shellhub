@@ -27,7 +27,7 @@ func RestoreRequest(ctx gliderssh.Context) string {
 func RestoreAuthenticationMethod(ctx gliderssh.Context) AuthenticationMethod {
 	value := restore(ctx, authentication)
 	if value == nil {
-		return 0
+		return InvalidAuthenticationMethod
 	}
 
 	return value.(AuthenticationMethod)
