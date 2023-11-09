@@ -18,6 +18,16 @@ func StoreRequest(ctx gliderssh.Context, value string) {
 	store(ctx, request, value)
 }
 
+// StoreAuthenticationMethod stores the authentication method in the context/ as metadata.
+func StoreAuthenticationMethod(ctx gliderssh.Context, method AuthenticationMethod) {
+	store(ctx, authentication, method)
+}
+
+// StorePassword stores the password in the context as metadata.
+func StorePassword(ctx gliderssh.Context, value string) {
+	store(ctx, password, value)
+}
+
 // maybeStore stores a value into a context if it does not exist yet. If the value already exists, it will be returned.
 //
 // Its return must be cast.
@@ -36,18 +46,6 @@ func MaybeStoreSSHID(ctx gliderssh.Context, value string) string {
 	return maybeStore(ctx, sshid, value).(string)
 }
 
-type AuthenticationMethod int
-
-// StoreAuthenticationMethod stores the authentication method in the context/ as metadata.
-func StoreAuthenticationMethod(ctx gliderssh.Context, method AuthenticationMethod) {
-	store(ctx, authentication, method)
-}
-
-// StorePassword stores the password in the context as metadata.
-func StorePassword(ctx gliderssh.Context, value string) {
-	store(ctx, password, value)
-}
-
 // MaybeStoreFingerprint stores the fingerprint in the context as metadata if is not set yet.
 func MaybeStoreFingerprint(ctx gliderssh.Context, value string) string {
 	return maybeStore(ctx, fingerprint, value).(string)
@@ -55,6 +53,10 @@ func MaybeStoreFingerprint(ctx gliderssh.Context, value string) string {
 
 // MaybeStoreTarget stores the target in the context as metadata if is not set yet.
 func MaybeStoreTarget(ctx gliderssh.Context, sshid string) (*target.Target, error) {
+	if got := restore(ctx, tag); got != nil {
+		return got.(*target.Target), nil
+	}
+
 	value, err := target.NewTarget(sshid)
 	if err != nil {
 		return nil, err
