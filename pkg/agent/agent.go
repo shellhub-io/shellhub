@@ -203,7 +203,6 @@ func NewAgentWithConfig(config *Config) (*Agent, error) {
 		config:        config,
 		serverAddress: serverAddress,
 		cli:           client.NewClient(client.WithURL(serverAddress)),
-		tunnel:        tunnel.NewTunnel(),
 		listening:     make(chan bool),
 	}
 
@@ -372,32 +371,8 @@ func (a *Agent) Close() error {
 	return a.tunnel.Close()
 }
 
-// Listen creates a new SSH server, tunnel to ShellHub and listen for incoming connections.
-//
-// listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
-// start to ping the server, synchronizing device information or other tasks.
-func (a *Agent) Listen(ctx context.Context) error {
-	a.server = server.NewServer(a.cli, a.authData, a.config.PrivateKey, a.config.KeepAliveInterval, a.config.SingleUserPassword, modes.Mode(a.config.Mode))
-
-	// NOTICE: When the agent is running in Connector Mode, we need to identify the container ID to maintain the
-	// communication between the server and the agent when the container name on the host changes.  This information is
-	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
-	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
-	if modes.Mode(a.config.Mode) == modes.ConnectorMode {
-		log.WithFields(log.Fields{
-			"version":            AgentVersion,
-			"mode":               a.config.Mode,
-			"tenant_id":          a.config.TenantID,
-			"server_address":     a.config.ServerAddress,
-			"preferred_hostname": a.config.PreferredHostname,
-		}).Info("Starting ShellHub Agent in Connector mode")
-
-		a.server.SetContainerID(a.Identity.MAC)
-	}
-
-	serv := a.server
-
-	a.tunnel.ConnHandler = func(c echo.Context) error {
+func connHandler(serv *server.Server) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		hj, ok := c.Response().Writer.(http.Hijacker)
 		if !ok {
 			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
@@ -417,8 +392,10 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 		return nil
 	}
+}
 
-	a.tunnel.HTTPHandler = func(c echo.Context) error {
+func httpHandler() func(c echo.Context) error {
+	return func(c echo.Context) error {
 		replyError := func(err error, msg string, code int) error {
 			log.WithError(err).WithFields(log.Fields{
 				"remote":    c.Request().RemoteAddr,
@@ -462,8 +439,10 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 		return nil
 	}
+}
 
-	a.tunnel.CloseHandler = func(c echo.Context) error {
+func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		id := c.Param("id")
 		serv.CloseSession(id)
 
@@ -478,8 +457,38 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 		return nil
 	}
+}
 
-	serv.SetDeviceName(a.authData.Name)
+// Listen creates a new SSH server, tunnel to ShellHub and listen for incoming connections.
+//
+// listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
+// start to ping the server, synchronizing device information or other tasks.
+func (a *Agent) Listen(ctx context.Context) error {
+	a.server = server.NewServer(a.cli, a.authData, a.config.PrivateKey, a.config.KeepAliveInterval, a.config.SingleUserPassword, modes.Mode(a.config.Mode))
+
+	// NOTICE: When the agent is running in Connector Mode, we need to identify the container ID to maintain the
+	// communication between the server and the agent when the container name on the host changes.  This information is
+	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
+	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
+	if modes.Mode(a.config.Mode) == modes.ConnectorMode {
+		log.WithFields(log.Fields{
+			"version":            AgentVersion,
+			"mode":               a.config.Mode,
+			"tenant_id":          a.config.TenantID,
+			"server_address":     a.config.ServerAddress,
+			"preferred_hostname": a.config.PreferredHostname,
+		}).Info("Starting ShellHub Agent in Connector mode")
+
+		a.server.SetContainerID(a.Identity.MAC)
+	}
+
+	a.server.SetDeviceName(a.authData.Name)
+
+	a.tunnel = tunnel.NewBuilder().
+		WithConnHandler(connHandler(a.server)).
+		WithCloseHandler(closeHandler(a, a.server)).
+		WithHTTPHandler(httpHandler()).
+		Build()
 
 	done := make(chan bool)
 	go func() {

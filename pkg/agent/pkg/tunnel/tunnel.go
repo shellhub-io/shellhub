@@ -17,6 +17,38 @@ type Tunnel struct {
 	CloseHandler func(e echo.Context) error
 }
 
+type Builder struct {
+	tunnel *Tunnel
+}
+
+func NewBuilder() *Builder {
+	return &Builder{
+		tunnel: NewTunnel(),
+	}
+}
+
+func (t *Builder) WithHTTPHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.HTTPHandler = handler
+
+	return t
+}
+
+func (t *Builder) WithConnHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.ConnHandler = handler
+
+	return t
+}
+
+func (t *Builder) WithCloseHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.CloseHandler = handler
+
+	return t
+}
+
+func (t *Builder) Build() *Tunnel {
+	return t.tunnel
+}
+
 func NewTunnel() *Tunnel {
 	e := echo.New()
 
