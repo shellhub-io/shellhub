@@ -60,7 +60,7 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
     if [ ! -f /etc/letsencrypt/live/$SHELLHUB_DOMAIN/fullchain.pem ]; then
         echo "Generating SSL certificate"
 
-        ACME_WEBSERVER_ROOT="/var/www/letsencrypt"
+        ACME_WEBSERVER_ROOT="/etc/letsencrypt"
         ACME_CHALLENGE_DIR="$ACME_WEBSERVER_ROOT/.well-known/acme-challenge"
 
         mkdir -p $ACME_CHALLENGE_DIR
@@ -99,7 +99,7 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
         # https://letsencrypt.org/docs/faq/#what-is-the-lifetime-for-let-s-encrypt-certificates-for-how-long-are-they-valid
 
         echo "Checking if SSL certificate needs to be renewed"
-        certbot renew
+        certbot renew --webroot --webroot-path $ACME_WEBSERVER_ROOT
         if [ $? -ne 0 ]; then
             echo "Failed to renew SSL certificate"
             exit 1
@@ -112,7 +112,7 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
 fi
 
 generate() {
-    gomplate -f /app/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf
+    gomplate -f /app/nginx.conf -o /etc/nginx/nginx.conf
     gomplate -f /app/conf.d/shellhub.conf -o /etc/nginx/conf.d/shellhub.conf
 }
 
@@ -124,6 +124,8 @@ if [ "$SHELLHUB_ENV" == "development" ]; then
 fi
 
 generate
+
+mkdir -p /var/run/nginx
 
 echo "Starting NGINX"
 exec "$@"
