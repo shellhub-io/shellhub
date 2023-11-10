@@ -19,6 +19,9 @@ export default defineConfig({
     vue({
       template: { transformAssetUrls },
       script: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // Experimental defineModel from Vue 3.3
         defineModel: true,
       },
     }),
