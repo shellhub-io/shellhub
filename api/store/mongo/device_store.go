@@ -337,7 +337,7 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp t
 	}
 
 	collOptions := writeconcern.W1()
-	updateOptions := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.Before)
+	updateOptions := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.Before)
 
 	result := s.db.Collection("devices", options.Collection().SetWriteConcern(collOptions)).
 		FindOneAndUpdate(ctx, bson.M{"uid": uid},
@@ -401,8 +401,7 @@ func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts tim
 	return nil
 }
 
-// DeviceUpdateStatus updates the status of a specific device in the devices collection and records the device's
-// connection status in the connected_devices collection.
+// DeviceUpdateStatus updates the status of a specific device in the devices collection
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
 	updateOptions := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	result := s.db.Collection("devices", options.Collection()).
@@ -414,17 +413,6 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status m
 
 	device := new(models.Device)
 	if err := result.Decode(&device); err != nil {
-		return FromMongoError(err)
-	}
-
-	cd := &models.ConnectedDevice{
-		UID:      device.UID,
-		TenantID: device.TenantID,
-		LastSeen: clock.Now(),
-		Status:   string(status),
-	}
-
-	if _, err := s.db.Collection("connected_devices").InsertOne(ctx, &cd); err != nil {
 		return FromMongoError(err)
 	}
 
