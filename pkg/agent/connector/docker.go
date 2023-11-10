@@ -165,7 +165,6 @@ func initContainerAgent(ctx context.Context, container Container) {
 		PrivateKey:        container.PrivateKey,
 		PreferredIdentity: container.ID,
 		PreferredHostname: container.Name,
-		Mode:              agent.ModeConnector,
 		KeepAliveInterval: 30,
 	}
 
@@ -179,7 +178,7 @@ func initContainerAgent(ctx context.Context, container Container) {
 		"version":        agent.AgentVersion,
 	}).Info("Connector container started")
 
-	ag, err := agent.NewAgentWithConfig(cfg)
+	ag, err := agent.NewAgentWithConfig(cfg, agent.NewConnectorMode(cfg.PreferredIdentity))
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,

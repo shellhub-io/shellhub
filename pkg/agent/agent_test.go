@@ -5,14 +5,14 @@ func ExampleNewAgentWithConfig() {
 		ServerAddress: "http://localhost:80",
 		TenantID:      "00000000-0000-4000-0000-000000000000",
 		PrivateKey:    "./shellhub.key",
-	})
+	}, new(HostMode))
 	if err != nil {
 		panic(err)
 	}
 }
 
 func ExampleNewAgent() {
-	_, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key")
+	_, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key", new(HostMode))
 	if err != nil {
 		panic(err)
 	}

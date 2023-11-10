@@ -102,7 +102,7 @@ func main() {
 				"mode":    mode,
 			}).Info("Starting ShellHub")
 
-			ag, err := agent.NewAgentWithConfig(cfg)
+			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostMode))
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
@@ -234,7 +234,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			ag, err := agent.NewAgentWithConfig(cfg)
+			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostMode))
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
