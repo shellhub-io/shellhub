@@ -21,12 +21,12 @@
     "sourceRoot": "/",
     "inlineSources": true,
     "types": ["vuetify", "node"],
+
   },
   "typeAcquisition": { "enable": true },
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
-    "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/*.ts",

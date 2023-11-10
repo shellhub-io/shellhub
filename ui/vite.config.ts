@@ -18,12 +18,9 @@ export default defineConfig({
   plugins: [
     vue({
       template: { transformAssetUrls },
-      script: {
-        defineModel: true,
-      },
     }),
     vuetify({
-      autoImport: true
+      autoImport: true,
     }),
     Markdown({
       markdownItOptions: {
@@ -71,7 +68,7 @@ export default defineConfig({
         },
       },
       plugins: [
-        polyfillNode(),
+        polyfillNode,
         NodeGlobalsPolyfillPlugin({
           process: true,
           buffer: true,
