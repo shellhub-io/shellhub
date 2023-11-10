@@ -336,10 +336,10 @@ export default defineComponent({
         const signer = createSignerPrivateKey(pk, username.value);
         signature = signer;
       } else {
-        signature = await createSignatureOfPrivateKey(
+        signature = decodeURIComponent(await createSignatureOfPrivateKey(
           privateKeyData.data,
           username.value,
-        );
+        ));
       }
       const fingerprint = await createKeyFingerprint(privateKeyData.data);
       connect({ fingerprint, signature });
