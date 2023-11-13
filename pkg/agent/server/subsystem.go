@@ -8,5 +8,5 @@ import (
 func (s *Server) sftpSubsystemHandler(session gliderssh.Session) {
 	go s.startKeepAliveLoop(session)
 
-	s.sessioner.SFTP(session) //nolint:errcheck
+	s.mode.SFTP(session) //nolint:errcheck
 }

@@ -13,6 +13,11 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
 )
 
+type Mode struct {
+	Authenticator
+	Sessioner
+}
+
 func attachShellToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]uint) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "shell", container, user, true, []string{}, size)
 }

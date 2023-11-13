@@ -4,20 +4,10 @@ package modes
 import gliderssh "github.com/gliderlabs/ssh"
 
 // Mode defines the SSH's server mode type.
-type Mode string
-
-const (
-	// HostMode represents the SSH's server host mode.
-	//
-	// HostMode mode means that the SSH's server runs in the host machine, using the host "/etc/passwd", "/etc/shadow",
-	// redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
-	HostMode Mode = "host"
-	// ConnectorMode represents the SSH's server connector mode.
-	//
-	// ConnectorMode mode means that the SSH's server runs in the host machine, but redirect the IO to a specific docker
-	// container, maning its authentication through the container's "/etc/passwd", "/etc/shadow" and etc.
-	ConnectorMode Mode = "connector"
-)
+type Mode interface {
+	Authenticator
+	Sessioner
+}
 
 // Authenticator defines the authentication methods used by the SSH's server.
 //
