@@ -44,13 +44,17 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 				return hostname
 			}
 
-			log.WithFields(log.Fields{
-				"tenant_id":   req.TenantID,
-				"identity":    identity(req.Identity.MAC, req.Hostname),
-				"status_code": r.StatusCode(),
-			}).Warn("failed to authenticate device")
+			if r.IsError() {
+				log.WithFields(log.Fields{
+					"tenant_id":   req.TenantID,
+					"identity":    identity(req.Identity.MAC, req.Hostname),
+					"status_code": r.StatusCode(),
+				}).Warn("failed to authenticate device")
 
-			return r.IsError()
+				return true
+			}
+
+			return false
 		}).
 		SetBody(req).
 		SetResult(&res).

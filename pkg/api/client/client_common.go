@@ -34,12 +34,16 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			return true
 		}
 
-		log.WithFields(log.Fields{
-			"status_code": r.StatusCode(),
-			"url":         r.Request.URL,
-		}).Warn("failed to achieve the server")
+		if r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented {
+			log.WithFields(log.Fields{
+				"status_code": r.StatusCode(),
+				"url":         r.Request.URL,
+			}).Warn("failed to achieve the server")
 
-		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
+			return true
+		}
+
+		return false
 	})
 
 	if client.logger != nil {
