@@ -13,13 +13,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var ErrParseAddress = fmt.Errorf("could not parse the address to the required format")
+
 // NewClient creates a new ShellHub HTTP client.
 //
 // Server address must contain the scheme, the host and the port. For instance: `https://cloud.shellhub.io:443/`.
 func NewClient(address string, opts ...Opt) (Client, error) {
-	uri, err := url.Parse(address)
+	uri, err := url.ParseRequestURI(address)
 	if err != nil {
-		return nil, errors.Join(fmt.Errorf("could not parse the address to the required format"), err)
+		return nil, errors.Join(ErrParseAddress, err)
 	}
 
 	client := new(client)
