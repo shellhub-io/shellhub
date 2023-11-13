@@ -3,7 +3,6 @@ package main
 import (
 	"path"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/shellhub-io/shellhub/pkg/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	log "github.com/sirupsen/logrus"
@@ -45,7 +44,6 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
 			if err != nil {
-				envconfig.Usage("shellhub", &cfg) // nolint:errcheck
 				log.Fatal(err)
 			}
 
