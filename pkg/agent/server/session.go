@@ -64,11 +64,11 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 
 	switch sessionType {
 	case SessionTypeShell:
-		s.sessioner.Shell(session) //nolint:errcheck
+		s.mode.Shell(session) //nolint:errcheck
 	case SessionTypeHeredoc:
-		s.sessioner.Heredoc(session) //nolint:errcheck
+		s.mode.Heredoc(session) //nolint:errcheck
 	default:
-		s.sessioner.Exec(session) //nolint:errcheck
+		s.mode.Exec(session) //nolint:errcheck
 	}
 
 	log.Info("Session ended")

@@ -6,10 +6,8 @@ import (
 	"sync"
 	"time"
 
-	dockerclient "github.com/docker/docker/client"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -54,18 +52,7 @@ type Server struct {
 	// `/etc/passwd`, `/etc/shadow`, redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
 	//
 	// Check the [modes] package for more information.
-	mode modes.Mode
-
-	// authenticator contains methods used by the server to authenticate the user on the device and on the ShellHub
-	// server.
-	authenticator modes.Authenticator
-
-	// sessioner contains methods used by the server to handle different types of sessions.
-	//
-	// sessioner also has the [modes.Subsystemer] interface, which contains methods used by the server to handle
-	// different types of subsystems.
-	sessioner modes.Sessioner
-
+	mode     modes.Mode
 	Sessions sync.Map
 }
 
@@ -104,22 +91,8 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		Sessions:           sync.Map{},
 	}
 
-	switch server.mode {
-	case modes.HostMode:
-		server.authenticator = host.NewAuthenticator(api, authData, singleUserPassword, &server.deviceName)
-		server.sessioner = host.NewSessioner(&server.deviceName, server.cmds)
-	case modes.ConnectorMode:
-		cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		server.authenticator = connector.NewAuthenticator(api, cli, authData, &server.containerID)
-		server.sessioner = connector.NewSessioner(&server.containerID, cli)
-	default:
-		log.WithFields(log.Fields{
-			"mode": server.mode,
-		}).Fatal("Invalid server mode")
+	if m, ok := mode.(*host.Mode); ok {
+		m.Sessioner.SetCmds(server.cmds)
 	}
 
 	server.sshd = &gliderssh.Server{

@@ -50,6 +50,10 @@ type Sessioner struct {
 	deviceName *string
 }
 
+func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {
+	s.cmds = cmds
+}
+
 // NewSessioner creates a new instance of Sessioner for the host mode.
 // The device name is a pointer to a string because when the server is created, we don't know the device name yet, that
 // is set later.

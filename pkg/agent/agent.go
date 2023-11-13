@@ -416,7 +416,7 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 // listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
 // start to ping the server, synchronizing device information or other tasks.
 func (a *Agent) Listen(ctx context.Context) error {
-	a.mode.Configure(a)
+	a.mode.Serve(a)
 
 	a.tunnel = tunnel.NewBuilder().
 		WithConnHandler(connHandler(a.server)).

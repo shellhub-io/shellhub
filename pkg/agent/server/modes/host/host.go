@@ -4,3 +4,8 @@
 // redirecting the SSH's connection to the device sdin, stdout and stderr and other things needed to run the SSH's
 // server in the host machine.
 package host
+
+type Mode struct {
+	Authenticator
+	Sessioner
+}
