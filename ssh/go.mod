@@ -8,7 +8,7 @@ require (
 	github.com/go-resty/resty/v2 v2.10.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/hibiken/asynq v0.24.1
-	github.com/labstack/echo/v4 v4.11.2
+	github.com/labstack/echo/v4 v4.11.3
 	github.com/pires/go-proxyproto v0.7.0
 	github.com/shellhub-io/shellhub v0.8.1
 	github.com/sirupsen/logrus v1.9.3
