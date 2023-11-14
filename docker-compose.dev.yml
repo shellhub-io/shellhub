@@ -112,5 +112,3 @@ services:
     depends_on:
       - api
       - mongo
-  autossl:
-    image: tianon/true
