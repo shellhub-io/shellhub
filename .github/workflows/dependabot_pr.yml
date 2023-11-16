@@ -20,7 +20,7 @@ jobs:
           token: ${{ secrets.PAT }}
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.21"
+          go-version: "1.20"
       - name: Run prepare-release script to update Go modules
         run: |
           ./devscripts/prepare-release

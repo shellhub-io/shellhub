@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub
 
-go 1.21
+go 1.20
 
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
