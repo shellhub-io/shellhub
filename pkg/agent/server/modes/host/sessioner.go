@@ -12,8 +12,8 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/command"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/utmp"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
