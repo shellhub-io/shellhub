@@ -330,9 +330,13 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 			return nil
 		}
 
+		if ok := validator.ValidateField(models.Device{}, "Name", *name); !ok {
+			return NewErrDeviceInvalid(map[string]interface{}{"name": *name}, nil)
+		}
+
 		otherDevice, err := s.store.DeviceGetByName(ctx, *name, tenant)
 		if err != nil && err != store.ErrNoDocuments {
-			return NewErrDeviceNotFound(models.UID(device.UID), fmt.Errorf("failed to get device by name: %w", err))
+			return NewErrDeviceNotFound(models.UID(*name), fmt.Errorf("failed to get device by name: %w", err))
 		}
 
 		if otherDevice != nil {
@@ -348,5 +352,5 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 		}
 	}
 
-	return s.store.DeviceUpdate(ctx, uid, name, publicURL)
+	return s.store.DeviceUpdate(ctx, tenant, uid, name, publicURL)
 }

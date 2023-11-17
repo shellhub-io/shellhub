@@ -551,7 +551,7 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 
 // DeviceChooser updates devices with "accepted" status to "pending" for a given tenantID,
 // excluding devices with UIDs present in the "notIn" list.
-func (s *Store) DeviceUpdate(ctx context.Context, uid models.UID, name *string, publicURL *bool) error {
+func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
 		return err
@@ -561,13 +561,13 @@ func (s *Store) DeviceUpdate(ctx context.Context, uid models.UID, name *string, 
 
 	err = mongo.WithSession(ctx, session, func(sessionContext mongo.SessionContext) error {
 		if name != nil {
-			if _, err := s.db.Collection("devices").UpdateOne(sessionContext, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": *name}}); err != nil {
+			if _, err := s.db.Collection("devices").UpdateOne(sessionContext, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": bson.M{"name": *name}}); err != nil {
 				return err
 			}
 		}
 
 		if publicURL != nil {
-			if _, err := s.db.Collection("devices").UpdateOne(sessionContext, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url": *publicURL}}); err != nil {
+			if _, err := s.db.Collection("devices").UpdateOne(sessionContext, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": bson.M{"public_url": *publicURL}}); err != nil {
 				return err
 			}
 		}

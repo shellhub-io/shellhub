@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -1992,4 +1993,137 @@ func TestDeviceHeartbeat(t *testing.T) {
 	assert.NoError(t, err)
 
 	mock.AssertExpectations(t)
+}
+
+func TestDeviceUpdate(t *testing.T) {
+	mock := new(mocks.Store)
+	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	toPointer := func(s string) *string {
+		return &s
+	}
+
+	other := toPointer("other")
+
+	tests := []struct {
+		description   string
+		uid           string
+		tenant        string
+		name          *string
+		publicKey     *bool
+		requiredMocks func(ctx context.Context)
+		expected      error
+	}{
+		{
+			description: "fails when could not get the device by UID",
+			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			name:        nil,
+			publicKey:   nil,
+			requiredMocks: func(ctx context.Context) {
+				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
+		},
+		{
+			description: "success when updating the device name to same name",
+			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			name:        toPointer("name"),
+			publicKey:   nil,
+			requiredMocks: func(ctx context.Context) {
+				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(&models.Device{
+						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+						Name: "name",
+					}, nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "fails when name does not meet the validatino requirements",
+			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			name:        toPointer(""),
+			publicKey:   nil,
+			requiredMocks: func(ctx context.Context) {
+				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(&models.Device{
+						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+						Name: "name",
+					}, nil).Once()
+			},
+			expected: NewErrDeviceInvalid(map[string]interface{}{"name": ""}, nil),
+		},
+		{
+			description: "fails when could not get the device by name",
+			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			name:        toPointer("same"),
+			publicKey:   nil,
+			requiredMocks: func(ctx context.Context) {
+				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(&models.Device{
+						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+						Name: "name",
+					}, nil).Once()
+
+				mock.On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("same"), fmt.Errorf("failed to get device by name: %w", errors.New("error", "", 0))),
+		},
+		{
+			description: "fails when already exists a device with same name",
+			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			name:        toPointer("same"),
+			publicKey:   nil,
+			requiredMocks: func(ctx context.Context) {
+				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(&models.Device{
+						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+						Name: "name",
+					}, nil).Once()
+
+				mock.On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000").
+					Return(&models.Device{
+						UID:  "fb2de504e98d3ccab342b53d83395cd7fda297c71e8da550c31478bae0dbb8c5",
+						Name: "same",
+					}, nil).Once()
+			},
+			expected: NewErrDeviceDuplicated("same", nil),
+		},
+		{
+			description: "success when udpate device for a different name",
+			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			name:        other,
+			publicKey:   new(bool),
+			requiredMocks: func(ctx context.Context) {
+				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(&models.Device{
+						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+						Name: "name",
+					}, nil).Once()
+
+				mock.On("DeviceGetByName", ctx, "other", "00000000-0000-0000-0000-000000000000").
+					Return(nil, store.ErrNoDocuments).Once()
+				mock.On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), other, new(bool)).
+					Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			ctx := context.Background()
+			test.requiredMocks(ctx)
+
+			err := service.UpdateDevice(ctx, test.tenant, models.UID(test.uid), test.name, test.publicKey)
+			assert.Equal(t, test.expected, err)
+		})
+	}
 }
