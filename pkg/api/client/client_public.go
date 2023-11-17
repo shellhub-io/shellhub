@@ -2,15 +2,11 @@ package client
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-	"net/url"
+	"errors"
 
 	resty "github.com/go-resty/resty/v2"
-	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
-	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -88,30 +84,15 @@ func (c *client) Endpoints() (*models.Endpoints, error) {
 }
 
 func (c *client) NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error) {
-	var err error
+	if token == "" {
+		return nil, errors.New("token is empty")
+	}
 
-	req := c.http.R()
-	req.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.URL, err = url.JoinPath(c.http.BaseURL, "/ssh/connection")
-	if err != nil {
+	if err := c.tunneler.Auth(ctx, token); err != nil {
 		return nil, err
 	}
 
-	conn, _, err := DialContext(ctx, req.URL, req.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	return revdial.NewListener(wsconnadapter.New(conn),
-		func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-			req.URL, err = url.JoinPath(c.http.BaseURL, path)
-			if err != nil {
-				return nil, nil, err
-			}
-
-			return DialContext(ctx, req.URL, nil)
-		},
-	), nil
+	return c.tunneler.Dial()
 }
 
 func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error) {

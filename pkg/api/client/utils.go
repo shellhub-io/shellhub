@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -11,6 +12,8 @@ import (
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
+	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
 func getHostname(host string) (hostname string) {
@@ -77,4 +80,65 @@ func DialContext(ctx context.Context, address string, header http.Header) (*webs
 	}
 
 	return conn, res, nil
+}
+
+//go:generate mockery --name=ITunneler --filename=tunneler.go
+type ITunneler interface {
+	Auth(ctx context.Context, token string) error
+	Dial() (*revdial.Listener, error)
+}
+
+type Tunneler struct {
+	conn *websocket.Conn
+	// host is the ShellHub's server address.
+	//
+	// It is used to create the websocket connection to the ShellHub's server.
+	host string
+}
+
+func NewTunneler(host string) *Tunneler {
+	return &Tunneler{
+		host: host,
+	}
+}
+
+// Auth creates a initial connection to the ShellHub SSH's server and authenticate it with the token received.
+func (l *Tunneler) Auth(ctx context.Context, token string) error {
+	uri, err := url.JoinPath(l.host, "/ssh/connection")
+	if err != nil {
+		return err
+	}
+
+	header := http.Header{
+		"Authorization": []string{fmt.Sprintf("Bearer %s", token)},
+	}
+
+	conn, _, err := DialContext(ctx, uri, header)
+	if err != nil {
+		return err
+	}
+
+	l.conn = conn
+
+	return nil
+}
+
+// Dial creates a new reverse listener to be used by the Agent to receive connections from the ShellHub's server.
+//
+// It uses the authenticated connection generate by the [Auth] method to create a new reverse listener. Through this
+// connection, the Agent will be able to receive connections from the ShellHub's server. This connections are,
+// essentially, the SSH operations requested by the user.
+func (l *Tunneler) Dial() (*revdial.Listener, error) {
+	if l.conn == nil {
+		return nil, errors.New("listener is not authenticated")
+	}
+
+	return revdial.NewListener(wsconnadapter.New(l.conn), func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
+		uri, err := url.JoinPath(l.host, path)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return DialContext(ctx, uri, nil)
+	}), nil
 }
