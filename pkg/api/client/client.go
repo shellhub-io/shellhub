@@ -29,9 +29,10 @@ type Client interface {
 }
 
 type client struct {
-	scheme string
-	host   string
-	port   int
-	http   *resty.Client
-	logger *logrus.Logger
+	scheme   string
+	host     string
+	port     int
+	http     *resty.Client
+	logger   *logrus.Logger
+	tunneler ITunneler
 }

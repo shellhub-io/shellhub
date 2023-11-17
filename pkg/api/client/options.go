@@ -65,3 +65,11 @@ func WithLogger(logger *logrus.Logger) Opt {
 		return nil
 	}
 }
+
+func WithTurnnel(tunneler ITunneler) Opt {
+	return func(c *client) error {
+		c.tunneler = tunneler
+
+		return nil
+	}
+}

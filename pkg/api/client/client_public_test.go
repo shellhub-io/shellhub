@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,7 +9,9 @@ import (
 	"testing"
 
 	mock "github.com/jarcoal/httpmock"
+	tunnermock "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -407,6 +410,66 @@ func TestAuthPublicKey(t *testing.T) {
 
 			response, err := cli.AuthPublicKey(test.request, test.token)
 			assert.Equal(t, test.expected, Expected{response, err})
+		})
+	}
+}
+
+func TestReverseListener(t *testing.T) {
+	mock := new(tunnermock.ITunneler)
+
+	tests := []struct {
+		description   string
+		token         string
+		requiredMocks func()
+		expected      error
+	}{
+		{
+			description:   "fail when token is empty",
+			token:         "",
+			requiredMocks: func() {},
+			expected:      errors.New("token is empty"),
+		},
+		{
+			description: "fail when connot auth the agent on the SSH server",
+			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+			requiredMocks: func() {
+				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").Return(errors.New("")).Once()
+			},
+			expected: errors.New(""),
+		},
+		{
+			description: "fail when connot create a new reverse listener",
+			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+			requiredMocks: func() {
+				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").Return(nil).Once()
+
+				mock.On("Dial").Return(nil, errors.New("")).Once()
+			},
+			expected: errors.New(""),
+		},
+		{
+			description: "success to create a new reverse listener",
+			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+			requiredMocks: func() {
+				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").Return(nil).Once()
+
+				mock.On("Dial").Return(new(revdial.Listener), nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			cli, err := NewClient("https://www.cloud.shellhub.io/", WithTurnnel(mock))
+			assert.NoError(t, err)
+
+			test.requiredMocks()
+
+			_, err = cli.NewReverseListener(ctx, test.token)
+			assert.Equal(t, err, test.expected)
 		})
 	}
 }
