@@ -42,7 +42,7 @@ exports[`Device Chooser List > Renders the component 1`] = `
     <!--v-if-->
     <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
       <div data-v-046d4556=\\"\\">
-        <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-text-field--plain-underlined v-combobox v-combobox--single mb-4\\">
+        <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
           <!---->
           <div class=\\"v-input__control\\">
             <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\">

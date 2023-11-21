@@ -5,7 +5,7 @@ exports[`Login > Renders the component 1`] = `
   <form>
     <div class=\\"v-card-title text-center\\">Create Account</div>
     <div class=\\"v-container v-locale--is-ltr\\">
-      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"name-text\\">
+      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined\\" data-test=\\"name-text\\">
         <!---->
         <div class=\\"v-input__control\\">
           <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
@@ -50,7 +50,7 @@ exports[`Login > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"username-text\\">
+      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined\\" data-test=\\"username-text\\">
         <!---->
         <div class=\\"v-input__control\\">
           <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
@@ -95,7 +95,7 @@ exports[`Login > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"email-text\\">
+      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined\\" data-test=\\"email-text\\">
         <!---->
         <div class=\\"v-input__control\\">
           <div class=\\"v-field v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
@@ -140,7 +140,7 @@ exports[`Login > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"password-text\\">
+      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined\\" data-test=\\"password-text\\">
         <!---->
         <div class=\\"v-input__control\\">
           <div class=\\"v-field v-field--appended v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
@@ -187,7 +187,7 @@ exports[`Login > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-text-field--plain-underlined\\" data-test=\\"password-confirm-text\\">
+      <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined\\" data-test=\\"password-confirm-text\\">
         <!---->
         <div class=\\"v-input__control\\">
           <div class=\\"v-field v-field--appended v-field--prepended v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
@@ -268,7 +268,7 @@ exports[`Login > Renders the component 1`] = `
         <!---->
       </div>
     </div>
-    <div class=\\"v-card-actions justify-center\\"><button type=\\"submit\\" class=\\"v-btn v-btn--block v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"create-account-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <div class=\\"v-card-actions justify-center\\"><button type=\\"submit\\" class=\\"v-btn v-btn--block v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"create-account-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
         <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> SignUp </span>
         <!---->
         <!---->
