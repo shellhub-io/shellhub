@@ -147,7 +147,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return nil
 	}
 
-	otherDevice, err := s.store.DeviceGetByName(ctx, updatedDevice.Name, tenant)
+	otherDevice, err := s.store.DeviceGetByName(ctx, updatedDevice.Name, tenant, models.DeviceStatusAccepted)
 	if err != nil && err != store.ErrNoDocuments {
 		return NewErrDeviceNotFound(models.UID(updatedDevice.UID), err)
 	}
@@ -205,7 +205,12 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return NewErrDeviceNotFound(models.UID(device.UID), err)
 	}
 
+	// TODO: move this logic to store's transactions.
 	if sameMacDev != nil && sameMacDev.UID != device.UID {
+		if sameName, err := s.store.DeviceGetByName(ctx, device.Name, device.TenantID, models.DeviceStatusAccepted); sameName != nil && sameName.Identity.MAC != device.Identity.MAC {
+			return NewErrDeviceDuplicated(device.Name, err)
+		}
+
 		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil && err != store.ErrNoDocuments {
 			return err
 		}
@@ -219,6 +224,10 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		}
 
 		return s.store.DeviceUpdateStatus(ctx, uid, status)
+	}
+
+	if sameName, err := s.store.DeviceGetByName(ctx, device.Name, device.TenantID, models.DeviceStatusAccepted); sameName != nil {
+		return NewErrDeviceDuplicated(device.Name, err)
 	}
 
 	if status != models.DeviceStatusAccepted {
@@ -334,7 +343,7 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 			return NewErrDeviceInvalid(map[string]interface{}{"name": *name}, nil)
 		}
 
-		otherDevice, err := s.store.DeviceGetByName(ctx, *name, tenant)
+		otherDevice, err := s.store.DeviceGetByName(ctx, *name, tenant, models.DeviceStatusAccepted)
 		if err != nil && err != store.ErrNoDocuments {
 			return NewErrDeviceNotFound(models.UID(*name), fmt.Errorf("failed to get device by name: %w", err))
 		}
