@@ -31,7 +31,7 @@ type DeviceStore interface {
 	DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error)
-	DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error)
+	DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error)
 	DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error)
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
 	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)

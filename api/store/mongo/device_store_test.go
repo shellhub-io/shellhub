@@ -394,6 +394,7 @@ func TestDeviceGetByName(t *testing.T) {
 		description string
 		hostname    string
 		tenant      string
+		status      models.DeviceStatus
 		setup       func() error
 		expected    Expected
 	}{
@@ -401,6 +402,7 @@ func TestDeviceGetByName(t *testing.T) {
 			description: "fails when device is not found due to name",
 			hostname:    "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
+			status:      models.DeviceStatusAccepted,
 			setup: func() error {
 				return mongotest.UseFixture(fixtures.Device)
 			},
@@ -413,6 +415,7 @@ func TestDeviceGetByName(t *testing.T) {
 			description: "fails when device is not found due to tenant",
 			hostname:    "hostname",
 			tenant:      "nonexistent",
+			status:      models.DeviceStatusAccepted,
 			setup: func() error {
 				return mongotest.UseFixture(fixtures.Device)
 			},
@@ -425,6 +428,7 @@ func TestDeviceGetByName(t *testing.T) {
 			description: "succeeds when device is found",
 			hostname:    "hostname",
 			tenant:      "00000000-0000-4000-0000-000000000000",
+			status:      models.DeviceStatusAccepted,
 			setup: func() error {
 				return mongotest.UseFixture(fixtures.Device)
 			},
@@ -458,7 +462,7 @@ func TestDeviceGetByName(t *testing.T) {
 			err := tc.setup()
 			assert.NoError(t, err)
 
-			dev, err := mongostore.DeviceGetByName(ctx, tc.hostname, tc.tenant)
+			dev, err := mongostore.DeviceGetByName(ctx, tc.hostname, tc.tenant, tc.status)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 
 			err = mongotest.DropDatabase()

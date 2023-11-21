@@ -482,10 +482,10 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string,
 	return device, nil
 }
 
-func (s *Store) DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error) {
+func (s *Store) DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
 	device := new(models.Device)
 
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name}).Decode(&device); err != nil {
+	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name, "status": string(status)}).Decode(&device); err != nil {
 		return nil, FromMongoError(err)
 	}
 

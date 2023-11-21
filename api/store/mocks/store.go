@@ -259,25 +259,25 @@ func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string
 	return r0, r1
 }
 
-// DeviceGetByName provides a mock function with given fields: ctx, name, tenantID
-func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenantID string) (*models.Device, error) {
-	ret := _m.Called(ctx, name, tenantID)
+// DeviceGetByName provides a mock function with given fields: ctx, name, tenantID, status
+func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
+	ret := _m.Called(ctx, name, tenantID, status)
 
 	var r0 *models.Device
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.Device, error)); ok {
-		return rf(ctx, name, tenantID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) (*models.Device, error)); ok {
+		return rf(ctx, name, tenantID, status)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Device); ok {
-		r0 = rf(ctx, name, tenantID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) *models.Device); ok {
+		r0 = rf(ctx, name, tenantID, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, name, tenantID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, models.DeviceStatus) error); ok {
+		r1 = rf(ctx, name, tenantID, status)
 	} else {
 		r1 = ret.Error(1)
 	}
