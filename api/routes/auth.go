@@ -95,6 +95,17 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			}
 		}
 
+		MFA, err := h.service.AuthMFA(c.Ctx(), claims.ID)
+		if err != nil {
+			return err
+		}
+
+		if MFA != claims.MFA.Status {
+			if !MFA {
+				return svc.NewErrAuthUnathorized(errors.New("necessary enable MFA"))
+			}
+		}
+
 		// Extract datas of user from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 		c.Response().Header().Set("X-Username", claims.Username)
