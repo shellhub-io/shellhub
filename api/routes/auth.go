@@ -181,7 +181,7 @@ func (h *Handler) AuthGetToken(c gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthGetToken(c.Ctx(), req.Tenant)
+	res, err := h.service.AuthGetToken(c.Ctx(), req.ID)
 	if err != nil {
 		return err
 	}
