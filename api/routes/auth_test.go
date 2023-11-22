@@ -33,30 +33,28 @@ func TestAuthGetToken(t *testing.T) {
 	}
 	cases := []struct {
 		title         string
-		tenant        string
+		id            requests.AuthTokenGet
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
-			title:  "success when trying to get a token",
-			tenant: "tenant-id",
+			title:         "fails when validate fails",
+			id:            requests.AuthTokenGet{UserParam: requests.UserParam{ID: ""}},
+			requiredMocks: func() {},
+			expected: Expected{
+				expectedSession: nil,
+				expectedStatus:  http.StatusBadRequest,
+			},
+		},
+		{
+			title: "success when trying to get a token",
+			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}},
 			requiredMocks: func() {
-				mock.On("AuthGetToken", gomock.Anything, "tenant-id").Return(&models.UserAuthResponse{}, nil).Once()
+				mock.On("AuthGetToken", gomock.Anything, "id").Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedSession: &models.UserAuthResponse{},
 				expectedStatus:  http.StatusOK,
-			},
-		},
-		{
-			title:  "fails when validate fails",
-			tenant: "tenant-id",
-			requiredMocks: func() {
-				mock.On("AuthGetToken", gomock.Anything, "tenant-id").Return(nil, svc.ErrBadRequest).Once()
-			},
-			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusBadRequest,
 			},
 		},
 	}
@@ -65,9 +63,15 @@ func TestAuthGetToken(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/internal/auth/token/%s", tc.tenant), nil)
+			jsonData, err := json.Marshal(tc.id)
+			if err != nil {
+				assert.NoError(t, err)
+			}
+
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/internal/auth/token/%s", jsonData), strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-ID", string(jsonData))
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -81,6 +85,8 @@ func TestAuthGetToken(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.expected.expectedSession, session)
+
+			mock.AssertExpectations(t)
 		})
 	}
 }
