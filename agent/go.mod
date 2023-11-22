@@ -1,6 +1,7 @@
 module github.com/shellhub-io/shellhub/agent
 
 go 1.20
+
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/shellhub-io/shellhub v0.13.4

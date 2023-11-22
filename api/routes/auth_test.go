@@ -516,6 +516,7 @@ func TestAuthRequest(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("PublicKey").Return(&privateKey.PublicKey).Once()
 				mock.On("AuthIsCacheToken", gomock.Anything, "tenant", "id").Return(true, nil).Once()
+				mock.On("AuthMFA", gomock.Anything, "id").Return(true, nil).Once()
 			},
 			expected: Expected{
 				expectedStatus: http.StatusOK,
