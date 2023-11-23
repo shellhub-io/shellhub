@@ -680,7 +680,7 @@ func TestRestoreAgent(t *testing.T) {
 			defer srv.Teardown()
 
 			assert.NoError(t, srv.Agent.Run(""))
-			assert.Equal(t, tc.expected, RestoreAgent(ctx))
+			assert.Equal(t, tc.expected, RestoreAgentConn(ctx))
 		})
 	}
 }
