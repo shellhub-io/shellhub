@@ -197,9 +197,20 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
+	// NOTICE: when the device is intended to be rejected or in pending status, we don't check for duplications as it
+	// is not going to be considered for connections.
+	if status == models.DeviceStatusPending || status == models.DeviceStatusRejected {
+		return s.store.DeviceUpdateStatus(ctx, uid, status)
+	}
+
+	// NOTICE: when the intended status is not accepted, we return an error because these status are not allowed
+	// to be set by the user.
+	if status != models.DeviceStatusAccepted {
+		return NewErrDeviceStatusInvalid(string(status), nil)
+	}
+
 	// NOTICE: when there is an already accepted device with the same MAC address, we need to update the device UID
 	// transfer the sessions and delete the old device.
-
 	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, models.DeviceStatusAccepted)
 	if err != nil && err != store.ErrNoDocuments {
 		return NewErrDeviceNotFound(models.UID(device.UID), err)
