@@ -42,12 +42,12 @@ type Server struct {
 	api                client.Client
 	authData           *models.DeviceAuthResponse
 	cmds               map[string]*exec.Cmd
-	Sessions           map[string]net.Conn
 	deviceName         string
 	containerID        string
 	mu                 sync.Mutex
 	keepAliveInterval  int
 	singleUserPassword string
+
 	// mode is the mode of the server, identifing where and how the SSH's server is running.
 	//
 	// For example, the [modes.HostMode] means that the SSH's server runs in the host machine, using the host
@@ -55,14 +55,18 @@ type Server struct {
 	//
 	// Check the [modes] package for more information.
 	mode modes.Mode
+
 	// authenticator contains methods used by the server to authenticate the user on the device and on the ShellHub
 	// server.
 	authenticator modes.Authenticator
+
 	// sessioner contains methods used by the server to handle different types of sessions.
 	//
 	// sessioner also has the [modes.Subsystemer] interface, which contains methods used by the server to handle
 	// different types of subsystems.
 	sessioner modes.Sessioner
+
+	Sessions sync.Map
 }
 
 // SSH channels supported by the SSH server.
@@ -94,10 +98,10 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		api:                api,
 		authData:           authData,
 		cmds:               make(map[string]*exec.Cmd),
-		Sessions:           make(map[string]net.Conn),
 		keepAliveInterval:  keepAliveInterval,
 		singleUserPassword: singleUserPassword,
 		mode:               mode,
+		Sessions:           sync.Map{},
 	}
 
 	switch server.mode {
@@ -227,9 +231,9 @@ func (s *Server) SetContainerID(id string) {
 }
 
 func (s *Server) CloseSession(id string) {
-	if session, ok := s.Sessions[id]; ok {
-		session.Close()
-		delete(s.Sessions, id)
+	if session, ok := s.Sessions.Load(id); ok {
+		session.(net.Conn).Close()
+		s.Sessions.Delete(id)
 	}
 }
 

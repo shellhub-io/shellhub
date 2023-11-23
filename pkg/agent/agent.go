@@ -385,7 +385,7 @@ func connHandler(serv *server.Server) func(c echo.Context) error {
 
 		id := c.Param("id")
 		httpConn := c.Request().Context().Value("http-conn").(net.Conn)
-		serv.Sessions[id] = httpConn
+		serv.Sessions.Store(id, httpConn)
 		serv.HandleConn(httpConn)
 
 		conn.Close()
@@ -641,10 +641,12 @@ func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
 				ticker.Stop()
 			}
 		case <-ticker.C:
-			sessions := make([]string, 0, len(a.server.Sessions))
-			for key := range a.server.Sessions {
-				sessions = append(sessions, key)
-			}
+			var sessions []string
+			a.server.Sessions.Range(func(k, _ interface{}) bool {
+				sessions = append(sessions, k.(string))
+
+				return true
+			})
 
 			a.sessions = sessions
 
