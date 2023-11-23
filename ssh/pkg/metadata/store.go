@@ -106,7 +106,7 @@ func (*backend) MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string
 	return maybeStore(ctx, device, value).(*models.Device), nil
 }
 
-func (*backend) MaybeStoreAgent(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
+func (*backend) MaybeStoreAgentConn(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
 	return maybeStore(ctx, agent, client).(*gossh.Client)
 }
 

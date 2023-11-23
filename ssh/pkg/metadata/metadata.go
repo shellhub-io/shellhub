@@ -33,7 +33,7 @@ type Metadata interface {
 	RestoreAPI(ctx gliderssh.Context) internalclient.Client
 	RestoreLookup(ctx gliderssh.Context) map[string]string
 	RestoreDevice(ctx gliderssh.Context) *models.Device
-	RestoreAgent(ctx gliderssh.Context) *gossh.Client
+	RestoreAgentConn(ctx gliderssh.Context) *gossh.Client
 	RestoreEstablished(ctx gliderssh.Context) bool
 	StoreRequest(ctx gliderssh.Context, value string)
 	StoreAuthenticationMethod(ctx gliderssh.Context, method AuthenticationMethod)
@@ -44,7 +44,7 @@ type Metadata interface {
 	MaybeSetAPI(ctx gliderssh.Context, client internalclient.Client) internalclient.Client
 	MaybeStoreLookup(ctx gliderssh.Context, tag *target.Target, api internalclient.Client) (map[string]string, error)
 	MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string, api internalclient.Client) (*models.Device, []error)
-	MaybeStoreAgent(ctx gliderssh.Context, client *gossh.Client) *gossh.Client
+	MaybeStoreAgentConn(ctx gliderssh.Context, client *gossh.Client) *gossh.Client
 	MaybeStoreEstablished(ctx gliderssh.Context, value bool) bool
 }
 
@@ -88,9 +88,9 @@ func RestoreDevice(ctx gliderssh.Context) *models.Device {
 	return bd.RestoreDevice(ctx)
 }
 
-// RestoreAgent restores the agent from context as metadata.
-func RestoreAgent(ctx gliderssh.Context) *gossh.Client {
-	return bd.RestoreAgent(ctx)
+// RestoreAgentConn restores the agent from context as metadata.
+func RestoreAgentConn(ctx gliderssh.Context) *gossh.Client {
+	return bd.RestoreAgentConn(ctx)
 }
 
 // RestoreEstablished restores the connection established status between server and agent from context as metadata.
@@ -142,9 +142,9 @@ func MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string, api inter
 	return bd.MaybeStoreDevice(ctx, lookup, api)
 }
 
-// MaybeStoreAgent stores the agent in the context as metadata if is not set yet.
-func MaybeStoreAgent(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
-	return bd.MaybeStoreAgent(ctx, client)
+// MaybeStoreAgentConn stores the agent in the context as metadata if is not set yet.
+func MaybeStoreAgentConn(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
+	return bd.MaybeStoreAgentConn(ctx, client)
 }
 
 // MaybeStoreEstablished stores the connection established status between server and agent in the context as metadata if is not set yet.

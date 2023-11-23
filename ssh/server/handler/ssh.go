@@ -113,7 +113,7 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 	}
 	defer connection.Close()
 
-	metadata.MaybeStoreAgent(ctx.(gliderssh.Context), connection)
+	metadata.MaybeStoreAgentConn(ctx.(gliderssh.Context), connection)
 
 	agent, err := connection.NewSession()
 	if err != nil {

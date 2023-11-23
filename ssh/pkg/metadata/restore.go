@@ -84,7 +84,7 @@ func (*backend) RestoreDevice(ctx gliderssh.Context) *models.Device {
 	return value.(*models.Device)
 }
 
-func (*backend) RestoreAgent(ctx gliderssh.Context) *gossh.Client {
+func (*backend) RestoreAgentConn(ctx gliderssh.Context) *gossh.Client {
 	value := restore(ctx, agent)
 	if value == nil {
 		return nil
