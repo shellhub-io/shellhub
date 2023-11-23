@@ -27,6 +27,11 @@
     @update="showAnnouncements = false"
     data-test="announcementsModal-component"
   />
+
+  <DeviceAcceptWarning
+    v-model:show="showDeviceWarning"
+    @update="showDeviceWarning = false"
+  />
 </template>
 
 <script lang="ts">
@@ -40,6 +45,7 @@ import BillingWarning from "../Billing/BillingWarning.vue";
 import DeviceChooser from "../Devices/DeviceChooser.vue";
 import AnnouncementsModal from "../Announcements/AnnouncementsModal.vue";
 import handleError from "@/utils/handleError";
+import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 
 export default defineComponent({
   inheritAttrs: false,
@@ -48,7 +54,7 @@ export default defineComponent({
     const showInstructions = ref(false);
     const show = ref<boolean>(false);
     const showAnnouncements = ref<boolean>(false);
-
+    const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
     const hasNamespaces = computed(
       () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
@@ -175,6 +181,7 @@ export default defineComponent({
       hasDevices,
       stats,
       showInstructions,
+      showDeviceWarning,
       isBillingEnabled,
       namespaceHasBeenShown,
       showScreenWelcome,
@@ -190,6 +197,7 @@ export default defineComponent({
     BillingWarning,
     DeviceChooser,
     AnnouncementsModal,
+    DeviceAcceptWarning,
   },
 });
 </script>

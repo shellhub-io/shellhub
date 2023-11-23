@@ -68,6 +68,7 @@
             <DeviceActionButton
               v-if="hasAuthorization"
               :uid="item.uid"
+              :name="item.name"
               :notification-status="true"
               :show="!getStatusNotifications"
               action="accept"
