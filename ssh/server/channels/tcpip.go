@@ -88,34 +88,44 @@ func TunnelDefaultDirectTCPIPHandler(tunnel *httptunnel.Tunnel) func(server *gli
 			return
 		}
 
-		sess, err := session.NewSessionWithoutClient(ctx, tunnel)
-		if err != nil {
-			newChan.Reject(gossh.ConnectionFailed, "failed to create session") //nolint:errcheck
-			log.WithError(err).WithFields(log.Fields{
-				"username":    target.Username,
-				"sshid":       target.Data,
-				"origin_port": data.OriginAddr,
-				"origin_addr": data.OriginPort,
-				"dest_port":   data.DestPort,
-				"dest_addr":   data.DestAddr,
-			}).Error("failed to create session")
+		// NOTE: Certain SSH connections may not necessitate a dedicated handler, such as an SSH handler.
+		// In such instances, a new connection to the agent is generated and saved in the metadata for
+		// subsequent use.
+		// An illustrative scenario is when the SSH connection is initiated with the "-N" flag.
+		connection := metadata.RestoreAgentConn(ctx)
+		if connection == nil {
+			sess, err := session.NewSessionWithoutClient(ctx, tunnel)
+			if err != nil {
+				newChan.Reject(gossh.ConnectionFailed, "failed to create session") //nolint:errcheck
+				log.WithError(err).WithFields(log.Fields{
+					"username":    target.Username,
+					"sshid":       target.Data,
+					"origin_port": data.OriginAddr,
+					"origin_addr": data.OriginPort,
+					"dest_port":   data.DestPort,
+					"dest_addr":   data.DestAddr,
+				}).Error("failed to create session")
 
-			return
-		}
+				return
+			}
 
-		connection, _, err := sess.NewClientConnWithDeadline(config)
-		if err != nil {
-			newChan.Reject(gossh.ConnectionFailed, "failed creating client connection: "+err.Error()) //nolint:errcheck
-			log.WithError(err).WithFields(log.Fields{
-				"username":    target.Username,
-				"sshid":       target.Data,
-				"origin_port": data.OriginAddr,
-				"origin_addr": data.OriginPort,
-				"dest_port":   data.DestPort,
-				"dest_addr":   data.DestAddr,
-			}).Error("failed creating agent connection")
+			conn, _, err := sess.NewClientConnWithDeadline(config)
+			if err != nil {
+				newChan.Reject(gossh.ConnectionFailed, "failed creating client connection: "+err.Error()) //nolint:errcheck
+				log.WithError(err).WithFields(log.Fields{
+					"username":    target.Username,
+					"sshid":       target.Data,
+					"origin_port": data.OriginAddr,
+					"origin_addr": data.OriginPort,
+					"dest_port":   data.DestPort,
+					"dest_addr":   data.DestAddr,
+				}).Error("failed creating agent connection")
 
-			return
+				return
+			}
+
+			metadata.MaybeStoreAgentConn(ctx, conn)
+			connection = conn
 		}
 
 		agent, err := connection.Dial("tcp", dest)
