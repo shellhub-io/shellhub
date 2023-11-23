@@ -5,6 +5,8 @@ import { State } from "..";
 export interface UsersState {
   statusUpdateAccountDialog: boolean;
   statusUpdateAccountDialogByDeviceAction: boolean;
+  deviceDuplicationError: boolean,
+
 }
 
 export const users: Module<UsersState, State> = {
@@ -12,6 +14,7 @@ export const users: Module<UsersState, State> = {
   state: {
     statusUpdateAccountDialog: false,
     statusUpdateAccountDialogByDeviceAction: false,
+    deviceDuplicationError: false,
   },
 
   getters: {
@@ -19,6 +22,7 @@ export const users: Module<UsersState, State> = {
     statusUpdateAccountDialogByDeviceAction(state) {
       return state.statusUpdateAccountDialogByDeviceAction;
     },
+    deviceDuplicationError: (state) => state.deviceDuplicationError,
   },
 
   mutations: {
@@ -28,6 +32,9 @@ export const users: Module<UsersState, State> = {
 
     updateStatusUpdateAccountDialogByDeviceAction(state, status) {
       state.statusUpdateAccountDialogByDeviceAction = status;
+    },
+    updateDeviceDuplicationError(state, status) {
+      state.deviceDuplicationError = status;
     },
   },
 
@@ -101,6 +108,10 @@ export const users: Module<UsersState, State> = {
 
     setStatusUpdateAccountDialogByDeviceAction(context, status) {
       context.commit("updateStatusUpdateAccountDialogByDeviceAction", status);
+    },
+
+    setDeviceDuplicationOnAcceptance(context, status) {
+      context.commit("updateDeviceDuplicationError", status);
     },
   },
 };

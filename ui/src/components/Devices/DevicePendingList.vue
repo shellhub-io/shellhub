@@ -44,6 +44,7 @@
               <v-list class="bg-v-theme-surface" lines="two" density="compact">
                 <DeviceActionButton
                   :uid="item.uid"
+                  :name="item.name"
                   action="accept"
                   :show="showDeviceAcceptButton"
                   data-test="DeviceActionButtonAccept-component"

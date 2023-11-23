@@ -114,7 +114,7 @@ const rename = async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 400) {
-        setEditNameError("nonStandardCharacters");
+        setEditNameError("The characters being used are invalid");
       } else if (error.response?.status === 409) {
         setEditNameError("The name already exists in the namespace");
       }

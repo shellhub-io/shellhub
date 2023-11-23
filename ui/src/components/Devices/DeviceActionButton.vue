@@ -72,6 +72,11 @@ import handleError from "../../utils/handleError";
 
 export default defineComponent({
   props: {
+    name: {
+      type: String,
+      required: false,
+      default: "Device",
+    },
     uid: {
       type: String,
       required: true,
@@ -188,8 +193,16 @@ export default defineComponent({
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           const axiosError = error as AxiosError;
-          if (axiosError.response?.status === 402) {
-            store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
+          switch (axiosError.response?.status) {
+            case 402:
+              store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
+              break;
+            case 409:
+              store.dispatch("devices/setDeviceToBeRenamed", props.name);
+              store.dispatch("users/setDeviceDuplicationOnAcceptance", true);
+              break;
+            default:
+              return;
           }
         }
         close();

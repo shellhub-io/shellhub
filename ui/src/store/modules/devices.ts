@@ -19,6 +19,7 @@ export interface DevicesState {
   devicesForUserToChoose: Array<IDevice>;
   numberdevicesForUserToChoose: number;
   devicesSelected: Array<IDevice>;
+  deviceName: string,
   }
 
 export const devices: Module<DevicesState, State> = {
@@ -37,6 +38,7 @@ export const devices: Module<DevicesState, State> = {
     devicesForUserToChoose: [],
     numberdevicesForUserToChoose: 0,
     devicesSelected: [],
+    deviceName: "",
   },
 
   getters: {
@@ -55,6 +57,7 @@ export const devices: Module<DevicesState, State> = {
     getDevicesForUserToChoose: (state) => state.devicesForUserToChoose,
     getNumberForUserToChoose: (state) => state.numberdevicesForUserToChoose,
     getDevicesSelected: (state) => state.devicesSelected,
+    getDeviceToBeRenamed: (state) => state.deviceName,
   },
 
   mutations: {
@@ -123,6 +126,10 @@ export const devices: Module<DevicesState, State> = {
     clearListDevicesForUserToChoose: (state) => {
       state.devicesForUserToChoose = [];
       state.numberdevicesForUserToChoose = 0;
+    },
+
+    updateDeviceToBeRenamed(state, device) {
+      state.deviceName = device;
     },
   },
 
@@ -315,6 +322,10 @@ export const devices: Module<DevicesState, State> = {
         console.error(error);
         throw error;
       }
+    },
+
+    setDeviceToBeRenamed(context, device) {
+      context.commit("updateDeviceToBeRenamed", device);
     },
   },
 };
