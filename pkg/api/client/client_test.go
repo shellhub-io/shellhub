@@ -115,3 +115,23 @@ func TestNewClient(t *testing.T) {
 		})
 	}
 }
+
+func FuzzNewClient(f *testing.F) {
+	tests := []string{
+		"http://localhost",
+		"https://localhost",
+		"http://localhost:80",
+		"https://localhost:443",
+		"https://cloud.shellhub.io",
+		"https://cloud.shellhub.io:443",
+	}
+
+	for _, tc := range tests {
+		f.Add(tc)
+	}
+
+	f.Fuzz(func(t *testing.T, address string) {
+		_, err := NewClient(address)
+		assert.NoError(t, err)
+	})
+}
