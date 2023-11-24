@@ -63,6 +63,10 @@ func DialContext(ctx context.Context, address string, header http.Header) (*webs
 
 	conn, res, err := websocket.DefaultDialer.DialContext(ctx, parseToWS(uri), header)
 	if err != nil {
+		if res == nil {
+			return nil, nil, err
+		}
+
 		switch res.StatusCode {
 		case http.StatusTemporaryRedirect, http.StatusPermanentRedirect:
 			location, err := res.Location()
