@@ -66,9 +66,9 @@ func WithLogger(logger *logrus.Logger) Opt {
 	}
 }
 
-func WithTurnnel(tunneler ITunneler) Opt {
+func WithReverser(reverser IReverser) Opt {
 	return func(c *client) error {
-		c.tunneler = tunneler
+		c.reverser = reverser
 
 		return nil
 	}

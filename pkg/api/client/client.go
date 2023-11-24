@@ -18,8 +18,8 @@ type publicAPI interface {
 	GetInfo(agentVersion string) (*models.Info, error)
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
-	NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
+	NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error)
 }
 
 //go:generate mockery --name=Client --filename=client.go
@@ -29,10 +29,11 @@ type Client interface {
 }
 
 type client struct {
-	scheme   string
-	host     string
-	port     int
-	http     *resty.Client
-	logger   *logrus.Logger
-	tunneler ITunneler
+	scheme string
+	host   string
+	port   int
+	http   *resty.Client
+	logger *logrus.Logger
+	// reverser is used to create a reverse listener to Agent from ShellHub's SSH server.
+	reverser IReverser
 }
