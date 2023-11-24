@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	mock "github.com/jarcoal/httpmock"
-	tunnermock "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
+	reversermock "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/stretchr/testify/assert"
@@ -415,7 +415,7 @@ func TestAuthPublicKey(t *testing.T) {
 }
 
 func TestReverseListener(t *testing.T) {
-	mock := new(tunnermock.ITunneler)
+	mock := new(reversermock.IReverser)
 
 	tests := []struct {
 		description   string
@@ -443,7 +443,7 @@ func TestReverseListener(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").Return(nil).Once()
 
-				mock.On("Dial").Return(nil, errors.New("")).Once()
+				mock.On("NewListener").Return(nil, errors.New("")).Once()
 			},
 			expected: errors.New(""),
 		},
@@ -453,7 +453,7 @@ func TestReverseListener(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").Return(nil).Once()
 
-				mock.On("Dial").Return(new(revdial.Listener), nil).Once()
+				mock.On("NewListener").Return(new(revdial.Listener), nil).Once()
 			},
 			expected: nil,
 		},
@@ -463,7 +463,7 @@ func TestReverseListener(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			cli, err := NewClient("https://www.cloud.shellhub.io/", WithTurnnel(mock))
+			cli, err := NewClient("https://www.cloud.shellhub.io/", WithReverser(mock))
 			assert.NoError(t, err)
 
 			test.requiredMocks()

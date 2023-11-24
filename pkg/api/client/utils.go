@@ -82,13 +82,13 @@ func DialContext(ctx context.Context, address string, header http.Header) (*webs
 	return conn, res, nil
 }
 
-//go:generate mockery --name=ITunneler --filename=tunneler.go
-type ITunneler interface {
+//go:generate mockery --name=IReverser --filename=reverser.go
+type IReverser interface {
 	Auth(ctx context.Context, token string) error
-	Dial() (*revdial.Listener, error)
+	NewListener() (*revdial.Listener, error)
 }
 
-type Tunneler struct {
+type Reverser struct {
 	conn *websocket.Conn
 	// host is the ShellHub's server address.
 	//
@@ -96,15 +96,17 @@ type Tunneler struct {
 	host string
 }
 
-func NewTunneler(host string) *Tunneler {
-	return &Tunneler{
+var _ IReverser = new(Reverser)
+
+func NewReverser(host string) *Reverser {
+	return &Reverser{
 		host: host,
 	}
 }
 
 // Auth creates a initial connection to the ShellHub SSH's server and authenticate it with the token received.
-func (l *Tunneler) Auth(ctx context.Context, token string) error {
-	uri, err := url.JoinPath(l.host, "/ssh/connection")
+func (r *Reverser) Auth(ctx context.Context, token string) error {
+	uri, err := url.JoinPath(r.host, "/ssh/connection")
 	if err != nil {
 		return err
 	}
@@ -118,23 +120,23 @@ func (l *Tunneler) Auth(ctx context.Context, token string) error {
 		return err
 	}
 
-	l.conn = conn
+	r.conn = conn
 
 	return nil
 }
 
-// Dial creates a new reverse listener to be used by the Agent to receive connections from the ShellHub's server.
+// NewListener creates a new reverse listener to be used by the Agent to receive connections from the ShellHub's server.
 //
 // It uses the authenticated connection generate by the [Auth] method to create a new reverse listener. Through this
 // connection, the Agent will be able to receive connections from the ShellHub's server. This connections are,
 // essentially, the SSH operations requested by the user.
-func (l *Tunneler) Dial() (*revdial.Listener, error) {
-	if l.conn == nil {
+func (r *Reverser) NewListener() (*revdial.Listener, error) {
+	if r.conn == nil {
 		return nil, errors.New("listener is not authenticated")
 	}
 
-	return revdial.NewListener(wsconnadapter.New(l.conn), func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
-		uri, err := url.JoinPath(l.host, path)
+	return revdial.NewListener(wsconnadapter.New(r.conn), func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
+		uri, err := url.JoinPath(r.host, path)
 		if err != nil {
 			return nil, nil, err
 		}

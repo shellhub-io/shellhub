@@ -50,7 +50,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		client.http.SetLogger(&LeveledLogger{client.logger})
 	}
 
-	client.tunneler = NewTunneler(client.http.BaseURL)
+	client.reverser = NewReverser(client.http.BaseURL)
 
 	for _, opt := range opts {
 		if err := opt(client); err != nil {
