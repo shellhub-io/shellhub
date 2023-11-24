@@ -82,7 +82,7 @@ func (d *DockerConnector) Start(ctx context.Context, id string, name string) {
 	d.mu.Unlock()
 
 	privateKey := fmt.Sprintf("%s/%s.key", d.privateKeys, id)
-	go initContainerAgent(ctx, Container{
+	go initContainerAgent(ctx, d.cli, Container{
 		ID:            id,
 		Name:          name,
 		ServerAddress: d.server,
@@ -155,7 +155,7 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 }
 
 // initContainerAgent initializes the agent for a container.
-func initContainerAgent(ctx context.Context, container Container) {
+func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container Container) {
 	agent.AgentPlatform = "connector"
 	agent.AgentVersion = ConnectorVersion
 
@@ -178,7 +178,20 @@ func initContainerAgent(ctx context.Context, container Container) {
 		"version":        agent.AgentVersion,
 	}).Info("Connector container started")
 
-	ag, err := agent.NewAgentWithConfig(cfg, agent.NewConnectorMode(cfg.PreferredIdentity))
+	mode, err := agent.NewConnectorMode(cli, container.ID)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"id":             container.ID,
+			"identity":       cfg.PreferredIdentity,
+			"hostname":       cfg.PreferredHostname,
+			"tenant_id":      cfg.TenantID,
+			"server_address": cfg.ServerAddress,
+			"timestamp":      time.Now(),
+			"version":        agent.AgentVersion,
+		}).Fatal("Failed to create connector mode")
+	}
+
+	ag, err := agent.NewAgentWithConfig(cfg, mode)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
