@@ -81,23 +81,24 @@ func (m *HostMode) GetInfo() (*Info, error) {
 // responsible for the SSH server, but the authentication and authorization is made by either the conainer
 // internals, `passwd` or `shadow`, or by the ShellHub API.
 type ConnectorMode struct {
+	cli        *dockerclient.Client
 	serverMode *connector.Mode
 	identity   string
 }
 
-func NewConnectorMode(identity string) Mode {
+func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 	return &ConnectorMode{
 		identity: identity,
-	}
+		cli:      cli,
+	}, nil
 }
 
 var _ Mode = new(ConnectorMode)
 
 func (m *ConnectorMode) Serve(agent *Agent) {
-	cli, _ := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	m.serverMode = &connector.Mode{
-		Authenticator: *connector.NewAuthenticator(agent.cli, cli, agent.authData, &agent.Identity.MAC),
-		Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, cli),
+		Authenticator: *connector.NewAuthenticator(agent.cli, m.cli, agent.authData, &agent.Identity.MAC),
+		Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, m.cli),
 	}
 
 	// NOTICE: When the agent is running in `Connector` mode, we need to identify the container ID to maintain the
@@ -117,14 +118,7 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 }
 
 func (m *ConnectorMode) GetInfo() (*Info, error) {
-	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, err
-	}
-
-	defer cli.Close()
-
-	info, err := cli.ContainerInspect(context.Background(), m.identity)
+	info, err := m.cli.ContainerInspect(context.Background(), m.identity)
 	if err != nil {
 		return nil, err
 	}
