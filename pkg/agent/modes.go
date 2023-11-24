@@ -7,7 +7,6 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
 	"github.com/shellhub-io/shellhub/pkg/agent/server"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
 )
@@ -39,25 +38,21 @@ type Mode interface {
 //
 // The host mode is the default mode one, and turns the host machine into a ShellHub's Agent. The host is
 // responsible for the SSH server, authentication and authorization, `/etc/passwd`, `/etc/shadow`, and etc.
-type HostMode struct {
-	serverMode modes.Mode
-}
+type HostMode struct{}
 
 var _ Mode = new(HostMode)
 
 func (m *HostMode) Serve(agent *Agent) {
-	m.serverMode = &host.Mode{
-		Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
-		Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
-	}
-
 	agent.server = server.NewServer(
 		agent.cli,
 		agent.authData,
 		agent.config.PrivateKey,
 		agent.config.KeepAliveInterval,
 		agent.config.SingleUserPassword,
-		m.serverMode,
+		&host.Mode{
+			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
+			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
+		},
 	)
 
 	agent.server.SetDeviceName(agent.authData.Name)
@@ -81,26 +76,20 @@ func (m *HostMode) GetInfo() (*Info, error) {
 // responsible for the SSH server, but the authentication and authorization is made by either the conainer
 // internals, `passwd` or `shadow`, or by the ShellHub API.
 type ConnectorMode struct {
-	cli        *dockerclient.Client
-	serverMode *connector.Mode
-	identity   string
+	cli      *dockerclient.Client
+	identity string
 }
 
 func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 	return &ConnectorMode{
-		identity: identity,
 		cli:      cli,
+		identity: identity,
 	}, nil
 }
 
 var _ Mode = new(ConnectorMode)
 
 func (m *ConnectorMode) Serve(agent *Agent) {
-	m.serverMode = &connector.Mode{
-		Authenticator: *connector.NewAuthenticator(agent.cli, m.cli, agent.authData, &agent.Identity.MAC),
-		Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, m.cli),
-	}
-
 	// NOTICE: When the agent is running in `Connector` mode, we need to identify the container ID to maintain the
 	// communication between the server and the agent when the container name on the host changes.  This information is
 	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
@@ -111,8 +100,12 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 		agent.config.PrivateKey,
 		agent.config.KeepAliveInterval,
 		agent.config.SingleUserPassword,
-		m.serverMode,
+		&connector.Mode{
+			Authenticator: *connector.NewAuthenticator(agent.cli, m.cli, agent.authData, &agent.Identity.MAC),
+			Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, m.cli),
+		},
 	)
+
 	agent.server.SetContainerID(agent.Identity.MAC)
 	agent.server.SetDeviceName(agent.authData.Name)
 }
