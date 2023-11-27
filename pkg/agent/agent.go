@@ -411,10 +411,7 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 	}
 }
 
-// Listen creates a new SSH server, tunnel to ShellHub and listen for incoming connections.
-//
-// listening parameter is a channel that is notified when the agent is listing for connections. It can be used to
-// start to ping the server, synchronizing device information or other tasks.
+// Listen creates a new SSH server, through a reverse connection between the Agent and the ShellHub server.
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
