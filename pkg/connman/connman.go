@@ -4,21 +4,22 @@ import (
 	"context"
 	"errors"
 	"net"
-	"sync"
 
 	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/sirupsen/logrus"
 )
 
 var ErrNoConnection = errors.New("no connection")
 
 type ConnectionManager struct {
-	dialers                 sync.Map
+	dialers                 *SyncSliceMap
 	DialerDoneCallback      func(string, *revdial.Dialer)
 	DialerKeepAliveCallback func(string, *revdial.Dialer)
 }
 
 func New() *ConnectionManager {
 	return &ConnectionManager{
+		dialers: &SyncSliceMap{},
 		DialerDoneCallback: func(string, *revdial.Dialer) {
 		},
 	}
@@ -29,6 +30,13 @@ func (m *ConnectionManager) Set(key string, conn net.Conn) {
 
 	m.dialers.Store(key, dialer)
 
+	if size := m.dialers.Size(key); size > 1 {
+		logrus.WithFields(logrus.Fields{
+			"key":  key,
+			"size": size,
+		}).Warning("Multiple connections stored for the same identifier.")
+	}
+
 	go func() {
 		for {
 			select {
@@ -37,7 +45,7 @@ func (m *ConnectionManager) Set(key string, conn net.Conn) {
 
 				continue
 			case <-dialer.Done():
-				m.dialers.Delete(key)
+				m.dialers.Delete(key, dialer)
 				m.DialerDoneCallback(key, dialer)
 
 				return
@@ -50,6 +58,13 @@ func (m *ConnectionManager) Dial(ctx context.Context, key string) (net.Conn, err
 	dialer, ok := m.dialers.Load(key)
 	if !ok {
 		return nil, ErrNoConnection
+	}
+
+	if size := m.dialers.Size(key); size > 1 {
+		logrus.WithFields(logrus.Fields{
+			"key":  key,
+			"size": size,
+		}).Warning("Multiple connections found for the same identifier during reverse tunnel dialing.")
 	}
 
 	return dialer.(*revdial.Dialer).Dial(ctx)
