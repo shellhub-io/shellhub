@@ -37,10 +37,14 @@ import (
 )
 
 var ErrDialerClosed = errors.New("revdial.Dialer closed")
+var ErrDialerTimedout = errors.New("revdial.Dialer timedout")
 
 // dialerUniqParam is the parameter name of the GET URL form value
 // containing the Dialer's random unique ID.
 const dialerUniqParam = "revdial.dialer"
+
+// dialerKeepAliveTimeout represents the duration for the keepalive timeout
+const dialerKeepAliveTimeout = 35 * time.Second
 
 // The Dialer can create new connections.
 type Dialer struct {
@@ -161,9 +165,17 @@ func (d *Dialer) matchConn(c net.Conn) {
 // serve blocks and runs the control message loop, keeping the peer
 // alive and notifying the peer when new connections are available.
 func (d *Dialer) serve() error {
-	defer d.Close()
+	done := func() {
+		d.Close()
+	}
+
+	var onceDefer sync.Once
+	defer onceDefer.Do(done)
+
+	closeTimer := time.AfterFunc(dialerKeepAliveTimeout, done)
+
 	go func() {
-		defer d.Close()
+		defer onceDefer.Do(done)
 		br := bufio.NewReader(d.conn)
 		for {
 			line, err := br.ReadSlice('\n')
@@ -186,6 +198,7 @@ func (d *Dialer) serve() error {
 					return
 				}
 			case "keep-alive":
+				closeTimer.Reset(dialerKeepAliveTimeout)
 				d.keepAliveChan <- true
 			default:
 				// Ignore unknown messages
@@ -199,6 +212,8 @@ func (d *Dialer) serve() error {
 
 		t := time.NewTimer(30 * time.Second)
 		select {
+		case <-closeTimer.C:
+			return ErrDialerTimedout
 		case <-t.C:
 			continue
 		case <-d.connReady:
