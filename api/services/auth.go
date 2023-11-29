@@ -111,10 +111,6 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		return nil, NewErrDeviceCreate(device, err)
 	}
 
-	if err := s.store.DeviceSetOnline(ctx, models.UID(device.UID), clock.Now(), true); err != nil {
-		return nil, NewErrDeviceSetOnline(models.UID(device.UID), err)
-	}
-
 	for _, uid := range req.Sessions {
 		if err := s.store.SessionSetLastSeen(ctx, models.UID(uid)); err != nil {
 			continue
