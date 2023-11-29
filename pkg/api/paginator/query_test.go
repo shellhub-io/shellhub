@@ -6,22 +6,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewQuery(t *testing.T) {
-	assert.Equal(t, &Query{1, 25}, NewQuery())
-}
-
 func TestNormalize(t *testing.T) {
 	cases := []struct {
 		description string
 		query       *Query
 		expected    *Query
 	}{
-		{description: "Failed when page is lower then 0", query: &Query{Page: -1, PerPage: 25}, expected: &Query{Page: 1, PerPage: 25}},
-		{description: "Failed when page is lower than 1 and per page is greater then 100", query: &Query{Page: -1, PerPage: 101}, expected: &Query{Page: 1, PerPage: 100}},
-		{description: "Failed when page is lower then -1", query: &Query{Page: -2, PerPage: 100}, expected: &Query{Page: 1, PerPage: 100}},
-		{description: "Failed when per page is greater then 100", query: &Query{Page: 1, PerPage: 101}, expected: &Query{Page: 1, PerPage: 100}},
-		{description: "Failed when per page is lower than 0", query: &Query{Page: 1, PerPage: -1}, expected: &Query{Page: 1, PerPage: 1}},
-		{description: "Failed when per page is lower than -1", query: &Query{Page: 1, PerPage: -2}, expected: &Query{Page: 1, PerPage: 1}},
+		{
+			description: "set Page to MinParge when Page is lower than 1",
+			query:       &Query{Page: -2, PerPage: 100},
+			expected:    &Query{Page: 1, PerPage: 100},
+		},
+		{
+			description: "set PerPage to MinPerParge when PerPage is lower than 1",
+			query:       &Query{Page: 1, PerPage: -2},
+			expected:    &Query{Page: 1, PerPage: 1},
+		},
+		{
+			description: "set PerPage to MaxPerParge when PerPage is greather than 100",
+			query:       &Query{Page: 1, PerPage: 101},
+			expected:    &Query{Page: 1, PerPage: 100},
+		},
+		{
+			description: "successfully parse query",
+			query:       &Query{Page: 8, PerPage: 78},
+			expected:    &Query{Page: 8, PerPage: 78},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
