@@ -17,12 +17,15 @@ import (
 )
 
 const (
-	AuthRequestURL   = "/auth"
-	AuthDeviceURL    = "/devices/auth"
-	AuthDeviceURLV2  = "/auth/device"
-	AuthUserURL      = "/login"
-	AuthUserURLV2    = "/auth/user"
-	AuthUserTokenURL = "/auth/token/:tenant" //nolint:gosec
+	AuthRequestURL  = "/auth"
+	AuthDeviceURL   = "/devices/auth"
+	AuthDeviceURLV2 = "/auth/device"
+	AuthUserURL     = "/login"
+	AuthUserURLV2   = "/auth/user"
+
+	AuthUserTokenInternalURL = "/auth/token/:id"     //nolint:gosec
+	AuthUserTokenPublicURL   = "/auth/token/:tenant" //nolint:gosec
+
 	AuthPublicKeyURL = "/auth/ssh"
 )
 
