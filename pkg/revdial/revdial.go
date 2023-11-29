@@ -290,22 +290,20 @@ type controlMsg struct {
 // run reads control messages from the public server forever until the connection dies, which
 // then closes the listener.
 func (ln *Listener) run() {
-	defer ln.Close()
-
-	// NOTICE: done is a helper function to close the listener and send a signal to the donec channel indicating that
-	// the listener is closed. It is used to return the function when one of their goroutines is finished, avoiding
-	// the father function to be blocked.
 	done := func() {
-		if !ln.closed {
-			ln.donec <- struct{}{}
-		}
+		ln.Close()
 	}
+
+	var onceDefer sync.Once
+	defer onceDefer.Do(done)
+
+	closeTimer := time.AfterFunc(dialerKeepAliveTimeout, done)
 
 	// Write loop
 	writec := make(chan []byte, 8)
 	ln.writec = writec
 	go func() {
-		defer done()
+		defer onceDefer.Do(done)
 
 		for {
 			select {
@@ -314,7 +312,6 @@ func (ln *Listener) run() {
 			case msg := <-writec:
 				if _, err := ln.sc.Write(msg); err != nil {
 					log.Printf("revdial.Listener: error writing message to server: %v", err)
-					ln.Close()
 
 					return
 				}
@@ -323,7 +320,7 @@ func (ln *Listener) run() {
 	}()
 
 	go func() {
-		defer done()
+		defer onceDefer.Do(done)
 
 		// Read loop
 		br := bufio.NewReader(ln.sc)
@@ -340,8 +337,9 @@ func (ln *Listener) run() {
 			}
 			switch msg.Command {
 			case "keep-alive":
-			// Occasional no-op message from server to keep
-			// us alive through NAT timeouts.
+				// Occasional no-op message from server to keep
+				// us alive through NAT timeouts.
+				closeTimer.Reset(dialerKeepAliveTimeout)
 			case "conn-ready":
 				go ln.grabConn(msg.ConnPath)
 			default:
