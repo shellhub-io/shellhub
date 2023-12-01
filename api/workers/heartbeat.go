@@ -15,15 +15,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func StartHeartBeat(_ context.Context, store store.Store) error {
+func StartHeartBeat(_ context.Context, store store.Store) {
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get the envs: %w", err)
+		log.WithFields(log.Fields{"component": "worker", "task": TaskHeartbeat}).
+			WithError(err).
+			Error("Failed to parse the envs.")
+
+		return
 	}
 
 	addr, err := asynq.ParseRedisURI(envs.RedisURI)
 	if err != nil {
-		return fmt.Errorf("failed to parse redis uri: %w", err)
+		log.WithFields(log.Fields{"component": "worker", "task": TaskHeartbeat}).
+			WithError(err).
+			Errorf("Failed to parse redis URI: %s.", envs.RedisURI)
+
+		return
 	}
 
 	aggregate := func(group string, tasks []*asynq.Task) *asynq.Task {
@@ -33,7 +41,7 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 			b.WriteString(fmt.Sprintf("%s:%d\n", task.Payload(), time.Now().Unix()))
 		}
 
-		return asynq.NewTask("api:heartbeat", []byte(b.String()))
+		return asynq.NewTask(TaskHeartbeat, []byte(b.String()))
 	}
 
 	srv := asynq.NewServer(
@@ -49,7 +57,14 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 
 	mux := asynq.NewServeMux()
 
-	mux.HandleFunc("api:heartbeat", func(ctx context.Context, task *asynq.Task) error {
+	mux.HandleFunc(TaskHeartbeat, func(ctx context.Context, task *asynq.Task) error {
+		log.WithFields(
+			log.Fields{
+				"component": "worker",
+				"task":      TaskHeartbeat,
+			}).
+			Info("Executing heartbeat worker.")
+
 		scanner := bufio.NewScanner(bytes.NewReader(task.Payload()))
 		scanner.Split(bufio.ScanLines)
 
@@ -59,22 +74,35 @@ func StartHeartBeat(_ context.Context, store store.Store) error {
 
 			i, err := strconv.ParseInt(parts[1], 10, 64)
 			if err != nil {
-				log.WithError(err).Error("Failed to parse environment variables")
+				log.WithFields(
+					log.Fields{
+						"component": "worker",
+						"task":      TaskHeartbeat,
+						"index":     rune(i),
+					}).
+					WithError(err).
+					Warn("Failed to parse timestamp to integer.")
 
 				continue
 			}
 
 			timestamp := time.Unix(i, 0)
-
 			store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
 		}
+
+		log.WithFields(
+			log.Fields{
+				"component": "worker",
+				"task":      TaskHeartbeat,
+			}).
+			Info("Finishing heartbeat worker.")
 
 		return nil
 	})
 
 	if err := srv.Run(mux); err != nil {
-		log.Fatal(err)
+		log.WithFields(log.Fields{"component": "worker", "task": TaskHeartbeat}).
+			WithError(err).
+			Fatal("Unable to run the server.")
 	}
-
-	return nil
 }

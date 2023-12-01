@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"fmt"
 	"runtime"
 	"time"
 
@@ -19,27 +18,34 @@ import (
 // If something inside the function does not work properly, it will panic.
 // When SHELLHUB_RECORD_RETENTION is equals to zero, records will never be deleted.
 // When SHELLHUB_RECORD_RETENTION is less than zero, nothing happen.
-func StartCleaner(_ context.Context, store store.Store) error {
+func StartCleaner(_ context.Context, store store.Store) {
 	envs, err := getEnvs()
 	if err != nil {
-		return fmt.Errorf("failed to get the envs: %w", err)
+		log.WithFields(log.Fields{"component": "worker", "task": TaskSessionCleanup}).
+			WithError(err).
+			Error("Failed to parse the envs.")
+
+		return
 	}
 
-	if envs.SessionRecordCleanupRetention == 0 {
-		return nil
+	if envs.SessionRecordCleanupRetention < 1 {
+		log.WithFields(log.Fields{"component": "worker", "task": TaskSessionCleanup}).
+			Warnf("Aborting cleanup worker due to SHELLHUB_RECORD_RETENTION equal to %d.", envs.SessionRecordCleanupRetention)
+
+		return
 	}
 
-	if envs.SessionRecordCleanupRetention < 0 {
-		return fmt.Errorf("invalid time interval: %w", fmt.Errorf("%d is not a valid time interval", envs.SessionRecordCleanupRetention))
-	}
-
-	limit := time.Now().UTC().AddDate(0, 0, envs.SessionRecordCleanupRetention*-1)
+	lte := time.Now().UTC().AddDate(0, 0, envs.SessionRecordCleanupRetention*-1)
 
 	mongoStore := store.(*mongo.Store)
 
 	addr, err := asynq.ParseRedisURI(envs.RedisURI)
 	if err != nil {
-		return fmt.Errorf("failed to parse redis uri: %w", err)
+		log.WithFields(log.Fields{"component": "worker", "task": TaskSessionCleanup}).
+			WithError(err).
+			Errorf("Failed to parse redis URI: %s.", envs.RedisURI)
+
+		return
 	}
 
 	srv := asynq.NewServer(
@@ -51,44 +57,96 @@ func StartCleaner(_ context.Context, store store.Store) error {
 
 	mux := asynq.NewServeMux()
 
-	// Handle session_record:cleanup task
 	mux.HandleFunc("session_record:cleanup", func(ctx context.Context, task *asynq.Task) error {
-		if _, err := mongoStore.Database().Collection("recorded_sessions").DeleteMany(ctx,
-			bson.M{"time": bson.D{{"$lte", limit}}},
-		); err != nil {
-			log.WithError(err).Error("Failed to delete recorded sessions")
+		log.WithFields(
+			log.Fields{
+				"component":       "worker",
+				"cron_expression": envs.SessionRecordCleanupSchedule,
+				"task":            TaskSessionCleanup,
+				"lte":             lte.String(),
+			}).
+			Info("Executing cleanup worker.")
+
+		_, err := mongoStore.Database().Collection("recorded_sessions").DeleteMany(
+			ctx,
+			bson.M{
+				"time": bson.D{
+					{"$lte", lte},
+				},
+			},
+		)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"component": "worker",
+					"task":      TaskSessionCleanup,
+				}).
+				WithError(err).
+				Error("Failed to delete recorded sessions")
 
 			return err
 		}
 
-		if _, err := mongoStore.Database().Collection("sessions").UpdateMany(ctx,
-			bson.M{"started_at": bson.D{{"$lte", limit}}, "recorded": bson.M{"$eq": true}},
-			bson.M{"$set": bson.M{"recorded": false}}); err != nil {
-			log.WithError(err).Error("Failed to update sessions")
+		_, err = mongoStore.Database().Collection("sessions").UpdateMany(
+			ctx,
+			bson.M{
+				"started_at": bson.D{
+					{"$lte", lte},
+				},
+				"recorded": bson.M{
+					"$eq": true,
+				},
+			},
+			bson.M{
+				"$set": bson.M{
+					"recorded": false,
+				},
+			},
+		)
+		if err != nil {
+			log.WithFields(
+				log.Fields{
+					"component": "worker",
+					"task":      TaskSessionCleanup,
+				}).
+				WithError(err).
+				Error("Failed to update sessions")
 
 			return err
 		}
+
+		log.WithFields(
+			log.Fields{
+				"component":       "worker",
+				"cron_expression": envs.SessionRecordCleanupSchedule,
+				"task":            TaskSessionCleanup,
+				"lte":             lte.String(),
+			}).
+			Info("Finishing cleanup worker.")
 
 		return nil
 	})
 
 	go func() {
 		if err := srv.Run(mux); err != nil {
-			log.Fatal(err)
+			log.WithFields(log.Fields{"component": "worker", "task": TaskSessionCleanup}).
+				WithError(err).
+				Fatal("Unable to run the server.")
 		}
 	}()
 
 	scheduler := asynq.NewScheduler(addr, nil)
 
-	// Schedule session_record:cleanup to run once a day
-	if _, err := scheduler.Register(envs.SessionRecordCleanupSchedule,
-		asynq.NewTask("session_record:cleanup", nil, asynq.TaskID("session_record:cleanup"))); err != nil {
-		log.Error(err)
+	task := asynq.NewTask("session_record:cleanup", nil, asynq.TaskID("session_record:cleanup"))
+	if _, err := scheduler.Register(envs.SessionRecordCleanupSchedule, task); err != nil {
+		log.WithFields(log.Fields{"component": "worker", "task": TaskSessionCleanup}).
+			WithError(err).
+			Error("Failed to register the scheduler.")
 	}
 
 	if err := scheduler.Run(); err != nil {
-		log.Fatal(err)
+		log.WithFields(log.Fields{"component": "worker", "task": TaskSessionCleanup}).
+			WithError(err).
+			Fatal("Unable to run the scheduler.")
 	}
-
-	return nil
 }
