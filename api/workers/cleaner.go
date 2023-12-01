@@ -86,5 +86,9 @@ func StartCleaner(_ context.Context, store store.Store) error {
 		log.Error(err)
 	}
 
-	return scheduler.Run() //nolint:contextcheck
+	if err := scheduler.Run(); err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }

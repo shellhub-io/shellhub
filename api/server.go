@@ -50,19 +50,8 @@ var serverCmd = &cobra.Command{
 
 		log.Info("Connected to MongoDB")
 
-		go func() {
-			log.Info("Starting workers")
-
-			if err := workers.StartCleaner(ctx, store); err != nil {
-				log.WithError(err).Fatal("Failed to start cleaner worker")
-			}
-
-			if err := workers.StartHeartBeat(ctx, store); err != nil {
-				log.WithError(err).Fatal("Failed to start heartbeat worker")
-			}
-
-			log.Info("Workers started")
-		}()
+		go workers.StartHeartBeat(ctx, store)
+		go workers.StartCleaner(ctx, store)
 
 		return startServer(cfg, store, cache)
 	},
