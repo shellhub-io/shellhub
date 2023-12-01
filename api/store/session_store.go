@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/paginator"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -18,5 +19,6 @@ type SessionStore interface {
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
 	SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error
+	SessionDeleteRecordFrameByDate(ctx context.Context, lte time.Time) (deletedCount int64, updatedCount int64, err error)
 	SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error
 }

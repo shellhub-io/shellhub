@@ -74,4 +74,5 @@ const (
 	User                = "user"                  // Check "fixtures.data.user" for fixture info
 	Member              = "member"                // Check "fixtures.data.member" for fixture info
 	Namespace           = "namespace"             // Check "fixtures.data.namespace" for fixture info
+	RecordedSessions    = "recorded_sessions"
 )

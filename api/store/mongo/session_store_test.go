@@ -651,3 +651,55 @@ func TestSessionDeleteRecordFrame(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionDeleteRecordFrameByDate(t *testing.T) {
+	type Expected struct {
+		deletedCount int64
+		updatedCount int64
+		err          error
+	}
+
+	cases := []struct {
+		description string
+		lte         time.Time
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "succeeds when there are no sessions to update or delete",
+			lte:         time.Date(2023, time.February, 10, 8, 30, 0, 0, time.UTC),
+			fixtures:    []string{},
+			expected: Expected{
+				deletedCount: 0,
+				updatedCount: 0,
+				err:          nil,
+			},
+		},
+		{
+			description: "succeeds to delete and update recorded sessions before specified date",
+			lte:         time.Date(2023, time.February, 12, 8, 30, 0, 0, time.UTC),
+			fixtures:    []string{fixtures.RecordedSessions},
+			expected: Expected{
+				deletedCount: 2,
+				updatedCount: 2,
+				err:          nil,
+			},
+		},
+	}
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Configure(&db)
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, mongotest.UseFixture(tc.fixtures...))
+			defer mongotest.DropDatabase() // nolint:errcheck
+
+			deletedCount, updatedCount, err := mongostore.SessionDeleteRecordFrameByDate(context.TODO(), tc.lte)
+			assert.Equal(t, tc.expected, Expected{deletedCount, updatedCount, err})
+		})
+	}
+}
