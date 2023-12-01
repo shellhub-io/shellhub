@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // registerSessionCleanup worker is designed to delete recorded sessions older than a specified number
@@ -26,28 +24,17 @@ func (w *Workers) registerSessionCleanup() {
 		return
 	}
 
-	mongoStore := w.store.(*mongo.Store)
-
 	w.mux.HandleFunc(TaskSessionCleanup, func(ctx context.Context, _ *asynq.Task) error {
-		lte := time.Now().UTC().AddDate(0, 0, w.env.SessionRecordCleanupRetention*-1)
-
 		log.WithFields(
 			log.Fields{
 				"component":       "worker",
 				"cron_expression": w.env.SessionRecordCleanupSchedule,
 				"task":            TaskSessionCleanup,
-				"lte":             lte.String(),
 			}).
 			Info("Executing cleanup worker.")
 
-		_, err := mongoStore.Database().Collection("recorded_sessions").DeleteMany(
-			ctx,
-			bson.M{
-				"time": bson.D{
-					{"$lte", lte},
-				},
-			},
-		)
+		lte := time.Now().UTC().AddDate(0, 0, w.env.SessionRecordCleanupRetention*(-1))
+		deletedCount, updatedCount, err := w.store.SessionDeleteRecordFrameByDate(ctx, lte)
 		if err != nil {
 			log.WithFields(
 				log.Fields{
@@ -60,40 +47,14 @@ func (w *Workers) registerSessionCleanup() {
 			return err
 		}
 
-		_, err = mongoStore.Database().Collection("sessions").UpdateMany(
-			ctx,
-			bson.M{
-				"started_at": bson.D{
-					{"$lte", lte},
-				},
-				"recorded": bson.M{
-					"$eq": true,
-				},
-			},
-			bson.M{
-				"$set": bson.M{
-					"recorded": false,
-				},
-			},
-		)
-		if err != nil {
-			log.WithFields(
-				log.Fields{
-					"component": "worker",
-					"task":      TaskSessionCleanup,
-				}).
-				WithError(err).
-				Error("Failed to update sessions")
-
-			return err
-		}
-
 		log.WithFields(
 			log.Fields{
 				"component":       "worker",
 				"cron_expression": w.env.SessionRecordCleanupSchedule,
 				"task":            TaskSessionCleanup,
 				"lte":             lte.String(),
+				"deleted_count":   deletedCount,
+				"updated_count":   updatedCount,
 			}).
 			Info("Finishing cleanup worker.")
 
