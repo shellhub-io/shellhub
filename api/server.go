@@ -50,8 +50,11 @@ var serverCmd = &cobra.Command{
 
 		log.Info("Connected to MongoDB")
 
-		go workers.StartHeartBeat(ctx, store)
-		go workers.StartCleaner(ctx, store)
+		worker, err := workers.New(store)
+		if err != nil {
+			log.WithError(err).Warn("Failed to create workers.")
+		}
+		worker.Start()
 
 		return startServer(cfg, store, cache)
 	},

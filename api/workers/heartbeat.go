@@ -4,60 +4,21 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 )
 
-func StartHeartBeat(_ context.Context, store store.Store) {
-	envs, err := getEnvs()
-	if err != nil {
-		log.WithFields(log.Fields{"component": "worker", "task": TaskHeartbeat}).
-			WithError(err).
-			Error("Failed to parse the envs.")
-
-		return
-	}
-
-	addr, err := asynq.ParseRedisURI(envs.RedisURI)
-	if err != nil {
-		log.WithFields(log.Fields{"component": "worker", "task": TaskHeartbeat}).
-			WithError(err).
-			Errorf("Failed to parse redis URI: %s.", envs.RedisURI)
-
-		return
-	}
-
-	aggregate := func(group string, tasks []*asynq.Task) *asynq.Task {
-		var b strings.Builder
-
-		for _, task := range tasks {
-			b.WriteString(fmt.Sprintf("%s:%d\n", task.Payload(), time.Now().Unix()))
-		}
-
-		return asynq.NewTask(TaskHeartbeat, []byte(b.String()))
-	}
-
-	srv := asynq.NewServer(
-		addr,
-		asynq.Config{
-			GroupAggregator:  asynq.GroupAggregatorFunc(aggregate),
-			GroupMaxDelay:    time.Duration(envs.AsynqGroupMaxDelay) * time.Second,
-			GroupGracePeriod: time.Duration(envs.AsynqGroupGracePeriod) * time.Second,
-			GroupMaxSize:     envs.AsynqGroupMaxSize,
-			Queues:           map[string]int{"api": 6},
-		},
-	)
-
-	mux := asynq.NewServeMux()
-
-	mux.HandleFunc(TaskHeartbeat, func(ctx context.Context, task *asynq.Task) error {
+// heartbeat worker manages heartbeat tasks, signaling the online status of devices.
+// It aggregates heartbeat data and updates the online status of devices accordingly.
+// The maximum number of devices to wait for before triggering is defined by the `SHELLHUB_ASYNQ_GROUP_MAX_SIZE` (default is 500).
+// Another triggering mechanism involves a timeout defined in the `SHELLHUB_ASYNQ_GROUP_MAX_DELAY` environment variable.
+func (w *Workers) registerHeartbeat() {
+	w.mux.HandleFunc(TaskHeartbeat, func(ctx context.Context, task *asynq.Task) error {
 		log.WithFields(
 			log.Fields{
 				"component": "worker",
@@ -87,7 +48,8 @@ func StartHeartBeat(_ context.Context, store store.Store) {
 			}
 
 			timestamp := time.Unix(i, 0)
-			store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
+
+			w.store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
 		}
 
 		log.WithFields(
@@ -99,10 +61,4 @@ func StartHeartBeat(_ context.Context, store store.Store) {
 
 		return nil
 	})
-
-	if err := srv.Run(mux); err != nil {
-		log.WithFields(log.Fields{"component": "worker", "task": TaskHeartbeat}).
-			WithError(err).
-			Fatal("Unable to run the server.")
-	}
 }
