@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 )
 
 // an adapter for representing WebSocket connection as a net.Conn
@@ -15,17 +16,70 @@ import (
 
 var ErrUnexpectedMessageType = errors.New("unexpected websocket message type")
 
+const (
+	pongTimeout  = time.Second * 35
+	pingInterval = time.Second * 30
+)
+
 type Adapter struct {
 	conn       *websocket.Conn
 	readMutex  sync.Mutex
 	writeMutex sync.Mutex
 	reader     io.Reader
+	stopPingCh chan struct{}
+	pongCh     chan bool
 }
 
 func New(conn *websocket.Conn) *Adapter {
-	return &Adapter{
+	adapter := &Adapter{
 		conn: conn,
 	}
+
+	return adapter
+}
+
+func (a *Adapter) Ping() chan bool {
+	if a.pongCh != nil {
+		return a.pongCh
+	}
+
+	a.stopPingCh = make(chan struct{})
+	a.pongCh = make(chan bool)
+
+	timeout := time.AfterFunc(pongTimeout, func() {
+		_ = a.Close()
+	})
+
+	a.conn.SetPongHandler(func(data string) error {
+		timeout.Reset(pongTimeout)
+
+		// non-blocking channel write
+		select {
+		case a.pongCh <- true:
+		default:
+		}
+
+		return nil
+	})
+
+	// ping loop
+	go func() {
+		ticker := time.NewTicker(pingInterval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil {
+					logrus.WithError(err).Error("Failed to write ping message")
+				}
+			case <-a.stopPingCh:
+				return
+			}
+		}
+	}()
+
+	return a.pongCh
 }
 
 func (a *Adapter) Read(b []byte) (int, error) {
@@ -77,6 +131,13 @@ func (a *Adapter) Write(b []byte) (int, error) {
 }
 
 func (a *Adapter) Close() error {
+	select {
+	case <-a.stopPingCh:
+	default:
+		a.stopPingCh <- struct{}{}
+		close(a.stopPingCh)
+	}
+
 	return a.conn.Close()
 }
 
