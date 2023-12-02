@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,7 +26,7 @@ func New() *ConnectionManager {
 	}
 }
 
-func (m *ConnectionManager) Set(key string, conn net.Conn) {
+func (m *ConnectionManager) Set(key string, conn *wsconnadapter.Adapter) {
 	dialer := revdial.NewDialer(conn, "/ssh/revdial")
 
 	m.dialers.Store(key, dialer)
@@ -37,10 +38,15 @@ func (m *ConnectionManager) Set(key string, conn net.Conn) {
 		}).Warning("Multiple connections stored for the same identifier.")
 	}
 
+	m.DialerKeepAliveCallback(key, dialer)
+
+	// Start the ping loop and get the channel for pong responses
+	pong := conn.Ping()
+
 	go func() {
 		for {
 			select {
-			case <-dialer.KeepAlives():
+			case <-pong:
 				m.DialerKeepAliveCallback(key, dialer)
 
 				continue

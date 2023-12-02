@@ -34,6 +34,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
+	"github.com/sirupsen/logrus"
 )
 
 var ErrDialerClosed = errors.New("revdial.Dialer closed")
@@ -128,6 +129,7 @@ func (d *Dialer) Close() error {
 func (d *Dialer) close() {
 	d.unregister()
 	d.conn.Close()
+	d.donec <- struct{}{}
 	close(d.donec)
 }
 
@@ -165,21 +167,20 @@ func (d *Dialer) matchConn(c net.Conn) {
 // serve blocks and runs the control message loop, keeping the peer
 // alive and notifying the peer when new connections are available.
 func (d *Dialer) serve() error {
-	done := func() {
-		d.Close()
-	}
-
-	var onceDefer sync.Once
-	defer onceDefer.Do(done)
-
-	closeTimer := time.AfterFunc(dialerKeepAliveTimeout, done)
+	defer d.Close()
 
 	go func() {
-		defer onceDefer.Do(done)
+		defer d.Close()
+
 		br := bufio.NewReader(d.conn)
 		for {
 			line, err := br.ReadSlice('\n')
 			if err != nil {
+				unexpectedError := websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure)
+				if !errors.Is(err, net.ErrClosed) && unexpectedError {
+					logrus.WithError(err).Error("revdial.Dialer failed to read")
+				}
+
 				return
 			}
 			var msg controlMsg
@@ -198,7 +199,6 @@ func (d *Dialer) serve() error {
 					return
 				}
 			case "keep-alive":
-				closeTimer.Reset(dialerKeepAliveTimeout)
 				d.keepAliveChan <- true
 			default:
 				// Ignore unknown messages
@@ -212,8 +212,6 @@ func (d *Dialer) serve() error {
 
 		t := time.NewTimer(30 * time.Second)
 		select {
-		case <-closeTimer.C:
-			return ErrDialerTimedout
 		case <-t.C:
 			continue
 		case <-d.connReady:
