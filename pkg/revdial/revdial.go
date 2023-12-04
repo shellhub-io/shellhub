@@ -54,12 +54,11 @@ type Dialer struct {
 	uniqID     string
 	pickupPath string // path + uniqID: "/revdial?revdial.dialer="+uniqID
 
-	incomingConn  chan net.Conn
-	pickupFailed  chan error
-	connReady     chan bool
-	donec         chan struct{}
-	keepAliveChan chan bool
-	closeOnce     sync.Once
+	incomingConn chan net.Conn
+	pickupFailed chan error
+	connReady    chan bool
+	donec        chan struct{}
+	closeOnce    sync.Once
 }
 
 var (
@@ -74,14 +73,13 @@ var (
 // mounted.
 func NewDialer(c net.Conn, connPath string) *Dialer {
 	d := &Dialer{
-		path:          connPath,
-		uniqID:        newUniqID(),
-		conn:          c,
-		donec:         make(chan struct{}),
-		keepAliveChan: make(chan bool),
-		connReady:     make(chan bool),
-		incomingConn:  make(chan net.Conn),
-		pickupFailed:  make(chan error),
+		path:         connPath,
+		uniqID:       newUniqID(),
+		conn:         c,
+		donec:        make(chan struct{}),
+		connReady:    make(chan bool),
+		incomingConn: make(chan net.Conn),
+		pickupFailed: make(chan error),
 	}
 
 	join := "?"
@@ -114,10 +112,6 @@ func (d *Dialer) unregister() {
 // this process on purpose, by a local error, or close or error from
 // the peer).
 func (d *Dialer) Done() <-chan struct{} { return d.donec }
-
-// KeepAlives returns a channel that receives a value when the
-// dialer receives a keep alive message.
-func (d *Dialer) KeepAlives() <-chan bool { return d.keepAliveChan }
 
 // Close closes the Dialer.
 func (d *Dialer) Close() error {
@@ -199,7 +193,6 @@ func (d *Dialer) serve() error {
 					return
 				}
 			case "keep-alive":
-				d.keepAliveChan <- true
 			default:
 				// Ignore unknown messages
 			}
