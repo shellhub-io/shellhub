@@ -28,11 +28,11 @@
           </td>
           <td class="text-center">{{ item.name }}</td>
           <td class="text-center">
-            <DeviceIcon :icon="item.info.id" class="mr-2" />
+            <DeviceIcon :icon="item.info.id" class="mr-2" data-test="deviceIcon-component" />
             <span>{{ item.info.pretty_name }}</span>
           </td>
           <td class="text-center">
-            <v-chip>
+            <v-chip data-test="sshid-chip">
               <v-tooltip location="bottom">
                 <template v-slot:activator="{ props }">
                   <span
@@ -57,7 +57,7 @@
                 :disabled="!showTag(tag)"
               >
                 <template #activator="{ props }">
-                  <v-chip size="small" v-bind="props" v-on="props" class="mr-1">
+                  <v-chip size="small" v-bind="props" v-on="props" class="mr-1" data-test="tag-chip">
                     {{ displayOnlyTenCharacters(tag) }}
                   </v-chip>
                 </template>
@@ -74,14 +74,14 @@
           </td>
 
           <td class="text-center">
-            <v-menu location="bottom" scrim eager>
+            <v-menu location="bottom" scrim eager data-test="v-menu">
               <template v-slot:activator="{ props }">
                 <v-chip v-bind="props" density="comfortable" size="small">
                   <v-icon>mdi-dots-horizontal</v-icon>
                 </v-chip>
               </template>
               <v-list class="bg-v-theme-surface" lines="two" density="compact">
-                <v-list-item @click="redirectToDevice(item.uid)">
+                <v-list-item @click="redirectToDevice(item.uid)" data-test="mdi-information-list-item">
                   <div class="d-flex align-center">
                     <div class="mr-2">
                       <v-icon> mdi-information </v-icon>
@@ -105,6 +105,7 @@
                         :tagsList="item.tags"
                         :notHasAuthorization="!hasAuthorizationFormUpdate()"
                         @update="refreshDevices"
+                        data-test="tagFormUpdate-component"
                       />
                     </div>
                   </template>
@@ -122,6 +123,7 @@
                         :uid="item.uid"
                         :notHasAuthorization="!hasAuthorizationRemove()"
                         @update="refreshDevices"
+                        data-test="deviceDelete-component"
                       />
                     </div>
                   </template>
@@ -188,7 +190,7 @@ const headers = [
 const store = useStore();
 const router = useRouter();
 const loading = ref(false);
-const filter = ref("");
+const filter = computed(() => store.getters["devices/getFilter"]);
 const itemsPerPage = ref(10);
 const page = ref(1);
 
@@ -219,7 +221,7 @@ onMounted(async () => {
   }
 });
 
-const getDevices = async (perPagaeValue: number, pageValue: number) => {
+const getDevices = async (perPagaeValue: number, pageValue: number, filter: string) => {
   try {
     loading.value = true;
 
@@ -227,7 +229,7 @@ const getDevices = async (perPagaeValue: number, pageValue: number) => {
       perPage: perPagaeValue,
       page: pageValue,
       status: "accepted",
-      filter: filter.value,
+      filter,
       sortStatusField: store.getters["devices/getSortStatusField"],
       sortStatusString: store.getters["devices/getSortStatusString"],
     });
@@ -269,16 +271,16 @@ const sortByItem = async (field: string) => {
     sortStatusField: field,
     sortStatusString,
   });
-  await getDevices(itemsPerPage.value, page.value);
+  await getDevices(itemsPerPage.value, page.value, filter.value);
 };
 
 const next = async () => {
-  await getDevices(itemsPerPage.value, ++page.value);
+  await getDevices(itemsPerPage.value, ++page.value, filter.value);
 };
 
 const prev = async () => {
   try {
-    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
+    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value, filter.value);
   } catch (error: unknown) {
     store.dispatch("snackbar/setSnackbarErrorDefault");
     handleError(error);
@@ -290,7 +292,7 @@ const changeItemsPerPage = async (newItemsPerPage: number) => {
 };
 
 watch(itemsPerPage, async () => {
-  await getDevices(itemsPerPage.value, page.value);
+  await getDevices(itemsPerPage.value, page.value, filter.value);
 });
 
 const redirectToDevice = (deviceId: string) => {
@@ -310,7 +312,7 @@ const copyText = (value: string | undefined) => {
 };
 
 const refreshDevices = () => {
-  getDevices(itemsPerPage.value, page.value);
+  getDevices(itemsPerPage.value, page.value, filter.value);
 };
 
 const hasAuthorizationFormUpdate = () => {
