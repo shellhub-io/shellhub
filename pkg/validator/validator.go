@@ -39,6 +39,13 @@ var Rules = []Rule{
 		},
 		Error: fmt.Errorf("the password cannot be empty and must be between 5 and 30 characters"),
 	},
+	{
+		Tag: "device_name",
+		Handler: func(field validator.FieldLevel) bool {
+			return regexp.MustCompile(`^([a-zA-Z0-9_.-] ){1,64}$`).MatchString(field.Field().String())
+		},
+		Error: fmt.Errorf("the device name can only contain `_`, `.` and alpha numeric characters"),
+	},
 }
 
 // Validator is the ShellHub validator.
