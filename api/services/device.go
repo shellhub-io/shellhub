@@ -351,7 +351,7 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 		}
 
 		v := validator.New()
-		if ok, err := v.Var(*name, "device_name"); err != nil || !ok {
+		if ok, err := v.Var(*name, validator.DeviceNameTag); err != nil || !ok {
 			return NewErrDeviceInvalid(map[string]interface{}{"name": *name}, nil)
 		}
 
