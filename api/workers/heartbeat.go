@@ -24,7 +24,7 @@ func (w *Workers) registerHeartbeat() {
 				"component": "worker",
 				"task":      TaskHeartbeat,
 			}).
-			Info("Executing heartbeat worker.")
+			Trace("Executing heartbeat worker.")
 
 		scanner := bufio.NewScanner(bytes.NewReader(task.Payload()))
 		scanner.Split(bufio.ScanLines)
@@ -51,13 +51,6 @@ func (w *Workers) registerHeartbeat() {
 
 			w.store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
 		}
-
-		log.WithFields(
-			log.Fields{
-				"component": "worker",
-				"task":      TaskHeartbeat,
-			}).
-			Info("Finishing heartbeat worker.")
 
 		return nil
 	})
