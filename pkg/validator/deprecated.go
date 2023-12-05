@@ -31,6 +31,10 @@ func init() {
 		return regexp.MustCompile(`^([a-zA-Z0-9-_.@]){3,30}$`).MatchString(fl.Field().String())
 	})
 
+	_ = validate.RegisterValidation("device_name", func(fl validator.FieldLevel) bool {
+		return regexp.MustCompile(`^([a-zA-Z0-9_-]){1,64}$`).MatchString(fl.Field().String())
+	})
+
 	instance = validate
 }
 
