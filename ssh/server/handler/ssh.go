@@ -21,35 +21,37 @@ import (
 
 // Errors returned by handlers to client.
 var (
-	ErrRequestShell       = fmt.Errorf("failed to open a shell in the device")
-	ErrRequestExec        = fmt.Errorf("failed to exec the command in the device")
-	ErrRequestHeredoc     = fmt.Errorf("failed to exec the command as heredoc in the device")
-	ErrRequestUnsupported = fmt.Errorf("failed to get the request type")
-	ErrPublicKey          = fmt.Errorf("failed to get the parsed public key")
-	ErrPrivateKey         = fmt.Errorf("failed to get a key data from the server")
-	ErrSigner             = fmt.Errorf("failed to create a signer from the private key")
-	ErrConnect            = fmt.Errorf("failed to connect to device")
-	ErrSession            = fmt.Errorf("failed to create a session between the server to the agent")
-	ErrGetAuth            = fmt.Errorf("failed to get auth data from key")
-	ErrWebData            = fmt.Errorf("failed to get the data to connect to device")
-	ErrFindDevice         = fmt.Errorf("failed to find the device")
-	ErrFindPublicKey      = fmt.Errorf("failed to get the public key from the server")
-	ErrEvaluatePublicKey  = fmt.Errorf("failed to evaluate the public key in the server")
-	ErrForbiddenPublicKey = fmt.Errorf("failed to use the public key for this action")
-	ErrDataPublicKey      = fmt.Errorf("failed to parse the public key data")
-	ErrSignaturePublicKey = fmt.Errorf("failed to decode the public key signature")
-	ErrVerifyPublicKey    = fmt.Errorf("failed to verify the public key")
-	ErrSignerPublicKey    = fmt.Errorf("failed to signer the public key")
-	ErrDialSSH            = fmt.Errorf("failed to dial to connect to server")
-	ErrEnvIPAddress       = fmt.Errorf("failed to set the env virable of ip address from client")
-	ErrEnvWS              = fmt.Errorf("failed to set the env virable of web socket from client")
-	ErrPipe               = fmt.Errorf("failed to pipe client data to agent")
-	ErrPty                = fmt.Errorf("failed to request the pty to agent")
-	ErrShell              = fmt.Errorf("failed to get the shell to agent")
-	ErrTarget             = fmt.Errorf("failed to get client target")
-	ErrAuthentication     = fmt.Errorf("failed to authenticate to device")
-	ErrEnvs               = fmt.Errorf("failed to parse server envs")
-	ErrConfiguration      = fmt.Errorf("failed to create communication configuration")
+	ErrRequestShell            = fmt.Errorf("failed to open a shell in the device")
+	ErrRequestExec             = fmt.Errorf("failed to exec the command in the device")
+	ErrRequestHeredoc          = fmt.Errorf("failed to exec the command as heredoc in the device")
+	ErrRequestUnsupported      = fmt.Errorf("failed to get the request type")
+	ErrPublicKey               = fmt.Errorf("failed to get the parsed public key")
+	ErrPrivateKey              = fmt.Errorf("failed to get a key data from the server")
+	ErrSigner                  = fmt.Errorf("failed to create a signer from the private key")
+	ErrConnect                 = fmt.Errorf("failed to connect to device")
+	ErrSession                 = fmt.Errorf("failed to create a session between the server to the agent")
+	ErrGetAuth                 = fmt.Errorf("failed to get auth data from key")
+	ErrWebData                 = fmt.Errorf("failed to get the data to connect to device")
+	ErrFindDevice              = fmt.Errorf("failed to find the device")
+	ErrFindPublicKey           = fmt.Errorf("failed to get the public key from the server")
+	ErrEvaluatePublicKey       = fmt.Errorf("failed to evaluate the public key in the server")
+	ErrForbiddenPublicKey      = fmt.Errorf("failed to use the public key for this action")
+	ErrDataPublicKey           = fmt.Errorf("failed to parse the public key data")
+	ErrSignaturePublicKey      = fmt.Errorf("failed to decode the public key signature")
+	ErrVerifyPublicKey         = fmt.Errorf("failed to verify the public key")
+	ErrSignerPublicKey         = fmt.Errorf("failed to signer the public key")
+	ErrDialSSH                 = fmt.Errorf("failed to dial to connect to server")
+	ErrEnvIPAddress            = fmt.Errorf("failed to set the env virable of ip address from client")
+	ErrEnvWS                   = fmt.Errorf("failed to set the env virable of web socket from client")
+	ErrPipe                    = fmt.Errorf("failed to pipe client data to agent")
+	ErrPty                     = fmt.Errorf("failed to request the pty to agent")
+	ErrShell                   = fmt.Errorf("failed to get the shell to agent")
+	ErrTarget                  = fmt.Errorf("failed to get client target")
+	ErrAuthentication          = fmt.Errorf("failed to authenticate to device")
+	ErrEnvs                    = fmt.Errorf("failed to parse server envs")
+	ErrConfiguration           = fmt.Errorf("failed to create communication configuration")
+	ErrInvalidVersion          = fmt.Errorf("failed to parse device version")
+	ErrUnsuportedPublicKeyAuth = fmt.Errorf("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
 )
 
 type ConfigOptions struct {
@@ -103,6 +105,34 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 }
 
 func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Session, config *gossh.ClientConfig, api internalclient.Client, opts ConfigOptions) error {
+	// Versions earlier than 0.6.0 do not validate the user when receiving a public key
+	// authentication request. This implies that requests with invalid users are
+	// treated as "authenticated" because the connection does not raise any error.
+	// Moreover, the agent panics after the connection ends. To avoid this, connections
+	// with public key are not permitted when agent version is 0.5.x or earlier
+	switch metadata.RestoreAuthenticationMethod(ctx.(gliderssh.Context)) {
+	case metadata.PublicKeyAuthenticationMethod:
+		device := metadata.RestoreDevice(ctx.(gliderssh.Context))
+
+		if device.Info.Version != "latest" {
+			ver, err := semver.NewVersion(device.Info.Version)
+			if err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"client": device.UID}).
+					Error("Failed to parse device version")
+
+				return ErrInvalidVersion
+			}
+
+			if ver.LessThan(semver.MustParse("0.6.0")) {
+				log.WithFields(log.Fields{"client": device.UID}).
+					Error("Connections using public keys are not permitted when the agent version is 0.5.x or earlier.")
+
+				return ErrUnsuportedPublicKeyAuth
+			}
+		}
+	}
+
 	connection, reqs, err := sess.NewClientConnWithDeadline(config)
 	if err != nil {
 		log.WithError(err).
