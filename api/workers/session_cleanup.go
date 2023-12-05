@@ -31,7 +31,7 @@ func (w *Workers) registerSessionCleanup() {
 				"cron_expression": w.env.SessionRecordCleanupSchedule,
 				"task":            TaskSessionCleanup,
 			}).
-			Info("Executing cleanup worker.")
+			Trace("Executing cleanup worker.")
 
 		lte := time.Now().UTC().AddDate(0, 0, w.env.SessionRecordCleanupRetention*(-1))
 		deletedCount, updatedCount, err := w.store.SessionDeleteRecordFrameByDate(ctx, lte)
@@ -56,7 +56,7 @@ func (w *Workers) registerSessionCleanup() {
 				"deleted_count":   deletedCount,
 				"updated_count":   updatedCount,
 			}).
-			Info("Finishing cleanup worker.")
+			Trace("Finishing cleanup worker.")
 
 		return nil
 	})
