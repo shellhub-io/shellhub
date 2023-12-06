@@ -31,9 +31,7 @@ func TestMigration32(t *testing.T) {
 			Username: "username",
 			Email:    "email@mail.com",
 		},
-		UserPassword: models.UserPassword{
-			Password: "password",
-		},
+		UserPassword: models.NewUserPassword("password"),
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)

@@ -2,9 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"errors"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -42,33 +39,16 @@ type Services interface {
 // service is an internal struct that implements the Services interface.
 // It contains a store, which provides a mechanism to interact with the data store.
 type service struct {
-	store store.Store
+	store     store.Store
+	validator *validator.Validator
 }
 
 // NewService creates and returns a new instance of the service with the provided store.
 func NewService(store store.Store) Services {
-	return &service{store}
-}
-
-// hashPassword computes the sha256 hash of the given password and returns
-// the hex encoded string representation of the hash.
-func hashPassword(password string) string {
-	hash := sha256.Sum256([]byte(password))
-
-	return hex.EncodeToString(hash[:])
+	return &service{store, validator.New()}
 }
 
 // normalizeField converts the provided string data to lowercase.
 func normalizeField(data string) string {
 	return strings.ToLower(data)
-}
-
-// The validate function performs validation on the given input using predefined struct tags.
-func validate(input interface{}) error {
-	v := validator.New()
-	if ok, err := v.Struct(input); !ok || err != nil {
-		return validator.GetFirstFieldError(errors.Unwrap(err))
-	}
-
-	return nil
 }

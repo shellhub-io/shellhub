@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -116,7 +117,7 @@ func TestRenameTag(t *testing.T) {
 			currentTag:    "currentTag",
 			newTag:        "invalid_tag",
 			requiredMocks: func() {},
-			expected:      NewErrTagInvalid("invalid_tag", nil),
+			expected:      NewErrTagInvalid("invalid_tag", validator.ErrStructureInvalid),
 		},
 		{
 			name:       "fail when device has no tags",
@@ -257,7 +258,7 @@ func TestDeleteTag(t *testing.T) {
 			tenant: "tenant",
 			requiredMocks: func() {
 			},
-			expected: NewErrTagInvalid("invalid_tag", nil),
+			expected: NewErrTagInvalid("invalid_tag", validator.ErrStructureInvalid),
 		},
 		{
 			name:   "fail when could not find the namespace",

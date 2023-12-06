@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type APIService struct {
@@ -15,12 +16,13 @@ type APIService struct {
 var _ Service = (*APIService)(nil)
 
 type service struct {
-	store   store.Store
-	privKey *rsa.PrivateKey
-	pubKey  *rsa.PublicKey
-	cache   cache.Cache
-	client  interface{}
-	locator geoip.Locator
+	store     store.Store
+	privKey   *rsa.PrivateKey
+	pubKey    *rsa.PublicKey
+	cache     cache.Cache
+	client    interface{}
+	locator   geoip.Locator
+	validator *validator.Validator
 }
 
 //go:generate mockery --name Service --filename services.go
@@ -49,5 +51,5 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &APIService{service: &service{store, privKey, pubKey, cache, c, l}}
+	return &APIService{service: &service{store, privKey, pubKey, cache, c, l, validator.New()}}
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,11 +43,9 @@ func TestSetup(t *testing.T) {
 						Email:    "teste@google.com",
 						Username: "userteste",
 					},
-					UserPassword: models.UserPassword{
-						Password: validator.HashPassword("123456"),
-					},
-					Confirmed: true,
-					CreatedAt: now,
+					UserPassword: models.NewUserPassword("123456"),
+					Confirmed:    true,
+					CreatedAt:    now,
 				}
 				mock.On("UserCreate", ctx, user).Return(errors.New("error", "", 0)).Once()
 			},
@@ -73,11 +70,9 @@ func TestSetup(t *testing.T) {
 						Email:    "teste@google.com",
 						Username: "userteste",
 					},
-					UserPassword: models.UserPassword{
-						Password: validator.HashPassword("123456"),
-					},
-					Confirmed: true,
-					CreatedAt: now,
+					UserPassword: models.NewUserPassword("123456"),
+					Confirmed:    true,
+					CreatedAt:    now,
 				}
 				namespace := &models.Namespace{
 					Name:       "teste-space",
@@ -115,11 +110,9 @@ func TestSetup(t *testing.T) {
 						Email:    "teste@google.com",
 						Username: "userteste",
 					},
-					UserPassword: models.UserPassword{
-						Password: validator.HashPassword("123456"),
-					},
-					Confirmed: true,
-					CreatedAt: now,
+					UserPassword: models.NewUserPassword("123456"),
+					Confirmed:    true,
+					CreatedAt:    now,
 				}
 				namespace := &models.Namespace{
 					Name:       "teste-space",

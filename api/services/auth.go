@@ -168,8 +168,7 @@ func (s *service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.
 		}
 	}
 
-	password := sha256.Sum256([]byte(req.Password))
-	if user.Password == hex.EncodeToString(password[:]) {
+	if user.UserPassword.Compare(models.NewUserPassword(req.Password)) {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 			Username: user.Username,
 			Admin:    true,

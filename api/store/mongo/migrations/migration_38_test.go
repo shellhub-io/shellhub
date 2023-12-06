@@ -44,9 +44,7 @@ func TestMigration38(t *testing.T) {
 			Email:    "userNoCreatedAt@mail.com",
 			Username: "userNoCreatedAt",
 		},
-		UserPassword: models.UserPassword{
-			Password: "",
-		},
+		UserPassword: models.NewUserPassword(""),
 	}
 	userWithCreatedAt := models.User{
 		ID:         "userWithCreatedID",
@@ -59,9 +57,7 @@ func TestMigration38(t *testing.T) {
 			Email:    "userWithCreatedAt@mail.com",
 			Username: "userWithCreatedAt",
 		},
-		UserPassword: models.UserPassword{
-			Password: "",
-		},
+		UserPassword: models.NewUserPassword(""),
 	}
 
 	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), userNoCreatedAt)

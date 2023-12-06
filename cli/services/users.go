@@ -12,27 +12,28 @@ import (
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
-	if err := validate(&inputs.UserPassword{Password: input.Password}); err != nil {
-		return nil, ErrUserPasswordInvalid
-	}
-
-	if err := validate(input); err != nil {
-		return nil, ErrUserDataInvalid
-	}
-
 	name := normalizeField(input.Username)
 	mail := normalizeField(input.Email)
+
 	userData := models.UserData{
 		Name:     name,
 		Email:    mail,
 		Username: name,
 	}
 
+	if ok, err := s.validator.Struct(userData); !ok || err != nil {
+		return nil, ErrUserDataInvalid
+	}
+
+	userPassword := models.NewUserPassword(input.Password)
+
+	if ok, err := s.validator.Struct(userPassword); !ok || err != nil {
+		return nil, ErrUserPasswordInvalid
+	}
+
 	user := &models.User{
-		UserData: userData,
-		UserPassword: models.UserPassword{
-			Password: hashPassword(input.Password),
-		},
+		UserData:      userData,
+		UserPassword:  userPassword,
 		Confirmed:     true,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -69,7 +70,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 // UserDelete removes a user and cleans up related data based on the provided username.
 func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) error {
-	if err := validate(input); err != nil {
+	if ok, err := s.validator.Struct(input); !ok || err != nil {
 		return ErrUserDataInvalid
 	}
 
@@ -106,7 +107,13 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 
 // UserUpdate updates a user's data based on the provided username.
 func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) error {
-	if err := validate(&inputs.UserPassword{Password: input.Password}); err != nil {
+	if ok, err := s.validator.Struct(input); !ok || err != nil {
+		return ErrUserDataInvalid
+	}
+
+	password := models.NewUserPassword(input.Password)
+
+	if ok, err := s.validator.Struct(password); !ok || err != nil {
 		return ErrUserPasswordInvalid
 	}
 
@@ -115,7 +122,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserNotFound
 	}
 
-	if err := s.store.UserUpdatePassword(ctx, hashPassword(input.Password), user.ID); err != nil {
+	if err := s.store.UserUpdatePassword(ctx, password.HashedPassword, user.ID); err != nil {
 		return ErrFailedUpdateUser
 	}
 

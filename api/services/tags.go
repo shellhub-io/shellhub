@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type TagsService interface {
@@ -22,8 +22,8 @@ func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, er
 }
 
 func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, newTag string) error {
-	if !validator.ValidateFieldTag(newTag) {
-		return NewErrTagInvalid(newTag, nil)
+	if ok, err := s.validator.Struct(models.NewDeviceTag(newTag)); !ok || err != nil {
+		return NewErrTagInvalid(newTag, err)
 	}
 
 	tags, count, err := s.store.TagsGet(ctx, tenant)
@@ -43,8 +43,8 @@ func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, n
 }
 
 func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) error {
-	if !validator.ValidateFieldTag(tag) {
-		return NewErrTagInvalid(tag, nil)
+	if ok, err := s.validator.Struct(models.NewDeviceTag(tag)); !ok || err != nil {
+		return NewErrTagInvalid(tag, err)
 	}
 
 	namespace, err := s.store.NamespaceGet(ctx, tenant)

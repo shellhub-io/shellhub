@@ -12,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type NamespaceService interface {
@@ -79,7 +78,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		TenantID: namespace.TenantID,
 	}
 
-	if _, err := validator.ValidateStruct(ns); err != nil {
+	if ok, err := s.validator.Struct(ns); !ok || err != nil {
 		return nil, NewErrNamespaceInvalid(err)
 	}
 
@@ -194,7 +193,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 	}
 
 	name = strings.ToLower(name)
-	if _, err := validator.ValidateStruct(&models.Namespace{Name: name}); err != nil {
+	if ok, err := s.validator.Struct(&models.Namespace{Name: name}); !ok || err != nil {
 		return nil, NewErrNamespaceInvalid(err)
 	}
 
@@ -215,7 +214,7 @@ func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*mo
 //
 // AddNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
-	if _, err := validator.ValidateStruct(models.Member{Username: memberUsername, Role: memberRole}); err != nil {
+	if ok, err := s.validator.Struct(models.Member{Username: memberUsername, Role: memberRole}); !ok || err != nil {
 		return nil, NewErrNamespaceMemberInvalid(err)
 	}
 
