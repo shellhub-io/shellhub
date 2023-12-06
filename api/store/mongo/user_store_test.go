@@ -58,7 +58,7 @@ func TestUserList(t *testing.T) {
 						},
 						MaxNamespaces: 0,
 						UserPassword: models.UserPassword{
-							Password: "secret123",
+							HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 						},
 					},
 				},
@@ -158,9 +158,7 @@ func TestUserCreate(t *testing.T) {
 					Username: "john_doe",
 					Email:    "user@test.com",
 				},
-				UserPassword: models.UserPassword{
-					Password: "secret123",
-				},
+				UserPassword: models.NewUserPassword("secret123"),
 			},
 			setup: func() error {
 				return nil
@@ -231,7 +229,7 @@ func TestUserGetByUsername(t *testing.T) {
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
-						Password: "secret123",
+						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				err: nil,
@@ -304,7 +302,7 @@ func TestUserGetByEmail(t *testing.T) {
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
-						Password: "secret123",
+						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				err: nil,
@@ -381,7 +379,7 @@ func TestUserGetByID(t *testing.T) {
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
-						Password: "secret123",
+						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				ns:  0,
@@ -409,7 +407,7 @@ func TestUserGetByID(t *testing.T) {
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
-						Password: "secret123",
+						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				ns:  1,
@@ -856,7 +854,7 @@ func TestUserDetachInfo(t *testing.T) {
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 
-	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "user@email.com"}, UserPassword: models.UserPassword{Password: "password"}, ID: "60af83d418d2dc3007cd445c"}
+	user := models.User{UserData: models.UserData{Name: "name", Username: "username", Email: "user@email.com"}, UserPassword: models.NewUserPassword("password"), ID: "60af83d418d2dc3007cd445c"}
 
 	objID, err := primitive.ObjectIDFromHex(user.ID)
 
@@ -866,7 +864,7 @@ func TestUserDetachInfo(t *testing.T) {
 		"_id":      objID,
 		"name":     user.Name,
 		"username": user.Username,
-		"password": user.Password,
+		"password": user.HashedPassword,
 		"email":    user.Email,
 	})
 

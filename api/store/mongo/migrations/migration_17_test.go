@@ -25,9 +25,7 @@ func TestMigration17(t *testing.T) {
 			Username: "username",
 			Email:    "email",
 		},
-		UserPassword: models.UserPassword{
-			Password: "password",
-		},
+		UserPassword: models.NewUserPassword("password"),
 	}
 
 	type NamespaceSettings struct {

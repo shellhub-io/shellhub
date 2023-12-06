@@ -139,8 +139,8 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		PublicURL:  false,
 	}
 
-	if data, err := validator.ValidateStructFields(updatedDevice); err != nil {
-		return NewErrDeviceInvalid(data, err)
+	if ok, err := s.validator.Struct(updatedDevice); !ok || err != nil {
+		return NewErrDeviceInvalid(nil, err)
 	}
 
 	if device.Name == updatedDevice.Name {
@@ -350,8 +350,7 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 			return nil
 		}
 
-		v := validator.New()
-		if ok, err := v.Var(*name, validator.DeviceNameTag); err != nil || !ok {
+		if ok, err := s.validator.Var(*name, validator.DeviceNameTag); err != nil || !ok {
 			return NewErrDeviceInvalid(map[string]interface{}{"name": *name}, nil)
 		}
 

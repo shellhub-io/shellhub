@@ -10,7 +10,7 @@ type UserCreate struct {
 // UserUpdate defines the structure for inputs when updating a user.
 type UserUpdate struct {
 	Username string `validate:"required,username"`
-	Password string `validate:"required,password"`
+	Password string
 }
 
 // UserDelete defines the structure for inputs when deleting a user.

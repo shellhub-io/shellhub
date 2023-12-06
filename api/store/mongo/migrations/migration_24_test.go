@@ -32,9 +32,7 @@ func TestMigration24(t *testing.T) {
 			Username: "USERNAME",
 			Email:    "EMAIL@MAIL.COM",
 		},
-		UserPassword: models.UserPassword{
-			Password: "password",
-		},
+		UserPassword: models.NewUserPassword("password"),
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
@@ -45,9 +43,7 @@ func TestMigration24(t *testing.T) {
 			Username: "Username2",
 			Email:    "email@MAIL-TEST.com",
 		},
-		UserPassword: models.UserPassword{
-			Password: "password",
-		},
+		UserPassword: models.NewUserPassword("password"),
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
@@ -58,9 +54,7 @@ func TestMigration24(t *testing.T) {
 			Username: "username3",
 			Email:    "email@e-mail.com",
 		},
-		UserPassword: models.UserPassword{
-			Password: "password",
-		},
+		UserPassword: models.NewUserPassword("password"),
 	}
 	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)

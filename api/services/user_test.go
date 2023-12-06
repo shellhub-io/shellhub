@@ -10,7 +10,6 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -244,7 +243,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 			newPassword:     "newPassword",
 			requiredMocks: func() {
 				user := &models.User{
-					UserPassword: models.UserPassword{Password: validator.HashPassword("passwordNoMatch")},
+					UserPassword: models.NewUserPassword("passwordNoMatch"),
 				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
@@ -258,11 +257,13 @@ func TestUpdatePasswordUser(t *testing.T) {
 			newPassword:     "newPassword",
 			requiredMocks: func() {
 				user := &models.User{
-					UserPassword: models.UserPassword{Password: validator.HashPassword("password")},
+					UserPassword: models.NewUserPassword("password"),
 				}
 
+				password := models.NewUserPassword("newPassword")
+
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserUpdatePassword", ctx, validator.HashPassword("newPassword"), "1").Return(nil).Once()
+				mock.On("UserUpdatePassword", ctx, password.HashedPassword, "1").Return(nil).Once()
 			},
 			expected: nil,
 		},

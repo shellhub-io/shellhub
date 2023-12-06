@@ -1,10 +1,17 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 
 	"github.com/go-playground/validator/v10"
+)
+
+var (
+	ErrStructureInvalid = errors.New("invalid structure")
+	ErrVarInvalid       = errors.New("invalid var")
 )
 
 // Rule is a struct that contains a validation rule.
@@ -84,19 +91,30 @@ func New() *Validator {
 }
 
 // Var validates a variable using a ShellHub validation's tags.
-func (v *Validator) Var(value string, tag Tag) (bool, error) {
+func (v *Validator) Var(value any, tag Tag) (bool, error) {
 	if err := v.Validate.Var(value, string(tag)); err != nil {
-		return false, fmt.Errorf("invalid variable: %w", fmt.Errorf("invalid validation on value %s using tag %s", value, tag))
+		return false, ErrVarInvalid
 	}
 
 	return true, nil
 }
 
 // Struct validates a structure using ShellHub validation's tags.
-func (v *Validator) Struct(structure interface{}) (bool, error) {
+func (v *Validator) Struct(structure any) (bool, error) {
 	if err := v.Validate.Struct(structure); err != nil {
-		return false, fmt.Errorf("invalid structure: %w", err)
+		return false, ErrStructureInvalid
 	}
 
 	return true, nil
+}
+
+// GetTagFromStructure returns the validation's tag from structure.
+func GetTagFromStructure(structure any, field string) (Tag, bool) {
+	kind := reflect.TypeOf(structure)
+	name, ok := kind.FieldByName(field)
+	if !ok {
+		return "", false
+	}
+
+	return Tag(name.Tag.Get("validate")), true
 }

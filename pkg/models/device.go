@@ -93,3 +93,13 @@ type DeviceRemoved struct {
 	Device    *Device   `json:"device" bson:"device"`
 	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
 }
+
+type DeviceTag struct {
+	Tag string `validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+}
+
+func NewDeviceTag(tag string) DeviceTag {
+	return DeviceTag{
+		Tag: tag,
+	}
+}

@@ -20,7 +20,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		input.TenantID = uuid.Generate()
 	}
 
-	if err := validate(input); err != nil {
+	if ok, err := s.validator.Struct(input); !ok || err != nil {
 		return nil, ErrNamespaceInvalid
 	}
 
@@ -62,7 +62,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 
 // NamespaceAddMember adds a new member with a specified role to a namespace.
 func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error) {
-	if err := validate(input); err != nil {
+	if ok, err := s.validator.Struct(input); !ok || err != nil {
 		return nil, ErrInvalidFormat
 	}
 
@@ -86,7 +86,7 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 
 // NamespaceRemoveMember removes a member from a namespace.
 func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error) {
-	if err := validate(input); err != nil {
+	if ok, err := s.validator.Struct(input); !ok || err != nil {
 		return nil, ErrInvalidFormat
 	}
 
@@ -110,7 +110,7 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 
 // NamespaceDelete deletes a namespace based on the provided namespace name.
 func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error {
-	if err := validate(input); err != nil {
+	if ok, err := s.validator.Struct(input); !ok || err != nil {
 		return ErrNamespaceInvalid
 	}
 

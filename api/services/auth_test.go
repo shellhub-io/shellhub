@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"testing"
 	"time"
 
@@ -139,12 +138,11 @@ func TestAuthUser(t *testing.T) {
 					UserData: models.UserData{
 						Username: "user",
 					},
-					UserPassword: models.UserPassword{
-						Password: fmt.Sprintf("%x", sha256.Sum256([]byte("wrongPassword"))),
-					},
-					ID:        "id",
-					Confirmed: true,
-					LastLogin: now,
+
+					UserPassword: models.NewUserPassword("wrongPassword"),
+					ID:           "id",
+					Confirmed:    true,
+					LastLogin:    now,
 				}
 
 				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()

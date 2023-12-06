@@ -5,7 +5,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type UserService interface {
@@ -56,13 +55,22 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 		return NewErrUserNotFound(id, err)
 	}
 
-	currentPassword = validator.HashPassword(currentPassword)
+	current := models.NewUserPassword(currentPassword)
 
-	if user.Password != currentPassword {
+	if !user.UserPassword.Compare(current) {
 		return NewErrUserPasswordNotMatch(nil)
 	}
 
-	newPassword = validator.HashPassword(newPassword)
+	neo := models.NewUserPassword(newPassword)
 
-	return s.store.UserUpdatePassword(ctx, newPassword, id)
+	if ok, err := s.validator.Struct(neo); !ok || err != nil {
+		return NewErrUserPasswordInvalid(err)
+	}
+
+	// NOTE: when the password is equal to previous one, we return success without action on the database.
+	if user.UserPassword.Compare(neo) {
+		return nil
+	}
+
+	return s.store.UserUpdatePassword(ctx, neo.HashedPassword, id)
 }

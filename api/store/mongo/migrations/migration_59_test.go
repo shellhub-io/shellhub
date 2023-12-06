@@ -44,6 +44,7 @@ func TestMigration59(t *testing.T) {
 						Email:    "JohnDoe@test.com",
 						Username: "John Doe",
 					},
+					UserPassword: models.NewUserPassword(""),
 				}); err != nil {
 					return nil, err
 				}
@@ -89,9 +90,7 @@ func TestMigration59(t *testing.T) {
 						Email:    "johndoe@test.com",
 						Username: "john doe",
 					},
-					UserPassword: models.UserPassword{
-						Password: "",
-					},
+					UserPassword: models.NewUserPassword(""),
 				},
 				err: nil,
 			},

@@ -17,7 +17,7 @@ type UserDataUpdate struct {
 type UserPasswordUpdate struct {
 	UserParam
 	CurrentPassword string `json:"current_password" validate:"required,min=5,max=30,nefield=NewPassword"`
-	NewPassword     string `json:"new_password" validate:"required,min=5,max=30,nefield=CurrentPassword"`
+	NewPassword     string `json:"new_password" validate:"required,password,nefield=CurrentPassword"`
 }
 
 // UserAuth is the structure to represent the request body for the user auth endpoint.

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -13,7 +15,45 @@ type UserData struct {
 }
 
 type UserPassword struct {
-	Password string `json:"password" bson:",omitempty" validate:"required,min=5,max=30"`
+	// PlainPassword contains the plain text password.
+	PlainPassword string `json:"password" bson:"-" validate:"required,password"`
+	// HashedPassword contains the hashed pasword from plain text.
+	HashedPassword string `json:"-" bson:"password"`
+}
+
+// NewUserPassword creates a new [UserPassword] and hashes it.
+func NewUserPassword(password string) UserPassword {
+	model := UserPassword{
+		PlainPassword: password,
+	}
+
+	model.Hash()
+
+	return model
+}
+
+func (p *UserPassword) hash(string) string {
+	sum := sha256.Sum256([]byte(p.PlainPassword))
+
+	return hex.EncodeToString(sum[:])
+}
+
+// Hash hashes the plain password.
+func (p *UserPassword) Hash() string {
+	p.HashedPassword = p.hash(p.PlainPassword)
+
+	return p.HashedPassword
+}
+
+// Compare the hashed password with the parameter.
+//
+// The compared password must be hashed.
+func (p *UserPassword) Compare(password UserPassword) bool {
+	return password.HashedPassword == p.HashedPassword
+}
+
+func (p *UserPassword) String() string {
+	return p.HashedPassword
 }
 
 type User struct {

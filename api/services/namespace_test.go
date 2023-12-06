@@ -492,7 +492,7 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				nil,
-				NewErrNamespaceInvalid(validator.ErrInvalidFields),
+				NewErrNamespaceInvalid(validator.ErrStructureInvalid),
 			},
 		},
 		{
@@ -791,7 +791,7 @@ func TestEditNamespace(t *testing.T) {
 			namespaceName: "name.with.dot",
 			expected: Expected{
 				nil,
-				NewErrNamespaceInvalid(validator.ErrInvalidFields),
+				NewErrNamespaceInvalid(validator.ErrStructureInvalid),
 			},
 		},
 		{
@@ -1001,7 +1001,7 @@ func TestAddNamespaceUser(t *testing.T) {
 			},
 			Expected: Expected{
 				namespace: nil,
-				err:       NewErrNamespaceMemberInvalid(validator.ErrInvalidFields),
+				err:       NewErrNamespaceMemberInvalid(validator.ErrStructureInvalid),
 			},
 		},
 		{
@@ -1014,7 +1014,7 @@ func TestAddNamespaceUser(t *testing.T) {
 			},
 			Expected: Expected{
 				namespace: nil,
-				err:       NewErrNamespaceMemberInvalid(validator.ErrInvalidFields),
+				err:       NewErrNamespaceMemberInvalid(validator.ErrStructureInvalid),
 			},
 		},
 		{

@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type SetupService interface {
@@ -15,22 +14,30 @@ type SetupService interface {
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) error {
-	userData := models.UserData{
+	data := models.UserData{
 		Name:     req.Name,
 		Email:    req.Email,
 		Username: req.Username,
 	}
 
-	userPass := models.UserPassword{
-		Password: validator.HashPassword(req.Password),
+	if ok, err := s.validator.Struct(data); !ok || err != nil {
+		return NewErrUserInvalid(nil, err)
+	}
+
+	password := models.NewUserPassword(req.Password)
+
+	if ok, err := s.validator.Struct(password); !ok || err != nil {
+		return NewErrUserPasswordInvalid(err)
 	}
 
 	user := &models.User{
-		UserData:     userData,
-		UserPassword: userPass,
-		Confirmed:    true,
-		CreatedAt:    clock.Now(),
+		UserData:     data,
+		UserPassword: password,
+		// NOTE: user's created from the setup screen doesn't need to be confirmed.
+		Confirmed: true,
+		CreatedAt: clock.Now(),
 	}
+
 	err := s.store.UserCreate(ctx, user)
 	if err != nil {
 		return NewErrUserDuplicated([]string{req.Username}, err)
@@ -49,8 +56,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		CreatedAt: clock.Now(),
 	}
 
-	_, err = s.store.NamespaceCreate(ctx, namespace)
-	if err != nil {
+	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
 		return NewErrNamespaceDuplicated(err)
 	}
 
