@@ -24,13 +24,13 @@ func TestGetInfo(t *testing.T) {
 	tests := []struct {
 		description   string
 		version       string
-		requiredMocks func(client *http.Client)
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "success to get info",
 			version:     "v0.13.0",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := mock.NewJsonResponder(200, models.Info{
 					Version: "v0.13.0",
 					Endpoints: models.Endpoints{
@@ -55,7 +55,7 @@ func TestGetInfo(t *testing.T) {
 		{
 			description: "success to get info after retry",
 			version:     "v0.13.0",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				fail := mock.NewErrorResponder(errors.New("error on request"))
 				success, _ := mock.NewJsonResponder(200, models.Info{
 					Version: "v0.13.0",
@@ -86,7 +86,7 @@ func TestGetInfo(t *testing.T) {
 		{
 			description: "failed when resource is not found",
 			version:     "v0.13.0",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := mock.NewJsonResponder(404, nil)
 
 				mock.RegisterResponder("GET", "/info?agent_version=v0.13.0", responder)
@@ -99,7 +99,7 @@ func TestGetInfo(t *testing.T) {
 		{
 			description: "failed when request is missformated",
 			version:     "v0.13.0",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := mock.NewJsonResponder(400, nil)
 
 				mock.RegisterResponder("GET", "/info?agent_version=v0.13.0", responder)
@@ -112,7 +112,7 @@ func TestGetInfo(t *testing.T) {
 		{
 			description: "failed when device request return an unmaped error code",
 			version:     "v0.13.0",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := mock.NewJsonResponder(418, nil)
 
 				mock.RegisterResponder("GET", "/info?agent_version=v0.13.0", responder)
@@ -135,7 +135,7 @@ func TestGetInfo(t *testing.T) {
 			mock.ActivateNonDefault(client.http.GetClient())
 			defer mock.DeactivateAndReset()
 
-			test.requiredMocks(client.http.GetClient())
+			test.requiredMocks()
 
 			info, err := cli.GetInfo(test.version)
 			assert.Equal(t, test.expected, Expected{info, err})
@@ -152,7 +152,7 @@ func TestAuthDevice(t *testing.T) {
 	tests := []struct {
 		description   string
 		request       *models.DeviceAuthRequest
-		requiredMocks func(client *http.Client)
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
@@ -174,7 +174,7 @@ func TestAuthDevice(t *testing.T) {
 					PublicKey: "",
 				},
 			},
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{
 					UID:       "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 					Token:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
@@ -213,7 +213,7 @@ func TestAuthDevice(t *testing.T) {
 					PublicKey: "",
 				},
 			},
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				fail, _ := mock.NewJsonResponder(404, nil)
 				success, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{
 					UID:       "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
@@ -251,7 +251,7 @@ func TestAuthDevice(t *testing.T) {
 			mock.ActivateNonDefault(client.http.GetClient())
 			defer mock.DeactivateAndReset()
 
-			test.requiredMocks(client.http.GetClient())
+			test.requiredMocks()
 
 			response, err := cli.AuthDevice(test.request)
 			assert.Equal(t, test.expected, Expected{response, err})

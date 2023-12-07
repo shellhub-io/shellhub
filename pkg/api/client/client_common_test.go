@@ -152,13 +152,13 @@ func TestGetDevice(t *testing.T) {
 	tests := []struct {
 		description   string
 		uid           string
-		requiredMocks func(client *http.Client)
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "success to get device",
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(200, models.Device{
 					UID: "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 				})
@@ -174,7 +174,7 @@ func TestGetDevice(t *testing.T) {
 		{
 			description: "success to get device after retry",
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				fail := httpmock.NewErrorResponder(errors.New("error on request"))
 				success, _ := httpmock.NewJsonResponder(200, models.Device{
 					UID: "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
@@ -196,7 +196,7 @@ func TestGetDevice(t *testing.T) {
 		{
 			description: "failed when device is not found",
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(404, nil)
 				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
 			},
@@ -208,7 +208,7 @@ func TestGetDevice(t *testing.T) {
 		{
 			description: "failed when device request is missformated",
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(400, nil)
 				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
 			},
@@ -220,7 +220,7 @@ func TestGetDevice(t *testing.T) {
 		{
 			description: "failed when device request return an unmaped error code",
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(418, nil)
 				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
 			},
@@ -242,7 +242,7 @@ func TestGetDevice(t *testing.T) {
 			httpmock.ActivateNonDefault(client.http.GetClient())
 			defer httpmock.DeactivateAndReset()
 
-			test.requiredMocks(client.http.GetClient())
+			test.requiredMocks()
 
 			device, err := cli.GetDevice(test.uid)
 			assert.Equal(t, test.expected, Expected{device, err})
