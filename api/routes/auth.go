@@ -149,7 +149,10 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthUser(c.Ctx(), req)
+	res, err := h.service.AuthUser(c.Ctx(), &models.UserAuthRequest{
+		Identifier: models.UserAuthIdentifier(req.Username),
+		Password:   req.Password,
+	})
 	if err != nil {
 		if errors.Is(err, svc.ErrUserNotFound) {
 			return errs.NewErrUnauthorized(err)
