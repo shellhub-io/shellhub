@@ -106,17 +106,17 @@ func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remo
 	return r0, r1
 }
 
-// AuthGetToken provides a mock function with given fields: ctx, tenant
-func (_m *Service) AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, tenant)
+// AuthGetToken provides a mock function with given fields: ctx, id
+func (_m *Service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 *models.UserAuthResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, tenant)
+		return rf(ctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, tenant)
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
@@ -124,7 +124,7 @@ func (_m *Service) AuthGetToken(ctx context.Context, tenant string) (*models.Use
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenant)
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -222,25 +222,25 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 	return r0
 }
 
-// AuthUser provides a mock function with given fields: ctx, req
-func (_m *Service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, req)
+// AuthUser provides a mock function with given fields: ctx, model
+func (_m *Service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, model)
 
 	var r0 *models.UserAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, requests.UserAuth) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, model)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, requests.UserAuth) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, model)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, requests.UserAuth) error); ok {
-		r1 = rf(ctx, req)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.UserAuthRequest) error); ok {
+		r1 = rf(ctx, model)
 	} else {
 		r1 = ret.Error(1)
 	}

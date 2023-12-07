@@ -6,6 +6,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type UserData struct {
@@ -68,9 +69,24 @@ type User struct {
 	UserPassword   `bson:",inline"`
 }
 
+// UserAuthIdentifier is an username or email used to authenticate.
+type UserAuthIdentifier string
+
+// IsEmail checks if the identifier is an email.
+func (i *UserAuthIdentifier) IsEmail() bool {
+	if ok, err := validator.New().Var(i, "required,email"); !ok || err != nil {
+		return false
+	}
+
+	return true
+}
+
 type UserAuthRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	// Identifier represents an username or email.
+	//
+	// TODO: change json tag from username to identifier and update the OpenAPI.
+	Identifier UserAuthIdentifier `json:"username"`
+	Password   string             `json:"password"`
 }
 
 type UserAuthResponse struct {

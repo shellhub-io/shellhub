@@ -18,7 +18,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 type AuthService interface {
@@ -26,7 +25,7 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error)
+	AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
@@ -133,14 +132,14 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
 	var err error
 	var user *models.User
 
-	if validator.IsEmail(req.Username) {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(req.Username))
+	if model.Identifier.IsEmail() {
+		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(model.Identifier)))
 	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(req.Username))
+		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(model.Identifier)))
 	}
 
 	if err != nil {
@@ -168,7 +167,7 @@ func (s *service) AuthUser(ctx context.Context, req requests.UserAuth) (*models.
 		}
 	}
 
-	if user.UserPassword.Compare(models.NewUserPassword(req.Password)) {
+	if user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 			Username: user.Username,
 			Admin:    true,

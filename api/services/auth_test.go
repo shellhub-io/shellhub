@@ -167,7 +167,10 @@ func TestAuthUser(t *testing.T) {
 			assert.NoError(t, err)
 
 			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
-			authRes, err := service.AuthUser(ctx, tc.req)
+			authRes, err := service.AuthUser(ctx, &models.UserAuthRequest{
+				Identifier: models.UserAuthIdentifier(tc.req.Username),
+				Password:   tc.req.Password,
+			})
 			assert.Equal(t, tc.expected, Expected{authRes, err})
 		})
 	}
