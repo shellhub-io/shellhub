@@ -154,7 +154,6 @@ func TestAuthUser(t *testing.T) {
 				}
 
 				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
-				mock.On("GetStatusMFA", ctx, user.ID).Return(false, nil).Once()
 			},
 			expected: Expected{nil, NewErrAuthUnathorized(nil)},
 		},
@@ -171,7 +170,7 @@ func TestAuthUser(t *testing.T) {
 			authRes, err := service.AuthUser(ctx, &models.UserAuthRequest{
 				Identifier: models.UserAuthIdentifier(tc.req.Username),
 				Password:   tc.req.Password,
-			})
+			}, true)
 			assert.Equal(t, tc.expected, Expected{authRes, err})
 		})
 	}

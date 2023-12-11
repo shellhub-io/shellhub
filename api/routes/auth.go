@@ -105,7 +105,6 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 				return svc.NewErrAuthUnathorized(errors.New("necessary enable MFA"))
 			}
 		}
-
 		// Extract datas of user from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 		c.Response().Header().Set("X-Username", claims.Username)
@@ -169,7 +168,7 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 	res, err := h.service.AuthUser(c.Ctx(), &models.UserAuthRequest{
 		Identifier: models.UserAuthIdentifier(req.Username),
 		Password:   req.Password,
-	})
+	}, true)
 	if err != nil {
 		if errors.Is(err, svc.ErrUserNotFound) {
 			return errs.NewErrUnauthorized(err)

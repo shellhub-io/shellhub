@@ -179,23 +179,23 @@ func TestAuthUser(t *testing.T) {
 
 	cases := []struct {
 		title         string
-		requestBody   *requests.UserAuth
+		requestBody   *models.UserAuthRequest
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			title: "success when try to auth a user",
-			requestBody: &requests.UserAuth{
-				Username: "testuser",
-				Password: "testpassword",
+			requestBody: &models.UserAuthRequest{
+				Identifier: "testuser",
+				Password:   "testpassword",
 			},
 			requiredMocks: func() {
-				req := requests.UserAuth{
-					Username: "testuser",
-					Password: "testpassword",
+				req := &models.UserAuthRequest{
+					Identifier: "testuser",
+					Password:   "testpassword",
 				}
 
-				mock.On("AuthUser", gomock.Anything, req, false).Return(&models.UserAuthResponse{}, nil).Once()
+				mock.On("AuthUser", gomock.Anything, req, true).Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.UserAuthResponse{},
@@ -204,9 +204,9 @@ func TestAuthUser(t *testing.T) {
 		},
 		{
 			title: "fails when try to validate a username",
-			requestBody: &requests.UserAuth{
-				Username: "",
-				Password: "testpassword",
+			requestBody: &models.UserAuthRequest{
+				Identifier: "",
+				Password:   "testpassword",
 			},
 			requiredMocks: func() {},
 			expected: Expected{
@@ -216,9 +216,9 @@ func TestAuthUser(t *testing.T) {
 		},
 		{
 			title: "fails when try to validate a password",
-			requestBody: &requests.UserAuth{
-				Username: "username",
-				Password: "",
+			requestBody: &models.UserAuthRequest{
+				Identifier: "username",
+				Password:   "",
 			},
 			requiredMocks: func() {},
 			expected: Expected{
@@ -228,9 +228,9 @@ func TestAuthUser(t *testing.T) {
 		},
 		{
 			title: "fail when try to auth a user",
-			requestBody: &requests.UserAuth{
-				Username: "username",
-				Password: "password",
+			requestBody: &models.UserAuthRequest{
+				Identifier: "username",
+				Password:   "password",
 			},
 			requiredMocks: func() {
 				mock.On("AuthUser", gomock.Anything, gomock.Anything, gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
