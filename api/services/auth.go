@@ -25,7 +25,7 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, model *models.UserAuth, validate boolRequest) (*models.UserAuthResponse, error)
+	AuthUser(ctx context.Context, model *models.UserAuthRequest, validate bool) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
@@ -133,7 +133,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, model *models.UserAuth, validate boolRequest) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest, validate bool) (*models.UserAuthResponse, error) {
 	var err error
 	var user *models.User
 
@@ -164,54 +164,54 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuth, validate
 	}
 
 	if user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
-	status, err := s.AuthMFA(ctx, user.ID)
-	if err != nil {
-		return nil, NewErrUserNotFound(user.ID, err)
-	}
-
-	password := sha256.Sum256([]byte(req.Password))
-	if user.Password == hex.EncodeToString(password[:]) {
-		token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
-			Username: user.Username,
-			Admin:    true,
-			Tenant:   tenant,
-			Role:     role,
-			ID:       user.ID,
-			AuthClaims: models.AuthClaims{
-				Claims: "user",
-			},
-			MFA: models.MFA{
-				Status:   status,
-				Validate: validate,
-			},
-			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
-			},
-		})
-
-		tokenStr, err := token.SignedString(s.privKey)
+		status, err := s.AuthMFA(ctx, user.ID)
 		if err != nil {
-			return nil, NewErrTokenSigned(err)
+			return nil, NewErrUserNotFound(user.ID, err)
 		}
 
-		user.LastLogin = clock.Now()
+		if user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
+			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
+				Username: user.Username,
+				Admin:    true,
+				Tenant:   tenant,
+				Role:     role,
+				ID:       user.ID,
+				AuthClaims: models.AuthClaims{
+					Claims: "user",
+				},
+				MFA: models.MFA{
+					Status:   status,
+					Validate: validate,
+				},
+				RegisteredClaims: jwt.RegisteredClaims{
+					ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
+				},
+			})
 
-		if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
-			return nil, NewErrUserUpdate(user, err)
+			tokenStr, err := token.SignedString(s.privKey)
+			if err != nil {
+				return nil, NewErrTokenSigned(err)
+			}
+
+			user.LastLogin = clock.Now()
+
+			if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
+				return nil, NewErrUserUpdate(user, err)
+			}
+
+			s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
+
+			return &models.UserAuthResponse{
+				Token:  tokenStr,
+				Name:   user.Name,
+				ID:     user.ID,
+				User:   user.Username,
+				Tenant: tenant,
+				Role:   role,
+				Email:  user.Email,
+				MFA:    status,
+			}, nil
 		}
-
-		s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
-
-		return &models.UserAuthResponse{
-			Token:  tokenStr,
-			Name:   user.Name,
-			ID:     user.ID,
-			User:   user.Username,
-			Tenant: tenant,
-			Role:   role,
-			Email:  user.Email,
-			MFA:    status,
-		}, nil
 	}
 
 	return nil, NewErrAuthUnathorized(nil)
