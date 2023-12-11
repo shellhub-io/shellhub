@@ -1,4 +1,4 @@
-FROM node:21.3.0-alpine3.17 as base
+FROM node:21.4.0-alpine3.17 as base
 
 ARG NPM_CONFIG_REGISTRY
 
