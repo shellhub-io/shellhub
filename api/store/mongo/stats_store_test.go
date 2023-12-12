@@ -12,14 +12,6 @@ import (
 )
 
 func TestGetStats(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	type Expected struct {
 		stats *models.Stats
 		err   error
@@ -32,7 +24,14 @@ func TestGetStats(t *testing.T) {
 	}{
 		{
 			description: "succeeds",
-			fixtures:    []string{fixtures.User, fixtures.Namespace, fixtures.Session, fixtures.Device},
+			fixtures: []string{
+				fixtures.FixtureUsers,
+				fixtures.FixtureNamespaces,
+				fixtures.FixtureSessions,
+				fixtures.FixtureActiveSessions,
+				fixtures.FixtureDevices,
+				fixtures.FixtureConnectedDevices,
+			},
 			expected: Expected{
 				stats: &models.Stats{
 					RegisteredDevices: 1,
@@ -46,12 +45,18 @@ func TestGetStats(t *testing.T) {
 		},
 	}
 
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			stats, err := mongostore.GetStats(ctx)
+			stats, err := mongostore.GetStats(context.TODO())
 			assert.Equal(t, tc.expected, Expected{stats: stats, err: err})
 		})
 	}

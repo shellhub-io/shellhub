@@ -12,14 +12,6 @@ import (
 )
 
 func TestPublicKeyAddTag(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	cases := []struct {
 		description string
 		fingerprint string
@@ -33,7 +25,7 @@ func TestPublicKeyAddTag(t *testing.T) {
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag0",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -41,7 +33,7 @@ func TestPublicKeyAddTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
 			tag:         "tag0",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -49,24 +41,10 @@ func TestPublicKeyAddTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag0",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    nil,
 		},
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			err := mongostore.PublicKeyAddTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestPublicKeyRemoveTag(t *testing.T) {
-	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -74,6 +52,18 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.PublicKeyAddTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestPublicKeyRemoveTag(t *testing.T) {
 	cases := []struct {
 		description string
 		fingerprint string
@@ -87,7 +77,7 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag1",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -95,7 +85,7 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
 			tag:         "tag1",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -103,7 +93,7 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag0",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -111,24 +101,10 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag1",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    nil,
 		},
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			err := mongostore.PublicKeyRemoveTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestPublicKeyUpdateTags(t *testing.T) {
-	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -136,6 +112,18 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.PublicKeyRemoveTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestPublicKeyUpdateTags(t *testing.T) {
 	cases := []struct {
 		description string
 		fingerprint string
@@ -149,7 +137,7 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag1"},
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -157,7 +145,7 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
 			tags:        []string{"tag1"},
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -165,24 +153,10 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag1"},
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    nil,
 		},
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			err := mongostore.PublicKeyUpdateTags(ctx, tc.tenant, tc.fingerprint, tc.tags)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestPublicKeyRenameTag(t *testing.T) {
-	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -190,6 +164,18 @@ func TestPublicKeyRenameTag(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.PublicKeyUpdateTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestPublicKeyRenameTag(t *testing.T) {
 	cases := []struct {
 		description string
 		fingerprint string
@@ -205,7 +191,7 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			tenant:      "nonexistent",
 			oldTag:      "tag1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -213,7 +199,7 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag0",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -221,24 +207,10 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    nil,
 		},
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			err := mongostore.PublicKeyRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestPublicKeyDeleteTag(t *testing.T) {
-	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -246,6 +218,18 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.PublicKeyRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestPublicKeyDeleteTag(t *testing.T) {
 	cases := []struct {
 		description string
 		tenant      string
@@ -257,38 +241,24 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 			description: "fails when public key is not found due to tenant",
 			tenant:      "nonexistent",
 			tag:         "tag1",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tag",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag0",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag1",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    nil,
 		},
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			err := mongostore.PublicKeyDeleteTag(ctx, tc.tenant, tc.tag)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestPublicKeyGetTags(t *testing.T) {
-	ctx := context.TODO()
 
 	db := dbtest.DBServer{}
 	defer db.Stop()
@@ -296,6 +266,18 @@ func TestPublicKeyGetTags(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.PublicKeyDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestPublicKeyGetTags(t *testing.T) {
 	type Expected struct {
 		tags []string
 		len  int
@@ -311,7 +293,7 @@ func TestPublicKeyGetTags(t *testing.T) {
 		{
 			description: "succeeds when tags list is greater than 1",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.PublicKey},
+			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected: Expected{
 				tags: []string{"tag1"},
 				len:  1,
@@ -320,12 +302,18 @@ func TestPublicKeyGetTags(t *testing.T) {
 		},
 	}
 
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			tags, count, err := mongostore.PublicKeyGetTags(ctx, tc.tenant)
+			tags, count, err := mongostore.PublicKeyGetTags(context.TODO(), tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
 		})
 	}

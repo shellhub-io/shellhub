@@ -11,12 +11,5 @@
             "password": "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
             "username": "john_doe"
         }
-    },
-    "recovery_tokens": {
-        "6509b24ea36fcf8c2d4f589e": {
-            "created_at": "2023-01-01T12:00:00.000Z",
-            "token": "token",
-            "user": "507f1f77bcf86cd799439011" 
-        }
     }
 }

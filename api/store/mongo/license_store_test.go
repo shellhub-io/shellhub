@@ -14,14 +14,6 @@ import (
 )
 
 func TestLicenseLoad(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	type Expected struct {
 		license *models.License
 		err     error
@@ -42,7 +34,7 @@ func TestLicenseLoad(t *testing.T) {
 		},
 		{
 			description: "succeeds when license is found",
-			fixtures:    []string{fixtures.License},
+			fixtures:    []string{fixtures.FixtureLicenses},
 			expected: Expected{
 				license: &models.License{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -53,26 +45,24 @@ func TestLicenseLoad(t *testing.T) {
 		},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			license, err := mongostore.LicenseLoad(ctx)
-			assert.Equal(t, tc.expected, Expected{license: license, err: err})
-		})
-	}
-}
-
-func TestLicenseSave(t *testing.T) {
-	ctx := context.TODO()
-
 	db := dbtest.DBServer{}
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			license, err := mongostore.LicenseLoad(context.TODO())
+			assert.Equal(t, tc.expected, Expected{license: license, err: err})
+		})
+	}
+}
+
+func TestLicenseSave(t *testing.T) {
 	cases := []struct {
 		description string
 		license     *models.License
@@ -90,12 +80,18 @@ func TestLicenseSave(t *testing.T) {
 		},
 	}
 
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.LicenseSave(ctx, tc.license)
+			err := mongostore.LicenseSave(context.TODO(), tc.license)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
