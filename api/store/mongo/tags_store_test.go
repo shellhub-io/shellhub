@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -17,7 +16,7 @@ func TestTagsGet(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		tags []string
@@ -28,19 +27,13 @@ func TestTagsGet(t *testing.T) {
 	cases := []struct {
 		description string
 		tenant      string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(
-					fixtures.PublicKey,
-					fixtures.FirewallRule,
-					fixtures.Device,
-				)
-			},
+			fixtures:    []string{fixtures.PublicKey, fixtures.FirewallRule, fixtures.Device},
 			expected: Expected{
 				tags: []string{"tag1"},
 				len:  1,
@@ -51,14 +44,11 @@ func TestTagsGet(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			tags, count, err := mongostore.TagsGet(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -69,14 +59,14 @@ func TestTagRename(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		tenant      string
 		oldTag      string
 		newTag      string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -84,27 +74,18 @@ func TestTagRename(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag1",
 			newTag:      "edited-tag",
-			setup: func() error {
-				return mongotest.UseFixture(
-					fixtures.PublicKey,
-					fixtures.FirewallRule,
-					fixtures.Device,
-				)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.PublicKey, fixtures.FirewallRule, fixtures.Device},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.TagRename(ctx, tc.tenant, tc.oldTag, tc.newTag)
+			err := mongostore.TagRename(ctx, tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -115,40 +96,31 @@ func TestTagDelete(t *testing.T) {
 
 	ctx := context.TODO()
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		tenant      string
 		tag         string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag1",
-			setup: func() error {
-				return mongotest.UseFixture(
-					fixtures.PublicKey,
-					fixtures.FirewallRule,
-					fixtures.Device,
-				)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.PublicKey, fixtures.FirewallRule, fixtures.Device},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.TagDelete(ctx, tc.tenant, tc.tag)
+			err := mongostore.TagDelete(ctx, tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }

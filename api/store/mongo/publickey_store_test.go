@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -22,7 +21,7 @@ func TestPublicKeyGet(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		pubKey *models.PublicKey
@@ -33,16 +32,14 @@ func TestPublicKeyGet(t *testing.T) {
 		description string
 		fingerprint string
 		tenant      string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when public key is not found due to fingerprint",
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures:    []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: nil,
 				err:    store.ErrNoDocuments,
@@ -52,9 +49,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is not found due to tenant",
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures:    []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: nil,
 				err:    store.ErrNoDocuments,
@@ -64,9 +59,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is found",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures:    []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: &models.PublicKey{
 					Data:        []byte("test"),
@@ -88,14 +81,11 @@ func TestPublicKeyGet(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			pubKey, err := mongostore.PublicKeyGet(ctx, tc.fingerprint, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -107,7 +97,7 @@ func TestPublicKeyList(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		pubKey []models.PublicKey
@@ -117,14 +107,12 @@ func TestPublicKeyList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when public key list is empty",
-			setup: func() error {
-				return nil
-			},
+			fixtures:    []string{},
 			expected: Expected{
 				pubKey: []models.PublicKey{},
 				len:    0,
@@ -133,9 +121,7 @@ func TestPublicKeyList(t *testing.T) {
 		},
 		{
 			description: "succeeds when public key list len is greater than 1",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures:    []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: []models.PublicKey{
 					{
@@ -160,14 +146,11 @@ func TestPublicKeyList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			pubKey, count, err := mongostore.PublicKeyList(ctx, paginator.Query{Page: -1, PerPage: -1})
 			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, len: count, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -183,7 +166,7 @@ func TestPublicKeyCreate(t *testing.T) {
 	cases := []struct {
 		description string
 		key         *models.PublicKey
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -194,19 +177,17 @@ func TestPublicKeyCreate(t *testing.T) {
 				TenantID:        "00000000-0000-4000-0000-000000000000",
 				PublicKeyFields: models.PublicKeyFields{Name: "public_key", Filter: models.PublicKeyFilter{Hostname: ".*"}},
 			},
-			setup: func() error {
-				return nil
-			},
+			fixtures: []string{},
 			expected: nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.PublicKeyCreate(ctx, tc.key)
+			err := mongostore.PublicKeyCreate(ctx, tc.key)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -219,7 +200,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		pubKey *models.PublicKey
@@ -231,7 +212,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 		fingerprint string
 		tenant      string
 		key         *models.PublicKeyUpdate
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
@@ -244,9 +225,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					Filter: models.PublicKeyFilter{Hostname: ".*"},
 				},
 			},
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures: []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: nil,
 				err:    store.ErrNoDocuments,
@@ -262,9 +241,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					Filter: models.PublicKeyFilter{Hostname: ".*"},
 				},
 			},
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures: []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: nil,
 				err:    store.ErrNoDocuments,
@@ -283,9 +260,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					},
 				},
 			},
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
+			fixtures: []string{fixtures.PublicKey},
 			expected: Expected{
 				pubKey: &models.PublicKey{
 					Data:        []byte("test"),
@@ -307,14 +282,11 @@ func TestPublicKeyUpdate(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			pubKey, err := mongostore.PublicKeyUpdate(ctx, tc.fingerprint, tc.tenant, tc.key)
 			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -326,54 +298,45 @@ func TestPublicKeyDelete(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		fingerprint string
 		tenant      string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.PublicKey},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tenant",
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.PublicKey},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PublicKey)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.PublicKey},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.PublicKeyDelete(ctx, tc.fingerprint, tc.tenant)
+			err := mongostore.PublicKeyDelete(ctx, tc.fingerprint, tc.tenant)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }

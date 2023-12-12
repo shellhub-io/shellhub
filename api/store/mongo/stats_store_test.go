@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -19,7 +18,7 @@ func TestGetStats(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		stats *models.Stats
@@ -28,14 +27,12 @@ func TestGetStats(t *testing.T) {
 
 	cases := []struct {
 		description string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User, fixtures.Namespace, fixtures.Session, fixtures.Device)
-			},
+			fixtures:    []string{fixtures.User, fixtures.Namespace, fixtures.Session, fixtures.Device},
 			expected: Expected{
 				stats: &models.Stats{
 					RegisteredDevices: 1,
@@ -51,14 +48,11 @@ func TestGetStats(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			stats, err := mongostore.GetStats(ctx)
 			assert.Equal(t, tc.expected, Expected{stats: stats, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }

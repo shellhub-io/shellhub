@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -22,7 +21,7 @@ func TestSessionList(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		s     []models.Session
@@ -32,14 +31,12 @@ func TestSessionList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when sessions are found",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session, fixtures.Device, fixtures.Namespace)
-			},
+			fixtures:    []string{fixtures.Session, fixtures.Device, fixtures.Namespace},
 			expected: Expected{
 				s: []models.Session{
 					{
@@ -87,14 +84,11 @@ func TestSessionList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			s, count, err := mongostore.SessionList(ctx, paginator.Query{Page: -1, PerPage: -1})
 			assert.Equal(t, tc.expected, Expected{s: s, count: count, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -106,7 +100,7 @@ func TestSessionGet(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		s   *models.Session
@@ -116,15 +110,13 @@ func TestSessionGet(t *testing.T) {
 	cases := []struct {
 		description string
 		UID         models.UID
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when session is not found",
 			UID:         models.UID("nonexistent"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session, fixtures.Device, fixtures.Namespace)
-			},
+			fixtures:    []string{fixtures.Session, fixtures.Device, fixtures.Namespace},
 			expected: Expected{
 				s:   nil,
 				err: store.ErrNoDocuments,
@@ -133,9 +125,7 @@ func TestSessionGet(t *testing.T) {
 		{
 			description: "succeeds when session is found",
 			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session, fixtures.Device, fixtures.Namespace)
-			},
+			fixtures:    []string{fixtures.Session, fixtures.Device, fixtures.Namespace},
 			expected: Expected{
 				s: &models.Session{
 					StartedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -180,14 +170,11 @@ func TestSessionGet(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			s, err := mongostore.SessionGet(ctx, tc.UID)
 			assert.Equal(t, tc.expected, Expected{s: s, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -199,19 +186,17 @@ func TestSessionCreate(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
-		setup       func() error
+		fixtures    []string
 		session     models.Session
 		expected    error
 	}{
 		{
 			description: "",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Device, fixtures.Namespace)
-			},
+			fixtures:    []string{fixtures.Device, fixtures.Namespace},
 			session: models.Session{
 				Username:      "username",
 				UID:           "uid",
@@ -226,15 +211,12 @@ func TestSessionCreate(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			session, err := mongostore.SessionCreate(ctx, tc.session)
 			assert.Equal(t, tc.expected, err)
 			assert.NotEmpty(t, session)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -246,45 +228,38 @@ func TestSessionUpdateDeviceUID(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		oldUID      models.UID
 		newUID      models.UID
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when device is not found",
 			oldUID:      models.UID("nonexistent"),
 			newUID:      models.UID("uid"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.Session},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when device is found",
 			oldUID:      models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			newUID:      models.UID("uid"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.Session},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionUpdateDeviceUID(ctx, tc.oldUID, tc.newUID)
+			err := mongostore.SessionUpdateDeviceUID(ctx, tc.oldUID, tc.newUID)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -296,45 +271,38 @@ func TestSessionSetAuthenticated(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description  string
 		UID          models.UID
 		authenticate bool
-		setup        func() error
+		fixtures     []string
 		expected     error
 	}{
 		{
 			description:  "fails when session is not found",
 			UID:          models.UID("nonexistent"),
 			authenticate: false,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:     []string{fixtures.Session},
+			expected:     store.ErrNoDocuments,
 		},
 		{
 			description:  "succeeds when session is found",
 			UID:          models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
 			authenticate: false,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: nil,
+			fixtures:     []string{fixtures.Session},
+			expected:     nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionSetAuthenticated(ctx, tc.UID, tc.authenticate)
+			err := mongostore.SessionSetAuthenticated(ctx, tc.UID, tc.authenticate)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -346,45 +314,38 @@ func TestSessionSetRecorded(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description  string
 		UID          models.UID
 		authenticate bool
-		setup        func() error
+		fixtures     []string
 		expected     error
 	}{
 		{
 			description:  "fails when session is not found",
 			UID:          models.UID("nonexistent"),
 			authenticate: false,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:     []string{fixtures.Session},
+			expected:     store.ErrNoDocuments,
 		},
 		{
 			description:  "succeeds when session is found",
 			UID:          models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
 			authenticate: false,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: nil,
+			fixtures:     []string{fixtures.Session},
+			expected:     nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionSetAuthenticated(ctx, tc.UID, tc.authenticate)
+			err := mongostore.SessionSetAuthenticated(ctx, tc.UID, tc.authenticate)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -396,42 +357,35 @@ func TestSessionSetLastSeen(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		UID         models.UID
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when session is not found",
 			UID:         models.UID("nonexistent"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.Session},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when session is found",
 			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.Session},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionSetLastSeen(ctx, tc.UID)
+			err := mongostore.SessionSetLastSeen(ctx, tc.UID)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -443,42 +397,35 @@ func TestSessionDeleteActives(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		UID         models.UID
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when session is not found",
 			UID:         models.UID("nonexistent"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.Session},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when session is found",
 			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.Session},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionDeleteActives(ctx, tc.UID)
+			err := mongostore.SessionDeleteActives(ctx, tc.UID)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -490,7 +437,7 @@ func TestSessionGetRecordFrame(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		r     []models.RecordedSession
@@ -501,15 +448,13 @@ func TestSessionGetRecordFrame(t *testing.T) {
 	cases := []struct {
 		description string
 		UID         models.UID
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds",
 			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
+			fixtures:    []string{fixtures.Session},
 			expected: Expected{
 				r: []models.RecordedSession{
 					{
@@ -529,14 +474,11 @@ func TestSessionGetRecordFrame(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			r, count, err := mongostore.SessionGetRecordFrame(ctx, tc.UID)
 			assert.Equal(t, tc.expected, Expected{r: r, count: count, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -548,13 +490,13 @@ func TestSessionCreateRecordFrame(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		UID         models.UID
 		record      *models.RecordedSession
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -568,9 +510,7 @@ func TestSessionCreateRecordFrame(t *testing.T) {
 				Width:    0,
 				Height:   0,
 			},
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
+			fixtures: []string{fixtures.Session},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -584,23 +524,18 @@ func TestSessionCreateRecordFrame(t *testing.T) {
 				Width:    0,
 				Height:   0,
 			},
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
+			fixtures: []string{fixtures.Session},
 			expected: nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionCreateRecordFrame(ctx, tc.UID, tc.record)
+			err := mongostore.SessionCreateRecordFrame(ctx, tc.UID, tc.record)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -612,42 +547,35 @@ func TestSessionDeleteRecordFrame(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		UID         models.UID
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when record frame is not found",
 			UID:         models.UID("nonexistent"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.Session},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when record frame is found",
 			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Session)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.Session},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.SessionDeleteRecordFrame(ctx, tc.UID)
+			err := mongostore.SessionDeleteRecordFrame(ctx, tc.UID)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -691,12 +619,12 @@ func TestSessionDeleteRecordFrameByDate(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, mongotest.UseFixture(tc.fixtures...))
-			defer mongotest.DropDatabase() // nolint:errcheck
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint:errcheck
 
 			deletedCount, updatedCount, err := mongostore.SessionDeleteRecordFrameByDate(context.TODO(), tc.lte)
 			assert.Equal(t, tc.expected, Expected{deletedCount, updatedCount, err})
