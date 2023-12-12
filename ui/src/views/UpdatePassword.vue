@@ -103,8 +103,8 @@ const {
   yup
     .string()
     .required()
-    .min(5, "Your password should be 5-30 characters long")
-    .max(30, "Your password should be 5-30 characters long"),
+    .min(5, "Your password should be 5-32 characters long")
+    .max(32, "Your password should be 5-32 characters long"),
   {
     initialValue: "",
   },
