@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
@@ -25,7 +24,7 @@ func TestUserList(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		users []models.User
@@ -35,14 +34,12 @@ func TestUserList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when users are found",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				users: []models.User{
 					{
@@ -70,14 +67,11 @@ func TestUserList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			users, count, err := mongostore.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, nil)
 			assert.Equal(t, tc.expected, Expected{users: users, count: count, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -89,7 +83,7 @@ func TestUserListWithFilter(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		users []models.User
@@ -99,14 +93,12 @@ func TestUserListWithFilter(t *testing.T) {
 
 	cases := []struct {
 		description string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when no users are found",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				users: []models.User{},
 				count: 0,
@@ -115,22 +107,20 @@ func TestUserListWithFilter(t *testing.T) {
 		},
 	}
 
+	filters := []models.Filter{
+		{
+			Type:   "property",
+			Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"},
+		},
+	}
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			filters := []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"},
-				},
-			}
 			users, count, err := mongostore.UserList(ctx, paginator.Query{Page: -1, PerPage: -1}, filters)
 			assert.Equal(t, tc.expected, Expected{users: users, count: count, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -142,11 +132,12 @@ func TestUserCreate(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		user        *models.User
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -158,21 +149,21 @@ func TestUserCreate(t *testing.T) {
 					Username: "john_doe",
 					Email:    "user@test.com",
 				},
-				UserPassword: models.NewUserPassword("secret123"),
+				UserPassword: models.UserPassword{
+					HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+				},
 			},
-			setup: func() error {
-				return nil
-			},
+			fixtures: []string{},
 			expected: nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserCreate(ctx, tc.user)
+			err := mongostore.UserCreate(ctx, tc.user)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -185,7 +176,7 @@ func TestUserGetByUsername(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		user *models.User
@@ -195,15 +186,13 @@ func TestUserGetByUsername(t *testing.T) {
 	cases := []struct {
 		description string
 		username    string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
 			username:    "nonexistent",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				user: nil,
 				err:  store.ErrNoDocuments,
@@ -212,9 +201,7 @@ func TestUserGetByUsername(t *testing.T) {
 		{
 			description: "succeeds when user is found",
 			username:    "john_doe",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
@@ -239,14 +226,11 @@ func TestUserGetByUsername(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			user, err := mongostore.UserGetByUsername(ctx, tc.username)
 			assert.Equal(t, tc.expected, Expected{user: user, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -258,7 +242,7 @@ func TestUserGetByEmail(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		user *models.User
@@ -268,15 +252,13 @@ func TestUserGetByEmail(t *testing.T) {
 	cases := []struct {
 		description string
 		email       string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when email is not found",
 			email:       "nonexistent",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				user: nil,
 				err:  store.ErrNoDocuments,
@@ -285,9 +267,7 @@ func TestUserGetByEmail(t *testing.T) {
 		{
 			description: "succeeds when email is found",
 			email:       "user@test.com",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
@@ -312,14 +292,11 @@ func TestUserGetByEmail(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			user, err := mongostore.UserGetByEmail(ctx, tc.email)
 			assert.Equal(t, tc.expected, Expected{user: user, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -331,7 +308,7 @@ func TestUserGetByID(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		user *models.User
@@ -343,15 +320,13 @@ func TestUserGetByID(t *testing.T) {
 		description string
 		id          string
 		ns          bool
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
 			id:          "507f1f77bcf86cd7994390bb",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User, fixtures.Namespace},
 			expected: Expected{
 				user: nil,
 				ns:   0,
@@ -362,9 +337,7 @@ func TestUserGetByID(t *testing.T) {
 			description: "succeeds when user is found with ns equal false",
 			id:          "507f1f77bcf86cd799439011",
 			ns:          false,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Namespace, fixtures.User)
-			},
+			fixtures:    []string{fixtures.User, fixtures.Namespace},
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
@@ -390,9 +363,7 @@ func TestUserGetByID(t *testing.T) {
 			description: "succeeds when user is found with ns equal true",
 			id:          "507f1f77bcf86cd799439011",
 			ns:          true,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.Namespace, fixtures.User)
-			},
+			fixtures:    []string{fixtures.User, fixtures.Namespace},
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
@@ -418,13 +389,11 @@ func TestUserGetByID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, tc.setup())
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			user, ns, err := mongostore.UserGetByID(ctx, tc.id, tc.ns)
 			assert.Equal(t, tc.expected, Expected{user: user, ns: ns, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -436,13 +405,13 @@ func TestUserUpdateData(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		id          string
 		data        models.User
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -456,17 +425,13 @@ func TestUserUpdateData(t *testing.T) {
 					Email:    "edited@test.com",
 				},
 			},
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures: []string{fixtures.User},
 			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			data: models.User{
 				LastLogin: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 				UserData: models.UserData{
@@ -481,14 +446,11 @@ func TestUserUpdateData(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserUpdateData(ctx, tc.id, tc.data)
+			err := mongostore.UserUpdateData(ctx, tc.id, tc.data)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -500,45 +462,38 @@ func TestUserUpdatePassword(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		id          string
 		password    string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
 			password:    "other_password",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.User},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
 			password:    "other_password",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.User},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserUpdatePassword(ctx, tc.password, tc.id)
+			err := mongostore.UserUpdatePassword(ctx, tc.password, tc.id)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -550,42 +505,35 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		id          string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.User},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.User},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserUpdateAccountStatus(ctx, tc.id)
+			err := mongostore.UserUpdateAccountStatus(ctx, tc.id)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -597,7 +545,7 @@ func TestUserUpdateFromAdmin(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
@@ -606,7 +554,7 @@ func TestUserUpdateFromAdmin(t *testing.T) {
 		username    string
 		email       string
 		password    string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -616,10 +564,8 @@ func TestUserUpdateFromAdmin(t *testing.T) {
 			username:    "other_name",
 			email:       "other.email@test.com",
 			password:    "other_password",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.User},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
@@ -628,23 +574,18 @@ func TestUserUpdateFromAdmin(t *testing.T) {
 			username:    "other_name",
 			email:       "other.email@test.com",
 			password:    "other_password",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.User},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserUpdateFromAdmin(ctx, tc.name, tc.username, tc.email, tc.password, tc.id)
+			err := mongostore.UserUpdateFromAdmin(ctx, tc.name, tc.username, tc.email, tc.password, tc.id)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -656,12 +597,12 @@ func TestUserCreateToken(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		token       *models.UserTokenRecover
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -670,23 +611,18 @@ func TestUserCreateToken(t *testing.T) {
 				Token: "token",
 				User:  "507f1f77bcf86cd799439011",
 			},
-			setup: func() error {
-				return nil
-			},
+			fixtures: []string{},
 			expected: nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserCreateToken(ctx, tc.token)
+			err := mongostore.UserCreateToken(ctx, tc.token)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -698,7 +634,7 @@ func TestUserTokenGet(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		token *models.UserTokenRecover
@@ -708,15 +644,13 @@ func TestUserTokenGet(t *testing.T) {
 	cases := []struct {
 		description string
 		id          string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				token: nil,
 				err:   store.ErrNoDocuments,
@@ -725,9 +659,7 @@ func TestUserTokenGet(t *testing.T) {
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
+			fixtures:    []string{fixtures.User},
 			expected: Expected{
 				token: &models.UserTokenRecover{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -741,14 +673,11 @@ func TestUserTokenGet(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			token, err := mongostore.UserGetToken(ctx, tc.id)
 			assert.Equal(t, tc.expected, Expected{token: token, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -760,42 +689,35 @@ func TestUserDeleteTokens(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		id          string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.User},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.User},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserDeleteTokens(ctx, tc.id)
+			err := mongostore.UserDeleteTokens(ctx, tc.id)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
@@ -807,42 +729,35 @@ func TestUserDelete(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		id          string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: store.ErrNoDocuments,
+			fixtures:    []string{fixtures.User},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.User},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.UserDelete(ctx, tc.id)
+			err := mongostore.UserDelete(ctx, tc.id)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }

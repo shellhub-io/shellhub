@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/mongotest"
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -21,11 +20,12 @@ func TestPrivateKeyCreate(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		priKey      *models.PrivateKey
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
@@ -35,19 +35,17 @@ func TestPrivateKeyCreate(t *testing.T) {
 				Fingerprint: "fingerprint",
 				CreatedAt:   time.Now(),
 			},
-			setup: func() error {
-				return nil
-			},
+			fixtures: []string{},
 			expected: nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.PrivateKeyCreate(ctx, tc.priKey)
+			err := mongostore.PrivateKeyCreate(ctx, tc.priKey)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -60,7 +58,7 @@ func TestPrivateKeyGet(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	type Expected struct {
 		privKey *models.PrivateKey
@@ -70,15 +68,13 @@ func TestPrivateKeyGet(t *testing.T) {
 	cases := []struct {
 		description string
 		fingerprint string
-		setup       func() error
+		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when private key is not found",
 			fingerprint: "nonexistent",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PrivateKey)
-			},
+			fixtures:    []string{fixtures.PrivateKey},
 			expected: Expected{
 				privKey: nil,
 				err:     store.ErrNoDocuments,
@@ -87,9 +83,7 @@ func TestPrivateKeyGet(t *testing.T) {
 		{
 			description: "succeeds when private key is found",
 			fingerprint: "fingerprint",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.PrivateKey)
-			},
+			fixtures:    []string{fixtures.PrivateKey},
 			expected: Expected{
 				privKey: &models.PrivateKey{
 					Data:        []byte("test"),
@@ -103,14 +97,11 @@ func TestPrivateKeyGet(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
 			privKey, err := mongostore.PrivateKeyGet(ctx, tc.fingerprint)
 			assert.Equal(t, tc.expected, Expected{privKey: privKey, err: err})
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
