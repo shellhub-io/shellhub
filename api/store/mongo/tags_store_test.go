@@ -11,13 +11,6 @@ import (
 )
 
 func TestTagsGet(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	type Expected struct {
 		tags []string
 		len  int
@@ -33,7 +26,7 @@ func TestTagsGet(t *testing.T) {
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.PublicKey, fixtures.FirewallRule, fixtures.Device},
+			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected: Expected{
 				tags: []string{"tag1"},
 				len:  1,
@@ -42,25 +35,24 @@ func TestTagsGet(t *testing.T) {
 		},
 	}
 
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			tags, count, err := mongostore.TagsGet(ctx, tc.tenant)
+			tags, count, err := mongostore.TagsGet(context.TODO(), tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
 		})
 	}
 }
 
 func TestTagRename(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	cases := []struct {
 		description string
 		tenant      string
@@ -74,30 +66,29 @@ func TestTagRename(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.PublicKey, fixtures.FirewallRule, fixtures.Device},
+			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected:    nil,
 		},
 	}
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.TagRename(ctx, tc.tenant, tc.oldTag, tc.newTag)
+			err := mongostore.TagRename(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
 func TestTagDelete(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	ctx := context.TODO()
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	cases := []struct {
 		description string
 		tenant      string
@@ -109,17 +100,23 @@ func TestTagDelete(t *testing.T) {
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag1",
-			fixtures:    []string{fixtures.PublicKey, fixtures.FirewallRule, fixtures.Device},
+			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected:    nil,
 		},
 	}
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.TagDelete(ctx, tc.tenant, tc.tag)
+			err := mongostore.TagDelete(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

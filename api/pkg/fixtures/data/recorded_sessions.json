@@ -1,96 +1,10 @@
 {
-    "sessions": {
-        "656de92adc72bc11af772b24": {
-            "started_at": "2023-02-10T08:30:00.000Z",
-            "last_seen": "2023-02-10T10:45:00.000Z",
-            "authenticated": true,
-            "closed": false,
-            "device_uid": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
-            "ip_address": "192.168.1.100",
-            "position": {
-                "longitude": 45.6789,
-                "latitude": -78.9012
-            },
-            "recorded": false,
-            "term": "exploration",
-            "type": "user",
-            "uid": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
-            "username": "jane_smith",
-            "tenant_id": "00000000-0000-4000-0000-000000000000"
-        },
-        "656de91cce10bdfcdcf12446": {
-            "started_at": "2023-02-11T08:30:00.000Z",
-            "last_seen": "2023-02-11T10:45:00.000Z",
-            "authenticated": true,
-            "closed": false,
-            "device_uid": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
-            "ip_address": "192.168.1.100",
-            "position": {
-                "longitude": 45.6789,
-                "latitude": -78.9012
-            },
-            "recorded": true,
-            "term": "exploration",
-            "type": "user",
-            "uid": "a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
-            "username": "jane_smith",
-            "tenant_id": "00000000-0000-4000-0000-000000000000"
-        },
-        "656de91265fa3482a173287e": {
-            "started_at": "2023-02-12T08:30:00.000Z",
-            "last_seen": "2023-02-12T10:45:00.000Z",
-            "authenticated": true,
-            "closed": false,
-            "device_uid": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
-            "ip_address": "192.168.1.100",
-            "position": {
-                "longitude": 45.6789,
-                "latitude": -78.9012
-            },
-            "recorded": true,
-            "term": "exploration",
-            "type": "user",
-            "uid": "b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
-            "username": "jane_smith",
-            "tenant_id": "00000000-0000-4000-0000-000000000000"
-        },
-        "656de9003357f52b85633a00": {
-            "started_at": "2023-02-13T08:30:00.000Z",
-            "last_seen": "2023-02-13T10:45:00.000Z",
-            "authenticated": true,
-            "closed": false,
-            "device_uid": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
-            "ip_address": "192.168.1.100",
-            "position": {
-                "longitude": 45.6789,
-                "latitude": -78.9012
-            },
-            "recorded": true,
-            "term": "exploration",
-            "type": "user",
-            "uid": "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
-            "username": "jane_smith",
-            "tenant_id": "00000000-0000-4000-0000-000000000000"
-        }
-    },
     "recorded_sessions": {
-        "656de8f4690ef37f6796045a": {
-            "time": "2023-02-11T08:30:00.000Z",
-            "uid": "a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
+        "650a29b8ed1050a22b2c862e": {
+            "time": "2023-01-01T12:00:00.000Z",
+            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
             "tenant_id": "00000000-0000-4000-0000-000000000000",
-            "message": "User session successfully completed."
-        },
-        "656de894d5339c4bbaa6aa6e": {
-            "time": "2023-02-12T08:30:00.000Z",
-            "uid": "b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
-            "tenant_id": "00000000-0000-4000-0000-000000000000",
-            "message": "User session successfully completed."
-        },
-        "656de8a3717caced71a24a88": {
-            "time": "2023-02-13T08:30:00.000Z",
-            "uid": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
-            "tenant_id": "00000000-0000-4000-0000-000000000000",
-            "message": "User session successfully completed."
+            "message": "message"
         }
     }
 }

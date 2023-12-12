@@ -1,0 +1,9 @@
+{
+    "recovery_tokens": {
+        "6509b24ea36fcf8c2d4f589e": {
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "token": "token",
+            "user": "507f1f77bcf86cd799439011" 
+        }
+    }
+}
