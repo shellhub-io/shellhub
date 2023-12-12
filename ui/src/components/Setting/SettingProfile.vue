@@ -165,7 +165,9 @@ const {
   value: name,
   errorMessage: nameError,
   setErrors: setNameError,
-} = useField<string>("name", yup.string().required(), {
+} = useField<string>("name", yup.string().required()
+  .min(1, "Your name should be 1-64 characters long")
+  .max(64, "Your name should be 1-64 characters long"), {
   initialValue: "",
 });
 
@@ -173,9 +175,33 @@ const {
   value: username,
   errorMessage: usernameError,
   setErrors: setUsernameError,
-} = useField<string>("username", yup.string().required(), {
-  initialValue: "",
-});
+} = useField<string>(
+  "username",
+  yup
+    .string()
+    .required()
+    .min(3)
+    .max(32)
+    .test(
+      "username-error",
+      "The username only accepts the lowercase letters and this special characters _, ., - and @.",
+      (value) => {
+        const regex = /^[a-z0-9_.@-\s]*$/;
+        return regex.test(value || "");
+      },
+    )
+    .test(
+      "white-spaces",
+      "The username cannot contain white spaces.",
+      (value) => {
+        const regex = /\s/;
+        return !regex.test(value || "");
+      },
+    ),
+  {
+    initialValue: "",
+  },
+);
 
 const {
   value: email,
@@ -200,7 +226,11 @@ const {
   resetField: resetNewPassword,
 } = useField<string>(
   "newPassword",
-  yup.string().required().min(5).max(30),
+  yup
+    .string()
+    .required()
+    .min(5, "Your password should be 5-32 characters long")
+    .max(32, "Your password should be 5-32 characters long"),
   {
     initialValue: "",
   },

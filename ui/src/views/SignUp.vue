@@ -155,7 +155,9 @@ const {
   value: name,
   errorMessage: nameError,
   setErrors: setNameError,
-} = useField<string>("name", yup.string().required(), {
+} = useField<string>("name", yup.string().required()
+  .min(1, "Your name should be 1-64 characters long")
+  .max(64, "Your name should be 1-64 characters long"), {
   initialValue: "",
 });
 
@@ -169,12 +171,12 @@ const {
     .string()
     .required()
     .min(3)
-    .max(30)
+    .max(32)
     .test(
       "username-error",
-      "The username only accepts the special characters _, ., - and @.",
+      "The username only accepts the lowercase letters and this special characters _, ., - and @.",
       (value) => {
-        const regex = /^[a-zA-Z0-9_.@-\s]*$/;
+        const regex = /^[a-z0-9_.@-\s]*$/;
         return regex.test(value || "");
       },
     )
@@ -208,8 +210,8 @@ const {
   yup
     .string()
     .required()
-    .min(5, "Your password should be 5-30 characters long")
-    .max(30, "Your password should be 5-30 characters long"),
+    .min(5, "Your password should be 5-32 characters long")
+    .max(32, "Your password should be 5-32 characters long"),
   {
     initialValue: "",
   },
