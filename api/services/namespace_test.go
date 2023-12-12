@@ -1092,7 +1092,7 @@ func TestAddNamespaceUser(t *testing.T) {
 		},
 		{
 			description: "addNamespaceUser fails when passive member was not found",
-			Username:    "userNamespaceNotFound",
+			Username:    "usernamespacenotfound",
 			Role:        guard.RoleObserver,
 			ID:          "ID1",
 			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
@@ -1118,11 +1118,11 @@ func TestAddNamespaceUser(t *testing.T) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
 
 				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, "userNamespaceNotFound").Return(nil, ErrBadRequest).Once()
+				mock.On("UserGetByUsername", ctx, "usernamespacenotfound").Return(nil, ErrBadRequest).Once()
 			},
 			Expected: Expected{
 				namespace: nil,
-				err:       NewErrUserNotFound("userNamespaceNotFound", ErrBadRequest),
+				err:       NewErrUserNotFound("usernamespacenotfound", ErrBadRequest),
 			},
 		},
 		{

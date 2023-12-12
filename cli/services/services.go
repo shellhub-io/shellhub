@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
@@ -46,9 +45,4 @@ type service struct {
 // NewService creates and returns a new instance of the service with the provided store.
 func NewService(store store.Store) Services {
 	return &service{store, validator.New()}
-}
-
-// normalizeField converts the provided string data to lowercase.
-func normalizeField(data string) string {
-	return strings.ToLower(data)
 }
