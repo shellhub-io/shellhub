@@ -130,13 +130,13 @@ func TestUpdateUserPassword(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			title: "fails when validate because the tag does not have a max of 30 characters",
+			title: "fails when validate because the tag does not have a max of 32 characters",
 			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
 				UserParam: requests.UserParam{
 					ID: "123",
 				},
-				CurrentPassword: "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1",
+				CurrentPassword: "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
 				NewPassword:     "new_password",
 			},
 			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
@@ -156,14 +156,14 @@ func TestUpdateUserPassword(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			title: "fails when validate because the tag does not have a max of 30 characters",
+			title: "fails when validate because the tag does not have a max of 32 characters",
 			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
 				UserParam: requests.UserParam{
 					ID: "123",
 				},
 				CurrentPassword: "new_password",
-				NewPassword:     "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1",
+				NewPassword:     "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
 			},
 			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,

@@ -27,7 +27,9 @@ type Tag string
 const (
 	// RegexpTag indicates that the regexp must be valide.
 	RegexpTag = "regexp"
-	// UserNameTag contains the rule to validate the user's name.
+	// NameTag contains the rule to validate the user's name.
+	NameTag = "name"
+	// UserNameTag contains the rule to validate the user's username.
 	UserNameTag = "username"
 	// UserPasswordTag contains the rule to validate the user's password.
 	UserPasswordTag = "password"
@@ -47,23 +49,30 @@ var Rules = []Rule{
 		Error: fmt.Errorf("the regexp is invalid"),
 	},
 	{
+		Tag: NameTag,
+		Handler: func(field validator.FieldLevel) bool {
+			return regexp.MustCompile(`^(.){1,64}$`).MatchString(field.Field().String())
+		},
+		Error: fmt.Errorf("the name must be between 1 and 64 characters"),
+	},
+	{
 		Tag: UserNameTag,
 		Handler: func(field validator.FieldLevel) bool {
-			return regexp.MustCompile(`^([a-zA-Z0-9-_.@]){3,30}$`).MatchString(field.Field().String())
+			return regexp.MustCompile(`^([a-z0-9-_.@]){3,32}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("the username must be between 3 and 30 characters, and can only contain letters, numbers, and the following characters: -_.@"),
+		Error: fmt.Errorf("the username must be between 3 and 32 characters, and can only contain letters, numbers, and the following characters: -_.@"),
 	},
 	{
 		Tag: UserPasswordTag,
 		Handler: func(field validator.FieldLevel) bool {
-			return regexp.MustCompile(`^(.){5,30}$`).MatchString(field.Field().String())
+			return regexp.MustCompile(`^(.){5,32}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("the password cannot be empty and must be between 5 and 30 characters"),
+		Error: fmt.Errorf("the password cannot be empty and must be between 5 and 32 characters"),
 	},
 	{
 		Tag: DeviceNameTag,
 		Handler: func(field validator.FieldLevel) bool {
-			return regexp.MustCompile(`^([a-zA-Z0-9_-]){1,64}$`).MatchString(field.Field().String())
+			return regexp.MustCompile(`^([a-z0-9_-]){1,64}$`).MatchString(field.Field().String())
 		},
 		Error: fmt.Errorf("the device name can only contain `_`, `-` and alpha numeric characters"),
 	},

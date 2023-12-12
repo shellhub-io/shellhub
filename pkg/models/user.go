@@ -10,7 +10,7 @@ import (
 )
 
 type UserData struct {
-	Name     string `json:"name" validate:"required,min=1"`
+	Name     string `json:"name" validate:"required,name"`
 	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
 	Username string `json:"username" bson:",omitempty" validate:"required,username"`
 }

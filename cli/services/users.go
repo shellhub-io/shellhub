@@ -12,13 +12,10 @@ import (
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
-	name := normalizeField(input.Username)
-	mail := normalizeField(input.Email)
-
 	userData := models.UserData{
-		Name:     name,
-		Email:    mail,
-		Username: name,
+		Name:     input.Username,
+		Email:    input.Email,
+		Username: input.Username,
 	}
 
 	if ok, err := s.validator.Struct(userData); !ok || err != nil {
