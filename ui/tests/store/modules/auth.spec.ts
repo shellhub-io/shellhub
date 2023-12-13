@@ -171,9 +171,9 @@ describe("Auth", () => {
     const reqSpy = vi.spyOn(store, "dispatch");
 
     // Trigger the getMfaStatus action
-    await store.dispatch("auth/getUserinfo");
+    await store.dispatch("auth/getUserInfo");
 
-    expect(reqSpy).toHaveBeenCalledWith("auth/getUserinfo");
+    expect(reqSpy).toHaveBeenCalledWith("auth/getUserInfo");
 
     // Check if the state has been updated correctly
     expect(store.getters["auth/stateToken"]).toEqual(getUserStatusResponse.token);

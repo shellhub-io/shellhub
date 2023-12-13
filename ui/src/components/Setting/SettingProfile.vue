@@ -288,7 +288,7 @@ const setUserData = () => {
 };
 
 onMounted(async () => {
-  await store.dispatch("auth/getUserinfo");
+  await store.dispatch("auth/getUserInfo");
   setUserData();
 });
 
@@ -340,7 +340,6 @@ const updateUserData = async () => {
         default:
           store.dispatch("snackbar/showSnackbarErrorDefault");
           handleError(error);
-          break;
       }
     }
   }

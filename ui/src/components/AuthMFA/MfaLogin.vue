@@ -25,14 +25,12 @@
       @submit.prevent="loginMfa"
       data-test="form"
     >
-      <v-text-field
-        v-model="verificationCode"
-        color="primary"
-        required
-        label="Verification Code"
-        variant="outlined"
+      <v-otp-input
         data-test="verification-code"
-      />
+        required
+        v-model="verificationCode"
+        label="Verification Code"
+        variant="underlined" />
       <v-card-actions class="justify-center pa-0">
         <v-btn
           :disabled="!verificationCode"
