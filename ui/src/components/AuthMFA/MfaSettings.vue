@@ -5,201 +5,197 @@
     tabindex="0"
     variant="elevated"
     data-test="enable-dialog-btn"
+    class="mb-6"
   >Enable MFA</v-btn>
-
-  <v-dialog v-model="dialog" width="650" transition="dialog-bottom-transition" data-test="dialog">
-    <v-window v-model="el">
-      <v-window-item :value="1">
-        <v-card class="bg-v-theme-surface content" data-test="card-first-page">
-          <v-container>
-            <v-row>
-              <v-col align="center" class="pa-0" data-test="title-first-page">
-                <h2>Your Recovery Codes</h2>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <v-col class="pa-0">
-                  <v-alert
-                    variant="text"
-                    type="warning"
-                    :icon="false"
-                    data-test="alert-first-page"
-                    text="Please tick the box below when you're confident you've saved your recovery codes.
+  <v-row justify="center">
+    <v-dialog v-model="dialog" width="auto" scrollable transition="dialog-bottom-transition" data-test="dialog">
+      <v-card class="bg-v-theme-surface content" width="650" data-test="card-first-page">
+        <v-container>
+          <v-window v-model="el">
+            <v-window-item :value="1">
+              <v-row>
+                <v-col align="center" class="pa-0" data-test="title-first-page">
+                  <h2>Your Recovery Codes</h2>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <v-col class="pa-0">
+                    <v-alert
+                      variant="text"
+                      type="warning"
+                      :icon="false"
+                      data-test="alert-first-page"
+                      text="Please tick the box below when you're confident you've saved your recovery codes.
                      Without them, you won't be able to get back into your account if you lose your MFA device.
                      Keep in mind that the codes will change if you come back to this page."
-                  />
+                    />
+                  </v-col>
                 </v-col>
-              </v-col>
-            </v-row>
-            <v-card class="mb-2">
+              </v-row>
+              <v-card class="mb-2">
+                <v-row>
+                  <v-col
+                    v-for="(code, index) in recoveryCodes"
+                    :key="index"
+                    :cols="4"
+                    align="center"
+                    class="pa-4 ma-0 pl-0 pr-0"
+                    data-test="recovery-codes"
+                  >
+                    <h4>{{ code }}</h4>
+                  </v-col>
+                </v-row>
+
+              </v-card>
+
               <v-row>
-                <v-col
-                  v-for="(code, index) in recoveryCodes"
-                  :key="index"
-                  :cols="4"
-                  align="center"
-                  class="pa-4 ma-0 pl-0 pr-0"
-                  data-test="recovery-codes"
-                >
-                  <h4>{{ code }}</h4>
+                <v-col>
+                  <v-btn
+                    @click="downloadRecoveryCodes()"
+                    color="primary"
+                    tabindex="0"
+                    variant="elevated"
+                    prepend-icon="mdi-download-box-outline"
+                    class="mr-2"
+                    data-test="download-recovery-codes-btn"
+                  >Download</v-btn>
+                  <v-btn
+                    @click="copyRecoveryCodes()"
+                    color="primary"
+                    tabindex="0"
+                    variant="elevated"
+                    prepend-icon="mdi-content-copy"
+                    data-test="copy-recovery-codes-btn"
+                  >Copy</v-btn>
                 </v-col>
               </v-row>
 
-            </v-card>
+              <v-row>
+                <v-col class="pt-0">
+                  <v-checkbox
+                    v-model="checkbox"
+                    data-test="checkbox-recovery"
+                    label="I have saved my recovery codes and I want to continue the MFA Setup"
+                    @click="checkbox === true"
+                  />
+                </v-col>
+              </v-row>
+              <v-card-actions>
+                <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
+                  Close
+                </v-btn>
 
-            <v-row>
-              <v-col>
-                <v-btn
-                  @click="downloadRecoveryCodes()"
-                  color="primary"
-                  tabindex="0"
-                  variant="elevated"
-                  prepend-icon="mdi-download-box-outline"
-                  class="mr-2"
-                  data-test="download-recovery-codes-btn"
-                >Download</v-btn>
-                <v-btn
-                  @click="copyRecoveryCodes()"
-                  color="primary"
-                  tabindex="0"
-                  variant="elevated"
-                  prepend-icon="mdi-content-copy"
-                  data-test="copy-recovery-codes-btn"
-                >Copy</v-btn>
-              </v-col>
-            </v-row>
+                <v-spacer />
 
-            <v-row>
-              <v-col class="pt-0">
-                <v-checkbox
-                  v-model="checkbox"
-                  data-test="checkbox-recovery"
-                  label="I have saved my recovery codes and I want to continue the MFA Setup"
-                  @click="checkbox === true"
-                />
-              </v-col>
-            </v-row>
-            <v-card-actions>
-              <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
-                Close
-              </v-btn>
+                <v-btn variant="text" :disabled="!checkbox" color="primary" data-test="next-btn" @click="goToNextStep()">
+                  Next Step
+                </v-btn>
+              </v-card-actions>
+            </v-window-item>
+            <v-window-item :value="2">
+              <v-card class="bg-v-theme-surface content" data-test="card-second-page">
+                <v-row>
+                  <v-col align="center" data-test="title-second-page">
+                    <h2>Set up multi-factor authentication</h2>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col align="center" data-test="qr-code">
+                    <qrcode-vue :value="value" :size="250" level="H" />
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col data-test="step-one">
+                    <p><strong>Step 1:</strong> To configure your multi-factor authentication,
+                      either scan the QR code above or manually enter the Secret Key provided
+                      into your preferred TOTP (Time-Based One-Time Password) provider.</p>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col data-test="secret">
+                    <p>Secret: <strong>{{ secret }}</strong></p>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col data-test="step-two">
+                    <p><strong>Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in.</p>
+                  </v-col>
+                </v-row>
+                <v-row v-if="errorAlert">
+                  <v-col>
+                    <v-alert
+                      type="error"
+                      :text="errorMessage"
+                      data-test="error-alert" />
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-otp-input
+                      data-test="verification-code"
+                      required
+                      v-model="verificationCode"
+                      label="Verification Code"
+                      variant="underlined" />
 
-              <v-spacer />
+                  </v-col>
+                </v-row>
+                <v-card-actions>
+                  <v-btn variant="text" color="primary" data-test="back-btn" @click="el--">
+                    Back
+                  </v-btn>
 
-              <v-btn variant="text" :disabled="!checkbox" color="primary" data-test="next-btn" @click="goToNextStep()">
-                Next Step
-              </v-btn>
-            </v-card-actions>
-          </v-container>
-        </v-card>
-      </v-window-item>
-      <v-window-item :value="2">
-        <v-card class="bg-v-theme-surface content" data-test="card-second-page">
-          <v-container>
-            <v-row>
-              <v-col align="center" data-test="title-second-page">
-                <h2>Set up multi-factor authentication</h2>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col align="center" data-test="qr-code">
-                <qrcode-vue :value="value" :size="250" level="H" />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col data-test="step-one">
-                <p><strong>Step 1:</strong> To configure your multi-factor authentication,
-                  either scan the QR code above or manually enter the Secret Key provided
-                  into your preferred TOTP (Time-Based One-Time Password) provider.</p>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col data-test="secret">
-                <p>Secret: <strong>{{ secret }}</strong></p>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col data-test="step-two">
-                <p><strong>Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in.</p>
-              </v-col>
-            </v-row>
-            <v-row v-if="errorAlert">
-              <v-col>
-                <v-alert
-                  type="error"
-                  :text="errorMessage"
-                  data-test="error-alert" />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <v-otp-input
-                  data-test="verification-code"
-                  required
-                  v-model="verificationCode"
-                  label="Verification Code"
-                  variant="underlined" />
-
-              </v-col>
-            </v-row>
-            <v-card-actions>
-              <v-btn variant="text" color="primary" data-test="back-btn" @click="el--">
-                Back
-              </v-btn>
-
-              <v-spacer />
-              <v-btn variant="text" :disabled="!verificationCode" color="primary" data-test="verify-btn" @click="enableMfa()">
-                Verify
-              </v-btn>
-            </v-card-actions>
-          </v-container>
-        </v-card>
-      </v-window-item>
-      <v-window-item :value="3">
-        <v-card class="bg-v-theme-surface content" data-test="card-third-page">
-          <v-container>
-            <v-row>
-              <v-col align="center" data-test="congratulation-text">
-                <h2>Congratulations! You've successfully verified your code.</h2>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col align="center">
-                <v-icon
-                  end
-                  icon="mdi-cloud-lock-outline"
-                  color="green"
-                  size="100"
-                  class="green-cloud"
-                  data-test="green-cloud-icon" />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col align="start" class="ml-5 pb-0" data-test="title-bp">
-                <h4>Your account is now more secure with:</h4>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col class="ml-5 pt-0" data-test="congratulation-bullet-point">
-                <ul>
-                  <li>Two-step verification adding an extra layer of protection.</li>
-                  <li>Reduced risk of unauthorized access even if your password is compromised.</li>
-                  <li>Enhanced security against phishing attacks and identity theft.</li>
-                </ul>
-              </v-col>
-            </v-row>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn variant="text" data-test="close-btn" @click="dialog = false">
-                Close
-              </v-btn>
-            </v-card-actions>
-          </v-container>
-        </v-card>
-      </v-window-item>
-    </v-window>
-  </v-dialog>
+                  <v-spacer />
+                  <v-btn variant="text" :disabled="!verificationCode" color="primary" data-test="verify-btn" @click="enableMfa()">
+                    Verify
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-window-item>
+            <v-window-item :value="3">
+              <v-row>
+                <v-col align="center" data-test="congratulation-text">
+                  <h2>Congratulations! You've successfully verified your code.</h2>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col align="center">
+                  <v-icon
+                    end
+                    icon="mdi-cloud-lock-outline"
+                    color="green"
+                    size="100"
+                    class="green-cloud"
+                    data-test="green-cloud-icon" />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col align="start" class="ml-5 pb-0" data-test="title-bp">
+                  <h4>Your account is now more secure with:</h4>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col class="ml-5 pt-0" data-test="congratulation-bullet-point">
+                  <ul>
+                    <li>Two-step verification adding an extra layer of protection.</li>
+                    <li>Reduced risk of unauthorized access even if your password is compromised.</li>
+                    <li>Enhanced security against phishing attacks and identity theft.</li>
+                  </ul>
+                </v-col>
+              </v-row>
+              <v-card-actions>
+                <v-spacer />
+                <v-btn variant="text" data-test="close-btn" @click="dialog = false">
+                  Close
+                </v-btn>
+              </v-card-actions>
+            </v-window-item>
+          </v-window>
+        </v-container>
+      </v-card>
+    </v-dialog>
+  </v-row>
 </template>
 
 <script setup lang="ts">

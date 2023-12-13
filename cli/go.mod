@@ -44,7 +44,7 @@ require (
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sethvargo/go-envconfig v0.9.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/square/mongo-lock v0.0.0-20201208161834-4db518ed7fb2 // indirect
+	github.com/square/mongo-lock v0.0.0-20230808145049-cfcf499f6bf0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -65,3 +65,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/shellhub-io/shellhub => ../
+
+replace github.com/shellhub-io/shellhub/api => ../api
