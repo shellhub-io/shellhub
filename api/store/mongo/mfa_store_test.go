@@ -18,30 +18,28 @@ func TestDeleteCodes(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		username    string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "success when try to delete codes",
 			username:    "username",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.FixtureUsers},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.DeleteCodes(ctx, tc.username)
+			err := mongostore.DeleteCodes(ctx, tc.username)
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()
@@ -57,52 +55,30 @@ func TestAddStatusMFA(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		username    string
 		status      bool
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "success when try to add status MFA",
 			username:    "username",
 			status:      true,
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.FixtureUsers},
+			expected:    nil,
 		},
-		// {
-		// 	description: "fails when public key is not found due to tenant",
-		// 	fingerprint: "fingerprint",
-		// 	tenant:      "nonexistent",
-		// 	tag:         "tag0",
-		// 	setup: func() error {
-		// 		return mongotest.UseFixture(fixtures.PublicKey)
-		// 	},
-		// 	expected: store.ErrNoDocuments,
-		// },
-		// {
-		// 	description: "succeeds when public key is found",
-		// 	fingerprint: "fingerprint",
-		// 	tenant:      "00000000-0000-4000-0000-000000000000",
-		// 	tag:         "tag0",
-		// 	setup: func() error {
-		// 		return mongotest.UseFixture(fixtures.PublicKey)
-		// 	},
-		// 	expected: nil,
-		// },
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.AddStatusMFA(ctx, tc.username, tc.status)
+			err := mongostore.AddStatusMFA(ctx, tc.username, tc.status)
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()
@@ -118,32 +94,30 @@ func TestAddSecret(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		username    string
 		secret      string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "success when try to add status MFA",
 			username:    "username",
 			secret:      "IOJDSFIAWMKXskdlmawOSDMCALWC",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.FixtureUsers},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.AddSecret(ctx, tc.username, tc.secret)
+			err := mongostore.AddSecret(ctx, tc.username, tc.secret)
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()
@@ -159,30 +133,28 @@ func TestDeleteSecret(t *testing.T) {
 	defer db.Stop()
 
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Configure(&db)
+	fixtures.Init(db.Host, "test")
 
 	cases := []struct {
 		description string
 		username    string
-		setup       func() error
+		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "success to delete a status MFA",
 			username:    "username",
-			setup: func() error {
-				return mongotest.UseFixture(fixtures.User)
-			},
-			expected: nil,
+			fixtures:    []string{fixtures.FixtureUsers},
+			expected:    nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			err := tc.setup()
-			assert.NoError(t, err)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
 
-			err = mongostore.DeleteSecret(ctx, tc.username)
+			err := mongostore.DeleteSecret(ctx, tc.username)
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()
