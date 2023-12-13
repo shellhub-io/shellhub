@@ -61,7 +61,7 @@ exports[`RecoverMFA > Renders the component 1`] = `
       <!---->
     </div>
   </div>
-  <div class=\\"v-card-actions justify-center pa-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--block v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"recover-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+  <div class=\\"v-card-actions justify-center pa-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--block v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"recover-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
       <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Recover Account </span>
       <!---->
       <!---->

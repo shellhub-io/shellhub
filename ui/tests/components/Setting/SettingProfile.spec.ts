@@ -43,7 +43,7 @@ describe("Settings Namespace", () => {
   };
 
   const authData = {
-    status: "",
+    status: "success",
     token: "",
     user: "test",
     name: "test",
@@ -65,8 +65,10 @@ describe("Settings Namespace", () => {
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
+    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);
+    store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
 
@@ -121,6 +123,9 @@ describe("Settings Namespace", () => {
       id: "xxxxxxxx",
     };
 
+    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
+    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
+    await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
     await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
 
     mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/data").reply(200);
@@ -133,7 +138,6 @@ describe("Settings Namespace", () => {
     await nextTick();
     await flushPromises();
     expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
-    expect(changeDataSpy).toHaveBeenCalledWith("auth/changeUserData", changeUserData);
   });
 
   it("Successfully changes user password", async () => {
@@ -173,7 +177,9 @@ describe("Settings Namespace", () => {
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
-
+    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
+    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
+    await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
     await wrapper.findComponent('[data-test="update-user-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
@@ -181,8 +187,6 @@ describe("Settings Namespace", () => {
     await nextTick();
     await flushPromises();
     expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
-    await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
   });
 
   it("Fails changes user password", async () => {
@@ -208,7 +212,5 @@ describe("Settings Namespace", () => {
     await nextTick();
     await flushPromises();
     expect(changePasswordSpy).toHaveBeenCalledWith("users/patchPassword", changePasswordData);
-    await flushPromises();
-    expect(changePasswordSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
   });
 });

@@ -11,7 +11,7 @@ export const enableMFA = async (mfa: MfaValidation) => mfaApi.enableMFA({
   codes: mfa.codes,
 });
 
-export const validateMFA = async (validation: MfaCode) => mfaApi.code(validation);
+export const validateMFA = async (validation: MfaCode) => mfaApi.code(validation.code);
 
 export const validateRecoveryCodes = async (validation: MfaCode) => mfaApi.recoveryCodes(validation);
 

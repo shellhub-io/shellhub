@@ -204,7 +204,7 @@ export const auth: Module<AuthState, State> = {
       }
     },
 
-    async getUserinfo(context) {
+    async getUserInfo(context) {
       try {
         const resp = await apiAuth.info();
         if (resp.status === 200) {

@@ -25,9 +25,9 @@
                     type="warning"
                     :icon="false"
                     data-test="alert-first-page"
-                    text="Please, check the box below whenever you're sure you've saved your recovery codes, without then,
-                     you'll have no means to return to your account after a MFA device loss,
-                     note that the codes will change if you re-enter this page."
+                    text="Please tick the box below when you're confident you've saved your recovery codes.
+                     Without them, you won't be able to get back into your account if you lose your MFA device.
+                     Keep in mind that the codes will change if you come back to this page."
                   />
                 </v-col>
               </v-col>
@@ -109,8 +109,9 @@
             </v-row>
             <v-row>
               <v-col data-test="step-one">
-                <p><strong>Step 1:</strong> To set up your multi-factor authentication,
-                  please read the QR code above or paste the Secret Key below with your favorite OTP provider.</p>
+                <p><strong>Step 1:</strong> To configure your multi-factor authentication,
+                  either scan the QR code above or manually enter the Secret Key provided
+                  into your preferred TOTP (Time-Based One-Time Password) provider.</p>
               </v-col>
             </v-row>
             <v-row>
@@ -120,8 +121,7 @@
             </v-row>
             <v-row>
               <v-col data-test="step-two">
-                <p><strong>Step 2:</strong> To set up your multi-factor authentication,
-                  please read the QR code above or paste the Secret Key below with your favorite OTP provider.</p>
+                <p><strong>Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in.</p>
               </v-col>
             </v-row>
             <v-row v-if="errorAlert">
@@ -134,13 +134,13 @@
             </v-row>
             <v-row>
               <v-col>
-                <v-text-field
+                <v-otp-input
+                  data-test="verification-code"
+                  required
                   v-model="verificationCode"
                   label="Verification Code"
-                  required
-                  variant="underlined"
-                  data-test="verification-code"
-                />
+                  variant="underlined" />
+
               </v-col>
             </v-row>
             <v-card-actions>
