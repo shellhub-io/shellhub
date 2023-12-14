@@ -13,6 +13,13 @@ import (
 
 func (s *Store) AnnouncementList(ctx context.Context, pagination paginator.Query, order order.Query) ([]models.AnnouncementShort, int, error) {
 	query := []bson.M{}
+
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := AggregateCount(ctx, s.db.Collection("announcements"), queryCount)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
+	}
+
 	query = append(query, queries.BuildOrderQuery(order, "date")...)
 	query = append(query, queries.BuildPaginationQuery(pagination)...)
 
@@ -26,7 +33,7 @@ func (s *Store) AnnouncementList(ctx context.Context, pagination paginator.Query
 		return nil, 0, FromMongoError(err)
 	}
 
-	return announcements, len(announcements), nil
+	return announcements, count, nil
 }
 
 func (s *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Announcement, error) {
