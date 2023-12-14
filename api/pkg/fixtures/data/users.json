@@ -1,15 +1,48 @@
 {
     "users": {
         "507f1f77bcf86cd799439011": {
-            "confirmed": false,
+            "confirmed": true,
             "created_at": "2023-01-01T12:00:00.000Z",
             "last_login": "2023-01-01T12:00:00.000Z",
-            "email": "user@test.com",
-            "email_marketing": false,
+            "email": "john.doe@test.com",
+            "email_marketing": true,
             "max_namespaces": 0,
             "name": "john doe",
             "password": "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
             "username": "john_doe"
+        },
+        "608f32a2c7351f001f6475e0": {
+            "confirmed": true,
+            "created_at": "2023-01-02T12:00:00.000Z",
+            "last_login": "2023-01-02T12:00:00.000Z",
+            "email": "jane.smith@test.com",
+            "email_marketing": true,
+            "max_namespaces": 3,
+            "name": "Jane Smith",
+            "password": "a0b8c29f4c8d57e542f5e81d35ebe801fd27f569f116fe670e8962d798512a1d",
+            "username": "jane_smith"
+        },
+        "709f45b5e812c1002f3a67e7": {
+            "confirmed": true,
+            "created_at": "2023-01-03T12:00:00.000Z",
+            "last_login": "2023-01-03T12:00:00.000Z",
+            "email": "bob.johnson@test.com",
+            "email_marketing": true,
+            "max_namespaces": 10,
+            "name": "Bob Johnson",
+            "password": "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
+            "username": "bob_johnson"
+        },
+        "80fdcea1d7299c002f3a67e8": {
+            "confirmed": false,
+            "created_at": "2023-01-04T12:00:00.000Z",
+            "last_login": null,
+            "email": "alex.rodriguez@test.com",
+            "email_marketing": false,
+            "max_namespaces": 3,
+            "name": "Alex Rodriguez",
+            "password": "c5093eb98678c7a3324825b84c6b67c1127b93786482ddbbd356e67e29b2763f",
+            "username": "alex_rodriguez"
         }
     }
 }
