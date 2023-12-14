@@ -12,6 +12,7 @@ import (
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
 )
@@ -23,7 +24,7 @@ func TestUpdateUserData(t *testing.T) {
 		title             string
 		uid               string
 		updatePayloadMock requests.UserDataUpdate
-		requiredMocks     func(updatePayloadMock requests.UserDataUpdate)
+		requiredMocks     func(updatePayloadMock models.UserData)
 		expectedStatus    int
 	}{
 		{
@@ -34,7 +35,7 @@ func TestUpdateUserData(t *testing.T) {
 				Username: "usernameteste",
 				Email:    "newemail@example.com",
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserDataUpdate) {},
+			requiredMocks:  func(updatePayloadMock models.UserData) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -48,7 +49,7 @@ func TestUpdateUserData(t *testing.T) {
 				Username: "usernameteste",
 				Email:    "newemail@example.com",
 			},
-			requiredMocks: func(updatePayloadMock requests.UserDataUpdate) {
+			requiredMocks: func(updatePayloadMock models.UserData) {
 				mock.On("UpdateDataUser", gomock.Anything, "1234", updatePayloadMock).Return(nil, svc.ErrUserNotFound)
 			},
 			expectedStatus: http.StatusNotFound,
@@ -64,7 +65,7 @@ func TestUpdateUserData(t *testing.T) {
 				Username: "usernameteste",
 				Email:    "newemail@example.com",
 			},
-			requiredMocks: func(updatePayloadMock requests.UserDataUpdate) {
+			requiredMocks: func(updatePayloadMock models.UserData) {
 				mock.On("UpdateDataUser", gomock.Anything, "123", updatePayloadMock).Return(nil, nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -73,7 +74,11 @@ func TestUpdateUserData(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.updatePayloadMock)
+			tc.requiredMocks(models.UserData{
+				Name:     tc.updatePayloadMock.Name,
+				Username: tc.updatePayloadMock.Username,
+				Email:    tc.updatePayloadMock.Email,
+			})
 
 			jsonData, err := json.Marshal(tc.updatePayloadMock)
 			if err != nil {

@@ -1217,15 +1217,15 @@ func (_m *Service) SystemGetInfo(ctx context.Context, req requests.SystemGetInfo
 }
 
 // UpdateDataUser provides a mock function with given fields: ctx, id, userData
-func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData requests.UserDataUpdate) ([]string, error) {
+func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData models.UserData) ([]string, error) {
 	ret := _m.Called(ctx, id, userData)
 
 	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, requests.UserDataUpdate) ([]string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UserData) ([]string, error)); ok {
 		return rf(ctx, id, userData)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, requests.UserDataUpdate) []string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UserData) []string); ok {
 		r0 = rf(ctx, id, userData)
 	} else {
 		if ret.Get(0) != nil {
@@ -1233,7 +1233,7 @@ func (_m *Service) UpdateDataUser(ctx context.Context, id string, userData reque
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, requests.UserDataUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, models.UserData) error); ok {
 		r1 = rf(ctx, id, userData)
 	} else {
 		r1 = ret.Error(1)

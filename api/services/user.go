@@ -3,12 +3,11 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type UserService interface {
-	UpdateDataUser(ctx context.Context, id string, userData requests.UserDataUpdate) ([]string, error)
+	UpdateDataUser(ctx context.Context, id string, userData models.UserData) ([]string, error)
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
@@ -18,7 +17,11 @@ type UserService interface {
 // fields to update in the models.User.
 //
 // It returns a slice of strings with the fields that contains data duplicated in the database, and an error.
-func (s *service) UpdateDataUser(ctx context.Context, id string, userData requests.UserDataUpdate) ([]string, error) {
+func (s *service) UpdateDataUser(ctx context.Context, id string, userData models.UserData) ([]string, error) {
+	if ok, err := s.validator.Struct(userData); !ok || err != nil {
+		return nil, NewErrUserInvalid(nil, err)
+	}
+
 	if _, _, err := s.store.UserGetByID(ctx, id, false); err != nil {
 		return nil, NewErrUserNotFound(id, nil)
 	}
@@ -38,15 +41,13 @@ func (s *service) UpdateDataUser(ctx context.Context, id string, userData reques
 		return conflictFields, NewErrUserDuplicated(conflictFields, nil)
 	}
 
-	user := models.User{
+	return nil, s.store.UserUpdateData(ctx, id, models.User{
 		UserData: models.UserData{
 			Name:     userData.Name,
 			Username: userData.Username,
 			Email:    userData.Email,
 		},
-	}
-
-	return nil, s.store.UserUpdateData(ctx, id, user)
+	})
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
