@@ -34,10 +34,10 @@ func TestGetStats(t *testing.T) {
 			},
 			expected: Expected{
 				stats: &models.Stats{
-					RegisteredDevices: 1,
+					RegisteredDevices: 3,
 					OnlineDevices:     1,
 					ActiveSessions:    1,
-					PendingDevices:    0,
+					PendingDevices:    1,
 					RejectedDevices:   0,
 				},
 				err: nil,

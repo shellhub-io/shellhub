@@ -64,7 +64,7 @@ func TestDeviceRemoveTag(t *testing.T) {
 		{
 			description: "fails when device doesn't exist",
 			uid:         models.UID("nonexistent"),
-			tag:         "tag1",
+			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
@@ -78,7 +78,7 @@ func TestDeviceRemoveTag(t *testing.T) {
 		{
 			description: "successfully remove a single tag for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			tag:         "tag1",
+			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    nil,
 		},
@@ -112,14 +112,14 @@ func TestDeviceUpdateTag(t *testing.T) {
 		{
 			description: "fails when device doesn't exist",
 			uid:         models.UID("nonexistent"),
-			tags:        []string{"tag0"},
+			tags:        []string{"tag-0"},
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "successfully update tags for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			tags:        []string{"tag0"},
+			tags:        []string{"tag-0"},
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    nil,
 		},
@@ -154,7 +154,7 @@ func TestDeviceRenameTag(t *testing.T) {
 		{
 			description: "fails when tenant doesn't exist",
 			tenant:      "nonexistent",
-			oldTag:      "tag1",
+			oldTag:      "tag-1",
 			newTag:      "newtag",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
@@ -162,7 +162,7 @@ func TestDeviceRenameTag(t *testing.T) {
 		{
 			description: "fails when device's tag doesn't exist",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			oldTag:      "tag0",
+			oldTag:      "nonexistent",
 			newTag:      "newtag",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
@@ -170,7 +170,7 @@ func TestDeviceRenameTag(t *testing.T) {
 		{
 			description: "successfully rename tag for an existing device",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			oldTag:      "tag1",
+			oldTag:      "tag-1",
 			newTag:      "newtag",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    nil,
@@ -205,21 +205,21 @@ func TestDeviceDeleteTag(t *testing.T) {
 		{
 			description: "fails when tenant doesn't exist",
 			tenant:      "nonexistent",
-			tag:         "tag1",
+			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "fails when device's tag doesn't exist",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			tag:         "tag0",
+			tag:         "nonexistent",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "successfully delete single tag for an existing device",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			tag:         "tag1",
+			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    nil,
 		},

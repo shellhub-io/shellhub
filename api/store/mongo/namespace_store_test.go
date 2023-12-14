@@ -119,7 +119,7 @@ func TestNamespaceGet(t *testing.T) {
 					},
 					MaxDevices:   -1,
 					Settings:     &models.NamespaceSettings{SessionRecord: true},
-					DevicesCount: 1,
+					DevicesCount: 3,
 				},
 				err: nil,
 			},

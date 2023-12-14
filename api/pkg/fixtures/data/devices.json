@@ -1,19 +1,76 @@
 {
     "devices": {
-        "6500c8f026e1e911042ee820": {
+        "656f605bafb652df9927adef": {
             "created_at": "2023-01-01T12:00:00.000Z",
             "last_seen": "2023-01-01T12:00:00.000Z",
             "status_updated_at": "2023-01-01T12:00:00.000Z",
-            "identity": {"mac": "mac"},
+            "identity": {
+                "mac": "mac-1"
+            },
             "info": null,
-            "name": "hostname",
+            "name": "device-1",
             "position": null,
             "public_key": "",
             "remote_addr": "",
             "status": "accepted",
-            "tags": ["tag1"],
+            "tags": [
+                "tag-1"
+            ],
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f"
+        },
+        "656f608671625f495fe70037": {
+            "created_at": "2023-01-02T12:00:00.000Z",
+            "last_seen": "2023-01-02T12:00:00.000Z",
+            "status_updated_at": "2023-01-02T12:00:00.000Z",
+            "identity": {
+                "mac": "mac-2"
+            },
+            "info": null,
+            "name": "device-2",
+            "position": null,
+            "public_key": "",
+            "remote_addr": "",
+            "status": "accepted",
+            "tags": [],
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"
+        },
+        "6500c8f026e1e911042ee820": {
+            "created_at": "2023-01-03T12:00:00.000Z",
+            "last_seen": "2023-01-03T12:00:00.000Z",
+            "status_updated_at": "2023-01-03T12:00:00.000Z",
+            "identity": {
+                "mac": "mac-3"
+            },
+            "info": null,
+            "name": "device-3",
+            "position": null,
+            "public_key": "",
+            "remote_addr": "",
+            "status": "accepted",
+            "tags": [
+                "tag-1"
+            ],
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"
+        },
+        "656f60cada27dad292686e34": {
+            "created_at": "2023-01-04T12:00:00.000Z",
+            "last_seen": "2023-01-04T12:00:00.000Z",
+            "status_updated_at": "2023-01-04T12:00:00.000Z",
+            "identity": {
+                "mac": "mac-4"
+            },
+            "info": null,
+            "name": "device-4",
+            "position": null,
+            "public_key": "",
+            "remote_addr": "",
+            "status": "pending",
+            "tags": [],
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d"
         }
     }
 }
