@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"sort"
 	"testing"
 	"time"
 
@@ -26,11 +27,15 @@ func TestUserList(t *testing.T) {
 
 	cases := []struct {
 		description string
+		page        paginator.Query
+		filters     []models.Filter
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when users are found",
+			page:        paginator.Query{Page: -1, PerPage: -1},
+			filters:     nil,
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected: Expected{
 				users: []models.User{
@@ -38,16 +43,100 @@ func TestUserList(t *testing.T) {
 						ID:             "507f1f77bcf86cd799439011",
 						CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						EmailMarketing: false,
-						Confirmed:      false,
+						EmailMarketing: true,
+						Confirmed:      true,
 						UserData: models.UserData{
 							Name:     "john doe",
 							Username: "john_doe",
-							Email:    "user@test.com",
+							Email:    "john.doe@test.com",
 						},
 						MaxNamespaces: 0,
 						UserPassword: models.UserPassword{
 							HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+						},
+					},
+					{
+						ID:             "608f32a2c7351f001f6475e0",
+						CreatedAt:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						LastLogin:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						EmailMarketing: true,
+						Confirmed:      true,
+						UserData: models.UserData{
+							Name:     "Jane Smith",
+							Username: "jane_smith",
+							Email:    "jane.smith@test.com",
+						},
+						MaxNamespaces: 3,
+						UserPassword: models.UserPassword{
+							HashedPassword: "a0b8c29f4c8d57e542f5e81d35ebe801fd27f569f116fe670e8962d798512a1d",
+						},
+					},
+					{
+						ID:             "709f45b5e812c1002f3a67e7",
+						CreatedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastLogin:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						EmailMarketing: true,
+						Confirmed:      true,
+						UserData: models.UserData{
+							Name:     "Bob Johnson",
+							Username: "bob_johnson",
+							Email:    "bob.johnson@test.com",
+						},
+						MaxNamespaces: 10,
+						UserPassword: models.UserPassword{
+							HashedPassword: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
+						},
+					},
+					{
+						ID:             "80fdcea1d7299c002f3a67e8",
+						CreatedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						EmailMarketing: false,
+						Confirmed:      false,
+						UserData: models.UserData{
+							Name:     "Alex Rodriguez",
+							Username: "alex_rodriguez",
+							Email:    "alex.rodriguez@test.com",
+						},
+						MaxNamespaces: 3,
+						UserPassword: models.UserPassword{
+							HashedPassword: "c5093eb98678c7a3324825b84c6b67c1127b93786482ddbbd356e67e29b2763f",
+						},
+					},
+				},
+				count: 4,
+				err:   nil,
+			},
+		},
+		{
+			description: "succeeds with filters",
+			page:        paginator.Query{Page: -1, PerPage: -1},
+			filters: []models.Filter{
+				{
+					Type: "property",
+					Params: &models.PropertyParams{
+						Name:     "max_namespaces",
+						Operator: "gt",
+						Value:    "3",
+					},
+				},
+			},
+			fixtures: []string{fixtures.FixtureUsers},
+			expected: Expected{
+				users: []models.User{
+					{
+						ID:             "709f45b5e812c1002f3a67e7",
+						CreatedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastLogin:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						EmailMarketing: true,
+						Confirmed:      true,
+						UserData: models.UserData{
+							Name:     "Bob Johnson",
+							Username: "bob_johnson",
+							Email:    "bob.johnson@test.com",
+						},
+						MaxNamespaces: 10,
+						UserPassword: models.UserPassword{
+							HashedPassword: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
 						},
 					},
 				},
@@ -63,59 +152,22 @@ func TestUserList(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
-
-			users, count, err := mongostore.UserList(context.TODO(), paginator.Query{Page: -1, PerPage: -1}, nil)
-			assert.Equal(t, tc.expected, Expected{users: users, count: count, err: err})
+	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
+	// we ensure that both the expected and result arrays are correctly sorted.
+	sort := func(users []models.User) {
+		sort.Slice(users, func(i, j int) bool {
+			return users[i].ID < users[j].ID
 		})
 	}
-}
-
-func TestUserListWithFilter(t *testing.T) {
-	type Expected struct {
-		users []models.User
-		count int
-		err   error
-	}
-
-	cases := []struct {
-		description string
-		filters     []models.Filter
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "succeeds when no users are found",
-			filters: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "namespaces", Operator: "gt", Value: "1"},
-				},
-			},
-			fixtures: []string{fixtures.FixtureUsers},
-			expected: Expected{
-				users: []models.User{},
-				count: 0,
-				err:   nil,
-			},
-		},
-	}
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			users, count, err := mongostore.UserList(context.TODO(), paginator.Query{Page: -1, PerPage: -1}, tc.filters)
+			users, count, err := mongostore.UserList(context.TODO(), tc.page, tc.filters)
+			sort(tc.expected.users)
+			sort(users)
 			assert.Equal(t, tc.expected, Expected{users: users, count: count, err: err})
 		})
 	}
@@ -135,7 +187,7 @@ func TestUserCreate(t *testing.T) {
 				UserData: models.UserData{
 					Name:     "john doe",
 					Username: "john_doe",
-					Email:    "user@test.com",
+					Email:    "john.doe@test.com",
 				},
 				UserPassword: models.UserPassword{
 					HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
@@ -193,12 +245,12 @@ func TestUserGetByUsername(t *testing.T) {
 					ID:             "507f1f77bcf86cd799439011",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: false,
-					Confirmed:      false,
+					EmailMarketing: true,
+					Confirmed:      true,
 					UserData: models.UserData{
 						Name:     "john doe",
 						Username: "john_doe",
-						Email:    "user@test.com",
+						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
@@ -250,19 +302,19 @@ func TestUserGetByEmail(t *testing.T) {
 		},
 		{
 			description: "succeeds when email is found",
-			email:       "user@test.com",
+			email:       "john.doe@test.com",
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: false,
-					Confirmed:      false,
+					EmailMarketing: true,
+					Confirmed:      true,
 					UserData: models.UserData{
 						Name:     "john doe",
 						Username: "john_doe",
-						Email:    "user@test.com",
+						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
@@ -325,12 +377,12 @@ func TestUserGetByID(t *testing.T) {
 					ID:             "507f1f77bcf86cd799439011",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: false,
-					Confirmed:      false,
+					EmailMarketing: true,
+					Confirmed:      true,
 					UserData: models.UserData{
 						Name:     "john doe",
 						Username: "john_doe",
-						Email:    "user@test.com",
+						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
@@ -351,12 +403,12 @@ func TestUserGetByID(t *testing.T) {
 					ID:             "507f1f77bcf86cd799439011",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: false,
-					Confirmed:      false,
+					EmailMarketing: true,
+					Confirmed:      true,
 					UserData: models.UserData{
 						Name:     "john doe",
 						Username: "john_doe",
-						Email:    "user@test.com",
+						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
 					UserPassword: models.UserPassword{
@@ -497,7 +549,7 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 		},
 		{
 			description: "succeeds when user is found",
-			id:          "507f1f77bcf86cd799439011",
+			id:          "80fdcea1d7299c002f3a67e8",
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected:    nil,
 		},
