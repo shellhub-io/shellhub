@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
@@ -28,8 +29,9 @@ func TestTagsGet(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected: Expected{
-				tags: []string{"tag1"},
-				len:  1,
+				// TODO: remove "tag1"
+				tags: []string{"tag-1", "tag1"},
+				len:  2,
 				err:  nil,
 			},
 		},
@@ -41,12 +43,22 @@ func TestTagsGet(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
+	// we ensure that both the expected and result arrays are correctly sorted.
+	sort := func(tags []string) {
+		sort.Slice(tags, func(i, j int) bool {
+			return tags[i] < tags[j]
+		})
+	}
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
 			tags, count, err := mongostore.TagsGet(context.TODO(), tc.tenant)
+			sort(tc.expected.tags)
+			sort(tags)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
 		})
 	}
@@ -64,7 +76,7 @@ func TestTagRename(t *testing.T) {
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			oldTag:      "tag1",
+			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected:    nil,
@@ -99,7 +111,7 @@ func TestTagDelete(t *testing.T) {
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			tag:         "tag1",
+			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected:    nil,
 		},
