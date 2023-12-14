@@ -13,12 +13,64 @@
                     "role": "observer"
                 }
             ],
-            "name": "namespace",
+            "name": "namespace-1",
             "owner": "507f1f77bcf86cd799439011",
             "settings": {
                 "session_record": true
             },
             "tenant_id": "00000000-0000-4000-0000-000000000000"
+        },
+        "e5b45d9a2c0a4f8dbb7f4e5d": {
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "max_devices": 10,
+            "members": [
+                {
+                    "id": "6509e169ae6144b2f56bf288",
+                    "role": "owner"
+                },
+                {
+                    "id": "907f1f77bcf86cd799439022",
+                    "role": "operator"
+                }
+            ],
+            "name": "namespace-2",
+            "owner": "6509e169ae6144b2f56bf288",
+            "settings": {
+                "session_record": false
+            },
+            "tenant_id": "00000000-0000-4001-0000-000000000000"
+        },
+        "3c7f09a5b46c4a63a9ccc071": {
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "max_devices": 3,
+            "members": [
+                {
+                    "id": "657b0e3bff780d625f74e49a",
+                    "role": "owner"
+                }
+            ],
+            "name": "namespace-3",
+            "owner": "657b0e3bff780d625f74e49a",
+            "settings": {
+                "session_record": true
+            },
+            "tenant_id": "00000000-0000-4002-0000-000000000000"
+        },
+        "6577271b9f5a02f3bc8f5400": {
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "max_devices": -1,
+            "members": [
+                {
+                    "id": "6577267d8752d05270a4c07d",
+                    "role": "owner"
+                }
+            ],
+            "name": "namespace-4",
+            "owner": "6577267d8752d05270a4c07d",
+            "settings": {
+                "session_record": true
+            },
+            "tenant_id": "00000000-0000-4003-0000-000000000000"
         }
     }
 }

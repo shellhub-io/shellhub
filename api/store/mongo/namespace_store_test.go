@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"sort"
 	"testing"
 	"time"
 
@@ -24,19 +25,23 @@ func TestNamespaceList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		tenant      string
+		page        paginator.Query
+		filters     []models.Filter
+		export      bool
 		fixtures    []string
 		expected    Expected
 	}{
 		{
-			description: "succeeds",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			description: "succeeds when namespaces list is not empty",
+			page:        paginator.Query{Page: -1, PerPage: -1},
+			filters:     []models.Filter{},
+			export:      false,
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns: []models.Namespace{
 					{
 						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						Name:      "namespace",
+						Name:      "namespace-1",
 						Owner:     "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Members: []models.Member{
@@ -52,8 +57,54 @@ func TestNamespaceList(t *testing.T) {
 						MaxDevices: -1,
 						Settings:   &models.NamespaceSettings{SessionRecord: true},
 					},
+					{
+						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:      "namespace-2",
+						Owner:     "6509e169ae6144b2f56bf288",
+						TenantID:  "00000000-0000-4001-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:   "6509e169ae6144b2f56bf288",
+								Role: guard.RoleOwner,
+							},
+							{
+								ID:   "907f1f77bcf86cd799439022",
+								Role: guard.RoleOperator,
+							},
+						},
+						MaxDevices: 10,
+						Settings:   &models.NamespaceSettings{SessionRecord: false},
+					},
+					{
+						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:      "namespace-3",
+						Owner:     "657b0e3bff780d625f74e49a",
+						TenantID:  "00000000-0000-4002-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:   "657b0e3bff780d625f74e49a",
+								Role: guard.RoleOwner,
+							},
+						},
+						MaxDevices: 3,
+						Settings:   &models.NamespaceSettings{SessionRecord: true},
+					},
+					{
+						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:      "namespace-4",
+						Owner:     "6577267d8752d05270a4c07d",
+						TenantID:  "00000000-0000-4003-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:   "6577267d8752d05270a4c07d",
+								Role: guard.RoleOwner,
+							},
+						},
+						MaxDevices: -1,
+						Settings:   &models.NamespaceSettings{SessionRecord: true},
+					},
 				},
-				count: 1,
+				count: 4,
 				err:   nil,
 			},
 		},
@@ -65,12 +116,22 @@ func TestNamespaceList(t *testing.T) {
 	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
 	fixtures.Init(db.Host, "test")
 
+	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
+	// we ensure that both the expected and result arrays are correctly sorted.
+	sort := func(ns []models.Namespace) {
+		sort.Slice(ns, func(i, j int) bool {
+			return ns[i].TenantID < ns[j].TenantID
+		})
+	}
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			ns, count, err := mongostore.NamespaceList(context.TODO(), paginator.Query{Page: -1, PerPage: -1}, nil, false)
+			ns, count, err := mongostore.NamespaceList(context.TODO(), tc.page, tc.filters, tc.export)
+			sort(tc.expected.ns)
+			sort(ns)
 			assert.Equal(t, tc.expected, Expected{ns: ns, count: count, err: err})
 		})
 	}
@@ -104,7 +165,7 @@ func TestNamespaceGet(t *testing.T) {
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace",
+					Name:      "namespace-1",
 					Owner:     "507f1f77bcf86cd799439011",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
@@ -166,12 +227,12 @@ func TestNamespaceGetByName(t *testing.T) {
 		},
 		{
 			description: "succeeds when namespace is found",
-			name:        "namespace",
+			name:        "namespace-1",
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace",
+					Name:      "namespace-1",
 					Owner:     "507f1f77bcf86cd799439011",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
@@ -237,7 +298,7 @@ func TestNamespaceGetFirst(t *testing.T) {
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace",
+					Name:      "namespace-1",
 					Owner:     "507f1f77bcf86cd799439011",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
@@ -290,7 +351,7 @@ func TestNamespaceCreate(t *testing.T) {
 		{
 			description: "succeeds when data is valid",
 			ns: &models.Namespace{
-				Name:     "namespace",
+				Name:     "namespace-1",
 				Owner:    "507f1f77bcf86cd799439011",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 				Members: []models.Member{
@@ -305,7 +366,7 @@ func TestNamespaceCreate(t *testing.T) {
 			fixtures: []string{},
 			expected: Expected{
 				ns: &models.Namespace{
-					Name:     "namespace",
+					Name:     "namespace-1",
 					Owner:    "507f1f77bcf86cd799439011",
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
@@ -541,7 +602,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace",
+					Name:      "namespace-1",
 					Owner:     "507f1f77bcf86cd799439011",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
@@ -654,7 +715,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 		{
 			description: "fails when member is not found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			member:      "000000000000000000000000",
+			member:      "nonexistent",
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
@@ -669,7 +730,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace",
+					Name:      "namespace-1",
 					Owner:     "507f1f77bcf86cd799439011",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
