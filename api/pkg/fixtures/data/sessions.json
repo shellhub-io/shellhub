@@ -1,22 +1,76 @@
 {
     "sessions": {
         "650a16617ab1243960ee4c8c": {
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
             "started_at": "2023-01-01T12:00:00.000Z",
             "last_seen": "2023-01-01T12:00:00.000Z",
             "authenticated": true,
-            "closed": false,
-            "device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+            "recorded": false,
+            "closed": true,
             "ip_address": "0.0.0.0",
             "position": {
                 "longitude": 0,
                 "latitude": 0
             },
+            "term": "xterm",
+            "type": "shell",
+            "username": "john_doe"
+        },
+        "712e2f8c0b8e632c4f8dc8a2": {
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "e7f3a56d8b9e1dc4c285c98c8ea9c33032a17bda5b6c6b05a6213c2a02f97824",
+            "device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+            "started_at": "2023-01-02T12:00:00.000Z",
+            "last_seen": "2023-01-02T12:00:00.000Z",
+            "authenticated": true,
             "recorded": true,
+            "closed": true,
+            "ip_address": "0.0.0.0",
+            "position": {
+                "longitude": 45.6789,
+                "latitude": -12.3456
+            },
+            "term": "xterm",
+            "type": "shell",
+            "username": "john_doe"
+        },
+        "657b5d280df7c547ae17f656": {
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "fc2e1493d8b6a4c17bf6a2f7f9e55629e384b2d3a21e0c3d90f6e35b0c946178a",
+            "device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+            "started_at": "2023-01-03T12:00:00.000Z",
+            "last_seen": "2023-01-03T12:00:00.000Z",
+            "authenticated": true,
+            "recorded": false,
+            "closed": true,
+            "ip_address": "0.0.0.0",
+            "position": {
+                "longitude": -78.9012,
+                "latitude": 23.4567
+            },
             "term": "",
-            "type": "",
-            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
-            "username": "john_doe",
-            "tenant_id": "00000000-0000-4000-0000-000000000000"
+            "type": "exec",
+            "username": "john_doe"
+        },
+        "6f81eab9d73f4a2e8c45011b": {
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "uid": "bc3d75821a29cfe70bf7986f9ee5629e384b2d3a21e0c3d90f6e35b0c946178a",
+            "device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+            "started_at": "2023-01-04T12:00:00.000Z",
+            "last_seen": "2023-01-04T12:00:00.000Z",
+            "authenticated": true,
+            "recorded": true,
+            "closed": true,
+            "ip_address": "0.0.0.0",
+            "position": {
+                "longitude": -56.7890,
+                "latitude": 34.5678
+            },
+            "term": "xterm",
+            "type": "shell",
+            "username": "john_doe"
         }
     }
 }

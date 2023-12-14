@@ -1,8 +1,14 @@
 {
     "recorded_sessions": {
         "650a29b8ed1050a22b2c862e": {
-            "time": "2023-01-01T12:00:00.000Z",
-            "uid": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "time": "2023-01-02T12:00:00.000Z",
+            "uid": "e7f3a56d8b9e1dc4c285c98c8ea9c33032a17bda5b6c6b05a6213c2a02f97824",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "message": "message"
+        },
+        "657b5c2926722519a839a4b9": {
+            "time": "2023-01-04T12:00:00.000Z",
+            "uid": "bc3d75821a29cfe70bf7986f9ee5629e384b2d3a21e0c3d90f6e35b0c946178a",
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "message": "message"
         }
