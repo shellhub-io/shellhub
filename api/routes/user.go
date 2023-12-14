@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
@@ -29,12 +30,16 @@ func (h *Handler) UpdateUserData(c gateway.Context) error {
 		return err
 	}
 
-	if fields, err := h.service.UpdateDataUser(c.Ctx(), req.ID, req); err != nil {
+	if fields, err := h.service.UpdateDataUser(c.Ctx(), req.ID, models.UserData{
+		Name:     req.Name,
+		Username: req.Username,
+		Email:    req.Email,
+	}); err != nil {
 		// FIXME: API compatibility.
 		//
 		// The UI uses the fields with error messages to identify if it is invalid or duplicated.
-		e, ok := err.(errors.Error)
-		if !ok {
+		var e errors.Error
+		if ok := errors.As(err, &e); !ok {
 			return err
 		}
 

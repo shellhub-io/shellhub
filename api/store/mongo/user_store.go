@@ -195,7 +195,7 @@ func (s *Store) UserUpdateData(ctx context.Context, id string, data models.User)
 		return FromMongoError(err)
 	}
 
-	if user.ModifiedCount < 1 {
+	if user.MatchedCount == 0 {
 		return store.ErrNoDocuments
 	}
 

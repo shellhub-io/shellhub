@@ -6,10 +6,10 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,16 +22,31 @@ func TestUpdateDataUser(t *testing.T) {
 		fields []string
 		err    error
 	}
+
 	cases := []struct {
 		description   string
 		id            string
-		data          requests.UserDataUpdate
+		data          models.UserData
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
+			description:   "Fail when user data is invalid",
+			id:            "1",
+			requiredMocks: func() {},
+			expected: Expected{
+				fields: nil,
+				err:    NewErrUserInvalid(nil, validator.ErrStructureInvalid),
+			},
+		},
+		{
 			description: "Fail when user is not found",
 			id:          "1",
+			data: models.UserData{
+				Name:     "test",
+				Username: "test",
+				Email:    "test@shellhub.io",
+			},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, "1", false).Return(nil, 0, NewErrUserNotFound("1", nil)).Once()
 			},
@@ -43,7 +58,8 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when username already exists",
 			id:          "1",
-			data: requests.UserDataUpdate{
+			data: models.UserData{
+				Name:     "test",
 				Username: "new",
 				Email:    "test@test.com",
 			},
@@ -75,7 +91,8 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when email already exists",
 			id:          "1",
-			data: requests.UserDataUpdate{
+			data: models.UserData{
+				Name:     "test",
 				Username: "test",
 				Email:    "new@test.com",
 			},
@@ -83,7 +100,7 @@ func TestUpdateDataUser(t *testing.T) {
 				user := &models.User{
 					ID: "1",
 					UserData: models.UserData{
-						Email: "tset@test.com",
+						Email: "test@test.com",
 					},
 				}
 				exist := &models.User{
@@ -105,7 +122,8 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when username and email already exists",
 			id:          "1",
-			data: requests.UserDataUpdate{
+			data: models.UserData{
+				Name:     "test",
 				Username: "new",
 				Email:    "new@test.com",
 			},
@@ -137,7 +155,8 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when could not update user",
 			id:          "1",
-			data: requests.UserDataUpdate{
+			data: models.UserData{
+				Name:     "test",
 				Username: "new",
 				Email:    "new@test.com",
 			},
@@ -152,6 +171,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 				data := models.User{
 					UserData: models.UserData{
+						Name:     "test",
 						Username: "new",
 						Email:    "new@test.com",
 					},
@@ -170,7 +190,8 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Success to update user",
 			id:          "1",
-			data: requests.UserDataUpdate{
+			data: models.UserData{
+				Name:     "test",
 				Username: "new",
 				Email:    "new@test.com",
 			},
@@ -185,6 +206,7 @@ func TestUpdateDataUser(t *testing.T) {
 
 				data := models.User{
 					UserData: models.UserData{
+						Name:     "test",
 						Username: "new",
 						Email:    "new@test.com",
 					},
