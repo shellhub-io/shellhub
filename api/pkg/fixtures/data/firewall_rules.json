@@ -4,10 +4,43 @@
             "action": "allow",
             "active": true,
             "filter": {
-                "tags": ["tag1"]
+                "tags": ["tag-1"]
             },
             "priority": 1,
             "source_ip": ".*",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "username": ".*"
+        },
+        "e92f4a5d3e1a4f7b8b2b6e9a": {
+            "action": "allow",
+            "active": true,
+            "filter": {
+                "tags": ["tag-1"]
+            },
+            "priority": 2,
+            "source_ip": "192.168.1.10",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "username": "john.doe"
+        },
+        "78c96f0a2e5b4dca8d78f00c": {
+            "action": "allow",
+            "active": true,
+            "filter": {
+                "tags": []
+            },
+            "priority": 3,
+            "source_ip": "10.0.0.0/24",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "username": "admin"
+        },
+        "3fd759a1ecb64ec5a07c8c0f": {
+            "action": "deny",
+            "active": true,
+            "filter": {
+                "tags": ["tag-1"]
+            },
+            "priority": 4,
+            "source_ip": "172.16.0.0/16",
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "username": ".*"
         }
