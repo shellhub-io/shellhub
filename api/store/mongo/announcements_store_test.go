@@ -24,11 +24,15 @@ func TestAnnouncementList(t *testing.T) {
 
 	cases := []struct {
 		description string
+		page        paginator.Query
+		order       order.Query
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when announcement list is empty",
+			page:        paginator.Query{Page: -1, PerPage: -1},
+			order:       order.Query{OrderBy: order.Asc},
 			fixtures:    []string{},
 			expected: Expected{
 				ann: nil,
@@ -38,16 +42,87 @@ func TestAnnouncementList(t *testing.T) {
 		},
 		{
 			description: "succeeds when announcement list is not empty",
+			page:        paginator.Query{Page: -1, PerPage: -1},
+			order:       order.Query{OrderBy: order.Asc},
 			fixtures:    []string{fixtures.FixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
 						Date:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						UUID:  "00000000-0000-4000-0000-000000000000",
-						Title: "title0",
+						Title: "title-0",
+					},
+					{
+						Date:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4001-0000-000000000000",
+						Title: "title-1",
+					},
+					{
+						Date:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4002-0000-000000000000",
+						Title: "title-2",
+					},
+					{
+						Date:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4003-0000-000000000000",
+						Title: "title-3",
 					},
 				},
-				len: 1,
+				len: 4,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when announcement list is not empty and page and page size is limited",
+			page:        paginator.Query{Page: 2, PerPage: 2},
+			order:       order.Query{OrderBy: order.Asc},
+			fixtures:    []string{fixtures.FixtureAnnouncements},
+			expected: Expected{
+				ann: []models.AnnouncementShort{
+					{
+						Date:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4002-0000-000000000000",
+						Title: "title-2",
+					},
+					{
+						Date:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4003-0000-000000000000",
+						Title: "title-3",
+					},
+				},
+				len: 4,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when announcement list is not empty and order is desc",
+			page:        paginator.Query{Page: -1, PerPage: -1},
+			order:       order.Query{OrderBy: order.Desc},
+			fixtures:    []string{fixtures.FixtureAnnouncements},
+			expected: Expected{
+				ann: []models.AnnouncementShort{
+					{
+						Date:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4003-0000-000000000000",
+						Title: "title-3",
+					},
+					{
+						Date:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4002-0000-000000000000",
+						Title: "title-2",
+					},
+					{
+						Date:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4001-0000-000000000000",
+						Title: "title-1",
+					},
+					{
+						Date:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						UUID:  "00000000-0000-4000-0000-000000000000",
+						Title: "title-0",
+					},
+				},
+				len: 4,
 				err: nil,
 			},
 		},
@@ -64,7 +139,7 @@ func TestAnnouncementList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			ann, count, err := mongostore.AnnouncementList(context.TODO(), paginator.Query{Page: -1, PerPage: -1}, order.Query{OrderBy: order.Asc})
+			ann, count, err := mongostore.AnnouncementList(context.TODO(), tc.page, tc.order)
 			assert.Equal(t, tc.expected, Expected{ann: ann, len: count, err: err})
 		})
 	}
@@ -99,8 +174,8 @@ func TestAnnouncementGet(t *testing.T) {
 				ann: &models.Announcement{
 					Date:    time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					UUID:    "00000000-0000-4000-0000-000000000000",
-					Title:   "title0",
-					Content: "content0",
+					Title:   "title-0",
+					Content: "content-0",
 				},
 				err: nil,
 			},
@@ -134,7 +209,7 @@ func TestAnnouncementCreate(t *testing.T) {
 		{
 			description: "succeeds when data is valid",
 			announcement: &models.Announcement{
-				UUID:    "00000000-0000-4000-0000-000000000000",
+				UUID:    "00000000-0000-40004-0000-000000000000",
 				Title:   "title",
 				Content: "content",
 			},
