@@ -45,20 +45,7 @@ var RolePermissions = map[string]Permissions{
 // CheckMember checks if a models.User's ID is a models.Namespace's member. A models.User is a member if its ID is in
 // the models.Namespace's members list.
 func CheckMember(namespace *models.Namespace, id string) (*models.Member, bool) {
-	var found models.Member
-	for _, member := range namespace.Members {
-		if member.ID == id {
-			found = member
-
-			break
-		}
-	}
-
-	if found.ID == "" || found.Role == "" {
-		return nil, false
-	}
-
-	return &found, true
+	return namespace.FindMember(id)
 }
 
 // GetRoleCode converts a models.Member's role string to a role code. If the role is not found in Roles, it returns RoleInvalidCode.

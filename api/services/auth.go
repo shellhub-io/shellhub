@@ -157,13 +157,8 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (
 
 	if namespace != nil {
 		tenant = namespace.TenantID
-
-		for _, member := range namespace.Members {
-			if member.ID == user.ID {
-				role = member.Role
-
-				break
-			}
+		if member, _ := namespace.FindMember(user.ID); member != nil {
+			role = member.Role
 		}
 	}
 
@@ -221,13 +216,8 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 	var tenant string
 	if namespace != nil {
 		tenant = namespace.TenantID
-
-		for _, member := range namespace.Members {
-			if member.ID == user.ID {
-				role = member.Role
-
-				break
-			}
+		if member, _ := namespace.FindMember(user.ID); member != nil {
+			role = member.Role
 		}
 	}
 
@@ -301,22 +291,13 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 		return nil, NewErrUserNotFound(id, err)
 	}
 
-	var role string
-	for _, member := range namespace.Members {
-		if member.ID == user.ID {
-			role = member.Role
-
-			break
-		}
-	}
-
 	for _, member := range namespace.Members {
 		if user.ID == member.ID {
 			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 				Username: user.Username,
 				Admin:    true,
 				Tenant:   namespace.TenantID,
-				Role:     role,
+				Role:     member.Role,
 				ID:       user.ID,
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
@@ -338,7 +319,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				Name:   user.Name,
 				ID:     user.ID,
 				User:   user.Username,
-				Role:   role,
+				Role:   member.Role,
 				Tenant: namespace.TenantID,
 				Email:  user.Email,
 			}, nil
@@ -358,12 +339,8 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 
 	var role string
 	if namespace != nil {
-		for _, member := range namespace.Members {
-			if member.ID == user.ID {
-				role = member.Role
-
-				break
-			}
+		if member, _ := namespace.FindMember(user.ID); member != nil {
+			role = member.Role
 		}
 	}
 
