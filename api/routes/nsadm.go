@@ -96,8 +96,7 @@ func (h *Handler) GetNamespace(c gateway.Context) error {
 	}
 
 	if uid != "" {
-		_, ok := guard.CheckMember(ns, uid)
-		if !ok {
+		if _, ok := ns.FindMember(uid); !ok {
 			return c.NoContent(http.StatusForbidden)
 		}
 	}

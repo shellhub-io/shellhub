@@ -230,7 +230,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 	}
 
 	// checks if the active member is in the namespace. user is the active member.
-	active, ok := guard.CheckMember(namespace, user.ID)
+	active, ok := namespace.FindMember(user.ID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
@@ -241,8 +241,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 	}
 
 	// checks if the passive member is in the namespace.
-	_, ok = guard.CheckMember(namespace, passive.ID)
-	if ok {
+	if _, ok = namespace.FindMember(passive.ID); ok {
 		return nil, NewErrNamespaceMemberDuplicated(passive.ID, nil)
 	}
 
@@ -283,13 +282,13 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 	}
 
 	// checks if the active member is in the namespace. user is the active member.
-	active, ok := guard.CheckMember(namespace, user.ID)
+	active, ok := namespace.FindMember(user.ID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
 	// checks if the passive member is in the namespace. member is the passive member.
-	passive, ok := guard.CheckMember(namespace, member.ID)
+	passive, ok := namespace.FindMember(member.ID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(member.ID, err)
 	}
@@ -335,13 +334,13 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 	}
 
 	// checks if the active member is in the namespace. user is the active member.
-	active, ok := guard.CheckMember(namespace, user.ID)
+	active, ok := namespace.FindMember(user.ID)
 	if !ok {
 		return NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
 	// checks if the passive member is in the namespace. member is the passive member.
-	passive, ok := guard.CheckMember(namespace, member.ID)
+	passive, ok := namespace.FindMember(member.ID)
 	if !ok {
 		return NewErrNamespaceMemberNotFound(member.ID, err)
 	}
