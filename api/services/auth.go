@@ -163,58 +163,56 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest, v
 		}
 	}
 
-	if user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
-		status, err := s.AuthMFA(ctx, user.ID)
-		if err != nil {
-			return nil, NewErrUserNotFound(user.ID, err)
-		}
-
-		if user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
-			token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
-				Username: user.Username,
-				Admin:    true,
-				Tenant:   tenant,
-				Role:     role,
-				ID:       user.ID,
-				AuthClaims: models.AuthClaims{
-					Claims: "user",
-				},
-				MFA: models.MFA{
-					Status:   status,
-					Validate: validate,
-				},
-				RegisteredClaims: jwt.RegisteredClaims{
-					ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
-				},
-			})
-
-			tokenStr, err := token.SignedString(s.privKey)
-			if err != nil {
-				return nil, NewErrTokenSigned(err)
-			}
-
-			user.LastLogin = clock.Now()
-
-			if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
-				return nil, NewErrUserUpdate(user, err)
-			}
-
-			s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
-
-			return &models.UserAuthResponse{
-				Token:  tokenStr,
-				Name:   user.Name,
-				ID:     user.ID,
-				User:   user.Username,
-				Tenant: tenant,
-				Role:   role,
-				Email:  user.Email,
-				MFA:    status,
-			}, nil
-		}
+	status, err := s.AuthMFA(ctx, user.ID)
+	if err != nil {
+		return nil, NewErrUserNotFound(user.ID, err)
 	}
 
-	return nil, NewErrAuthUnathorized(nil)
+	if !user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
+		return nil, NewErrAuthUnathorized(nil)
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
+		Username: user.Username,
+		Admin:    true,
+		Tenant:   tenant,
+		Role:     role,
+		ID:       user.ID,
+		AuthClaims: models.AuthClaims{
+			Claims: "user",
+		},
+		MFA: models.MFA{
+			Status:   status,
+			Validate: validate,
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
+		},
+	})
+
+	tokenStr, err := token.SignedString(s.privKey)
+	if err != nil {
+		return nil, NewErrTokenSigned(err)
+	}
+
+	user.LastLogin = clock.Now()
+
+	if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
+		return nil, NewErrUserUpdate(user, err)
+	}
+
+	s.AuthCacheToken(ctx, tenant, user.ID, tokenStr) // nolint: errcheck
+
+	return &models.UserAuthResponse{
+		Token:  tokenStr,
+		Name:   user.Name,
+		ID:     user.ID,
+		User:   user.Username,
+		Tenant: tenant,
+		Role:   role,
+		Email:  user.Email,
+		MFA:    status,
+	}, nil
 }
 
 func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error) {
@@ -229,14 +227,10 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 	var tenant string
 	if namespace != nil {
 		tenant = namespace.TenantID
-
-		for _, member := range namespace.Members {
-			if member.ID == user.ID {
-				role = member.Role
-
-				break
-			}
+		if member, ok := namespace.FindMember(user.ID); ok {
+			role = member.Role
 		}
+
 	}
 
 	status, err := s.AuthMFA(ctx, user.ID)
