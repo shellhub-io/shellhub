@@ -45,6 +45,10 @@ type DeviceAuthClaims struct {
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
+func (d *DeviceAuthClaims) SetRegisteredClaims(claims jwt.RegisteredClaims) {
+	d.RegisteredClaims = claims
+}
+
 type DeviceAuthRequest struct {
 	Info     *DeviceInfo `json:"info"`
 	Sessions []string    `json:"sessions,omitempty"`
