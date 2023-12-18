@@ -79,7 +79,7 @@ jobs:
 
       - name: upload rootfs artifact
         if: "contains(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rootfs-${{ matrix.dockerfile }}
           path: rootfs-${{ matrix.dockerfile }}.tar.gz
@@ -158,7 +158,7 @@ jobs:
           cd ./agent && go mod vendor && cd .. && tar czf shellhub-agent.tar.gz agent
 
       - name: upload agent tarball artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: shellhub-agent
           path: shellhub-agent.tar.gz
