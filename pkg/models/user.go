@@ -114,6 +114,10 @@ type UserAuthClaims struct {
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
+func (u *UserAuthClaims) SetRegisteredClaims(claims jwt.RegisteredClaims) {
+	u.RegisteredClaims = claims
+}
+
 type UserTokenRecover struct {
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
