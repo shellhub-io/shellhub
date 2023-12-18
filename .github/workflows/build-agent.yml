@@ -169,27 +169,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: download amd64
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rootfs-amd64
       - name: download arm32v6
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rootfs-arm32v6
       - name: download arm32v7
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rootfs-arm32v7
       - name: download arm64v8
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rootfs-arm64v8
       - name: download i386
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rootfs-i386
       - name: download vendored tarball
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: shellhub-agent
       - name: release draft
