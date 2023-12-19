@@ -58,7 +58,7 @@ func main() {
 	tunnel.API = internalclient.NewClient(withAsynq)
 
 	router := tunnel.GetRouter()
-	router.Any("/sessions/:uid/close", func(c echo.Context) error {
+	router.POST("/sessions/:uid/close", func(c echo.Context) error {
 		exit := func(status int, err error) error {
 			log.WithError(err).WithField("status", status).Error("failed to close the session")
 
@@ -78,7 +78,7 @@ func main() {
 			return exit(http.StatusInternalServerError, err)
 		}
 
-		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", uid), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/close/%s", uid), nil)
 		if err != nil {
 			return exit(http.StatusInternalServerError, err)
 		}
