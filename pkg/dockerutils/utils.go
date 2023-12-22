@@ -29,7 +29,11 @@ func CurrentContainerID() (string, error) {
 	re := regexp.MustCompile(`\d+\s\d+\s\d+:\d+\s/var/.+docker/?.+([0-9a-f]{64})/`)
 	match := re.FindSubmatch(content)
 	if match == nil || len(match) != 2 {
-		return "", nil
+		reg_hostname := regexp.MustCompile(`\d+\s\d+\s\d+:\d+\s.+containers/?.+([0-9a-f]{64})/hostname`)
+		match = reg_hostname.FindSubmatch(content)
+		if match == nil || len(match) != 2 {
+			return "", nil
+		}
 	}
 
 	return string(match[1]), nil
