@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Masterminds/semver v1.5.0
-	github.com/gliderlabs/ssh v0.3.5
+	github.com/gliderlabs/ssh v0.3.6
 	github.com/go-resty/resty/v2 v2.10.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/hibiken/asynq v0.24.1
