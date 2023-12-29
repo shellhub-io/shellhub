@@ -1,7 +1,7 @@
 package uuid
 
 import (
-	uuid "github.com/satori/go.uuid" //nolint
+	"github.com/google/uuid" //nolint
 )
 
 // UUID is an interface that can provide uuid related functionality which allows us to test uuid dependent code.
@@ -24,7 +24,7 @@ func Generate() string {
 
 type goUUID struct{}
 
-// This function is responsible for generating UUID v4 of the satori package.
+// This function is responsible for generating UUID v4 of the google package.
 func (g *goUUID) Generate() string {
-	return uuid.Must(uuid.NewV4(), nil).String()
+	return uuid.NewString()
 }

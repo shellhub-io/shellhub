@@ -36,7 +36,7 @@ linters-settings:
         deny:
           - pkg: io/ioutil
             desc: 'io/ioutil package has been deprecated'
-          - pkg: github.com/satori/go.uuid
+          - pkg: github.com/google/uuid
             desc: "Uuid generation is only allowed using 'github.com/shellhub-io/shellhub/pkg/uuid'"
           - pkg: github.com/dgrijalva/jwt-go
             desc: "dgrijalva/jwt-go is deprecated please use 'github.com/golang-jwt/jwt'"
