@@ -12,7 +12,7 @@ import (
 )
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
-func NewSSHServerBridge(router *echo.Router) {
+func NewSSHServerBridge(router *echo.Echo) {
 	const WebsocketSSHBridgeRoute = "/ws/ssh"
 
 	manager := newManager(30 * time.Second)
