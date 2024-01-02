@@ -40,7 +40,31 @@ func main() {
 		log.Info("Profiling enabled at http://0.0.0.0:8080/debug/pprof/")
 	}
 
-	go http.ListenAndServe(":8080", router) // nolint:errcheck
+	cherr := make(chan error)
+	go func() {
+		if err := http.ListenAndServe(":8080", router); err != nil {
+			cherr <- err
+		}
 
-	log.Fatal(server.NewServer(env, tun.Tunnel).ListenAndServe())
+		cherr <- nil
+	}()
+
+	go func() {
+		srv := server.NewServer(env, tun.Tunnel)
+		if err := srv.ListenAndServe(); err != nil {
+			cherr <- err
+		}
+
+		cherr <- nil
+	}()
+
+	// NOTICE: the HTTP server and SSH server must run in parallel. The first one is responsible for receiving the
+	// device's requests and the second one is responsible for receiving the SSH connections per se. They cannot run
+	// without each other. Due to this, as soon as one of them fails, the whole service must be stopped.
+	err = <-cherr
+	if err != nil {
+		log.WithError(err).Fatal("Failed to start server")
+	}
+
+	log.Info("Server stopped")
 }
