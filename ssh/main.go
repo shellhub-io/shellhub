@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"runtime"
 
 	"github.com/hibiken/asynq"
+	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -144,6 +146,13 @@ func main() {
 	router.GET("/healthcheck", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
+
+	if envs.IsDevelopment() {
+		runtime.SetBlockProfileRate(1)
+		pprof.Register(router)
+
+		log.Info("Profiling enabled at http://0.0.0.0:8080/debug/pprof/")
+	}
 
 	go http.ListenAndServe(":8080", router) // nolint:errcheck
 
