@@ -134,8 +134,10 @@ func (a *Adapter) Close() error {
 	select {
 	case <-a.stopPingCh:
 	default:
-		a.stopPingCh <- struct{}{}
-		close(a.stopPingCh)
+		if a.stopPingCh != nil {
+			a.stopPingCh <- struct{}{}
+			close(a.stopPingCh)
+		}
 	}
 
 	return a.conn.Close()
