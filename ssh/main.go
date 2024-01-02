@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"runtime"
+	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -18,9 +19,14 @@ func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 }
 
+type Envs struct {
+	ConnectTimeout time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
+	RedisURI       string        `env:"REDIS_URI,default=redis://redis:6379"`
+}
+
 func main() {
 	// Populates configuration based on environment variables prefixed with 'SSH_'.
-	env, err := envs.ParseWithPrefix[server.Options]("SSH_")
+	env, err := envs.ParseWithPrefix[Envs]("SSH_")
 	if err != nil {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
@@ -50,7 +56,10 @@ func main() {
 	}()
 
 	go func() {
-		srv := server.NewServer(env, tun.Tunnel)
+		srv := server.NewServer(&server.Options{
+			ConnectTimeout: env.ConnectTimeout,
+			RedisURI:       env.RedisURI,
+		}, tun.Tunnel)
 		if err := srv.ListenAndServe(); err != nil {
 			cherr <- err
 		}
