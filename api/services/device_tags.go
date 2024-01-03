@@ -62,8 +62,15 @@ func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag strin
 // If length of tags is greater than DeviceMaxTags, a NewErrTagLimit error will be returned.
 // If tags' list contains a duplicated one, it is removed and the device's tag will be updated.
 // If the device does not exist, a NewErrDeviceNotFound error will be returned.
-// A unknown error will be returned if the tags are not updated.
 func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error {
+	if len(tags) > DeviceMaxTags {
+		return NewErrTagLimit(DeviceMaxTags, nil)
+	}
+
+	if _, err := s.store.DeviceGet(ctx, uid); err != nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
 	// TODO: remove this conversion function in favor of a external package.
 	set := func(list []string) []string {
 		s := make(map[string]bool)
@@ -78,10 +85,9 @@ func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []st
 		return l
 	}(tags)
 
-	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil || device == nil {
-		return NewErrDeviceNotFound(uid, err)
+	if _, _, err := s.store.DeviceUpdateTag(ctx, uid, set); err != nil {
+		return err
 	}
 
-	return s.store.DeviceUpdateTag(ctx, uid, set)
+	return nil
 }

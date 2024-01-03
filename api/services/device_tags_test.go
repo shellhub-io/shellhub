@@ -171,10 +171,8 @@ func TestRemoveTag(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestUpdateTag(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
+func TestDeviceUpdateTag(t *testing.T) {
+	storemock := new(mocks.Store)
 
 	cases := []struct {
 		description   string
@@ -184,26 +182,51 @@ func TestUpdateTag(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: invalidUID,
-			uid:         "invalid_uid",
-			tags:        []string{"device1", "device2", "device3"},
+			description: "fails when tags exceeds the limit",
+			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
+			tags:        []string{"device1", "device2", "device3", "device4"},
 			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, errors.New("error", "", 0)).Once()
 			},
-			expected: NewErrDeviceNotFound("invalid_uid", errors.New("error", "", 0)),
+			expected: NewErrTagLimit(DeviceMaxTags, nil),
 		},
 		{
-			description: "Successful create tags for the device",
-			uid:         models.UID("uid"),
+			description: "fails when device is not found",
+			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
+			tags:        []string{"device1", "device2", "device3"},
+			requiredMocks: func() {
+				storemock.On("DeviceGet", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c")).Return(nil, errors.New("error", "", 0)).Once()
+			},
+			expected: NewErrDeviceNotFound("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", errors.New("error", "", 0)),
+		},
+		{
+			description: "fails when an unexpected error occours",
+			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tags:        []string{"device1", "device2", "device3"},
 			requiredMocks: func() {
 				device := &models.Device{
-					UID:      "uid",
+					UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					TenantID: "tenant",
 				}
+				storemock.On("DeviceGet", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c")).Return(device, nil).Once()
+
 				tags := []string{"device1", "device2", "device3"}
-				mock.On("DeviceGet", ctx, models.UID("uid")).Return(device, nil).Once()
-				mock.On("DeviceUpdateTag", ctx, models.UID("uid"), tags).Return(nil).Once()
+				storemock.On("DeviceUpdateTag", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"), tags).Return(int64(0), int64(0), errors.New("error", "layer", 1)).Once()
+			},
+			expected: errors.New("error", "layer", 1),
+		},
+		{
+			description: "successful update tags for the device",
+			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
+			tags:        []string{"device1", "device2", "device3"},
+			requiredMocks: func() {
+				device := &models.Device{
+					UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+					TenantID: "tenant",
+				}
+				storemock.On("DeviceGet", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c")).Return(device, nil).Once()
+
+				tags := []string{"device1", "device2", "device3"}
+				storemock.On("DeviceUpdateTag", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"), tags).Return(int64(1), int64(3), nil).Once()
 			},
 			expected: nil,
 		},
@@ -214,12 +237,12 @@ func TestUpdateTag(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(store.Store(storemock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
 
-			err := service.UpdateDeviceTag(ctx, tc.uid, tc.tags)
+			err := service.UpdateDeviceTag(context.TODO(), tc.uid, tc.tags)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storemock.AssertExpectations(t)
 }
