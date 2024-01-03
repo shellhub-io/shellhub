@@ -24,6 +24,8 @@ func FromErrServiceToHTTPStatus(code int) int {
 		return http.StatusUnauthorized
 	case services.ErrCodeForbidden:
 		return http.StatusForbidden
+	case services.ErrCodeNoContentChange:
+		return http.StatusNoContent
 	default:
 		return http.StatusInternalServerError
 	}

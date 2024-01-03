@@ -29,6 +29,9 @@ const (
 	// ErrCodeStore is the error code for when the store function fails. The store function is responsible for execute
 	// the main service action.
 	ErrCodeStore
+	// ErrCodeNoContentChange is the error that occurs when the store function does not change any resource. Generally used in
+	// update methods.
+	ErrCodeNoContentChange
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -60,6 +63,7 @@ var (
 	ErrReport                       = errors.New("report error", ErrLayer, ErrCodeInvalid)
 	ErrPaymentRequired              = errors.New("payment required", ErrLayer, ErrCodePayment)
 	ErrEvaluate                     = errors.New("evaluate error", ErrLayer, ErrCodeInvalid)
+	ErrNoContentChange              = errors.New("no content change", ErrLayer, ErrCodeNoContentChange)
 	ErrNotFound                     = errors.New("not found", ErrLayer, ErrCodeNotFound)
 	ErrBadRequest                   = errors.New("bad request", ErrLayer, ErrCodeInvalid)
 	ErrUnauthorized                 = errors.New("unauthorized", ErrLayer, ErrCodeInvalid)
@@ -119,7 +123,13 @@ var (
 	ErrBillingReportNamespaceDelete = errors.New("billing report namespace delete", ErrLayer, ErrCodePayment)
 	ErrBillingReportDevice          = errors.New("billing report device", ErrLayer, ErrCodePayment)
 	ErrBillingEvaluate              = errors.New("billing evaluate", ErrLayer, ErrCodePayment)
+	ErrSameTags                     = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
 )
+
+// NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
+func NewErrNoContentChange(err error, next error) error {
+	return errors.Wrap(err, next)
+}
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
 func NewErrNotFound(err error, id string, next error) error {
@@ -172,6 +182,11 @@ func NewErrNamespaceNotFound(id string, next error) error {
 // NewErrTagInvalid returns an error when the tag is invalid.
 func NewErrTagInvalid(tag string, next error) error {
 	return NewErrInvalid(ErrTagInvalid, map[string]interface{}{"name": tag}, next)
+}
+
+// NewErrSameTags returns an error when the
+func NewErrSameTags() error {
+	return NewErrNoContentChange(ErrSameTags, nil)
 }
 
 // NewErrTagEmpty returns an error when the none tag is found.
