@@ -102,26 +102,50 @@ func TestDeviceRemoveTag(t *testing.T) {
 }
 
 func TestDeviceUpdateTag(t *testing.T) {
+	type Expected struct {
+		matchedCount int64
+		updatedCount int64
+		err          error
+	}
 	cases := []struct {
 		description string
 		uid         models.UID
 		tags        []string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
-			description: "fails when device doesn't exist",
+			description: "successfully when device doesn't exist",
 			uid:         models.UID("nonexistent"),
-			tags:        []string{"tag-0"},
+			tags:        []string{"new-tag"},
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				matchedCount: 0,
+				updatedCount: 0,
+				err:          nil,
+			},
+		},
+		{
+			description: "successfully when tags are equal than current device's tags",
+			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
+			tags:        []string{"tag-1"},
+			fixtures:    []string{fixtures.FixtureDevices},
+			expected: Expected{
+				matchedCount: 1,
+				updatedCount: 0,
+				err:          nil,
+			},
 		},
 		{
 			description: "successfully update tags for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			tags:        []string{"tag-0"},
+			tags:        []string{"new-tag"},
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    nil,
+			expected: Expected{
+				matchedCount: 1,
+				updatedCount: 1,
+				err:          nil,
+			},
 		},
 	}
 
@@ -136,8 +160,8 @@ func TestDeviceUpdateTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.DeviceUpdateTag(context.TODO(), tc.uid, tc.tags)
-			assert.Equal(t, tc.expected, err)
+			matchedCount, updatedCount, err := mongostore.DeviceUpdateTag(context.TODO(), tc.uid, tc.tags)
+			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
 }

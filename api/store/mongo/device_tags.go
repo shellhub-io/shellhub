@@ -34,17 +34,12 @@ func (s *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string)
 	return nil
 }
 
-func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) error {
-	t, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"tags": tags}})
-	if err != nil {
-		return FromMongoError(err)
-	}
+// DeviceUpdateTag sets the tags for a device with the specified UID.
+// It returns the number of matching documents, the number of modified documents, and any encountered errors.
+func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) (int64, int64, error) {
+	tag, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"tags": tags}})
 
-	if t.ModifiedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
+	return tag.MatchedCount, tag.ModifiedCount, FromMongoError(err)
 }
 
 func (s *Store) DeviceRenameTag(ctx context.Context, tenant, oldTag, newTag string) error {
