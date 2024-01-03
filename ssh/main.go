@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
@@ -37,7 +38,11 @@ func main() {
 		log.Fatal("failed to create internal client")
 	}
 
-	router := tun.GetRouter()
+	router := tun.GetRouter().(*echo.Echo)
+
+	router.GET("/healthcheck", func(c echo.Context) error {
+		return c.String(http.StatusOK, "OK")
+	})
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

@@ -115,10 +115,6 @@ func NewTunnel(connection, dial string) *Tunnel {
 		web.HandlerCreateSession(web.CreateSession)(res, req)
 	})))
 
-	router.GET("/healthcheck", func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-
 	return tunnel
 }
 
