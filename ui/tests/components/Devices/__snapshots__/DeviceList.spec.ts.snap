@@ -42,15 +42,17 @@ exports[`Device List > Renders the component 1`] = `
                 <!----></span>
               </td>
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+                <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-5\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
-                  <div class=\\"v-chip__content\\"> No tags </div>
+                  <div class=\\"v-chip__content\\">test</div>
                   <!---->
                   <!----></span>
+                  <!--teleport start-->
+                  <!--teleport end-->
                 </div>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-6\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
                 <div class=\\"v-chip__content\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
@@ -76,7 +78,7 @@ exports[`Device List > Renders the component 1`] = `
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\"><span data-v-06dd64af=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-15\\" class=\\"hover-text\\">user.39-5e-2b@localhost</span>
+                <div class=\\"v-chip__content\\"><span data-v-06dd64af=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-16\\" class=\\"hover-text\\">user.39-5e-2b@localhost</span>
                   <!--teleport start-->
                   <!--teleport end-->
                 </div>
@@ -84,15 +86,17 @@ exports[`Device List > Renders the component 1`] = `
                 <!----></span>
               </td>
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+                <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-17\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
-                  <div class=\\"v-chip__content\\"> No tags </div>
+                  <div class=\\"v-chip__content\\">test</div>
                   <!---->
                   <!----></span>
+                  <!--teleport start-->
+                  <!--teleport end-->
                 </div>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-17\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
                 <div class=\\"v-chip__content\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
@@ -124,7 +128,7 @@ exports[`Device List > Renders the component 1`] = `
         <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
           <!---->
           <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-26\\">
+            <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-28\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
                 <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -141,7 +145,7 @@ exports[`Device List > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-24\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-26\\">
                   <!---->
                   <!---->
                 </label>
@@ -149,7 +153,7 @@ exports[`Device List > Renders the component 1`] = `
                 <div class=\\"v-field__input\\" data-no-activator=\\"\\">
                   <!---->
                   <!---->
-                  <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-24\\" aria-describedby=\\"input-24-messages\\" outlined=\\"\\">
+                  <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-26\\" aria-describedby=\\"input-26-messages\\" outlined=\\"\\">
                 </div>
                 <!---->
               </div>

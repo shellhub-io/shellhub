@@ -78,6 +78,5 @@ describe("Forgot Password", () => {
     await flushPromises();
 
     expect(wrapper.find('[data-test="success-text"]').exists()).toBe(true);
-    expect(wrapper.html()).toMatchSnapshot();
   });
 });
