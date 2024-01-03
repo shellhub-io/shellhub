@@ -241,10 +241,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return NewErrDeviceDuplicated(device.Name, err)
 	}
 
-	if status != models.DeviceStatusAccepted {
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
-	}
-
 	switch {
 	case envs.IsCommunity(), envs.IsEnterprise():
 		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
@@ -255,36 +251,38 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 			if err := s.BillingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
 				return NewErrBillingReportNamespaceDelete(err)
 			}
+
+			break
+		}
+
+		// TODO: this strategy that stores the removed devices in the database can be simplified.
+		removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
+		if err != nil && err != store.ErrNoDocuments {
+			return NewErrDeviceRemovedGet(err)
+		}
+
+		if removed != nil {
+			if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
+				return NewErrDeviceRemovedDelete(err)
+			}
 		} else {
-			// TODO: this strategy that stores the removed devices in the database can be simplified.
-			removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
-			if err != nil && err != store.ErrNoDocuments {
-				return NewErrDeviceRemovedGet(err)
-			}
-
-			if removed != nil {
-				if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
-					return NewErrDeviceRemovedDelete(err)
-				}
-			} else {
-				count, err := s.store.DeviceRemovedCount(ctx, tenant)
-				if err != nil {
-					return NewErrDeviceRemovedCount(err)
-				}
-
-				if namespace.HasMaxDevices() && int64(namespace.DevicesCount)+count >= int64(namespace.MaxDevices) {
-					return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
-				}
-			}
-
-			ok, err := s.BillingEvaluate(s.client.(req.Client), namespace.TenantID)
+			count, err := s.store.DeviceRemovedCount(ctx, tenant)
 			if err != nil {
-				return NewErrBillingEvaluate(err)
+				return NewErrDeviceRemovedCount(err)
 			}
 
-			if !ok {
-				return ErrDeviceLimit
+			if namespace.HasMaxDevices() && int64(namespace.DevicesCount)+count >= int64(namespace.MaxDevices) {
+				return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
 			}
+		}
+
+		ok, err := s.BillingEvaluate(s.client.(req.Client), namespace.TenantID)
+		if err != nil {
+			return NewErrBillingEvaluate(err)
+		}
+
+		if !ok {
+			return ErrDeviceLimit
 		}
 	}
 
