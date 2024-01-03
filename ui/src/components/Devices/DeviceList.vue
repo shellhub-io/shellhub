@@ -105,7 +105,7 @@
                         :tagsList="item.tags"
                         :notHasAuthorization="!hasAuthorizationFormUpdate()"
                         @update="refreshDevices"
-                        data-test="tagFormUpdate-component"
+                        data-test="tagUpdate-component"
                       />
                     </div>
                   </template>

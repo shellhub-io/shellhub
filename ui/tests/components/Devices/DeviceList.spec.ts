@@ -40,7 +40,7 @@ describe("Device List", () => {
       online: false,
       namespace: "user",
       status: "accepted",
-      tags: [],
+      tags: ["test"],
     },
     {
       uid: "a582b47a42e",
@@ -59,7 +59,7 @@ describe("Device List", () => {
       online: true,
       namespace: "user",
       status: "accepted",
-      tags: [],
+      tags: ["test"],
     },
   ];
 
@@ -150,6 +150,7 @@ describe("Device List", () => {
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("billing/setSubscription", billingData);
     store.commit("customer/setCustomer", customerData);
+
     wrapper = mount(DeviceList, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
@@ -177,8 +178,8 @@ describe("Device List", () => {
     expect(wrapper.findComponent('[data-test="devices-list"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="deviceIcon-component"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="sshid-chip"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="deviceDelete-component"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="tagFormUpdate-component"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="mdi-information-list-item"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="deviceDelete-component"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="open-tags-btn"]').exists()).toBe(true);
   });
 });

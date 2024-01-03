@@ -1,15 +1,16 @@
 <template>
   <v-list-item
     v-bind="$attrs"
-    @click="showDialog = true"
+    @click="open"
     :disabled="notHasAuthorization"
+    data-test="open-tags-btn"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
         <v-icon> mdi-tag </v-icon>
       </div>
 
-      <v-list-item-title data-test="mdi-information-list-item">
+      <v-list-item-title data-test="hastags-verification">
         {{ hasTags ? "Edit tags" : "Add Tags" }}
       </v-list-item-title>
     </div>
@@ -17,7 +18,7 @@
 
   <v-dialog v-model="showDialog" min-width="280" max-width="450">
     <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary">
+      <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
         {{ hasTags ? "Edit tags" : "Add Tags" }}
       </v-card-title>
       <v-divider />
@@ -26,16 +27,16 @@
         <v-combobox
           id="targetInput"
           full-width
-          ref="tags"
           v-model="inputTags"
           :error-messages="tagsError"
           label="Tag"
           hint="Maximum of 3 tags"
           multiple
+          clearable
           chips
           variant="outlined"
           data-test="deviceTag-combobox"
-          :deletable-chips="true"
+          closable-chips
           :delimiters="[',', ' ']"
         />
       </v-card-text>
@@ -60,131 +61,120 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    deviceUid: {
-      type: String,
-      required: true,
-    },
-
-    tagsList: {
-      type: Array<string>,
-      required: true,
-    },
-    notHasAuthorization: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  deviceUid: {
+    type: String,
+    required: true,
   },
-  emits: ["update"],
-  inheritAttrs: true,
-  setup(props, ctx) {
-    const store = useStore();
-    const showDialog = ref(false);
+  tagsList: {
+    type: Array<string>,
+    required: true,
+    default: [],
+  },
+  notHasAuthorization: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-    const hasTags = computed(() => props.tagsList.length > 0);
-    const prop = computed(() => props);
-    const inputTags = ref(prop.value.tagsList);
-    const tagsError = ref("");
+const emit = defineEmits(["update"]);
+const store = useStore();
+const showDialog = ref(false);
+const hasTags = computed(() => props.tagsList.length > 0);
+const inputTags = ref<string[]>([]);
+const tagsError = ref("");
 
-    const tagsHasLessThan3Characters = computed(() => inputTags.value.some((tag) => tag.length < 3));
+const tagsHasLessThan3Characters = computed(() => inputTags.value.some((tag) => tag.length < 3));
 
-    watch(inputTags, () => {
-      if (inputTags.value.length > 3) {
-        tagsError.value = "Maximum of 3 tags";
-      } else if (tagsHasLessThan3Characters.value) {
-        tagsError.value = "The minimum length is 3 characters";
-      } else {
-        tagsError.value = "";
-      }
+watch(inputTags, () => {
+  if (inputTags.value.length > 3) {
+    tagsError.value = "Maximum of 3 tags";
+  } else if (tagsHasLessThan3Characters.value) {
+    tagsError.value = "The minimum length is 3 characters";
+  } else {
+    tagsError.value = "";
+  }
+});
+
+const open = () => {
+  inputTags.value.splice(0, inputTags.value.length, ...props.tagsList);
+  showDialog.value = true;
+};
+
+const save = async () => {
+  if (tagsError.value) return;
+  try {
+    tagsError.value = "";
+
+    await store.dispatch("devices/updateDeviceTag", {
+      uid: props.deviceUid,
+      tags: { tags: inputTags.value },
     });
 
-    const save = async () => {
-      if (tagsError.value) return;
-      try {
-        tagsError.value = "";
-        await store.dispatch("devices/updateDeviceTag", {
-          uid: props.deviceUid,
-          tags: { tags: inputTags.value },
-        });
+    await store.dispatch("tags/setTags", {
+      data: inputTags.value,
+      headers: {
+        "x-total-count": inputTags.value.length,
+      },
+    });
+    showDialog.value = false;
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.deviceTagUpdate,
+    );
 
-        await store.dispatch("tags/setTags", {
-          data: inputTags.value,
-          headers: {
-            "x-total-count": inputTags.value.length,
-          },
-        });
-        showDialog.value = false;
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.deviceTagUpdate,
-        );
-
-        ctx.emit("update");
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          switch (axiosError.response?.status) {
-            // when the name the format is invalid.
-            case 400: {
-              tagsError.value = "The format is invalid. Min 3, Max 255 characters!";
-              break;
-            }
-            // when the user is not authorized.
-            case 403: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorAction",
-                INotificationsError.deviceTagUpdate,
-              );
-              break;
-            }
-            // When the array tag size reached the max capacity.
-            case 406: {
-              tagsError.value = "The maximum capacity has reached.";
-              break;
-            }
-            default: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorAction",
-                INotificationsError.deviceTagUpdate,
-              );
-              handleError(axiosError);
-            }
-          }
-        } else {
+    emit("update");
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (axiosError.response?.status) {
+        // when the name the format is invalid.
+        case 400: {
+          tagsError.value = "The format is invalid. Min 3, Max 255 characters!";
+          break;
+        }
+        // when the user is not authorized.
+        case 403: {
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
             INotificationsError.deviceTagUpdate,
           );
-          handleError(error);
+          break;
+        }
+        // When the array tag size reached the max capacity.
+        case 406: {
+          tagsError.value = "The maximum capacity has reached.";
+          break;
+        }
+        default: {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.deviceTagUpdate,
+          );
+          handleError(axiosError);
         }
       }
-    };
+    } else {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.deviceTagUpdate,
+      );
+      handleError(error);
+    }
+  }
+};
 
-    const close = () => {
-      showDialog.value = false;
-      inputTags.value = props.tagsList;
-    };
-
-    return {
-      inputTags,
-      tagsError,
-      showDialog,
-      hasTags,
-      tagsHasLessThan3Characters,
-      save,
-      close,
-    };
-  },
-});
+const close = () => {
+  showDialog.value = false;
+};
 </script>
