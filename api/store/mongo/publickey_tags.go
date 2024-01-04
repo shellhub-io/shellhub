@@ -41,22 +41,15 @@ func (s *Store) PublicKeyRemoveTag(ctx context.Context, tenant, fingerprint, tag
 	return nil
 }
 
-// PublicKeyUpdateTags update with a new set the tag's list in models.PublicKey.
+// PublicKeyUpdateTags sets the tags for a public key with the specified fingerprint and tenant.
+// It returns the number of matching documents, the number of modified documents, and any encountered errors.
 //
-// To update models.PublicKey with a new set, all tags need to exist on a models.Device. If it is not true, the update
-// action will fail.
-func (s *Store) PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint string, tags []string) error {
+// All tags need to exist on a device. If it is not true, the update action will fail.
+func (s *Store) PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint string, tags []string) (int64, int64, error) {
 	// If all tags exist in device, set the tags to tag's field in models.PublicKey.
-	result, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"tenant_id": tenant, "fingerprint": fingerprint}, bson.M{"$set": bson.M{"filter.tags": tags}})
-	if err != nil {
-		return err
-	}
+	res, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"tenant_id": tenant, "fingerprint": fingerprint}, bson.M{"$set": bson.M{"filter.tags": tags}})
 
-	if result.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
+	return res.MatchedCount, res.ModifiedCount, FromMongoError(err)
 }
 
 // PublicKeyRenameTag renames a tag to a new name.

@@ -124,13 +124,19 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 }
 
 func TestPublicKeyUpdateTags(t *testing.T) {
+	type Expected struct {
+		matchedCount int64
+		updatedCount int64
+		err          error
+	}
+
 	cases := []struct {
 		description string
 		fingerprint string
 		tenant      string
 		tags        []string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
@@ -138,7 +144,11 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag-1"},
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				matchedCount: 0,
+				updatedCount: 0,
+				err:          nil,
+			},
 		},
 		{
 			description: "fails when public key is not found due to tenant",
@@ -146,15 +156,35 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			tenant:      "nonexistent",
 			tags:        []string{"tag-1"},
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				matchedCount: 0,
+				updatedCount: 0,
+				err:          nil,
+			},
 		},
 		{
-			description: "succeeds when public key is found",
+			description: "succeeds when tags public key is found and tags are equal than current public key tags",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag-1"},
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    nil,
+			expected: Expected{
+				matchedCount: 1,
+				updatedCount: 0,
+				err:          nil,
+			},
+		},
+		{
+			description: "succeeds when tags public key is found",
+			fingerprint: "fingerprint",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			tags:        []string{"new-tag"},
+			fixtures:    []string{fixtures.FixturePublicKeys},
+			expected: Expected{
+				matchedCount: 1,
+				updatedCount: 1,
+				err:          nil,
+			},
 		},
 	}
 
@@ -169,8 +199,8 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyUpdateTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
-			assert.Equal(t, tc.expected, err)
+			matchedCount, updatedCount, err := mongostore.PublicKeyUpdateTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
+			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
 }
