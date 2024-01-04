@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/hibiken/asynq"
 	"github.com/labstack/echo-contrib/pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -18,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
 	"github.com/shellhub-io/shellhub/ssh/web"
-	"github.com/shellhub-io/shellhub/ssh/web/pkg/cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,30 +32,12 @@ func main() {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
-	if err := cache.ConnectRedis(env.RedisURI); err != nil {
-		log.WithError(err).Fatal("Failed to connect to redis")
-	}
-
-	options, err := asynq.ParseRedisURI(env.RedisURI)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to parse redis uri")
-	}
-
-	client := asynq.NewClient(options)
-	if client == nil {
-		log.WithError(err).Fatal("Failed to create asynq client")
-	}
-
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
 
-	// withAsynq is a configuration function that sets the Asynq client to the API internal client.
-	withAsynq := func(o *internalclient.Options) error {
-		o.Asynq = client
-
-		return nil
+	tunnel.API = internalclient.NewClientWithAsynq(env.RedisURI)
+	if tunnel.API == nil {
+		log.Fatal("failed to create internal client")
 	}
-
-	tunnel.API = internalclient.NewClient(withAsynq)
 
 	router := tunnel.GetRouter()
 	router.POST("/sessions/:uid/close", func(c echo.Context) error {
