@@ -293,3 +293,45 @@ func TestDeviceDeleteTag(t *testing.T) {
 		})
 	}
 }
+
+func TestDeviceGetTags(t *testing.T) {
+	type Expected struct {
+		tags []string
+		len  int
+		err  error
+	}
+
+	cases := []struct {
+		description string
+		tenant      string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "succeeds when tags list is greater than 1",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			fixtures:    []string{fixtures.FixtureDevices},
+			expected: Expected{
+				tags: []string{"tag-1"},
+				len:  1,
+				err:  nil,
+			},
+		},
+	}
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			tags, count, err := mongostore.DeviceGetTags(context.TODO(), tc.tenant)
+			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
+		})
+	}
+}

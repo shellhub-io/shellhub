@@ -26,4 +26,8 @@ type DeviceTagsStore interface {
 	// DeviceDeleteTag removes a tag from all devices belonging to the specified tenant.
 	// Returns the number of documents updated and an error if any issues occur during the tag deletion.
 	DeviceDeleteTag(ctx context.Context, tenant, tag string) (deletedCount int64, err error)
+
+	// DeviceGetTags retrieves all tags associated with the tenant.
+	// Returns the tags, the number of tags, and an error if any issues occur.
+	DeviceGetTags(ctx context.Context, tenant string) (tag []string, n int, err error)
 }
