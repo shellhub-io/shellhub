@@ -39,7 +39,9 @@ func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, n
 		return NewErrTagDuplicated(newTag, nil)
 	}
 
-	return s.store.TagsRename(ctx, tenant, oldTag, newTag)
+	_, err = s.store.TagsRename(ctx, tenant, oldTag, newTag)
+
+	return err
 }
 
 func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) error {
@@ -61,5 +63,7 @@ func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) erro
 		return NewErrTagNotFound(tag, nil)
 	}
 
-	return s.store.TagsDelete(ctx, namespace.TenantID, tag)
+	_, err = s.store.TagsDelete(ctx, namespace.TenantID, tag)
+
+	return err
 }

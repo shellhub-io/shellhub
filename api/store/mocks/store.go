@@ -2025,17 +2025,27 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 }
 
 // TagsDelete provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) TagsDelete(ctx context.Context, tenant string, tag string) error {
+func (_m *Store) TagsDelete(ctx context.Context, tenant string, tag string) (int64, error) {
 	ret := _m.Called(ctx, tenant, tag)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, tag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
 		r0 = rf(ctx, tenant, tag)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenant, tag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // TagsGet provides a mock function with given fields: ctx, tenant
@@ -2072,17 +2082,27 @@ func (_m *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, err
 }
 
 // TagsRename provides a mock function with given fields: ctx, tenant, oldTag, newTag
-func (_m *Store) TagsRename(ctx context.Context, tenant string, oldTag string, newTag string) error {
+func (_m *Store) TagsRename(ctx context.Context, tenant string, oldTag string, newTag string) (int64, error) {
 	ret := _m.Called(ctx, tenant, oldTag, newTag)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, oldTag, newTag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
 		r0 = rf(ctx, tenant, oldTag, newTag)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, oldTag, newTag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateCodes provides a mock function with given fields: ctx, id, codes

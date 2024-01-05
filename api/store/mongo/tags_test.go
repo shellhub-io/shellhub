@@ -64,13 +64,18 @@ func TestTagsGet(t *testing.T) {
 }
 
 func TestTagsRename(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		tenant      string
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "succeeds when tag is found",
@@ -78,7 +83,10 @@ func TestTagsRename(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
-			expected:    nil,
+			expected: Expected{
+				count: 6,
+				err:   nil,
+			},
 		},
 	}
 
@@ -93,26 +101,34 @@ func TestTagsRename(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.TagsRename(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.TagsRename(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }
 
 func TestTagsDelete(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
-			expected:    nil,
+			expected: Expected{
+				count: 6,
+				err:   nil,
+			},
 		},
 	}
 
@@ -127,8 +143,8 @@ func TestTagsDelete(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.TagsDelete(context.TODO(), tc.tenant, tc.tag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.TagsDelete(context.TODO(), tc.tenant, tc.tag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }

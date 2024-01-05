@@ -195,9 +195,9 @@ func TestRenameTag(t *testing.T) {
 				}
 
 				mock.On("TagsGet", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
-				mock.On("TagsRename", ctx, namespace.TenantID, "device3", "device1").Return(nil).Once()
+				mock.On("TagsRename", ctx, namespace.TenantID, "device3", "device1").Return(int64(0), errors.New("error", "", 0)).Once()
 			},
-			expected: nil,
+			expected: errors.New("error", "", 0),
 		},
 		{
 			name:       "success to rename the tag",
@@ -219,7 +219,7 @@ func TestRenameTag(t *testing.T) {
 				}
 
 				mock.On("TagsGet", ctx, namespace.TenantID).Return(deviceWithTags.Tags, len(deviceWithTags.Tags), nil).Once()
-				mock.On("TagsRename", ctx, namespace.TenantID, "device3", "device1").Return(nil).Once()
+				mock.On("TagsRename", ctx, namespace.TenantID, "device3", "device1").Return(int64(1), nil).Once()
 			},
 			expected: nil,
 		},
@@ -316,7 +316,7 @@ func TestDeleteTag(t *testing.T) {
 
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
-				mock.On("TagsDelete", ctx, "tenant", "device1").Return(errors.New("error", "", 0)).Once()
+				mock.On("TagsDelete", ctx, "tenant", "device1").Return(int64(0), errors.New("error", "", 0)).Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -336,7 +336,7 @@ func TestDeleteTag(t *testing.T) {
 
 				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
-				mock.On("TagsDelete", ctx, "tenant", "device1").Return(nil).Once()
+				mock.On("TagsDelete", ctx, "tenant", "device1").Return(int64(1), nil).Once()
 			},
 			expected: nil,
 		},
