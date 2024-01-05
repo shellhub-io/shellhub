@@ -149,13 +149,18 @@ func TestFirewallRuleUpdateTag(t *testing.T) {
 }
 
 func TestFirewallRuleRenameTags(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		tenant      string
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -163,7 +168,10 @@ func TestFirewallRuleRenameTags(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "fails when tag is not found",
@@ -171,7 +179,10 @@ func TestFirewallRuleRenameTags(t *testing.T) {
 			oldTag:      "nonexistent",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "succeeds when tenant and tag is found",
@@ -179,7 +190,10 @@ func TestFirewallRuleRenameTags(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    nil,
+			expected: Expected{
+				count: 3,
+				err:   nil,
+			},
 		},
 	}
 
@@ -194,8 +208,8 @@ func TestFirewallRuleRenameTags(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.FirewallRuleRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.FirewallRuleRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }

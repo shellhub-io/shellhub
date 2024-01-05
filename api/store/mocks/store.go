@@ -631,18 +631,28 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceRenameTag provides a mock function with given fields: ctx, tenant, oldTag, newTag
-func (_m *Store) DeviceRenameTag(ctx context.Context, tenant string, oldTag string, newTag string) error {
-	ret := _m.Called(ctx, tenant, oldTag, newTag)
+// DeviceRenameTag provides a mock function with given fields: ctx, tenant, currentTags, newTags
+func (_m *Store) DeviceRenameTag(ctx context.Context, tenant string, currentTags string, newTags string) (int64, error) {
+	ret := _m.Called(ctx, tenant, currentTags, newTags)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, oldTag, newTag)
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, currentTags, newTags)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
+		r0 = rf(ctx, tenant, currentTags, newTags)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, currentTags, newTags)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // DeviceSetOnline provides a mock function with given fields: ctx, uid, timestamp, online
@@ -922,18 +932,28 @@ func (_m *Store) FirewallRuleRemoveTag(ctx context.Context, id string, tag strin
 	return r0
 }
 
-// FirewallRuleRenameTag provides a mock function with given fields: ctx, tenant, tagCurrent, tagNew
-func (_m *Store) FirewallRuleRenameTag(ctx context.Context, tenant string, tagCurrent string, tagNew string) error {
-	ret := _m.Called(ctx, tenant, tagCurrent, tagNew)
+// FirewallRuleRenameTag provides a mock function with given fields: ctx, tenant, currentTags, newTags
+func (_m *Store) FirewallRuleRenameTag(ctx context.Context, tenant string, currentTags string, newTags string) (int64, error) {
+	ret := _m.Called(ctx, tenant, currentTags, newTags)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, tagCurrent, tagNew)
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, currentTags, newTags)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
+		r0 = rf(ctx, tenant, currentTags, newTags)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, currentTags, newTags)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // FirewallRuleUpdate provides a mock function with given fields: ctx, id, rule
@@ -1613,18 +1633,28 @@ func (_m *Store) PublicKeyRemoveTag(ctx context.Context, tenant string, fingerpr
 	return r0
 }
 
-// PublicKeyRenameTag provides a mock function with given fields: ctx, tenant, old, neo
-func (_m *Store) PublicKeyRenameTag(ctx context.Context, tenant string, old string, neo string) error {
-	ret := _m.Called(ctx, tenant, old, neo)
+// PublicKeyRenameTag provides a mock function with given fields: ctx, tenant, currentTags, newTags
+func (_m *Store) PublicKeyRenameTag(ctx context.Context, tenant string, currentTags string, newTags string) (int64, error) {
+	ret := _m.Called(ctx, tenant, currentTags, newTags)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, old, neo)
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, currentTags, newTags)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
+		r0 = rf(ctx, tenant, currentTags, newTags)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, currentTags, newTags)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key

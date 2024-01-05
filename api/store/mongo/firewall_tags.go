@@ -75,18 +75,10 @@ func (s *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []st
 	return nil
 }
 
-// FirewallRuleRenameTag renames a tag to a new name in models.FirewallRule.
-func (s *Store) FirewallRuleRenameTag(ctx context.Context, tenant, tagCurrent, tagNew string) error {
-	result, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": tagCurrent}, bson.M{"$set": bson.M{"filter.tags.$": tagNew}})
-	if err != nil {
-		return FromMongoError(err)
-	}
+func (s *Store) FirewallRuleRenameTag(ctx context.Context, tenant, currentTags, newTags string) (int64, error) {
+	res, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": currentTags}, bson.M{"$set": bson.M{"filter.tags.$": newTags}})
 
-	if result.ModifiedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
+	return res.ModifiedCount, FromMongoError(err)
 }
 
 // FirewallRuleDeleteTag removes a tag from all models.FirewallRule.

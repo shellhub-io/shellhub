@@ -12,7 +12,7 @@ type PublicKeyTagsStore interface {
 	// All tags need to exist on a device. If it is not true, the update action will fail.
 	PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint string, tags []string) (matchedCount int64, updatedCount int64, err error)
 
-	PublicKeyRenameTag(ctx context.Context, tenant, old, neo string) error
+	PublicKeyRenameTag(ctx context.Context, tenant, currentTags, newTags string) (updatedCount int64, err error)
 	PublicKeyDeleteTag(ctx context.Context, tenant, name string) error
 	PublicKeyGetTags(ctx context.Context, tenant string) ([]string, int, error)
 }

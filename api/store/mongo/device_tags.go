@@ -42,17 +42,10 @@ func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []stri
 	return tag.MatchedCount, tag.ModifiedCount, FromMongoError(err)
 }
 
-func (s *Store) DeviceRenameTag(ctx context.Context, tenant, oldTag, newTag string) error {
-	t, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenant, "tags": oldTag}, bson.M{"$set": bson.M{"tags.$": newTag}})
-	if err != nil {
-		return FromMongoError(err)
-	}
+func (s *Store) DeviceRenameTag(ctx context.Context, tenant, currentTags, newTags string) (int64, error) {
+	res, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"tenant_id": tenant, "tags": currentTags}, bson.M{"$set": bson.M{"tags.$": newTags}})
 
-	if t.ModifiedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
+	return res.ModifiedCount, FromMongoError(err)
 }
 
 func (s *Store) DeviceDeleteTag(ctx context.Context, tenant, tag string) error {
