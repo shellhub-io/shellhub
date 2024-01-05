@@ -46,7 +46,7 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 	}
 
 	// Trys to add a public key.
-	err = s.store.PublicKeyAddTag(ctx, tenant, fingerprint, tag)
+	err = s.store.PublicKeyPushTag(ctx, tenant, fingerprint, tag)
 	if err != nil {
 		switch err {
 		case store.ErrNoDocuments:
@@ -83,7 +83,7 @@ func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, t
 	}
 
 	// Trys to remove a public key.
-	err = s.store.PublicKeyRemoveTag(ctx, tenant, fingerprint, tag)
+	err = s.store.PublicKeyPullTag(ctx, tenant, fingerprint, tag)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 		}
 	}
 
-	if _, _, err := s.store.PublicKeyUpdateTags(ctx, tenant, fingerprint, tags); err != nil {
+	if _, _, err := s.store.PublicKeySetTags(ctx, tenant, fingerprint, tags); err != nil {
 		return err
 	}
 

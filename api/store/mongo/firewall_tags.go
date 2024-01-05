@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) FirewallRuleAddTag(ctx context.Context, id, tag string) error {
+func (s *Store) FirewallRulePushTag(ctx context.Context, id, tag string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return FromMongoError(err)
@@ -26,7 +26,7 @@ func (s *Store) FirewallRuleAddTag(ctx context.Context, id, tag string) error {
 	return nil
 }
 
-func (s *Store) FirewallRuleRemoveTag(ctx context.Context, id, tag string) error {
+func (s *Store) FirewallRulePullTag(ctx context.Context, id, tag string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return FromMongoError(err)
@@ -44,7 +44,7 @@ func (s *Store) FirewallRuleRemoveTag(ctx context.Context, id, tag string) error
 	return nil
 }
 
-func (s *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []string) error {
+func (s *Store) FirewallRuleSetTags(ctx context.Context, id string, tags []string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return FromMongoError(err)
@@ -62,13 +62,13 @@ func (s *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []st
 	return nil
 }
 
-func (s *Store) FirewallRuleRenameTag(ctx context.Context, tenant, currentTags, newTags string) (int64, error) {
-	res, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": currentTags}, bson.M{"$set": bson.M{"filter.tags.$": newTags}})
+func (s *Store) FirewallRuleBulkRenameTag(ctx context.Context, tenant, currentTag, newTag string) (int64, error) {
+	res, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": currentTag}, bson.M{"$set": bson.M{"filter.tags.$": newTag}})
 
 	return res.ModifiedCount, FromMongoError(err)
 }
 
-func (s *Store) FirewallRuleDeleteTag(ctx context.Context, tenant, tag string) (int64, error) {
+func (s *Store) FirewallRuleBulkDeleteTag(ctx context.Context, tenant, tag string) (int64, error) {
 	res, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant}, bson.M{"$pull": bson.M{"filter.tags": tag}})
 
 	return res.ModifiedCount, FromMongoError(err)

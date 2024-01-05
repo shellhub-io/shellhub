@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPublicKeyAddTag(t *testing.T) {
+func TestPublicKeyPushTag(t *testing.T) {
 	cases := []struct {
 		description string
 		fingerprint string
@@ -57,13 +57,13 @@ func TestPublicKeyAddTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyAddTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			err := mongostore.PublicKeyPushTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestPublicKeyRemoveTag(t *testing.T) {
+func TestPublicKeyPullTag(t *testing.T) {
 	cases := []struct {
 		description string
 		fingerprint string
@@ -117,13 +117,13 @@ func TestPublicKeyRemoveTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyRemoveTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			err := mongostore.PublicKeyPullTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestPublicKeyUpdateTags(t *testing.T) {
+func TestPublicKeySetTags(t *testing.T) {
 	type Expected struct {
 		matchedCount int64
 		updatedCount int64
@@ -199,13 +199,13 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			matchedCount, updatedCount, err := mongostore.PublicKeyUpdateTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
+			matchedCount, updatedCount, err := mongostore.PublicKeySetTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
 			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
 }
 
-func TestPublicKeyRenameTag(t *testing.T) {
+func TestPublicKeyBulkRenameTag(t *testing.T) {
 	type Expected struct {
 		count int64
 		err   error
@@ -267,13 +267,13 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.PublicKeyRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			count, err := mongostore.PublicKeyBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }
 
-func TestPublicKeyDeleteTag(t *testing.T) {
+func TestPublicKeyBulkDeleteTag(t *testing.T) {
 	type Expected struct {
 		count int64
 		err   error
@@ -329,7 +329,7 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.PublicKeyDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			count, err := mongostore.PublicKeyBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}

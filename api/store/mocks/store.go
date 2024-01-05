@@ -193,6 +193,54 @@ func (_m *Store) DeleteSecret(ctx context.Context, username string) error {
 	return r0
 }
 
+// DeviceBulkDeleteTag provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) DeviceBulkDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
+	ret := _m.Called(ctx, tenant, tag)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, tag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, tenant, tag)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenant, tag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeviceBulkRenameTag provides a mock function with given fields: ctx, tenant, currentTag, newTag
+func (_m *Store) DeviceBulkRenameTag(ctx context.Context, tenant string, currentTag string, newTag string) (int64, error) {
+	ret := _m.Called(ctx, tenant, currentTag, newTag)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, currentTag, newTag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
+		r0 = rf(ctx, tenant, currentTag, newTag)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, currentTag, newTag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeviceChooser provides a mock function with given fields: ctx, tenantID, chosen
 func (_m *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
 	ret := _m.Called(ctx, tenantID, chosen)
@@ -235,20 +283,6 @@ func (_m *Store) DeviceCreatePublicURLAddress(ctx context.Context, uid models.UI
 	return r0
 }
 
-// DeviceCreateTag provides a mock function with given fields: ctx, uid, tag
-func (_m *Store) DeviceCreateTag(ctx context.Context, uid models.UID, tag string) error {
-	ret := _m.Called(ctx, uid, tag)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeviceDelete provides a mock function with given fields: ctx, uid
 func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	ret := _m.Called(ctx, uid)
@@ -261,30 +295,6 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	}
 
 	return r0
-}
-
-// DeviceDeleteTag provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) DeviceDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // DeviceGet provides a mock function with given fields: ctx, uid
@@ -535,8 +545,22 @@ func (_m *Store) DeviceLookup(ctx context.Context, namespace string, hostname st
 	return r0, r1
 }
 
-// DeviceRemoveTag provides a mock function with given fields: ctx, uid, tag
-func (_m *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string) error {
+// DevicePullTag provides a mock function with given fields: ctx, uid, tag
+func (_m *Store) DevicePullTag(ctx context.Context, uid models.UID, tag string) error {
+	ret := _m.Called(ctx, uid, tag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, tag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DevicePushTag provides a mock function with given fields: ctx, uid, tag
+func (_m *Store) DevicePushTag(ctx context.Context, uid models.UID, tag string) error {
 	ret := _m.Called(ctx, uid, tag)
 
 	var r0 error
@@ -674,30 +698,6 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceRenameTag provides a mock function with given fields: ctx, tenant, currentTags, newTags
-func (_m *Store) DeviceRenameTag(ctx context.Context, tenant string, currentTags string, newTags string) (int64, error) {
-	ret := _m.Called(ctx, tenant, currentTags, newTags)
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, currentTags, newTags)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, currentTags, newTags)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, currentTags, newTags)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeviceSetOnline provides a mock function with given fields: ctx, uid, timestamp, online
 func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error {
 	ret := _m.Called(ctx, uid, timestamp, online)
@@ -724,6 +724,37 @@ func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position
 	}
 
 	return r0
+}
+
+// DeviceSetTags provides a mock function with given fields: ctx, uid, tags
+func (_m *Store) DeviceSetTags(ctx context.Context, uid models.UID, tags []string) (int64, int64, error) {
+	ret := _m.Called(ctx, uid, tags)
+
+	var r0 int64
+	var r1 int64
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) (int64, int64, error)); ok {
+		return rf(ctx, uid, tags)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) int64); ok {
+		r0 = rf(ctx, uid, tags)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID, []string) int64); ok {
+		r1 = rf(ctx, uid, tags)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, models.UID, []string) error); ok {
+		r2 = rf(ctx, uid, tags)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // DeviceUpdate provides a mock function with given fields: ctx, tenant, uid, name, publicURL
@@ -782,49 +813,52 @@ func (_m *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status 
 	return r0
 }
 
-// DeviceUpdateTag provides a mock function with given fields: ctx, uid, tags
-func (_m *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) (int64, int64, error) {
-	ret := _m.Called(ctx, uid, tags)
+// FirewallRuleBulkDeleteTag provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) FirewallRuleBulkDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
+	ret := _m.Called(ctx, tenant, tag)
 
 	var r0 int64
-	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) (int64, int64, error)); ok {
-		return rf(ctx, uid, tags)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, tag)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) int64); ok {
-		r0 = rf(ctx, uid, tags)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, tenant, tag)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID, []string) int64); ok {
-		r1 = rf(ctx, uid, tags)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenant, tag)
 	} else {
-		r1 = ret.Get(1).(int64)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.UID, []string) error); ok {
-		r2 = rf(ctx, uid, tags)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
-// FirewallRuleAddTag provides a mock function with given fields: ctx, id, tag
-func (_m *Store) FirewallRuleAddTag(ctx context.Context, id string, tag string) error {
-	ret := _m.Called(ctx, id, tag)
+// FirewallRuleBulkRenameTag provides a mock function with given fields: ctx, tenant, currentTag, newTag
+func (_m *Store) FirewallRuleBulkRenameTag(ctx context.Context, tenant string, currentTag string, newTag string) (int64, error) {
+	ret := _m.Called(ctx, tenant, currentTag, newTag)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, id, tag)
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, currentTag, newTag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
+		r0 = rf(ctx, tenant, currentTag, newTag)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, currentTag, newTag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // FirewallRuleCreate provides a mock function with given fields: ctx, rule
@@ -853,30 +887,6 @@ func (_m *Store) FirewallRuleDelete(ctx context.Context, id string) error {
 	}
 
 	return r0
-}
-
-// FirewallRuleDeleteTag provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) FirewallRuleDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // FirewallRuleGet provides a mock function with given fields: ctx, id
@@ -971,8 +981,8 @@ func (_m *Store) FirewallRuleList(ctx context.Context, pagination paginator.Quer
 	return r0, r1, r2
 }
 
-// FirewallRuleRemoveTag provides a mock function with given fields: ctx, id, tag
-func (_m *Store) FirewallRuleRemoveTag(ctx context.Context, id string, tag string) error {
+// FirewallRulePullTag provides a mock function with given fields: ctx, id, tag
+func (_m *Store) FirewallRulePullTag(ctx context.Context, id string, tag string) error {
 	ret := _m.Called(ctx, id, tag)
 
 	var r0 error
@@ -985,28 +995,32 @@ func (_m *Store) FirewallRuleRemoveTag(ctx context.Context, id string, tag strin
 	return r0
 }
 
-// FirewallRuleRenameTag provides a mock function with given fields: ctx, tenant, currentTags, newTags
-func (_m *Store) FirewallRuleRenameTag(ctx context.Context, tenant string, currentTags string, newTags string) (int64, error) {
-	ret := _m.Called(ctx, tenant, currentTags, newTags)
+// FirewallRulePushTag provides a mock function with given fields: ctx, id, tag
+func (_m *Store) FirewallRulePushTag(ctx context.Context, id string, tag string) error {
+	ret := _m.Called(ctx, id, tag)
 
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, currentTags, newTags)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, currentTags, newTags)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, tag)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, currentTags, newTags)
+	return r0
+}
+
+// FirewallRuleSetTags provides a mock function with given fields: ctx, id, tags
+func (_m *Store) FirewallRuleSetTags(ctx context.Context, id string, tags []string) error {
+	ret := _m.Called(ctx, id, tags)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, id, tags)
 	} else {
-		r1 = ret.Error(1)
+		r0 = ret.Error(0)
 	}
 
-	return r0, r1
+	return r0
 }
 
 // FirewallRuleUpdate provides a mock function with given fields: ctx, id, rule
@@ -1033,20 +1047,6 @@ func (_m *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.
 	}
 
 	return r0, r1
-}
-
-// FirewallRuleUpdateTags provides a mock function with given fields: ctx, id, tags
-func (_m *Store) FirewallRuleUpdateTags(ctx context.Context, id string, tags []string) error {
-	ret := _m.Called(ctx, id, tags)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, id, tags)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // GetCodes provides a mock function with given fields: ctx, id
@@ -1524,18 +1524,52 @@ func (_m *Store) PrivateKeyGet(ctx context.Context, fingerprint string) (*models
 	return r0, r1
 }
 
-// PublicKeyAddTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
-func (_m *Store) PublicKeyAddTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
-	ret := _m.Called(ctx, tenant, fingerprint, tag)
+// PublicKeyBulkDeleteTag provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) PublicKeyBulkDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
+	ret := _m.Called(ctx, tenant, tag)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, fingerprint, tag)
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, tag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, tenant, tag)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenant, tag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PublicKeyBulkRenameTag provides a mock function with given fields: ctx, tenant, currentTag, newTag
+func (_m *Store) PublicKeyBulkRenameTag(ctx context.Context, tenant string, currentTag string, newTag string) (int64, error) {
+	ret := _m.Called(ctx, tenant, currentTag, newTag)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
+		return rf(ctx, tenant, currentTag, newTag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
+		r0 = rf(ctx, tenant, currentTag, newTag)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tenant, currentTag, newTag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // PublicKeyCreate provides a mock function with given fields: ctx, key
@@ -1564,30 +1598,6 @@ func (_m *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenant
 	}
 
 	return r0
-}
-
-// PublicKeyDeleteTag provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) PublicKeyDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // PublicKeyGet provides a mock function with given fields: ctx, fingerprint, tenantID
@@ -1682,8 +1692,8 @@ func (_m *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) 
 	return r0, r1, r2
 }
 
-// PublicKeyRemoveTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
-func (_m *Store) PublicKeyRemoveTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
+// PublicKeyPullTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
+func (_m *Store) PublicKeyPullTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
 	ret := _m.Called(ctx, tenant, fingerprint, tag)
 
 	var r0 error
@@ -1696,58 +1706,22 @@ func (_m *Store) PublicKeyRemoveTag(ctx context.Context, tenant string, fingerpr
 	return r0
 }
 
-// PublicKeyRenameTag provides a mock function with given fields: ctx, tenant, currentTags, newTags
-func (_m *Store) PublicKeyRenameTag(ctx context.Context, tenant string, currentTags string, newTags string) (int64, error) {
-	ret := _m.Called(ctx, tenant, currentTags, newTags)
+// PublicKeyPushTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
+func (_m *Store) PublicKeyPushTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
+	ret := _m.Called(ctx, tenant, fingerprint, tag)
 
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, currentTags, newTags)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, currentTags, newTags)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, fingerprint, tag)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, currentTags, newTags)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
-// PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key
-func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	ret := _m.Called(ctx, fingerprint, tenantID, key)
-
-	var r0 *models.PublicKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) (*models.PublicKey, error)); ok {
-		return rf(ctx, fingerprint, tenantID, key)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) *models.PublicKey); ok {
-		r0 = rf(ctx, fingerprint, tenantID, key)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.PublicKey)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, *models.PublicKeyUpdate) error); ok {
-		r1 = rf(ctx, fingerprint, tenantID, key)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// PublicKeyUpdateTags provides a mock function with given fields: ctx, tenant, fingerprint, tags
-func (_m *Store) PublicKeyUpdateTags(ctx context.Context, tenant string, fingerprint string, tags []string) (int64, int64, error) {
+// PublicKeySetTags provides a mock function with given fields: ctx, tenant, fingerprint, tags
+func (_m *Store) PublicKeySetTags(ctx context.Context, tenant string, fingerprint string, tags []string) (int64, int64, error) {
 	ret := _m.Called(ctx, tenant, fingerprint, tags)
 
 	var r0 int64
@@ -1775,6 +1749,32 @@ func (_m *Store) PublicKeyUpdateTags(ctx context.Context, tenant string, fingerp
 	}
 
 	return r0, r1, r2
+}
+
+// PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key
+func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
+	ret := _m.Called(ctx, fingerprint, tenantID, key)
+
+	var r0 *models.PublicKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) (*models.PublicKey, error)); ok {
+		return rf(ctx, fingerprint, tenantID, key)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) *models.PublicKey); ok {
+		r0 = rf(ctx, fingerprint, tenantID, key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PublicKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, *models.PublicKeyUpdate) error); ok {
+		r1 = rf(ctx, fingerprint, tenantID, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SessionCreate provides a mock function with given fields: ctx, session
@@ -2024,8 +2024,8 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	return r0
 }
 
-// TagDelete provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) TagDelete(ctx context.Context, tenant string, tag string) error {
+// TagsBulkDelete provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) TagsBulkDelete(ctx context.Context, tenant string, tag string) error {
 	ret := _m.Called(ctx, tenant, tag)
 
 	var r0 error
@@ -2038,8 +2038,8 @@ func (_m *Store) TagDelete(ctx context.Context, tenant string, tag string) error
 	return r0
 }
 
-// TagRename provides a mock function with given fields: ctx, tenant, tag, newTag
-func (_m *Store) TagRename(ctx context.Context, tenant string, tag string, newTag string) error {
+// TagsBulkRename provides a mock function with given fields: ctx, tenant, tag, newTag
+func (_m *Store) TagsBulkRename(ctx context.Context, tenant string, tag string, newTag string) error {
 	ret := _m.Called(ctx, tenant, tag, newTag)
 
 	var r0 error

@@ -43,7 +43,7 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 	return tags.([]string), len(tags.([]string)), nil
 }
 
-func (s *Store) TagRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
+func (s *Store) TagsBulkRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
 		return FromMongoError(err)
@@ -51,15 +51,15 @@ func (s *Store) TagRename(ctx context.Context, tenantID string, oldTag string, n
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if _, err := s.DeviceRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
+		if _, err := s.DeviceBulkRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
 			return nil, err
 		}
 
-		if _, err := s.PublicKeyRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
+		if _, err := s.PublicKeyBulkRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
 			return nil, err
 		}
 
-		if _, err := s.FirewallRuleRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
+		if _, err := s.FirewallRuleBulkRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
 			return nil, err
 		}
 
@@ -69,7 +69,7 @@ func (s *Store) TagRename(ctx context.Context, tenantID string, oldTag string, n
 	return err
 }
 
-func (s *Store) TagDelete(ctx context.Context, tenantID string, tag string) error {
+func (s *Store) TagsBulkDelete(ctx context.Context, tenantID string, tag string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
 		return FromMongoError(err)
@@ -77,15 +77,15 @@ func (s *Store) TagDelete(ctx context.Context, tenantID string, tag string) erro
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if _, err := s.DeviceDeleteTag(sessCtx, tenantID, tag); err != nil {
+		if _, err := s.DeviceBulkDeleteTag(sessCtx, tenantID, tag); err != nil {
 			return nil, err
 		}
 
-		if _, err := s.PublicKeyDeleteTag(sessCtx, tenantID, tag); err != nil {
+		if _, err := s.PublicKeyBulkDeleteTag(sessCtx, tenantID, tag); err != nil {
 			return nil, err
 		}
 
-		if _, err := s.FirewallRuleDeleteTag(sessCtx, tenantID, tag); err != nil {
+		if _, err := s.FirewallRuleBulkDeleteTag(sessCtx, tenantID, tag); err != nil {
 			return nil, err
 		}
 

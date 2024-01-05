@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFirewallRuleAddTag(t *testing.T) {
+func TestFirewallRulePushTag(t *testing.T) {
 	cases := []struct {
 		description string
 		id          string
@@ -53,13 +53,13 @@ func TestFirewallRuleAddTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.FirewallRuleAddTag(context.TODO(), tc.id, tc.tag)
+			err := mongostore.FirewallRulePushTag(context.TODO(), tc.id, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestFirewallRuleRemoveTag(t *testing.T) {
+func TestFirewallRulePullTag(t *testing.T) {
 	cases := []struct {
 		description string
 		id          string
@@ -101,13 +101,13 @@ func TestFirewallRuleRemoveTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.FirewallRuleRemoveTag(context.TODO(), tc.id, tc.tag)
+			err := mongostore.FirewallRulePullTag(context.TODO(), tc.id, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestFirewallRuleUpdateTag(t *testing.T) {
+func TestFirewallRuleSetTags(t *testing.T) {
 	cases := []struct {
 		description string
 		id          string
@@ -142,13 +142,13 @@ func TestFirewallRuleUpdateTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.FirewallRuleUpdateTags(context.TODO(), tc.id, tc.tags)
+			err := mongostore.FirewallRuleSetTags(context.TODO(), tc.id, tc.tags)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestFirewallRuleRenameTags(t *testing.T) {
+func TestFirewallRuleBulkRenameTags(t *testing.T) {
 	type Expected struct {
 		count int64
 		err   error
@@ -208,13 +208,13 @@ func TestFirewallRuleRenameTags(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.FirewallRuleRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			count, err := mongostore.FirewallRuleBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }
 
-func TestFirewallRuleDeleteTags(t *testing.T) {
+func TestFirewallRuleBulkDeleteTags(t *testing.T) {
 	type Expected struct {
 		count int64
 		err   error
@@ -270,7 +270,7 @@ func TestFirewallRuleDeleteTags(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.FirewallRuleDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			count, err := mongostore.FirewallRuleBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
