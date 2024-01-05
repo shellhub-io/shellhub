@@ -82,5 +82,5 @@ func (s *Store) FirewallRuleGetTags(ctx context.Context, tenant string) ([]strin
 		tags[i] = item.(string) //nolint:forcetypeassert
 	}
 
-	return tags, len(tags), err
+	return tags, len(tags), FromMongoError(err)
 }

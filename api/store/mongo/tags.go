@@ -2,10 +2,7 @@ package mongo
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/emirpasic/gods/sets/hashset"
-	"go.mongodb.org/mongo-driver/bson"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -16,36 +13,34 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 	}
 	defer session.EndSession(ctx)
 
-	tagsSet := hashset.New()
-	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		tagsDevice, err := s.db.Collection("devices").Distinct(sessCtx, "tags", bson.M{"tenant_id": tenant})
+	tags, err := session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
+		deviceTags, _, err := s.DeviceGetTags(sessCtx, tenant)
 		if err != nil {
 			return nil, err
 		}
 
-		tagsKey, err := s.db.Collection("public_keys").Distinct(sessCtx, "filter.tags", bson.M{"tenant_id": tenant})
+		keyTags, _, err := s.PublicKeyGetTags(sessCtx, tenant)
 		if err != nil {
 			return nil, err
 		}
 
-		tagsRule, err := s.db.Collection("firewall_rules").Distinct(sessCtx, "filter.tags", bson.M{"tenant_id": tenant})
+		ruleTags, _, err := s.FirewallRuleGetTags(sessCtx, tenant)
 		if err != nil {
 			return nil, err
 		}
 
-		tagsSet.Add(tagsDevice...)
-		tagsSet.Add(tagsKey...)
-		tagsSet.Add(tagsRule...)
+		tags := []string{}
+		tags = append(tags, deviceTags...)
+		tags = append(tags, keyTags...)
+		tags = append(tags, ruleTags...)
 
-		return nil, nil
+		return removeDuplicate[string](tags), nil
 	})
-
-	tags := make([]string, tagsSet.Size())
-	for i, v := range tagsSet.Values() {
-		tags[i] = fmt.Sprint(v)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
 	}
 
-	return tags, len(tags), err
+	return tags.([]string), len(tags.([]string)), nil
 }
 
 func (s *Store) TagRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
