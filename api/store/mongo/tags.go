@@ -43,7 +43,7 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 	return tags.([]string), len(tags.([]string)), nil
 }
 
-func (s *Store) TagsBulkRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
+func (s *Store) TagsRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
 		return FromMongoError(err)
@@ -69,7 +69,7 @@ func (s *Store) TagsBulkRename(ctx context.Context, tenantID string, oldTag stri
 	return err
 }
 
-func (s *Store) TagsBulkDelete(ctx context.Context, tenantID string, tag string) error {
+func (s *Store) TagsDelete(ctx context.Context, tenantID string, tag string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
 		return FromMongoError(err)
