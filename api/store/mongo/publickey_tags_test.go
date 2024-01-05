@@ -206,6 +206,11 @@ func TestPublicKeyUpdateTags(t *testing.T) {
 }
 
 func TestPublicKeyRenameTag(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		fingerprint string
@@ -213,7 +218,7 @@ func TestPublicKeyRenameTag(t *testing.T) {
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when public key is not found due to tenant",
@@ -222,7 +227,10 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "fails when public key is not found due to tag",
@@ -230,7 +238,10 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			oldTag:      "nonexistent",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "succeeds when public key is found",
@@ -238,7 +249,10 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    nil,
+			expected: Expected{
+				count: 1,
+				err:   nil,
+			},
 		},
 	}
 
@@ -253,8 +267,8 @@ func TestPublicKeyRenameTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.PublicKeyRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }

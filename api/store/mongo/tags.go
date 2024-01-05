@@ -57,15 +57,15 @@ func (s *Store) TagRename(ctx context.Context, tenantID string, oldTag string, n
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if err := s.DeviceRenameTag(sessCtx, tenantID, oldTag, newTag); err != store.ErrNoDocuments {
+		if _, err := s.DeviceRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
 			return nil, err
 		}
 
-		if err := s.PublicKeyRenameTag(sessCtx, tenantID, oldTag, newTag); err != store.ErrNoDocuments {
+		if _, err := s.PublicKeyRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
 			return nil, err
 		}
 
-		if err := s.FirewallRuleRenameTag(sessCtx, tenantID, oldTag, newTag); err != store.ErrNoDocuments {
+		if _, err := s.FirewallRuleRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
 			return nil, err
 		}
 

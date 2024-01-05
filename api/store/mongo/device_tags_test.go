@@ -167,13 +167,18 @@ func TestDeviceUpdateTag(t *testing.T) {
 }
 
 func TestDeviceRenameTag(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		tenant      string
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when tenant doesn't exist",
@@ -181,7 +186,10 @@ func TestDeviceRenameTag(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "newtag",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "fails when device's tag doesn't exist",
@@ -189,7 +197,10 @@ func TestDeviceRenameTag(t *testing.T) {
 			oldTag:      "nonexistent",
 			newTag:      "newtag",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "successfully rename tag for an existing device",
@@ -197,7 +208,10 @@ func TestDeviceRenameTag(t *testing.T) {
 			oldTag:      "tag-1",
 			newTag:      "newtag",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    nil,
+			expected: Expected{
+				count: 2,
+				err:   nil,
+			},
 		},
 	}
 
@@ -212,8 +226,8 @@ func TestDeviceRenameTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.DeviceRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.DeviceRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }

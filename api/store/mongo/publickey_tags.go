@@ -52,18 +52,10 @@ func (s *Store) PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint str
 	return res.MatchedCount, res.ModifiedCount, FromMongoError(err)
 }
 
-// PublicKeyRenameTag renames a tag to a new name.
-func (s *Store) PublicKeyRenameTag(ctx context.Context, tenant, old, neo string) error {
-	result, err := s.db.Collection("public_keys").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": old}, bson.M{"$set": bson.M{"filter.tags.$": neo}})
-	if err != nil {
-		return err
-	}
+func (s *Store) PublicKeyRenameTag(ctx context.Context, tenant, currentTags, newTags string) (int64, error) {
+	res, err := s.db.Collection("public_keys").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": currentTags}, bson.M{"$set": bson.M{"filter.tags.$": newTags}})
 
-	if result.ModifiedCount <= 0 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
+	return res.ModifiedCount, FromMongoError(err)
 }
 
 // PublicKeyDeleteTag remove a tag from all public keys.
