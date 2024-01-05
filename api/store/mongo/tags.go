@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/emirpasic/gods/sets/hashset"
-	"github.com/shellhub-io/shellhub/api/store"
 	"go.mongodb.org/mongo-driver/bson"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
 )
@@ -83,15 +82,15 @@ func (s *Store) TagDelete(ctx context.Context, tenantID string, tag string) erro
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if err := s.DeviceDeleteTag(sessCtx, tenantID, tag); err != store.ErrNoDocuments {
+		if _, err := s.DeviceDeleteTag(sessCtx, tenantID, tag); err != nil {
 			return nil, err
 		}
 
-		if err := s.PublicKeyDeleteTag(sessCtx, tenantID, tag); err != store.ErrNoDocuments {
+		if _, err := s.PublicKeyDeleteTag(sessCtx, tenantID, tag); err != nil {
 			return nil, err
 		}
 
-		if err := s.FirewallRuleDeleteTag(sessCtx, tenantID, tag); err != store.ErrNoDocuments {
+		if _, err := s.FirewallRuleDeleteTag(sessCtx, tenantID, tag); err != nil {
 			return nil, err
 		}
 

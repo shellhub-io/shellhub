@@ -58,18 +58,10 @@ func (s *Store) PublicKeyRenameTag(ctx context.Context, tenant, currentTags, new
 	return res.ModifiedCount, FromMongoError(err)
 }
 
-// PublicKeyDeleteTag remove a tag from all public keys.
-func (s *Store) PublicKeyDeleteTag(ctx context.Context, tenant, name string) error {
-	result, err := s.db.Collection("public_keys").UpdateMany(ctx, bson.M{"tenant_id": tenant}, bson.M{"$pull": bson.M{"filter.tags": name}})
-	if err != nil {
-		return err
-	}
+func (s *Store) PublicKeyDeleteTag(ctx context.Context, tenant, tag string) (int64, error) {
+	res, err := s.db.Collection("public_keys").UpdateMany(ctx, bson.M{"tenant_id": tenant}, bson.M{"$pull": bson.M{"filter.tags": tag}})
 
-	if result.ModifiedCount <= 0 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
+	return res.ModifiedCount, FromMongoError(err)
 }
 
 // PublicKeyGetTags gets all tags from public keys.

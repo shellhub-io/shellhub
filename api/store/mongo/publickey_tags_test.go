@@ -274,33 +274,47 @@ func TestPublicKeyRenameTag(t *testing.T) {
 }
 
 func TestPublicKeyDeleteTag(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when public key is not found due to tenant",
 			tenant:      "nonexistent",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "fails when public key is not found due to tag",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "succeeds when public key is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    nil,
+			expected: Expected{
+				count: 1,
+				err:   nil,
+			},
 		},
 	}
 
@@ -315,8 +329,8 @@ func TestPublicKeyDeleteTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyDeleteTag(context.TODO(), tc.tenant, tc.tag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.PublicKeyDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }

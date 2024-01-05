@@ -233,33 +233,47 @@ func TestDeviceRenameTag(t *testing.T) {
 }
 
 func TestDeviceDeleteTag(t *testing.T) {
+	type Expected struct {
+		count int64
+		err   error
+	}
+
 	cases := []struct {
 		description string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when tenant doesn't exist",
 			tenant:      "nonexistent",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "fails when device's tag doesn't exist",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected: Expected{
+				count: 0,
+				err:   nil,
+			},
 		},
 		{
 			description: "successfully delete single tag for an existing device",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    nil,
+			expected: Expected{
+				count: 2,
+				err:   nil,
+			},
 		},
 	}
 
@@ -274,8 +288,8 @@ func TestDeviceDeleteTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.DeviceDeleteTag(context.TODO(), tc.tenant, tc.tag)
-			assert.Equal(t, tc.expected, err)
+			count, err := mongostore.DeviceDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }
