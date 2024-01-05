@@ -43,54 +43,66 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 	return tags.([]string), len(tags.([]string)), nil
 }
 
-func (s *Store) TagsRename(ctx context.Context, tenantID string, oldTag string, newTag string) error {
+func (s *Store) TagsRename(ctx context.Context, tenantID string, oldTag string, newTag string) (int64, error) {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
-		return FromMongoError(err)
+		return int64(0), FromMongoError(err)
 	}
 	defer session.EndSession(ctx)
 
-	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if _, err := s.DeviceBulkRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
-			return nil, err
+	count, err := session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
+		devCount, err := s.DeviceBulkRenameTag(sessCtx, tenantID, oldTag, newTag)
+		if err != nil {
+			return int64(0), err
 		}
 
-		if _, err := s.PublicKeyBulkRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
-			return nil, err
+		keyCount, err := s.PublicKeyBulkRenameTag(sessCtx, tenantID, oldTag, newTag)
+		if err != nil {
+			return int64(0), err
 		}
 
-		if _, err := s.FirewallRuleBulkRenameTag(sessCtx, tenantID, oldTag, newTag); err != nil {
-			return nil, err
+		rulCount, err := s.FirewallRuleBulkRenameTag(sessCtx, tenantID, oldTag, newTag)
+		if err != nil {
+			return int64(0), err
 		}
 
-		return nil, nil
+		return devCount + keyCount + rulCount, nil
 	})
+	if err != nil {
+		return int64(0), FromMongoError(err)
+	}
 
-	return err
+	return count.(int64), nil
 }
 
-func (s *Store) TagsDelete(ctx context.Context, tenantID string, tag string) error {
+func (s *Store) TagsDelete(ctx context.Context, tenantID string, tag string) (int64, error) {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
-		return FromMongoError(err)
+		return int64(0), FromMongoError(err)
 	}
 	defer session.EndSession(ctx)
 
-	_, err = session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
-		if _, err := s.DeviceBulkDeleteTag(sessCtx, tenantID, tag); err != nil {
-			return nil, err
+	count, err := session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
+		devCount, err := s.DeviceBulkDeleteTag(sessCtx, tenantID, tag)
+		if err != nil {
+			return int64(0), err
 		}
 
-		if _, err := s.PublicKeyBulkDeleteTag(sessCtx, tenantID, tag); err != nil {
-			return nil, err
+		keyCount, err := s.PublicKeyBulkDeleteTag(sessCtx, tenantID, tag)
+		if err != nil {
+			return int64(0), err
 		}
 
-		if _, err := s.FirewallRuleBulkDeleteTag(sessCtx, tenantID, tag); err != nil {
-			return nil, err
+		rulCount, err := s.FirewallRuleBulkDeleteTag(sessCtx, tenantID, tag)
+		if err != nil {
+			return int64(0), err
 		}
 
-		return nil, nil
+		return devCount + keyCount + rulCount, nil
 	})
+	if err != nil {
+		return int64(0), FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	return count.(int64), nil
 }
