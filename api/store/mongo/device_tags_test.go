@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeviceCreateTag(t *testing.T) {
+func TestDevicePushTag(t *testing.T) {
 	cases := []struct {
 		description string
 		uid         models.UID
@@ -47,13 +47,13 @@ func TestDeviceCreateTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.DeviceCreateTag(context.TODO(), tc.uid, tc.tag)
+			err := mongostore.DevicePushTag(context.TODO(), tc.uid, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestDeviceRemoveTag(t *testing.T) {
+func TestDevicePullTag(t *testing.T) {
 	cases := []struct {
 		description string
 		uid         models.UID
@@ -95,13 +95,13 @@ func TestDeviceRemoveTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.DeviceRemoveTag(context.TODO(), tc.uid, tc.tag)
+			err := mongostore.DevicePullTag(context.TODO(), tc.uid, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestDeviceUpdateTag(t *testing.T) {
+func TestDeviceSetTags(t *testing.T) {
 	type Expected struct {
 		matchedCount int64
 		updatedCount int64
@@ -160,13 +160,13 @@ func TestDeviceUpdateTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			matchedCount, updatedCount, err := mongostore.DeviceUpdateTag(context.TODO(), tc.uid, tc.tags)
+			matchedCount, updatedCount, err := mongostore.DeviceSetTags(context.TODO(), tc.uid, tc.tags)
 			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
 }
 
-func TestDeviceRenameTag(t *testing.T) {
+func TestDeviceBulkRenameTag(t *testing.T) {
 	type Expected struct {
 		count int64
 		err   error
@@ -226,13 +226,13 @@ func TestDeviceRenameTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.DeviceRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			count, err := mongostore.DeviceBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
 }
 
-func TestDeviceDeleteTag(t *testing.T) {
+func TestDeviceBulkDeleteTag(t *testing.T) {
 	type Expected struct {
 		count int64
 		err   error
@@ -288,7 +288,7 @@ func TestDeviceDeleteTag(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.DeviceDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			count, err := mongostore.DeviceBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}

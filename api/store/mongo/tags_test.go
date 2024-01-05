@@ -63,7 +63,7 @@ func TestTagsGet(t *testing.T) {
 	}
 }
 
-func TestTagRename(t *testing.T) {
+func TestTagsBulkRename(t *testing.T) {
 	cases := []struct {
 		description string
 		tenant      string
@@ -93,13 +93,13 @@ func TestTagRename(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.TagRename(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			err := mongostore.TagsBulkRename(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestTagDelete(t *testing.T) {
+func TestTagsBulkDelete(t *testing.T) {
 	cases := []struct {
 		description string
 		tenant      string
@@ -127,7 +127,7 @@ func TestTagDelete(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.TagDelete(context.TODO(), tc.tenant, tc.tag)
+			err := mongostore.TagsBulkDelete(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

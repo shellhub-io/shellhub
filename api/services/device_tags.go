@@ -36,7 +36,7 @@ func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, tag strin
 		return NewErrTagDuplicated(tag, nil)
 	}
 
-	return s.store.DeviceCreateTag(ctx, uid, tag)
+	return s.store.DevicePushTag(ctx, uid, tag)
 }
 
 // RemoveDeviceTag removes a tag from a device. UID is the device's UID and tag is the tag's name.
@@ -54,7 +54,7 @@ func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag strin
 		return NewErrTagNotFound(tag, nil)
 	}
 
-	return s.store.DeviceRemoveTag(ctx, uid, tag)
+	return s.store.DevicePullTag(ctx, uid, tag)
 }
 
 // UpdateDeviceTag updates a device's tags. UID is the device's UID and tags is the new tags.
@@ -85,7 +85,7 @@ func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []st
 		return l
 	}(tags)
 
-	if _, _, err := s.store.DeviceUpdateTag(ctx, uid, set); err != nil {
+	if _, _, err := s.store.DeviceSetTags(ctx, uid, set); err != nil {
 		return err
 	}
 
