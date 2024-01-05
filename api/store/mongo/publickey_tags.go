@@ -59,5 +59,5 @@ func (s *Store) PublicKeyGetTags(ctx context.Context, tenant string) ([]string, 
 		tags[i] = item.(string) //nolint:forcetypeassert
 	}
 
-	return tags, len(tags), err
+	return tags, len(tags), FromMongoError(err)
 }

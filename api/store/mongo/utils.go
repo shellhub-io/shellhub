@@ -58,3 +58,17 @@ func FromMongoError(err error) error {
 		return errors.Wrap(ErrMongo, err)
 	}
 }
+
+// removeDuplicate removes duplicate elements from a slice while maintaining the original order.
+func removeDuplicate[T comparable](slice []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range slice {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+
+	return list
+}
