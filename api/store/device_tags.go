@@ -15,5 +15,5 @@ type DeviceTagsStore interface {
 	DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) (matchedCount int64, updatedCount int64, err error)
 
 	DeviceRenameTag(ctx context.Context, tenant, currentTags, newTags string) (updatedCount int64, err error)
-	DeviceDeleteTag(ctx context.Context, tenant, tag string) error
+	DeviceDeleteTag(ctx context.Context, tenant, tag string) (deletedCount int64, err error)
 }

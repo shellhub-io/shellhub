@@ -7,6 +7,6 @@ type FirewallTagsStore interface {
 	FirewallRuleRemoveTag(ctx context.Context, id, tag string) error
 	FirewallRuleUpdateTags(ctx context.Context, id string, tags []string) error
 	FirewallRuleRenameTag(ctx context.Context, tenant, currentTags, newTags string) (updatedCount int64, err error)
-	FirewallRuleDeleteTag(ctx context.Context, tenant, tag string) error
+	FirewallRuleDeleteTag(ctx context.Context, tenant, tag string) (updatedCount int64, err error)
 	FirewallRuleGetTags(ctx context.Context, tenant string) ([]string, int, error)
 }

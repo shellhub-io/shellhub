@@ -13,6 +13,6 @@ type PublicKeyTagsStore interface {
 	PublicKeyUpdateTags(ctx context.Context, tenant, fingerprint string, tags []string) (matchedCount int64, updatedCount int64, err error)
 
 	PublicKeyRenameTag(ctx context.Context, tenant, currentTags, newTags string) (updatedCount int64, err error)
-	PublicKeyDeleteTag(ctx context.Context, tenant, name string) error
+	PublicKeyDeleteTag(ctx context.Context, tenant, tag string) (updatedCount int64, err error)
 	PublicKeyGetTags(ctx context.Context, tenant string) ([]string, int, error)
 }
