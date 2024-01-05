@@ -34,8 +34,6 @@ func (s *Store) DeviceRemoveTag(ctx context.Context, uid models.UID, tag string)
 	return nil
 }
 
-// DeviceUpdateTag sets the tags for a device with the specified UID.
-// It returns the number of matching documents, the number of modified documents, and any encountered errors.
 func (s *Store) DeviceUpdateTag(ctx context.Context, uid models.UID, tags []string) (int64, int64, error) {
 	tag, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"tags": tags}})
 
