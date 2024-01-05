@@ -2024,27 +2024,13 @@ func (_m *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, 
 	return r0
 }
 
-// TagsBulkDelete provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) TagsBulkDelete(ctx context.Context, tenant string, tag string) error {
+// TagsDelete provides a mock function with given fields: ctx, tenant, tag
+func (_m *Store) TagsDelete(ctx context.Context, tenant string, tag string) error {
 	ret := _m.Called(ctx, tenant, tag)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// TagsBulkRename provides a mock function with given fields: ctx, tenant, tag, newTag
-func (_m *Store) TagsBulkRename(ctx context.Context, tenant string, tag string, newTag string) error {
-	ret := _m.Called(ctx, tenant, tag, newTag)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, tag, newTag)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2083,6 +2069,20 @@ func (_m *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, err
 	}
 
 	return r0, r1, r2
+}
+
+// TagsRename provides a mock function with given fields: ctx, tenant, oldTag, newTag
+func (_m *Store) TagsRename(ctx context.Context, tenant string, oldTag string, newTag string) error {
+	ret := _m.Called(ctx, tenant, oldTag, newTag)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenant, oldTag, newTag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // UpdateCodes provides a mock function with given fields: ctx, id, codes
