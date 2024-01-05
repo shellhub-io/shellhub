@@ -51,3 +51,14 @@ func (s *Store) DeviceDeleteTag(ctx context.Context, tenant, tag string) (int64,
 
 	return res.ModifiedCount, FromMongoError(err)
 }
+
+func (s *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, int, error) {
+	list, err := s.db.Collection("devices").Distinct(ctx, "tags", bson.M{"tenant_id": tenant})
+
+	tags := make([]string, len(list))
+	for i, item := range list {
+		tags[i] = item.(string) //nolint:forcetypeassert
+	}
+
+	return tags, len(tags), FromMongoError(err)
+}
