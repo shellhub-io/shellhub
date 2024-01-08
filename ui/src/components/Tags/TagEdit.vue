@@ -1,8 +1,9 @@
 <template>
   <v-list-item
-    @click="showDialog = true"
+    @click="open"
     v-bind="$attrs"
     :disabled="notHasAuthorization"
+    data-test="open-tag-edit"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -22,12 +23,12 @@
 
       <v-card-text class="mt-4 mb-0 pb-1">
         <v-text-field
-          v-model="tagLocal"
+          v-model="inputTags"
           label="Tag name"
-          :error-messages="tagLocalError"
+          :error-messages="tagsError"
           required
           variant="underlined"
-          data-test="name-field"
+          data-test="tag-field"
         />
       </v-card-text>
 
@@ -50,10 +51,8 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { useField } from "vee-validate";
-import { defineComponent, onMounted, ref, computed } from "vue";
-import * as yup from "yup";
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
 import { useStore } from "../../store";
 import {
   INotificationsError,
@@ -61,87 +60,70 @@ import {
 } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    tag: {
-      type: String,
-      required: true,
-    },
-    notHasAuthorization: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  tag: {
+    type: String,
+    required: true,
   },
-  emits: ["update"],
-  inheritAttrs: true,
-  setup(props, ctx) {
-    const store = useStore();
-    const showDialog = ref(false);
-
-    const prop = computed(() => props);
-    const { value: tagLocal, errorMessage: tagLocalError, resetField: resetTagLocal } = useField<string>(
-      "tagLocal",
-      yup
-        .string()
-        .required()
-        .min(3)
-        .max(255)
-        .matches(/^[^/|@|&|:]*$/, "The name must not contain /, @, &, and :"),
-      {
-        initialValue: prop.value.tag,
-      },
-    );
-
-    const setLocalTag = () => {
-      tagLocal.value = props.tag;
-    };
-
-    onMounted(() => {
-      setLocalTag();
-    });
-
-    const close = () => {
-      showDialog.value = false;
-      resetTagLocal();
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const edit = async () => {
-      if (!tagLocalError.value) {
-        try {
-          await store.dispatch("tags/edit", {
-            oldTag: props.tag,
-            newTag: tagLocal.value,
-          });
-
-          update();
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.deviceTagEdit,
-          );
-        } catch (error: unknown) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.deviceTagEdit,
-          );
-          handleError(error);
-        }
-      }
-    };
-
-    return {
-      showDialog,
-      tagLocal,
-      tagLocalError,
-      setLocalTag,
-      edit,
-      close,
-      update,
-    };
+  notHasAuthorization: {
+    type: Boolean,
+    default: false,
   },
 });
+const emit = defineEmits(["update"]);
+const store = useStore();
+const showDialog = ref(false);
+
+const inputTags = ref<string>("");
+const tagsError = ref("");
+const tagsHasLessThan3Characters = computed(() => inputTags.value.length < 3);
+
+watch(inputTags, () => {
+  if (inputTags.value.length > 255) {
+    tagsError.value = "Maximum of 3 tags";
+  } else if (tagsHasLessThan3Characters.value) {
+    tagsError.value = "The minimum length is 3 characters";
+  } else {
+    tagsError.value = "";
+  }
+});
+
+const open = () => {
+  inputTags.value = props.tag;
+  showDialog.value = true;
+};
+
+const close = () => {
+  showDialog.value = false;
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
+
+const edit = async () => {
+  if (!tagsError.value) {
+    try {
+      await store.dispatch("tags/edit", {
+        oldTag: props.tag,
+        newTag: inputTags.value,
+      });
+
+      update();
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.deviceTagEdit,
+      );
+    } catch (error: unknown) {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.deviceTagEdit,
+      );
+      handleError(error);
+    }
+  }
+};
+
+defineExpose({ inputTags });
 </script>
