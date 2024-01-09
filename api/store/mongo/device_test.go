@@ -1415,3 +1415,82 @@ func TestDeviceDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestDeviceSwapAccepted(t *testing.T) {
+	cases := []struct {
+		description string
+		uid         models.UID
+		oldDevice   *models.Device
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "fails when device is not found",
+			uid:         models.UID("nonexistent"),
+			oldDevice: &models.Device{
+				CreatedAt:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+				StatusUpdatedAt:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+				LastSeen:         time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+				UID:              "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+				Name:             "device-2",
+				Identity:         &models.DeviceIdentity{MAC: "mac-2"},
+				Info:             nil,
+				PublicKey:        "",
+				TenantID:         "00000000-0000-4000-0000-000000000000",
+				Online:           false,
+				Namespace:        "namespace-1",
+				Status:           "accepted",
+				RemoteAddr:       "",
+				Position:         nil,
+				Tags:             []string{},
+				PublicURL:        false,
+				PublicURLAddress: "",
+				Acceptable:       false,
+			},
+			fixtures: []string{fixtures.FixtureDevices},
+			expected: store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when device is found",
+			uid:         models.UID("3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d"),
+			oldDevice: &models.Device{
+				CreatedAt:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+				StatusUpdatedAt:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+				LastSeen:         time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+				UID:              "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+				Name:             "device-2",
+				Identity:         &models.DeviceIdentity{MAC: "mac-2"},
+				Info:             nil,
+				PublicKey:        "",
+				TenantID:         "00000000-0000-4000-0000-000000000000",
+				Online:           false,
+				Namespace:        "namespace-1",
+				Status:           "accepted",
+				RemoteAddr:       "",
+				Position:         nil,
+				Tags:             []string{},
+				PublicURL:        false,
+				PublicURLAddress: "",
+				Acceptable:       false,
+			},
+			fixtures: []string{fixtures.FixtureDevices},
+			expected: nil,
+		},
+	}
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.DeviceSwapAccepted(context.TODO(), tc.uid, tc.oldDevice)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}

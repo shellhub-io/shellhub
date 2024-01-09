@@ -218,19 +218,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 			return NewErrDeviceDuplicated(device.Name, err)
 		}
 
-		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil && err != store.ErrNoDocuments {
-			return err
-		}
-
-		if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
-			return err
-		}
-
-		if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
-			return err
-		}
-
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		return s.store.DeviceSwapAccepted(ctx, uid, sameMacDev)
 	}
 
 	if sameName, err := s.store.DeviceGetByName(ctx, device.Name, device.TenantID, models.DeviceStatusAccepted); sameName != nil {

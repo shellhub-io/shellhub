@@ -833,7 +833,8 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
@@ -844,12 +845,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
 
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
@@ -860,47 +861,24 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
 
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
-		},
-		{
-			description: "fails when could not get the device by MAC",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
 		{
 			description: "fails when already exist a device with same name and a different mac",
@@ -909,211 +887,103 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
 
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 
 				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "uid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:      "uid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
 
 				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "anothermac"},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "anothermac"},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceDuplicated("name", nil),
 		},
 		{
-			description: "fails to update device UID",
+			description: "fails to swap the status",
 			uid:         models.UID("uid"),
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
 
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 
 				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
 
 				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+
+				mock.On(
+					"DeviceSwapAccepted",
+					ctx,
+					models.UID("uid"),
+					&models.Device{
 						UID:      "notsameuid",
 						Name:     "name",
 						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(errors.New("error", "", 0)).Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-		{
-			description: "fails to update device to the old name",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(errors.New("error", "", 0)).Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-		{
-			description: "fails to delete device with the same mac",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(nil).Once()
-
-				mock.On("DeviceDelete", ctx, models.UID("notsameuid")).
-					Return(errors.New("error", "", 0)).Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-		{
-			description: "fails to update device status",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(nil).Once()
-
-				mock.On("DeviceDelete", ctx, models.UID("notsameuid")).
-					Return(nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(errors.New("error", "", 0)).Once()
+					},
+				).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1124,45 +994,114 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
 
 				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 
 				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
 
 				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+
+				mock.On(
+					"DeviceSwapAccepted",
+					ctx,
+					models.UID("uid"),
+					&models.Device{
 						UID:      "notsameuid",
 						Name:     "name",
 						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
+					},
+				).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "success to update device status",
+			uid:         models.UID("uid"),
+			status:      "accepted",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			requiredMocks: func() {
+				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
 
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
+				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(nil).Once()
+				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
 
-				mock.On("DeviceDelete", ctx, models.UID("notsameuid")).
-					Return(nil).Once()
+				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
 
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(nil).Once()
+				mock.On(
+					"DeviceSwapAccepted",
+					ctx,
+					models.UID("uid"),
+					&models.Device{
+						UID:      "notsameuid",
+						Name:     "name",
+						Identity: &models.DeviceIdentity{MAC: "mac"},
+					},
+				).Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -1243,32 +1182,6 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 					}, nil).Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
-		},
-		{
-			description: "fails when could not get the device by MAC",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
 		{
 			description: "fails when already exist a device with same name",
@@ -1519,32 +1432,6 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
 		{
-			description: "fails when could not get the device by MAC",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
-		},
-		{
 			description: "fails when namespace has a subscription active and could not report the device accepted",
 			uid:         models.UID("uid"),
 			status:      "accepted",
@@ -1775,32 +1662,6 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					}, nil).Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
-		},
-		{
-			description: "fails when could not get the device by MAC",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
 		{
 			description: "fails when could not check if device was removed recently",

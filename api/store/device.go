@@ -43,4 +43,8 @@ type DeviceStore interface {
 	DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, order string) ([]models.DeviceRemoved, int, error)
 	DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error
 	DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
+
+	// DeviceSwapAccepted swaps the old accepted device with the device identified by UID.
+	// This function updates the status, transfers sessions, and deletes the old device.
+	DeviceSwapAccepted(ctx context.Context, uid models.UID, oldDevice *models.Device) error
 }

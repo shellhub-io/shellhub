@@ -688,3 +688,33 @@ func (s *Store) DeviceGetByPublicURLAddress(ctx context.Context, address string)
 
 	return device, nil
 }
+
+func (s *Store) DeviceSwapAccepted(ctx context.Context, uid models.UID, oldDevice *models.Device) error {
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		if err := s.SessionUpdateDeviceUID(ctx, models.UID(oldDevice.UID), uid); err != nil && err != store.ErrNoDocuments {
+			return nil, err
+		}
+
+		if err := s.DeviceRename(ctx, uid, oldDevice.Name); err != nil {
+			return nil, err
+		}
+
+		if err := s.DeviceDelete(ctx, models.UID(oldDevice.UID)); err != nil {
+			return nil, err
+		}
+
+		if err := s.DeviceUpdateStatus(ctx, uid, models.DeviceStatusAccepted); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+
+	return err
+}
