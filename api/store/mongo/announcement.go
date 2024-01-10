@@ -5,13 +5,12 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/order"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (s *Store) AnnouncementList(ctx context.Context, pagination paginator.Query, order order.Query) ([]models.AnnouncementShort, int, error) {
+func (s *Store) AnnouncementList(ctx context.Context, paginator query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
 	query := []bson.M{}
 
 	queryCount := append(query, bson.M{"$count": "count"})
@@ -20,8 +19,9 @@ func (s *Store) AnnouncementList(ctx context.Context, pagination paginator.Query
 		return nil, 0, FromMongoError(err)
 	}
 
-	query = append(query, queries.BuildOrderQuery(order, "date")...)
-	query = append(query, queries.BuildPaginationQuery(pagination)...)
+	sorter.By = "date"
+	query = append(query, queries.FromSorter(&sorter)...)
+	query = append(query, queries.FromPaginator(&paginator)...)
 
 	cursor, err := s.db.Collection("announcements").Aggregate(ctx, query)
 	if err != nil {

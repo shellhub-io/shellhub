@@ -8,8 +8,6 @@ import (
 	models "github.com/shellhub-io/shellhub/pkg/models"
 	mock "github.com/stretchr/testify/mock"
 
-	order "github.com/shellhub-io/shellhub/pkg/api/order"
-
 	paginator "github.com/shellhub-io/shellhub/pkg/api/paginator"
 
 	query "github.com/shellhub-io/shellhub/pkg/api/query"
@@ -144,9 +142,9 @@ func (_m *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Anno
 	return r0, r1
 }
 
-// AnnouncementList provides a mock function with given fields: ctx, pagination, ordination
-func (_m *Store) AnnouncementList(ctx context.Context, pagination paginator.Query, ordination order.Query) ([]models.AnnouncementShort, int, error) {
-	ret := _m.Called(ctx, pagination, ordination)
+// AnnouncementList provides a mock function with given fields: ctx, _a1, sorter
+func (_m *Store) AnnouncementList(ctx context.Context, _a1 query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
+	ret := _m.Called(ctx, _a1, sorter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AnnouncementList")
@@ -155,25 +153,25 @@ func (_m *Store) AnnouncementList(ctx context.Context, pagination paginator.Quer
 	var r0 []models.AnnouncementShort
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, order.Query) ([]models.AnnouncementShort, int, error)); ok {
-		return rf(ctx, pagination, ordination)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Sorter) ([]models.AnnouncementShort, int, error)); ok {
+		return rf(ctx, _a1, sorter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, order.Query) []models.AnnouncementShort); ok {
-		r0 = rf(ctx, pagination, ordination)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Sorter) []models.AnnouncementShort); ok {
+		r0 = rf(ctx, _a1, sorter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.AnnouncementShort)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, order.Query) int); ok {
-		r1 = rf(ctx, pagination, ordination)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Sorter) int); ok {
+		r1 = rf(ctx, _a1, sorter)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, order.Query) error); ok {
-		r2 = rf(ctx, pagination, ordination)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Sorter) error); ok {
+		r2 = rf(ctx, _a1, sorter)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -550,9 +548,9 @@ func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, in
 	return r0, r1, r2
 }
 
-// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, _a5, mode
-func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, _a5 string, mode store.DeviceListMode) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, pagination, filters, status, sort, _a5, mode)
+// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, order, mode
+func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, order string, mode store.DeviceListMode) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, pagination, filters, status, sort, order, mode)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceList")
@@ -562,10 +560,10 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) ([]models.Device, int, error)); ok {
-		return rf(ctx, pagination, filters, status, sort, _a5, mode)
+		return rf(ctx, pagination, filters, status, sort, order, mode)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) []models.Device); ok {
-		r0 = rf(ctx, pagination, filters, status, sort, _a5, mode)
+		r0 = rf(ctx, pagination, filters, status, sort, order, mode)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
@@ -573,13 +571,13 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) int); ok {
-		r1 = rf(ctx, pagination, filters, status, sort, _a5, mode)
+		r1 = rf(ctx, pagination, filters, status, sort, order, mode)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) error); ok {
-		r2 = rf(ctx, pagination, filters, status, sort, _a5, mode)
+		r2 = rf(ctx, pagination, filters, status, sort, order, mode)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -777,9 +775,9 @@ func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device 
 	return r0
 }
 
-// DeviceRemovedList provides a mock function with given fields: ctx, tenant, pagination, filters, sort, _a5
-func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, _a5 string) ([]models.DeviceRemoved, int, error) {
-	ret := _m.Called(ctx, tenant, pagination, filters, sort, _a5)
+// DeviceRemovedList provides a mock function with given fields: ctx, tenant, pagination, filters, sort, order
+func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, order string) ([]models.DeviceRemoved, int, error) {
+	ret := _m.Called(ctx, tenant, pagination, filters, sort, order)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceRemovedList")
@@ -789,10 +787,10 @@ func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, paginatio
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string) ([]models.DeviceRemoved, int, error)); ok {
-		return rf(ctx, tenant, pagination, filters, sort, _a5)
+		return rf(ctx, tenant, pagination, filters, sort, order)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string) []models.DeviceRemoved); ok {
-		r0 = rf(ctx, tenant, pagination, filters, sort, _a5)
+		r0 = rf(ctx, tenant, pagination, filters, sort, order)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.DeviceRemoved)
@@ -800,13 +798,13 @@ func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, paginatio
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, paginator.Query, []models.Filter, string, string) int); ok {
-		r1 = rf(ctx, tenant, pagination, filters, sort, _a5)
+		r1 = rf(ctx, tenant, pagination, filters, sort, order)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, string, paginator.Query, []models.Filter, string, string) error); ok {
-		r2 = rf(ctx, tenant, pagination, filters, sort, _a5)
+		r2 = rf(ctx, tenant, pagination, filters, sort, order)
 	} else {
 		r2 = ret.Error(2)
 	}
