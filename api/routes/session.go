@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -26,15 +26,15 @@ const (
 )
 
 func (h *Handler) GetSessionList(c gateway.Context) error {
-	query := paginator.NewQuery()
-	if err := c.Bind(query); err != nil {
+	paginator := query.NewPaginator()
+	if err := c.Bind(paginator); err != nil {
 		return err
 	}
 
 	// TODO: normalize is not required when request is privileged
-	query.Normalize()
+	paginator.Normalize()
 
-	sessions, count, err := h.service.ListSessions(c.Ctx(), *query)
+	sessions, count, err := h.service.ListSessions(c.Ctx(), *paginator)
 	if err != nil {
 		return err
 	}

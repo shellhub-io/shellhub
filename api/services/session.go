@@ -5,13 +5,13 @@ import (
 	"net"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type SessionService interface {
-	ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error)
+	ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
@@ -19,8 +19,8 @@ type SessionService interface {
 	SetSessionAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error
 }
 
-func (s *service) ListSessions(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
-	return s.store.SessionList(ctx, pagination)
+func (s *service) ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
+	return s.store.SessionList(ctx, paginator)
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {

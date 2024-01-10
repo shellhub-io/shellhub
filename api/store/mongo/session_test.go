@@ -9,7 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -24,13 +24,13 @@ func TestSessionList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		page        paginator.Query
+		paginator   query.Paginator
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when sessions are found",
-			page:        paginator.Query{Page: -1, PerPage: -1},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			fixtures: []string{
 				fixtures.FixtureNamespaces,
 				fixtures.FixtureDevices,
@@ -210,7 +210,7 @@ func TestSessionList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			s, count, err := mongostore.SessionList(context.TODO(), tc.page)
+			s, count, err := mongostore.SessionList(context.TODO(), tc.paginator)
 			sort(tc.expected.s)
 			sort(s)
 			assert.Equal(t, tc.expected, Expected{s: s, count: count, err: err})
