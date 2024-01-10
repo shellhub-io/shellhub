@@ -6,7 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
@@ -155,28 +155,25 @@ func TestListPublicKeys(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		ctx           context.Context
 		keys          []models.PublicKey
-		query         paginator.Query
+		paginator     query.Paginator
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "Fails when the query is invalid",
-			ctx:         ctx,
-			query:       paginator.Query{Page: -1, PerPage: 10},
+			paginator:   query.Paginator{Page: -1, PerPage: 10},
 			requiredMocks: func() {
-				mock.On("PublicKeyList", ctx, paginator.Query{Page: -1, PerPage: 10}).Return(nil, 0, errors.New("error", "", 0)).Once()
+				mock.On("PublicKeyList", ctx, query.Paginator{Page: -1, PerPage: 10}).Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, 0, errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful list the keys",
-			ctx:         ctx,
 			keys:        keys,
-			query:       paginator.Query{Page: 1, PerPage: 10},
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
 			requiredMocks: func() {
-				mock.On("PublicKeyList", ctx, paginator.Query{Page: 1, PerPage: 10}).Return(keys, len(keys), nil).Once()
+				mock.On("PublicKeyList", ctx, query.Paginator{Page: 1, PerPage: 10}).Return(keys, len(keys), nil).Once()
 			},
 			expected: Expected{keys, len(keys), nil},
 		},
@@ -185,13 +182,14 @@ func TestListPublicKeys(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedKeys, count, err := s.ListPublicKeys(ctx, tc.query)
+			returnedKeys, count, err := s.ListPublicKeys(ctx, tc.paginator)
 			assert.Equal(t, tc.expected, Expected{returnedKeys, count, err})
 		})
 	}
 
 	mock.AssertExpectations(t)
 }
+
 func TestGetPublicKeys(t *testing.T) {
 	mock := &mocks.Store{}
 

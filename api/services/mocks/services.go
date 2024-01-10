@@ -1099,9 +1099,9 @@ func (_m *Service) ListNamespaces(ctx context.Context, _a1 query.Paginator, filt
 	return r0, r1, r2
 }
 
-// ListPublicKeys provides a mock function with given fields: ctx, pagination
-func (_m *Service) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
-	ret := _m.Called(ctx, pagination)
+// ListPublicKeys provides a mock function with given fields: ctx, _a1
+func (_m *Service) ListPublicKeys(ctx context.Context, _a1 query.Paginator) ([]models.PublicKey, int, error) {
+	ret := _m.Called(ctx, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPublicKeys")
@@ -1110,25 +1110,25 @@ func (_m *Service) ListPublicKeys(ctx context.Context, pagination paginator.Quer
 	var r0 []models.PublicKey
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) ([]models.PublicKey, int, error)); ok {
-		return rf(ctx, pagination)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.PublicKey, int, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.PublicKey); ok {
-		r0 = rf(ctx, pagination)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.PublicKey); ok {
+		r0 = rf(ctx, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.PublicKey)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
-		r1 = rf(ctx, pagination)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
-		r2 = rf(ctx, pagination)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
+		r2 = rf(ctx, _a1)
 	} else {
 		r2 = ret.Error(2)
 	}

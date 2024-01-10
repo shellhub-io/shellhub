@@ -12,7 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -27,18 +27,18 @@ func TestGetPublicKeys(t *testing.T) {
 		expectedStatus  int
 	}
 	cases := []struct {
-		title         string
-		query         paginator.Query
-		requiredMocks func(query paginator.Query)
+		description   string
+		paginator     query.Paginator
+		requiredMocks func(query query.Paginator)
 		expected      Expected
 	}{
 		{
-			title: "success when try to list a publics keys exists",
-			query: paginator.Query{
+			description: "success when try to list a publics keys exists",
+			paginator: query.Paginator{
 				Page:    1,
 				PerPage: 10,
 			},
-			requiredMocks: func(query paginator.Query) {
+			requiredMocks: func(query query.Paginator) {
 				mock.On("ListPublicKeys", gomock.Anything, query).Return([]models.PublicKey{}, 1, nil)
 			},
 			expected: Expected{
@@ -49,10 +49,10 @@ func TestGetPublicKeys(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.query)
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks(tc.paginator)
 
-			jsonData, err := json.Marshal(tc.query)
+			jsonData, err := json.Marshal(tc.paginator)
 			if err != nil {
 				assert.NoError(t, err)
 			}
