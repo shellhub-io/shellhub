@@ -8,8 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/order"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -24,15 +23,15 @@ func TestAnnouncementList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		page        paginator.Query
-		order       order.Query
+		paginator   query.Paginator
+		sorter      query.Sorter
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when announcement list is empty",
-			page:        paginator.Query{Page: -1, PerPage: -1},
-			order:       order.Query{OrderBy: order.Asc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{Order: query.OrderAsc},
 			fixtures:    []string{},
 			expected: Expected{
 				ann: nil,
@@ -42,8 +41,8 @@ func TestAnnouncementList(t *testing.T) {
 		},
 		{
 			description: "succeeds when announcement list is not empty",
-			page:        paginator.Query{Page: -1, PerPage: -1},
-			order:       order.Query{OrderBy: order.Asc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{Order: query.OrderAsc},
 			fixtures:    []string{fixtures.FixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
@@ -73,9 +72,9 @@ func TestAnnouncementList(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when announcement list is not empty and page and page size is limited",
-			page:        paginator.Query{Page: 2, PerPage: 2},
-			order:       order.Query{OrderBy: order.Asc},
+			description: "succeeds when announcement list is not empty and paginator and paginator size is limited",
+			paginator:   query.Paginator{Page: 2, PerPage: 2},
+			sorter:      query.Sorter{Order: query.OrderAsc},
 			fixtures:    []string{fixtures.FixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
@@ -96,8 +95,8 @@ func TestAnnouncementList(t *testing.T) {
 		},
 		{
 			description: "succeeds when announcement list is not empty and order is desc",
-			page:        paginator.Query{Page: -1, PerPage: -1},
-			order:       order.Query{OrderBy: order.Desc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{Order: query.OrderDesc},
 			fixtures:    []string{fixtures.FixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
@@ -139,7 +138,7 @@ func TestAnnouncementList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			ann, count, err := mongostore.AnnouncementList(context.TODO(), tc.page, tc.order)
+			ann, count, err := mongostore.AnnouncementList(context.TODO(), tc.paginator, tc.sorter)
 			assert.Equal(t, tc.expected, Expected{ann: ann, len: count, err: err})
 		})
 	}
