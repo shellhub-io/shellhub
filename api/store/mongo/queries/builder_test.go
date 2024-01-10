@@ -89,3 +89,236 @@ func TestFromSorter(t *testing.T) {
 		})
 	}
 }
+
+func TestFromFilters(t *testing.T) {
+	type Expected struct {
+		data []bson.M
+		err  error
+	}
+	cases := []struct {
+		description string
+		filters     *query.Filters
+		expected    Expected
+	}{
+		{
+			description: "Fail when filter type is not valid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "invalid",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "valid",
+							Value:    "test",
+						},
+					},
+				},
+			},
+			expected: Expected{nil, query.ErrFilterInvalid},
+		},
+		{
+			description: "Fail when operator in property is invalid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "invalid",
+							Value:    "valid",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{},
+				err:  nil,
+			},
+		},
+		{
+			description: "Success when one operator in property is valid and other is invalid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "invalid",
+							Value:    "test",
+						},
+					},
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "eq",
+							Value:    "valid",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$or": []bson.M{{"test": bson.M{"$eq": "valid"}}}}}},
+				err:  nil,
+			},
+		},
+		{
+			description: "Success when operator in property is valid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "eq",
+							Value:    "valid",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$or": []bson.M{{"test": bson.M{"$eq": "valid"}}}}}},
+				err:  nil,
+			},
+		},
+		{
+			description: "Fail when operator in operator is invalid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "invalid",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{},
+				err:  nil,
+			},
+		},
+		{
+			description: "Fail when operator in operator is valid and other invalid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "and",
+						},
+					},
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "invalid",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$and": []bson.M{}}}},
+				err:  nil,
+			},
+		},
+		{
+			description: "Success when operator in operator is valid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "and",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$and": []bson.M{}}}},
+				err:  nil,
+			},
+		},
+		{
+			description: "Fail when property operator is invalid and operator is valid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "invalid",
+							Value:    "test",
+						},
+					},
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "and",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$and": []bson.M{}}}},
+				err:  nil,
+			},
+		},
+		{
+			description: "Fail when property operator is valid and operator is invalid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "eq",
+							Value:    "test",
+						},
+					},
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "invalid",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$or": []bson.M{{"test": bson.M{"$eq": "test"}}}}}},
+				err:  nil,
+			},
+		},
+		{
+			description: "Success when property and operator is valid",
+			filters: &query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "test",
+							Operator: "eq",
+							Value:    "test",
+						},
+					},
+					{
+						Type: "operator",
+						Params: &query.FilterOperator{
+							Name: "and",
+						},
+					},
+				},
+			},
+			expected: Expected{
+				data: []bson.M{{"$match": bson.M{"$and": []bson.M{{"test": bson.M{"$eq": "test"}}}}}},
+				err:  nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			query, err := FromFilters(tc.filters)
+			assert.Equal(t, tc.expected, Expected{query, err})
+		})
+	}
+}
