@@ -9,7 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
@@ -30,16 +30,16 @@ func TestListSessions(t *testing.T) {
 	}
 
 	cases := []struct {
-		name          string
-		pagination    paginator.Query
-		requiredMocks func(query paginator.Query)
+		description   string
+		paginator     query.Paginator
+		requiredMocks func(paginator query.Paginator)
 		expected      Expected
 	}{
 		{
-			name:       "fails",
-			pagination: paginator.Query{Page: 1, PerPage: 10},
-			requiredMocks: func(query paginator.Query) {
-				mock.On("SessionList", ctx, query).
+			description: "fails",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			requiredMocks: func(paginator query.Paginator) {
+				mock.On("SessionList", ctx, paginator).
 					Return(nil, 0, goerrors.New("error")).Once()
 			},
 			expected: Expected{
@@ -49,15 +49,15 @@ func TestListSessions(t *testing.T) {
 			},
 		},
 		{
-			name:       "succeeds",
-			pagination: paginator.Query{Page: 1, PerPage: 10},
-			requiredMocks: func(query paginator.Query) {
+			description: "succeeds",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			requiredMocks: func(paginator query.Paginator) {
 				sessions := []models.Session{
 					{UID: "uid1"},
 					{UID: "uid2"},
 					{UID: "uid3"},
 				}
-				mock.On("SessionList", ctx, query).
+				mock.On("SessionList", ctx, paginator).
 					Return(sessions, len(sessions), nil).Once()
 			},
 			expected: Expected{
@@ -77,11 +77,11 @@ func TestListSessions(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks(tc.pagination)
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks(tc.paginator)
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			returnedSessions, count, err := service.ListSessions(ctx, tc.pagination)
+			returnedSessions, count, err := service.ListSessions(ctx, tc.paginator)
 			assert.Equal(t, tc.expected, Expected{returnedSessions, count, err})
 		})
 	}

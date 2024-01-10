@@ -7,7 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]models.Session, int, error) {
+func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -48,7 +48,7 @@ func (s *Store) SessionList(ctx context.Context, pagination paginator.Query) ([]
 		},
 	})
 
-	query = append(query, queries.BuildPaginationQuery(pagination)...)
+	query = append(query, queries.FromPaginator(&paginator)...)
 	query = append(query, []bson.M{
 		{
 			"$lookup": bson.M{
