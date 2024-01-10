@@ -6,14 +6,14 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
+func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
 	query := []bson.M{}
 
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
@@ -45,14 +45,11 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 		},
 	}...)
 
-	queryMatch, err := queries.BuildFilterQuery(filters)
+	queryMatch, err := queries.FromFilters(&filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	if len(queryMatch) > 0 {
-		query = append(query, queryMatch...)
-	}
+	query = append(query, queryMatch...)
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
@@ -61,9 +58,7 @@ func (s *Store) UserList(ctx context.Context, pagination paginator.Query, filter
 		return nil, 0, FromMongoError(err)
 	}
 
-	if pagination.Page > 0 && pagination.PerPage > 0 {
-		query = append(query, queries.BuildPaginationQuery(pagination)...)
-	}
+	query = append(query, queries.FromPaginator(&paginator)...)
 
 	users := make([]models.User, 0)
 	cursor, err := s.db.Collection("users").Aggregate(ctx, query)

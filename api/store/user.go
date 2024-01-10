@@ -3,12 +3,12 @@ package store
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type UserStore interface {
-	UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error)
+	UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error)
 	UserCreate(ctx context.Context, user *models.User) error
 	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
 	UserGetByEmail(ctx context.Context, email string) (*models.User, error)

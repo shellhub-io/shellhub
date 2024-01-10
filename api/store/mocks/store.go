@@ -2744,9 +2744,9 @@ func (_m *Store) UserGetToken(ctx context.Context, id string) (*models.UserToken
 	return r0, r1
 }
 
-// UserList provides a mock function with given fields: ctx, pagination, filters
-func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filters []models.Filter) ([]models.User, int, error) {
-	ret := _m.Called(ctx, pagination, filters)
+// UserList provides a mock function with given fields: ctx, _a1, filters
+func (_m *Store) UserList(ctx context.Context, _a1 query.Paginator, filters query.Filters) ([]models.User, int, error) {
+	ret := _m.Called(ctx, _a1, filters)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserList")
@@ -2755,25 +2755,25 @@ func (_m *Store) UserList(ctx context.Context, pagination paginator.Query, filte
 	var r0 []models.User
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter) ([]models.User, int, error)); ok {
-		return rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) ([]models.User, int, error)); ok {
+		return rf(ctx, _a1, filters)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter) []models.User); ok {
-		r0 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) []models.User); ok {
+		r0 = rf(ctx, _a1, filters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter) int); ok {
-		r1 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters) int); ok {
+		r1 = rf(ctx, _a1, filters)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter) error); ok {
-		r2 = rf(ctx, pagination, filters)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters) error); ok {
+		r2 = rf(ctx, _a1, filters)
 	} else {
 		r2 = ret.Error(2)
 	}

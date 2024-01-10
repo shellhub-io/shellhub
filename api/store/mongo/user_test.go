@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -27,15 +27,15 @@ func TestUserList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		page        paginator.Query
-		filters     []models.Filter
+		page        query.Paginator
+		filters     query.Filters
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when users are found",
-			page:        paginator.Query{Page: -1, PerPage: -1},
-			filters:     nil,
+			page:        query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected: Expected{
 				users: []models.User{
@@ -109,14 +109,16 @@ func TestUserList(t *testing.T) {
 		},
 		{
 			description: "succeeds with filters",
-			page:        paginator.Query{Page: -1, PerPage: -1},
-			filters: []models.Filter{
-				{
-					Type: "property",
-					Params: &models.PropertyParams{
-						Name:     "max_namespaces",
-						Operator: "gt",
-						Value:    "3",
+			page:        query.Paginator{Page: -1, PerPage: -1},
+			filters: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "max_namespaces",
+							Operator: "gt",
+							Value:    "3",
+						},
 					},
 				},
 			},
