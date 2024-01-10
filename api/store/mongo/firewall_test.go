@@ -8,7 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -23,13 +23,13 @@ func TestFirewallRuleList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		page        paginator.Query
+		paginator   query.Paginator
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when no firewall rules are found",
-			page:        paginator.Query{Page: -1, PerPage: -1},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			fixtures:    []string{},
 			expected: Expected{
 				rules: []models.FirewallRule{},
@@ -39,7 +39,7 @@ func TestFirewallRuleList(t *testing.T) {
 		},
 		{
 			description: "succeeds when a firewall rule is found",
-			page:        paginator.Query{Page: -1, PerPage: -1},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			fixtures:    []string{fixtures.FixtureFirewallRules},
 			expected: Expected{
 				rules: []models.FirewallRule{
@@ -110,7 +110,7 @@ func TestFirewallRuleList(t *testing.T) {
 		},
 		{
 			description: "succeeds when firewall rule list is not empty and paginator is different than -1",
-			page:        paginator.Query{Page: 2, PerPage: 2},
+			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			fixtures:    []string{fixtures.FixtureFirewallRules},
 			expected: Expected{
 				rules: []models.FirewallRule{
@@ -170,7 +170,7 @@ func TestFirewallRuleList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			rules, count, err := mongostore.FirewallRuleList(context.TODO(), tc.page)
+			rules, count, err := mongostore.FirewallRuleList(context.TODO(), tc.paginator)
 			sort(tc.expected.rules)
 			sort(rules)
 			assert.Equal(t, tc.expected, Expected{rules: rules, len: count, err: err})

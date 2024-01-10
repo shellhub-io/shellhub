@@ -1132,9 +1132,9 @@ func (_m *Store) FirewallRuleGetTags(ctx context.Context, tenant string) ([]stri
 	return r0, r1, r2
 }
 
-// FirewallRuleList provides a mock function with given fields: ctx, pagination
-func (_m *Store) FirewallRuleList(ctx context.Context, pagination paginator.Query) ([]models.FirewallRule, int, error) {
-	ret := _m.Called(ctx, pagination)
+// FirewallRuleList provides a mock function with given fields: ctx, _a1
+func (_m *Store) FirewallRuleList(ctx context.Context, _a1 query.Paginator) ([]models.FirewallRule, int, error) {
+	ret := _m.Called(ctx, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FirewallRuleList")
@@ -1143,25 +1143,25 @@ func (_m *Store) FirewallRuleList(ctx context.Context, pagination paginator.Quer
 	var r0 []models.FirewallRule
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) ([]models.FirewallRule, int, error)); ok {
-		return rf(ctx, pagination)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.FirewallRule, int, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.FirewallRule); ok {
-		r0 = rf(ctx, pagination)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.FirewallRule); ok {
+		r0 = rf(ctx, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.FirewallRule)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
-		r1 = rf(ctx, pagination)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
-		r2 = rf(ctx, pagination)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
+		r2 = rf(ctx, _a1)
 	} else {
 		r2 = ret.Error(2)
 	}
