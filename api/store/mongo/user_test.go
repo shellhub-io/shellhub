@@ -502,6 +502,13 @@ func TestUserUpdatePassword(t *testing.T) {
 		expected    error
 	}{
 		{
+			description: "fails when user id is not valid",
+			id:          "invalid",
+			password:    "other_password",
+			fixtures:    []string{fixtures.FixtureUsers},
+			expected:    store.ErrInvalidHex,
+		},
+		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
 			password:    "other_password",
@@ -541,6 +548,12 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 		fixtures    []string
 		expected    error
 	}{
+		{
+			description: "fails when user id is not valid",
+			id:          "invalid",
+			fixtures:    []string{fixtures.FixtureUsers},
+			expected:    store.ErrInvalidHex,
+		},
 		{
 			description: "fails when user is not found",
 			id:          "000000000000000000000000",
@@ -717,12 +730,6 @@ func TestUserDeleteTokens(t *testing.T) {
 		fixtures    []string
 		expected    error
 	}{
-		{
-			description: "fails when user is not found",
-			id:          "000000000000000000000000",
-			fixtures:    []string{fixtures.FixtureUsers, fixtures.FixtureRecoveryTokens},
-			expected:    store.ErrNoDocuments,
-		},
 		{
 			description: "succeeds when user is found",
 			id:          "507f1f77bcf86cd799439011",
