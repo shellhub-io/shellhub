@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -31,22 +30,22 @@ const (
 )
 
 func (h *Handler) GetNamespaceList(c gateway.Context) error {
-	query := filterQuery{}
+	type Query struct {
+		query.Paginator
+		query.Filters
+	}
+
+	query := Query{}
+
 	if err := c.Bind(&query); err != nil {
 		return err
 	}
 
-	raw, err := base64.StdEncoding.DecodeString(query.Filter)
-	if err != nil {
+	if err := query.Filters.Unmarshal(); err != nil {
 		return err
 	}
 
-	var filter []models.Filter
-	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
-		return err
-	}
-
-	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), query.Query, filter, false)
+	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), query.Paginator, query.Filters, false)
 	if err != nil {
 		return err
 	}

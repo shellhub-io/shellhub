@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -25,16 +25,16 @@ func TestNamespaceList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		page        paginator.Query
-		filters     []models.Filter
+		page        query.Paginator
+		filters     query.Filters
 		export      bool
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when namespaces list is not empty",
-			page:        paginator.Query{Page: -1, PerPage: -1},
-			filters:     []models.Filter{},
+			page:        query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			export:      false,
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{

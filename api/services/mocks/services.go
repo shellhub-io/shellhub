@@ -1062,9 +1062,9 @@ func (_m *Service) ListDevices(ctx context.Context, tenant string, pagination pa
 	return r0, r1, r2
 }
 
-// ListNamespaces provides a mock function with given fields: ctx, pagination, filter, export
-func (_m *Service) ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error) {
-	ret := _m.Called(ctx, pagination, filter, export)
+// ListNamespaces provides a mock function with given fields: ctx, _a1, filters, export
+func (_m *Service) ListNamespaces(ctx context.Context, _a1 query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error) {
+	ret := _m.Called(ctx, _a1, filters, export)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListNamespaces")
@@ -1073,25 +1073,25 @@ func (_m *Service) ListNamespaces(ctx context.Context, pagination paginator.Quer
 	var r0 []models.Namespace
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, bool) ([]models.Namespace, int, error)); ok {
-		return rf(ctx, pagination, filter, export)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, bool) ([]models.Namespace, int, error)); ok {
+		return rf(ctx, _a1, filters, export)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, bool) []models.Namespace); ok {
-		r0 = rf(ctx, pagination, filter, export)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, bool) []models.Namespace); ok {
+		r0 = rf(ctx, _a1, filters, export)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, bool) int); ok {
-		r1 = rf(ctx, pagination, filter, export)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters, bool) int); ok {
+		r1 = rf(ctx, _a1, filters, export)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, bool) error); ok {
-		r2 = rf(ctx, pagination, filter, export)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters, bool) error); ok {
+		r2 = rf(ctx, _a1, filters, export)
 	} else {
 		r2 = ret.Error(2)
 	}

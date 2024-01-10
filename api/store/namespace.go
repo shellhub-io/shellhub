@@ -3,12 +3,12 @@ package store
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type NamespaceStore interface {
-	NamespaceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error)
+	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error)
 	NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error)
 	NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error)
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
