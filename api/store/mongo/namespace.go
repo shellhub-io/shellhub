@@ -8,7 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,16 +16,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, export bool) ([]models.Namespace, int, error) {
+func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error) {
 	query := []bson.M{}
-	queryMatch, err := queries.BuildFilterQuery(filters)
+	queryMatch, err := queries.FromFilters(&filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	if len(queryMatch) > 0 {
-		query = append(query, queryMatch...)
-	}
+	query = append(query, queryMatch...)
 
 	if export {
 		query = []bson.M{
@@ -87,9 +84,7 @@ func (s *Store) NamespaceList(ctx context.Context, pagination paginator.Query, f
 		return nil, 0, err
 	}
 
-	if pagination.Page != 0 && pagination.PerPage != 0 {
-		query = append(query, queries.BuildPaginationQuery(pagination)...)
-	}
+	query = append(query, queries.FromPaginator(&paginator)...)
 
 	namespaces := make([]models.Namespace, 0)
 	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, query)

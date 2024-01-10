@@ -7,7 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -15,7 +15,7 @@ import (
 )
 
 type NamespaceService interface {
-	ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error)
+	ListNamespaces(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
@@ -35,8 +35,8 @@ type NamespaceService interface {
 //
 // ListNamespaces returns a slice of models.Namespace, the total of namespaces and an error. When error is not nil, the
 // slice of models.Namespace is nil, total is zero.
-func (s *service) ListNamespaces(ctx context.Context, pagination paginator.Query, filter []models.Filter, export bool) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, pagination, filter, export)
+func (s *service) ListNamespaces(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error) {
+	namespaces, count, err := s.store.NamespaceList(ctx, paginator, filters, export)
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}

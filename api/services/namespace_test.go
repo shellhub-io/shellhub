@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -33,17 +33,19 @@ func TestListNamespaces(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		pagination    paginator.Query
+		paginator     query.Paginator
+		filters       query.Filters
 		ctx           context.Context
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fail when could not get the namespace list",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			filters:     query.Filters{},
 			ctx:         ctx,
 			requiredMocks: func() {
-				mock.On("NamespaceList", ctx, paginator.Query{Page: 1, PerPage: 10}, []models.Filter(nil), false).Return(nil, 0, errors.New("error")).Once()
+				mock.On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false).Return(nil, 0, errors.New("error")).Once()
 			},
 			expected: Expected{
 				namespaces: nil,
@@ -53,7 +55,8 @@ func TestListNamespaces(t *testing.T) {
 		},
 		{
 			description: "fail when could not get a user",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			filters:     query.Filters{},
 			ctx:         ctx,
 			requiredMocks: func() {
 				namespaces := []models.Namespace{
@@ -85,7 +88,7 @@ func TestListNamespaces(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceList", ctx, paginator.Query{Page: 1, PerPage: 10}, []models.Filter(nil), false).Return(namespaces, len(namespaces), nil).Once()
+				mock.On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false).Return(namespaces, len(namespaces), nil).Once()
 				mock.On("UserGetByID", ctx, "hash", false).Return(nil, 0, errors.New("error")).Once()
 			},
 			expected: Expected{
@@ -96,7 +99,8 @@ func TestListNamespaces(t *testing.T) {
 		},
 		{
 			description: "success to get the namespace list",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			filters:     query.Filters{},
 			ctx:         ctx,
 			requiredMocks: func() {
 				namespaces := []models.Namespace{
@@ -145,7 +149,7 @@ func TestListNamespaces(t *testing.T) {
 				}
 
 				// TODO: Add mock to fillMembersData what will replace the three call to UserGetByID.
-				mock.On("NamespaceList", ctx, paginator.Query{Page: 1, PerPage: 10}, []models.Filter(nil), false).Return(namespaces, len(namespaces), nil).Once()
+				mock.On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false).Return(namespaces, len(namespaces), nil).Once()
 				mock.On("UserGetByID", ctx, "hash", false).Return(user, 0, nil).Once()
 				mock.On("UserGetByID", ctx, "hash2", false).Return(user1, 0, nil).Once()
 				mock.On("UserGetByID", ctx, "hash", false).Return(user, 0, nil).Once()
@@ -209,7 +213,7 @@ func TestListNamespaces(t *testing.T) {
 			tc.requiredMocks()
 
 			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			nss, count, err := services.ListNamespaces(tc.ctx, tc.pagination, nil, false)
+			nss, count, err := services.ListNamespaces(tc.ctx, tc.paginator, tc.filters, false)
 			assert.Equal(t, tc.expected, Expected{nss, count, err})
 		})
 	}
