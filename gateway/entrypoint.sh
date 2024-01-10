@@ -56,11 +56,12 @@ if [ "$SHELLHUB_ENV" != "development" ] && [ "$SHELLHUB_AUTO_SSL" == "true" ]; t
         exit 1
     fi
 
+    ACME_WEBSERVER_ROOT="/etc/letsencrypt"
+
     # If the certificate is not generated yet, generate it.
     if [ ! -f /etc/letsencrypt/live/$SHELLHUB_DOMAIN/fullchain.pem ]; then
         echo "Generating SSL certificate"
 
-        ACME_WEBSERVER_ROOT="/etc/letsencrypt"
         ACME_CHALLENGE_DIR="$ACME_WEBSERVER_ROOT/.well-known/acme-challenge"
 
         mkdir -p $ACME_CHALLENGE_DIR
