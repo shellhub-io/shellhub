@@ -9,7 +9,7 @@ import (
 	"regexp"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -20,7 +20,7 @@ import (
 type SSHKeysService interface {
 	EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
-	ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error)
+	ListPublicKeys(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error)
 	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error)
@@ -137,8 +137,8 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 	}, nil
 }
 
-func (s *service) ListPublicKeys(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
-	return s.store.PublicKeyList(ctx, pagination)
+func (s *service) ListPublicKeys(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
+	return s.store.PublicKeyList(ctx, paginator)
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {

@@ -6,7 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -21,7 +21,7 @@ func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID s
 	return pubKey, nil
 }
 
-func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) ([]models.PublicKey, int, error) {
+func (s *Store) PublicKeyList(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
 	query := []bson.M{
 		{
 			"$sort": bson.M{
@@ -46,7 +46,7 @@ func (s *Store) PublicKeyList(ctx context.Context, pagination paginator.Query) (
 		return nil, 0, err
 	}
 
-	query = append(query, queries.BuildPaginationQuery(pagination)...)
+	query = append(query, queries.FromPaginator(&paginator)...)
 
 	list := make([]models.PublicKey, 0)
 	cursor, err := s.db.Collection("public_keys").Aggregate(ctx, query)

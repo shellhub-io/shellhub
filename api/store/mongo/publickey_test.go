@@ -8,7 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -145,7 +145,7 @@ func TestPublicKeyList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			pubKey, count, err := mongostore.PublicKeyList(context.TODO(), paginator.Query{Page: -1, PerPage: -1})
+			pubKey, count, err := mongostore.PublicKeyList(context.TODO(), query.Paginator{Page: -1, PerPage: -1})
 			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, len: count, err: err})
 		})
 	}
