@@ -42,3 +42,50 @@ func TestFromPaginator(t *testing.T) {
 		})
 	}
 }
+
+func TestFromSorter(t *testing.T) {
+	cases := []struct {
+		description string
+		sorter      *query.Sorter
+		expected    []bson.M
+	}{
+		{
+			description: "sets sort to -1 when order.By is invalid",
+			sorter:      &query.Sorter{By: "date", Order: "foo"},
+			expected: []bson.M{
+				{
+					"$sort": bson.M{
+						"date": -1,
+					},
+				},
+			},
+		},
+		{
+			description: "sets sort to 1 when order.By is asc",
+			sorter:      &query.Sorter{By: "date", Order: "asc"},
+			expected: []bson.M{
+				{
+					"$sort": bson.M{
+						"date": 1,
+					},
+				},
+			},
+		},
+		{
+			description: "sets sort to -1 when order.By is desc",
+			sorter:      &query.Sorter{By: "date", Order: "desc"},
+			expected: []bson.M{
+				{
+					"$sort": bson.M{
+						"date": -1,
+					},
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FromSorter(tc.sorter))
+		})
+	}
+}
