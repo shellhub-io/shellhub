@@ -213,7 +213,7 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword string, id s
 		return FromMongoError(err)
 	}
 
-	if user.ModifiedCount < 1 {
+	if user.MatchedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -224,7 +224,7 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword string, id s
 func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return FromMongoError(err)
 	}
 
 	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"confirmed": true}})
@@ -232,7 +232,7 @@ func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
 		return err
 	}
 
-	if user.ModifiedCount < 1 {
+	if user.MatchedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -297,13 +297,8 @@ func (s *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenR
 }
 
 func (s *Store) UserDeleteTokens(ctx context.Context, id string) error {
-	tokens, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": id})
-	if err != nil {
+	if _, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": id}); err != nil {
 		return FromMongoError(err)
-	}
-
-	if tokens.DeletedCount < 1 {
-		return store.ErrNoDocuments
 	}
 
 	return nil
