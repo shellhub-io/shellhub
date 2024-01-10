@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -21,12 +21,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, order string, mode store.DeviceListMode) ([]models.Device, int, error) {
-	queryMatch, err := queries.BuildFilterQuery(filters)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
+func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, mode store.DeviceListMode) ([]models.Device, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -111,10 +106,11 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		}
 	}
 
-	// Apply filters if any
-	if len(queryMatch) > 0 {
-		query = append(query, queryMatch...)
+	queryMatch, err := queries.FromFilters(&filters)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
 	}
+	query = append(query, queryMatch...)
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
@@ -123,22 +119,13 @@ func (s *Store) DeviceList(ctx context.Context, pagination paginator.Query, filt
 		return nil, 0, FromMongoError(err)
 	}
 
-	orderVal := map[string]int{
-		"asc":  1,
-		"desc": -1,
+	if sorter.By == "" {
+		sorter.By = "last_seen"
 	}
 
-	if sort != "" {
-		query = append(query, bson.M{
-			"$sort": bson.M{sort: orderVal[order]},
-		})
-	} else {
-		query = append(query, bson.M{
-			"$sort": bson.M{"last_seen": -1},
-		})
-	}
+	query = append(query, queries.FromSorter(&sorter)...)
+	query = append(query, queries.FromPaginator(&paginator)...)
 
-	query = append(query, queries.BuildPaginationQuery(pagination)...)
 	query = append(query, []bson.M{
 		{
 			"$lookup": bson.M{
@@ -623,7 +610,7 @@ func (s *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid mode
 	return nil
 }
 
-func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, order string) ([]models.DeviceRemoved, int, error) {
+func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error) {
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -632,31 +619,22 @@ func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination
 		},
 	}
 
-	pipeline = append(pipeline, queries.BuildPaginationQuery(pagination)...)
+	pipeline = append(pipeline, queries.FromPaginator(&paginator)...)
 
-	if filters != nil {
-		queryFilter, err := queries.BuildFilterQuery(filters)
-		if err != nil {
-			return nil, 0, FromMongoError(err)
-		}
-
-		pipeline = append(pipeline, queryFilter...)
+	queryFilter, err := queries.FromFilters(&filters)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
 	}
 
-	orderVal := map[string]int{
-		"asc":  1,
-		"desc": -1,
-	}
+	pipeline = append(pipeline, queryFilter...)
 
-	if sort != "" && order != "" {
-		pipeline = append(pipeline, bson.M{
-			"$sort": bson.M{sort: orderVal[order]},
-		})
-	} else {
-		pipeline = append(pipeline, bson.M{
-			"$sort": bson.M{"timestamp": -1},
-		})
+	if sorter.By == "" {
+		sorter.By = "timestamp"
 	}
+	if sorter.Order == "" {
+		sorter.Order = query.OrderDesc
+	}
+	pipeline = append(pipeline, queries.FromSorter(&sorter)...)
 
 	aggregation, err := s.db.Collection("removed_devices").Aggregate(ctx, pipeline)
 	if err != nil {

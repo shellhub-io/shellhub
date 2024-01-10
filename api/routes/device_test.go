@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +13,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -282,106 +281,110 @@ func TestGetDeviceByPublicURLAddress(t *testing.T) {
 func TestGetDeviceList(t *testing.T) {
 	mock := new(mocks.Service)
 
-	filter := []map[string]interface{}{
-		{
-			"type": "property",
-			"params": map[string]interface{}{
-				"name":     "name",
-				"operator": "contains",
-				"value":    "examplespace",
-			},
-		},
-	}
-
-	jsonData, err := json.Marshal(filter)
-	if err != nil {
-		assert.NoError(t, err)
-	}
-
-	filteb64 := base64.StdEncoding.EncodeToString(jsonData)
 	type Expected struct {
-		expectedSession []models.Device
-		expectedStatus  int
+		session []models.Device
+		status  int
 	}
+
 	cases := []struct {
-		title         string
-		filter        string
-		queryPayload  filterQuery
+		description   string
+		paginator     query.Paginator
+		sorter        query.Sorter
+		filters       query.Filters
+		status        models.DeviceStatus
 		tenant        string
-		requiredMocks func(query filterQuery)
+		requiredMocks func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter)
 		expected      Expected
 	}{
 		{
-			title: "fails when try to get a device list existing",
-			queryPayload: filterQuery{
-				Filter:  filteb64,
-				Status:  models.DeviceStatus("online"),
-				SortBy:  "name",
-				OrderBy: "asc",
-				Query: paginator.Query{
-					Page:    1,
-					PerPage: 10,
+			description: "fails when try to get a device list existing",
+			tenant:      "tenant-id",
+			status:      models.DeviceStatus("online"),
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
+			filters: query.Filters{
+				Raw: "Wwp7CiAgInR5cGUiOiAicHJvcGVydHkiLAogICJwYXJhbXMiOiB7CiAgICAibmFtZSI6ICJuYW1lIiwKICAgICJvcGVyYXRvciI6ICJjb250YWlucyIsCiAgICAidmFsdWUiOiAiZXhhbXBsZXNwYWNlIgogIH0KfQpd",
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "name",
+							Operator: "contains",
+							Value:    "examplespace",
+						},
+					},
 				},
 			},
-			tenant: "tenant-id",
-			requiredMocks: func(query filterQuery) {
-				query.Normalize()
-				raw, err := base64.StdEncoding.DecodeString(query.Filter)
-				if err != nil {
-					assert.NoError(t, err)
-				}
-
-				var filters []models.Filter
-				if err := json.Unmarshal(raw, &filters); len(raw) > 0 && err != nil {
-					assert.NoError(t, err)
-				}
-
-				mock.On("ListDevices", gomock.Anything, "tenant-id", query.Query, filters, query.Status, query.SortBy, query.OrderBy).Return(nil, 0, svc.ErrDeviceNotFound).Once()
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				mock.On("ListDevices",
+					gomock.Anything,
+					"tenant-id",
+					status,
+					paginator,
+					filters,
+					sorter,
+				).Return(nil, 0, svc.ErrDeviceNotFound).Once()
 			},
 			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusNotFound,
+				session: nil,
+				status:  http.StatusNotFound,
 			},
 		},
 		{
-			title: "fails when try to get a device list existing",
-			queryPayload: filterQuery{
-				Filter:  filteb64,
-				Status:  models.DeviceStatus("online"),
-				SortBy:  "name",
-				OrderBy: "asc",
-				Query: paginator.Query{
-					Page:    1,
-					PerPage: 10,
+			description: "fails when try to get a device list existing",
+			tenant:      "tenant-id",
+			status:      models.DeviceStatus("online"),
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
+			filters: query.Filters{
+				Raw: "Wwp7CiAgInR5cGUiOiAicHJvcGVydHkiLAogICJwYXJhbXMiOiB7CiAgICAibmFtZSI6ICJuYW1lIiwKICAgICJvcGVyYXRvciI6ICJjb250YWlucyIsCiAgICAidmFsdWUiOiAiZXhhbXBsZXNwYWNlIgogIH0KfQpd",
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "name",
+							Operator: "contains",
+							Value:    "examplespace",
+						},
+					},
 				},
 			},
-			tenant: "tenant-id",
-			requiredMocks: func(query filterQuery) {
-				query.Normalize()
-				raw, err := base64.StdEncoding.DecodeString(query.Filter)
-				if err != nil {
-					assert.NoError(t, err)
-				}
-
-				var filters []models.Filter
-				if err := json.Unmarshal(raw, &filters); len(raw) > 0 && err != nil {
-					assert.NoError(t, err)
-				}
-
-				mock.On("ListDevices", gomock.Anything, "tenant-id", query.Query, filters, query.Status, query.SortBy, query.OrderBy).Return([]models.Device{}, 1, nil).Once()
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				mock.On("ListDevices",
+					gomock.Anything,
+					"tenant-id",
+					status,
+					paginator,
+					filters,
+					sorter,
+				).Return([]models.Device{}, 1, nil).Once()
 			},
 			expected: Expected{
-				expectedSession: []models.Device{},
-				expectedStatus:  http.StatusOK,
+				session: []models.Device{},
+				status:  http.StatusOK,
 			},
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.queryPayload)
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks(tc.status, tc.paginator, tc.filters, tc.sorter)
 
-			jsonData, err := json.Marshal(tc.queryPayload)
+			type Query struct {
+				Status models.DeviceStatus `query:"status"`
+				query.Paginator
+				query.Sorter
+				query.Filters
+			}
+
+			b := Query{
+				Status:    tc.status,
+				Paginator: tc.paginator,
+				Sorter:    tc.sorter,
+				Filters:   tc.filters,
+			}
+
+			jsonData, err := json.Marshal(b)
 			if err != nil {
 				assert.NoError(t, err)
 			}
@@ -395,14 +398,14 @@ func TestGetDeviceList(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
 
 			var session []models.Device
 			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
 				assert.ErrorIs(t, io.EOF, err)
 			}
 
-			assert.Equal(t, tc.expected.expectedSession, session)
+			assert.Equal(t, tc.expected.session, session)
 		})
 	}
 }

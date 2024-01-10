@@ -10,7 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
@@ -24,9 +24,6 @@ func TestListDevices(t *testing.T) {
 
 	ctx := context.TODO()
 
-	status := []models.DeviceStatus{models.DeviceStatusPending, models.DeviceStatusAccepted, models.DeviceStatusRejected, models.DeviceStatusRemoved}
-	order := []string{"asc", "desc"}
-
 	type Expected struct {
 		devices []models.Device
 		count   int
@@ -36,44 +33,42 @@ func TestListDevices(t *testing.T) {
 	cases := []struct {
 		description   string
 		tenant        string
-		pagination    paginator.Query
-		filter        []models.Filter
+		sorter        query.Sorter
+		pagination    query.Paginator
+		filter        query.Filters
 		status        models.DeviceStatus
-		sort, order   string
-		requiredMocks func()
+		requiredMocks func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter)
 		expected      Expected
 	}{
 		{
 			description: "fails when the store device list fails when status is pending",
 			tenant:      "tenant",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
-			filter: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
 				},
 			},
-			status: status[0],
-			sort:   "name",
-			order:  order[0],
-			requiredMocks: func() {
+			status: models.DeviceStatusPending,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
 				namespace := &models.Namespace{
 					TenantID:     "tenant",
 					MaxDevices:   3,
 					DevicesCount: 3,
 				}
 
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
-				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).
-					Return(int64(1), nil).Once()
-				mock.On("DeviceList", ctx, paginator.Query{Page: 1, PerPage: 10}, []models.Filter{
-					{
-						Type:   "property",
-						Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
-					},
-				}, status[0], "name", order[0], store.DeviceListModeMaxDeviceReached).
-					Return(nil, 0, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).Return(int64(1), nil).Once()
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceListModeMaxDeviceReached).
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{
 				nil,
@@ -84,26 +79,24 @@ func TestListDevices(t *testing.T) {
 		{
 			description: "fails when the store device list fails when status is not pending",
 			tenant:      "tenant",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
-			filter: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+			sorter:      query.Sorter{By: "name", Order: query.OrderDesc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
 				},
 			},
-			status: status[1],
-			sort:   "name",
-			order:  order[1],
-			requiredMocks: func() {
-				filters := []models.Filter{
-					{
-						Type:   "property",
-						Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
-					},
-				}
-
-				mock.On("DeviceList", ctx, paginator.Query{Page: 1, PerPage: 10}, filters, status[1], "name", order[1], store.DeviceListModeDefault).
-					Return(nil, 0, errors.New("error", "", 0)).Once()
+			status: models.DeviceStatusAccepted,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceListModeDefault).
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{
 				nil,
@@ -114,17 +107,21 @@ func TestListDevices(t *testing.T) {
 		{
 			description: "succeeds when status is pending",
 			tenant:      "tenant",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
-			filter: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
 				},
 			},
-			status: status[0],
-			sort:   "name",
-			order:  order[0],
-			requiredMocks: func() {
+			status: models.DeviceStatusPending,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
 				namespace := &models.Namespace{
 					TenantID:     "tenant",
 					MaxDevices:   3,
@@ -137,19 +134,11 @@ func TestListDevices(t *testing.T) {
 					{UID: "uid3"},
 				}
 
-				filters := []models.Filter{
-					{
-						Type:   "property",
-						Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID).
-					Return(namespace, nil).Once()
-				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).
-					Return(int64(1), nil).Once()
-				mock.On("DeviceList", ctx, paginator.Query{Page: 1, PerPage: 10}, filters, status[0], "name", order[0], store.DeviceListModeMaxDeviceReached).
-					Return(devices, len(devices), nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("DeviceRemovedCount", ctx, namespace.TenantID).Return(int64(1), nil).Once()
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceListModeMaxDeviceReached).
+					Return(devices, len(devices), nil).
+					Once()
 			},
 			expected: Expected{
 				[]models.Device{
@@ -168,32 +157,30 @@ func TestListDevices(t *testing.T) {
 		{
 			description: "succeeds when status is not pending",
 			tenant:      "tenant",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
-			filter: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+			sorter:      query.Sorter{By: "name", Order: query.OrderDesc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
 				},
 			},
-			status: status[1],
-			sort:   "name",
-			order:  order[1],
-			requiredMocks: func() {
-				filters := []models.Filter{
-					{
-						Type:   "property",
-						Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
-					},
-				}
-
+			status: models.DeviceStatusAccepted,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
 				devices := []models.Device{
 					{UID: "uid"},
 					{UID: "uid2"},
 					{UID: "uid3"},
 				}
 
-				mock.On("DeviceList", ctx, paginator.Query{Page: 1, PerPage: 10}, filters, status[1], "name", order[1], store.DeviceListModeDefault).
-					Return(devices, len(devices), nil).Once()
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceListModeDefault).
+					Return(devices, len(devices), nil).
+					Once()
 			},
 			expected: Expected{
 				[]models.Device{
@@ -212,26 +199,24 @@ func TestListDevices(t *testing.T) {
 		{
 			description: "fails when status is removed",
 			tenant:      "tenant",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
-			filter: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+			sorter:      query.Sorter{By: "name", Order: query.OrderDesc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
 				},
 			},
-			status: status[3],
-			sort:   "name",
-			order:  order[1],
-			requiredMocks: func() {
-				filters := []models.Filter{
-					{
-						Type:   "property",
-						Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
-					},
-				}
-
-				mock.On("DeviceRemovedList", ctx, "tenant", paginator.Query{Page: 1, PerPage: 10}, filters, "name", order[1]).
-					Return(nil, 0, errors.New("error", "", 0)).Once()
+			status: models.DeviceStatusRemoved,
+			requiredMocks: func(_ models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				mock.On("DeviceRemovedList", ctx, "tenant", paginator, filters, sorter).
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{
 				nil,
@@ -242,17 +227,21 @@ func TestListDevices(t *testing.T) {
 		{
 			description: "succeeds when status is removed",
 			tenant:      "tenant",
-			pagination:  paginator.Query{Page: 1, PerPage: 10},
-			filter: []models.Filter{
-				{
-					Type:   "property",
-					Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
+			sorter:      query.Sorter{By: "name", Order: query.OrderDesc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
 				},
 			},
-			status: status[3],
-			sort:   "name",
-			order:  order[1],
-			requiredMocks: func() {
+			status: models.DeviceStatusRemoved,
+			requiredMocks: func(_ models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
 				devices := []models.Device{
 					{UID: "uid"},
 					{UID: "uid2"},
@@ -265,14 +254,9 @@ func TestListDevices(t *testing.T) {
 					{Device: &devices[2]},
 				}
 
-				filters := []models.Filter{
-					{
-						Type:   "property",
-						Params: &models.PropertyParams{Name: "hostname", Operator: "eq"},
-					},
-				}
-				mock.On("DeviceRemovedList", ctx, "tenant", paginator.Query{Page: 1, PerPage: 10}, filters, "name", order[1]).
-					Return(removedDevices, len(removedDevices), nil).Once()
+				mock.On("DeviceRemovedList", ctx, "tenant", paginator, filters, sorter).
+					Return(removedDevices, len(removedDevices), nil).
+					Once()
 			},
 			expected: Expected{
 				[]models.Device{
@@ -292,10 +276,10 @@ func TestListDevices(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(*testing.T) {
-			tc.requiredMocks()
+			tc.requiredMocks(tc.status, tc.pagination, tc.filter, tc.sorter)
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			returnedDevices, count, err := service.ListDevices(ctx, tc.tenant, tc.pagination, tc.filter, tc.status, tc.sort, tc.order)
+			returnedDevices, count, err := service.ListDevices(ctx, tc.tenant, tc.status, tc.pagination, tc.filter, tc.sorter)
 			assert.Equal(t, tc.expected, Expected{returnedDevices, count, err})
 		})
 	}
