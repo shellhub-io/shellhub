@@ -141,6 +141,7 @@ func BuildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	return queryMatcher, nil
 }
 
+// DEPRECATED! Please, use FromPaginator instead.
 // BuildPaginationQuery creates a MongoDB's query from a paginator.Query with pagination to limit the number of returned results.
 func BuildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
