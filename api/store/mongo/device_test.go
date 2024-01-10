@@ -8,7 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -23,21 +23,19 @@ func TestDeviceList(t *testing.T) {
 	}
 	cases := []struct {
 		description string
-		paginator   paginator.Query
-		filters     []models.Filter
+		paginator   query.Paginator
+		sorter      query.Sorter
+		filters     query.Filters
 		status      models.DeviceStatus
-		sort        string
-		order       string
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when no devices are found",
-			filters:     nil,
-			paginator:   paginator.Query{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			sort:        "last_seen",
-			order:       "asc",
 			fixtures:    []string{},
 			expected: Expected{
 				dev: []models.Device{},
@@ -47,11 +45,10 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found",
-			filters:     nil,
-			paginator:   paginator.Query{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			sort:        "last_seen",
-			order:       "asc",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
@@ -142,11 +139,10 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with limited page and page size",
-			filters:     nil,
-			paginator:   paginator.Query{Page: 2, PerPage: 2},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: 2, PerPage: 2},
+			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			sort:        "last_seen",
-			order:       "asc",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
@@ -197,11 +193,10 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with sort created_at",
-			filters:     nil,
-			paginator:   paginator.Query{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			sort:        "created_at",
-			order:       "asc",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
@@ -292,11 +287,10 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with order asc",
-			filters:     nil,
-			paginator:   paginator.Query{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			sort:        "last_seen",
-			order:       "asc",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
@@ -387,11 +381,10 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with order desc",
-			filters:     nil,
-			paginator:   paginator.Query{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderDesc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			sort:        "last_seen",
-			order:       "desc",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
@@ -482,11 +475,10 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found filtering status",
-			filters:     nil,
-			paginator:   paginator.Query{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
 			status:      models.DeviceStatusPending,
-			sort:        "last_seen",
-			order:       "asc",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
@@ -530,11 +522,10 @@ func TestDeviceList(t *testing.T) {
 
 			dev, count, err := mongostore.DeviceList(
 				context.TODO(),
+				tc.status,
 				tc.paginator,
 				tc.filters,
-				tc.status,
-				tc.sort,
-				tc.order,
+				tc.sorter,
 				store.DeviceListModeDefault,
 			)
 			assert.Equal(t, tc.expected, Expected{dev: dev, len: count, err: err})

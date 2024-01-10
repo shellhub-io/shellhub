@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -19,7 +19,7 @@ const (
 )
 
 type DeviceStore interface {
-	DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, order string, mode DeviceListMode) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, mode DeviceListMode) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 	DeviceDelete(ctx context.Context, uid models.UID) error
@@ -40,7 +40,7 @@ type DeviceStore interface {
 	DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error)
 	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
-	DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, order string) ([]models.DeviceRemoved, int, error)
+	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error)
 	DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error
 	DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 }

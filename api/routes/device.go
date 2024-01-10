@@ -1,14 +1,12 @@
 package routes
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -35,29 +33,24 @@ const (
 	ParamTagName      = "name"
 )
 
-type filterQuery struct {
-	Filter  string              `query:"filter"`
-	Status  models.DeviceStatus `query:"status"`
-	SortBy  string              `query:"sort_by"`
-	OrderBy string              `query:"order_by"`
-	paginator.Query
-}
-
 func (h *Handler) GetDeviceList(c gateway.Context) error {
-	query := filterQuery{}
+	type Query struct {
+		Status models.DeviceStatus `query:"status"`
+		query.Paginator
+		query.Sorter
+		query.Filters
+	}
+
+	query := Query{}
+
 	if err := c.Bind(&query); err != nil {
 		return err
 	}
 
-	query.Normalize()
+	query.Paginator.Normalize()
+	query.Sorter.Normalize()
 
-	raw, err := base64.StdEncoding.DecodeString(query.Filter)
-	if err != nil {
-		return err
-	}
-
-	var filter []models.Filter
-	if err := json.Unmarshal(raw, &filter); len(raw) > 0 && err != nil {
+	if err := query.Filters.Unmarshal(); err != nil {
 		return err
 	}
 
@@ -66,7 +59,14 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	devices, count, err := h.service.ListDevices(c.Ctx(), tenant, query.Query, filter, query.Status, query.SortBy, query.OrderBy)
+	devices, count, err := h.service.ListDevices(
+		c.Ctx(),
+		tenant,
+		query.Status,
+		query.Paginator,
+		query.Filters,
+		query.Sorter,
+	)
 	if err != nil {
 		return err
 	}

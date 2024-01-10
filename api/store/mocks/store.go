@@ -8,8 +8,6 @@ import (
 	models "github.com/shellhub-io/shellhub/pkg/models"
 	mock "github.com/stretchr/testify/mock"
 
-	paginator "github.com/shellhub-io/shellhub/pkg/api/paginator"
-
 	query "github.com/shellhub-io/shellhub/pkg/api/query"
 
 	store "github.com/shellhub-io/shellhub/api/store"
@@ -142,9 +140,9 @@ func (_m *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Anno
 	return r0, r1
 }
 
-// AnnouncementList provides a mock function with given fields: ctx, _a1, sorter
-func (_m *Store) AnnouncementList(ctx context.Context, _a1 query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
-	ret := _m.Called(ctx, _a1, sorter)
+// AnnouncementList provides a mock function with given fields: ctx, paginator, sorter
+func (_m *Store) AnnouncementList(ctx context.Context, paginator query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
+	ret := _m.Called(ctx, paginator, sorter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AnnouncementList")
@@ -154,10 +152,10 @@ func (_m *Store) AnnouncementList(ctx context.Context, _a1 query.Paginator, sort
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Sorter) ([]models.AnnouncementShort, int, error)); ok {
-		return rf(ctx, _a1, sorter)
+		return rf(ctx, paginator, sorter)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Sorter) []models.AnnouncementShort); ok {
-		r0 = rf(ctx, _a1, sorter)
+		r0 = rf(ctx, paginator, sorter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.AnnouncementShort)
@@ -165,13 +163,13 @@ func (_m *Store) AnnouncementList(ctx context.Context, _a1 query.Paginator, sort
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Sorter) int); ok {
-		r1 = rf(ctx, _a1, sorter)
+		r1 = rf(ctx, paginator, sorter)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Sorter) error); ok {
-		r2 = rf(ctx, _a1, sorter)
+		r2 = rf(ctx, paginator, sorter)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -548,9 +546,9 @@ func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, in
 	return r0, r1, r2
 }
 
-// DeviceList provides a mock function with given fields: ctx, pagination, filters, status, sort, order, mode
-func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, filters []models.Filter, status models.DeviceStatus, sort string, order string, mode store.DeviceListMode) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, pagination, filters, status, sort, order, mode)
+// DeviceList provides a mock function with given fields: ctx, status, pagination, filters, sorter, mode
+func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, mode store.DeviceListMode) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, status, pagination, filters, sorter, mode)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceList")
@@ -559,25 +557,25 @@ func (_m *Store) DeviceList(ctx context.Context, pagination paginator.Query, fil
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) ([]models.Device, int, error)); ok {
-		return rf(ctx, pagination, filters, status, sort, order, mode)
+	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) ([]models.Device, int, error)); ok {
+		return rf(ctx, status, pagination, filters, sorter, mode)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) []models.Device); ok {
-		r0 = rf(ctx, pagination, filters, status, sort, order, mode)
+	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) []models.Device); ok {
+		r0 = rf(ctx, status, pagination, filters, sorter, mode)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) int); ok {
-		r1 = rf(ctx, pagination, filters, status, sort, order, mode)
+	if rf, ok := ret.Get(1).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) int); ok {
+		r1 = rf(ctx, status, pagination, filters, sorter, mode)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query, []models.Filter, models.DeviceStatus, string, string, store.DeviceListMode) error); ok {
-		r2 = rf(ctx, pagination, filters, status, sort, order, mode)
+	if rf, ok := ret.Get(2).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) error); ok {
+		r2 = rf(ctx, status, pagination, filters, sorter, mode)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -775,9 +773,9 @@ func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device 
 	return r0
 }
 
-// DeviceRemovedList provides a mock function with given fields: ctx, tenant, pagination, filters, sort, order
-func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination paginator.Query, filters []models.Filter, sort string, order string) ([]models.DeviceRemoved, int, error) {
-	ret := _m.Called(ctx, tenant, pagination, filters, sort, order)
+// DeviceRemovedList provides a mock function with given fields: ctx, tenant, pagination, filters, sorter
+func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error) {
+	ret := _m.Called(ctx, tenant, pagination, filters, sorter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceRemovedList")
@@ -786,25 +784,25 @@ func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, paginatio
 	var r0 []models.DeviceRemoved
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string) ([]models.DeviceRemoved, int, error)); ok {
-		return rf(ctx, tenant, pagination, filters, sort, order)
+	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) ([]models.DeviceRemoved, int, error)); ok {
+		return rf(ctx, tenant, pagination, filters, sorter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, paginator.Query, []models.Filter, string, string) []models.DeviceRemoved); ok {
-		r0 = rf(ctx, tenant, pagination, filters, sort, order)
+	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) []models.DeviceRemoved); ok {
+		r0 = rf(ctx, tenant, pagination, filters, sorter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.DeviceRemoved)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, paginator.Query, []models.Filter, string, string) int); ok {
-		r1 = rf(ctx, tenant, pagination, filters, sort, order)
+	if rf, ok := ret.Get(1).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) int); ok {
+		r1 = rf(ctx, tenant, pagination, filters, sorter)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, paginator.Query, []models.Filter, string, string) error); ok {
-		r2 = rf(ctx, tenant, pagination, filters, sort, order)
+	if rf, ok := ret.Get(2).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) error); ok {
+		r2 = rf(ctx, tenant, pagination, filters, sorter)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1132,9 +1130,9 @@ func (_m *Store) FirewallRuleGetTags(ctx context.Context, tenant string) ([]stri
 	return r0, r1, r2
 }
 
-// FirewallRuleList provides a mock function with given fields: ctx, _a1
-func (_m *Store) FirewallRuleList(ctx context.Context, _a1 query.Paginator) ([]models.FirewallRule, int, error) {
-	ret := _m.Called(ctx, _a1)
+// FirewallRuleList provides a mock function with given fields: ctx, paginator
+func (_m *Store) FirewallRuleList(ctx context.Context, paginator query.Paginator) ([]models.FirewallRule, int, error) {
+	ret := _m.Called(ctx, paginator)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FirewallRuleList")
@@ -1144,10 +1142,10 @@ func (_m *Store) FirewallRuleList(ctx context.Context, _a1 query.Paginator) ([]m
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.FirewallRule, int, error)); ok {
-		return rf(ctx, _a1)
+		return rf(ctx, paginator)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.FirewallRule); ok {
-		r0 = rf(ctx, _a1)
+		r0 = rf(ctx, paginator)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.FirewallRule)
@@ -1155,13 +1153,13 @@ func (_m *Store) FirewallRuleList(ctx context.Context, _a1 query.Paginator) ([]m
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, _a1)
+		r1 = rf(ctx, paginator)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, _a1)
+		r2 = rf(ctx, paginator)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1631,9 +1629,9 @@ func (_m *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string)
 	return r0, r1
 }
 
-// NamespaceList provides a mock function with given fields: ctx, _a1, filters, export
-func (_m *Store) NamespaceList(ctx context.Context, _a1 query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error) {
-	ret := _m.Called(ctx, _a1, filters, export)
+// NamespaceList provides a mock function with given fields: ctx, paginator, filters, export
+func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error) {
+	ret := _m.Called(ctx, paginator, filters, export)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceList")
@@ -1643,10 +1641,10 @@ func (_m *Store) NamespaceList(ctx context.Context, _a1 query.Paginator, filters
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, bool) ([]models.Namespace, int, error)); ok {
-		return rf(ctx, _a1, filters, export)
+		return rf(ctx, paginator, filters, export)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, bool) []models.Namespace); ok {
-		r0 = rf(ctx, _a1, filters, export)
+		r0 = rf(ctx, paginator, filters, export)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Namespace)
@@ -1654,13 +1652,13 @@ func (_m *Store) NamespaceList(ctx context.Context, _a1 query.Paginator, filters
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters, bool) int); ok {
-		r1 = rf(ctx, _a1, filters, export)
+		r1 = rf(ctx, paginator, filters, export)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters, bool) error); ok {
-		r2 = rf(ctx, _a1, filters, export)
+		r2 = rf(ctx, paginator, filters, export)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1971,9 +1969,9 @@ func (_m *Store) PublicKeyGetTags(ctx context.Context, tenant string) ([]string,
 	return r0, r1, r2
 }
 
-// PublicKeyList provides a mock function with given fields: ctx, _a1
-func (_m *Store) PublicKeyList(ctx context.Context, _a1 query.Paginator) ([]models.PublicKey, int, error) {
-	ret := _m.Called(ctx, _a1)
+// PublicKeyList provides a mock function with given fields: ctx, paginator
+func (_m *Store) PublicKeyList(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
+	ret := _m.Called(ctx, paginator)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PublicKeyList")
@@ -1983,10 +1981,10 @@ func (_m *Store) PublicKeyList(ctx context.Context, _a1 query.Paginator) ([]mode
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.PublicKey, int, error)); ok {
-		return rf(ctx, _a1)
+		return rf(ctx, paginator)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.PublicKey); ok {
-		r0 = rf(ctx, _a1)
+		r0 = rf(ctx, paginator)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.PublicKey)
@@ -1994,13 +1992,13 @@ func (_m *Store) PublicKeyList(ctx context.Context, _a1 query.Paginator) ([]mode
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, _a1)
+		r1 = rf(ctx, paginator)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, _a1)
+		r2 = rf(ctx, paginator)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2295,9 +2293,9 @@ func (_m *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]m
 	return r0, r1, r2
 }
 
-// SessionList provides a mock function with given fields: ctx, _a1
-func (_m *Store) SessionList(ctx context.Context, _a1 query.Paginator) ([]models.Session, int, error) {
-	ret := _m.Called(ctx, _a1)
+// SessionList provides a mock function with given fields: ctx, paginator
+func (_m *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
+	ret := _m.Called(ctx, paginator)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionList")
@@ -2307,10 +2305,10 @@ func (_m *Store) SessionList(ctx context.Context, _a1 query.Paginator) ([]models
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.Session, int, error)); ok {
-		return rf(ctx, _a1)
+		return rf(ctx, paginator)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.Session); ok {
-		r0 = rf(ctx, _a1)
+		r0 = rf(ctx, paginator)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Session)
@@ -2318,13 +2316,13 @@ func (_m *Store) SessionList(ctx context.Context, _a1 query.Paginator) ([]models
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, _a1)
+		r1 = rf(ctx, paginator)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, _a1)
+		r2 = rf(ctx, paginator)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2744,9 +2742,9 @@ func (_m *Store) UserGetToken(ctx context.Context, id string) (*models.UserToken
 	return r0, r1
 }
 
-// UserList provides a mock function with given fields: ctx, _a1, filters
-func (_m *Store) UserList(ctx context.Context, _a1 query.Paginator, filters query.Filters) ([]models.User, int, error) {
-	ret := _m.Called(ctx, _a1, filters)
+// UserList provides a mock function with given fields: ctx, paginator, filters
+func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
+	ret := _m.Called(ctx, paginator, filters)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserList")
@@ -2756,10 +2754,10 @@ func (_m *Store) UserList(ctx context.Context, _a1 query.Paginator, filters quer
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) ([]models.User, int, error)); ok {
-		return rf(ctx, _a1, filters)
+		return rf(ctx, paginator, filters)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) []models.User); ok {
-		r0 = rf(ctx, _a1, filters)
+		r0 = rf(ctx, paginator, filters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
@@ -2767,13 +2765,13 @@ func (_m *Store) UserList(ctx context.Context, _a1 query.Paginator, filters quer
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters) int); ok {
-		r1 = rf(ctx, _a1, filters)
+		r1 = rf(ctx, paginator, filters)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters) error); ok {
-		r2 = rf(ctx, _a1, filters)
+		r2 = rf(ctx, paginator, filters)
 	} else {
 		r2 = ret.Error(2)
 	}

@@ -9,7 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/paginator"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -20,7 +20,7 @@ import (
 const StatusAccepted = "accepted"
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status models.DeviceStatus, sort, order string) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
@@ -33,7 +33,7 @@ type DeviceService interface {
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
 
-func (s *service) ListDevices(ctx context.Context, tenant string, pagination paginator.Query, filter []models.Filter, status models.DeviceStatus, sort, order string) ([]models.Device, int, error) {
+func (s *service) ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
 	switch status {
 	case models.DeviceStatusPending, models.DeviceStatusRejected:
 		ns, err := s.store.NamespaceGet(ctx, tenant)
@@ -47,10 +47,10 @@ func (s *service) ListDevices(ctx context.Context, tenant string, pagination pag
 		}
 
 		if ns.HasMaxDevices() && int64(ns.DevicesCount)+count >= int64(ns.MaxDevices) {
-			return s.store.DeviceList(ctx, pagination, filter, status, sort, order, store.DeviceListModeMaxDeviceReached)
+			return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceListModeMaxDeviceReached)
 		}
 	case models.DeviceStatusRemoved:
-		removed, count, err := s.store.DeviceRemovedList(ctx, tenant, pagination, filter, sort, order)
+		removed, count, err := s.store.DeviceRemovedList(ctx, tenant, paginator, filter, sorter)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -63,7 +63,7 @@ func (s *service) ListDevices(ctx context.Context, tenant string, pagination pag
 		return devices, count, nil
 	}
 
-	return s.store.DeviceList(ctx, pagination, filter, status, sort, order, store.DeviceListModeDefault)
+	return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceListModeDefault)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
