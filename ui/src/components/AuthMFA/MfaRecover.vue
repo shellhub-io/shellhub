@@ -25,6 +25,7 @@
       v-model="recoveryCode"
       color="primary"
       required
+      @keyup.enter="recoveryCode ? loginMfa() : false"
       label="Recovery Code"
       variant="outlined"
       data-test="recovery-code"

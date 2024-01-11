@@ -20,30 +20,25 @@
         <h4 data-test="sub-title">Verify your identity by signing in using the code from your OTP Provider</h4>
       </v-col>
     </v-row>
-    <v-form
-      v-model="validForm"
-      @submit.prevent="loginMfa"
-      data-test="form"
-    >
-      <v-otp-input
-        data-test="verification-code"
-        required
-        v-model="verificationCode"
-        label="Verification Code"
-        variant="underlined" />
-      <v-card-actions class="justify-center pa-0">
-        <v-btn
-          :disabled="!verificationCode"
-          data-test="verify-btn"
-          color="primary"
-          variant="tonal"
-          block
-          @click="loginMfa()"
-        >
-          Verify
-        </v-btn>
-      </v-card-actions>
-    </v-form>
+    <v-otp-input
+      data-test="verification-code"
+      required
+      v-model="verificationCode"
+      @keyup.enter="verificationCode ? loginMfa() : false"
+      label="Verification Code"
+      variant="underlined" />
+    <v-card-actions class="justify-center pa-0">
+      <v-btn
+        :disabled="!verificationCode"
+        data-test="verify-btn"
+        color="primary"
+        variant="tonal"
+        block
+        @click="loginMfa()"
+      >
+        Verify
+      </v-btn>
+    </v-card-actions>
     <v-card-subtitle
       class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
       data-test="redirect-recover"
@@ -69,7 +64,6 @@ import handleError from "@/utils/handleError";
 const store = useStore();
 const router = useRouter();
 const verificationCode = ref("");
-const validForm = ref(false);
 const showAlert = ref(false);
 const alertMessage = ref("");
 

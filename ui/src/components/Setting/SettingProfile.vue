@@ -151,16 +151,61 @@
             </v-col>
           </v-row>
 
-          <div class="mt-4 pl-4 pr-4">
+          <div class="mt-4 pl-4 pr-4 pb-4 mb-4">
             <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
               using your favorite TOPT Provider in order to access your ShellHub account.</p>
-            <div v-if="mfaEnabled.mfa">
+            <div v-if="mfaEnabled">
               <mfa-disable />
             </div>
             <div v-else>
               <mfa-settings />
             </div>
-          </div></div>
+          </div>
+          <v-row justify="center">
+            <v-dialog v-model="dialog" width="auto" scrollable transition="dialog-bottom-transition" data-test="dialog">
+              <v-card class="bg-v-theme-surface content" width="650" data-test="card-first-page">
+                <v-container>
+                  <v-row>
+                    <v-col align="center" data-test="congratulation-text">
+                      <h2>Congratulations! You've successfully verified your code.</h2>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col align="center">
+                      <v-icon
+                        end
+                        icon="mdi-cloud-lock-outline"
+                        color="green"
+                        size="100"
+                        class="green-cloud"
+                        data-test="green-cloud-icon" />
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col align="start" class="ml-5 pb-0" data-test="title-bp">
+                      <h4>Your account is now more secure with:</h4>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col class="ml-5 pt-0" data-test="congratulation-bullet-point">
+                      <ul>
+                        <li>Two-step verification adding an extra layer of protection.</li>
+                        <li>Reduced risk of unauthorized access even if your password is compromised.</li>
+                        <li>Enhanced security against phishing attacks and identity theft.</li>
+                      </ul>
+                    </v-col>
+                  </v-row>
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" data-test="close-btn" @keyup.enter="close()" @click="close()">
+                      Close
+                    </v-btn>
+                  </v-card-actions>
+                </v-container>
+              </v-card>
+            </v-dialog>
+          </v-row>
+        </div>
       </v-col>
     </v-row>
   </v-container>
@@ -168,7 +213,7 @@
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { ref, computed, onMounted, reactive } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
@@ -185,7 +230,14 @@ const editPasswordStatus = ref(false);
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
-const mfaEnabled = reactive({ mfa: computed(() => store.getters["auth/mfaStatus"]) });
+const dialog = ref(false);
+const mfaEnabled = computed(() => store.getters["auth/mfaStatus"]);
+const showCongratulations = computed(() => store.getters["auth/showCongratulations"]);
+watch(mfaEnabled, () => {
+  if (showCongratulations.value === true) {
+    dialog.value = true;
+  }
+});
 
 const {
   value: name,
@@ -201,33 +253,27 @@ const {
   value: username,
   errorMessage: usernameError,
   setErrors: setUsernameError,
-} = useField<string>(
-  "username",
-  yup
-    .string()
-    .required()
-    .min(3)
-    .max(32)
-    .test(
-      "username-error",
-      "The username only accepts the lowercase letters and this special characters _, ., - and @.",
-      (value) => {
-        const regex = /^[a-z0-9_.@-\s]*$/;
-        return regex.test(value || "");
-      },
-    )
-    .test(
-      "white-spaces",
-      "The username cannot contain white spaces.",
-      (value) => {
-        const regex = /\s/;
-        return !regex.test(value || "");
-      },
-    ),
-  {
-    initialValue: "",
-  },
-);
+} = useField<string>("name", yup.string().required()
+  .min(1, "Your name should be 1-32 characters long")
+  .max(32, "Your name should be 1-32 characters long")
+  .test(
+    "username-error",
+    "The username only accepts the lowercase letters and this special characters _, ., - and @.",
+    (value) => {
+      const regex = /^[a-z0-9_.@-\s]*$/;
+      return regex.test(value || "");
+    },
+  )
+  .test(
+    "white-spaces",
+    "The username cannot contain white spaces.",
+    (value) => {
+      const regex = /\s/;
+      return !regex.test(value || "");
+    },
+  ), {
+  initialValue: "",
+});
 
 const {
   value: email,
@@ -302,6 +348,7 @@ const enableEdit = (form: string) => {
     editPasswordStatus.value = !editPasswordStatus.value;
   }
 };
+
 const updateUserData = async () => {
   if (!hasUserDataError.value) {
     const data = {
@@ -402,4 +449,15 @@ const cancel = (type: string) => {
     editPasswordStatus.value = !editPasswordStatus.value;
   }
 };
+
+const close = () => {
+  dialog.value = false;
+  store.commit("auth/showCongratulationsModal");
+};
 </script>
+
+<style scoped>
+.green-cloud {
+  filter: drop-shadow(0px 0px 30px rgba(43, 255, 10, 0.444))
+}
+</style>

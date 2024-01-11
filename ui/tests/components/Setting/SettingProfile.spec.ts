@@ -123,12 +123,12 @@ describe("Settings Namespace", () => {
       id: "xxxxxxxx",
     };
 
+    mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/data").reply(200);
+
+    await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
     await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
-
-    mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/data").reply(200);
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="update-user-btn"]').trigger("click");
