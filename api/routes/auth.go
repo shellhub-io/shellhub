@@ -100,14 +100,14 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			return err
 		}
 
-		if MFA != claims.MFA.Status {
-			if !MFA {
-				return svc.NewErrAuthUnathorized(errors.New("necessary enable MFA"))
+		if MFA {
+			if claims.MFA.Enable != MFA {
+				return svc.NewErrAuthUnathorized(errors.New("this token doesn't match the user MFA status"))
 			}
-		}
 
-		if !claims.MFA.Validate {
-			return svc.NewErrAuthUnathorized(errors.New("necessary enable MFA"))
+			if !claims.MFA.Validate {
+				return svc.NewErrAuthUnathorized(errors.New("this token isn't validated"))
+			}
 		}
 
 		// Extract datas of user from JWT
@@ -115,7 +115,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-ID", claims.ID)
 		c.Response().Header().Set("X-Role", claims.Role)
-		c.Response().Header().Set("X-MFA", strconv.FormatBool(claims.MFA.Status))
+		c.Response().Header().Set("X-MFA", strconv.FormatBool(claims.MFA.Enable))
 		c.Response().Header().Set("X-Validate-MFA", strconv.FormatBool(claims.MFA.Validate))
 
 		return c.NoContent(http.StatusOK)
@@ -162,6 +162,7 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 
 func (h *Handler) AuthUser(c gateway.Context) error {
 	var req requests.UserAuth
+
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -173,7 +174,7 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 	res, err := h.service.AuthUser(c.Ctx(), &models.UserAuthRequest{
 		Identifier: models.UserAuthIdentifier(req.Username),
 		Password:   req.Password,
-	}, true)
+	})
 	if err != nil {
 		if errors.Is(err, svc.ErrUserNotFound) {
 			return errs.NewErrUnauthorized(err)

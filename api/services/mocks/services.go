@@ -286,9 +286,9 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 	return r0
 }
 
-// AuthUser provides a mock function with given fields: ctx, model, validate
-func (_m *Service) AuthUser(ctx context.Context, model *models.UserAuthRequest, validate bool) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, model, validate)
+// AuthUser provides a mock function with given fields: ctx, model
+func (_m *Service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, model)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthUser")
@@ -296,19 +296,19 @@ func (_m *Service) AuthUser(ctx context.Context, model *models.UserAuthRequest, 
 
 	var r0 *models.UserAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest, bool) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, model, validate)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, model)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest, bool) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, model, validate)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthRequest) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, model)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *models.UserAuthRequest, bool) error); ok {
-		r1 = rf(ctx, model, validate)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.UserAuthRequest) error); ok {
+		r1 = rf(ctx, model)
 	} else {
 		r1 = ret.Error(1)
 	}

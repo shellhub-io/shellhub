@@ -100,7 +100,7 @@ type UserAuthResponse struct {
 	Tenant string `json:"tenant"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
-	MFA    bool   `json:"mfa" bson:"mfa"`
+	MFA    MFA    `json:"mfa" bson:"mfa"`
 }
 
 type UserAuthClaims struct {

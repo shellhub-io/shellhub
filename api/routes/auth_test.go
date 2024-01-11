@@ -195,7 +195,7 @@ func TestAuthUser(t *testing.T) {
 					Password:   "testpassword",
 				}
 
-				mock.On("AuthUser", gomock.Anything, req, true).Return(&models.UserAuthResponse{}, nil).Once()
+				mock.On("AuthUser", gomock.Anything, req).Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.UserAuthResponse{},
@@ -233,7 +233,7 @@ func TestAuthUser(t *testing.T) {
 				Password:   "password",
 			},
 			requiredMocks: func() {
-				mock.On("AuthUser", gomock.Anything, gomock.Anything, gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
+				mock.On("AuthUser", gomock.Anything, gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
 			},
 			expected: Expected{
 				expectedResponse: nil,
@@ -516,7 +516,7 @@ func TestAuthRequest(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("PublicKey").Return(&privateKey.PublicKey).Once()
 				mock.On("AuthIsCacheToken", gomock.Anything, "tenant", "id").Return(true, nil).Once()
-				mock.On("AuthMFA", gomock.Anything, "id").Return(true, nil).Once()
+				mock.On("AuthMFA", gomock.Anything, "id").Return(false, nil).Once()
 			},
 			expected: Expected{
 				expectedStatus: http.StatusOK,
