@@ -302,24 +302,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
       </div>
       <hr class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
       <hr class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-      <div class=\\"v-row\\">
-        <div class=\\"v-col\\">
-          <h3> Enable MFA </h3>
-        </div>
-      </div>
-      <div class=\\"mt-4 pl-4 pr-4\\">
-        <p class=\\"mb-4\\">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent using your favorite TOPT Provider in order to access your ShellHub account.</p>
-        <div><button data-v-491349b1=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mb-6\\" tabindex=\\"0\\" data-test=\\"enable-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Enable MFA</span>
-            <!---->
-            <!---->
-          </button>
-          <div data-v-491349b1=\\"\\" class=\\"v-row justify-center\\">
-            <!---->
-            <!---->
-          </div>
-        </div>
-      </div>
+      <!--v-if-->
     </div>
   </div>
 </div>"
