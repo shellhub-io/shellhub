@@ -26,7 +26,7 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, model *models.UserAuthRequest, validate bool) (*models.UserAuthResponse, error)
+	AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
@@ -136,7 +136,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest, validate bool) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
 	var err error
 	var user *models.User
 
@@ -185,8 +185,8 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest, v
 			Admin:    true,
 			Username: user.Username,
 			MFA: models.MFA{
-				Status:   status,
-				Validate: validate,
+				Enable:   status,
+				Validate: false,
 			},
 			AuthClaims: models.AuthClaims{
 				Claims: "user",
@@ -214,7 +214,10 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest, v
 		Tenant: tenant,
 		Role:   role,
 		Email:  user.Email,
-		MFA:    status,
+		MFA: models.MFA{
+			Enable:   status,
+			Validate: false,
+		},
 	}, nil
 }
 
@@ -250,7 +253,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 			Admin:    true,
 			Username: user.Username,
 			MFA: models.MFA{
-				Status:   status,
+				Enable:   status,
 				Validate: mfa,
 			},
 			AuthClaims: models.AuthClaims{
@@ -273,7 +276,10 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 		Tenant: tenant,
 		Role:   role,
 		Email:  user.Email,
-		MFA:    status,
+		MFA: models.MFA{
+			Enable:   status,
+			Validate: mfa,
+		},
 	}, nil
 }
 
@@ -370,7 +376,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 
 	token = strings.Replace(token, "Bearer ", "", 1)
 
-	MFA, err := s.AuthMFA(ctx, user.ID)
+	status, err := s.AuthMFA(ctx, user.ID)
 	if err != nil {
 		return nil, NewErrUserNotFound(user.ID, err)
 	}
@@ -383,7 +389,9 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 		Role:   role,
 		ID:     user.ID,
 		Email:  user.Email,
-		MFA:    MFA,
+		MFA: models.MFA{
+			Enable: status,
+		},
 	}, nil
 }
 

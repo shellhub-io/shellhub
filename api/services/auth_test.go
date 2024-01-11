@@ -170,7 +170,7 @@ func TestAuthUser(t *testing.T) {
 			authRes, err := service.AuthUser(ctx, &models.UserAuthRequest{
 				Identifier: models.UserAuthIdentifier(tc.req.Username),
 				Password:   tc.req.Password,
-			}, true)
+			})
 			assert.Equal(t, tc.expected, Expected{authRes, err})
 		})
 	}

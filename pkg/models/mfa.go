@@ -7,7 +7,7 @@ type EnableMFA struct {
 }
 
 type MFA struct {
-	Status   bool `json:"status"`
+	Enable   bool `json:"enable"`
 	Validate bool `json:"validate"`
 }
 
