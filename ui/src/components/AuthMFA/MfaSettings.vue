@@ -14,7 +14,7 @@
           <v-window v-model="el">
             <v-window-item :value="1">
               <v-row>
-                <v-col align="center" class="pa-0" data-test="title-first-page">
+                <v-col align="center" class="pt-2" data-test="title-first-page">
                   <h2>Your Recovery Codes</h2>
                 </v-col>
               </v-row>
@@ -136,9 +136,9 @@
                       data-test="verification-code"
                       required
                       v-model="verificationCode"
+                      @keyup.enter="verificationCode ? enableMfa() : false"
                       label="Verification Code"
                       variant="underlined" />
-
                   </v-col>
                 </v-row>
                 <v-card-actions>
@@ -152,44 +152,6 @@
                   </v-btn>
                 </v-card-actions>
               </v-card>
-            </v-window-item>
-            <v-window-item :value="3">
-              <v-row>
-                <v-col align="center" data-test="congratulation-text">
-                  <h2>Congratulations! You've successfully verified your code.</h2>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col align="center">
-                  <v-icon
-                    end
-                    icon="mdi-cloud-lock-outline"
-                    color="green"
-                    size="100"
-                    class="green-cloud"
-                    data-test="green-cloud-icon" />
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col align="start" class="ml-5 pb-0" data-test="title-bp">
-                  <h4>Your account is now more secure with:</h4>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col class="ml-5 pt-0" data-test="congratulation-bullet-point">
-                  <ul>
-                    <li>Two-step verification adding an extra layer of protection.</li>
-                    <li>Reduced risk of unauthorized access even if your password is compromised.</li>
-                    <li>Enhanced security against phishing attacks and identity theft.</li>
-                  </ul>
-                </v-col>
-              </v-row>
-              <v-card-actions>
-                <v-spacer />
-                <v-btn variant="text" data-test="close-btn" @click="dialog = false">
-                  Close
-                </v-btn>
-              </v-card-actions>
             </v-window-item>
           </v-window>
         </v-container>
@@ -263,8 +225,6 @@ const enableMfa = async () => {
       token_mfa: verificationCode.value,
       secret: secret.value,
       codes: recoveryCodes.value,
-    }).then(() => {
-      el.value = 3;
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -289,9 +249,3 @@ defineExpose({
   el,
 });
 </script>
-
-<style scoped>
-.green-cloud {
-  filter: drop-shadow(0px 0px 30px rgba(43, 255, 10, 0.444))
-}
-</style>

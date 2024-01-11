@@ -1191,6 +1191,19 @@ export interface NamespaceSettings {
     'session_record'?: boolean;
 }
 /**
+ * OTP Code MFA
+ * @export
+ * @interface OtpCode
+ */
+export interface OtpCode {
+    /**
+     * OTP code
+     * @type {string}
+     * @memberof OtpCode
+     */
+    'code'?: string;
+}
+/**
  * @type PublicKeyFilter
  * Public key\'s filter rule.   The `filter`` rule defines how if the public key is valid to a device.  - When `hostname` object is set, the public key will be used in a device what matches with hostname. - When `tags` object is set, it matches the device what contains at least one of that tags. 
  * @export
@@ -2953,11 +2966,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * validate MFA to users with MFA Enable.
          * @summary Make validation code to MFA connection
-         * @param {string} [body] 
+         * @param {OtpCode} [otpCode] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        code: async (body?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        code: async (otpCode?: OtpCode, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/mfa/auth`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2981,7 +2994,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(otpCode, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -4090,12 +4103,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * validate MFA to users with MFA Enable.
          * @summary Make validation code to MFA connection
-         * @param {string} [body] 
+         * @param {OtpCode} [otpCode] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async code(body?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EnableMFA200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.code(body, options);
+        async code(otpCode?: OtpCode, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EnableMFA200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.code(otpCode, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -4450,12 +4463,12 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
         /**
          * validate MFA to users with MFA Enable.
          * @summary Make validation code to MFA connection
-         * @param {string} [body] 
+         * @param {OtpCode} [otpCode] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        code(body?: string, options?: any): AxiosPromise<EnableMFA200Response> {
-            return localVarFp.code(body, options).then((request) => request(axios, basePath));
+        code(otpCode?: OtpCode, options?: any): AxiosPromise<EnableMFA200Response> {
+            return localVarFp.code(otpCode, options).then((request) => request(axios, basePath));
         },
         /**
          * creates a new customer defining, optionaly, the default payment method.
@@ -4787,13 +4800,13 @@ export class CloudApi extends BaseAPI {
     /**
      * validate MFA to users with MFA Enable.
      * @summary Make validation code to MFA connection
-     * @param {string} [body] 
+     * @param {OtpCode} [otpCode] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof CloudApi
      */
-    public code(body?: string, options?: AxiosRequestConfig) {
-        return CloudApiFp(this.configuration).code(body, options).then((request) => request(this.axios, this.basePath));
+    public code(otpCode?: OtpCode, options?: AxiosRequestConfig) {
+        return CloudApiFp(this.configuration).code(otpCode, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6805,11 +6818,11 @@ export const MfaApiAxiosParamCreator = function (configuration?: Configuration) 
         /**
          * validate MFA to users with MFA Enable.
          * @summary Make validation code to MFA connection
-         * @param {string} [body] 
+         * @param {OtpCode} [otpCode] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        code: async (body?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        code: async (otpCode?: OtpCode, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/mfa/auth`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6833,7 +6846,7 @@ export const MfaApiAxiosParamCreator = function (configuration?: Configuration) 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(otpCode, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -6997,12 +7010,12 @@ export const MfaApiFp = function(configuration?: Configuration) {
         /**
          * validate MFA to users with MFA Enable.
          * @summary Make validation code to MFA connection
-         * @param {string} [body] 
+         * @param {OtpCode} [otpCode] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async code(body?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EnableMFA200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.code(body, options);
+        async code(otpCode?: OtpCode, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EnableMFA200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.code(otpCode, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -7060,12 +7073,12 @@ export const MfaApiFactory = function (configuration?: Configuration, basePath?:
         /**
          * validate MFA to users with MFA Enable.
          * @summary Make validation code to MFA connection
-         * @param {string} [body] 
+         * @param {OtpCode} [otpCode] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        code(body?: string, options?: any): AxiosPromise<EnableMFA200Response> {
-            return localVarFp.code(body, options).then((request) => request(axios, basePath));
+        code(otpCode?: OtpCode, options?: any): AxiosPromise<EnableMFA200Response> {
+            return localVarFp.code(otpCode, options).then((request) => request(axios, basePath));
         },
         /**
          * Disable a mfa status.
@@ -7118,13 +7131,13 @@ export class MfaApi extends BaseAPI {
     /**
      * validate MFA to users with MFA Enable.
      * @summary Make validation code to MFA connection
-     * @param {string} [body] 
+     * @param {OtpCode} [otpCode] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MfaApi
      */
-    public code(body?: string, options?: AxiosRequestConfig) {
-        return MfaApiFp(this.configuration).code(body, options).then((request) => request(this.axios, this.basePath));
+    public code(otpCode?: OtpCode, options?: AxiosRequestConfig) {
+        return MfaApiFp(this.configuration).code(otpCode, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

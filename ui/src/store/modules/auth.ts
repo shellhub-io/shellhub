@@ -16,6 +16,7 @@ export interface AuthState {
   link_mfa: string;
   mfaStatus: boolean,
   recoveryCodes: Array<number>,
+  showCongratulations: boolean,
 }
 export const auth: Module<AuthState, State> = {
   namespaced: true,
@@ -32,6 +33,7 @@ export const auth: Module<AuthState, State> = {
     link_mfa: "",
     mfaStatus: false,
     recoveryCodes: [],
+    showCongratulations: false,
   },
 
   getters: {
@@ -47,6 +49,7 @@ export const auth: Module<AuthState, State> = {
     secret: (state) => state.secret,
     link_mfa: (state) => state.link_mfa,
     mfaStatus: (state) => state.mfaStatus,
+    showCongratulations: (state) => state.showCongratulations,
     recoveryCodes: (state) => state.recoveryCodes,
   },
 
@@ -55,8 +58,12 @@ export const auth: Module<AuthState, State> = {
       state.status = "loading";
     },
 
-    mfaDisable(state) {
-      state.mfaStatus = false;
+    showCongratulationsModal(state) {
+      state.showCongratulations = !state.showCongratulations;
+    },
+
+    mfaStatus(state, data) {
+      state.mfaStatus = data;
     },
 
     mfaToken(state, data) {
@@ -94,6 +101,12 @@ export const auth: Module<AuthState, State> = {
       state.name = data.name;
       state.user = data.username;
       state.email = data.email;
+    },
+
+    mfaGenerateInfo(state, data) {
+      state.link_mfa = data.link;
+      state.secret = data.secret;
+      state.recoveryCodes = data.codes;
     },
 
     userInfo(state, data) {
@@ -151,6 +164,7 @@ export const auth: Module<AuthState, State> = {
         localStorage.setItem("email", resp.data.email ?? "");
         localStorage.setItem("namespacesWelcome", JSON.stringify({}));
         localStorage.setItem("role", resp.data.role ?? "");
+        localStorage.setItem("mfa", resp.data.mfa ? "true" : "false");
         context.commit("authSuccess", resp.data);
       } catch (error) {
         context.commit("authError");
@@ -161,7 +175,7 @@ export const auth: Module<AuthState, State> = {
     async disableMfa(context) {
       try {
         await apiAuth.disableMfa();
-        context.commit("mfaDisable");
+        context.commit("mfaStatus", false);
         localStorage.setItem("mfa", "false");
       } catch (error) {
         context.commit("authError");
@@ -171,7 +185,15 @@ export const auth: Module<AuthState, State> = {
 
     async enableMfa(context, data) {
       try {
-        await apiAuth.enableMFA(data);
+        const resp = await apiAuth.enableMFA(data);
+
+        if (resp.status === 200) {
+          context.commit("mfaToken", resp.data.token);
+          localStorage.setItem("token", resp.data.token || "");
+          localStorage.setItem("mfa", "true");
+          context.commit("mfaStatus", true);
+          context.commit("showCongratulationsModal");
+        }
       } catch (error) {
         context.commit("authError");
         throw error;
@@ -196,7 +218,7 @@ export const auth: Module<AuthState, State> = {
       try {
         const resp = await apiAuth.generateMfa();
         if (resp.status === 200) {
-          context.commit("userInfo", resp.data);
+          context.commit("mfaGenerateInfo", resp.data);
         }
       } catch (error) {
         context.commit("authError");

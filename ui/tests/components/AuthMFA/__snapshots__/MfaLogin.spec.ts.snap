@@ -13,200 +13,198 @@ exports[`MfaLogin > Renders the component 1`] = `
       <h4 data-test=\\"sub-title\\">Verify your identity by signing in using the code from your OTP Provider</h4>
     </div>
   </div>
-  <form class=\\"v-form\\" novalidate=\\"\\" data-test=\\"form\\">
-    <div class=\\"v-otp-input\\" data-test=\\"verification-code\\" required=\\"\\">
-      <div class=\\"v-otp-input__content\\">
-        <!---->
-        <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-          <div class=\\"v-field__overlay\\"></div>
-          <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-              <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                <div class=\\"v-progress-linear__indeterminate\\">
-                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-            <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
-              <!---->
-              <!---->
-            </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
-          </div>
-          <!---->
-          <!---->
-          <div class=\\"v-field__outline\\">
+  <div class=\\"v-otp-input\\" data-test=\\"verification-code\\" required=\\"\\">
+    <div class=\\"v-otp-input__content\\">
+      <!---->
+      <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
             <!---->
           </div>
         </div>
         <!---->
-        <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-          <div class=\\"v-field__overlay\\"></div>
-          <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-              <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                <div class=\\"v-progress-linear__indeterminate\\">
-                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-            <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
-              <!---->
-              <!---->
-            </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
-          </div>
-          <!---->
-          <!---->
-          <div class=\\"v-field__outline\\">
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
             <!---->
             <!---->
-          </div>
+          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
-        <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-          <div class=\\"v-field__overlay\\"></div>
-          <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-              <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                <div class=\\"v-progress-linear__indeterminate\\">
-                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-            <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
-              <!---->
-              <!---->
-            </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
-          </div>
+        <!---->
+        <div class=\\"v-field__outline\\">
           <!---->
           <!---->
-          <div class=\\"v-field__outline\\">
-            <!---->
-            <!---->
-          </div>
         </div>
-        <!---->
-        <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-          <div class=\\"v-field__overlay\\"></div>
-          <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-              <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                <div class=\\"v-progress-linear__indeterminate\\">
-                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-            <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\">
-              <!---->
-              <!---->
-            </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
-          </div>
-          <!---->
-          <!---->
-          <div class=\\"v-field__outline\\">
-            <!---->
-            <!---->
-          </div>
-        </div>
-        <!---->
-        <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-          <div class=\\"v-field__overlay\\"></div>
-          <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-              <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                <div class=\\"v-progress-linear__indeterminate\\">
-                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-            <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
-              <!---->
-              <!---->
-            </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
-          </div>
-          <!---->
-          <!---->
-          <div class=\\"v-field__outline\\">
-            <!---->
-            <!---->
-          </div>
-        </div>
-        <!---->
-        <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-          <div class=\\"v-field__overlay\\"></div>
-          <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-              <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
-              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                <div class=\\"v-progress-linear__indeterminate\\">
-                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-            <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\">
-              <!---->
-              <!---->
-            </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
-          </div>
-          <!---->
-          <!---->
-          <div class=\\"v-field__outline\\">
-            <!---->
-            <!---->
-          </div>
-        </div><input class=\\"v-otp-input-input\\" type=\\"hidden\\" required=\\"\\">
-        <!---->
-        <!---->
-        <!---->
       </div>
+      <!---->
+      <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
+            <!---->
+            <!---->
+          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!---->
+          <!---->
+        </div>
+      </div>
+      <!---->
+      <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
+            <!---->
+            <!---->
+          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!---->
+          <!---->
+        </div>
+      </div>
+      <!---->
+      <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\">
+            <!---->
+            <!---->
+          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!---->
+          <!---->
+        </div>
+      </div>
+      <!---->
+      <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
+            <!---->
+            <!---->
+          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!---->
+          <!---->
+        </div>
+      </div>
+      <!---->
+      <div class=\\"v-field v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\">
+            <!---->
+            <!---->
+          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!---->
+          <!---->
+        </div>
+      </div><input class=\\"v-otp-input-input\\" type=\\"hidden\\" required=\\"\\">
+      <!---->
+      <!---->
+      <!---->
     </div>
-    <div class=\\"v-card-actions justify-center pa-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--block v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"verify-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Verify </span>
-        <!---->
-        <!---->
-      </button></div>
-  </form>
+  </div>
+  <div class=\\"v-card-actions justify-center pa-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--block v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"verify-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Verify </span>
+      <!---->
+      <!---->
+    </button></div>
   <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0\\" data-test=\\"redirect-recover\\"> Did you <a href=\\"/recover-mfa\\" class=\\"ml-1\\"> Lost your TOPT password? </a></div>
 </div>"
 `;
