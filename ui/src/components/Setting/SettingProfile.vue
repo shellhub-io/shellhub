@@ -142,25 +142,25 @@
 
         <v-divider class="mt-6" />
         <v-divider class="mb-6" />
+        <div v-if="envVariables.isEnterprise">
+          <v-row>
+            <v-col>
+              <h3>
+                Enable MFA
+              </h3>
+            </v-col>
+          </v-row>
 
-        <v-row>
-          <v-col>
-            <h3>
-              Enable MFA
-            </h3>
-          </v-col>
-        </v-row>
-
-        <div class="mt-4 pl-4 pr-4">
-          <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
-            using your favorite TOPT Provider in order to access your ShellHub account.</p>
-          <div v-if="mfaEnabled.mfa">
-            <mfa-disable />
-          </div>
-          <div v-else>
-            <mfa-settings />
-          </div>
-        </div>
+          <div class="mt-4 pl-4 pr-4">
+            <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
+              using your favorite TOPT Provider in order to access your ShellHub account.</p>
+            <div v-if="mfaEnabled.mfa">
+              <mfa-disable />
+            </div>
+            <div v-else>
+              <mfa-settings />
+            </div>
+          </div></div>
       </v-col>
     </v-row>
   </v-container>
@@ -177,6 +177,7 @@ import { INotificationsSuccess } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
+import { envVariables } from "../../envVariables";
 
 const store = useStore();
 const editDataStatus = ref(false);
