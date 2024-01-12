@@ -142,7 +142,7 @@
 
         <v-divider class="mt-6" />
         <v-divider class="mb-6" />
-        <div v-if="envVariables.isEnterprise">
+        <div v-if="isEnterprise">
           <v-row>
             <v-col>
               <h3>
@@ -231,8 +231,9 @@ const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const dialog = ref(false);
-const mfaEnabled = computed(() => store.getters["auth/mfaStatus"]);
-const showCongratulations = computed(() => store.getters["auth/showCongratulations"]);
+const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
+const isEnterprise = computed(() => envVariables.isEnterprise);
+const showCongratulations = computed(() => store.getters["auth/showCongratulationsModal"]);
 watch(mfaEnabled, () => {
   if (showCongratulations.value === true) {
     dialog.value = true;

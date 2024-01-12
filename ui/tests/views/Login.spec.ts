@@ -69,7 +69,10 @@ describe("Login", () => {
       tenant: "fake-tenant",
       role: "administrator",
       email: "test@test.com",
-      mfa: false,
+      mfa: {
+        enable: false,
+        validate: false,
+      },
     };
 
     // mock error below
@@ -78,14 +81,14 @@ describe("Login", () => {
     const loginSpy = vi.spyOn(store, "dispatch");
     const routerPushSpy = vi.spyOn(router, "push");
 
-    await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
+    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
     await wrapper.findComponent('[data-test="form"]').trigger("submit");
     await flushPromises();
 
     // Assert the login action dispatch
     expect(loginSpy).toHaveBeenCalledWith("auth/login", {
-      username: "testuser",
+      username: "test",
       password: "password",
     });
 
@@ -102,7 +105,10 @@ describe("Login", () => {
       tenant: "fake-tenant",
       role: "administrator",
       email: "test@test.com",
-      mfa: true,
+      mfa: {
+        enable: true,
+        validate: false,
+      },
     };
 
     // mock error below

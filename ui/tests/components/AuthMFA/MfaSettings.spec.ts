@@ -44,7 +44,10 @@ describe("MfaSettings", () => {
     email: "test@test.com",
     id: "xxxxxxxx",
     role: "owner",
-    mfa: false,
+    mfa: {
+      enable: false,
+      validate: false,
+    },
   };
   const mfaGenerate = {
     secret: "secret-mfa",

@@ -125,7 +125,7 @@ const rules = [(v: string) => v ? true : "This is a required field"];
 const validForm = ref(false);
 const cloudEnvironment = isCloudEnvironment();
 const invalidCredentials = ref(false);
-const isMfaValid = computed(() => store.getters["auth/mfaStatus"]);
+const isMfa = computed(() => store.getters["auth/isMfa"]);
 
 onMounted(async () => {
   if (!route.query.token) {
@@ -141,7 +141,7 @@ onMounted(async () => {
 const login = async () => {
   try {
     await store.dispatch("auth/login", { username: username.value, password: password.value });
-    if (isMfaValid.value) {
+    if (isMfa.value === true) {
       router.push({ name: "MfaLogin" });
     } else {
       router.push(route.query.redirect ? route.query.redirect.toString() : "/");

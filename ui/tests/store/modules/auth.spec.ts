@@ -22,7 +22,7 @@ describe("Auth", () => {
 
   it("Return authentication default variables", () => {
     expect(store.getters["auth/link_mfa"]).toEqual("");
-    expect(store.getters["auth/mfaStatus"]).toEqual(false);
+    expect(store.getters["auth/mfaStatus"]).toEqual({ enable: false, validate: false });
     expect(store.getters["auth/recoveryCodes"]).toEqual([]);
     expect(store.getters["auth/secret"]).toEqual("");
   });
@@ -39,7 +39,7 @@ describe("Auth", () => {
     // Check if the state has been updated correctly
     expect(reqSpy).toHaveBeenCalled();
     // Check other related state values as needed
-    expect(store.getters["auth/mfaStatus"]).toEqual(false);
+    expect(store.getters["auth/isMfa"]).toEqual(false);
   });
 
   it("Test enableMfa action", async () => {

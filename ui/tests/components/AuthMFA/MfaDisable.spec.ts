@@ -46,7 +46,10 @@ describe("MfaDisable", () => {
     email: "test@test.com",
     id: "xxxxxxxx",
     role: "owner",
-    mfa: true,
+    mfa: {
+      enable: true,
+      validate: false,
+    },
   };
 
   beforeEach(() => {

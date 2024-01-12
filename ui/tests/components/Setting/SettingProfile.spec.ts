@@ -1,6 +1,6 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SettingProfile from "@/components/Setting/SettingProfile.vue";
@@ -51,6 +51,10 @@ describe("Settings Namespace", () => {
     email: "test@test.com",
     id: "xxxxxxxx",
     role: "owner",
+    mfa: {
+      enable: false,
+      validate: false,
+    },
   };
 
   const session = true;
@@ -80,10 +84,6 @@ describe("Settings Namespace", () => {
         },
       },
     });
-  });
-
-  afterEach(() => {
-    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
