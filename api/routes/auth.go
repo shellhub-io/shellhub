@@ -105,7 +105,11 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 				return svc.NewErrAuthUnathorized(errors.New("this token doesn't match the user MFA status"))
 			}
 
-			if !claims.MFA.Validate {
+			// NOTICE: when [args] is "skip", it means that route may be accessed by a unvalidated token, even when MFA
+			// on user is enable. It is used by the route that validate the OTP from the user's OTP APP, avoiding extra
+			// logic in a middleware apart. When that is true, only the user's ID and username are send to the next
+			// route; other values are set for its default value.
+			if args != "skip" && !claims.MFA.Validate {
 				return svc.NewErrAuthUnathorized(errors.New("this token isn't validated"))
 			}
 		}
@@ -271,42 +275,5 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		})
 
 		return jwt(next)(c)
-	}
-}
-
-func AuthMiddlewareMFA(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		statusMFA := c.Request().Header.Get("X-MFA")
-		validateMFA := c.Request().Header.Get("X-Validate-MFA")
-
-		exemptedPaths := []string{"/api/mfa/generate", "/api/mfa/enable", "/api/mfa/desable", "/api/mfa/recovery", "/api/mfa/auth"}
-		currentPath := c.Path()
-		isExempted := false
-
-		for _, path := range exemptedPaths {
-			if currentPath == path {
-				isExempted = true
-			}
-		}
-
-		if !isExempted && statusMFA != "" {
-			status, err := strconv.ParseBool(statusMFA)
-			if err != nil {
-				return err
-			}
-
-			if status {
-				validate, err := strconv.ParseBool(validateMFA)
-				if err != nil {
-					return err
-				}
-
-				if !validate {
-					return svc.NewErrAuthUnathorized(nil)
-				}
-			}
-		}
-
-		return (next)(c)
 	}
 }

@@ -46,7 +46,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
 
 	// Public routes for external access through API gateway
-	publicAPI := e.Group("/api", gateway.Middleware(AuthMiddlewareMFA))
+	publicAPI := e.Group("/api")
 
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
