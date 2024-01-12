@@ -1082,6 +1082,25 @@ export interface LoginRequest {
     'password': string;
 }
 /**
+ * User MFA status.
+ * @export
+ * @interface Mfa
+ */
+export interface Mfa {
+    /**
+     * MFA status for the user.
+     * @type {boolean}
+     * @memberof Mfa
+     */
+    'enable'?: boolean;
+    /**
+     * MFA validation status for the token.
+     * @type {boolean}
+     * @memberof Mfa
+     */
+    'validate'?: boolean;
+}
+/**
  * 
  * @export
  * @interface Namespace
@@ -1863,11 +1882,11 @@ export interface UserAuth {
      */
     'role'?: NamespaceMemberRole;
     /**
-     * User MFA status.
-     * @type {boolean}
+     * 
+     * @type {Mfa}
      * @memberof UserAuth
      */
-    'mfa'?: boolean;
+    'mfa'?: Mfa;
 }
 
 /**
