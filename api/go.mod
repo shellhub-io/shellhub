@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
-	github.com/emirpasic/gods v1.18.1
 	github.com/getsentry/sentry-go v0.25.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
@@ -21,7 +20,7 @@ require (
 	github.com/undefinedlabs/go-mpatch v1.0.7
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.13.1
-	golang.org/x/crypto v0.17.0
+	golang.org/x/crypto v0.18.0
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 )
 
@@ -75,7 +74,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.29.1 // indirect
