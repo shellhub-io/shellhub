@@ -48,8 +48,7 @@ exports[`Device List > Renders the component 1`] = `
                   <div class=\\"v-chip__content\\">test</div>
                   <!---->
                   <!----></span>
-                  <!--teleport start-->
-                  <!--teleport end-->
+                  <!---->
                 </div>
               </td>
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
@@ -92,8 +91,7 @@ exports[`Device List > Renders the component 1`] = `
                   <div class=\\"v-chip__content\\">test</div>
                   <!---->
                   <!----></span>
-                  <!--teleport start-->
-                  <!--teleport end-->
+                  <!---->
                 </div>
               </td>
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
