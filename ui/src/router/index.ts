@@ -30,8 +30,18 @@ export const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "login" */ "../views/Login.vue"),
   },
   {
-    path: "/auth-mfa",
+    path: "/mfa-login",
     name: "MfaLogin",
+    beforeEnter: (to, from, next) => {
+      // Check if the user is coming from the login route
+      if (from.name === "login") {
+        // Allow access to MFA login if the user is coming from the login route
+        next();
+      } else {
+        // Redirect to login if the user is not coming from the login route
+        next({ name: "login" });
+      }
+    },
     meta: {
       layout: "LoginLayout",
       requiresAuth: false,
@@ -41,6 +51,16 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: "/recover-mfa",
     name: "RecoverMfa",
+    beforeEnter: (to, from, next) => {
+      // Check if the user is coming from the login route
+      if (from.name === "MfaLogin") {
+        // Allow access to MFA login if the user is coming from the login route
+        next();
+      } else {
+        // Redirect to login if the user is not coming from the login route
+        next({ name: "login" });
+      }
+    },
     meta: {
       layout: "LoginLayout",
       requiresAuth: false,
