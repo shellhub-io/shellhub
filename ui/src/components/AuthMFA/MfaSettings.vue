@@ -102,7 +102,7 @@
                 </v-row>
                 <v-row>
                   <v-col align="center" data-test="qr-code">
-                    <qrcode-vue :value="value" :size="250" level="H" />
+                    <qrcode-vue :value="value" :size="250" level="L" render-as="svg" :margin="2" />
                   </v-col>
                 </v-row>
                 <v-row>
@@ -195,7 +195,9 @@ const setupMfa = async () => {
 
 const copyRecoveryCodes = () => {
   const codesText = recoveryCodes.value.join("\n");
-  useClipboard(codesText);
+  const { copy } = useClipboard();
+  copy(codesText);
+
   store.dispatch(
     "snackbar/showSnackbarCopy",
     INotificationsCopy.recoveryCodes,
