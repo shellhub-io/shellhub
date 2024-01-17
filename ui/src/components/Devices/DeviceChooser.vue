@@ -225,7 +225,7 @@ watch(tab, async (tabId) => {
   switch (tabItems.value[tabId]) {
     case tabItems.value.suggested: {
       await store.dispatch("devices/getDevicesMostUsed");
-      disableTab.value = (store.getters["devices/getDevicesForUserToChoose"].length <= 0 ?? true);
+      disableTab.value = store.getters["devices/getDevicesForUserToChoose"].length <= 0;
       // Set tab.value to "all" if disabled.value is true
       if (disableTab.value) {
         tab.value = "all";

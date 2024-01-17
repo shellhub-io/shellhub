@@ -1,47 +1,58 @@
-import { defineConfig } from "vitest/config";
-import vue from "@vitejs/plugin-vue";
-// https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
-import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
-import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
-import polyfillNode from "rollup-plugin-polyfill-node";
-import { fileURLToPath, URL } from "url";
-import Markdown from "vite-plugin-vue-markdown";
+import { defineConfig } from "vite";
+import Vue from "@vitejs/plugin-vue";
+import VuetifyPlugin from "vite-plugin-vuetify";
+import Markdown from "unplugin-vue-markdown/vite";
+import * as path from "node:path";
+
+function polyfillNode() {
+  return {
+    name: "polyfill-node",
+    renderChunk(code) {
+      return code.replace(/require\(["']fs["']\)/g, "{ readFileSync() {} }");
+    },
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function NodeGlobalsPolyfillPlugin(options) {
+  return {
+    name: "node-globals-polyfill",
+    resolveId(id) {
+      if (id === "fs" || id === "crypto") {
+        return id;
+      }
+      return null;
+    },
+    load(id) {
+      if (id === "fs" || id === "crypto") {
+        return "export default {}";
+      }
+      return null;
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  plugins: [
+    Vue(),
+    VuetifyPlugin({
+      autoImport: true,
+    }),
+    Markdown({ markdownItOptions: {
+      html: true,
+      typographer: true,
+    } }),
+  ],
   server: {
     port: 8080,
     hmr: {
       clientPort: 80,
     },
   },
-  plugins: [
-    vue({
-      template: { transformAssetUrls },
-      script: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // Experimental defineModel from Vue 3.3
-        defineModel: true,
-      },
-    }),
-    vuetify({
-      autoImport: true,
-    }),
-    Markdown({
-      markdownItOptions: {
-        html: true,
-        typographer: true,
-      },
-    }),
-    NodeGlobalsPolyfillPlugin({
-      process: true,
-      buffer: true,
-    }),
-  ],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@": path.resolve(__dirname, "src"),
     },
   },
   define: {
@@ -74,7 +85,7 @@ export default defineConfig({
         },
       },
       plugins: [
-        polyfillNode,
+        polyfillNode(),
         NodeGlobalsPolyfillPlugin({
           process: true,
           buffer: true,

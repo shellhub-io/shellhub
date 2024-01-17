@@ -19,54 +19,45 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { envVariables } from "../envVariables";
 import { useStore } from "../store";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
+const store = useStore();
 
-    const currentInANamespace = computed(() => localStorage.getItem("tenant") !== "");
+const currentInANamespace = computed(() => localStorage.getItem("tenant") !== "");
 
-    const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
+const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
 
-    const items = computed(() => [
-      {
-        title: "Profile",
-        path: "/settings",
-      },
-      {
-        title: "Namespace",
-        path: "/settings/namespace-manager",
-        hidden: !currentInANamespace.value,
-      },
-      {
-        title: "Private Keys",
-        path: "/settings/private-keys",
-      },
-      {
-        title: "Tags",
-        path: "/settings/tags",
-      },
-      {
-        title: "Billing",
-        path: "/settings/billing",
-        hidden: !(
-          envVariables.billingEnable
+const items = computed(() => [
+  {
+    title: "Profile",
+    path: "/settings",
+  },
+  {
+    title: "Namespace",
+    path: "/settings/namespace-manager",
+    hidden: !currentInANamespace.value,
+  },
+  {
+    title: "Private Keys",
+    path: "/settings/private-keys",
+  },
+  {
+    title: "Tags",
+    path: "/settings/tags",
+  },
+  {
+    title: "Billing",
+    path: "/settings/billing",
+    hidden: !(
+      envVariables.billingEnable
           && envVariables.isCloud
           && hasNamespace.value
-        ),
-      },
-    ]);
-
-    const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
-
-    return {
-      items,
-      visibleItems,
-    };
+    ),
   },
-});
+]);
+
+const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
 </script>
