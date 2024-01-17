@@ -165,12 +165,17 @@ func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, 
 func NewSessionWithoutClient(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
 	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 
+	hos, err := host.NewHost(ctx.RemoteAddr().String())
+	if err != nil {
+		return nil, ErrHost
+	}
+
 	device := metadata.RestoreDevice(ctx)
 	target := metadata.RestoreTarget(ctx)
 	lookup := metadata.RestoreLookup(ctx)
 
 	lookup["username"] = target.Username
-	// lookup["ip_address"] = hos.Host
+	lookup["ip_address"] = hos.Host
 
 	session := new(Session)
 	if ok, err := session.checkFirewall(ctx); err != nil || !ok {
@@ -201,7 +206,7 @@ func NewSessionWithoutClient(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (
 	session.Client = nil
 	session.UID = uid
 	session.Username = target.Username
-	// session.IPAddress = hos.Host
+	session.IPAddress = hos.Host
 	session.Device = device.UID
 	session.Lookup = lookup
 	session.Dialed = dialed
