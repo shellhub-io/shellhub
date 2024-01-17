@@ -114,30 +114,36 @@ func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
 }
 
 func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Session, config *gossh.ClientConfig, api internalclient.Client, opts ConfigOptions) error {
-	// Versions earlier than 0.6.0 do not validate the user when receiving a public key
-	// authentication request. This implies that requests with invalid users are
-	// treated as "authenticated" because the connection does not raise any error.
-	// Moreover, the agent panics after the connection ends. To avoid this, connections
-	// with public key are not permitted when agent version is 0.5.x or earlier
-	switch metadata.RestoreAuthenticationMethod(ctx.(gliderssh.Context)) {
-	case metadata.PublicKeyAuthenticationMethod:
-		device := metadata.RestoreDevice(ctx.(gliderssh.Context))
+	// When the Shellhub instance dennies connections with
+	// potentially broken agents, we need to evaluate the device's version
+	// and identify potential bugs. The server must reject the connection
+	// if there's a possibility of issues; otherwise, proceeds.
+	if !opts.AllowPublickeyAccessBelow060 {
+		switch metadata.RestoreAuthenticationMethod(ctx.(gliderssh.Context)) {
+		// Versions earlier than 0.6.0 do not validate the user when receiving a public key
+		// authentication request. This implies that requests with invalid users are
+		// treated as "authenticated" because the connection does not raise any error.
+		// Moreover, the agent panics after the connection ends. To avoid this, connections
+		// with public key are not permitted when agent version is 0.5.x or earlier
+		case metadata.PublicKeyAuthenticationMethod:
+			device := metadata.RestoreDevice(ctx.(gliderssh.Context))
 
-		if device.Info.Version != "latest" {
-			ver, err := semver.NewVersion(device.Info.Version)
-			if err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"client": device.UID}).
-					Error("Failed to parse device version")
+			if device.Info.Version != "latest" {
+				ver, err := semver.NewVersion(device.Info.Version)
+				if err != nil {
+					log.WithError(err).
+						WithFields(log.Fields{"client": device.UID}).
+						Error("Failed to parse device version")
 
-				return ErrInvalidVersion
-			}
+					return ErrInvalidVersion
+				}
 
-			if ver.LessThan(semver.MustParse("0.6.0")) {
-				log.WithFields(log.Fields{"client": device.UID}).
-					Error("Connections using public keys are not permitted when the agent version is 0.5.x or earlier.")
+				if ver.LessThan(semver.MustParse("0.6.0")) {
+					log.WithFields(log.Fields{"client": device.UID}).
+						Error("Connections using public keys are not permitted when the agent version is 0.5.x or earlier.")
 
-				return ErrUnsuportedPublicKeyAuth
+					return ErrUnsuportedPublicKeyAuth
+				}
 			}
 		}
 	}
