@@ -5,10 +5,9 @@ const createSignatureOfPrivateKey = (
   privateKeyData,
   username,
 ) => {
-  let signature;
   const key = NodeRSA(privateKeyData);
   key.setOptions({ signingScheme: "pkcs1-sha1" });
-  signature = encodeURIComponent(key.sign(username, "base64"));
+  const signature = encodeURIComponent(key.sign(username, "base64"));
   return signature;
 };
 
