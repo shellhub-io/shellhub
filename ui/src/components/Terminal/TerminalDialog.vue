@@ -4,7 +4,7 @@
       <v-btn
         :disabled="!online"
         :color="online ? 'success' : 'normal'"
-        variant='outlined'
+        variant="outlined"
         density="comfortable"
         data-test="connect-btn"
         @click="open()"
@@ -53,7 +53,9 @@
 
                   <v-text-field
                     color="primary"
-                    :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    :append-inner-icon="
+                      showPassword ? 'mdi-eye' : 'mdi-eye-off'
+                    "
                     v-model="password"
                     :error-messages="passwordError"
                     label="Password"
@@ -80,7 +82,10 @@
               </v-window-item>
 
               <v-window-item value="PublicKey">
-                <v-form lazy-validation @submit.prevent="connectWithPrivateKey()">
+                <v-form
+                  lazy-validation
+                  @submit.prevent="connectWithPrivateKey()"
+                >
                   <v-text-field
                     v-model="username"
                     :error-messages="usernameError"
@@ -127,11 +132,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch, nextTick, onUnmounted } from "vue";
+import {
+  defineComponent,
+  ref,
+  computed,
+  watch,
+  nextTick,
+  onUnmounted,
+} from "vue";
 import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
-import { AttachAddon } from "xterm-addon-attach";
 import { FitAddon } from "xterm-addon-fit";
 import * as yup from "yup";
 import axios from "axios";
@@ -187,7 +198,6 @@ export default defineComponent({
     const ws = ref<WebSocket>({} as WebSocket);
     const fitAddon = ref<FitAddon>({} as FitAddon);
     const terminal = ref<HTMLElement>({} as HTMLElement);
-    const attachAddon = ref<AttachAddon | null>({} as AttachAddon);
 
     const uid = computed(() => props.uid);
     const showTerminal = ref(store.getters["modal/terminal"] === uid.value);
@@ -272,23 +282,44 @@ export default defineComponent({
 
       const wsInfo = { token, ...webTermDimensions.value };
 
+      const enc = new TextEncoder();
       ws.value = new WebSocket(
         `${protocolConnectionURL}://${
           window.location.host
         }/ws/ssh?${encodeURLParams(wsInfo)}`,
       );
 
-      ws.value.onopen = () => {
-        attachAddon.value = new AttachAddon(ws.value);
-        xterm.value.loadAddon(attachAddon.value);
+      enum MessageKind {
+        Input = 1,
+        Resize,
+      }
+
+      interface Message {
+        kind: MessageKind;
+        data: unknown;
+      }
+
+      ws.value.onmessage = (ev) => {
+        xterm.value.write(ev.data);
       };
 
-      ws.value.onclose = () => {
-        if (attachAddon.value) {
-          attachAddon.value = null;
-          // attachAddon.value.dispose();
-        }
-      };
+      xterm.value.onData((data) => {
+        const message: Message = {
+          kind: MessageKind.Input,
+          data: [...enc.encode(data)],
+        };
+
+        ws.value.send(JSON.stringify(message));
+      });
+
+      xterm.value.onResize((data) => {
+        const message: Message = {
+          kind: MessageKind.Resize,
+          data: { cols: data.cols, rows: data.rows },
+        };
+
+        ws.value.send(JSON.stringify(message));
+      });
     };
 
     const open = () => {
