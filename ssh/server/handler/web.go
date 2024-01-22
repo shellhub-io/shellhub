@@ -5,122 +5,40 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
-	"strconv"
-	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
-	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/net/websocket"
 )
 
-// WebData contains the data required by web terminal connection.
-type WebData struct {
-	// User is the device's user.
-	User string
-	// Password is the user's device password.
-	// when Password is set, Fingerprint must not be set.
-	Password string
-	// Fingerprint is the public key fingerprint.
-	// when Fingerprint is set, Password must not be set.
-	Fingerprint string
-	Signature   string
-	// Columns is the width size of pty.
-	Columns int
-	// Rows is the height size of pty.
-	Rows int
-}
-
-// NewWebData create a new WebData.
-// WebData contains the data required by web termianl connection.
-func NewWebData(socket *websocket.Conn, input *web.Session) (*WebData, error) {
-	get := func(socket *websocket.Conn, key string) (string, bool) {
-		value := socket.Request().URL.Query().Get(key)
-
-		return value, value != ""
-	}
-
-	toInt := func(text string, ok bool) (int, error) {
-		if !ok {
-			return 0, errors.New("failed to get the value to convert to int")
-		}
-
-		integer, err := strconv.Atoi(text)
-		if err != nil {
-			log.WithError(err).Error("failed to convert the text to int")
-
-			return 0, err
-		}
-
-		return integer, nil
-	}
-
-	columns, err := toInt(get(socket, "cols"))
-	if err != nil {
-		return nil, errors.New("cols field is invalid or missing")
-	}
-
-	rows, err := toInt(get(socket, "rows"))
-	if err != nil {
-		return nil, errors.New("rows field is invalid or missing")
-	}
-
-	target := input.Username + "@" + input.Device
-
-	return &WebData{
-		User:        target,
-		Password:    input.Password,
-		Fingerprint: input.Fingerprint,
-		Signature:   input.Signature,
-		Columns:     columns,
-		Rows:        rows,
-	}, nil
-}
-
-// isPublicKey checks if connection is using public key method.
-func (c *WebData) isPublicKey() bool { // nolint: unused
-	return c.Fingerprint != "" && c.Signature != ""
-}
-
-// isPassword checks if connection is using password method.
-func (c *WebData) isPassword() bool {
-	return c.Password != ""
-}
-
-// GetAuth gets the authentication methods from connection.
-func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
-	if c.isPassword() {
-		return []ssh.AuthMethod{ssh.Password(c.Password)}, nil
-	}
-
-	tag, err := target.NewTarget(c.User)
-	if err != nil {
-		return nil, ErrTarget
+// getAuth gets the authentication methods from credentials.
+func getAuth(creds *web.Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
+	if creds.IsPassword() {
+		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
 
 	cli := internalclient.NewClient()
 
 	// Trys to get a device from the API.
-	device, err := cli.GetDevice(tag.Data)
+	device, err := cli.GetDevice(creds.Device)
 	if err != nil {
 		return nil, ErrFindDevice
 	}
 
 	// Trys to get a public key from the API.
-	key, err := cli.GetPublicKey(c.Fingerprint, device.TenantID)
+	key, err := cli.GetPublicKey(creds.Fingerprint, device.TenantID)
 	if err != nil {
 		return nil, ErrFindPublicKey
 	}
 
 	// Trys to evaluate the public key from the API.
-	ok, err := cli.EvaluateKey(c.Fingerprint, device, tag.Username)
+	ok, err := cli.EvaluateKey(creds.Fingerprint, device, creds.Username)
 	if err != nil {
 		return nil, ErrEvaluatePublicKey
 	}
@@ -134,12 +52,12 @@ func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 		return nil, ErrDataPublicKey
 	}
 
-	digest, err := base64.StdEncoding.DecodeString(c.Signature)
+	digest, err := base64.StdEncoding.DecodeString(creds.Signature)
 	if err != nil {
 		return nil, ErrSignaturePublicKey
 	}
 
-	if err := pubKey.Verify([]byte(tag.Username), &ssh.Signature{ //nolint: exhaustruct
+	if err := pubKey.Verify([]byte(creds.Username), &ssh.Signature{ //nolint: exhaustruct
 		Format: pubKey.Type(),
 		Blob:   digest,
 	}); err != nil {
@@ -154,108 +72,134 @@ func (c *WebData) GetAuth(magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
-// WebSession is the Client's handler for connection coming from the web terminal.
-func WebSession(socket *websocket.Conn, input *web.Session) {
-	log.Info("handling web client request started")
-	defer log.Info("handling web client request end")
+func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info web.Info) error {
+	log.WithFields(log.Fields{
+		"user":   creds.Username,
+		"device": creds.Device,
+		"cols":   dim.Cols,
+		"rows":   dim.Rows,
+	}).Info("handling web client request started")
 
-	data, err := NewWebData(socket, input)
+	defer log.WithFields(log.Fields{
+		"user":   creds.Username,
+		"device": creds.Device,
+		"cols":   dim.Cols,
+		"rows":   dim.Rows,
+	}).Info("handling web client request end")
+
+	user := fmt.Sprintf("%s@%s", creds.Username, creds.Device)
+	auth, err := getAuth(creds, magickey.GetRerefence())
 	if err != nil {
-		sendAndInformError(socket, err, ErrWebData)
-	}
-
-	auth, err := data.GetAuth(magickey.GetRerefence())
-	if err != nil {
-		sendAndInformError(socket, err, ErrGetAuth)
-
-		return
+		return ErrGetAuth
 	}
 
 	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
-		User:            data.User,
+		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	})
 	if err != nil {
-		sendAndInformError(socket, err, ErrDialSSH)
-
-		return
+		return ErrDialSSH
 	}
 
 	defer connection.Close()
 
 	agent, err := connection.NewSession()
 	if err != nil {
-		sendAndInformError(socket, err, ErrSession)
-
-		return
+		return ErrSession
 	}
 
 	defer agent.Close()
 
-	if err = agent.Setenv("IP_ADDRESS", socket.Request().Header.Get("X-Real-Ip")); err != nil {
-		sendAndInformError(socket, err, ErrEnvIPAddress)
-
-		return
+	if err = agent.Setenv("IP_ADDRESS", info.IP); err != nil {
+		return ErrEnvIPAddress
 	}
 
+	// NOTICE: when a SSH web shell is initialized, we set a env variable to the end user identify its origin.
 	if err = agent.Setenv("WS", "true"); err != nil {
-		sendAndInformError(socket, err, ErrEnvWS)
-
-		return
+		return ErrEnvWS
 	}
 
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
-		sendAndInformError(socket, err, ErrPipe)
-
-		return
+		return ErrPipe
 	}
 
 	defer flw.Close()
 
-	if err := agent.RequestPty("xterm", data.Rows, data.Columns, ssh.TerminalModes{
+	if err := agent.RequestPty("xterm", dim.Rows, dim.Cols, ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
 	}); err != nil {
-		sendAndInformError(socket, err, ErrPty)
-
-		return
+		return ErrPty
 	}
 
 	if err := agent.Shell(); err != nil {
-		sendAndInformError(socket, err, ErrShell)
-
-		return
+		return ErrShell
 	}
-
-	done := make(chan bool)
-
-	go flw.PipeIn(socket, done)
-	go redirToWs(flw.Stdout, socket) // nolint:errcheck
-	go flw.PipeErr(socket, nil)
 
 	go func() {
-		<-done
+		defer flw.Close()
 
-		agent.Close()
+		for {
+			var message web.Message
+
+			if _, err := conn.ReadMessage(&message); err != nil {
+				if errors.Is(err, io.EOF) {
+					return
+				}
+
+				log.WithFields(
+					log.Fields{
+						"user":   creds.Username,
+						"device": creds.Device,
+						"ip":     info.IP,
+					}).WithError(err).Error("failed to read the message from the client")
+
+				return
+			}
+
+			switch message.Kind {
+			case web.MessageKindInput:
+				buffer := message.Data.([]byte)
+
+				if _, err := flw.Stdin.Write(buffer); err != nil {
+					log.WithError(err).Error("failed to write the message data on the SSH session")
+
+					return
+				}
+			case web.MessageKindResize:
+				dim := message.Data.(web.Dimensions)
+
+				if err := agent.WindowChange(dim.Rows, dim.Cols); err != nil {
+					log.WithFields(
+						log.Fields{
+							"user":   creds.Username,
+							"device": creds.Device,
+							"ip":     info.IP,
+							"cols":   dim.Cols,
+							"rows":   dim.Rows,
+						},
+					).WithError(err).Error("failed to change the seze of window for terminal session")
+
+					return
+				}
+			}
+		}
 	}()
 
-	conn := &wsconn{
-		pinger: time.NewTicker(pingInterval),
-	}
-
-	defer conn.pinger.Stop()
-
-	go conn.keepAlive(socket)
+	go redirToWs(flw.Stdout, conn) // nolint:errcheck
+	go flw.PipeErr(conn, nil)
 
 	if err := agent.Wait(); err != nil {
 		log.WithError(err).Warning("client remote command returned a error")
 	}
+
+	return nil
 }
 
-func redirToWs(rd io.Reader, ws *websocket.Conn) error {
+func redirToWs(rd io.Reader, ws io.ReadWriter) error {
 	var buf [32 * 1024]byte
 	var start, end, buflen int
 
@@ -295,30 +239,6 @@ func redirToWs(rd io.Reader, ws *websocket.Conn) error {
 			for i := 0; i < start; i++ {
 				buf[i] = buf[end+i]
 			}
-		}
-	}
-}
-
-const pingInterval = time.Second * 30
-
-type wsconn struct {
-	pinger *time.Ticker
-}
-
-func (w *wsconn) keepAlive(ws *websocket.Conn) {
-	for {
-		if err := ws.SetDeadline(clock.Now().Add(pingInterval * 2)); err != nil {
-			return
-		}
-
-		if fw, err := ws.NewFrameWriter(websocket.PingFrame); err != nil {
-			return
-		} else if _, err = fw.Write([]byte{}); err != nil {
-			return
-		}
-
-		if _, running := <-w.pinger.C; !running {
-			return
 		}
 	}
 }
