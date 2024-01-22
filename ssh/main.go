@@ -17,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/server/handler"
 	"github.com/shellhub-io/shellhub/ssh/web"
-	"github.com/shellhub-io/shellhub/ssh/web/pkg/cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,11 +30,6 @@ func main() {
 	env, err := envs.ParseWithPrefix[server.Options]("SSH_")
 	if err != nil {
 		log.WithError(err).Fatal("Failed to load environment variables")
-	}
-
-	// NOTICE: This redis is used by the web terminal to store its session tokens.
-	if err := cache.ConnectRedis(env.RedisURI); err != nil {
-		log.WithError(err).Fatal("Failed to connect to redis")
 	}
 
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
@@ -123,11 +117,21 @@ func main() {
 		return nil
 	})
 
-	// TODO: add `/ws/ssh` route to OpenAPI repository.
-	router.GET("/ws/ssh", echo.WrapHandler(web.HandlerRestoreSession(web.RestoreSession, handler.WebSession)))
-	router.POST("/ws/ssh", echo.WrapHandler(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		web.HandlerCreateSession(web.CreateSession)(res, req)
-	})))
+	bridge := web.NewBridge(router.Router())
+	bridge.Handle(func(
+		conn *web.Conn,
+		creds *web.Credentials,
+		token string,
+		cols, rows int,
+		ip string,
+	) error { //nolint:whitespace
+		return handler.WebSession(
+			conn,
+			creds,
+			web.Dimensions{Cols: cols, Rows: rows},
+			web.Info{IP: ip},
+		)
+	})
 
 	router.GET("/healthcheck", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
