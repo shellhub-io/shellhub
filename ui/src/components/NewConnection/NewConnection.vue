@@ -64,7 +64,7 @@
               </p>
             </v-col>
           </v-row>
-          <NewConnectionList ref="list" data-test="new-connection-list" />
+          <NewConnectionList ref="list" />
         </v-card-text>
         <v-card-actions>
           <v-row class="ml-2">
@@ -126,7 +126,7 @@ const searchDevices = () => {
   }
 
   try {
-    store.dispatch("devices/search", {
+    store.dispatch("devices/searchQuickConnection", {
       page: store.getters["devices/getPage"],
       perPage: store.getters["devices/getPerPage"],
       filter: encodedFilter,

@@ -7,6 +7,7 @@ import { State } from "..";
 
 export interface DevicesState {
   devices: Array<IDevice>;
+  quickConnectionList: Array<IDevice>;
   device: IDevice;
   numberDevices: number;
   page: number;
@@ -26,6 +27,7 @@ export const devices: Module<DevicesState, State> = {
   namespaced: true,
   state: {
     devices: [],
+    quickConnectionList: [],
     device: {} as IDevice,
     numberDevices: 0,
     page: 1,
@@ -43,6 +45,7 @@ export const devices: Module<DevicesState, State> = {
 
   getters: {
     list: (state) => state.devices,
+    listQuickConnection: (state) => state.quickConnectionList,
     get: (state) => state.device,
     getName: (state) => state.device.name,
     getNumberDevices: (state) => state.numberDevices,
@@ -64,6 +67,14 @@ export const devices: Module<DevicesState, State> = {
     setDevices: (state, res) => {
       state.devices = res.data;
       state.numberDevices = parseInt(res.headers["x-total-count"], 10);
+    },
+
+    setQuickDevices: (state, res) => {
+      state.quickConnectionList = res.data;
+    },
+
+    clearQuickDevices: (state) => {
+      state.quickConnectionList = [];
     },
 
     removeDevice: (state, uid) => {
@@ -231,6 +242,46 @@ export const devices: Module<DevicesState, State> = {
         commit("setFilter", data.filter);
       } catch (error) {
         commit("clearListDevices");
+        throw error;
+      }
+    },
+
+    fetchQuickDevices: async ({ commit }, data) => {
+      try {
+        const res = await apiDevice.fetchDevices(
+          data.page,
+          data.perPage,
+          data.filter,
+          data.status,
+          data.sortStatusField,
+          data.sortStatusString,
+        );
+        if (res.data.length) {
+          commit("setQuickDevices", res);
+          return res;
+        }
+
+        commit("clearQuickDevices");
+        return false;
+      } catch (error) {
+        commit("clearQuickDevices");
+        throw error;
+      }
+    },
+
+    async searchQuickConnection({ commit, state }, data) {
+      try {
+        const res = await apiDevice.fetchDevices(
+          data.page,
+          data.perPage,
+          data.filter,
+          state.status,
+          state.sortStatusField,
+          state.sortStatusString,
+        );
+        commit("setQuickDevices", res);
+      } catch (error) {
+        commit("clearQuickDevices");
         throw error;
       }
     },
