@@ -1,8 +1,12 @@
 #!/bin/sh
-#
+
 # CLI script is a inferface to executes commands on the CLI service.
 # The CLI service contains a set of commands to manage users, namesapces and members.
 
 shift $@ # remove the first argument; script name.
 
-docker-compose exec cli ./cli $@
+. "$(dirname "$0")/utils"
+
+DOCKER_COMPOSE=$(evaluate_docker_compose)
+
+exec $DOCKER_COMPOSE exec cli ./cli $@
