@@ -82,8 +82,9 @@
 
     <v-overlay
       :model-value="hasSpinner"
+      :scrim="false"
       contained
-      content-class="w-100 h-100"
+      class="align-center justify-center w-100 h-100"
       data-test="overlay"
     >
       <v-progress-circular
