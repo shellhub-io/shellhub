@@ -1,9 +1,13 @@
 #!/bin/sh
 
+. "$(dirname "$0")/utils"
+
+DOCKER_COMPOSE=$(evaluate_docker_compose)
+
 [ $# -ne 3 ] && echo "Usage: $0 <username> <password> <email>" && exit 1
 
 USERNAME=$1
 PASSWORD=$2
 EMAIL=$3
 
-docker-compose exec cli ./cli add-user $USERNAME $PASSWORD $EMAIL
+exec $DOCKER_COMPOSE exec cli ./cli add-user $USERNAME $PASSWORD $EMAIL

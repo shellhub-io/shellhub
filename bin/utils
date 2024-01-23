@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+# Evaluate the appropriate Docker Compose command based on availability and V2 compatibility.
+#
+# If a compatible command is found, it is set to $COMPOSE_COMMAND. If no compatible command
+# is found, the function exits with status 1.
+evaluate_docker_compose() {
+    local COMPOSE_COMMAND
+
+    if docker compose version --short 2> /dev/null | grep -q "^2\."; then
+        COMPOSE_COMMAND="docker compose"
+    elif docker-compose version --short 2> /dev/null | grep -q "^2\."; then
+        COMPOSE_COMMAND="docker-compose"
+    fi
+
+    if [ -z "$COMPOSE_COMMAND" ]; then
+        echo >&2 "ERROR: Cannot find Docker Compose compatible with V2 spec"
+        exit 1
+    fi
+
+    echo "$COMPOSE_COMMAND"
+}
+

@@ -1,8 +1,12 @@
 #!/bin/sh
 
+. "$(dirname "$0")/utils"
+
+DOCKER_COMPOSE=$(evaluate_docker_compose)
+
 [ $# -ne 2 ] && echo "Usage: $0 <namespace> <owner>" && exit 1
 
 NAMESPACE=$1
 OWNER=$2
 
-docker-compose exec cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"
+exec $DOCKER_COMPOSE exec cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"

@@ -1,7 +1,11 @@
 #!/bin/sh
 
+. "$(dirname "$0")/utils"
+
+DOCKER_COMPOSE=$(evaluate_docker_compose)
+
 [ -z $1 ] && echo "Usage: $0 <namespace>" && exit 1
 
 NAMESPACE=$1
 
-docker-compose exec cli ./cli del-namespace $NAMESPACE
+exec $DOCKER_COMPOSE exec cli ./cli del-namespace $NAMESPACE

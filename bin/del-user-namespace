@@ -1,8 +1,12 @@
 #!/bin/sh
 
+. "$(dirname "$0")/utils"
+
+DOCKER_COMPOSE=$(evaluate_docker_compose)
+
 [ $# -ne 2 ] && echo "Usage: $0 <username> <namespace>" && exit 1
 
 USERNAME=$1
 NAMESPACE=$2
 
-docker-compose exec cli ./cli del-user-namespace $USERNAME $NAMESPACE
+exec $DOCKER_COMPOSE exec cli ./cli del-user-namespace $USERNAME $NAMESPACE

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. "$(dirname "$0")/utils"
+
 readlink_f() {
     (if uname | grep -q 'Darwin'; then
 	     # Use greadlink if available, otherwise it behaves like "readlink -f" option
@@ -24,20 +26,7 @@ readlink_f() {
      fi)
 }
 
-# The following code checks if the docker compose plugin or standalone binary
-# supports specification V2 by looking at the version number. If it does,
-# it sets the COMPOSE_COMMAND variable to the corresponding command.
-if docker compose version --short 2> /dev/null | grep -q "^2\."; then
-    COMPOSE_COMMAND="docker"
-    COMPOSE_ARGS="compose"
-elif docker-compose version --short 2> /dev/null | grep -q "^2\."; then
-    COMPOSE_COMMAND="docker-compose"
-fi
-
-if [ -z "$COMPOSE_COMMAND" ]; then
-    echo >&2 "ERROR: Cannot find Docker Compose compatible with V2 spec"
-    exit 1
-fi
+DOCKER_COMPOSE=$(evaluate_docker_compose)
 
 WORKDIR=$(dirname $(readlink_f $0))/../
 
@@ -66,4 +55,4 @@ COMPOSE_FILE="docker-compose.yml"
 
 export COMPOSE_FILE
 
-exec $COMPOSE_COMMAND $COMPOSE_ARGS "$@"
+exec $DOCKER_COMPOSE "$@"
