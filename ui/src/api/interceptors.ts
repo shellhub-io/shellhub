@@ -9,7 +9,7 @@ const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConf
 
 const onRequestError = (error: AxiosError) => {
   store.dispatch("spinner/setStatus", false);
-  Promise.reject(error);
+  return Promise.reject(error);
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
