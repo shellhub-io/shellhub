@@ -112,7 +112,7 @@ const filterToEncodeBase64 = [
 ];
 encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
 const filter = ref(encodedFilter);
-const devices = computed(() => store.getters["devices/list"]);
+const devices = computed(() => store.getters["devices/listQuickConnection"]);
 const onlineDevices = computed(() => devices.value.filter((item: Device) => item.online));
 const open = (i: number) => {
   if (terminalFn.value !== undefined) {
@@ -125,7 +125,7 @@ const open = (i: number) => {
 onMounted(async () => {
   try {
     loading.value = true;
-    await store.dispatch("devices/fetch", {
+    await store.dispatch("devices/fetchQuickDevices", {
       perPage: itemsPerPage.value,
       page: page.value,
       status: "accepted",
@@ -148,7 +148,7 @@ const getDevices = async (perPagaeValue: number, pageValue: number) => {
   try {
     loading.value = true;
 
-    await store.dispatch("devices/fetch", {
+    await store.dispatch("devices/fetchQuickDevices", {
       perPage: perPagaeValue,
       page: pageValue,
       status: "accepted",
