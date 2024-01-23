@@ -1,0 +1,157 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`App Layout Component > Renders the component 1`] = `
+"<div data-v-e7291ef4=\\"\\" class=\\"v-application v-theme--dark v-layout v-layout--full-height v-locale--is-ltr\\">
+  <div class=\\"v-application__wrap\\">
+    <nav class=\\"v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface\\" style=\\"left: 0px; z-index: 1006; transform: translateX(-110%); position: absolute; transition: none; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;\\" data-v-e7291ef4=\\"\\" app=\\"\\" data-test=\\"navigation-drawer\\">
+      <!---->
+      <!---->
+      <div class=\\"v-navigation-drawer__content\\">
+        <div data-v-e7291ef4=\\"\\" class=\\"v-toolbar-title v-app-bar-title\\" data-test=\\"app-bar-title\\">
+          <div class=\\"v-toolbar-title__placeholder\\">
+            <!----><a data-v-e7291ef4=\\"\\" href=\\"/\\" class=\\"text-decoration-none\\">
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex justify-center pa-4 pb-2\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"v-responsive v-img v-img--booting d-sm-flex hidden-sm-and-down\\" style=\\"max-width: 140px;\\" aria-label=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" role=\\"img\\" data-test=\\"logo\\">
+                  <div class=\\"v-responsive__sizer\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" style=\\"display: none;\\"></transition-stub>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <!---->
+                  </transition-stub>
+                  <!---->
+                  <!---->
+                  <!---->
+                  <!---->
+                </div>
+              </div>
+            </a>
+            <hr data-v-e7291ef4=\\"\\" class=\\"v-divider v-theme--dark ma-2\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+          </div>
+        </div>
+        <div data-v-e7291ef4=\\"\\" class=\\"pa-2\\">
+          <!--v-if-->
+          <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+            <!--v-if-->
+          </transition-stub>
+          <hr data-v-e7291ef4=\\"\\" class=\\"v-divider v-theme--dark ma-2\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        </div>
+        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-default v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/\\" tabindex=\\"-2\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-view-dashboard mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-view-dashboard-listItem\\">Dashboard</div>
+              </div>
+            </div>
+            <!---->
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/devices\\" data-test=\\"list-item\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cellphone-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cellphone-link-listItem\\">Devices</div>
+              </div>
+            </div>
+            <!---->
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/sessions\\" data-test=\\"list-item\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-history-listItem\\">Sessions</div>
+              </div>
+            </div>
+            <!---->
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/sshkeys/public-keys\\" data-test=\\"list-item\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-key-listItem\\">Public Keys</div>
+              </div>
+            </div>
+            <!---->
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/settings\\" data-test=\\"list-item\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings</div>
+              </div>
+            </div>
+            <!---->
+          </a>
+          <div data-v-e7291ef4=\\"\\" class=\\"v-col d-flex align-end justify-center\\">
+            <div data-v-6386f805=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-6386f805=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog New Connection\\" data-test=\\"new-connection-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> New Connection </span>
+                <!---->
+                <!---->
+              </button>
+              <div data-v-6386f805=\\"\\">
+                <p data-v-6386f805=\\"\\" class=\\"text-caption text-md font-weight-bold text-grey-darken-1 ma-1\\">Press \\"Ctrl + K\\" to Quick Connect!</p>
+              </div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </nav>
+    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+      <!---->
+    </transition-stub>
+    <snackbarcomponent data-v-e7291ef4=\\"\\"></snackbarcomponent>
+    <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background\\" style=\\"top: 0px; z-index: 1004; transform: translateY(0%); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);\\" data-test=\\"app-bar\\">
+      <!---->
+      <div class=\\"v-toolbar__content\\" style=\\"height: 64px;\\">
+        <!---->
+        <!----><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark v-btn--density-default v-btn--size-default v-btn--variant-text hidden-lg-and-up v-app-bar-nav-icon\\" aria-label=\\"Toggle Menu\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-menu mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+          <!---->
+          <!---->
+        </button>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"height: 24px; width: 24px;\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-9\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+          <!---->
+          <!---->
+        </button>
+        <!--teleport start-->
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-11\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-12\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" left=\\"\\"></i><div>USER</div><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark ml-1 mr-1\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
+          <!---->
+          <!---->
+        </button>
+        <!---->
+        <!---->
+      </div>
+      <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <!---->
+      </transition-stub>
+    </header>
+    <main data-v-e7291ef4=\\"\\" class=\\"v-main\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px; transition: none;\\" data-test=\\"main\\">
+      <div data-v-e7291ef4=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr pa-8\\" data-test=\\"container\\">
+        <!---->
+      </div>
+    </main>
+    <!---->
+    <!---->
+  </div>
+</div>
+<!--v-if-->
+<!--v-if-->
+<!--v-if-->"
+`;

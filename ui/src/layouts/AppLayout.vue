@@ -3,11 +3,6 @@
     :theme="getStatusDarkMode"
     v-bind="$attrs"
   >
-    <!-- <v-row>
-      <v-col class="d-flex flex-column align-center">
-        <p>dsaasd</p>
-      </v-col>
-    </v-row> -->
     <v-navigation-drawer
       theme="dark"
       v-model="showNavigationDrawer"
@@ -15,8 +10,9 @@
       absolute
       app
       class="bg-v-theme-surface"
+      data-test="navigation-drawer"
     >
-      <v-app-bar-title>
+      <v-app-bar-title data-test="app-bar-title">
         <router-link
           to="/"
           class="text-decoration-none"
@@ -27,6 +23,7 @@
               :src="Logo"
               max-width="140"
               alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
+              data-test="logo"
             />
           </div>
         </router-link>
@@ -38,7 +35,7 @@
         <v-divider class="ma-2" />
       </div>
 
-      <v-list class="bg-v-theme-surface">
+      <v-list class="bg-v-theme-surface" data-test="list">
         <v-list-item
           v-for="item in visibleItems"
           :key="item.title"
@@ -46,10 +43,11 @@
           lines="two"
           class="mb-2"
           :disabled="disableItem(item.title)"
+          data-test="list-item"
         >
           <div class="d-flex align-center">
             <div class="mr-3">
-              <v-icon>
+              <v-icon data-test="icon">
                 {{ item.icon }}
               </v-icon>
             </div>
@@ -68,13 +66,14 @@
 
     <SnackbarComponent />
 
-    <AppBar v-model="showNavigationDrawer" />
+    <AppBar v-model="showNavigationDrawer" data-test="app-bar" />
 
-    <v-main>
+    <v-main data-test="main">
       <slot>
         <v-container
           class="pa-8"
           fluid
+          data-test="container"
         >
           <router-view :key="currentRoute.value.path" />
         </v-container>
@@ -82,16 +81,16 @@
     </v-main>
 
     <v-overlay
-      :scrim="false"
-      disabled
-      class="align-center justify-center"
-      v-model="hasSpinner"
-      v-if="hasSpinner"
+      :model-value="hasSpinner"
+      contained
+      content-class="w-100 h-100"
+      data-test="overlay"
     >
       <v-progress-circular
         indeterminate
         size="64"
         alt="Request loading"
+        data-test="progress-circular"
       />
     </v-overlay>
   </v-app>
@@ -157,14 +156,24 @@ const getStatusDarkMode = computed(
 );
 
 const { lgAndUp } = useDisplay();
+
 const showNavigationDrawer = ref(lgAndUp);
-const hasSpinner = computed(() => store.getters["spinner/status"]);
+
+const hasSpinner = computed({
+  get() { return store.getters["spinner/status"]; },
+  set(v) { store.dispatch("spinner/setStatus", v); },
+});
 
 onMounted(() => {
   store.dispatch("privateKey/fetch");
 });
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
+
+defineExpose({
+  items,
+  lgAndUp,
+});
 </script>
 
 <style lang="css" scoped>

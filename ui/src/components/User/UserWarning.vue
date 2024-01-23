@@ -58,7 +58,7 @@ export default defineComponent({
     const hasNamespaces = computed(
       () => store.getters["namespaces/getNumberNamespaces"] !== 0,
     );
-    const hasSpinner = computed(() => store.getters["spinner/getStatus"]);
+    const hasSpinner = computed(() => store.getters["spinner/status"]);
     const hasWarning = computed(
       () => store.getters["devices/getDeviceChooserStatus"],
     );
