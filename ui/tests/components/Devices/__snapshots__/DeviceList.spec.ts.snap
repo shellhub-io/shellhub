@@ -20,7 +20,7 @@ exports[`Device List > Renders the component 1`] = `
           <tbody data-v-046d4556=\\"\\">
             <tr data-v-06dd64af=\\"\\">
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <div data-v-06dd64af=\\"\\" data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                     <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Offline</span>
                     <!---->
                     <!---->
@@ -63,7 +63,7 @@ exports[`Device List > Renders the component 1`] = `
             </tr>
             <tr data-v-06dd64af=\\"\\">
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <div data-v-06dd64af=\\"\\" data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                     <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
                     <!---->
                     <!---->

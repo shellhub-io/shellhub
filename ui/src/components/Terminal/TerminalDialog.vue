@@ -131,9 +131,8 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import {
-  defineComponent,
   ref,
   computed,
   watch,
@@ -157,137 +156,130 @@ import { IPrivateKey } from "../../interfaces/IPrivateKey";
 import { IParams } from "../../interfaces/IParams";
 import { IConnectToTerminal } from "../../interfaces/ITerminal";
 
-export default defineComponent({
-  inheritAttrs: false,
-  props: {
-    enableConnectButton: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    enableConsoleIcon: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    uid: {
-      type: String,
-      required: true,
-    },
-
-    online: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    show: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
+const props = defineProps({
+  enableConnectButton: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
-  setup(props, context) {
-    const store = useStore();
-    const tabActive = ref("Password");
-    const showPassword = ref(false);
-    const showLoginForm = ref(true);
-    const privateKey = ref("");
-    const xterm = ref<(Terminal)>({} as Terminal);
-    const ws = ref<WebSocket>({} as WebSocket);
-    const fitAddon = ref<FitAddon>({} as FitAddon);
-    const terminal = ref<HTMLElement>({} as HTMLElement);
+  enableConsoleIcon: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  uid: {
+    type: String,
+    required: true,
+  },
+  online: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  show: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+});
+const store = useStore();
+const tabActive = ref("Password");
+const showPassword = ref(false);
+const showLoginForm = ref(true);
+const privateKey = ref("");
+const xterm = ref<(Terminal)>({} as Terminal);
+const ws = ref<WebSocket>({} as WebSocket);
+const fitAddon = ref<FitAddon>({} as FitAddon);
+const terminal = ref<HTMLElement>({} as HTMLElement);
+const uid = computed(() => props.uid);
+const showTerminal = ref(store.getters["modal/terminal"] === uid.value);
 
-    const uid = computed(() => props.uid);
-    const showTerminal = ref(store.getters["modal/terminal"] === uid.value);
+const {
+  value: username,
+  errorMessage: usernameError,
+  resetField: resetUsername,
+} = useField<string>("username", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: username,
-      errorMessage: usernameError,
-      resetField: resetUsername,
-    } = useField<string>("username", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: password,
+  errorMessage: passwordError,
+  resetField: resetPassword,
+} = useField<string>("password", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: password,
-      errorMessage: passwordError,
-      resetField: resetPassword,
-    } = useField<string>("password", yup.string().required(), {
-      initialValue: "",
-    });
+const webTermDimensions = computed(() => ({
+  cols: xterm.value.cols,
+  rows: xterm.value.rows,
+}));
 
-    const webTermDimensions = computed(() => ({
-      cols: xterm.value.cols,
-      rows: xterm.value.rows,
-    }));
+const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
 
-    const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
+const nameOfPrivateKeys = computed(() => {
+  const list = getListPrivateKeys.value;
+  return list.map((item: IPrivateKey) => item.name);
+});
 
-    const nameOfPrivateKeys = computed(() => {
-      const list = getListPrivateKeys.value;
-      return list.map((item: IPrivateKey) => item.name);
-    });
+watch(showTerminal, (value) => {
+  if (!value) {
+    if (ws.value) ws.value.close();
+    if (xterm.value) {
+      xterm.value.dispose();
+    }
+  } else {
+    showLoginForm.value = true;
+  }
+});
 
-    watch(showTerminal, (value) => {
-      if (!value) {
-        if (ws.value) ws.value.close();
-        if (xterm.value) {
-          xterm.value.dispose();
-        }
-      } else {
-        showLoginForm.value = true;
-      }
-    });
+const encodeURLParams = (params: IParams) => Object.entries(params)
+  .map(([key, value]) => `${key}=${value}`)
+  .join("&");
 
-    const encodeURLParams = (params: IParams) => Object.entries(params)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("&");
+const connect = async (params: IConnectToTerminal) => {
+  if (params.password && !username.value && !password.value) {
+    return;
+  }
 
-    const connect = async (params: IConnectToTerminal) => {
-      if (params.password && !username.value && !password.value) {
-        return;
-      }
+  if (params.signature && !username.value && !privateKey.value) {
+    return;
+  }
 
-      if (params.signature && !username.value && !privateKey.value) {
-        return;
-      }
+  const response = await axios.post("/ws/ssh", {
+    device: props.uid,
+    username: username.value,
+    ...params,
+  });
 
-      const response = await axios.post("/ws/ssh", {
-        device: props.uid,
-        username: username.value,
-        ...params,
-      });
+  const { token } = response.data;
 
-      const { token } = response.data;
+  showLoginForm.value = false;
+  nextTick(() => fitAddon.value.fit());
 
-      showLoginForm.value = false;
-      nextTick(() => fitAddon.value.fit());
+  if (!xterm.value.element) {
+    xterm.value.open(terminal.value);
+  }
 
-      if (!xterm.value.element) {
-        xterm.value.open(terminal.value);
-      }
+  fitAddon.value.fit();
+  xterm.value.focus();
 
-      fitAddon.value.fit();
-      xterm.value.focus();
+  let protocolConnectionURL = "";
 
-      let protocolConnectionURL = "";
+  if (window.location.protocol === "http:") {
+    protocolConnectionURL = "ws";
+  } else {
+    protocolConnectionURL = "wss";
+  }
 
-      if (window.location.protocol === "http:") {
-        protocolConnectionURL = "ws";
-      } else {
-        protocolConnectionURL = "wss";
-      }
+  const wsInfo = { token, ...webTermDimensions.value };
 
-      const wsInfo = { token, ...webTermDimensions.value };
-
-      const enc = new TextEncoder();
-      ws.value = new WebSocket(
-        `${protocolConnectionURL}://${
-          window.location.host
-        }/ws/ssh?${encodeURLParams(wsInfo)}`,
-      );
+  const enc = new TextEncoder();
+  ws.value = new WebSocket(
+    `${protocolConnectionURL}://${
+      window.location.host
+    }/ws/ssh?${encodeURLParams(wsInfo)}`,
+  );
 
       enum MessageKind {
         Input = 1,
@@ -320,95 +312,73 @@ export default defineComponent({
 
         ws.value.send(JSON.stringify(message));
       });
-    };
+};
 
-    const open = () => {
-      showTerminal.value = true;
-      privateKey.value = "";
+const open = () => {
+  showTerminal.value = true;
+  privateKey.value = "";
 
-      xterm.value = new Terminal({
-        cursorBlink: true,
-        fontFamily: "monospace",
-        theme: {
-          background: "#0f1526",
-        },
-      });
+  xterm.value = new Terminal({
+    cursorBlink: true,
+    fontFamily: "monospace",
+    theme: {
+      background: "#0f1526",
+    },
+  });
 
-      fitAddon.value = new FitAddon();
-      xterm.value.loadAddon(fitAddon.value);
+  fitAddon.value = new FitAddon();
+  xterm.value.loadAddon(fitAddon.value);
 
-      store.dispatch("modal/toggleTerminal", props.uid);
+  store.dispatch("modal/toggleTerminal", props.uid);
 
-      if (xterm.value.element) {
-        xterm.value.reset();
-      }
-    };
+  if (xterm.value.element) {
+    xterm.value.reset();
+  }
+};
 
-    const resetFieldValidation = () => {
-      resetUsername();
-      resetPassword();
-    };
+const resetFieldValidation = () => {
+  resetUsername();
+  resetPassword();
+};
 
-    const connectWithPassword = () => {
-      connect({ password: password.value });
-    };
+const connectWithPassword = () => {
+  connect({ password: password.value });
+};
 
-    const findPrivateKeyByName = (name: string) => {
-      const list = getListPrivateKeys.value;
-      return list.find((item: IPrivateKey) => item.name === name);
-    };
+const findPrivateKeyByName = (name: string) => {
+  const list = getListPrivateKeys.value;
+  return list.find((item: IPrivateKey) => item.name === name);
+};
 
-    const connectWithPrivateKey = async () => {
-      const privateKeyData = findPrivateKeyByName(privateKey.value);
-      const pk = parsePrivateKeySsh(privateKeyData.data);
-      let signature;
+const connectWithPrivateKey = async () => {
+  const privateKeyData = findPrivateKeyByName(privateKey.value);
+  const pk = parsePrivateKeySsh(privateKeyData.data);
+  let signature;
 
-      if (pk.type === "ed25519") {
-        const signer = createSignerPrivateKey(pk, username.value);
-        signature = signer;
-      } else {
-        signature = decodeURIComponent(await createSignatureOfPrivateKey(
-          privateKeyData.data,
-          username.value,
-        ));
-      }
-      const fingerprint = await createKeyFingerprint(privateKeyData.data);
-      connect({ fingerprint, signature });
-    };
+  if (pk.type === "ed25519") {
+    const signer = createSignerPrivateKey(pk, username.value);
+    signature = signer;
+  } else {
+    signature = decodeURIComponent(await createSignatureOfPrivateKey(
+      privateKeyData.data,
+      username.value,
+    ));
+  }
+  const fingerprint = await createKeyFingerprint(privateKeyData.data);
+  connect({ fingerprint, signature });
+};
 
-    const close = () => {
-      showTerminal.value = false;
-      store.dispatch("modal/toggleTerminal", "");
-      resetFieldValidation();
-    };
+const close = () => {
+  showTerminal.value = false;
+  store.dispatch("modal/toggleTerminal", "");
+  resetFieldValidation();
+};
 
-    onUnmounted(() => {
-      close();
-    });
-
-    context.expose({ open });
-
-    return {
-      showTerminal,
-      getListPrivateKeys,
-      open,
-      resetFieldValidation,
-      tabActive,
-      username,
-      usernameError,
-      password,
-      showPassword,
-      passwordError,
-      privateKey,
-      connectWithPassword,
-      connectWithPrivateKey,
-      nameOfPrivateKeys,
-      close,
-      showLoginForm,
-      terminal,
-    };
-  },
+onUnmounted(() => {
+  close();
 });
+
+defineExpose({ open });
 </script>
 
 <!-- <style lang="scss" scoped>
