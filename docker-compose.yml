@@ -96,6 +96,10 @@ services:
       - ${SHELLHUB_HTTP_PORT}:80
     networks:
       - shellhub
+    healthcheck:
+      test: "curl -f -k -L http://gateway/healthcheck || exit 1"
+      interval: 30s
+      start_period: 10s
   cli:
     image: shellhubio/cli:${SHELLHUB_VERSION}
     entrypoint: /bin/sleep infinity
