@@ -73,6 +73,10 @@ services:
       - SHELLHUB_SENTRY_DSN=${SHELLHUB_SENTRY_DSN}
     networks:
       - shellhub
+    healthcheck:
+      test: "curl -f http://ui:8080/healthcheck || exit 1"
+      interval: 30s
+      start_period: 10s
   gateway:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     restart: unless-stopped
