@@ -1,0 +1,6 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Recovery Helper > Renders the component 1`] = `
+"<!--teleport start-->
+<!--teleport end-->"
+`;
