@@ -29,6 +29,7 @@ export enum INotificationsSuccess {
   addUser = "creating account",
   resendEmail = "resend email",
   recoverPassword = "sending email",
+  recoveryHelper = "disabling Multi-Factor Authentication",
   validationAccount = "validation account",
   updatingAccount = "updating account",
   subscription = "subscription",

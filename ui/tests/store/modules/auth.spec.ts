@@ -25,6 +25,7 @@ describe("Auth", () => {
     expect(store.getters["auth/mfaStatus"]).toEqual({ enable: false, validate: false });
     expect(store.getters["auth/recoveryCodes"]).toEqual([]);
     expect(store.getters["auth/secret"]).toEqual("");
+    expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
   });
 
   it("Test disableMfa action", async () => {
@@ -119,8 +120,10 @@ describe("Auth", () => {
     await flushPromises();
 
     expect(reqSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", { code: "000000" });
+
     // Check if the state has been updated correctly
     expect(store.getters["auth/stateToken"]).toEqual(recoveryMfaResponse.token);
+    expect(store.getters["auth/showRecoveryModal"]).toEqual(true);
   });
 
   it("Test generateMfa action", async () => {

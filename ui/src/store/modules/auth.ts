@@ -20,6 +20,7 @@ export interface AuthState {
   },
   recoveryCodes: Array<number>,
   showCongratulations: boolean,
+  showRecoveryModal: boolean,
 }
 export const auth: Module<AuthState, State> = {
   namespaced: true,
@@ -40,6 +41,7 @@ export const auth: Module<AuthState, State> = {
     },
     recoveryCodes: [],
     showCongratulations: false,
+    showRecoveryModal: false,
   },
 
   getters: {
@@ -59,6 +61,7 @@ export const auth: Module<AuthState, State> = {
     isValidatedMfa: (state) => state.mfa.validate,
     recoveryCodes: (state) => state.recoveryCodes,
     showCongratulationsModal: (state) => state.showCongratulations,
+    showRecoveryModal: (state) => state.showRecoveryModal,
   },
 
   mutations: {
@@ -134,6 +137,10 @@ export const auth: Module<AuthState, State> = {
       state.id = data.id;
       state.role = data.role;
       state.mfa = data.mfa;
+    },
+
+    accountRecoveryHelper(state) {
+      state.showRecoveryModal = !state.showRecoveryModal;
     },
   },
 
@@ -256,6 +263,7 @@ export const auth: Module<AuthState, State> = {
         if (resp.status === 200) {
           localStorage.setItem("token", resp.data.token || "");
           context.commit("mfaToken", resp.data.token);
+          context.commit("accountRecoveryHelper");
         }
       } catch (error) {
         context.commit("authError");
