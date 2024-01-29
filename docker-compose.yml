@@ -93,7 +93,7 @@ services:
       - api
       - ui
     ports:
-      - ${SHELLHUB_HTTP_PORT}:80
+      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80
     networks:
       - shellhub
     healthcheck:
