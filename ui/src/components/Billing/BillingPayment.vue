@@ -158,15 +158,23 @@ const cardOptions = ref<StripeCardElementOptions>({
 });
 
 const fetchData = async () => {
-  await store.dispatch("customer/fetchCustomer");
-  const customerDetails = consumerData.value.data;
-  customer.name = customerDetails.name;
-  customer.email = customerDetails.email;
-  customer.payment_methods = customerDetails.payment_methods;
-  if (customer.payment_methods == null || customer.payment_methods.length === 0) {
-    emit("no-payment-methods");
-  } else {
-    emit("has-default-payment");
+  try {
+    await store.dispatch("customer/fetchCustomer");
+    const customerDetails = consumerData.value.data;
+
+    Object.assign(customer, {
+      name: customerDetails?.name || "",
+      email: customerDetails?.email || "",
+      payment_methods: customerDetails?.payment_methods,
+    });
+
+    if (customerDetails.payment_methods?.length === 0 || customerDetails.payment_methods === null) {
+      emit("no-payment-methods");
+    } else {
+      emit("has-default-payment");
+    }
+  } catch (error) {
+    handleError(error);
   }
 };
 
