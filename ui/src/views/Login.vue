@@ -22,6 +22,7 @@
         closable
         variant="tonal"
         class="mb-4"
+        data-test="invalid-login-alert"
       >
         <strong>Invalid login credentials:</strong>
         Your password is incorrect or this account doesn't exists.

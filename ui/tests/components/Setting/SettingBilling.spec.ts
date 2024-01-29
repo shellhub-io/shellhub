@@ -95,7 +95,6 @@ describe("Billing Settings Free Mode", () => {
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("billing/setSubscription", billingData);
-    store.commit("customer/setCustomer", customerData);
 
     wrapper = mount(SettingBilling, {
       global: {
