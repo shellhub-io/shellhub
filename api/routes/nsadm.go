@@ -41,6 +41,8 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 		return err
 	}
 
+	query.Paginator.Normalize()
+
 	if err := query.Filters.Unmarshal(); err != nil {
 		return err
 	}
