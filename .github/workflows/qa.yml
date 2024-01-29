@@ -46,7 +46,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           # inline YAML or path to separate file (e.g.: .github/filters.yaml)
