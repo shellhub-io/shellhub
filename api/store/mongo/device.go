@@ -561,8 +561,17 @@ func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID,
 
 		return nil
 	})
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	// Not deleting the device from the cache may cause issues when trying to retrieve the device after the update.
+	// TODO: Maybe we can standardize the key creation?
+	if err := s.cache.Delete(ctx, strings.Join([]string{"device", string(uid)}, "/")); err != nil {
+		logrus.Error(err)
+	}
+
+	return nil
 }
 
 func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {
