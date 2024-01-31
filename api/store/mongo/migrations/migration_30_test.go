@@ -15,19 +15,24 @@ import (
 func TestMigration30(t *testing.T) {
 	logrus.Info("Testing Migration 30 - Test whether the collection of devices the field remote_addr was created")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	device := models.Device{
 		UID: "1",
 	}
 
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[29:30]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -36,7 +41,7 @@ func TestMigration30(t *testing.T) {
 	assert.Equal(t, uint64(30), version)
 
 	var migratedDevice *models.Device
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"uid": device.UID}).Decode(&migratedDevice)
+	err = mongoClient.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"uid": device.UID}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 	assert.Equal(t, migratedDevice.RemoteAddr, "")
 }

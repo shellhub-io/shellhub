@@ -14,8 +14,13 @@ import (
 func TestMigration13(t *testing.T) {
 	logrus.Info("Testing Migration 13 - Test the several changes on the collections")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	logrus.Info("Test if the UID is unique in the devices collection")
 
@@ -27,13 +32,13 @@ func TestMigration13(t *testing.T) {
 		UID: "1",
 	}
 
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device1)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device2)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device2)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:13]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:13]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.Error(t, err)
 
@@ -47,10 +52,10 @@ func TestMigration13(t *testing.T) {
 		UID: "1",
 	}
 
-	_, err = db.Client().Database("test").Collection("connected_devices").InsertOne(context.TODO(), connectedDevice1)
+	_, err = mongoClient.Database("test").Collection("connected_devices").InsertOne(context.TODO(), connectedDevice1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("connected_devices").InsertOne(context.TODO(), connectedDevice2)
+	_, err = mongoClient.Database("test").Collection("connected_devices").InsertOne(context.TODO(), connectedDevice2)
 	assert.NoError(t, err)
 
 	logrus.Info("Test if the uid in the sessions collection is unique")
@@ -63,10 +68,10 @@ func TestMigration13(t *testing.T) {
 		UID: "1",
 	}
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session1)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.TODO(), session1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session2)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.TODO(), session2)
 	assert.NoError(t, err)
 
 	activeSession1 := models.ActiveSession{
@@ -77,10 +82,10 @@ func TestMigration13(t *testing.T) {
 		UID: "1",
 	}
 
-	_, err = db.Client().Database("test").Collection("active_sessions").InsertOne(context.TODO(), activeSession1)
+	_, err = mongoClient.Database("test").Collection("active_sessions").InsertOne(context.TODO(), activeSession1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("active_sessions").InsertOne(context.TODO(), activeSession2)
+	_, err = mongoClient.Database("test").Collection("active_sessions").InsertOne(context.TODO(), activeSession2)
 	assert.NoError(t, err)
 
 	logrus.Info("Test if the tenant_id in the users collection is unique")
@@ -103,9 +108,9 @@ func TestMigration13(t *testing.T) {
 		Email:    "test2",
 	}
 
-	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user2)
 	assert.NoError(t, err)
 }

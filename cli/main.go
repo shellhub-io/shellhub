@@ -11,9 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	mgo "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 type config struct {
@@ -26,27 +23,39 @@ func init() {
 }
 
 func main() {
+	ctx := context.Background()
+
 	cfg, err := envs.ParseWithPrefix[config]("CLI_")
 	if err != nil {
 		log.Error(err.Error())
 	}
 
-	connStr, err := connstring.ParseAndValidate(cfg.MongoURI)
-	if err != nil {
-		log.WithError(err).Fatal("Invalid Mongo URI format")
-	}
-
-	client, err := mgo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongoURI))
-	if err != nil {
-		log.Error(err)
-	}
+	log.Info("Connecting to Redis")
 
 	cache, err := storecache.NewRedisCache(cfg.RedisURI, 0)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Error("Failed to configure redis store cache")
 	}
 
-	service := services.NewService(mongo.NewStore(client.Database(connStr.Database), cache))
+	log.Info("Connected to Redis")
+
+	log.Trace("Connecting to MongoDB")
+
+	_, db, err := mongo.Connect(ctx, cfg.MongoURI)
+	if err != nil {
+		log.
+			WithError(err).
+			Fatal("unable to connect to MongoDB")
+	}
+
+	store, err := mongo.NewStore(ctx, db, cache)
+	if err != nil {
+		log.
+			WithError(err).
+			Fatal("failed to create the store")
+	}
+
+	service := services.NewService(store)
 
 	rootCmd := &cobra.Command{Use: "cli"}
 

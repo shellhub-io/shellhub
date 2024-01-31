@@ -15,12 +15,17 @@ import (
 func TestMigration52(t *testing.T) {
 	logrus.Info("Testing Migration 52")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	user := models.User{}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.Background(), user)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.Background(), user)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -33,12 +38,12 @@ func TestMigration52(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[51:52]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
+				result := mongoClient.Database("test").Collection("users").FindOne(context.Background(), bson.M{})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -53,12 +58,12 @@ func TestMigration52(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[51:52]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
+				result := mongoClient.Database("test").Collection("users").FindOne(context.Background(), bson.M{})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)

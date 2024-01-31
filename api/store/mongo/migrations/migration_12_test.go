@@ -14,23 +14,28 @@ import (
 func TestMigration12(t *testing.T) {
 	logrus.Info("Testing Migration 12 - Test if the tenant_id is set unique")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	ns1 := models.Namespace{Name: "name", TenantID: "1"}
 	ns2 := models.Namespace{Name: "name", TenantID: "1"}
 
-	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns1)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns2)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns2)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:11]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:11]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:12]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:12]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.Error(t, err)
 }

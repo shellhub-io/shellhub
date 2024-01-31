@@ -12,14 +12,19 @@ import (
 )
 
 func TestMigration34(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[:33]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	version, _, err := migrates.Version(context.Background())
@@ -28,7 +33,7 @@ func TestMigration34(t *testing.T) {
 
 	migrations = GenerateMigrations()[:34]
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -36,7 +41,7 @@ func TestMigration34(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(34), version)
 
-	cursor, err := db.Client().Database("test").Collection("devices").Indexes().List(context.TODO())
+	cursor, err := mongoClient.Database("test").Collection("devices").Indexes().List(context.TODO())
 	assert.NoError(t, err)
 
 	var results []bson.M

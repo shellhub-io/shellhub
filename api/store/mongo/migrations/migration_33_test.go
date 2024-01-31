@@ -12,13 +12,18 @@ import (
 )
 
 func TestMigration33(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[:32]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	version, _, err := migrates.Version(context.Background())
@@ -29,12 +34,12 @@ func TestMigration33(t *testing.T) {
 		UID:      "1",
 		TenantID: "tenant",
 	}
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), &device)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), &device)
 	assert.NoError(t, err)
 
 	migration := GenerateMigrations()[32:33]
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), migration...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), migration...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -43,7 +48,7 @@ func TestMigration33(t *testing.T) {
 	assert.Equal(t, uint64(33), version)
 
 	var migratedDevice *models.Device
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"uid": device.UID}).Decode(&migratedDevice)
+	err = mongoClient.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"uid": device.UID}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(migratedDevice.Tags))
 }

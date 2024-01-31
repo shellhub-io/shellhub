@@ -15,13 +15,18 @@ import (
 )
 
 func TestMigration26(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[:26]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	version, _, err := migrates.Version(context.Background())
@@ -33,15 +38,15 @@ func TestMigration26(t *testing.T) {
 		User:      "user",
 		CreatedAt: clock.Now(),
 	}
-	_, err = db.Client().Database("test").Collection("recovery_tokens").InsertOne(context.TODO(), userToken)
+	_, err = mongoClient.Database("test").Collection("recovery_tokens").InsertOne(context.TODO(), userToken)
 	assert.NoError(t, err)
 
 	var migratedUserToken *models.UserTokenRecover
-	err = db.Client().Database("test").Collection("recovery_tokens").FindOne(context.TODO(), bson.M{"user": userToken.User}).Decode(&migratedUserToken)
+	err = mongoClient.Database("test").Collection("recovery_tokens").FindOne(context.TODO(), bson.M{"user": userToken.User}).Decode(&migratedUserToken)
 	assert.NoError(t, err)
 	assert.Equal(t, userToken.Token, migratedUserToken.Token)
 
-	index := db.Client().Database("test").Collection("recovery_tokens").Indexes()
+	index := mongoClient.Database("test").Collection("recovery_tokens").Indexes()
 
 	cursor, err := index.List(context.TODO())
 	assert.NoError(t, err)

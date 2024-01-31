@@ -15,24 +15,29 @@ import (
 func TestMigration9(t *testing.T) {
 	logrus.Info("Testing Migration 9 - Test if the device's name is in lowercase")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:8]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:8]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	device := models.Device{
 		Name: "Test",
 	}
 
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:9]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:9]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&device)
+	err = mongoClient.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&device)
 	assert.NoError(t, err)
 }

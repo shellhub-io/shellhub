@@ -12,13 +12,18 @@ import (
 )
 
 func TestMigration32(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[:31]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	version, _, err := migrates.Version(context.Background())
@@ -35,12 +40,12 @@ func TestMigration32(t *testing.T) {
 			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 		},
 	}
-	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	migration := GenerateMigrations()[31]
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), migration)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), migration)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -49,7 +54,7 @@ func TestMigration32(t *testing.T) {
 	assert.Equal(t, uint64(32), version)
 
 	var migratedUser *models.User
-	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
+	err = mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.Equal(t, false, migratedUser.Confirmed)
 }

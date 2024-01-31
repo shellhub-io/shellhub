@@ -16,15 +16,20 @@ import (
 func TestMigration47(t *testing.T) {
 	logrus.Info("Testing Migration 47")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	sessionWithoutPossition := &models.Session{
 		UID:       "test",
 		IPAddress: "201.182.197.68",
 	}
 
-	_, err := db.Client().Database("test").Collection("sessions").InsertOne(context.Background(), sessionWithoutPossition)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.Background(), sessionWithoutPossition)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -37,12 +42,12 @@ func TestMigration47(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[46:47]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.Session)
-				result := db.Client().Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
+				result := mongoClient.Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -61,12 +66,12 @@ func TestMigration47(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[46:47]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.Session)
-				result := db.Client().Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
+				result := mongoClient.Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)

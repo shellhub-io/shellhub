@@ -15,13 +15,18 @@ import (
 
 func TestMigration36(t *testing.T) {
 	logrus.Info("Testing Migration 36 - Test namespace update max_devices in Cloud")
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[:35]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	version, _, err := migrates.Version(context.Background())
@@ -75,10 +80,10 @@ func TestMigration36(t *testing.T) {
 		namespaces[i] = v.toBeMigrated
 	}
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertMany(context.TODO(), namespaces)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertMany(context.TODO(), namespaces)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[35])
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[35])
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -86,7 +91,7 @@ func TestMigration36(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(36), version)
 
-	cur, err := db.Client().Database("test").Collection("namespaces").Find(context.TODO(), bson.D{})
+	cur, err := mongoClient.Database("test").Collection("namespaces").Find(context.TODO(), bson.D{})
 	assert.NoError(t, err)
 
 	index := 0

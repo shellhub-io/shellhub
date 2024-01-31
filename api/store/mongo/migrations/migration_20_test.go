@@ -16,8 +16,13 @@ import (
 func TestMigration20(t *testing.T) {
 	logrus.Info("Testing Migration 20 - Test if the firewall_rules has change to new one")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	type firewallRule struct {
 		ID                        primitive.ObjectID `json:"id" bson:"_id"`
@@ -29,14 +34,14 @@ func TestMigration20(t *testing.T) {
 		TenantID: "tenant",
 	}
 
-	_, err := db.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), fRule)
+	_, err = mongoClient.Database("test").Collection("firewall_rules").InsertOne(context.TODO(), fRule)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[19:20]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[19:20]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	var migratedFirewallRules *models.FirewallRule
-	err = db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedFirewallRules)
+	err = mongoClient.Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedFirewallRules)
 	assert.NoError(t, err)
 }

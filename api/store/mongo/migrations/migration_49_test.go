@@ -16,8 +16,13 @@ import (
 func TestMigration49(t *testing.T) {
 	logrus.Info("Testing Migration 49")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	user1ID, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
 	assert.NoError(t, err)
@@ -44,15 +49,15 @@ func TestMigration49(t *testing.T) {
 		Owner: user2ID.String(),
 	}
 
-	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user2)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -65,12 +70,12 @@ func TestMigration49(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[48:49]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				user := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(user)
@@ -85,12 +90,12 @@ func TestMigration49(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[48:49]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				user := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(user)

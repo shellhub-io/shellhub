@@ -15,11 +15,16 @@ import (
 func TestMigration19(t *testing.T) {
 	logrus.Info("Testing Migration 19 - Test if the fingerprint is removed")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:19]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:19]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	type PublicKeyFields struct {
@@ -42,10 +47,10 @@ func TestMigration19(t *testing.T) {
 		PublicKeyFields: PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
 
-	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
+	_, err = mongoClient.Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&pk)
+	err = mongoClient.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&pk)
 	assert.NoError(t, err)
 	assert.Equal(t, pk.Fingerprint, "")
 }

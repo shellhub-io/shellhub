@@ -15,24 +15,29 @@ import (
 func TestMigration15(t *testing.T) {
 	logrus.Info("Testing Migration 15 - Test if the name is in lowercase")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:14]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:14]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	ns := models.Namespace{
 		Name: "Test",
 	}
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:15]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:15]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&ns)
+	err = mongoClient.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&ns)
 	assert.NoError(t, err)
 }

@@ -15,11 +15,16 @@ import (
 func TestMigration27(t *testing.T) {
 	logrus.Info("Testing Migration 27 - Test closed field in the sessions")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:26]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:26]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	sessionsToBeMigrated := []struct {
@@ -41,15 +46,15 @@ func TestMigration27(t *testing.T) {
 		sessions[i] = v
 	}
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertMany(context.TODO(), sessions)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertMany(context.TODO(), sessions)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:27]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:27]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	migratedSessions := []models.Session{}
-	cur, err := db.Client().Database("test").Collection("sessions").Find(context.TODO(), bson.D{})
+	cur, err := mongoClient.Database("test").Collection("sessions").Find(context.TODO(), bson.D{})
 	assert.NoError(t, err)
 	for cur.Next(context.TODO()) {
 		var ses models.Session

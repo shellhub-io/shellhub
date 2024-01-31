@@ -15,8 +15,13 @@ import (
 func TestMigration18(t *testing.T) {
 	logrus.Info("Testing Migration 18 - Test if the max_devices is 3")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	namespace := models.Namespace{
 		Name:     "name",
@@ -26,18 +31,18 @@ func TestMigration18(t *testing.T) {
 
 	migrations := GenerateMigrations()[:17]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
-	assert.NoError(t, err)
-
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
-	assert.NoError(t, err)
-
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[17])
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&namespace)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	assert.NoError(t, err)
+
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[17])
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
+	assert.NoError(t, err)
+
+	err = mongoClient.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&namespace)
 	assert.NoError(t, err)
 	assert.Equal(t, namespace.MaxDevices, 3)
 }

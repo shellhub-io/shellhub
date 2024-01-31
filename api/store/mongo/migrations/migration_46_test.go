@@ -16,8 +16,13 @@ import (
 func TestMigration46(t *testing.T) {
 	logrus.Info("Testing Migration 46")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	keyUsernameEmpty := &models.PublicKey{
 		Fingerprint: "fingerprint",
@@ -43,7 +48,7 @@ func TestMigration46(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("public_keys").InsertOne(context.Background(), keyUsernameEmpty)
+	_, err = mongoClient.Database("test").Collection("public_keys").InsertOne(context.Background(), keyUsernameEmpty)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -56,12 +61,12 @@ func TestMigration46(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[45:46]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameEmpty.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameEmpty.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -78,12 +83,12 @@ func TestMigration46(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[45:46]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameRegexp.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameRegexp.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
