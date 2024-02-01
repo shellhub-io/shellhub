@@ -51,3 +51,8 @@ func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 
 	return cmd
 }
+
+// SFTPServerCommand creates the command used by agent to start the SFTP server used in a SFTP connection.
+func SFTPServerCommand() *exec.Cmd {
+	return exec.Command("/proc/self/exe", []string{"sftp", string(SFTPServerModeNative)}...)
+}

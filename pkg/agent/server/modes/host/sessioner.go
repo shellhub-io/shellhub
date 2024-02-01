@@ -1,6 +1,7 @@
 package host
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -309,7 +310,7 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	}).Info("SFTP session started")
 	defer session.Close()
 
-	cmd := exec.Command("/proc/self/exe", []string{"sftp"}...)
+	cmd := command.SFTPServerCommand()
 
 	looked, err := user.Lookup(session.User())
 	if err != nil {
@@ -406,12 +407,20 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 			"user": session.Context().User(),
 		}).Trace("copying error to session")
 
-		if _, err := io.Copy(session, erro); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"user": session.Context().User(),
-			}).Error("Failed to copy stderr to session")
+		msgs := bufio.NewScanner(erro)
+		msgs.Split(bufio.ScanLines)
+		for msgs.Scan() {
+			if err := msgs.Err(); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"user": session.Context().User(),
+				}).Error("failed when reading the error output from sftp process")
 
-			return
+				return
+			}
+
+			log.WithFields(log.Fields{
+				"user": session.Context().User(),
+			}).Error(msgs.Text())
 		}
 
 		log.WithFields(log.Fields{

@@ -81,3 +81,8 @@ func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]s
 
 	return append(getWrappedCommand(args, uid, gid, home), command...), nil
 }
+
+// SFTPServerCommand creates the command used by agent to start the SFTP server used in a SFTP connection.
+func SFTPServerCommand() *exec.Cmd {
+	return exec.Command("/proc/self/exe", []string{"sftp", string(SFTPServerModeDocker)}...)
+}
