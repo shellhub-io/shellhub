@@ -10,6 +10,7 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
@@ -277,7 +278,7 @@ func main() {
 		Long: `Starts the SFTP server. This command is used internally by the agent and should not be used directly.
 It is initialized by the agent when a new SFTP session is created.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			agent.NewSFTPServer()
+			agent.NewSFTPServer(command.SFTPServerMode(args[0]))
 		},
 	})
 

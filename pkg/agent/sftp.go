@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/pkg/sftp"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
 )
 
 type pipe struct {
@@ -32,11 +33,15 @@ func (p *pipe) Close() error {
 }
 
 // NewSFTPServer creates a new SFTP server when a new session is created between the agent and the server.
-func NewSFTPServer() {
+func NewSFTPServer(mode command.SFTPServerMode) {
 	piped := &pipe{os.Stdin, os.Stdout, os.Stderr}
 
-	if err := syscall.Chroot("/host"); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if mode == command.SFTPServerModeDocker {
+		if err := syscall.Chroot("/host"); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+
+			return
+		}
 	}
 
 	home, ok := os.LookupEnv("HOME")
