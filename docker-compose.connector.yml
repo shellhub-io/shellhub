@@ -10,6 +10,7 @@ services:
       - SHELLHUB_PRIVATE_KEYS=/var/run/connector/keys
       - SHELLHUB_TENANT_ID=${SHELLHUB_CONNECTOR_TENANT_ID}
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
+      - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "connector_keys:/var/run/connector/keys"
