@@ -98,7 +98,7 @@ type Config struct {
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
 	// state. Default is 30 seconds.
-	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,default=30"`
+	KeepAliveInterval uint `env:"KEEPALIVE_INTERVAL,default=30"`
 
 	// Set the device preferred hostname. This provides a hint to the server to
 	// use this as hostname if it is available.

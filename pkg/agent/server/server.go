@@ -43,7 +43,7 @@ type Server struct {
 	deviceName         string
 	containerID        string
 	mu                 sync.Mutex
-	keepAliveInterval  int
+	keepAliveInterval  uint
 	singleUserPassword string
 
 	// mode is the mode of the server, identifing where and how the SSH's server is running.
@@ -80,7 +80,7 @@ const (
 )
 
 // NewServer creates a new server SSH agent server.
-func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval int, singleUserPassword string, mode modes.Mode) *Server {
+func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval uint, singleUserPassword string, mode modes.Mode) *Server {
 	server := &Server{
 		api:                api,
 		authData:           authData,
