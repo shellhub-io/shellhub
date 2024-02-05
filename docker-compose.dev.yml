@@ -81,6 +81,7 @@ services:
       - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
+      - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg

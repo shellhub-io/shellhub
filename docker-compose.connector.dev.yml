@@ -17,6 +17,7 @@ services:
       - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}/
       - SHELLHUB_PRIVATE_KEYS=/go/src/github.com/shellhub-io/shellhub/connector/.keys/
       - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
+      - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
     volumes:
       - ./connector:/go/src/github.com/shellhub-io/shellhub/connector

@@ -57,3 +57,55 @@ func TestSetLevels(t *testing.T) {
 		})
 	}
 }
+
+func formatterToString(formatter logrus.Formatter) LogFormat {
+	switch formatter.(type) {
+	case *logrus.JSONFormatter:
+		return LogFormatJSON
+	case *logrus.TextFormatter:
+		return LogFormatText
+	default:
+		return LogFormatText
+	}
+}
+
+func TestSetFormat(t *testing.T) {
+	mocks := &envMocks.Backend{}
+	envs.DefaultBackend = mocks
+
+	cases := []struct {
+		description   string
+		requiredMocks func()
+		expected      LogFormat
+	}{
+		{
+			description: "Set log format to json when SHELLHUB_LOG_FORMAT is set to json",
+			requiredMocks: func() {
+				mocks.On("Get", "SHELLHUB_LOG_FORMAT").Return("json").Once()
+			},
+			expected: LogFormatJSON,
+		},
+		{
+			description: "Set log format to text when SHELLHUB_LOG_FORMAT is set to text",
+			requiredMocks: func() {
+				mocks.On("Get", "SHELLHUB_LOG_FORMAT").Return("text").Once()
+			},
+			expected: LogFormatText,
+		},
+		{
+			description: "Set log format to text when SHELLHUB_LOG_FORMAT is invalid",
+			requiredMocks: func() {
+				mocks.On("Get", "SHELLHUB_LOG_FORMAT").Return("invalid").Once()
+			},
+			expected: LogFormatText,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			SetLogFormat()
+			assert.Equal(t, tc.expected, formatterToString(logrus.StandardLogger().Formatter))
+		})
+	}
+}
