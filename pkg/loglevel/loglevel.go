@@ -5,6 +5,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// UseEnvs set the logger level to the specified in SHELLHUB_LOG_LEVEL and the log format for SHELLHUB_LOG_FORMAT.
+func UseEnvs() {
+	SetLogFormat()
+	SetLogLevel()
+}
+
 // TODO: "set" on the name doesn't make sense, as it isn't receiving nothing to set. In my view, "use" could be a better
 // naming, as it will "use" the environmental variable.
 func SetLogLevel() {
