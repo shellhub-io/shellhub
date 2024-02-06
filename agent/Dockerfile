@@ -41,6 +41,9 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 RUN go build -tags docker -ldflags "-X main.AgentVersion=${SHELLHUB_VERSION}"
 
+# To avoid use $GOPATH on the `production` stage, we copy whe agent binary to /app on the root.
+COPY ./agent /app/
+
 # development stage
 FROM base AS development
 
@@ -64,9 +67,12 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.19.1 AS production
+FROM alpine:3.16 AS production
+
+# Copy the libcrypt from builder stage to avoid rebuild it.
+COPY --from=builder /usr/lib/libcrypt.so.* /usr/lib/
 
 WORKDIR /app
-COPY --from=builder /agent /app/
+COPY --from=builder /app/ /app/
 
 ENTRYPOINT ./agent
