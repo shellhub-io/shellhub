@@ -255,18 +255,6 @@ func (s *Store) NamespaceEdit(ctx context.Context, tenant string, changes *model
 	return nil
 }
 
-func (s *Store) NamespaceRename(ctx context.Context, tenantID string, name string) (*models.Namespace, error) {
-	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"name": name}}); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-		logrus.Error(err)
-	}
-
-	return s.NamespaceGet(ctx, tenantID)
-}
-
 func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {
 	ns, err := s.db.Collection("namespaces").UpdateOne(
 		ctx,

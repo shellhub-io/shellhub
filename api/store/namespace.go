@@ -17,7 +17,6 @@ type NamespaceStore interface {
 	// It returns an error, if any, or store.ErrNoDocuments if the namespace does not exist.
 	NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error
 
-	NamespaceRename(ctx context.Context, tenantID string, name string) (*models.Namespace, error)
 	NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error
 	NamespaceDelete(ctx context.Context, tenantID string) error
 	NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberRole string) (*models.Namespace, error)
