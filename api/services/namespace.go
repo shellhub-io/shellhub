@@ -79,7 +79,10 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 				Role: guard.RoleOwner,
 			},
 		},
-		Settings: &models.NamespaceSettings{SessionRecord: true},
+		Settings: &models.NamespaceSettings{
+			SessionRecord:          true,
+			ConnectionAnnouncement: "",
+		},
 		TenantID: namespace.TenantID,
 	}
 
@@ -187,8 +190,9 @@ func (s *service) fillMembersData(ctx context.Context, members []models.Member) 
 
 func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
 	changes := &models.NamespaceChanges{
-		Name:          strings.ToLower(req.Name),
-		SessionRecord: req.Settings.SessionRecord,
+		Name:                   strings.ToLower(req.Name),
+		SessionRecord:          req.Settings.SessionRecord,
+		ConnectionAnnouncement: req.Settings.ConnectionAnnouncement,
 	}
 
 	if err := s.store.NamespaceEdit(ctx, req.Tenant, changes); err != nil {

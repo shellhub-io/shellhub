@@ -43,7 +43,8 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 }
 
 type NamespaceSettings struct {
-	SessionRecord bool `json:"session_record" bson:"session_record,omitempty"`
+	SessionRecord          bool   `json:"session_record" bson:"session_record,omitempty"`
+	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
 }
 
 type Member struct {
@@ -53,6 +54,7 @@ type Member struct {
 }
 
 type NamespaceChanges struct {
-	Name          string `bson:"name,omitempty"`
-	SessionRecord *bool  `bson:"settings.session_record,omitempty"`
+	Name                   string  `bson:"name,omitempty"`
+	SessionRecord          *bool   `bson:"settings.session_record,omitempty"`
+	ConnectionAnnouncement *string `bson:"settings.connection_announcement,omitempty"`
 }

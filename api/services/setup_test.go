@@ -84,6 +84,10 @@ func TestSetup(t *testing.T) {
 							Role: guard.RoleOwner,
 						},
 					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          false,
+						ConnectionAnnouncement: "",
+					},
 					CreatedAt: now,
 				}
 				mock.On("UserCreate", ctx, user).Return(nil).Once()
@@ -123,6 +127,10 @@ func TestSetup(t *testing.T) {
 							ID:   user.ID,
 							Role: guard.RoleOwner,
 						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          false,
+						ConnectionAnnouncement: "",
 					},
 					CreatedAt: now,
 				}
