@@ -271,6 +271,27 @@ func (s *Session) Register(_ gliderssh.Session) error {
 	return nil
 }
 
+// ConnectionAnnouncement retrieves the connection announcement of the device's namespace.
+// A connection announcement is a custom message provided by the end user that can be printed
+// when a new connection within the namespace is established.
+//
+// Returns the announcement or an error, if any. If no announcement is set, it returns an empty string.
+func (s *Session) ConnectionAnnouncement() (string, error) {
+	device := metadata.RestoreDevice(s.Client.Context())
+	if device == nil {
+		return "", nil
+	}
+
+	namespace, errs := internalclient.
+		NewClient().
+		NamespaceLookup(device.TenantID)
+	if len(errs) > 0 {
+		return "", errs[0]
+	}
+
+	return namespace.Settings.ConnectionAnnouncement, nil
+}
+
 func (s *Session) Finish() error {
 	if s.Dialed != nil {
 		request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)

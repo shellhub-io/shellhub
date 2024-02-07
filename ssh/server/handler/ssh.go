@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
@@ -313,6 +314,28 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 			Error("failed to start a new shell")
 
 		return err
+	}
+
+	// Writes the welcome message. The message consists of a static string about the device
+	// and an optional custom string provided by the user.
+	if target := metadata.RestoreTarget(sess.Client.Context()); target != nil {
+		sess.Client.Write([]byte( // nolint: errcheck
+			"Connected to " + target.Username + "@" + target.Data + " via ShellHub.\n",
+		))
+	}
+
+	announcement, err := sess.ConnectionAnnouncement()
+	if err != nil {
+		log.WithError(err).Warn("unable to retrieve the namespace's connection announcement")
+	} else if announcement != "" {
+		sess.Client.Write([]byte("Announcement:\n")) // nolint: errcheck
+
+		// Remove whitespaces and new lines at end
+		announcement = strings.TrimRightFunc(announcement, func(r rune) bool {
+			return r == ' ' || r == '\n' || r == '\t'
+		})
+
+		sess.Client.Write([]byte("    " + strings.ReplaceAll(announcement, "\n", "\n    ") + "\n")) // nolint: errcheck
 	}
 
 	if err := agent.Wait(); isUnknownExitError(err) {

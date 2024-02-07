@@ -39,6 +39,7 @@ type internalAPI interface {
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
 	BillingReport(tenant string, action string) (int, error)
 	BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error)
+	NamespaceLookup(tenant string) (*models.Namespace, []error)
 }
 
 func (c *client) LookupDevice() {
@@ -238,4 +239,23 @@ func (c *client) DeviceLookup(lookup map[string]string) (*models.Device, []error
 	}
 
 	return device, nil
+}
+
+func (c *client) NamespaceLookup(tenant string) (*models.Namespace, []error) {
+	namespace := new(models.Namespace)
+
+	res, err := c.
+		http.
+		R().
+		SetResult(namespace).
+		Get(buildURL(c, fmt.Sprintf("/api/namespaces/%s", tenant)))
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, []error{err}
+	}
+
+	return namespace, nil
 }

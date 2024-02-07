@@ -34,9 +34,10 @@ type NamespaceDelete struct {
 // NamespaceEdit is the structure to represent the request data for edit namespace endpoint.
 type NamespaceEdit struct {
 	TenantParam
-	Name     string `json:"name"  validate:"omitempty,hostname_rfc1123,excludes=."`
+	Name     string `json:"name" validate:"omitempty,hostname_rfc1123,excludes=."`
 	Settings struct {
-		SessionRecord *bool `json:"session_record,omitempty"`
+		SessionRecord          *bool   `json:"session_record" validate:"omitempty"`
+		ConnectionAnnouncement *string `json:"connection_announcement" validate:"omitempty,min=0,max=127"`
 	} `json:"settings"`
 }
 

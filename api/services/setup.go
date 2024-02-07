@@ -54,6 +54,10 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 			},
 		},
 		CreatedAt: clock.Now(),
+		Settings: &models.NamespaceSettings{
+			SessionRecord:          false,
+			ConnectionAnnouncement: "",
+		},
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
