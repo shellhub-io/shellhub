@@ -400,6 +400,51 @@ func TestNamespaceCreate(t *testing.T) {
 	}
 }
 
+func TestNamespaceEdit(t *testing.T) {
+	cases := []struct {
+		description string
+		tenant      string
+		changes     *models.NamespaceChanges
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "fails when tenant is not found",
+			tenant:      "nonexistent",
+			changes: &models.NamespaceChanges{
+				Name: "edited-namespace",
+			},
+			fixtures: []string{fixtures.FixtureNamespaces},
+			expected: store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when tenant is found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			changes: &models.NamespaceChanges{
+				Name: "edited-namespace",
+			},
+			fixtures: []string{fixtures.FixtureNamespaces},
+			expected: nil,
+		},
+	}
+
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	fixtures.Init(db.Host, "test")
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			defer fixtures.Teardown() // nolint: errcheck
+
+			err := mongostore.NamespaceEdit(context.TODO(), tc.tenant, tc.changes)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
 func TestNamespaceRename(t *testing.T) {
 	type Expected struct {
 		ns  *models.Namespace

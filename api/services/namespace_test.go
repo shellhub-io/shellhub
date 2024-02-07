@@ -778,98 +778,81 @@ func TestEditNamespace(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when the name is invalid",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:  "oldname",
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-					TenantID: "xxxxx",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-			},
+			description:   "fails when namespace does not exist",
 			tenantID:      "xxxxx",
-			namespaceName: "name.with.dot",
-			expected: Expected{
-				nil,
-				NewErrNamespaceInvalid(validator.ErrStructureInvalid),
-			},
-		},
-		{
-			description: "fails when the name is the same",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:  "oldname",
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-					TenantID: "xxxxx",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-			},
-			tenantID:      "xxxxx",
-			namespaceName: "oldname",
-			expected: Expected{
-				nil,
-				NewErrNamespaceDuplicated(nil),
-			},
-		},
-		{
-			description: "fails when the store namespace rename fails",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:  "oldname",
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-					TenantID: "xxxxx",
-				}
-
-				newName := "newname"
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("NamespaceRename", ctx, namespace.TenantID, newName).Return(nil, errors.New("error")).Once()
-			},
 			namespaceName: "newname",
+			requiredMocks: func() {
+				mock.On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrNamespaceNotFound("xxxxx", store.ErrNoDocuments),
+			},
+		},
+		{
+			description:   "fails when the store namespace rename fails",
 			tenantID:      "xxxxx",
+			namespaceName: "newname",
+			requiredMocks: func() {
+				mock.On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					Return(errors.New("error")).
+					Once()
+			},
 			expected: Expected{
 				nil,
 				errors.New("error"),
 			},
 		},
 		{
-			description: "succeeds",
+			description:   "succeeds changing the name to lowercase",
+			namespaceName: "newName",
+			tenantID:      "xxxxx",
 			requiredMocks: func() {
+				mock.On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					Return(nil).
+					Once()
+
 				namespace := &models.Namespace{
-					Name:  "oldname",
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
 					TenantID: "xxxxx",
+					Name:     "newname",
 				}
 
-				newName := "newname"
-				newNamespace := &models.Namespace{
-					Name:     newName,
-					Owner:    "hash1",
-					TenantID: "xxxxx",
-				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
-				mock.On("NamespaceRename", ctx, namespace.TenantID, newName).Return(newNamespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "xxxxx").
+					Return(namespace, nil).
+					Once()
 			},
-			namespaceName: "newname",
-			tenantID:      "xxxxx",
 			expected: Expected{
 				&models.Namespace{
-					Name:     "newname",
-					Owner:    "hash1",
 					TenantID: "xxxxx",
+					Name:     "newname",
+				},
+				nil,
+			},
+		},
+		{
+			description:   "succeeds",
+			namespaceName: "newname",
+			tenantID:      "xxxxx",
+			requiredMocks: func() {
+				mock.On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					Return(nil).
+					Once()
+
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "newname",
+				}
+
+				mock.On("NamespaceGet", ctx, "xxxxx").
+					Return(namespace, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "newname",
 				},
 				nil,
 			},
@@ -880,8 +863,14 @@ func TestEditNamespace(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			returnedNamespace, err := service.EditNamespace(ctx, tc.tenantID, tc.namespaceName)
-			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
+
+			req := &requests.NamespaceEdit{
+				TenantParam: requests.TenantParam{Tenant: tc.tenantID},
+				Name:        tc.namespaceName,
+			}
+			namespace, err := service.EditNamespace(ctx, req)
+
+			assert.Equal(t, tc.expected, Expected{namespace, err})
 		})
 	}
 

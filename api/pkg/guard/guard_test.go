@@ -375,7 +375,7 @@ func TestCheckPermission(t *testing.T) {
 				Actions.PublicKey.Edit,
 				Actions.PublicKey.Remove,
 
-				Actions.Namespace.Rename,
+				Actions.Namespace.Update,
 				Actions.Namespace.AddMember,
 				Actions.Namespace.RemoveMember,
 				Actions.Namespace.EditMember,
@@ -415,7 +415,7 @@ func TestCheckPermission(t *testing.T) {
 				Actions.PublicKey.Edit,
 				Actions.PublicKey.Remove,
 
-				Actions.Namespace.Rename,
+				Actions.Namespace.Update,
 				Actions.Namespace.AddMember,
 				Actions.Namespace.RemoveMember,
 				Actions.Namespace.EditMember,

@@ -51,3 +51,8 @@ type Member struct {
 	Username string `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
 	Role     string `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
 }
+
+type NamespaceChanges struct {
+	Name          string `bson:"name,omitempty"`
+	SessionRecord *bool  `bson:"settings.session_record,omitempty"`
+}
