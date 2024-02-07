@@ -138,12 +138,13 @@ func (h *Handler) DeleteNamespace(c gateway.Context) error {
 }
 
 func (h *Handler) EditNamespace(c gateway.Context) error {
-	var req requests.NamespaceEdit
-	if err := c.Bind(&req); err != nil {
+	req := new(requests.NamespaceEdit)
+
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
@@ -158,9 +159,9 @@ func (h *Handler) EditNamespace(c gateway.Context) error {
 	}
 
 	var nns *models.Namespace
-	err = guard.EvaluateNamespace(namespace, uid, guard.Actions.Namespace.Rename, func() error {
+	err = guard.EvaluateNamespace(namespace, uid, guard.Actions.Namespace.Update, func() error {
 		var err error
-		nns, err = h.service.EditNamespace(c.Ctx(), namespace.TenantID, req.Name)
+		nns, err = h.service.EditNamespace(c.Ctx(), req)
 
 		return err
 	})

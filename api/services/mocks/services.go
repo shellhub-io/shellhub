@@ -638,9 +638,9 @@ func (_m *Service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// EditNamespace provides a mock function with given fields: ctx, tenantID, name
-func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, tenantID, name)
+// EditNamespace provides a mock function with given fields: ctx, req
+func (_m *Service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EditNamespace")
@@ -648,19 +648,19 @@ func (_m *Service) EditNamespace(ctx context.Context, tenantID string, name stri
 
 	var r0 *models.Namespace
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.Namespace, error)); ok {
-		return rf(ctx, tenantID, name)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.NamespaceEdit) (*models.Namespace, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, name)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.NamespaceEdit) *models.Namespace); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, name)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.NamespaceEdit) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}

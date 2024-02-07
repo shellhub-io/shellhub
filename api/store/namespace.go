@@ -12,6 +12,11 @@ type NamespaceStore interface {
 	NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error)
 	NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error)
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
+
+	// NamespaceEdit updates a namespace with the specified tenant.
+	// It returns an error, if any, or store.ErrNoDocuments if the namespace does not exist.
+	NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error
+
 	NamespaceRename(ctx context.Context, tenantID string, name string) (*models.Namespace, error)
 	NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error
 	NamespaceDelete(ctx context.Context, tenantID string) error

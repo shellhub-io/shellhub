@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
@@ -19,7 +20,11 @@ type NamespaceService interface {
 	CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
-	EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error)
+
+	// EditNamespace updates a namespace for the specified requests.NamespaceEdit#Tenant.
+	// It returns the namespace with the updated fields and an error, if any.
+	EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error)
+
 	AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error)
 	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error
@@ -180,28 +185,22 @@ func (s *service) fillMembersData(ctx context.Context, members []models.Member) 
 	return members, nil
 }
 
-// EditNamespace edits the namespace name.
-//
-// It receives a context, used to "control" the request flow,  tenant ID from models.Namespace and the new name to
-// namespace. Name is set to lowercase.
-//
-// EditNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
-func (s *service) EditNamespace(ctx context.Context, tenantID, name string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
-	if err != nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
+func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
+	changes := &models.NamespaceChanges{
+		Name:          strings.ToLower(req.Name),
+		SessionRecord: req.Settings.SessionRecord,
 	}
 
-	name = strings.ToLower(name)
-	if ok, err := s.validator.Struct(&models.Namespace{Name: name}); !ok || err != nil {
-		return nil, NewErrNamespaceInvalid(err)
+	if err := s.store.NamespaceEdit(ctx, req.Tenant, changes); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return nil, NewErrNamespaceNotFound(req.Tenant, err)
+		default:
+			return nil, err
+		}
 	}
 
-	if namespace.Name == name {
-		return nil, NewErrNamespaceDuplicated(nil)
-	}
-
-	return s.store.NamespaceRename(ctx, namespace.TenantID, name)
+	return s.store.NamespaceGet(ctx, req.Tenant)
 }
 
 // AddNamespaceUser adds a member to a namespace.

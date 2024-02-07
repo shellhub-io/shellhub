@@ -1493,6 +1493,24 @@ func (_m *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return r0
 }
 
+// NamespaceEdit provides a mock function with given fields: ctx, tenant, changes
+func (_m *Store) NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
+	ret := _m.Called(ctx, tenant, changes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceEdit")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.NamespaceChanges) error); ok {
+		r0 = rf(ctx, tenant, changes)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceEditMember provides a mock function with given fields: ctx, tenantID, memberID, memberNewRole
 func (_m *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error {
 	ret := _m.Called(ctx, tenantID, memberID, memberNewRole)
