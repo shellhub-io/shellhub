@@ -46,7 +46,7 @@ const {
   publicKeyRemove,
   // Namespace
   namespaceCreate,
-  namespaceRename,
+  NamespaceEdit,
   namespaceAddMember,
   namespaceEditMember,
   namespaceRemoveMember,
@@ -94,7 +94,7 @@ export const actions: { [key: string]: any } = {
   },
   namespace: {
     create: namespaceCreate,
-    rename: namespaceRename,
+    rename: NamespaceEdit,
     addMember: namespaceAddMember,
     editMember: namespaceEditMember,
     removeMember: namespaceRemoveMember,
