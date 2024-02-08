@@ -124,6 +124,8 @@ var (
 	ErrBillingReportDevice          = errors.New("billing report device", ErrLayer, ErrCodePayment)
 	ErrBillingEvaluate              = errors.New("billing evaluate", ErrLayer, ErrCodePayment)
 	ErrSameTags                     = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
+	ErrAPIKeyNotFound               = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
+	ErrAPIKeyDuplicated             = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -177,6 +179,16 @@ func NewErrForbidden(err error, next error) error {
 // NewErrNamespaceNotFound returns an error when the namespace is not found.
 func NewErrNamespaceNotFound(id string, next error) error {
 	return NewErrNotFound(ErrNamespaceNotFound, id, next)
+}
+
+// NewErrAPIKeyNotFound returns an error when the APIKey is not found.
+func NewErrAPIKeyNotFound(id string, next error) error {
+	return NewErrNotFound(ErrAPIKeyNotFound, id, next)
+}
+
+// NewErrAPIKeyDuplicated returns an error when the APIKey name is duplicated.
+func NewErrAPIKeyDuplicated(next error) error {
+	return NewErrDuplicated(ErrAPIKeyDuplicated, nil, next)
 }
 
 // NewErrTagInvalid returns an error when the tag is invalid.

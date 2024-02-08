@@ -92,7 +92,7 @@ func TestGetPublicKey(t *testing.T) {
 		{
 			title: "fails when validate because the tag does not have a min of 3 characters",
 			query: requests.PublicKeyGet{
-				TenantParam: requests.TenantParam{Tenant: "tg"},
+				TenantParam: requests.TenantParam{Tenant: "00000000-0000-4000-0000-000000000000"},
 			},
 			expected:      Expected{expectedStatus: http.StatusBadRequest},
 			requiredMocks: func(req requests.PublicKeyGet) {},

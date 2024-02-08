@@ -17,4 +17,5 @@ type Store interface {
 	LicenseStore
 	StatsStore
 	MFAStore
+	APIKeyStore
 }
