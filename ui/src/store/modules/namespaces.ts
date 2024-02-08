@@ -114,7 +114,8 @@ export const namespaces: Module<NamespacesState, State> = {
 
     put: async (context, data) => {
       try {
-        await apiNamespace.putNamespace(data);
+        const res = await apiNamespace.putNamespace(data);
+        context.commit("setNamespace", res);
       } catch (error) {
         console.error(error);
         throw error;

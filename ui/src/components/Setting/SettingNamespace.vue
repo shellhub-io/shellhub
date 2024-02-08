@@ -33,7 +33,7 @@
         <v-divider class="mb-6" />
 
         <div class="mt-6" data-test="editOperation-div">
-          <NamespaceRename data-test="namespaceRename-component" />
+          <NamespaceEdit data-test="NamespaceEdit-component" />
 
           <v-divider />
           <v-divider />
@@ -98,7 +98,7 @@ import { defineComponent, onMounted, computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
-import NamespaceRename from "../Namespace/NamespaceRename.vue";
+import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
 import NamespaceMemberAdd from "../Namespace/NamespaceMemberAdd.vue";
 import NamespaceMemberList from "../Namespace/NamespaceMemberList.vue";
 import SettingSecurity from "./SettingSecurity.vue";
@@ -169,7 +169,7 @@ export default defineComponent({
     };
   },
   components: {
-    NamespaceRename,
+    NamespaceEdit,
     NamespaceMemberAdd,
     NamespaceMemberList,
     SettingSecurity,

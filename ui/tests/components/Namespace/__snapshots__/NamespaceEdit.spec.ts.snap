@@ -1,0 +1,110 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Namespace Edit > Renders the component 1`] = `
+"<div class=\\"v-row\\">
+  <div class=\\"v-col\\" data-test=\\"namespace-title\\">
+    <h3>Namespace</h3>
+  </div>
+  <div class=\\"v-spacer\\"></div>
+  <div class=\\"v-col-md-auto v-col ml-auto\\">
+    <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"edit-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Edit Namespace </span>
+        <!---->
+        <!---->
+      </button></div>
+    <!---->
+  </div>
+</div>
+<div class=\\"mt-4 mb-2\\">
+  <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined ml-3\\" data-test=\\"name-text\\">
+    <!---->
+    <div class=\\"v-input__control\\">
+      <div class=\\"v-field v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
+            <!---->Name
+          </label>
+          <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
+          <!---->
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-2\\">
+            <!---->Name
+          </label>
+        </div>
+      </div>
+    </div>
+    <!---->
+    <div class=\\"v-input__details\\">
+      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-2-messages\\">
+        <!---->
+      </transition-group-stub>
+      <!---->
+    </div>
+  </div>
+</div>
+<div class=\\"mb-2\\">
+  <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-text-field v-input--plain-underlined ml-3\\" data-test=\\"connectionAnnouncement-text\\">
+    <!---->
+    <div class=\\"v-input__control\\">
+      <div class=\\"v-field v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
+            <!---->Connection Announcement
+          </label>
+          <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\" class=\\"v-field__input\\">
+          <!---->
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-4\\">
+            <!---->Connection Announcement
+          </label>
+        </div>
+      </div>
+    </div>
+    <!---->
+    <div class=\\"v-input__details\\">
+      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-4-messages\\">
+        <div class=\\"v-messages__message\\">A connection announcement is a custom message written
+          during a session when a connection is established on a device
+          within the namespace.</div>
+      </transition-group-stub>
+      <!---->
+    </div>
+  </div>
+</div>"
+`;

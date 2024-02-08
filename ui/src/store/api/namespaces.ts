@@ -1,7 +1,12 @@
 import { INamespace } from "@/interfaces/INamespace";
 import { namespacesApi } from "../../api/http";
 
+interface INamespaceSettings {
+  connection_announcement: string;
+  session_record: boolean;
+}
 interface INamespaceResponse {
+  settings: INamespaceSettings;
   id: string;
   tenant_id: string;
   name: string;
@@ -22,7 +27,13 @@ export const getNamespace = async (id: string) => namespacesApi.getNamespace(id)
 
 export const removeNamespace = async (id: string) => namespacesApi.deleteNamespace(id);
 
-export const putNamespace = async (data: INamespaceResponse) => namespacesApi.editNamespace(data.id, { name: data.name });
+export const putNamespace = async (data: INamespaceResponse) => namespacesApi.editNamespace(data.id, {
+  name: data.name,
+  settings: {
+    connection_announcement: data.settings.connection_announcement,
+    session_record: data.settings.session_record,
+  },
+});
 
 export const addUserToNamespace = async (data: INamespaceResponse) => namespacesApi.addNamespaceMember(data.tenant_id, {
   username: data.username,

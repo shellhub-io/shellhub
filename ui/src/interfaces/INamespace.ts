@@ -8,6 +8,7 @@ export interface INamespaceMember {
 
 export interface settings {
   session_record: boolean;
+  connection_announcement: string;
 }
 
 export interface INamespace {
