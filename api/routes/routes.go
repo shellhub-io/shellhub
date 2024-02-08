@@ -56,6 +56,11 @@ func NewRouter(service services.Service) *echo.Echo {
 	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.AuthSwapToken))
 
+	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey))
+	publicAPI.PATCH(EditAPIKeyURL, gateway.Handler(handler.EditAPIKey))
+	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys))
+	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey))
+
 	publicAPI.PATCH(UpdateUserDataURL, gateway.Handler(handler.UpdateUserData))
 	publicAPI.PATCH(UpdateUserPasswordURL, gateway.Handler(handler.UpdateUserPassword))
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus))

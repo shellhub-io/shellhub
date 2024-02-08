@@ -44,6 +44,35 @@ const (
 // authentication. It gets the JWT token sent, unwraps it and sets the information, like tenant, user, etc., as headers
 // of the response to be got in the subsequent through the [gateway.Context].
 func (h *Handler) AuthRequest(c gateway.Context) error {
+	apiKey := c.Request().Header.Get("X-API-KEY")
+
+	if apiKey != "" {
+		token, err := h.service.GetAPIKeyByUID(c.Ctx(), apiKey)
+		if err != nil {
+			return err
+		}
+
+		namespace, err := h.service.GetNamespace(c.Ctx(), token.TenantID)
+		if err != nil || namespace == nil {
+			return svc.ErrTypeAssertion
+		}
+
+		MFA, err := h.service.AuthMFA(c.Ctx(), token.UserID)
+		if err != nil {
+			return err
+		}
+
+		c.Response().Header().Set("X-Tenant-ID", token.TenantID)
+		c.Response().Header().Set("X-Username", token.Name)
+		c.Response().Header().Set("X-ID", token.UserID)
+		c.Response().Header().Set("X-Role", namespace.Owner)
+		c.Response().Header().Set("X-MFA", strconv.FormatBool(MFA))
+		c.Response().Header().Set("X-Validate-MFA", strconv.FormatBool(MFA))
+		c.Response().Header().Set("X-API-KEY", apiKey)
+
+		return c.NoContent(http.StatusOK)
+	}
+
 	token, ok := c.Get(middleware.DefaultJWTConfig.ContextKey).(*jwt.Token)
 	if !ok {
 		return svc.ErrTypeAssertion
@@ -268,12 +297,18 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			return svc.ErrTypeAssertion
 		}
-		jwt := middleware.JWTWithConfig(middleware.JWTConfig{ //nolint:staticcheck
-			Claims:        &jwt.MapClaims{},
-			SigningKey:    ctx.Service().(svc.Service).PublicKey(),
-			SigningMethod: "RS256",
-		})
 
-		return jwt(next)(c)
+		apiKey := c.Request().Header.Get("X-API-KEY")
+		if apiKey == "" {
+			jwt := middleware.JWTWithConfig(middleware.JWTConfig{ //nolint:staticcheck
+				Claims:        &jwt.MapClaims{},
+				SigningKey:    ctx.Service().(svc.Service).PublicKey(),
+				SigningMethod: "RS256",
+			})
+
+			return jwt(next)(c)
+		}
+
+		return next(c)
 	}
 }

@@ -48,7 +48,7 @@ func TestAuthGetToken(t *testing.T) {
 		},
 		{
 			title: "success when trying to get a token",
-			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}},
+			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}, MFA: false},
 			requiredMocks: func() {
 				mock.On("AuthGetToken", gomock.Anything, "id", false).Return(&models.UserAuthResponse{}, nil).Once()
 			},
@@ -516,6 +516,9 @@ func TestAuthRequest(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("PublicKey").Return(&privateKey.PublicKey).Once()
 				mock.On("AuthIsCacheToken", gomock.Anything, "tenant", "id").Return(true, nil).Once()
+				mock.On("GetAPIKeyByUID", gomock.Anything, "").Return(&models.APIKey{
+					TenantID: "tenant",
+				}, nil).Once()
 				mock.On("AuthMFA", gomock.Anything, "id").Return(false, nil).Once()
 			},
 			expected: Expected{
