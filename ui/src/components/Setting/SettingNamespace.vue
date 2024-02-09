@@ -35,8 +35,8 @@
         <div class="mt-6" data-test="editOperation-div">
           <NamespaceEdit data-test="NamespaceEdit-component" />
 
-          <v-divider />
-          <v-divider />
+          <v-divider class="mt-6" />
+          <v-divider class="mb-6" />
         </div>
 
         <div class="mt-6" data-test="userOperation-div">

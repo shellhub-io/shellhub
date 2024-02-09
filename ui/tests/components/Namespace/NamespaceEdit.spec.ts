@@ -102,6 +102,8 @@ describe("Namespace Edit", () => {
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="namespace-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="edit-btn"]').exists()).toBe(true);
+    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
+    expect(wrapper.find('[data-test="save-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="name-text"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="connectionAnnouncement-text"]').exists()).toBe(true);
   });
@@ -140,6 +142,7 @@ describe("Namespace Edit", () => {
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
@@ -182,6 +185,7 @@ describe("Namespace Edit", () => {
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
@@ -195,6 +199,7 @@ describe("Namespace Edit", () => {
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
