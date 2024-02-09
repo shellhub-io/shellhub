@@ -15,12 +15,22 @@
         <template v-slot:activator="{ props }">
           <div v-bind="props">
             <v-btn
+              v-if="editBtn"
               :disabled="!hasAuthorizationRenameNamespace() || (!!nameError || !!connectionAnnouncementError)"
               color="primary"
-              @click="editNamespace"
+              @click="editBtn = false;"
               data-test="edit-btn"
             >
               Edit Namespace
+            </v-btn>
+            <v-btn
+              v-else
+              :disabled="!!nameError || !!connectionAnnouncementError"
+              color="primary"
+              @click="editNamespace"
+              data-test="save-btn"
+            >
+              Save Namespace
             </v-btn>
           </div>
         </template>
@@ -31,6 +41,7 @@
 
   <div class="mt-4 mb-2">
     <v-text-field
+      :disabled="validateInput"
       v-model="name"
       class="ml-3"
       label="Name"
@@ -42,24 +53,25 @@
   </div>
 
   <div class="mb-2">
-    <v-text-field
+    <v-textarea
+      :disabled="validateInput"
       v-model="connectionAnnouncement"
-      class="ml-3"
       label="Connection Announcement"
       :error-messages="connectionAnnouncementError"
-      variant="underlined"
-      required
       data-test="connectionAnnouncement-text"
+      variant="underlined"
       hint="A connection announcement is a custom message written
       during a session when a connection is established on a device
       within the namespace."
       persistent-hint
+      required
     />
   </div>
+
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
@@ -75,7 +87,8 @@ import handleError from "@/utils/handleError";
 const store = useStore();
 const namespace = computed(() => store.getters["namespaces/get"]);
 const tenant = computed(() => store.getters["auth/tenant"]);
-
+const editBtn = ref(true);
+const validateInput = computed(() => editBtn.value === true);
 const {
   value: name,
   errorMessage: nameError,
@@ -146,6 +159,7 @@ const editNamespace = async () => {
         "snackbar/showSnackbarSuccessAction",
         INotificationsSuccess.namespaceEdit,
       );
+      editBtn.value = true;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
