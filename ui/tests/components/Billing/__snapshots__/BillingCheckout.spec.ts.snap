@@ -41,10 +41,10 @@ exports[`Billing Checkout > Renders the component 1`] = `
             <div class=\\"v-col v-col-4\\"><b></b></div>
             <div class=\\"v-col v-col-2\\">0/0</div>
             <div class=\\"v-col v-col-2 d-flex flex-column align-end\\"></div>
-            <div class=\\"v-col v-col-3 d-flex flex-column align-end\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+            <div class=\\"v-col v-col-3 d-flex flex-column align-end\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-2\\"><!----><span class=\\"v-chip__underlay\\"></span>
               <!---->
               <!---->
-              <div class=\\"v-chip__content\\" aria-describedby=\\"v-tooltip-2\\"><b>default</b>
+              <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><b>default</b>
                 <!---->
                 <!--teleport start-->
                 <!--teleport end-->

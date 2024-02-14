@@ -34,7 +34,7 @@ exports[`Device List > Renders the component 1`] = `
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\"><span data-v-06dd64af=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-4\\" class=\\"hover-text\\">user.39-5e-2a@localhost</span>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-06dd64af=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-4\\" class=\\"hover-text\\">user.39-5e-2a@localhost</span>
                   <!--teleport start-->
                   <!--teleport end-->
                 </div>
@@ -45,16 +45,17 @@ exports[`Device List > Renders the component 1`] = `
                 <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-5\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
-                  <div class=\\"v-chip__content\\">test</div>
+                  <div class=\\"v-chip__content\\" data-no-activator=\\"\\">test</div>
                   <!---->
                   <!----></span>
-                  <!---->
+                  <!--teleport start-->
+                  <!--teleport end-->
                 </div>
               </td>
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
@@ -77,7 +78,7 @@ exports[`Device List > Renders the component 1`] = `
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\"><span data-v-06dd64af=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-16\\" class=\\"hover-text\\">user.39-5e-2b@localhost</span>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-06dd64af=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-16\\" class=\\"hover-text\\">user.39-5e-2b@localhost</span>
                   <!--teleport start-->
                   <!--teleport end-->
                 </div>
@@ -88,16 +89,17 @@ exports[`Device List > Renders the component 1`] = `
                 <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-17\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
-                  <div class=\\"v-chip__content\\">test</div>
+                  <div class=\\"v-chip__content\\" data-no-activator=\\"\\">test</div>
                   <!---->
                   <!----></span>
-                  <!---->
+                  <!--teleport start-->
+                  <!--teleport end-->
                 </div>
               </td>
               <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
