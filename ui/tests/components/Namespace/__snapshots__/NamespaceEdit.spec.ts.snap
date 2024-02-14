@@ -12,7 +12,8 @@ exports[`Namespace Edit > Renders the component 1`] = `
         <!---->
         <!---->
       </button></div>
-    <!---->
+    <!--teleport start-->
+    <!--teleport end-->
   </div>
 </div>
 <div class=\\"mt-4 mb-2\\">
