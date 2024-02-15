@@ -21,7 +21,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, mode store.DeviceListMode) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -60,50 +60,59 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 				"status": status,
 			},
 		}}, query...)
+	}
 
-		// As we have added to device the field called "acceptable" we needed, also, to add the correct value to it.
-		// The value of "acceptable" is based on the device status and the list mode. If the list status is "accepted"
-		// we need to add the field "acceptable" with the value "false", because the device is already accepted.
-		// Otherwise, if the list status is "pending" or "rejected" we evaluate the list mode. When it is
-		// store.DeviceListModeMaxDeviceReached we need to check if the device is in the removed devices list.
-		// If it is, the device is only acceptable if it is in the removed devices list. Otherwise, the device is
-		// unacceptable.
-		switch status {
-		case models.DeviceStatusAccepted:
-			query = append(query, bson.M{
-				"$addFields": bson.M{
-					"acceptable": false,
+	// When the listing mode is [store.DeviceListModeMaxDeviceReached], we should evaluate the `removed_devices`
+	// collection to check its `accetable` status.
+	switch acceptable {
+	case store.DeviceAcceptableFromRemoved:
+		query = append(query, []bson.M{
+			{
+				"$lookup": bson.M{
+					"from":         "removed_devices",
+					"localField":   "uid",
+					"foreignField": "device.uid",
+					"as":           "removed",
 				},
-			})
-		case models.DeviceStatusPending, models.DeviceStatusRejected:
-			switch mode {
-			case store.DeviceListModeMaxDeviceReached:
-				query = append(query, []bson.M{
-					{
-						"$lookup": bson.M{
-							"from":         "removed_devices",
-							"localField":   "uid",
-							"foreignField": "uid",
-							"as":           "removed",
+			},
+			{
+				"$addFields": bson.M{
+					"acceptable": bson.M{
+						"$cond": bson.M{
+							"if": bson.M{
+								"$and": bson.A{
+									bson.M{"$ne": bson.A{"$status", models.DeviceStatusAccepted}},
+									bson.M{"$anyElementTrue": []interface{}{"$removed"}},
+								},
+							},
+							"then": true,
+							"else": false,
 						},
 					},
-					{
-						"$addFields": bson.M{
-							"acceptable": bson.M{"$anyElementTrue": []interface{}{"$removed"}},
-						},
+				},
+			},
+			{
+				"$unset": "removed",
+			},
+		}...)
+	case store.DeviceAcceptableAsFalse:
+		query = append(query, bson.M{
+			"$addFields": bson.M{
+				"acceptable": false,
+			},
+		})
+	case store.DeviceAcceptableIfNotAccepted:
+		query = append(query, bson.M{
+			"$addFields": bson.M{
+				"acceptable": bson.M{
+					"$cond": bson.M{
+						"if":   bson.M{"$ne": bson.A{"$status", models.DeviceStatusAccepted}},
+						"then": true,
+						"else": false,
 					},
-					{
-						"$unset": "removed",
-					},
-				}...)
-			default:
-				query = append(query, bson.M{
-					"$addFields": bson.M{
-						"acceptable": true,
-					},
-				})
-			}
-		}
+				},
+			},
+		})
 	}
 
 	queryMatch, err := queries.FromFilters(&filters)

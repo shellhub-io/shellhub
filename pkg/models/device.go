@@ -14,6 +14,7 @@ const (
 	DeviceStatusRejected DeviceStatus = "rejected"
 	DeviceStatusRemoved  DeviceStatus = "removed"
 	DeviceStatusUnused   DeviceStatus = "unused"
+	DeviceStatusEmpty    DeviceStatus = ""
 )
 
 type Device struct {

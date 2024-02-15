@@ -547,7 +547,7 @@ func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, in
 }
 
 // DeviceList provides a mock function with given fields: ctx, status, pagination, filters, sorter, mode
-func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, mode store.DeviceListMode) ([]models.Device, int, error) {
+func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, mode store.DeviceAcceptable) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, status, pagination, filters, sorter, mode)
 
 	if len(ret) == 0 {
@@ -557,10 +557,10 @@ func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pag
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) ([]models.Device, int, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) ([]models.Device, int, error)); ok {
 		return rf(ctx, status, pagination, filters, sorter, mode)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) []models.Device); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) []models.Device); ok {
 		r0 = rf(ctx, status, pagination, filters, sorter, mode)
 	} else {
 		if ret.Get(0) != nil {
@@ -568,13 +568,13 @@ func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pag
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) int); ok {
 		r1 = rf(ctx, status, pagination, filters, sorter, mode)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceListMode) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) error); ok {
 		r2 = rf(ctx, status, pagination, filters, sorter, mode)
 	} else {
 		r2 = ret.Error(2)
