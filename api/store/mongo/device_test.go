@@ -130,7 +130,7 @@ func TestDeviceList(t *testing.T) {
 						Tags:             []string{},
 						PublicURL:        false,
 						PublicURLAddress: "",
-						Acceptable:       false,
+						Acceptable:       true,
 					},
 				},
 				len: 4,
@@ -184,7 +184,7 @@ func TestDeviceList(t *testing.T) {
 						Tags:             []string{},
 						PublicURL:        false,
 						PublicURLAddress: "",
-						Acceptable:       false,
+						Acceptable:       true,
 					},
 				},
 				len: 4,
@@ -278,7 +278,7 @@ func TestDeviceList(t *testing.T) {
 						Tags:             []string{},
 						PublicURL:        false,
 						PublicURLAddress: "",
-						Acceptable:       false,
+						Acceptable:       true,
 					},
 				},
 				len: 4,
@@ -372,7 +372,7 @@ func TestDeviceList(t *testing.T) {
 						Tags:             []string{},
 						PublicURL:        false,
 						PublicURLAddress: "",
-						Acceptable:       false,
+						Acceptable:       true,
 					},
 				},
 				len: 4,
@@ -406,7 +406,7 @@ func TestDeviceList(t *testing.T) {
 						Tags:             []string{},
 						PublicURL:        false,
 						PublicURLAddress: "",
-						Acceptable:       false,
+						Acceptable:       true,
 					},
 					{
 						CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -526,7 +526,7 @@ func TestDeviceList(t *testing.T) {
 				tc.paginator,
 				tc.filters,
 				tc.sorter,
-				store.DeviceListModeDefault,
+				store.DeviceAcceptableIfNotAccepted,
 			)
 			assert.Equal(t, tc.expected, Expected{dev: dev, len: count, err: err})
 		})

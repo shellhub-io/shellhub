@@ -8,18 +8,20 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-type DeviceListMode uint
+type DeviceAcceptable uint
 
 const (
-	DeviceListModeDefault DeviceListMode = iota + 1
-	// DeviceListModeMaxDeviceReached is used to indicate to the DeviceList method that the namepsace's device maxium
-	// number of devices has been reached and should set the "acceptable" value to true for devices that were recently
-	// removed.
-	DeviceListModeMaxDeviceReached
+	// DeviceAcceptableIfNotAccepted is used to indicate the all devices not accepted will be defined as "acceptabled".
+	DeviceAcceptableIfNotAccepted DeviceAcceptable = iota + 1
+	// DeviceAcceptableFromRemoved is used to indicate that the namepsace's device maxium number of devices has been
+	// reached and should set the "acceptable" value to true for devices that were recently removed.
+	DeviceAcceptableFromRemoved
+	// DeviceAcceptableAsFalse set acceptable to false to all returned devices.
+	DeviceAcceptableAsFalse
 )
 
 type DeviceStore interface {
-	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, mode DeviceListMode) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 	DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 	DeviceDelete(ctx context.Context, uid models.UID) error

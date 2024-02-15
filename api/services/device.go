@@ -34,22 +34,12 @@ type DeviceService interface {
 }
 
 func (s *service) ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
-	switch status {
-	case models.DeviceStatusPending, models.DeviceStatusRejected:
-		ns, err := s.store.NamespaceGet(ctx, tenant)
-		if err != nil {
-			return nil, 0, NewErrNamespaceNotFound(tenant, err)
-		}
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return nil, 0, NewErrNamespaceNotFound(tenant, err)
+	}
 
-		count, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
-		if err != nil {
-			return nil, 0, NewErrDeviceRemovedCount(err)
-		}
-
-		if ns.HasMaxDevices() && int64(ns.DevicesCount)+count >= int64(ns.MaxDevices) {
-			return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceListModeMaxDeviceReached)
-		}
-	case models.DeviceStatusRemoved:
+	if status == models.DeviceStatusRemoved {
 		removed, count, err := s.store.DeviceRemovedList(ctx, tenant, paginator, filter, sorter)
 		if err != nil {
 			return nil, 0, err
@@ -63,7 +53,23 @@ func (s *service) ListDevices(ctx context.Context, tenant string, status models.
 		return devices, count, nil
 	}
 
-	return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceListModeDefault)
+	switch {
+	case envs.IsCommunity(), envs.IsEnterprise():
+		if ns.HasMaxDevices() && ns.HasMaxDevicesReached() {
+			return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableAsFalse)
+		}
+	case envs.IsCloud():
+		removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
+		if err != nil {
+			return nil, 0, NewErrDeviceRemovedCount(err)
+		}
+
+		if ns.HasMaxDevices() && int64(ns.DevicesCount)+removed >= int64(ns.MaxDevices) {
+			return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableFromRemoved)
+		}
+	}
+
+	return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableIfNotAccepted)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
