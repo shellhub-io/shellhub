@@ -127,6 +127,7 @@ services:
   redis:
     image: redis
     restart: unless-stopped
+    command: ["redis-server", "--appendonly", "no", "--save", "\"\""]
     networks:
       - shellhub
 
