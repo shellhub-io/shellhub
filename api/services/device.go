@@ -53,19 +53,21 @@ func (s *service) ListDevices(ctx context.Context, tenant string, status models.
 		return devices, count, nil
 	}
 
-	switch {
-	case envs.IsCommunity(), envs.IsEnterprise():
-		if ns.HasMaxDevices() && ns.HasMaxDevicesReached() {
-			return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableAsFalse)
-		}
-	case envs.IsCloud():
-		removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
-		if err != nil {
-			return nil, 0, NewErrDeviceRemovedCount(err)
-		}
+	if ns.HasMaxDevices() {
+		switch {
+		case envs.IsCloud():
+			removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
+			if err != nil {
+				return nil, 0, NewErrDeviceRemovedCount(err)
+			}
 
-		if ns.HasMaxDevices() && int64(ns.DevicesCount)+removed >= int64(ns.MaxDevices) {
-			return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableFromRemoved)
+			if ns.HasLimitDevicesReached(removed) {
+				return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableFromRemoved)
+			}
+		case envs.IsCommunity(), envs.IsEnterprise():
+			if ns.HasMaxDevicesReached() {
+				return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableAsFalse)
+			}
 		}
 	}
 
@@ -278,7 +280,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 					return NewErrDeviceRemovedCount(err)
 				}
 
-				if namespace.HasMaxDevices() && int64(namespace.DevicesCount)+count >= int64(namespace.MaxDevices) {
+				if namespace.HasMaxDevices() && namespace.HasLimitDevicesReached(count) {
 					return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
 				}
 			}
