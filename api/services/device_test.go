@@ -119,8 +119,7 @@ func TestListDevices_cloud(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "00000000-0000-4000-0000-000000000000",
@@ -156,8 +155,7 @@ func TestListDevices_cloud(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "00000000-0000-4000-0000-000000000000",
@@ -196,8 +194,7 @@ func TestListDevices_cloud(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "00000000-0000-4000-0000-000000000000",
@@ -236,8 +233,7 @@ func TestListDevices_cloud(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "00000000-0000-4000-0000-000000000000",
@@ -290,8 +286,7 @@ func TestListDevices_cloud(t *testing.T) {
 			},
 			status: models.DeviceStatusAccepted,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "00000000-0000-4000-0000-000000000000",
@@ -344,8 +339,7 @@ func TestListDevices_cloud(t *testing.T) {
 			},
 			status: models.DeviceStatusEmpty,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "00000000-0000-4000-0000-000000000000",
@@ -437,7 +431,7 @@ func TestListDevices_enterprise(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Twice()
 
 				namespace := &models.Namespace{
@@ -475,7 +469,7 @@ func TestListDevices_enterprise(t *testing.T) {
 			},
 			status: models.DeviceStatusAccepted,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Twice()
 
 				namespace := &models.Namespace{
@@ -513,7 +507,7 @@ func TestListDevices_enterprise(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Twice()
 
 				namespace := &models.Namespace{
@@ -565,7 +559,7 @@ func TestListDevices_enterprise(t *testing.T) {
 			},
 			status: models.DeviceStatusAccepted,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Twice()
 
 				namespace := &models.Namespace{
@@ -743,7 +737,7 @@ func TestListDevices_community(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 
 				namespace := &models.Namespace{
@@ -781,7 +775,7 @@ func TestListDevices_community(t *testing.T) {
 			},
 			status: models.DeviceStatusAccepted,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 
 				namespace := &models.Namespace{
@@ -802,7 +796,7 @@ func TestListDevices_community(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when status is pending",
+			description: "succeeds when status is pending and the namespace has not reached its limit",
 			tenant:      "tenant",
 			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
 			pagination:  query.Paginator{Page: 1, PerPage: 10},
@@ -819,7 +813,59 @@ func TestListDevices_community(t *testing.T) {
 			},
 			status: models.DeviceStatusPending,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+
+				namespace := &models.Namespace{
+					TenantID:     "tenant",
+					MaxDevices:   3,
+					DevicesCount: 2,
+				}
+
+				devices := []models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}
+
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceAcceptableIfNotAccepted).
+					Return(devices, len(devices), nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				},
+				len([]models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}),
+				nil,
+			},
+		},
+		{
+			description: "succeeds when status is pending and the namespace has reached its limit",
+			tenant:      "tenant",
+			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
+				},
+			},
+			status: models.DeviceStatusPending,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 
 				namespace := &models.Namespace{
@@ -854,7 +900,56 @@ func TestListDevices_community(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when status is accepted",
+			description: "succeeds when status is pending and namespace has no limit",
+			tenant:      "tenant",
+			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
+				},
+			},
+			status: models.DeviceStatusPending,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				namespace := &models.Namespace{
+					TenantID:     "tenant",
+					MaxDevices:   -1,
+					DevicesCount: 3,
+				}
+
+				devices := []models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}
+
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceAcceptableIfNotAccepted).
+					Return(devices, len(devices), nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				},
+				len([]models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}),
+				nil,
+			},
+		},
+		{
+			description: "succeeds when status is accepted and the namespace has reached its limit",
 			tenant:      "tenant",
 			sorter:      query.Sorter{By: "name", Order: query.OrderDesc},
 			pagination:  query.Paginator{Page: 1, PerPage: 10},
@@ -871,12 +966,61 @@ func TestListDevices_community(t *testing.T) {
 			},
 			status: models.DeviceStatusAccepted,
 			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 
 				namespace := &models.Namespace{
 					TenantID:     "tenant",
 					MaxDevices:   3,
+					DevicesCount: 3,
+				}
+
+				devices := []models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}
+
+				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("DeviceList", ctx, status, paginator, filters, sorter, store.DeviceAcceptableAsFalse).
+					Return(devices, len(devices), nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				},
+				len([]models.Device{
+					{UID: "uid"},
+					{UID: "uid2"},
+					{UID: "uid3"},
+				}),
+				nil,
+			},
+		},
+		{
+			description: "succeeds when status is accepted and the namespace has no limit",
+			tenant:      "tenant",
+			sorter:      query.Sorter{By: "name", Order: query.OrderDesc},
+			pagination:  query.Paginator{Page: 1, PerPage: 10},
+			filter: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "hostname",
+							Operator: "eq",
+						},
+					},
+				},
+			},
+			status: models.DeviceStatusAccepted,
+			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
+				namespace := &models.Namespace{
+					TenantID:     "tenant",
+					MaxDevices:   -1,
 					DevicesCount: 2,
 				}
 
