@@ -10,8 +10,8 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
@@ -259,7 +259,16 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 
 // Register registers a new Client at the api.
 func (s *Session) Register(_ gliderssh.Session) error {
-	_, err := resty.New().R().SetBody(*s).Post("http://api:8080/internal/sessions")
+	err := internalclient.
+		NewClient().
+		SessionCreate(requests.SessionCreate{
+			UID:       s.UID,
+			DeviceUID: s.Device,
+			Username:  s.Username,
+			IPAddress: s.IPAddress,
+			Type:      s.Type,
+			Term:      s.Term,
+		})
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).

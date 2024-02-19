@@ -3,11 +3,16 @@ package internalclient
 import (
 	"fmt"
 
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 // sessionAPI defines methods for interacting with session-related functionality.
 type sessionAPI interface {
+	// SessionCreate creates a new session based on the provided session creation request.
+	// It returns an error if the session creation fails.
+	SessionCreate(session requests.SessionCreate) error
+
 	// SessionAsAuthenticated marks a session with the specified uid as authenticated.
 	// It returns a slice of errors encountered during the operation.
 	SessionAsAuthenticated(uid string) []error
@@ -22,6 +27,15 @@ type sessionAPI interface {
 
 	// RecordSession records a session with the provided session information and record URL.
 	RecordSession(session *models.SessionRecorded, recordURL string)
+}
+
+func (c *client) SessionCreate(session requests.SessionCreate) error {
+	_, err := c.http.
+		R().
+		SetBody(session).
+		Post("/internal/sessions")
+
+	return err
 }
 
 func (c *client) SessionAsAuthenticated(uid string) []error {
