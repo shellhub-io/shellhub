@@ -1,4 +1,4 @@
-FROM nginx:1.25.3-alpine AS base
+FROM nginx:1.25.4-alpine AS base
 
 RUN ["rm", "/etc/nginx/conf.d/default.conf"]
 
