@@ -83,17 +83,17 @@ var AgentPlatform string
 type Config struct {
 	// Set the ShellHub Cloud server address the agent will use to connect.
 	// This is required.
-	ServerAddress string `env:"SERVER_ADDRESS,required"`
+	ServerAddress string `env:"SERVER_ADDRESS,required" validate:"required"`
 
 	// Specify the path to the device private key.
 	// If not provided, the agent will generate a new one.
 	// This is required.
-	PrivateKey string `env:"PRIVATE_KEY,required"`
+	PrivateKey string `env:"PRIVATE_KEY,required" validate:"required"`
 
 	// Sets the account tenant id used during communication to associate the
 	// device to a specific tenant.
 	// This is required.
-	TenantID string `env:"TENANT_ID,required"`
+	TenantID string `env:"TENANT_ID,required" validate:"required"`
 
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle

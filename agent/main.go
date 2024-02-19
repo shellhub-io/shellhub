@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -55,6 +56,11 @@ func main() {
 			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
 			if err != nil {
 				log.Fatal(err)
+			}
+
+			// TODO: test the envinromental variables validation on integration tests.
+			if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+				log.WithError(err).WithFields(fields).Fatal("failed to validate the environmental variables")
 			}
 
 			if os.Geteuid() == 0 && cfg.SingleUserPassword != "" {

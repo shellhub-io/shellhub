@@ -117,6 +117,23 @@ func (v *Validator) Struct(structure any) (bool, error) {
 	return true, nil
 }
 
+// StructWithFields validades a structure using ShellHub validation's tags, returnig the invalid fields and its tags.
+func (v *Validator) StructWithFields(structure any) (bool, map[string]interface{}, error) {
+	if err := v.Validate.Struct(structure); err != nil {
+		fields := make(map[string]interface{}, 0)
+
+		errs := err.(validator.ValidationErrors)
+
+		for _, e := range errs {
+			fields[e.Field()] = e.Tag()
+		}
+
+		return false, fields, ErrStructureInvalid
+	}
+
+	return true, nil, nil
+}
+
 // GetTagFromStructure returns the validation's tag from structure.
 func GetTagFromStructure(structure any, field string) (Tag, bool) {
 	kind := reflect.TypeOf(structure)
