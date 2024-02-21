@@ -13,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -33,34 +32,9 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			loglevel.SetLogLevel()
 
-			// NOTE(r): When T, the generic parameter, is a structure with required tag, the fallback for an
-			// "unprefixed" parameter is used.
-			//
-			// For example,
-			//
-			// For the structure below, the parser will parse successfully when the variables exist with or without the
-			// prefixes since the "required" tag is set to true.
-			//
-			//  SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000 SERVER_ADDRESS=http://127.0.0.1
-			//  PRIVATE_KEY=/tmp/shellhub sudo -E ./agent
-			//
-			//  struct {
-			//    ServerAddress string `env:"SERVER_ADDRESS,required"`
-			//    PrivateKey string `env:"PRIVATE_KEY,required"`
-			//    TenantID string `env:"TENANT_ID,required`
-			//  }
-			//
-			//  This behavior is driven by the [envconfig] package. Check it out for more information.
-			//
-			// [envconfig]: https://github.com/sethvargo/go-envconfig
-			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
+			cfg, fields, err := agent.LoadConfigFromEnv()
 			if err != nil {
-				log.Fatal(err)
-			}
-
-			// TODO: test the envinromental variables validation on integration tests.
-			if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-				log.WithError(err).WithFields(fields).Fatal("failed to validate the environmental variables")
+				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
 			}
 
 			if os.Geteuid() == 0 && cfg.SingleUserPassword != "" {
