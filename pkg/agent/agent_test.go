@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
+	client_mocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -237,6 +239,65 @@ func TestNewAgentWithConfig(t *testing.T) {
 			agent, err := NewAgentWithConfig(test.config, test.mode)
 
 			assert.Equal(t, test.expected.agent, agent)
+			assert.ErrorIs(t, err, test.expected.err)
+		})
+	}
+}
+
+func TestAgent_GetInfo(t *testing.T) {
+	clientMocks := new(client_mocks.Client)
+
+	AgentVersion = "latest"
+
+	type expected struct {
+		info *models.Info
+		err  error
+	}
+
+	agent := &Agent{
+		cli: clientMocks,
+	}
+
+	err := errors.New("")
+
+	tests := []struct {
+		description   string
+		requiredMocks func()
+		expected      expected
+	}{
+		{
+			description: "fail to get the server info",
+			requiredMocks: func() {
+				clientMocks.On("GetInfo", "latest").Return(nil, err).Once()
+			},
+			expected: expected{
+				info: nil,
+				err:  err,
+			},
+		},
+		{
+			description: "success to get the server info",
+			requiredMocks: func() {
+				clientMocks.On("GetInfo", "latest").Return(&models.Info{
+					Version: "latest",
+				}, nil).Once()
+			},
+			expected: expected{
+				info: &models.Info{
+					Version: "latest",
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			test.requiredMocks()
+
+			info, err := agent.GetInfo()
+
+			assert.Equal(t, test.expected.info, info)
 			assert.ErrorIs(t, err, test.expected.err)
 		})
 	}
