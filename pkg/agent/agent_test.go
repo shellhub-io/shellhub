@@ -138,3 +138,106 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		})
 	}
 }
+
+func TestNewAgentWithConfig(t *testing.T) {
+	type expected struct {
+		agent *Agent
+		err   error
+	}
+
+	// NOTICE: configuration structure used by the successfully test.
+	config := &Config{
+		ServerAddress: "http://localhost",
+		TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
+		PrivateKey:    "/tmp/shellhub.key",
+	}
+
+	tests := []struct {
+		description string
+		config      *Config
+		mode        Mode
+		expected    expected
+	}{
+		{
+			description: "fail when server address is empty",
+			config: &Config{
+				ServerAddress: "",
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: nil,
+				err:   ErrNewAgentWithConfigEmptyServerAddress,
+			},
+		},
+		{
+			description: "fail when server address is invalid",
+			config: &Config{
+				ServerAddress: "invalid_url",
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: nil,
+				err:   ErrNewAgentWithConfigInvalidServerAddress,
+			},
+		},
+		{
+			description: "fail when tenant is empty",
+			config: &Config{
+				ServerAddress: "http://localhost",
+				TenantID:      "",
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: nil,
+				err:   ErrNewAgentWithConfigEmptyTenant,
+			},
+		},
+		{
+			description: "fail when private key is empty",
+			config: &Config{
+				ServerAddress: "http://localhost",
+				TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				PrivateKey:    "",
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: nil,
+				err:   ErrNewAgentWithConfigEmptyPrivateKey,
+			},
+		},
+		{
+			description: "fail when mode is nil",
+			config: &Config{
+				ServerAddress: "http://localhost",
+				TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				PrivateKey:    "/tmp/shellhub.key",
+			},
+			mode: nil,
+			expected: expected{
+				agent: nil,
+				err:   ErrNewAgentWithConfigNilMode,
+			},
+		},
+		{
+			description: "success to create agent with config",
+			config:      config,
+			mode:        new(HostMode),
+			expected: expected{
+				agent: &Agent{
+					config: config,
+					mode:   new(HostMode),
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			agent, err := NewAgentWithConfig(test.config, test.mode)
+
+			assert.Equal(t, test.expected.agent, agent)
+			assert.ErrorIs(t, err, test.expected.err)
+		})
+	}
+}
