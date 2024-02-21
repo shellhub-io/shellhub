@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"strings"
 	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -214,7 +213,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		term = "xterm"
 	}
 
-	cmd := command.NewCmd(user, shell, term, *s.deviceName, shell, "-c", strings.Join(session.Command(), " "))
+	cmd := command.NewCmd(user, shell, term, *s.deviceName, shell, "-c", session.RawCommand())
 
 	wg := &sync.WaitGroup{}
 	if sIsPty {
