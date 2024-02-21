@@ -358,6 +358,13 @@ func (a *Agent) NewReverseListener(ctx context.Context) (*revdial.Listener, erro
 	return a.cli.NewReverseListener(ctx, a.authData.Token)
 }
 
+func (a *Agent) isClosed() bool {
+	a.mux.RLock()
+	defer a.mux.RUnlock()
+
+	return a.closed
+}
+
 func (a *Agent) Close() error {
 	a.mux.Lock()
 	a.closed = true
@@ -469,8 +476,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 	done := make(chan bool)
 	go func() {
 		for {
-			a.mux.RLock()
-			if a.closed {
+			if a.isClosed() {
 				log.WithFields(log.Fields{
 					"version":        AgentVersion,
 					"tenant_id":      a.authData.Namespace,
@@ -479,11 +485,8 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 				done <- true
 
-				a.mux.RUnlock()
-
 				return
 			}
-			a.mux.RUnlock()
 
 			namespace := a.authData.Namespace
 			tenantName := a.authData.Name
@@ -579,13 +582,9 @@ func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
 	<-a.listening // NOTE: wait for the first connection to start to ping the server.
 
 	for {
-		a.mux.RLock()
-		if a.closed {
-			a.mux.RUnlock()
-
+		if a.isClosed() {
 			return nil
 		}
-		a.mux.RUnlock()
 
 		select {
 		case <-ctx.Done():
