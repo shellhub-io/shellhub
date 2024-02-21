@@ -155,21 +155,20 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 }
 
 type Agent struct {
-	config        *Config
-	pubKey        *rsa.PublicKey
-	Identity      *models.DeviceIdentity
-	Info          *models.DeviceInfo
-	authData      *models.DeviceAuthResponse
-	cli           client.Client
-	serverInfo    *models.Info
-	serverAddress *url.URL
-	sessions      []string
-	server        *server.Server
-	tunnel        *tunnel.Tunnel
-	mux           sync.RWMutex
-	listening     chan bool
-	closed        bool
-	mode          Mode
+	config     *Config
+	pubKey     *rsa.PublicKey
+	Identity   *models.DeviceIdentity
+	Info       *models.DeviceInfo
+	authData   *models.DeviceAuthResponse
+	cli        client.Client
+	serverInfo *models.Info
+	sessions   []string
+	server     *server.Server
+	tunnel     *tunnel.Tunnel
+	mux        sync.RWMutex
+	listening  chan bool
+	closed     bool
+	mode       Mode
 }
 
 // NewAgent creates a new agent instance.
@@ -187,45 +186,42 @@ func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*A
 	}, mode)
 }
 
+var (
+	ErrNewAgentWithConfigEmptyServerAddress   = errors.New("address is empty")
+	ErrNewAgentWithConfigInvalidServerAddress = errors.New("address is invalid")
+	ErrNewAgentWithConfigEmptyTenant          = errors.New("tenant is empty")
+	ErrNewAgentWithConfigEmptyPrivateKey      = errors.New("private key is empty")
+	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
+)
+
 // NewAgentWithConfig creates a new agent instance with a custom configuration.
 //
 // Check [Config] for more information.
 func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 	if config.ServerAddress == "" {
-		return nil, errors.New("address is empty")
+		return nil, ErrNewAgentWithConfigEmptyServerAddress
 	}
 
-	serverAddress, err := url.Parse(config.ServerAddress)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse address")
-	}
-
-	cli, err := client.NewClient(config.ServerAddress)
-	if err != nil {
-		return nil, err
+	if _, err := url.ParseRequestURI(config.ServerAddress); err != nil {
+		return nil, ErrNewAgentWithConfigInvalidServerAddress
 	}
 
 	if config.TenantID == "" {
-		return nil, errors.New("tenantID is empty")
+		return nil, ErrNewAgentWithConfigEmptyTenant
 	}
 
 	if config.PrivateKey == "" {
-		return nil, errors.New("privateKey is empty")
+		return nil, ErrNewAgentWithConfigEmptyPrivateKey
 	}
 
 	if mode == nil {
-		return nil, errors.New("mode cannot be nil")
+		return nil, ErrNewAgentWithConfigNilMode
 	}
 
-	a := &Agent{
-		config:        config,
-		serverAddress: serverAddress,
-		cli:           cli,
-		listening:     make(chan bool),
-		mode:          mode,
-	}
-
-	return a, nil
+	return &Agent{
+		config: config,
+		mode:   mode,
+	}, nil
 }
 
 // Initialize initializes agent, generating device identity, loading device information, generating private key,
@@ -233,6 +229,13 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 //
 // When any of the steps fails, the agent will return an error, and the agent will not be able to start.
 func (a *Agent) Initialize() error {
+	var err error
+
+	a.cli, err = client.NewClient(a.config.ServerAddress)
+	if err != nil {
+		return errors.Wrap(err, "failed to create the HTTP client")
+	}
+
 	if err := a.generateDeviceIdentity(); err != nil {
 		return errors.Wrap(err, "failed to generate device identity")
 	}
@@ -453,6 +456,8 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 
 // Listen creates a new SSH server, through a reverse connection between the Agent and the ShellHub server.
 func (a *Agent) Listen(ctx context.Context) error {
+	a.listening = make(chan bool)
+
 	a.mode.Serve(a)
 
 	a.tunnel = tunnel.NewBuilder().
