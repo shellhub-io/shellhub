@@ -567,6 +567,9 @@ func (a *Agent) Listen(ctx context.Context) error {
 	}
 }
 
+// AgentPingDefaultInterval is the default time interval between ping on agent.
+const AgentPingDefaultInterval time.Duration = 0
+
 // Ping sends an authtorization request to the server every ticker interval.
 //
 // If the durantion is 0, the default value set to it will be the 10 minutes.
@@ -574,7 +577,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 // Ping will only sends its requests to the server if the agent is listening for connections. If the agent is not
 // listening, the ping will be stopped.
 func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
-	if durantion == 0 {
+	if durantion == AgentPingDefaultInterval {
 		durantion = 10 * time.Minute
 	}
 
@@ -602,7 +605,7 @@ func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
-				}).Info("Restarted pinging server")
+				}).Info("Starting the ping interval to server")
 
 				ticker.Reset(durantion)
 			} else {

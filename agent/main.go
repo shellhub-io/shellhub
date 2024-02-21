@@ -105,7 +105,7 @@ func main() {
 				// It will make the agent ping to server after the ticker time set on ping function, what is 10 minutes
 				// by default.
 
-				if err := ag.Ping(ctx, 0); err != nil {
+				if err := ag.Ping(ctx, agent.AgentPingDefaultInterval); err != nil {
 					log.WithError(err).WithFields(log.Fields{
 						"version":            AgentVersion,
 						"mode":               mode,
