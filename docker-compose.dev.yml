@@ -60,41 +60,6 @@ services:
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_ENV=${SHELLHUB_ENV}
-  agent:
-    image: agent
-    restart: unless-stopped
-    build:
-      context: .
-      dockerfile: agent/Dockerfile
-      target: development
-      network: host
-      args:
-        - SHELLHUB_VERSION=latest
-        - GOPROXY=${SHELLHUB_GOPROXY}
-        - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
-    privileged: true
-    network_mode: host
-    pid: host
-    environment:
-      - SHELLHUB_SERVER_ADDRESS=http://localhost:${SHELLHUB_HTTP_PORT}
-      - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
-      - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
-      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
-      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
-      - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
-    volumes:
-      - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
-      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-      - /:/host
-      - /dev:/dev
-      - /etc/passwd:/etc/passwd
-      - /etc/group:/etc/group
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./.golangci.yaml:/.golangci.yaml
-    depends_on:
-      - api
-      - ssh
-      - gateway
   cli:
     image: cli
     build:
