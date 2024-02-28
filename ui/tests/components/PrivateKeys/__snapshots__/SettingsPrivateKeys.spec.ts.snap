@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Setting Private Keys > Renders the component 1`] = `
+"<div class=\\"v-container v-locale--is-ltr\\">
+  <div class=\\"v-row align-center justify-center mt-4\\">
+    <div class=\\"v-col-sm-8 v-col\\">
+      <div class=\\"v-alert v-theme--light text-primary v-alert--density-default v-alert--variant-tonal text-subtitle-2\\" role=\\"alert\\" data-test=\\"privacy-policy-alert\\">
+        <!----><span class=\\"v-alert__underlay\\"></span>
+        <!---->
+        <div class=\\"v-alert__prepend\\"><i class=\\"mdi-information mdi v-icon notranslate v-theme--light\\" style=\\"font-size: 28px; height: 28px; width: 28px;\\" aria-hidden=\\"true\\" density=\\"default\\"></i></div>
+        <div class=\\"v-alert__content\\">
+          <div class=\\"v-alert-title\\">ShellHub does not save your private keys</div>Your private keys remain confidential and are not shared with the ShellHub server.
+          Instead, they are securely stored in your browser's local storage.
+          <!---->
+        </div>
+        <!---->
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div class=\\"v-row align-center justify-center mt-4\\">
+    <div class=\\"v-col-sm-8 v-col\\">
+      <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated pb-0 elevation-0 bg-v-theme-surface\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-row\\">
+          <div class=\\"v-col\\">
+            <h3>Private Keys</h3>
+          </div>
+          <div class=\\"v-col\\">
+            <div class=\\"d-flex pa-0 align-center bg-v-theme-surface\\">
+              <div class=\\"v-spacer\\"></div>
+              <div class=\\"v-spacer\\"></div><span><div data-test=\\"privateKeyFormDialogFirst-component\\"><div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Private Key\\" data-test=\\"private-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Private Key </span>
+              <!---->
+              <!----></button>
+            </div>
+            <!--teleport start-->
+            <!--teleport end-->
+            <!---->
+            <!---->
+          </div></span>
+        </div>
+      </div>
+    </div>
+    <div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+      <!---->
+      <div class=\\"v-table__wrapper\\">
+        <table>
+          <thead data-test=\\"privateKey-thead\\">
+            <tr>
+              <th class=\\"text-center\\"><span>Name</span></th>
+              <th class=\\"text-center\\"><span>Fingerprint</span></th>
+              <th class=\\"text-center\\"><span>Actions</span></th>
+            </tr>
+          </thead>
+          <div sm=\\"12\\" class=\\"text-start mt-2 text-medium-emphasis\\"><span>No data avaliable</span></div>
+        </table>
+      </div>
+      <!---->
+    </div>
+    <!---->
+    <!----><span class=\\"v-card__underlay\\"></span>
+  </div>
+</div>
+</div>
+</div>"
+`;
