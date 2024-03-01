@@ -50,6 +50,7 @@ type Opt func(*Options) error
 
 func NewClient(opts ...Opt) Client {
 	httpClient := resty.New()
+	httpClient.SetBaseURL("http://api:8080")
 	httpClient.SetRetryCount(math.MaxInt32)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
@@ -58,9 +59,6 @@ func NewClient(opts ...Opt) Client {
 
 		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
 	})
-
-	env, _ := getEnvs()
-	httpClient.SetBaseURL("http://api:" + env.ServerPort)
 
 	c := &client{http: httpClient}
 
