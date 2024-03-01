@@ -5,7 +5,6 @@ services:
     image: shellhubio/ssh:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
-      - API_PORT=${SHELLHUB_API_PORT}
       - PRIVATE_KEY=/run/secrets/ssh_private_key
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
@@ -29,7 +28,6 @@ services:
     image: shellhubio/api:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
-      - API_PORT=${SHELLHUB_API_PORT}
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
@@ -61,14 +59,13 @@ services:
     networks:
       - shellhub
     healthcheck:
-      test: "curl -f http://api:${SHELLHUB_API_PORT}/api/healthcheck || exit 1"
+      test: "curl -f http://api:8080/api/healthcheck || exit 1"
       interval: 30s
       start_period: 10s
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
-      - API_PORT=${SHELLHUB_API_PORT}
       - SHELLHUB_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - SHELLHUB_BILLING=${SHELLHUB_BILLING}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
@@ -86,7 +83,6 @@ services:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
-      - SHELLHUB_API_PORT=${SHELLHUB_API_PORT}
       - SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
       - SHELLHUB_PUBLIC_URL_DOMAIN=${SHELLHUB_PUBLIC_URL_DOMAIN}
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}

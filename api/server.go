@@ -63,25 +63,18 @@ var serverCmd = &cobra.Command{
 // Provides the configuration for the API service.
 // The values are load from the system environment variables.
 type config struct {
-	// ServerPort defines the port on which the API should listen.
-	ServerPort string `env:"API_PORT,default=8080" validate:"required,numeric"`
-
 	// MongoDB connection string (URI format)
 	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
-
 	// Redis connection string (URI format)
 	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
-
 	// Enable GeoIP feature.
 	//
 	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.
 	// The feature is disabled by default. To enable it, it is required to have a `MAXMIND` database license and feed it
 	// to `SHELLHUB_MAXMIND_LICENSE` with it, and `SHELLHUB_GEOIP=true`.
 	GeoIP bool `env:"GEOIP,default=false"`
-
 	// Session record cleanup worker schedule
 	SessionRecordCleanupSchedule string `env:"SESSION_RECORD_CLEANUP_SCHEDULE,default=@daily"`
-
 	// Sentry DSN.
 	SentryDSN string `env:"SENTRY_DSN,default="`
 }
@@ -162,7 +155,7 @@ func startServer(cfg *config, store store.Store, cache storecache.Cache) error {
 		}
 	})
 
-	e.Logger.Fatal(e.Start(":" + cfg.ServerPort))
+	e.Logger.Fatal(e.Start(":8080"))
 
 	return nil
 }
