@@ -25,12 +25,7 @@ export const convertToFingerprint = (privateKey: string) => {
 };
 
 export const parsePrivateKeySsh = (privateKey: any) => {
-  try {
     return window.global.parsePrivateKey(privateKey);
-  } catch (err) {
-    console.error("err", err);
-    return false;
-  }
 };
 
 export const createSignerPrivateKey = (privateKey: any, username: string) => {
