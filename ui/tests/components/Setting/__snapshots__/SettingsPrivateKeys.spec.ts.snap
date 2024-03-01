@@ -44,7 +44,7 @@ exports[`Setting Private Keys > Renders the component 1`] = `
           <div class=\\"v-col\\">
             <div class=\\"d-flex pa-0 align-center bg-v-theme-surface\\">
               <div class=\\"v-spacer\\"></div>
-              <div class=\\"v-spacer\\"></div><span><div data-test=\\"privateKeyFormDialogFirst-component\\"><div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Private Key\\" data-test=\\"private-key-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <div class=\\"v-spacer\\"></div><span><div data-test=\\"privateKeyFormDialogFirst-component\\"><div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add Private Key\\" data-test=\\"private-key-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
               <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Private Key </span>
               <!---->
               <!----></button>

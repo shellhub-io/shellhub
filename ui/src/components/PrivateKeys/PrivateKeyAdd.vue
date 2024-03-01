@@ -11,8 +11,7 @@
             aria-label="Dialog Add Private Key"
             :disabled="!hasAuthorization"
             @keypress.enter="dialog = !dialog"
-            :size="size"
-            data-test="private-key-add-btn"
+            data-test="private-key-dialog-btn"
           >
             Add Private Key
           </v-btn>
@@ -23,7 +22,7 @@
 
     <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary">
+        <v-card-title class="text-h5 pa-3 bg-primary" data-test="card-title">
           New Private Key
         </v-card-title>
         <form @submit.prevent="create" class="mt-3">
@@ -46,7 +45,7 @@
               :update:modelValue="validatePrivateKeyData"
               @change="validatePrivateKeyData"
               variant="underlined"
-              data-test="data-field"
+              data-test="private-key-field"
               rows="5"
             />
           </v-card-text>
@@ -55,14 +54,14 @@
             <v-btn
               color="primary"
               @click="close"
-              data-test="device-add-cancel-btn"
+              data-test="private-key-cancel-btn"
             >
               Cancel
             </v-btn>
             <v-btn
               color="primary"
               type="submit"
-              data-test="device-add-save-btn"
+              data-test="private-key-save-btn"
             >
               Save
             </v-btn>
@@ -73,9 +72,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, defineComponent, ref } from "vue";
+import { computed, ref } from "vue";
 import * as yup from "yup";
 import { actions, authorizer } from "../../authorizer";
 import { useStore } from "../../store";
@@ -84,144 +83,130 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { validateKey } from "../../utils/validate";
+import { parsePrivateKeySsh, validateKey } from "../../utils/validate";
 import { IPrivateKeyError } from "../../interfaces/IPrivateKey";
 import handleError from "../../utils/handleError";
 
-export default defineComponent({
-  props: {
-    size: {
-      type: String,
-      default: "default",
-      required: false,
-    },
-  },
-  emits: ["update"],
-  setup(props, ctx) {
-    const store = useStore();
-    const dialog = ref(false);
-    const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
-    );
+const emit = defineEmits(["update"]);
+const store = useStore();
+const dialog = ref(false);
+const supportedKeys = ref(
+  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
+);
 
-    const {
-      value: name,
-      errorMessage: nameError,
-      setErrors: setnameError,
-      resetField: resetName,
-    } = useField<string>("name", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: name,
+  errorMessage: nameError,
+  setErrors: setNameError,
+  resetField: resetName,
+} = useField<string>("name", yup.string().required(), {
+  initialValue: "",
+});
 
-    const {
-      value: privateKeyData,
-      errorMessage: privateKeyDataError,
-      setErrors: setPrivateKeyDataError,
-      resetField: resetPrivateKeyData,
-    } = useField<string>("privateKeyData", yup.string().required(), {
-      initialValue: "",
-    });
+const {
+  value: privateKeyData,
+  errorMessage: privateKeyDataError,
+  setErrors: setPrivateKeyDataError,
+  resetField: resetPrivateKeyData,
+} = useField<string>("privateKeyData", yup.string().required(), {
+  initialValue: "",
+});
 
-    const hasError = () => {
-      if (name.value === "") {
-        setnameError("Name is required");
-        return true;
-      }
+const hasError = () => {
+  if (name.value === "") {
+    setNameError("Name is required");
+    return true;
+  }
 
-      if (privateKeyData.value === "") {
-        setPrivateKeyDataError("Public key data is required");
-        return true;
-      }
+  if (privateKeyData.value === "") {
+    setPrivateKeyDataError("Private key data is required");
+    return true;
+  }
 
-      if (!validateKey("private", privateKeyData.value)) {
-        setPrivateKeyDataError("Not is a valid private key");
-        return true;
-      }
+  if (!validateKey("private", privateKeyData.value)) {
+    setPrivateKeyDataError("Not is a valid private key");
+    return true;
+  }
 
-      return false;
-    };
+  return false;
+};
 
-    const validatePrivateKeyData = () => {
-      const isValid = validateKey("private", privateKeyData.value);
-      if (!isValid) {
-        setPrivateKeyDataError("Not is a valid private key");
-      }
-    };
+const validatePrivateKeyData = () => {
+  try {
+    parsePrivateKeySsh(privateKeyData.value);
+    return true;
+  } catch (err: unknown) {
+    const typedErr = err as {name: string};
+    if (typedErr.name === "KeyEncryptedError") {
+      setPrivateKeyDataError("Private key with passphrase is not supported");
+    } else {
+      setPrivateKeyDataError("Invalid private key data");
+    }
+    return false;
+  }
+};
 
-    const resetFields = () => {
-      resetName();
-      resetPrivateKeyData();
-    };
+const resetFields = () => {
+  resetName();
+  resetPrivateKeyData();
+};
 
-    const close = () => {
-      resetFields();
-      dialog.value = false;
-    };
+const close = () => {
+  resetFields();
+  dialog.value = false;
+};
 
-    const create = async () => {
-      if (!hasError()) {
-        try {
-          await store.dispatch("privateKey/set", {
-            name: name.value,
-            data: privateKeyData.value,
-          });
+const create = async () => {
+  if (!hasError()) {
+    try {
+      await store.dispatch("privateKey/set", {
+        name: name.value,
+        data: privateKeyData.value,
+      });
+      store.dispatch(
+        "snackbar/showSnackbarSuccessNotRequest",
+        INotificationsSuccess.privateKeyCreating,
+      );
+      emit("update");
+      close();
+    } catch (error) {
+      const pkError = error as IPrivateKeyError;
+      switch (pkError.message) {
+        case "both": {
+          setNameError("Name is already used");
+          setPrivateKeyDataError("Private key data is already used");
+          break;
+        }
+        case "name": {
+          setNameError("Name is already used");
+          break;
+        }
+        case "private_key": {
+          setPrivateKeyDataError("Private key data is already used");
+          break;
+        }
+        default: {
           store.dispatch(
-            "snackbar/showSnackbarSuccessNotRequest",
-            INotificationsSuccess.privateKeyCreating,
+            "snackbar/showSnackbarErrorNotRequest",
+            INotificationsError.privateKeyCreating,
           );
-          ctx.emit("update");
-          close();
-        } catch (error) {
-          const pkError = error as IPrivateKeyError;
-          switch (true) {
-            case pkError.message === "both": {
-              setnameError("Name is already used");
-              setPrivateKeyDataError("Public key data is already used");
-              break;
-            }
-            case pkError.message === "name": {
-              setnameError("Name is already used");
-              break;
-            }
-            case pkError.message === "private_key": {
-              setPrivateKeyDataError("Public key data is already used");
-              break;
-            }
-            default: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorNotRequest",
-                INotificationsError.privateKeyCreating,
-              );
-              handleError(error);
-            }
-          }
+          handleError(error);
         }
       }
-    };
+    }
+  }
+};
 
-    const hasAuthorization = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.publicKey.create,
-        );
-      }
-      return false;
-    });
-
-    return {
-      dialog,
-      name,
-      nameError,
-      privateKeyData,
-      privateKeyDataError,
-      supportedKeys,
-      hasAuthorization,
-      validatePrivateKeyData,
-      create,
-      close,
-    };
-  },
+const hasAuthorization = computed(() => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.publicKey.create,
+    );
+  }
+  return false;
 });
+
+defineExpose({ privateKeyDataError, nameError });
 </script>
