@@ -145,4 +145,4 @@ secrets:
 
 networks:
   shellhub:
-    name: shellhub_network
+    name: ${SHELLHUB_NETWORK}
