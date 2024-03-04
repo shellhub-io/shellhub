@@ -16,7 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/square/mongo-lock v0.0.0-20230808145049-cfcf499f6bf0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/undefinedlabs/go-mpatch v1.0.7
 	github.com/xakep666/mongo-migrate v0.2.1
 	go.mongodb.org/mongo-driver v1.14.0
@@ -58,7 +58,7 @@ require (
 	github.com/sethvargo/go-envconfig v0.9.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tkuchiki/go-timezone v0.2.2 // indirect
 	github.com/tkuchiki/parsetime v0.3.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect

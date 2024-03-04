@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/gliderlabs/ssh v0.3.6
-	github.com/go-resty/resty/v2 v2.11.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.11.4
@@ -27,6 +26,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2 // indirect
 	github.com/go-redis/cache/v8 v8.4.4 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
+	github.com/go-resty/resty/v2 v2.11.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
