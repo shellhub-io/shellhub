@@ -22,8 +22,12 @@ func TestCheckAgentVersionForPublicKey(t *testing.T) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
-				metadataMock.On("RestoreAuthenticationMethod", ctx).
-					Return(metadata.PasswordAuthenticationMethod).
+				metadataMock.On("RestoreDevice", ctx).
+					Return(&models.Device{
+						Info: &models.DeviceInfo{
+							Version: "latest",
+						},
+					}).
 					Once()
 			},
 			expected: nil,
@@ -33,10 +37,6 @@ func TestCheckAgentVersionForPublicKey(t *testing.T) {
 			requiredMocks: func(ctx gliderssh.Context) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
-
-				metadataMock.On("RestoreAuthenticationMethod", ctx).
-					Return(metadata.PublicKeyAuthenticationMethod).
-					Once()
 
 				metadataMock.On("RestoreDevice", ctx).
 					Return(&models.Device{
@@ -53,10 +53,6 @@ func TestCheckAgentVersionForPublicKey(t *testing.T) {
 			requiredMocks: func(ctx gliderssh.Context) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
-
-				metadataMock.On("RestoreAuthenticationMethod", ctx).
-					Return(metadata.PublicKeyAuthenticationMethod).
-					Once()
 
 				metadataMock.On("RestoreDevice", ctx).
 					Return(&models.Device{

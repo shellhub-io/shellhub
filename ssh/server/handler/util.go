@@ -1,29 +1,30 @@
 package handler
 
 import (
-	"fmt"
-
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
-	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
+	gossh "golang.org/x/crypto/ssh"
 )
 
-// writeError logs an internal error and writes an external error to the client's session.
-func writeError(sess *session.Session, msg string, iErr, eError error) {
-	log.WithError(iErr).
-		WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
+func echo(uid string, client gliderssh.Session, err error, msg string) {
+	log.WithError(err).
+		WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 		Error(msg)
 
-	sess.Client.Write([]byte(fmt.Sprintf("%s\n", eError.Error()))) // nolint: errcheck
+	client.Write([]byte(msg)) // nolint: errcheck
 }
 
 // evaluateContext evaluates the given context and returns an error if there's anything
 // that may cause issues during the connection.
-func evaluateContext(ctx gliderssh.Context, opts *ConfigOptions) error {
+func evaluateContext(client gliderssh.Session, opts *ConfigOptions) error {
 	if !opts.AllowPublickeyAccessBelow060 {
-		return checkAgentVersionForPublicKey(ctx)
+		if client.PublicKey() != nil {
+			return nil
+		}
+
+		return checkAgentVersionForPublicKey(client.Context())
 	}
 
 	return nil
@@ -37,10 +38,6 @@ func evaluateContext(ctx gliderssh.Context, opts *ConfigOptions) error {
 // Moreover, the agent panics after the connection ends. To avoid this, connections
 // with public key are not permitted when agent version is 0.5.x or earlier
 func checkAgentVersionForPublicKey(ctx gliderssh.Context) error {
-	if metadata.RestoreAuthenticationMethod(ctx) != metadata.PublicKeyAuthenticationMethod {
-		return nil
-	}
-
 	version := metadata.RestoreDevice(ctx).Info.Version
 	if version == "latest" {
 		return nil
@@ -56,4 +53,41 @@ func checkAgentVersionForPublicKey(ctx gliderssh.Context) error {
 	}
 
 	return nil
+}
+
+// exitCodeFromError gets the exit code from the client.
+//
+// If error is nil, the exit code is zero, meaning that there isn't error. If none exit code is returned, it returns 255.
+func exitCodeFromError(err error) int {
+	if err == nil {
+		return 0
+	}
+
+	fault, ok := err.(*gossh.ExitError)
+	if !ok {
+		return 255
+	}
+
+	return fault.ExitStatus()
+}
+
+// isUnknownError checks if an error is unknown exit error
+// An error is considered known if it is either *gossh.ExitMissingError or *gossh.ExitError.
+func isUnknownExitError(err error) bool {
+	switch err.(type) {
+	case *gossh.ExitMissingError, *gossh.ExitError:
+		return false
+	}
+
+	return err != nil
+}
+
+func resizeWindow(uid string, agent *gossh.Session, winCh <-chan gliderssh.Window) {
+	for win := range winCh {
+		if err := agent.WindowChange(win.Height, win.Width); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"client": uid}).
+				Warning("failed to send WindowChange")
+		}
+	}
 }

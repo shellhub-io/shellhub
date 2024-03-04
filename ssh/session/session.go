@@ -21,8 +21,14 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+// TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
 	Client gliderssh.Session
+	Agent  *gossh.Session
+
+	AgentClient *gossh.Client
+	AgentReqs   <-chan *gossh.Request
+
 	// Username is the user that is trying to connect to the device; user on device.
 	Username string `json:"username"`
 	Device   string `json:"device_uid"` // nolint: tagliatelle
@@ -91,78 +97,11 @@ func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, device 
 	return dialed, nil
 }
 
-// NewSession creates a new Client from a client to agent, validating data, instance and payment.
-func NewSession(client gliderssh.Session, tunnel *httptunnel.Tunnel) (*Session, error) {
-	ctx := client.Context()
-
-	hos, err := host.NewHost(client.RemoteAddr().String())
-	if err != nil {
-		return nil, ErrHost
-	}
-
-	if hos.IsLocalhost() {
-		env := loadEnv(client.Environ())
-		if value, ok := env["IP_ADDRESS"]; ok {
-			hos.Host = value
-		}
-	}
-
-	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
-
-	device := metadata.RestoreDevice(ctx)
-	target := metadata.RestoreTarget(ctx)
-	lookup := metadata.RestoreLookup(ctx)
-
-	lookup["username"] = target.Username
-	lookup["ip_address"] = hos.Host
-
-	session := new(Session)
-	if ok, err := session.checkFirewall(ctx); err != nil || !ok {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("Error when trying to evaluate firewall rules")
-
-		return nil, err
-	}
-
-	if ok, err := session.checkBilling(ctx, device.UID); err != nil || !ok {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("Error when trying to evaluate billing")
-
-		return nil, err
-	}
-
-	dialed, err := session.dial(ctx, tunnel, device.UID, uid)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("Error when trying to dial")
-
-		return nil, ErrDial
-	}
-
-	session.Client = client
-	session.UID = uid
-	session.Username = target.Username
-	session.IPAddress = hos.Host
-	session.Device = device.UID
-	session.Lookup = lookup
-	session.Dialed = dialed
-
-	session.setPty()
-	session.setType()
-
-	session.Register(client) // nolint:errcheck
-
-	return session, nil
-}
-
-// NewSessionWithoutClient creates a new session to connect the agent, validating data, instance and payment.
+// NewSession creates a new session to connect the agent, validating data, instance and payment.
 //
 // This function is used to create a new session when the client is not available, what is true when the SSH client
 // indicate that the request type is `none` or in the case of a port forwarding
-func NewSessionWithoutClient(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
+func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
 	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
@@ -203,7 +142,6 @@ func NewSessionWithoutClient(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (
 		return nil, ErrDial
 	}
 
-	session.Client = nil
 	session.UID = uid
 	session.Username = target.Username
 	session.IPAddress = hos.Host
@@ -218,8 +156,8 @@ func (s *Session) GetType() string {
 	return s.Type
 }
 
-// NewClientConnWithDeadline creates a new connection to the agent.
-func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.Client, <-chan *gossh.Request, error) {
+// NewAgentConnection creates a new connection to the agent.
+func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 	const Addr = "tcp"
 
 	if config.Timeout > 0 {
@@ -228,7 +166,7 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
 				Error("Error when trying to set dial deadline")
 
-			return nil, nil, err
+			return err
 		}
 	}
 
@@ -238,7 +176,7 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
 
-		return nil, nil, err
+		return err
 	}
 
 	if config.Timeout > 0 {
@@ -247,14 +185,37 @@ func (s *Session) NewClientConnWithDeadline(config *gossh.ClientConfig) (*gossh.
 				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
 				Error("Error when trying to set dial deadline with Time{}")
 
-			return nil, nil, err
+			return err
 		}
 	}
 
 	ch := make(chan *gossh.Request)
 	close(ch)
 
-	return gossh.NewClient(cli, chans, ch), reqs, nil
+	s.AgentClient = gossh.NewClient(cli, chans, ch)
+	s.AgentReqs = reqs
+
+	return nil
+}
+
+func (s *Session) NewAgentSession() (*gossh.Session, <-chan *gossh.Request, error) {
+	sess, err := s.AgentClient.NewSession()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	s.Agent = sess
+
+	return s.Agent, s.AgentReqs, nil
+}
+
+func (s *Session) SetClientSession(client gliderssh.Session) {
+	s.Client = client
+
+	s.setPty()
+	s.setType()
+
+	s.Register(s.Client) // nolint:errcheck
 }
 
 // Register registers a new Client at the api.
@@ -323,9 +284,57 @@ func (s *Session) Finish() error {
 	return nil
 }
 
-// NewClientConfiguration creates a [gossh.ClientConfig] with the default configuration required by ShellHub
+type ClientConfigurationAuthentication func(gliderssh.Context, *gossh.ClientConfig) error
+
+func ClientConfigurationAuthenticationPassword(password string) ClientConfigurationAuthentication {
+	return func(ctx gliderssh.Context, config *gossh.ClientConfig) error {
+		config.Auth = []gossh.AuthMethod{
+			gossh.Password(password),
+		}
+
+		return nil
+	}
+}
+
+func ClientConfigurationAuthenticationPublicKey() ClientConfigurationAuthentication {
+	return func(ctx gliderssh.Context, config *gossh.ClientConfig) error {
+		api := metadata.RestoreAPI(ctx)
+		if api == nil {
+			return errors.New("failed to get the API from context")
+		}
+
+		privateKey, err := api.CreatePrivateKey()
+		if err != nil {
+			return err
+		}
+
+		block, _ := pem.Decode(privateKey.Data)
+
+		parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return err
+		}
+
+		signer, err := gossh.NewSignerFromKey(parsed)
+		if err != nil {
+			return err
+		}
+
+		config.Auth = []gossh.AuthMethod{
+			gossh.PublicKeys(signer),
+		}
+
+		return nil
+	}
+}
+
+type AgentConfigurationOptions struct {
+	Auth ClientConfigurationAuthentication
+}
+
+// NewAgentConnectionConfiguration creates a [gossh.ClientConfig] with the default configuration required by ShellHub
 // to connect to the device agent that are inside the [gliderssh.Context].
-func NewClientConfiguration(ctx gliderssh.Context) (*gossh.ClientConfig, error) {
+func NewAgentConnectionConfiguration(ctx gliderssh.Context, opts AgentConfigurationOptions) (*gossh.ClientConfig, error) {
 	target := metadata.RestoreTarget(ctx)
 	if target == nil {
 		return nil, errors.New("failed to get the target from context")
@@ -336,39 +345,8 @@ func NewClientConfiguration(ctx gliderssh.Context) (*gossh.ClientConfig, error) 
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
 	}
 
-	api := metadata.RestoreAPI(ctx)
-	if api == nil {
-		return nil, errors.New("failed to get the API from context")
-	}
-
-	switch metadata.RestoreAuthenticationMethod(ctx) {
-	case metadata.PublicKeyAuthenticationMethod:
-		privateKey, err := api.CreatePrivateKey()
-		if err != nil {
-			return nil, err
-		}
-
-		block, _ := pem.Decode(privateKey.Data)
-
-		parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-
-		signer, err := gossh.NewSignerFromKey(parsed)
-		if err != nil {
-			return nil, err
-		}
-
-		config.Auth = []gossh.AuthMethod{
-			gossh.PublicKeys(signer),
-		}
-	case metadata.PasswordAuthenticationMethod:
-		password := metadata.RestorePassword(ctx)
-
-		config.Auth = []gossh.AuthMethod{
-			gossh.Password(password),
-		}
+	if err := opts.Auth(ctx, config); err != nil {
+		return nil, errors.New("failed to generate the authentication information")
 	}
 
 	return config, nil

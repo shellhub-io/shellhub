@@ -35,8 +35,8 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
 		Addr:             ":2222",
-		PasswordHandler:  auth.PasswordHandler,
-		PublicKeyHandler: auth.PublicKeyHandler,
+		PasswordHandler:  auth.PasswordHandlerWithTunnel(tunnel),
+		PublicKeyHandler: auth.PublicKeyHandlerWithTunnel(tunnel),
 		SessionRequestCallback: func(client gliderssh.Session, request string) bool {
 			metadata.StoreRequest(client.Context(), request)
 
@@ -61,7 +61,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			"session":                   gliderssh.DefaultSessionHandler,
-			channels.DirectTCPIPChannel: channels.TunnelDefaultDirectTCPIPHandler(tunnel),
+			channels.DirectTCPIPChannel: channels.TunnelDefaultDirectTCPIPHandler,
 		},
 	}
 

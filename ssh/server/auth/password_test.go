@@ -194,7 +194,6 @@ func TestPasswordHandler(t *testing.T) {
 					Once()
 
 				metadataMock.On("StorePassword", ctx, "secret")
-				metadataMock.On("StoreAuthenticationMethod", ctx, metadata.PasswordAuthenticationMethod)
 			},
 			expected: true,
 		},
