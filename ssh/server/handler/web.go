@@ -99,7 +99,7 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	})
 	if err != nil {
-		return ErrDialSSH
+		return ErrAuthentication
 	}
 
 	defer connection.Close()

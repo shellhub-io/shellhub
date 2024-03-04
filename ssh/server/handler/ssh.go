@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -69,108 +68,75 @@ func parseConfig() (*ConfigOptions, error) {
 }
 
 // SSHHandler handlers a "normal" SSH connection.
-func SSHHandler(tunnel *httptunnel.Tunnel) gliderssh.Handler {
+func SSHHandler(_ *httptunnel.Tunnel) gliderssh.Handler {
 	return func(client gliderssh.Session) {
 		log.WithFields(log.Fields{"sshid": client.User()}).Info("SSH connection started")
 		defer log.WithFields(log.Fields{"sshid": client.User()}).Info("SSH connection closed")
 
 		defer client.Close()
 
-		sess, err := session.NewSession(client, tunnel)
-		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"sshid": client.User()}).
-				Error("Error when trying to create a new session")
-
-			client.Write([]byte(fmt.Sprintf("%s\n", err.Error()))) // nolint: errcheck
-
-			return
-		}
-		defer sess.Finish() // nolint: errcheck
+		// TODO:
+		sess := client.Context().Value("session").(*session.Session)
+		sess.SetClientSession(client)
 
 		opts, err := parseConfig()
 		if err != nil {
-			writeError(sess, "Error while parsing envs", err, ErrEnvs)
+			echo(sess.UID, client, err, "Error while parsing envs")
 
 			return
 		}
-
-		ctx := client.Context()
 
 		// When the Shellhub instance dennies connections with
 		// potentially broken agents, we need to evaluate the connection's context
 		// and identify potential bugs. The server must reject the connection
 		// if there's a possibility of issues; otherwise, proceeds.
-		if err := evaluateContext(ctx, opts); err != nil {
-			writeError(sess, "Error while evaluating context", err, err)
+		if err := evaluateContext(client, opts); err != nil {
+			echo(sess.UID, client, err, "Error while evaluating context")
 
 			return
 		}
 
-		config, err := session.NewClientConfiguration(ctx)
+		agent, reqs, err := sess.NewAgentSession()
 		if err != nil {
-			writeError(sess, "Error while creating client configuration", err, ErrConfiguration)
+			echo(sess.UID, client, err, "Error when trying to start the agent's session")
 
 			return
 		}
+		defer agent.Close()
 
-		api := metadata.RestoreAPI(ctx)
-		err = connectSSH(ctx, client, sess, config, api, *opts)
-		if err != nil {
-			writeError(sess, "Error during SSH connection", err, err)
+		if err := connectSSH(sess, reqs, *opts); err != nil {
+			echo(sess.UID, client, err, "Error during SSH connection")
 
 			return
 		}
 	}
 }
 
-func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Session, config *gossh.ClientConfig, api internalclient.Client, opts ConfigOptions) error {
-	connection, reqs, err := sess.NewClientConnWithDeadline(config)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("Error when to authenticate the connection")
+func connectSSH(sess *session.Session, reqs <-chan *gossh.Request, opts ConfigOptions) error {
+	api := metadata.RestoreAPI(sess.Client.Context())
 
-		return ErrAuthentication
-	}
-	defer connection.Close()
-
-	metadata.MaybeStoreAgentConn(ctx.(gliderssh.Context), connection)
-
-	agent, err := connection.NewSession()
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("Error when trying to start the agent's session")
-
-		return ErrSession
-	}
-	defer agent.Close()
-
-	go session.HandleRequests(ctx, reqs, api, ctx.Done())
-
-	metadata.MaybeStoreEstablished(ctx.(gliderssh.Context), true)
+	go session.HandleRequests(sess.Client.Context(), reqs, api, sess.Client.Context().Done())
 
 	switch sess.GetType() {
 	case session.Term, session.Web:
-		if err := shell(api, sess, agent, client, opts); err != nil {
+		if err := shell(sess, sess.Client, sess.Agent, api, opts); err != nil {
 			return ErrRequestShell
 		}
 	case session.HereDoc:
-		err := heredoc(api, sess.UID, agent, client)
+		err := heredoc(sess, sess.Client, sess.Agent, api)
 		if err != nil {
 			return ErrRequestHeredoc
 		}
 	case session.Exec, session.SCP:
-		device := metadata.RestoreDevice(ctx.(gliderssh.Context))
+		device := metadata.RestoreDevice(sess.Client.Context())
 
-		if err := exec(api, sess, device, agent, client); err != nil {
+		if err := exec(sess, sess.Client, sess.Agent, api, device); err != nil {
 			return ErrRequestExec
 		}
 	default:
-		if err := client.Exit(255); err != nil {
+		if err := sess.Client.Exit(255); err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+				WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 				Warning("exiting client returned an error")
 		}
 
@@ -180,50 +146,12 @@ func connectSSH(ctx context.Context, client gliderssh.Session, sess *session.Ses
 	return nil
 }
 
-// exitCodeFromError gets the exit code from the client.
-//
-// If error is nil, the exit code is zero, meaning that there isn't error. If none exit code is returned, it returns 255.
-func exitCodeFromError(err error) int {
-	if err == nil {
-		return 0
-	}
-
-	fault, ok := err.(*gossh.ExitError)
-	if !ok {
-		return 255
-	}
-
-	return fault.ExitStatus()
-}
-
-// isUnknownError checks if an error is unknown exit error
-// An error is considered known if it is either *gossh.ExitMissingError or *gossh.ExitError.
-func isUnknownExitError(err error) bool {
-	switch err.(type) {
-	case *gossh.ExitMissingError, *gossh.ExitError:
-		return false
-	}
-
-	return err != nil
-}
-
-func resizeWindow(uid string, agent *gossh.Session, winCh <-chan gliderssh.Window) {
-	for win := range winCh {
-		if err := agent.WindowChange(win.Height, win.Width); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"client": uid}).
-				Warning("failed to send WindowChange")
-		}
-	}
-}
-
-// shell handles an interactive terminal session.
-func shell(api internalclient.Client, sess *session.Session, agent *gossh.Session, client gliderssh.Session, opts ConfigOptions) error {
+func shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, opts ConfigOptions) error {
 	uid := sess.UID
 
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Error("failed to authenticate the session")
 
 		return errs[0]
@@ -231,12 +159,12 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 
 	pty, winCh, _ := client.Pty()
 
-	log.WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+	log.WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 		Debug("requesting a PTY for session")
 
 	if err := agent.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, gossh.TerminalModes{}); err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Error("failed to request a PTY")
 
 		return err
@@ -247,7 +175,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Error("failed to create a flow of data from agent")
 
 		return err
@@ -271,7 +199,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 			// and we need to log to handle it appropriately.
 			if err != nil {
 				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+					WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 					Warning("failed to read from stdout in pty client")
 
 				break
@@ -279,7 +207,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 
 			if _, err = io.Copy(client, bytes.NewReader(buffer[:read])); err != nil && err != io.EOF {
 				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+					WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 					Warning("failed to copy from stdout in pty client")
 
 				break
@@ -310,7 +238,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 
 	if err := agent.Shell(); err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Error("failed to start a new shell")
 
 		return err
@@ -318,7 +246,7 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 
 	// Writes the welcome message. The message consists of a static string about the device
 	// and an optional custom string provided by the user.
-	if target := metadata.RestoreTarget(sess.Client.Context()); target != nil {
+	if target := metadata.RestoreTarget(client.Context()); target != nil {
 		sess.Client.Write([]byte( // nolint: errcheck
 			"Connected to " + target.Username + "@" + target.Data + " via ShellHub.\n",
 		))
@@ -354,8 +282,9 @@ func shell(api internalclient.Client, sess *session.Session, agent *gossh.Sessio
 	return nil
 }
 
-// heredoc handles a heredoc session.
-func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client gliderssh.Session) error {
+func heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client) error {
+	uid := sess.UID
+
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		log.WithError(errs[0]).
 			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
@@ -409,13 +338,12 @@ func heredoc(api internalclient.Client, uid string, agent *gossh.Session, client
 	return nil
 }
 
-// exec handles a non-interactive session.
-func exec(api internalclient.Client, sess *session.Session, device *models.Device, agent *gossh.Session, client gliderssh.Session) error {
+func exec(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, device *models.Device) error {
 	uid := sess.UID
 
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
 		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Error("failed to authenticate the session")
 
 		return errs[0]
@@ -424,7 +352,7 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Error("failed to create a flow of data from agent to agent")
 
 		return err
@@ -433,12 +361,12 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 	// request a new pty when isPty is true
 	pty, winCh, isPty := client.Pty()
 	if isPty {
-		log.WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+		log.WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Debug("requesting a PTY for session")
 
 		if err := agent.RequestPty(pty.Term, pty.Window.Height, pty.Window.Width, gossh.TerminalModes{}); err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 				Error("failed to request a PTY")
 
 			return err
@@ -458,7 +386,7 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 
 	if err := agent.Start(client.RawCommand()); err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User(), "command": client.RawCommand()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User(), "command": client.RawCommand()}).
 			Error("failed to start a command on agent")
 
 		return err
@@ -468,7 +396,7 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 		ver, err := semver.NewVersion(device.Info.Version)
 		if err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+				WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 				Error("failed to parse device version")
 
 			return err
@@ -490,13 +418,13 @@ func exec(api internalclient.Client, sess *session.Session, device *models.Devic
 
 	if err = agent.Wait(); isUnknownExitError(err) {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User(), "command": client.RawCommand()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User(), "command": client.RawCommand()}).
 			Warning("command on agent returned an error")
 	}
 
 	if err := client.Exit(exitCodeFromError(err)); err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
 			Warning("exiting client returned an error")
 	}
 

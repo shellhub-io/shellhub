@@ -36,7 +36,7 @@ func TestPublicKeyHandler(t *testing.T) {
 	cases := []struct {
 		description string
 		setup       func(ctx *gliderssh.Context) *sshsrvtest.Conn
-		mocks       func(ctx gliderssh.Context)
+		mocks       func(ctx gliderssh.Context, publicKey gliderssh.PublicKey)
 		expected    bool
 	}{
 		{
@@ -56,16 +56,12 @@ func TestPublicKeyHandler(t *testing.T) {
 
 				return srv
 			},
-			mocks: func(ctx gliderssh.Context) {
+			mocks: func(ctx gliderssh.Context, _ gliderssh.PublicKey) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
 				metadataMock.On("MaybeStoreSSHID", ctx, "user@namespace.00-00-00-00-00-00").
 					Return("user@namespace.00-00-00-00-00-00").
-					Once()
-
-				metadataMock.On("MaybeStoreFingerprint", ctx, mock.Anything).
-					Return("fingerprint").
 					Once()
 
 				metadataMock.On("MaybeStoreTarget", ctx, "user@namespace.00-00-00-00-00-00").
@@ -91,16 +87,12 @@ func TestPublicKeyHandler(t *testing.T) {
 
 				return srv
 			},
-			mocks: func(ctx gliderssh.Context) {
+			mocks: func(ctx gliderssh.Context, _ gliderssh.PublicKey) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
 				metadataMock.On("MaybeStoreSSHID", ctx, "user@namespace.00-00-00-00-00-00").
 					Return("user@namespace.00-00-00-00-00-00").
-					Once()
-
-				metadataMock.On("MaybeStoreFingerprint", ctx, mock.Anything).
-					Return("fingerprint").
 					Once()
 
 				tag := &target.Target{Username: "user", Data: "namespace.00-00-00-00-00-00"}
@@ -138,16 +130,12 @@ func TestPublicKeyHandler(t *testing.T) {
 
 				return srv
 			},
-			mocks: func(ctx gliderssh.Context) {
+			mocks: func(ctx gliderssh.Context, _ gliderssh.PublicKey) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
 				metadataMock.On("MaybeStoreSSHID", ctx, "user@namespace.00-00-00-00-00-00").
 					Return("user@namespace.00-00-00-00-00-00").
-					Once()
-
-				metadataMock.On("MaybeStoreFingerprint", ctx, mock.Anything).
-					Return("fingerprint").
 					Once()
 
 				tag := &target.Target{Username: "user", Data: "namespace.00-00-00-00-00-00"}
@@ -189,16 +177,12 @@ func TestPublicKeyHandler(t *testing.T) {
 
 				return srv
 			},
-			mocks: func(ctx gliderssh.Context) {
+			mocks: func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
 				metadataMock.On("MaybeStoreSSHID", ctx, "user@namespace.00-00-00-00-00-00").
 					Return("user@namespace.00-00-00-00-00-00").
-					Once()
-
-				metadataMock.On("MaybeStoreFingerprint", ctx, mock.Anything).
-					Return("fingerprint").
 					Once()
 
 				tag := &target.Target{Username: "user", Data: "namespace.00-00-00-00-00-00"}
@@ -221,7 +205,9 @@ func TestPublicKeyHandler(t *testing.T) {
 					Return(&models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, []error{}).
 					Once()
 
-				api.On("GetPublicKey", "fingerprint", "00000000-0000-4000-0000-000000000000").
+				fingerprint := gossh.FingerprintLegacyMD5(publicKey)
+
+				api.On("GetPublicKey", fingerprint, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -244,16 +230,12 @@ func TestPublicKeyHandler(t *testing.T) {
 
 				return srv
 			},
-			mocks: func(ctx gliderssh.Context) {
+			mocks: func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
 				metadataMock.On("MaybeStoreSSHID", ctx, "user@namespace.00-00-00-00-00-00").
 					Return("user@namespace.00-00-00-00-00-00").
-					Once()
-
-				metadataMock.On("MaybeStoreFingerprint", ctx, mock.Anything).
-					Return("fingerprint").
 					Once()
 
 				tag := &target.Target{Username: "user", Data: "namespace.00-00-00-00-00-00"}
@@ -276,11 +258,13 @@ func TestPublicKeyHandler(t *testing.T) {
 					Return(&models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, []error{}).
 					Once()
 
-				api.On("GetPublicKey", "fingerprint", "00000000-0000-4000-0000-000000000000").
+				fingerprint := gossh.FingerprintLegacyMD5(publicKey)
+
+				api.On("GetPublicKey", fingerprint, "00000000-0000-4000-0000-000000000000").
 					Return(nil, nil).
 					Once()
 
-				api.On("EvaluateKey", "fingerprint", &models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, "user").
+				api.On("EvaluateKey", fingerprint, &models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, "user").
 					Return(false, errors.New("error")).
 					Once()
 			},
@@ -303,16 +287,12 @@ func TestPublicKeyHandler(t *testing.T) {
 
 				return srv
 			},
-			mocks: func(ctx gliderssh.Context) {
+			mocks: func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) {
 				metadataMock := new(metadataMocks.Metadata)
 				metadata.SetBackend(metadataMock)
 
 				metadataMock.On("MaybeStoreSSHID", ctx, "user@namespace.00-00-00-00-00-00").
 					Return("user@namespace.00-00-00-00-00-00").
-					Once()
-
-				metadataMock.On("MaybeStoreFingerprint", ctx, mock.Anything).
-					Return("fingerprint").
 					Once()
 
 				tag := &target.Target{Username: "user", Data: "namespace.00-00-00-00-00-00"}
@@ -335,15 +315,15 @@ func TestPublicKeyHandler(t *testing.T) {
 					Return(&models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, []error{}).
 					Once()
 
-				api.On("GetPublicKey", "fingerprint", "00000000-0000-4000-0000-000000000000").
+				fingerprint := gossh.FingerprintLegacyMD5(publicKey)
+
+				api.On("GetPublicKey", fingerprint, "00000000-0000-4000-0000-000000000000").
 					Return(nil, nil).
 					Once()
 
-				api.On("EvaluateKey", "fingerprint", &models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, "user").
+				api.On("EvaluateKey", fingerprint, &models.Device{TenantID: "00000000-0000-4000-0000-000000000000"}, "user").
 					Return(true, nil).
 					Once()
-
-				metadataMock.On("StoreAuthenticationMethod", ctx, metadata.PublicKeyAuthenticationMethod)
 			},
 			expected: true,
 		},
@@ -359,9 +339,11 @@ func TestPublicKeyHandler(t *testing.T) {
 			srv.Start()
 			assert.NoError(t, srv.Agent.Run("cmd"))
 
-			tc.mocks(ctx)
+			publicKey := generateTestPubKey(t)
 
-			result := PublicKeyHandler(ctx, generateTestPubKey(t))
+			tc.mocks(ctx, publicKey)
+
+			result := PublicKeyHandler(ctx, publicKey)
 			assert.Equal(t, tc.expected, result)
 		})
 	}

@@ -1,11 +1,7 @@
 package handler
 
 import (
-	"context"
-	"fmt"
-
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
@@ -17,89 +13,61 @@ import (
 const SFTPSubsystem = "sftp"
 
 // SFTPSubsystemHandler handlers a SFTP connection.
-func SFTPSubsystemHandler(tunnel *httptunnel.Tunnel) gliderssh.SubsystemHandler {
+func SFTPSubsystemHandler(_ *httptunnel.Tunnel) gliderssh.SubsystemHandler {
 	return func(client gliderssh.Session) {
 		log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection started")
 		defer log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection closed")
 
 		defer client.Close()
 
-		ctx := client.Context()
-		api := metadata.RestoreAPI(ctx)
+		// TODO:
+		sess := client.Context().Value("session").(*session.Session)
+		sess.SetClientSession(client)
 
-		sess, err := session.NewSession(client, tunnel)
+		agent, reqs, err := sess.NewAgentSession()
 		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"sshid": client.User()}).
-				Error("Error when trying to create a new session")
-
-			client.Write([]byte(fmt.Sprintf("%s\n", err.Error()))) // nolint: errcheck
+			echo(sess.UID, client, err, "Error when trying to start the agent's session")
 
 			return
 		}
+		defer agent.Close()
 
-		defer sess.Finish() // nolint:errcheck
-
-		config, err := session.NewClientConfiguration(ctx)
-		if err != nil {
-			writeError(sess, "Error while creating client configuration", err, ErrConfiguration)
-
-			return
-		}
-
-		if err = connectSFTP(ctx, client, sess, api, config); err != nil {
-			writeError(sess, "Error during SSH connection", err, err)
+		if err := connectSFTP(sess, reqs); err != nil {
+			echo(sess.UID, client, err, "Error during SSH connection")
 
 			return
 		}
 	}
 }
 
-func connectSFTP(ctx context.Context, client gliderssh.Session, sess *session.Session, api internalclient.Client, config *gossh.ClientConfig) error {
-	connection, reqs, err := sess.NewClientConnWithDeadline(config)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("Error when trying to authenticate the connection")
+func connectSFTP(sess *session.Session, reqs <-chan *gossh.Request) error {
+	api := metadata.RestoreAPI(sess.Client.Context())
 
-		return ErrAuthentication
-	}
-
-	agent, err := connection.NewSession()
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
-			Error("Error when trying to start the agent's session")
-
-		return ErrSession
-	}
-
-	defer agent.Close()
-
-	log.WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+	log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 		Debug("requesting a subsystem for session")
-	if err = agent.RequestSubsystem(SFTPSubsystem); err != nil {
+
+	if err := sess.Agent.RequestSubsystem(SFTPSubsystem); err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 			Error("failed to request a subsystem")
 
 		return err
 	}
 
-	go session.HandleRequests(ctx, reqs, api, ctx.Done())
+	go session.HandleRequests(sess.Client.Context(), reqs, api, sess.Client.Context().Done())
 
 	if errs := api.SessionAsAuthenticated(sess.UID); len(errs) > 0 {
 		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 			Error("failed to authenticate the session")
 
 		return errs[0]
 	}
 
-	flw, err := flow.NewFlow(agent)
+	flw, err := flow.NewFlow(sess.Agent)
 	if err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": sess.UID, "sshid": client.User()}).
+			WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 			Error("failed to create a flow of data from agent")
 
 		return err
@@ -107,9 +75,9 @@ func connectSFTP(ctx context.Context, client gliderssh.Session, sess *session.Se
 
 	done := make(chan bool)
 
-	go flw.PipeIn(client, done)
-	go flw.PipeOut(client, done)
-	go flw.PipeErr(client, done)
+	go flw.PipeIn(sess.Client, done)
+	go flw.PipeOut(sess.Client, done)
+	go flw.PipeErr(sess.Client, done)
 
 	<-done
 	<-done

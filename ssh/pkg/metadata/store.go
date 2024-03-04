@@ -5,7 +5,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
-	gossh "golang.org/x/crypto/ssh"
 )
 
 // store stores a value into a context.
@@ -15,14 +14,6 @@ func store(ctx gliderssh.Context, key string, value interface{}) {
 
 func (*backend) StoreRequest(ctx gliderssh.Context, value string) {
 	store(ctx, request, value)
-}
-
-func (*backend) StoreAuthenticationMethod(ctx gliderssh.Context, method AuthenticationMethod) {
-	store(ctx, authentication, method)
-}
-
-func (*backend) StorePassword(ctx gliderssh.Context, value string) {
-	store(ctx, password, value)
 }
 
 // maybeStore stores a value into a context if it does not exist yet. If the value already exists, it will be returned.
@@ -40,10 +31,6 @@ func maybeStore(ctx gliderssh.Context, key string, value interface{}) interface{
 
 func (*backend) MaybeStoreSSHID(ctx gliderssh.Context, value string) string {
 	return maybeStore(ctx, sshid, value).(string)
-}
-
-func (*backend) MaybeStoreFingerprint(ctx gliderssh.Context, value string) string {
-	return maybeStore(ctx, fingerprint, value).(string)
 }
 
 func (*backend) MaybeStoreTarget(ctx gliderssh.Context, sshid string) (*target.Target, error) {
@@ -104,12 +91,4 @@ func (*backend) MaybeStoreDevice(ctx gliderssh.Context, lookup map[string]string
 	}
 
 	return maybeStore(ctx, device, value).(*models.Device), nil
-}
-
-func (*backend) MaybeStoreAgentConn(ctx gliderssh.Context, client *gossh.Client) *gossh.Client {
-	return maybeStore(ctx, agent, client).(*gossh.Client)
-}
-
-func (*backend) MaybeStoreEstablished(ctx gliderssh.Context, value bool) bool {
-	return maybeStore(ctx, established, value).(bool)
 }
