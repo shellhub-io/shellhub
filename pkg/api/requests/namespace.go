@@ -2,7 +2,7 @@ package requests
 
 // TenantParam is a structure to represent and validate a namespace tenant as path param.
 type TenantParam struct {
-	Tenant string `param:"tenant" validate:"required,min=3,max=255,ascii,excludes=/@&:"`
+	Tenant string `param:"tenant" validate:"required,uuid"`
 }
 
 // RoleBody is a structure to represent and validate a namespace role as request body.
@@ -18,7 +18,7 @@ type MemberParam struct {
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceCreate struct {
 	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
-	TenantID string `json:"tenant" validate:"min=3,max=255,ascii,excludes=/@&:"`
+	TenantID string `json:"tenant" validate:"uuid"`
 }
 
 // NamespaceGet is the structure to represent the request data for get namespace endpoint.
