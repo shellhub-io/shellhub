@@ -127,9 +127,9 @@ func TestGetNamespace(t *testing.T) {
 		{
 			title: "success when try to get a existing namespace",
 			uid:   "123",
-			req:   "tenant",
+			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "tenant").Return(&models.Namespace{}, nil)
+				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{}, nil)
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusOK,
@@ -205,12 +205,12 @@ func TestDeleteNamespace(t *testing.T) {
 		{
 			title: "fails when try to deleting a existing namespace",
 			uid:   "123",
-			req:   "tenant-id",
+			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
+				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
 					Name:     "namespace-name",
 					Owner:    "owner-name",
-					TenantID: "tenant-id",
+					TenantID: "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{ID: "123", Username: "userexemple", Role: "owner"},
 					},
@@ -223,19 +223,19 @@ func TestDeleteNamespace(t *testing.T) {
 					Billing:      &models.Billing{},
 				}, nil).Once()
 
-				mock.On("DeleteNamespace", gomock.Anything, "tenant-id").Return(svc.ErrNotFound).Once()
+				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(svc.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
 			title: "success when try to deleting a existing namespace",
 			uid:   "123",
-			req:   "tenant-id",
+			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
+				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
 					Name:     "namespace-name",
 					Owner:    "owner-name",
-					TenantID: "tenant-id",
+					TenantID: "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{ID: "123", Username: "userexemple", Role: "owner"},
 					},
@@ -248,7 +248,7 @@ func TestDeleteNamespace(t *testing.T) {
 					Billing:      &models.Billing{},
 				}, nil).Once()
 
-				mock.On("DeleteNamespace", gomock.Anything, "tenant-id").Return(nil).Once()
+				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -283,7 +283,6 @@ func TestGetSessionRecord(t *testing.T) {
 		requiredMocks  func()
 		expectedStatus int
 	}{
-
 		{
 			name:   "fails when try to get a session record of a non-existing session",
 			tenant: "tenant",
@@ -356,12 +355,12 @@ func TestEditNamespace(t *testing.T) {
 		{
 			title: "fails when try to editing an non-existing namespace",
 			uid:   "123",
-			req:   `{"session_record": true, "tenant": "tenant-id"}`,
+			req:   `{"session_record": true, "tenant": "00000000-0000-4000-0000-000000000000"}`,
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
+				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
 					Name:     "namespace-name",
 					Owner:    "owner-name",
-					TenantID: "tenant-id",
+					TenantID: "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{ID: "123", Username: "userexemple", Role: "owner"},
 					},
@@ -374,19 +373,19 @@ func TestEditNamespace(t *testing.T) {
 					Billing:      &models.Billing{},
 				}, nil).Once()
 
-				mock.On("EditSessionRecordStatus", gomock.Anything, true, "tenant-id").Return(svc.ErrNotFound).Once()
+				mock.On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").Return(svc.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
 			title: "success when try to editing an existing namespace",
 			uid:   "123",
-			req:   `{"session_record": true, "tenant": "tenant-id"}`,
+			req:   `{"session_record": true, "tenant": "00000000-0000-4000-0000-000000000000"}`,
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "tenant-id").Return(&models.Namespace{
+				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
 					Name:     "namespace-name",
 					Owner:    "owner-name",
-					TenantID: "tenant-id",
+					TenantID: "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{ID: "123", Username: "userexemple", Role: "owner"},
 					},
@@ -399,7 +398,7 @@ func TestEditNamespace(t *testing.T) {
 					Billing:      &models.Billing{},
 				}, nil).Once()
 
-				mock.On("EditSessionRecordStatus", gomock.Anything, true, "tenant-id").Return(nil).Once()
+				mock.On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},

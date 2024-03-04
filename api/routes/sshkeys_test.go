@@ -133,7 +133,7 @@ func TestGetPublicKey(t *testing.T) {
 			title: "success when try to get a public key exists",
 			query: requests.PublicKeyGet{
 				FingerprintParam: requests.FingerprintParam{Fingerprint: "figertest"},
-				TenantParam:      requests.TenantParam{Tenant: "tenant"},
+				TenantParam:      requests.TenantParam{Tenant: "00000000-0000-4000-0000-000000000000"},
 			},
 			requiredMocks: func(query requests.PublicKeyGet) {
 				mock.On("GetPublicKey", gomock.Anything, query.Fingerprint, query.Tenant).Return(&models.PublicKey{}, nil)

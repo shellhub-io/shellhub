@@ -362,9 +362,9 @@ func TestAuthSwapToken(t *testing.T) {
 	}{
 		{
 			title:       "success when try to swap token",
-			requestBody: "tenant",
+			requestBody: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("AuthSwapToken", gomock.Anything, "id", "tenant").Return(&models.UserAuthResponse{}, nil).Once()
+				mock.On("AuthSwapToken", gomock.Anything, "id", "00000000-0000-4000-0000-000000000000").Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.UserAuthResponse{},
