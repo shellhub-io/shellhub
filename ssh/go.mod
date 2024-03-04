@@ -11,7 +11,7 @@ require (
 	github.com/pires/go-proxyproto v0.7.0
 	github.com/shellhub-io/shellhub v0.13.4
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.20.0
 	golang.org/x/net v0.21.0
 )
@@ -42,7 +42,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sethvargo/go-envconfig v0.9.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
