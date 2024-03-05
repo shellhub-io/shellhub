@@ -17,6 +17,12 @@ func PublicKeyHandlerWithTunnel(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Co
 			return false
 		}
 
+		if err := session.EvaluatePublicKey(ctx); err != nil {
+			log.WithError(err).Error("failed to due the public key evaluation")
+
+			return false
+		}
+
 		sess, err := session.NewSession(ctx, tunnel)
 		if err != nil {
 			log.WithError(err).Error("failed to create a new session")
