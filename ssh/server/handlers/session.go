@@ -1,8 +1,7 @@
-package handler
+package handlers
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 
@@ -16,41 +15,6 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
-)
-
-// Errors returned by handlers to client.
-var (
-	ErrRequestShell            = fmt.Errorf("failed to open a shell in the device")
-	ErrRequestExec             = fmt.Errorf("failed to exec the command in the device")
-	ErrRequestHeredoc          = fmt.Errorf("failed to exec the command as heredoc in the device")
-	ErrRequestUnsupported      = fmt.Errorf("failed to get the request type")
-	ErrPublicKey               = fmt.Errorf("failed to get the parsed public key")
-	ErrPrivateKey              = fmt.Errorf("failed to get a key data from the server")
-	ErrSigner                  = fmt.Errorf("failed to create a signer from the private key")
-	ErrConnect                 = fmt.Errorf("failed to connect to device")
-	ErrSession                 = fmt.Errorf("failed to create a session between the server to the agent")
-	ErrGetAuth                 = fmt.Errorf("failed to get auth data from key")
-	ErrWebData                 = fmt.Errorf("failed to get the data to connect to device")
-	ErrFindDevice              = fmt.Errorf("failed to find the device")
-	ErrFindPublicKey           = fmt.Errorf("failed to get the public key from the server")
-	ErrEvaluatePublicKey       = fmt.Errorf("failed to evaluate the public key in the server")
-	ErrForbiddenPublicKey      = fmt.Errorf("failed to use the public key for this action")
-	ErrDataPublicKey           = fmt.Errorf("failed to parse the public key data")
-	ErrSignaturePublicKey      = fmt.Errorf("failed to decode the public key signature")
-	ErrVerifyPublicKey         = fmt.Errorf("failed to verify the public key")
-	ErrSignerPublicKey         = fmt.Errorf("failed to signer the public key")
-	ErrDialSSH                 = fmt.Errorf("failed to dial to connect to server")
-	ErrEnvIPAddress            = fmt.Errorf("failed to set the env virable of ip address from client")
-	ErrEnvWS                   = fmt.Errorf("failed to set the env virable of web socket from client")
-	ErrPipe                    = fmt.Errorf("failed to pipe client data to agent")
-	ErrPty                     = fmt.Errorf("failed to request the pty to agent")
-	ErrShell                   = fmt.Errorf("failed to get the shell to agent")
-	ErrTarget                  = fmt.Errorf("failed to get client target")
-	ErrAuthentication          = fmt.Errorf("failed to authenticate to device")
-	ErrEnvs                    = fmt.Errorf("failed to parse server envs")
-	ErrConfiguration           = fmt.Errorf("failed to create communication configuration")
-	ErrInvalidVersion          = fmt.Errorf("failed to parse device version")
-	ErrUnsuportedPublicKeyAuth = fmt.Errorf("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
 )
 
 func Shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, recordURL string) error {

@@ -1,4 +1,4 @@
-package server
+package subsystems
 
 import (
 	gliderssh "github.com/gliderlabs/ssh"

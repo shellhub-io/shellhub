@@ -343,7 +343,7 @@ func TestPublicKeyHandler(t *testing.T) {
 
 			tc.mocks(ctx, publicKey)
 
-			result := PublicKeyHandler(ctx, publicKey)
+			result := publicKeyHandler(ctx, publicKey)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
