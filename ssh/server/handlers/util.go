@@ -1,18 +1,10 @@
-package handler
+package handlers
 
 import (
 	gliderssh "github.com/gliderlabs/ssh"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
-
-func echo(uid string, client gliderssh.Session, err error, msg string) {
-	log.WithError(err).
-		WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-		Error(msg)
-
-	client.Write([]byte(msg)) // nolint: errcheck
-}
 
 // exitCodeFromError gets the exit code from the client.
 //

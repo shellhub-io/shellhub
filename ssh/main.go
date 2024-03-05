@@ -15,7 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
-	"github.com/shellhub-io/shellhub/ssh/server/handler"
+	"github.com/shellhub-io/shellhub/ssh/server/handlers"
 	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -125,7 +125,7 @@ func main() {
 		cols, rows int,
 		ip string,
 	) error { //nolint:whitespace
-		return handler.WebSession(
+		return handlers.WebSession(
 			conn,
 			creds,
 			web.Dimensions{Cols: cols, Rows: rows},

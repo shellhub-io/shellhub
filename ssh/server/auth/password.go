@@ -9,9 +9,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// PasswordHandlerWithTunnel handles ShellHub client's connection using the password authentication method.
 func PasswordHandlerWithTunnel(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Context, password string) bool {
 	return func(ctx gliderssh.Context, password string) bool {
-		if ok := PasswordHandler(ctx, password); !ok {
+		if ok := passwordHandler(ctx, password); !ok {
 			return false
 		}
 
@@ -43,11 +44,7 @@ func PasswordHandlerWithTunnel(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Con
 	}
 }
 
-// PasswordHandler handles ShellHub client's connection using the password authentication method.
-// Password authentication is the second authentication method tried by the server to connect the client to the agent.
-// It receives the password from the client and attempts to authenticate it.
-// Returns true if the password authentication method is used and false otherwise.
-func PasswordHandler(ctx gliderssh.Context, _ string) bool {
+func passwordHandler(ctx gliderssh.Context, _ string) bool {
 	sshid := metadata.MaybeStoreSSHID(ctx, ctx.User())
 
 	log.WithFields(log.Fields{"session": ctx.SessionID(), "sshid": sshid}).

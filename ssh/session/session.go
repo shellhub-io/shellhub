@@ -21,29 +21,37 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+type Data struct {
+	// UID is the session's UID.
+	UID string
+	// Username is the user on the device.
+	Username string
+	// Device is the identifier.
+	Device    string
+	IPAddress string
+	// Type is the connection type.
+	Type Type
+	// Term is the terminal used for the client.
+	Term string
+	// Pty indicates if the the session is interactive.
+	Pty bool
+	// TODO:
+	Lookup map[string]string
+}
+
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
+	Dialed net.Conn
+
 	Client gliderssh.Session
 	Agent  *gossh.Session
 
 	AgentClient *gossh.Client
 	AgentReqs   <-chan *gossh.Request
 
-	// Username is the user that is trying to connect to the device; user on device.
-	Username string `json:"username"`
-	Device   string `json:"device_uid"` // nolint: tagliatelle
-	// UID is the device's UID.
-	UID           string `json:"uid"`
-	IPAddress     string `json:"ip_address"` // nolint: tagliatelle
-	Type          string `json:"type"`
-	Term          string `json:"term"`
-	Authenticated bool   `json:"authenticated"`
-	Lookup        map[string]string
-	Pty           bool
-	Dialed        net.Conn
+	Data
 }
 
-// checkFirewall evaluates if there are firewall rules that block the connection.
 func (s *Session) checkFirewall(ctx gliderssh.Context) (bool, error) {
 	api := metadata.RestoreAPI(ctx)
 	lookup := metadata.RestoreLookup(ctx)
@@ -64,7 +72,6 @@ func (s *Session) checkFirewall(ctx gliderssh.Context) (bool, error) {
 	return true, nil
 }
 
-// checkBilling evaluates if the device's namespace has pending payment questions.
 func (s *Session) checkBilling(ctx gliderssh.Context, device string) (bool, error) {
 	api := metadata.RestoreAPI(ctx)
 
@@ -82,7 +89,6 @@ func (s *Session) checkBilling(ctx gliderssh.Context, device string) (bool, erro
 	return true, nil
 }
 
-// dial dials the a connection between SSH server and the device agent.
 func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, device string, session string) (net.Conn, error) {
 	dialed, err := tunnel.Dial(ctx, device)
 	if err != nil {
@@ -152,7 +158,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 	return session, nil
 }
 
-func (s *Session) GetType() string {
+func (s *Session) GetType() Type {
 	return s.Type
 }
 
@@ -215,11 +221,11 @@ func (s *Session) SetClientSession(client gliderssh.Session) {
 	s.setPty()
 	s.setType()
 
-	s.Register(s.Client) // nolint:errcheck
+	s.registerAPISession() // nolint:errcheck
 }
 
-// Register registers a new Client at the api.
-func (s *Session) Register(_ gliderssh.Session) error {
+// registerAPISession registers a new session on the API.
+func (s *Session) registerAPISession() error {
 	err := internalclient.
 		NewClient().
 		SessionCreate(requests.SessionCreate{
@@ -227,7 +233,7 @@ func (s *Session) Register(_ gliderssh.Session) error {
 			DeviceUID: s.Device,
 			Username:  s.Username,
 			IPAddress: s.IPAddress,
-			Type:      s.Type,
+			Type:      string(s.Type),
 			Term:      s.Term,
 		})
 	if err != nil {

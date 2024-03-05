@@ -6,14 +6,16 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 )
 
+type Type string
+
 const (
-	Web     = "web"     // web terminal.
-	Term    = "term"    // interactive session
-	Exec    = "exec"    // command execution
-	HereDoc = "heredoc" // heredoc pty.
-	SCP     = "scp"     // scp.
-	SFTP    = "sftp"    // sftp subsystem.
-	Unk     = "unknown" // unknown.
+	Web     Type = "web"     // web terminal.
+	Term    Type = "term"    // interactive session
+	Exec    Type = "exec"    // command execution
+	HereDoc Type = "heredoc" // heredoc pty.
+	SCP     Type = "scp"     // scp.
+	SFTP    Type = "sftp"    // sftp subsystem.
+	Unk     Type = "unknown" // unknown.
 )
 
 // setPty sets the connection's pty.
@@ -40,7 +42,7 @@ func (s *Session) setType() {
 		return
 	}
 
-	if s.Client.Subsystem() == SFTP {
+	if s.Client.Subsystem() == string(SFTP) {
 		s.Type = SFTP
 
 		return
@@ -53,7 +55,7 @@ func (s *Session) setType() {
 	}
 
 	switch {
-	case !s.Pty && strings.HasPrefix(cmd, SCP):
+	case !s.Pty && strings.HasPrefix(cmd, string(SCP)):
 		s.Type = SCP
 	case !s.Pty && metadata.RestoreRequest(ctx) == "shell":
 		s.Type = HereDoc

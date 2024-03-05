@@ -11,9 +11,10 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+// PublicKeyHandlerWithTunnel handles ShellHub client's connection using the public key authentication method.
 func PublicKeyHandlerWithTunnel(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
 	return func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
-		if ok := PublicKeyHandler(ctx, publicKey); !ok {
+		if ok := publicKeyHandler(ctx, publicKey); !ok {
 			return false
 		}
 
@@ -51,11 +52,7 @@ func PublicKeyHandlerWithTunnel(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Co
 	}
 }
 
-// PublicKeyHandler handles ShellHub client's connection using the public key authentication method.
-// Public key authentication is the first authentication method tried by the server to connect the client to the agent.
-// It receives the public key from the client and attempts to authenticate it.
-// Returns true if the public key authentication method is used and false otherwise.
-func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
+func publicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
 	sshid := metadata.MaybeStoreSSHID(ctx, ctx.User())
 	fingerprint := gossh.FingerprintLegacyMD5(publicKey)
 

@@ -1,8 +1,7 @@
-package handler
+package subsystems
 
 import (
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -13,30 +12,28 @@ import (
 const SFTPSubsystem = "sftp"
 
 // SFTPSubsystemHandler handlers a SFTP connection.
-func SFTPSubsystemHandler(_ *httptunnel.Tunnel) gliderssh.SubsystemHandler {
-	return func(client gliderssh.Session) {
-		log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection started")
-		defer log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection closed")
+func SFTPSubsystemHandler(client gliderssh.Session) {
+	log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection started")
+	defer log.WithFields(log.Fields{"sshid": client.User()}).Info("SFTP connection closed")
 
-		defer client.Close()
+	defer client.Close()
 
-		// TODO:
-		sess := client.Context().Value("session").(*session.Session)
-		sess.SetClientSession(client)
+	// TODO:
+	sess := client.Context().Value("session").(*session.Session)
+	sess.SetClientSession(client)
 
-		agent, reqs, err := sess.NewAgentSession()
-		if err != nil {
-			echo(sess.UID, client, err, "Error when trying to start the agent's session")
+	agent, reqs, err := sess.NewAgentSession()
+	if err != nil {
+		echo(sess.UID, client, err, "Error when trying to start the agent's session")
 
-			return
-		}
-		defer agent.Close()
+		return
+	}
+	defer agent.Close()
 
-		if err := connectSFTP(sess, reqs); err != nil {
-			echo(sess.UID, client, err, "Error during SSH connection")
+	if err := connectSFTP(sess, reqs); err != nil {
+		echo(sess.UID, client, err, "Error during SSH connection")
 
-			return
-		}
+		return
 	}
 }
 

@@ -211,7 +211,7 @@ func TestPasswordHandler(t *testing.T) {
 
 			tc.mocks(ctx)
 
-			result := PasswordHandler(ctx, tc.password)
+			result := passwordHandler(ctx, tc.password)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
