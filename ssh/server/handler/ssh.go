@@ -10,7 +10,6 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
@@ -54,99 +53,7 @@ var (
 	ErrUnsuportedPublicKeyAuth = fmt.Errorf("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
 )
 
-type ConfigOptions struct {
-	RecordURL string `env:"RECORD_URL"`
-
-	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
-	// Agents 0.5.x or earlier do not validate the public key request and may panic.
-	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
-	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
-}
-
-func parseConfig() (*ConfigOptions, error) {
-	return envs.Parse[ConfigOptions]()
-}
-
-// SSHHandler handlers a "normal" SSH connection.
-func SSHHandler(_ *httptunnel.Tunnel) gliderssh.Handler {
-	return func(client gliderssh.Session) {
-		log.WithFields(log.Fields{"sshid": client.User()}).Info("SSH connection started")
-		defer log.WithFields(log.Fields{"sshid": client.User()}).Info("SSH connection closed")
-
-		defer client.Close()
-
-		// TODO:
-		sess := client.Context().Value("session").(*session.Session)
-		sess.SetClientSession(client)
-
-		opts, err := parseConfig()
-		if err != nil {
-			echo(sess.UID, client, err, "Error while parsing envs")
-
-			return
-		}
-
-		// When the Shellhub instance dennies connections with
-		// potentially broken agents, we need to evaluate the connection's context
-		// and identify potential bugs. The server must reject the connection
-		// if there's a possibility of issues; otherwise, proceeds.
-		if err := evaluateContext(client, opts); err != nil {
-			echo(sess.UID, client, err, "Error while evaluating context")
-
-			return
-		}
-
-		agent, reqs, err := sess.NewAgentSession()
-		if err != nil {
-			echo(sess.UID, client, err, "Error when trying to start the agent's session")
-
-			return
-		}
-		defer agent.Close()
-
-		if err := connectSSH(sess, reqs, *opts); err != nil {
-			echo(sess.UID, client, err, "Error during SSH connection")
-
-			return
-		}
-	}
-}
-
-func connectSSH(sess *session.Session, reqs <-chan *gossh.Request, opts ConfigOptions) error {
-	api := metadata.RestoreAPI(sess.Client.Context())
-
-	go session.HandleRequests(sess.Client.Context(), reqs, api, sess.Client.Context().Done())
-
-	switch sess.GetType() {
-	case session.Term, session.Web:
-		if err := shell(sess, sess.Client, sess.Agent, api, opts); err != nil {
-			return ErrRequestShell
-		}
-	case session.HereDoc:
-		err := heredoc(sess, sess.Client, sess.Agent, api)
-		if err != nil {
-			return ErrRequestHeredoc
-		}
-	case session.Exec, session.SCP:
-		device := metadata.RestoreDevice(sess.Client.Context())
-
-		if err := exec(sess, sess.Client, sess.Agent, api, device); err != nil {
-			return ErrRequestExec
-		}
-	default:
-		if err := sess.Client.Exit(255); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
-				Warning("exiting client returned an error")
-		}
-
-		return ErrRequestUnsupported
-	}
-
-	return nil
-}
-
-func shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, opts ConfigOptions) error {
+func Shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, recordURL string) error {
 	uid := sess.UID
 
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
@@ -222,7 +129,7 @@ func shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session
 					Message:   message,
 					Width:     pty.Window.Height,
 					Height:    pty.Window.Width,
-				}, opts.RecordURL)
+				}, recordURL)
 			}
 		}
 	}()
@@ -282,7 +189,7 @@ func shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session
 	return nil
 }
 
-func heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client) error {
+func Heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client) error {
 	uid := sess.UID
 
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
@@ -338,7 +245,7 @@ func heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Sessi
 	return nil
 }
 
-func exec(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, device *models.Device) error {
+func Exec(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, device *models.Device) error {
 	uid := sess.UID
 
 	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {

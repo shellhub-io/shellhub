@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -14,45 +12,6 @@ func echo(uid string, client gliderssh.Session, err error, msg string) {
 		Error(msg)
 
 	client.Write([]byte(msg)) // nolint: errcheck
-}
-
-// evaluateContext evaluates the given context and returns an error if there's anything
-// that may cause issues during the connection.
-func evaluateContext(client gliderssh.Session, opts *ConfigOptions) error {
-	if !opts.AllowPublickeyAccessBelow060 {
-		if client.PublicKey() != nil {
-			return nil
-		}
-
-		return checkAgentVersionForPublicKey(client.Context())
-	}
-
-	return nil
-}
-
-// checkAgentVersionForPublicKey checks if the agent's version supports public key authentication.
-//
-// Versions earlier than 0.6.0 do not validate the user when receiving a public key
-// authentication request. This implies that requests with invalid users are
-// treated as "authenticated" because the connection does not raise any error.
-// Moreover, the agent panics after the connection ends. To avoid this, connections
-// with public key are not permitted when agent version is 0.5.x or earlier
-func checkAgentVersionForPublicKey(ctx gliderssh.Context) error {
-	version := metadata.RestoreDevice(ctx).Info.Version
-	if version == "latest" {
-		return nil
-	}
-
-	semverVersion, err := semver.NewVersion(version)
-	if err != nil {
-		return ErrInvalidVersion
-	}
-
-	if semverVersion.LessThan(semver.MustParse("0.6.0")) {
-		return ErrUnsuportedPublicKeyAuth
-	}
-
-	return nil
 }
 
 // exitCodeFromError gets the exit code from the client.
