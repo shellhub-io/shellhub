@@ -2,7 +2,6 @@ package session
 
 import (
 	"context"
-	"strings"
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
@@ -13,21 +12,6 @@ import (
 )
 
 // TODO: Evaluate if we can use a dedicated package for this.
-func loadEnv(env []string) map[string]string {
-	m := make(map[string]string, cap(env))
-
-	for _, s := range env {
-		sp := strings.Split(s, "=")
-		if len(sp) == 2 {
-			k := sp[0]
-			v := sp[1]
-			m[k] = v
-		}
-	}
-
-	return m
-}
-
 func HandleRequests(ctx context.Context, reqs <-chan *gossh.Request, c internalclient.Client, done <-chan struct{}) {
 	for {
 		select {

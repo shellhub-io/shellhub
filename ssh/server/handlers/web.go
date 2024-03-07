@@ -10,7 +10,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
@@ -120,12 +119,20 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 		return ErrEnvWS
 	}
 
-	flw, err := flow.NewFlow(agent)
+	stdin, err := agent.StdinPipe()
 	if err != nil {
-		return ErrPipe
+		return err
 	}
 
-	defer flw.Close()
+	stdout, err := agent.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	stderr, err := agent.StderrPipe()
+	if err != nil {
+		return err
+	}
 
 	if err := agent.RequestPty("xterm", dim.Rows, dim.Cols, ssh.TerminalModes{
 		ssh.ECHO:          1,
@@ -140,7 +147,7 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 	}
 
 	go func() {
-		defer flw.Close()
+		defer agent.Close()
 
 		for {
 			var message web.Message
@@ -164,7 +171,7 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 			case web.MessageKindInput:
 				buffer := message.Data.([]byte)
 
-				if _, err := flw.Stdin.Write(buffer); err != nil {
+				if _, err := stdin.Write(buffer); err != nil {
 					log.WithError(err).Error("failed to write the message data on the SSH session")
 
 					return
@@ -189,8 +196,8 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 		}
 	}()
 
-	go redirToWs(flw.Stdout, conn) // nolint:errcheck
-	go flw.PipeErr(conn, nil)
+	go redirToWs(stdout, conn) // nolint:errcheck
+	go io.Copy(conn, stderr)   //nolint:errcheck
 
 	if err := agent.Wait(); err != nil {
 		log.WithError(err).Warning("client remote command returned a error")
