@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -22,20 +23,39 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+type Dimensions struct {
+	Columns uint32
+	Rows    uint32
+	Width   uint32
+	Height  uint32
+}
+
+// NOTICE: [Pty] cannot use [Dimensions] inside itself ude [ssh.Unmarshal] issues.
+type Pty struct {
+	Term     string
+	Columns  uint32
+	Rows     uint32
+	Width    uint32
+	Height   uint32
+	Modelist string
+}
+
 type Data struct {
 	// Username is the user on the device.
 	Username string
-	// Device is the identifier.
-	Device    string
+	// SSHID is the combination of device's name and namespace name.
+	SSHID string
+	// Device is the device connected.
+	Device    *models.Device
 	IPAddress string
 	// Type is the connection type.
-	Type Type
+	Type string
 	// Term is the terminal used for the client.
 	Term string
-	// Pty indicates if the the session is interactive.
-	Pty bool
 	// TODO:
 	Lookup map[string]string
+	// Pty is the PTY dimension.
+	Pty Pty
 }
 
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
@@ -43,15 +63,15 @@ type Session struct {
 	// UID is the session's UID.
 	UID string
 
-	api internalclient.Client
-
+	// Dialed is websocket connection established between the Agent and the ShellHub SSH server.
 	Dialed net.Conn
 
-	Client gliderssh.Session
-	Agent  *gossh.Session
+	// Agent is a [gossh.Client] connected and authenticated to the agent, waiting for a open sesssion request.
+	Agent *gossh.Client
+	// AgentGlobalReqs is the channel to handle global request like "keepalive".
+	AgentGlobalReqs <-chan *gossh.Request
 
-	AgentClient *gossh.Client
-	AgentReqs   <-chan *gossh.Request
+	api internalclient.Client
 
 	Data
 }
@@ -75,7 +95,7 @@ func (s *Session) checkFirewall() (bool, error) {
 
 func (s *Session) checkBilling() (bool, error) {
 	if envs.IsCloud() && envs.HasBilling() {
-		device, err := s.api.GetDevice(s.Data.Device)
+		device, err := s.api.GetDevice(s.Device.UID)
 		if err != nil {
 			return false, errors.Join(ErrFindDevice, err)
 		}
@@ -119,8 +139,9 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 		Data: Data{
 			Username:  metadata.RestoreTarget(ctx).Username,
 			IPAddress: hos.Host,
-			Device:    metadata.RestoreDevice(ctx).UID,
+			Device:    metadata.RestoreDevice(ctx),
 			Lookup:    metadata.RestoreLookup(ctx),
+			SSHID:     metadata.MaybeStoreSSHID(ctx, ctx.User()),
 		},
 	}
 
@@ -143,7 +164,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 		return nil, err
 	}
 
-	session.Dialed, err = session.dial(ctx, tunnel, session.Data.Device, uid)
+	session.Dialed, err = session.dial(ctx, tunnel, session.Device.UID, uid)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
@@ -155,10 +176,6 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 	return session, nil
 }
 
-func (s *Session) GetType() Type {
-	return s.Type
-}
-
 // NewAgentConnection creates a new connection to the agent.
 func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 	const Addr = "tcp"
@@ -166,14 +183,14 @@ func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 	if config.Timeout > 0 {
 		if err := s.Dialed.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
 
 			return err
 		}
 	}
 
-	cli, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
+	conn, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
@@ -182,10 +199,14 @@ func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 		return err
 	}
 
+	if err := s.Register(); err != nil {
+		return err
+	}
+
 	if config.Timeout > 0 {
 		if err := s.Dialed.SetReadDeadline(time.Time{}); err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline with Time{}")
 
 			return err
@@ -195,45 +216,25 @@ func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 	ch := make(chan *gossh.Request)
 	close(ch)
 
-	s.AgentClient = gossh.NewClient(cli, chans, ch)
-	s.AgentReqs = reqs
+	s.Agent = gossh.NewClient(conn, chans, ch)
+	s.AgentGlobalReqs = reqs
 
-	return nil
-}
-
-func (s *Session) NewAgentSession() (*gossh.Session, <-chan *gossh.Request, error) {
-	sess, err := s.AgentClient.NewSession()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s.Agent = sess
-
-	return s.Agent, s.AgentReqs, nil
-}
-
-func (s *Session) SetClientSession(client gliderssh.Session) {
-	s.Client = client
-
-	s.setPty()
-	s.setType()
-
-	s.registerAPISession() // nolint:errcheck
+	return s.Authenticate()
 }
 
 // registerAPISession registers a new session on the API.
-func (s *Session) registerAPISession() error {
+func (s *Session) Register() error {
 	err := s.api.SessionCreate(requests.SessionCreate{
 		UID:       s.UID,
-		DeviceUID: s.Device,
+		DeviceUID: s.Device.UID,
 		Username:  s.Username,
 		IPAddress: s.IPAddress,
-		Type:      string(s.Type),
-		Term:      s.Term,
+		Type:      "none",
+		Term:      "none",
 	})
 	if err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 			Error("Error when trying to register the client on API")
 
 		return err
@@ -260,23 +261,55 @@ func (s *Session) Record(req *models.SessionRecorded, url string) error {
 	return s.api.RecordSession(req, url)
 }
 
-// ConnectionAnnouncement retrieves the connection announcement of the device's namespace.
-// A connection announcement is a custom message provided by the end user that can be printed
-// when a new connection within the namespace is established.
+func (s *Session) KeepAlive() error {
+	if errs := s.api.KeepAliveSession(s.UID); len(errs) > 0 {
+		log.Error(errs[0])
+
+		return errs[0]
+	}
+
+	return nil
+}
+
+// Announce is a custom message provided by the end user that can be printed when a new connection within the namespace
+// is established.
 //
 // Returns the announcement or an error, if any. If no announcement is set, it returns an empty string.
-func (s *Session) ConnectionAnnouncement() (string, error) {
-	device := metadata.RestoreDevice(s.Client.Context())
-	if device == nil {
-		return "", nil
+func (s *Session) Announce(client gossh.Channel) error {
+	if _, err := client.Write([]byte(
+		"Connected to " + s.SSHID + " via ShellHub.",
+	)); err != nil {
+		return err
 	}
 
-	namespace, errs := s.api.NamespaceLookup(device.TenantID)
+	namespace, errs := s.api.
+		NamespaceLookup(s.Device.TenantID)
 	if len(errs) > 0 {
-		return "", errs[0]
+		log.WithError(errs[0]).Warn("unable to retrieve the namespace's connection announcement")
+
+		return errs[0]
 	}
 
-	return namespace.Settings.ConnectionAnnouncement, nil
+	announcement := namespace.Settings.ConnectionAnnouncement
+
+	if announcement == "" {
+		return nil
+	}
+
+	if _, err := client.Write([]byte("Announcement:\n")); err != nil {
+		return err
+	}
+
+	// Remove whitespaces and new lines at end
+	announcement = strings.TrimRightFunc(announcement, func(r rune) bool {
+		return r == ' ' || r == '\n' || r == '\t'
+	})
+
+	if _, err := client.Write([]byte("    " + strings.ReplaceAll(announcement, "\n", "\n    ") + "\n")); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Session) Finish() error {
@@ -285,14 +318,14 @@ func (s *Session) Finish() error {
 
 		if err := request.Write(s.Dialed); err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Warning("Error when trying write the request to /ssh/close")
 		}
 	}
 
 	if errs := s.api.FinishSession(s.UID); len(errs) > 0 {
 		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 			Error("Error when trying to finish the session")
 
 		return errs[0]
