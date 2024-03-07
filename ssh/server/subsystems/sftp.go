@@ -22,6 +22,8 @@ func SFTPSubsystemHandler(client gliderssh.Session) {
 	sess := client.Context().Value("session").(*session.Session)
 	sess.SetClientSession(client)
 
+	defer sess.Finish() //nolint:errcheck
+
 	agent, reqs, err := sess.NewAgentSession()
 	if err != nil {
 		echo(sess.UID, client, err, "Error when trying to start the agent's session")
