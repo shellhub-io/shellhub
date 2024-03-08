@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Namespace Api Key Generate > Renders the component 1`] = `
+"<div>
+  <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Generate key </span>
+      <!---->
+      <!---->
+    </button></div>
+  <!--teleport start-->
+  <!--teleport end-->
+  <!---->
+  <!---->
+</div>"
+`;

@@ -34,7 +34,7 @@ func (h *Handler) CreateAPIKey(c gateway.Context) error {
 	key := c.Request().Header.Get("X-API-KEY")
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 
-	uid, err := h.service.CreateAPIKey(c.Ctx(), userID, tenant, req.Name, key, req.ExpiresAt)
+	uid, err := h.service.CreateAPIKey(c.Ctx(), userID, tenant, key, &req)
 	if err != nil {
 		return err
 	}
@@ -64,6 +64,8 @@ func (h *Handler) ListAPIKeys(c gateway.Context) error {
 	if err := c.Validate(&req); err != nil {
 		return err
 	}
+
+	req.TenantParam.Tenant = c.Request().Header.Get("X-Tenant-ID")
 
 	res, count, err := h.service.ListAPIKeys(c.Ctx(), &req)
 	if err != nil {
@@ -105,7 +107,9 @@ func (h *Handler) DeleteAPIKey(c gateway.Context) error {
 		return err
 	}
 
-	err := h.service.DeleteAPIKey(c.Ctx(), req.ID)
+	tenant := c.Request().Header.Get("X-Tenant-ID")
+
+	err := h.service.DeleteAPIKey(c.Ctx(), req.ID, tenant)
 	if err != nil {
 		return err
 	}

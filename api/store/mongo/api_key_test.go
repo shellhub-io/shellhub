@@ -87,7 +87,7 @@ func TestAPIKeyList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			_, _, err := mongostore.APIKeyList(ctx, tc.requestParams.UserID, tc.requestParams.Paginator, tc.requestParams.Sorter)
+			_, _, err := mongostore.APIKeyList(ctx, tc.requestParams.UserID, tc.requestParams.Paginator, tc.requestParams.Sorter, "tenant")
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()
@@ -124,7 +124,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.APIKeyDelete(ctx, tc.id)
+			err := mongostore.APIKeyDelete(ctx, tc.id, "tenant")
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()

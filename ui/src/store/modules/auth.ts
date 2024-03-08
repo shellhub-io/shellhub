@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import * as apiAuth from "../api/auth";
-import { IUserLogin } from "@/interfaces/IUserLogin";
+import { IUserLogin, ApiKey } from "@/interfaces/IUserLogin";
 import { State } from "..";
 
 export interface AuthState {
@@ -21,6 +21,13 @@ export interface AuthState {
   recoveryCodes: Array<number>,
   showCongratulations: boolean,
   showRecoveryModal: boolean,
+  page: number;
+  perPage: number;
+  sortStatusField: undefined | string;
+  sortStatusString: "asc" | "desc" | "";
+  keyList: Array<ApiKey>,
+  keyResponse: string,
+  numberApiKeys: number,
 }
 export const auth: Module<AuthState, State> = {
   namespaced: true,
@@ -42,6 +49,14 @@ export const auth: Module<AuthState, State> = {
     recoveryCodes: [],
     showCongratulations: false,
     showRecoveryModal: false,
+    page: 1,
+    perPage: 10,
+    sortStatusField: undefined,
+    sortStatusString: "asc",
+    keyList: [],
+    keyResponse: "",
+    numberApiKeys: 0,
+
   },
 
   getters: {
@@ -62,6 +77,11 @@ export const auth: Module<AuthState, State> = {
     recoveryCodes: (state) => state.recoveryCodes,
     showCongratulationsModal: (state) => state.showCongratulations,
     showRecoveryModal: (state) => state.showRecoveryModal,
+    getSortStatusField: (state) => state.sortStatusField,
+    getSortStatusString: (state) => state.sortStatusString,
+    apiKey: (state) => state.keyResponse,
+    apiKeyList: (state) => state.keyList,
+    getNumberApiKeys: (state) => state.numberApiKeys,
   },
 
   mutations: {
@@ -141,6 +161,32 @@ export const auth: Module<AuthState, State> = {
 
     accountRecoveryHelper(state) {
       state.showRecoveryModal = !state.showRecoveryModal;
+    },
+
+    clearApiKeysList: (state) => {
+      state.keyList = [];
+      state.numberApiKeys = 0;
+    },
+
+    setQueryApiKeyGet: (state, data) => {
+      state.page = data.page;
+      state.perPage = data.perPage;
+      state.sortStatusField = data.sortStatusField;
+      state.sortStatusString = data.sortStatusString;
+    },
+
+    apiKey(state, data) {
+      state.keyResponse = data;
+    },
+
+    setKeyList(state, res) {
+      state.keyList = res.data;
+      state.numberApiKeys = parseInt(res.headers["x-total-count"], 10);
+    },
+
+    setSortStatus: (state, data) => {
+      state.sortStatusString = data.sortStatusString;
+      state.sortStatusField = data.sortStatusField;
     },
   },
 
@@ -225,7 +271,7 @@ export const auth: Module<AuthState, State> = {
 
         if (resp.status === 200) {
           localStorage.setItem("token", resp.data.token || "");
-          context.commit("mfaToken", resp.data.token);
+          context.commit("mfaToken", resp.data);
         }
       } catch (error) {
         context.commit("authError");
@@ -271,6 +317,59 @@ export const auth: Module<AuthState, State> = {
       }
     },
 
+    async generateApiKey(context, data) {
+      try {
+        const resp = await apiAuth.generateApiKey(data);
+        if (resp.status === 200) {
+          context.commit("apiKey", resp.data);
+        }
+      } catch (error) {
+        context.commit("authError");
+        throw error;
+      }
+    },
+
+    async getApiKey(context, data) {
+      try {
+        const resp = await apiAuth.getApiKey(
+          data.tenant,
+          data.page,
+          data.perPage,
+          data.sortStatusString,
+          data.sortStatusField,
+        );
+        if (resp.data.length) {
+          context.commit("setKeyList", resp);
+          context.commit("setQueryApiKeyGet", data);
+          return resp;
+        }
+
+        context.commit("clearApiKeysList");
+        return false;
+      } catch (error) {
+        context.commit("authError");
+        throw error;
+      }
+    },
+
+    async editApiKey(context, data) {
+      try {
+        await apiAuth.renameApiKey(data);
+      } catch (error) {
+        context.commit("authError");
+        throw error;
+      }
+    },
+
+    async removeApiKey(context, data) {
+      try {
+        await apiAuth.removeApiKey(data);
+      } catch (error) {
+        context.commit("authError");
+        throw error;
+      }
+    },
+
     logout(context) {
       context.commit("logout");
       localStorage.removeItem("token");
@@ -299,6 +398,10 @@ export const auth: Module<AuthState, State> = {
           { ...{ [tenantID]: true } },
         ),
       ));
+    },
+
+    async setSortStatus({ commit }, data) {
+      commit("setSortStatus", data);
     },
   },
 };

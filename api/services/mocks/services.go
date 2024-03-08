@@ -392,9 +392,9 @@ func (_m *Service) BillingReport(_a0 internalclient.Client, _a1 string, _a2 stri
 	return r0
 }
 
-// CreateAPIKey provides a mock function with given fields: ctx, userID, tenant, APIKeyName, key, expiredAt
-func (_m *Service) CreateAPIKey(ctx context.Context, userID string, tenant string, APIKeyName string, key string, expiredAt int) (string, error) {
-	ret := _m.Called(ctx, userID, tenant, APIKeyName, key, expiredAt)
+// CreateAPIKey provides a mock function with given fields: ctx, userID, tenant, key, req
+func (_m *Service) CreateAPIKey(ctx context.Context, userID string, tenant string, key string, req *requests.CreateAPIKey) (string, error) {
+	ret := _m.Called(ctx, userID, tenant, key, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateAPIKey")
@@ -402,17 +402,17 @@ func (_m *Service) CreateAPIKey(ctx context.Context, userID string, tenant strin
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, int) (string, error)); ok {
-		return rf(ctx, userID, tenant, APIKeyName, key, expiredAt)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, *requests.CreateAPIKey) (string, error)); ok {
+		return rf(ctx, userID, tenant, key, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, int) string); ok {
-		r0 = rf(ctx, userID, tenant, APIKeyName, key, expiredAt)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, *requests.CreateAPIKey) string); ok {
+		r0 = rf(ctx, userID, tenant, key, req)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, int) error); ok {
-		r1 = rf(ctx, userID, tenant, APIKeyName, key, expiredAt)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, *requests.CreateAPIKey) error); ok {
+		r1 = rf(ctx, userID, tenant, key, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -576,17 +576,17 @@ func (_m *Service) DeactivateSession(ctx context.Context, uid models.UID) error 
 	return r0
 }
 
-// DeleteAPIKey provides a mock function with given fields: ctx, id
-func (_m *Service) DeleteAPIKey(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// DeleteAPIKey provides a mock function with given fields: ctx, id, tenantID
+func (_m *Service) DeleteAPIKey(ctx context.Context, id string, tenantID string) error {
+	ret := _m.Called(ctx, id, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteAPIKey")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}

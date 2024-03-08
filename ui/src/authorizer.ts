@@ -57,6 +57,8 @@ const {
   billingUnsubscribe,
   // Notification
   notificaitonView,
+  apiKeyCreate,
+  apiKeyDelete,
 } = iota();
 
 export const actions: { [key: string]: any } = {
@@ -108,6 +110,10 @@ export const actions: { [key: string]: any } = {
   notification: {
     view: notificaitonView,
   },
+  apiKey: {
+    create: apiKeyCreate,
+    delete: apiKeyDelete,
+  },
 };
 
 export const authorizer : { [key: string]: any } = {
@@ -153,6 +159,8 @@ export const authorizer : { [key: string]: any } = {
       actions.billing.unsubscribe,
       // Notification
       actions.notification.view,
+      actions.apiKey.create,
+      actions.apiKey.delete,
     ],
     administrator: [
       // Device
@@ -191,6 +199,8 @@ export const authorizer : { [key: string]: any } = {
       // Billing
       // Notification
       actions.notification.view,
+      actions.apiKey.create,
+      actions.apiKey.delete,
     ],
     operator: [
       // Device

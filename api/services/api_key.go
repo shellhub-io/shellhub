@@ -12,24 +12,28 @@ import (
 )
 
 type APIKeyService interface {
-	CreateAPIKey(ctx context.Context, userID, tenant, APIKeyName, key string, expiredAt int) (string, error)
+	CreateAPIKey(ctx context.Context, userID, tenant, key string, req *requests.CreateAPIKey) (string, error)
 	ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([]models.APIKey, int, error)
 	GetAPIKeyByUID(ctx context.Context, id string) (*models.APIKey, error)
 	EditAPIKey(ctx context.Context, changes *requests.APIKeyChanges) (*models.APIKey, error)
-	DeleteAPIKey(ctx context.Context, id string) error
+	DeleteAPIKey(ctx context.Context, id, tenantID string) error
 }
 
-func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, APIKeyName, key string, expiredAt int) (string, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, req *requests.CreateAPIKey) (string, error) {
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantParam.Tenant)
 	if err != nil {
 		return "", NewErrNamespaceNotFound(userID, err)
 	}
 
 	var expiredTime int64
 
-	switch expiredAt {
+	if req.TenantParam.Tenant != tenant {
+		return "", NewErrAuthUnathorized(errors.New("APIKey creation not allowed to different namespace"))
+	}
+
+	switch req.ExpiresAt {
 	case 30, 60, 90:
-		expiredTime = clock.Now().AddDate(0, 0, expiredAt).Unix()
+		expiredTime = clock.Now().AddDate(0, 0, req.ExpiresAt).Unix()
 
 	case 365:
 		expiredTime = clock.Now().AddDate(1, 0, 0).Unix()
@@ -45,9 +49,11 @@ func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, APIKeyName, 
 			return "", NewErrAPIKeyNotFound(userID, err)
 		}
 
-		keyExpirationTime := time.Unix(key.ExpiresIn, 0)
-		if keyExpirationTime.Before(time.Unix(expiredTime, 0)) {
-			return "", NewErrAuthUnathorized(errors.New("APIKey creation not allowed"))
+		if key.ExpiresIn != -1 {
+			keyExpirationTime := time.Unix(key.ExpiresIn, 0)
+			if keyExpirationTime.Before(time.Unix(expiredTime, 0)) {
+				return "", NewErrAuthUnathorized(errors.New("APIKey creation not allowed"))
+			}
 		}
 	}
 
@@ -55,11 +61,11 @@ func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, APIKeyName, 
 		ID:        uuid.Generate(),
 		TenantID:  namespace.TenantID,
 		UserID:    userID,
-		Name:      APIKeyName,
+		Name:      req.Name,
 		ExpiresIn: expiredTime,
 	}
 
-	existingKey, err := s.store.APIKeyGetByName(ctx, APIKeyName)
+	existingKey, err := s.store.APIKeyGetByName(ctx, req.Name)
 	if err != nil {
 		return "", NewErrAPIKeyNotFound(userID, err)
 	}
@@ -76,7 +82,7 @@ func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, APIKeyName, 
 }
 
 func (s *service) ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([]models.APIKey, int, error) {
-	apiKey, count, err := s.store.APIKeyList(ctx, req.UserID, req.Paginator, req.Sorter)
+	apiKey, count, err := s.store.APIKeyList(ctx, req.UserID, req.Paginator, req.Sorter, req.TenantParam.Tenant)
 	if err != nil {
 		return nil, 0, NewErrAPIKeyNotFound(req.Tenant, err)
 	}
@@ -107,8 +113,8 @@ func (s *service) EditAPIKey(ctx context.Context, changes *requests.APIKeyChange
 	return key, nil
 }
 
-func (s *service) DeleteAPIKey(ctx context.Context, id string) error {
-	err := s.store.APIKeyDelete(ctx, id)
+func (s *service) DeleteAPIKey(ctx context.Context, id, tenantID string) error {
+	err := s.store.APIKeyDelete(ctx, id, tenantID)
 	if err != nil {
 		return NewErrAPIKeyNotFound(id, err)
 	}

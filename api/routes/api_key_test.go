@@ -27,7 +27,7 @@ func TestCreateAPIKey(t *testing.T) {
 	cases := []struct {
 		title         string
 		tenantID      string
-		name          string
+		key           string
 		id            string
 		requestBody   *requests.CreateAPIKey
 		requiredMocks func()
@@ -35,15 +35,25 @@ func TestCreateAPIKey(t *testing.T) {
 	}{
 		{
 			title:    "success when trying to create a valid APIKey",
-			name:     "nameAPIKey",
+			key:      "key",
 			tenantID: "00000000-0000-4000-0000-000000000000",
 			id:       "id",
 			requestBody: &requests.CreateAPIKey{
 				Name:      "nameAPIKey",
 				ExpiresAt: 30,
+				TenantParam: requests.TenantParam{
+					Tenant: "00000000-0000-4000-0000-000000000000",
+				},
 			},
 			requiredMocks: func() {
-				mock.On("CreateAPIKey", gomock.Anything, "id", "", "nameAPIKey", "", 30).Return("APIKey", nil).Once()
+				req := &requests.CreateAPIKey{
+					Name:      "nameAPIKey",
+					ExpiresAt: 30,
+					TenantParam: requests.TenantParam{
+						Tenant: "00000000-0000-4000-0000-000000000000",
+					},
+				}
+				mock.On("CreateAPIKey", gomock.Anything, "id", "", "", req).Return("APIKey", nil).Once()
 			},
 			expected: Expected{
 				expectedSession: "APIKey",
@@ -52,7 +62,6 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			title:         "failure when request body is nil",
-			name:          "nameAPIKey",
 			id:            "id",
 			tenantID:      "00000000-0000-4000-0000-000000000000",
 			requestBody:   nil,
@@ -63,7 +72,6 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			title:    "failure when validation fails",
-			name:     "",
 			id:       "id",
 			tenantID: "00000000-0000-4000-0000-000000000000",
 			requestBody: &requests.CreateAPIKey{
@@ -189,7 +197,7 @@ func TestDeleteAPIKey(t *testing.T) {
 				ID: "id",
 			},
 			requiredMocks: func() {
-				mock.On("DeleteAPIKey", gomock.Anything, "id").Return(nil).Once()
+				mock.On("DeleteAPIKey", gomock.Anything, "id", "").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
