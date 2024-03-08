@@ -40,8 +40,6 @@ func SFTPSubsystemHandler(client gliderssh.Session) {
 }
 
 func connectSFTP(sess *session.Session, reqs <-chan *gossh.Request) error {
-	api := metadata.RestoreAPI(sess.Client.Context())
-
 	log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 		Debug("requesting a subsystem for session")
 
@@ -53,14 +51,15 @@ func connectSFTP(sess *session.Session, reqs <-chan *gossh.Request) error {
 		return err
 	}
 
+	api := metadata.RestoreAPI(sess.Client.Context())
 	go session.HandleRequests(sess.Client.Context(), reqs, api, sess.Client.Context().Done())
 
-	if errs := api.SessionAsAuthenticated(sess.UID); len(errs) > 0 {
-		log.WithError(errs[0]).
+	if err := sess.Authenticate(); err != nil {
+		log.WithError(err).
 			WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
 			Error("failed to authenticate the session")
 
-		return errs[0]
+		return err
 	}
 
 	flw, err := flow.NewFlow(sess.Agent)

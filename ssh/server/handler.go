@@ -50,23 +50,30 @@ func Handler(_ *httptunnel.Tunnel, opts *Options) gliderssh.Handler {
 
 func connect(sess *session.Session, reqs <-chan *gossh.Request, opts *Options) error {
 	api := metadata.RestoreAPI(sess.Client.Context())
-
 	go session.HandleRequests(sess.Client.Context(), reqs, api, sess.Client.Context().Done())
+
+	if err := sess.Authenticate(); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": sess.UID, "sshid": sess.Client.User()}).
+			Error("failed to authenticate the session")
+
+		return err
+	}
 
 	switch sess.GetType() {
 	case session.Term, session.Web:
-		if err := handlers.Shell(sess, sess.Client, sess.Agent, api, opts.RecordURL); err != nil {
+		if err := handlers.Shell(sess, sess.Client, sess.Agent, opts.RecordURL); err != nil {
 			return ErrRequestShell
 		}
 	case session.HereDoc:
-		err := handlers.Heredoc(sess, sess.Client, sess.Agent, api)
+		err := handlers.Heredoc(sess, sess.Client, sess.Agent)
 		if err != nil {
 			return ErrRequestHeredoc
 		}
 	case session.Exec, session.SCP:
 		device := metadata.RestoreDevice(sess.Client.Context())
 
-		if err := handlers.Exec(sess, sess.Client, sess.Agent, api, device); err != nil {
+		if err := handlers.Exec(sess, sess.Client, sess.Agent, device); err != nil {
 			return ErrRequestExec
 		}
 	default:
