@@ -26,7 +26,7 @@ type sessionAPI interface {
 	KeepAliveSession(uid string) []error
 
 	// RecordSession records a session with the provided session information and record URL.
-	RecordSession(session *models.SessionRecorded, recordURL string)
+	RecordSession(session *models.SessionRecorded, recordURL string) error
 }
 
 func (c *client) SessionCreate(session requests.SessionCreate) error {
@@ -80,9 +80,11 @@ func (c *client) KeepAliveSession(uid string) []error {
 	return errors
 }
 
-func (c *client) RecordSession(session *models.SessionRecorded, recordURL string) {
-	_, _ = c.http.
+func (c *client) RecordSession(session *models.SessionRecorded, recordURL string) error {
+	_, err := c.http.
 		R().
 		SetBody(session).
 		Post(fmt.Sprintf("http://"+recordURL+"/internal/sessions/%s/record", session.UID))
+
+	return err
 }

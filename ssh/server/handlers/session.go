@@ -7,7 +7,6 @@ import (
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/flow"
@@ -17,16 +16,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func Shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, recordURL string) error {
+func Shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session, recordURL string) error {
 	uid := sess.UID
-
-	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
-		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("failed to authenticate the session")
-
-		return errs[0]
-	}
 
 	pty, winCh, _ := client.Pty()
 
@@ -85,15 +76,19 @@ func Shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session
 			}
 
 			if envs.IsEnterprise() || envs.IsCloud() {
-				message := string(buffer[:read])
-
-				api.RecordSession(&models.SessionRecorded{
+				req := &models.SessionRecorded{
 					UID:       uid,
 					Namespace: sess.Lookup["domain"],
-					Message:   message,
+					Message:   string(buffer[:read]),
 					Width:     pty.Window.Height,
 					Height:    pty.Window.Width,
-				}, recordURL)
+				}
+
+				if err := sess.Record(req, recordURL); err != nil {
+					log.WithError(err).
+						WithFields(log.Fields{"session": uid, "sshid": client.User()}).
+						Warning("failed to record the session")
+				}
 			}
 		}
 	}()
@@ -153,16 +148,8 @@ func Shell(sess *session.Session, client gliderssh.Session, agent *gossh.Session
 	return nil
 }
 
-func Heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client) error {
+func Heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Session) error {
 	uid := sess.UID
-
-	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
-		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("failed to authenticate the session")
-
-		return errs[0]
-	}
 
 	flw, err := flow.NewFlow(agent)
 	if err != nil {
@@ -209,16 +196,8 @@ func Heredoc(sess *session.Session, client gliderssh.Session, agent *gossh.Sessi
 	return nil
 }
 
-func Exec(sess *session.Session, client gliderssh.Session, agent *gossh.Session, api internalclient.Client, device *models.Device) error {
+func Exec(sess *session.Session, client gliderssh.Session, agent *gossh.Session, device *models.Device) error {
 	uid := sess.UID
-
-	if errs := api.SessionAsAuthenticated(uid); len(errs) > 0 {
-		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": uid, "sshid": client.User()}).
-			Error("failed to authenticate the session")
-
-		return errs[0]
-	}
 
 	flw, err := flow.NewFlow(agent)
 	if err != nil {

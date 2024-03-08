@@ -446,8 +446,21 @@ func (_m *Client) NamespaceLookup(tenant string) (*models.Namespace, []error) {
 }
 
 // RecordSession provides a mock function with given fields: session, recordURL
-func (_m *Client) RecordSession(session *models.SessionRecorded, recordURL string) {
-	_m.Called(session, recordURL)
+func (_m *Client) RecordSession(session *models.SessionRecorded, recordURL string) error {
+	ret := _m.Called(session, recordURL)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecordSession")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.SessionRecorded, string) error); ok {
+		r0 = rf(session, recordURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SessionAsAuthenticated provides a mock function with given fields: uid

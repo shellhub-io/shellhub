@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	log "github.com/sirupsen/logrus"
@@ -22,8 +23,6 @@ import (
 )
 
 type Data struct {
-	// UID is the session's UID.
-	UID string
 	// Username is the user on the device.
 	Username string
 	// Device is the identifier.
@@ -41,6 +40,11 @@ type Data struct {
 
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
+	// UID is the session's UID.
+	UID string
+
+	api internalclient.Client
+
 	Dialed net.Conn
 
 	Client gliderssh.Session
@@ -52,12 +56,9 @@ type Session struct {
 	Data
 }
 
-func (s *Session) checkFirewall(ctx gliderssh.Context) (bool, error) {
-	api := metadata.RestoreAPI(ctx)
-	lookup := metadata.RestoreLookup(ctx)
-
+func (s *Session) checkFirewall() (bool, error) {
 	if envs.IsCloud() || envs.IsEnterprise() {
-		if err := api.FirewallEvaluate(lookup); err != nil {
+		if err := s.api.FirewallEvaluate(s.Data.Lookup); err != nil {
 			switch {
 			case errors.Is(err, internalclient.ErrFirewallConnection):
 				return false, errors.Join(ErrFirewallConnection, err)
@@ -72,16 +73,14 @@ func (s *Session) checkFirewall(ctx gliderssh.Context) (bool, error) {
 	return true, nil
 }
 
-func (s *Session) checkBilling(ctx gliderssh.Context, device string) (bool, error) {
-	api := metadata.RestoreAPI(ctx)
-
+func (s *Session) checkBilling() (bool, error) {
 	if envs.IsCloud() && envs.HasBilling() {
-		device, err := api.GetDevice(device)
+		device, err := s.api.GetDevice(s.Data.Device)
 		if err != nil {
 			return false, errors.Join(ErrFindDevice, err)
 		}
 
-		if evaluatation, status, _ := api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
+		if evaluatation, status, _ := s.api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
 			return false, errors.Join(ErrBillingBlock, err)
 		}
 	}
@@ -108,52 +107,50 @@ func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, device 
 // This function is used to create a new session when the client is not available, what is true when the SSH client
 // indicate that the request type is `none` or in the case of a port forwarding
 func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
-	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
-
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
 	if err != nil {
 		return nil, ErrHost
 	}
 
-	device := metadata.RestoreDevice(ctx)
-	target := metadata.RestoreTarget(ctx)
-	lookup := metadata.RestoreLookup(ctx)
+	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
+	session := &Session{
+		UID: uid,
+		api: metadata.RestoreAPI(ctx),
+		Data: Data{
+			Username:  metadata.RestoreTarget(ctx).Username,
+			IPAddress: hos.Host,
+			Device:    metadata.RestoreDevice(ctx).UID,
+			Lookup:    metadata.RestoreLookup(ctx),
+		},
+	}
 
-	lookup["username"] = target.Username
-	lookup["ip_address"] = hos.Host
+	session.Data.Lookup["username"] = session.Data.Username
+	session.Data.Lookup["ip_address"] = session.IPAddress
 
-	session := new(Session)
-	if ok, err := session.checkFirewall(ctx); err != nil || !ok {
+	if ok, err := session.checkFirewall(); err != nil || !ok {
 		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": target.Username}).
+			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
 			Error("Error when trying to evaluate firewall rules")
 
 		return nil, err
 	}
 
-	if ok, err := session.checkBilling(ctx, device.UID); err != nil || !ok {
+	if ok, err := session.checkBilling(); err != nil || !ok {
 		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": target.Username}).
+			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
 			Error("Error when trying to evaluate billing")
 
 		return nil, err
 	}
 
-	dialed, err := session.dial(ctx, tunnel, device.UID, uid)
+	session.Dialed, err = session.dial(ctx, tunnel, session.Data.Device, uid)
 	if err != nil {
 		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": target.Username}).
+			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
 			Error("Error when trying to dial")
 
 		return nil, ErrDial
 	}
-
-	session.UID = uid
-	session.Username = target.Username
-	session.IPAddress = hos.Host
-	session.Device = device.UID
-	session.Lookup = lookup
-	session.Dialed = dialed
 
 	return session, nil
 }
@@ -226,16 +223,14 @@ func (s *Session) SetClientSession(client gliderssh.Session) {
 
 // registerAPISession registers a new session on the API.
 func (s *Session) registerAPISession() error {
-	err := internalclient.
-		NewClient().
-		SessionCreate(requests.SessionCreate{
-			UID:       s.UID,
-			DeviceUID: s.Device,
-			Username:  s.Username,
-			IPAddress: s.IPAddress,
-			Type:      string(s.Type),
-			Term:      s.Term,
-		})
+	err := s.api.SessionCreate(requests.SessionCreate{
+		UID:       s.UID,
+		DeviceUID: s.Device,
+		Username:  s.Username,
+		IPAddress: s.IPAddress,
+		Type:      string(s.Type),
+		Term:      s.Term,
+	})
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
@@ -245,6 +240,24 @@ func (s *Session) registerAPISession() error {
 	}
 
 	return nil
+}
+
+// Authenticate marks the session as authenticated on the API.
+//
+// It returns an error if authentication fails.
+func (s *Session) Authenticate() error {
+	if errs := s.api.SessionAsAuthenticated(s.UID); len(errs) > 0 {
+		return errs[0]
+	}
+
+	return nil
+}
+
+// Record records the current session state.
+//
+// It returns an error if any.
+func (s *Session) Record(req *models.SessionRecorded, url string) error {
+	return s.api.RecordSession(req, url)
 }
 
 // ConnectionAnnouncement retrieves the connection announcement of the device's namespace.
@@ -258,9 +271,7 @@ func (s *Session) ConnectionAnnouncement() (string, error) {
 		return "", nil
 	}
 
-	namespace, errs := internalclient.
-		NewClient().
-		NamespaceLookup(device.TenantID)
+	namespace, errs := s.api.NamespaceLookup(device.TenantID)
 	if len(errs) > 0 {
 		return "", errs[0]
 	}
@@ -279,7 +290,7 @@ func (s *Session) Finish() error {
 		}
 	}
 
-	if errs := internalclient.NewClient().FinishSession(s.UID); len(errs) > 0 {
+	if errs := s.api.FinishSession(s.UID); len(errs) > 0 {
 		log.WithError(errs[0]).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.Client.User()}).
 			Error("Error when trying to finish the session")
