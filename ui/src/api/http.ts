@@ -19,7 +19,6 @@ const newAxiosInstance = (setupInterceptor = true): AxiosInstance => {
   if (setupInterceptor) setupInterceptorsTo(instance);
   return instance;
 };
-
 const sessionsApi = new axiosTs.SessionsApi(
   configuration,
   undefined,
@@ -36,6 +35,11 @@ const defaultApi = new axiosTs.DefaultApi(
   newAxiosInstance(),
 );
 const namespacesApi = new axiosTs.NamespacesApi(
+  configuration,
+  undefined,
+  newAxiosInstance(),
+);
+const apiKeysApi = new axiosTs.ApiKeysApi(
   configuration,
   undefined,
   newAxiosInstance(),
@@ -105,6 +109,7 @@ export {
   devicesApi,
   defaultApi,
   namespacesApi,
+  apiKeysApi,
   sshApi,
   tagsApi,
   usersApi,

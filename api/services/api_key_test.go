@@ -27,16 +27,15 @@ func TestCreateAPIKey(t *testing.T) {
 	}
 
 	tests := []struct {
-		description    string
-		APIKeyRequest  models.APIKey
-		apiKey, tenant string
-		time           int
-		requiredMocks  func()
-		expected       Expected
+		description            string
+		APIKeyRequest          requests.CreateAPIKey
+		apiKey, tenant, userID string
+		requiredMocks          func()
+		expected               Expected
 	}{
 		{
 			description: "fails when tenant is invalid",
-			time:        2,
+			userID:      "id",
 			tenant:      "",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "").Return(nil, errors.New("error", "", 0)).Once()
@@ -48,11 +47,14 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "expired time invalid",
-			time:        45,
+			userID:      "id",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			APIKeyRequest: models.APIKey{
-				UserID: "id",
-				Name:   "nameAPIKey",
+			APIKeyRequest: requests.CreateAPIKey{
+				Name:      "nameAPIKey",
+				ExpiresAt: 14,
+				TenantParam: requests.TenantParam{
+					Tenant: "00000000-0000-4000-0000-000000000000",
+				},
 			},
 			requiredMocks: func() {
 				namespace := &models.Namespace{
@@ -77,12 +79,48 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "success when try to get a APIKey",
-			time:        30,
+			description: "fails when try to create a APIKey with different namespace",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			APIKeyRequest: models.APIKey{
-				UserID: "id",
-				Name:   "nameAPIKey",
+			APIKeyRequest: requests.CreateAPIKey{
+				Name:      "nameAPIKey",
+				ExpiresAt: -1,
+				TenantParam: requests.TenantParam{
+					Tenant: "00000000-0000-5000-0000-000000000000",
+				},
+			},
+			apiKey: "key",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "id",
+					TenantID: "xxxxxx",
+					Members: []models.Member{
+						{
+							ID:   "memberID",
+							Role: "owner",
+						},
+					},
+				}
+
+				mock.On("NamespaceGet", ctx, "00000000-0000-5000-0000-000000000000").Return(namespace, nil).Once()
+
+				clockMock.On("Now").Return(now).Twice()
+			},
+			expected: Expected{
+				APIKeys: "",
+				err:     NewErrAuthUnathorized(errors.New("APIKey creation not allowed to different namespace", "", 0)),
+			},
+		},
+		{
+			description: "success when try to get a APIKey",
+			userID:      "id",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			APIKeyRequest: requests.CreateAPIKey{
+				Name:      "nameAPIKey",
+				ExpiresAt: -1,
+				TenantParam: requests.TenantParam{
+					Tenant: "00000000-0000-4000-0000-000000000000",
+				},
 			},
 			requiredMocks: func() {
 				namespace := &models.Namespace{
@@ -120,7 +158,7 @@ func TestCreateAPIKey(t *testing.T) {
 
 			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
-			authRes, err := service.CreateAPIKey(ctx, tc.APIKeyRequest.UserID, tc.tenant, tc.APIKeyRequest.Name, tc.apiKey, tc.time)
+			authRes, err := service.CreateAPIKey(ctx, tc.userID, tc.tenant, tc.apiKey, &tc.APIKeyRequest)
 			if tc.expected.err != nil {
 				assert.Error(t, err)
 				assert.EqualError(t, err, tc.expected.err.Error())
@@ -162,7 +200,7 @@ func TestListAPIKey(t *testing.T) {
 					Paginator:   query.Paginator{Page: 1, PerPage: 10},
 					Sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
 				}
-				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter).Return(nil, 0, errors.New("error", "", 0)).Once()
+				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter, "").Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
 				APIKeys: nil,
@@ -190,7 +228,7 @@ func TestListAPIKey(t *testing.T) {
 					Sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
 				}
 
-				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter).Return(APIKey, 1, nil).Once()
+				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter, "00000000-0000-4000-0000-000000000000").Return(APIKey, 1, nil).Once()
 			},
 			expected: Expected{
 				APIKeys: []models.APIKey{
@@ -227,6 +265,7 @@ func TestDeleteAPIKey(t *testing.T) {
 
 	tests := []struct {
 		description   string
+		tenant        string
 		id            string
 		requiredMocks func()
 		expectedErr   error
@@ -235,7 +274,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			description: "fails when try delete a apikey",
 			id:          "",
 			requiredMocks: func() {
-				mock.On("APIKeyDelete", ctx, "").Return(errors.New("APIKey not found", "", 0)).Once()
+				mock.On("APIKeyDelete", ctx, "", "").Return(errors.New("APIKey not found", "", 0)).Once()
 			},
 			expectedErr: NewErrAPIKeyNotFound("", errors.New("APIKey not found", "", 0)),
 		},
@@ -243,7 +282,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			description: "success when try delete a apikey",
 			id:          "id",
 			requiredMocks: func() {
-				mock.On("APIKeyDelete", ctx, "id").Return(nil).Once()
+				mock.On("APIKeyDelete", ctx, "id", "").Return(nil).Once()
 			},
 			expectedErr: nil,
 		},
@@ -259,7 +298,7 @@ func TestDeleteAPIKey(t *testing.T) {
 
 			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
-			err = service.DeleteAPIKey(ctx, tc.id)
+			err = service.DeleteAPIKey(ctx, tc.id, tc.tenant)
 			assert.Equal(t, tc.expectedErr, err)
 
 			mock.AssertExpectations(t)
@@ -278,6 +317,7 @@ func TestEditAPIKey(t *testing.T) {
 	tests := []struct {
 		description   string
 		requestParams *requests.APIKeyChanges
+		tenant        string
 		requiredMocks func()
 		expected      Expected
 	}{

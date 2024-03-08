@@ -2,16 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { flushPromises } from "@vue/test-utils";
 import { store } from "@/store";
-import { mfaApi, usersApi } from "@/api/http";
+import { mfaApi, usersApi, apiKeysApi } from "@/api/http";
 
 describe("Auth", () => {
   let mock: MockAdapter;
   let mockUser: MockAdapter;
+  let mockApiKeys: MockAdapter;
 
   beforeEach(() => {
     vi.useFakeTimers();
+    localStorage.setItem("tenant", "fake-tenant");
     mock = new MockAdapter(mfaApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
+    mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
   });
 
   afterEach(() => {
@@ -26,6 +29,11 @@ describe("Auth", () => {
     expect(store.getters["auth/recoveryCodes"]).toEqual([]);
     expect(store.getters["auth/secret"]).toEqual("");
     expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
+    expect(store.getters["auth/getSortStatusField"]).toEqual(undefined);
+    expect(store.getters["auth/getSortStatusString"]).toEqual("asc");
+    expect(store.getters["auth/apiKey"]).toEqual("");
+    expect(store.getters["auth/apiKeyList"]).toEqual([]);
+    expect(store.getters["auth/getNumberApiKeys"]).toEqual(0);
   });
 
   it("Test disableMfa action", async () => {
@@ -101,7 +109,7 @@ describe("Auth", () => {
 
     expect(reqSpy).toHaveBeenCalledWith("auth/validateMfa", { code: "000000" });
     // Check if the state has been updated correctly
-    expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse.token);
+    expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse);
   });
 
   it("Test recoveryMfa action", async () => {
@@ -187,5 +195,104 @@ describe("Auth", () => {
     expect(store.getters["auth/id"]).toEqual(getUserStatusResponse.id);
     expect(store.getters["auth/role"]).toEqual(getUserStatusResponse.role);
     expect(store.getters["auth/mfaStatus"]).toEqual(getUserStatusResponse.mfa);
+  });
+
+  it("Test GenerateApiKey action", async () => {
+    // Mock the API call for GenerateApiKey
+    const generateApiResponse = {
+      key: "fake-api-key",
+    };
+    const generateApiData = {
+      tenant: "fake-tenant",
+      name: "my api key",
+      expires_at: 30,
+    };
+
+    const reqSpy = vi.spyOn(store, "dispatch");
+
+    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, generateApiResponse);
+
+    // Trigger the GenerateApiKey action
+    await store.dispatch("auth/generateApiKey", generateApiData);
+    await flushPromises();
+
+    expect(reqSpy).toHaveBeenCalledWith("auth/generateApiKey", generateApiData);
+    // Check if the state has been updated correctly
+    expect(store.getters["auth/apiKey"]).toEqual(generateApiResponse);
+  });
+
+  it("Test Get Api Keys action", async () => {
+    // Mock the API call for getApiKey
+    const getApiResponse = [
+      {
+        id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
+        tenant_id: "fake-tenant",
+        user_id: "507f1f77bcf86cd799439011",
+        name: "my api key",
+        expires_in: 1707958989,
+      },
+    ];
+
+    const getApiData = {
+      tenant: "fake-tenant",
+    };
+
+    const reqSpy = vi.spyOn(store, "dispatch");
+
+    mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getApiResponse, { "x-total-count": 1 });
+
+    // Trigger the getApiKey action
+    await store.dispatch("auth/getApiKey", getApiData);
+    await flushPromises();
+
+    expect(reqSpy).toHaveBeenCalledWith("auth/getApiKey", getApiData);
+    // Check if the state has been updated correctly
+    expect(store.getters["auth/apiKeyList"]).toEqual(getApiResponse);
+    expect(store.getters["auth/getNumberApiKeys"]).toEqual(1);
+  });
+
+  it("Test editApiKey action", async () => {
+    // Mock the API call for editApiKey
+    const editApiResponse = {
+      id: "fake-api-key",
+      tenant_id: "fake-tenant",
+      user_id: "507f1f77bcf86cd799439011",
+      name: "my api key 2",
+      expires_in: 1707958989,
+    };
+
+    const editApiData = {
+      tenant: "fake-tenant",
+      id: "fake-api-key",
+      name: "my api key 2",
+    };
+
+    const reqSpy = vi.spyOn(store, "dispatch");
+
+    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-api-key").reply(200, editApiResponse);
+
+    // Trigger the editApiKey action
+    await store.dispatch("auth/editApiKey", editApiData);
+    await flushPromises();
+
+    expect(reqSpy).toHaveBeenCalledWith("auth/editApiKey", editApiData);
+  });
+
+  it("Test removeApiKey action", async () => {
+    // Mock the API call for removeApiKey
+    const removeApiData = {
+      tenant: "fake-tenant",
+      id: "fake-api-key",
+    };
+
+    const reqSpy = vi.spyOn(store, "dispatch");
+
+    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-api-key").reply(200);
+
+    // Trigger the editApiKey action
+    await store.dispatch("auth/removeApiKey", removeApiData);
+    await flushPromises();
+
+    expect(reqSpy).toHaveBeenCalledWith("auth/removeApiKey", removeApiData);
   });
 });

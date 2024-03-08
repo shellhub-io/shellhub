@@ -40,17 +40,17 @@ func (_m *Store) APIKeyCreate(ctx context.Context, APIKey *models.APIKey) error 
 	return r0
 }
 
-// APIKeyDelete provides a mock function with given fields: ctx, id
-func (_m *Store) APIKeyDelete(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// APIKeyDelete provides a mock function with given fields: ctx, id, tenantID
+func (_m *Store) APIKeyDelete(ctx context.Context, id string, tenantID string) error {
+	ret := _m.Called(ctx, id, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyDelete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -136,9 +136,9 @@ func (_m *Store) APIKeyGetByUID(ctx context.Context, uid string) (*models.APIKey
 	return r0, r1
 }
 
-// APIKeyList provides a mock function with given fields: ctx, userID, paginator, sorter
-func (_m *Store) APIKeyList(ctx context.Context, userID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
-	ret := _m.Called(ctx, userID, paginator, sorter)
+// APIKeyList provides a mock function with given fields: ctx, userID, paginator, sorter, tenantID
+func (_m *Store) APIKeyList(ctx context.Context, userID string, paginator query.Paginator, sorter query.Sorter, tenantID string) ([]models.APIKey, int, error) {
+	ret := _m.Called(ctx, userID, paginator, sorter, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyList")
@@ -147,25 +147,25 @@ func (_m *Store) APIKeyList(ctx context.Context, userID string, paginator query.
 	var r0 []models.APIKey
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Sorter) ([]models.APIKey, int, error)); ok {
-		return rf(ctx, userID, paginator, sorter)
+	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Sorter, string) ([]models.APIKey, int, error)); ok {
+		return rf(ctx, userID, paginator, sorter, tenantID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Sorter) []models.APIKey); ok {
-		r0 = rf(ctx, userID, paginator, sorter)
+	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Sorter, string) []models.APIKey); ok {
+		r0 = rf(ctx, userID, paginator, sorter, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.APIKey)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, query.Paginator, query.Sorter) int); ok {
-		r1 = rf(ctx, userID, paginator, sorter)
+	if rf, ok := ret.Get(1).(func(context.Context, string, query.Paginator, query.Sorter, string) int); ok {
+		r1 = rf(ctx, userID, paginator, sorter, tenantID)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, query.Paginator, query.Sorter) error); ok {
-		r2 = rf(ctx, userID, paginator, sorter)
+	if rf, ok := ret.Get(2).(func(context.Context, string, query.Paginator, query.Sorter, string) error); ok {
+		r2 = rf(ctx, userID, paginator, sorter, tenantID)
 	} else {
 		r2 = ret.Error(2)
 	}

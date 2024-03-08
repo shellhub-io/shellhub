@@ -47,7 +47,6 @@ describe("Namespaces Store", () => {
 
   it("putNamespace mutation", async () => {
     store.commit("namespaces/setNamespace", namespaceData);
-    console.log(store.getters["namespaces/get"]);
     expect(store.getters["namespaces/get"]).toEqual(namespaceData.data);
   });
   // Add more tests for other actions and mutations

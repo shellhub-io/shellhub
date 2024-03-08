@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	jwt "github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -50,6 +51,13 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		token, err := h.service.GetAPIKeyByUID(c.Ctx(), apiKey)
 		if err != nil {
 			return err
+		}
+
+		if token.ExpiresIn != -1 {
+			timeKey := time.Unix(token.ExpiresIn, 0)
+			if timeKey.Before(time.Unix(time.Now().Unix(), 0)) {
+				return svc.NewErrAuthUnathorized(errors.New("this APIkey is expired"))
+			}
 		}
 
 		namespace, err := h.service.GetNamespace(c.Ctx(), token.TenantID)

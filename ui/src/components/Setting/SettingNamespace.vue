@@ -17,6 +17,7 @@
                       @click="copyText(tenant)"
                       @keypress="copyText(tenant)"
                       class="hover-text"
+                      data-test="tenant-id"
                     >
                       {{ tenant }}
                       <v-icon icon="mdi-content-copy" />
@@ -57,6 +58,30 @@
         <v-divider class="mt-6" />
         <v-divider class="mb-6" />
 
+        <div class="mt-6">
+          <v-row>
+            <v-col data-test="api-key-title">
+              <h3>Api Keys</h3>
+            </v-col>
+
+            <v-col md="auto" class="ml-auto">
+              <NamespaceGenerateApiKey @update="refreshApiKeys" data-test="api-key-generate" />
+            </v-col>
+          </v-row>
+
+          <v-spacer />
+          <v-row class="mt-2 mb-2">
+            <v-col class="ml-3" data-test="api-key-text">
+              Generate a Api Key for quick access to your ShellHub account.
+            </v-col>
+          </v-row>
+
+          <v-row class="mt-2 mb-2">
+            <v-col>
+              <NamespaceApiKeyList ref="apiKeyList" data-test="api-key-list" />
+            </v-col>
+          </v-row>
+        </div>
         <div v-if="true" class="mt-6" data-test="securityOperation-div">
           <SettingSecurity :hasTenant="hasTenant()" />
 
@@ -93,14 +118,15 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted, computed, ref } from "vue";
+<script setup lang="ts">
+import { onMounted, computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
 import NamespaceMemberAdd from "../Namespace/NamespaceMemberAdd.vue";
 import NamespaceMemberList from "../Namespace/NamespaceMemberList.vue";
+import NamespaceGenerateApiKey from "../Namespace/NamespaceGenerateApiKey.vue";
+import NamespaceApiKeyList from "../Namespace/NamespaceApiKeyList.vue";
 import SettingSecurity from "./SettingSecurity.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import {
@@ -109,73 +135,55 @@ import {
 } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const namespace = computed(() => store.getters["namespaces/get"]);
-    const tenant = computed(() => store.getters["auth/tenant"]);
-    const isEnterprise = computed(() => envVariables.isEnterprise);
-    const billingInDebt = ref(false);
+const store = useStore();
+const apiKeyList = ref();
+const namespace = computed(() => store.getters["namespaces/get"]);
+const tenant = computed(() => store.getters["auth/tenant"]);
+const billingInDebt = ref(false);
 
-    const copyText = (value: string | undefined) => {
-      if (value) {
-        navigator.clipboard.writeText(value);
-        store.dispatch(
-          "snackbar/showSnackbarCopy",
-          INotificationsCopy.tenantId,
-        );
+const copyText = (value: string | undefined) => {
+  if (value) {
+    navigator.clipboard.writeText(value);
+    store.dispatch(
+      "snackbar/showSnackbarCopy",
+      INotificationsCopy.tenantId,
+    );
+  }
+};
+
+const getNamespace = async () => {
+  try {
+    await store.dispatch("namespaces/get", tenant.value);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 403) {
+        store.dispatch("snackbar/showSnackbarErrorAssociation");
       }
-    };
+    } else {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.namespaceLoad,
+      );
+      handleError(error);
+    }
+  }
+};
+const refresh = () => {
+  getNamespace();
+};
 
-    const getNamespace = async () => {
-      try {
-        await store.dispatch("namespaces/get", tenant.value);
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          if (axiosError.response?.status === 403) {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-          }
-        } else {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceLoad,
-          );
-          handleError(error);
-        }
-      }
-    };
-
-    const refresh = () => {
-      getNamespace();
-    };
-
-    onMounted(async () => {
-      if (tenant.value) {
-        await getNamespace();
-      }
-    });
-
-    const hasTenant = () => tenant.value !== "";
-
-    return {
-      tenant,
-      namespace,
-      copyText,
-      refresh,
-      isEnterprise,
-      hasTenant,
-      billingInDebt,
-    };
-  },
-  components: {
-    NamespaceEdit,
-    NamespaceMemberAdd,
-    NamespaceMemberList,
-    SettingSecurity,
-    NamespaceDelete,
-  },
+const refreshApiKeys = () => {
+  apiKeyList.value.refresh();
+};
+onMounted(async () => {
+  if (tenant.value) {
+    await getNamespace();
+  }
 });
+
+const hasTenant = () => tenant.value !== "";
+
 </script>
 
 <style scoped>

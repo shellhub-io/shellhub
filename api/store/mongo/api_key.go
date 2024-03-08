@@ -3,7 +3,6 @@ package mongo
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -19,10 +18,10 @@ func (s *Store) APIKeyCreate(ctx context.Context, req *models.APIKey) error {
 	return FromMongoError(err)
 }
 
-func (s *Store) APIKeyList(ctx context.Context, userID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
+func (s *Store) APIKeyList(ctx context.Context, userID string, paginator query.Paginator, sorter query.Sorter, tenantID string) ([]models.APIKey, int, error) {
 	query := []bson.M{}
 
-	query = append(query, bson.M{"$match": bson.M{"user_id": userID, "tenant_id": gateway.TenantFromContext(ctx)}})
+	query = append(query, bson.M{"$match": bson.M{"user_id": userID, "tenant_id": tenantID}})
 	queryCount := append(query, bson.M{"$count": "count"})
 
 	count, err := AggregateCount(ctx, s.db.Collection("api_keys"), queryCount)
@@ -63,7 +62,7 @@ func (s *Store) APIKeyList(ctx context.Context, userID string, paginator query.P
 func (s *Store) APIKeyGetByUID(ctx context.Context, uid string) (*models.APIKey, error) {
 	var APIKey *models.APIKey
 
-	if err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"_id": uid, "tenant_id": gateway.TenantFromContext(ctx)}).Decode(&APIKey); err != nil {
+	if err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"_id": uid}).Decode(&APIKey); err != nil {
 		return nil, FromMongoError(err)
 	}
 
@@ -73,7 +72,7 @@ func (s *Store) APIKeyGetByUID(ctx context.Context, uid string) (*models.APIKey,
 func (s *Store) APIKeyGetByName(ctx context.Context, name string) (*models.APIKey, error) {
 	var APIKey models.APIKey
 
-	err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"name": name, "tenant_id": gateway.TenantFromContext(ctx)}).Decode(&APIKey)
+	err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"name": name}).Decode(&APIKey)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -85,8 +84,8 @@ func (s *Store) APIKeyGetByName(ctx context.Context, name string) (*models.APIKe
 	return &APIKey, nil
 }
 
-func (s *Store) APIKeyDelete(ctx context.Context, id string) error {
-	result, err := s.db.Collection("api_keys").DeleteOne(ctx, bson.M{"_id": id, "tenant_id": gateway.TenantFromContext(ctx)})
+func (s *Store) APIKeyDelete(ctx context.Context, id string, tenantID string) error {
+	result, err := s.db.Collection("api_keys").DeleteOne(ctx, bson.M{"_id": id, "tenant_id": tenantID})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -106,7 +105,7 @@ func (s *Store) APIKeyEdit(ctx context.Context, changes *requests.APIKeyChanges)
 	}
 
 	if len(updatedFields) > 0 {
-		key, err := s.db.Collection("api_keys").UpdateOne(ctx, bson.M{"_id": changes.ID, "tenant_id": gateway.TenantFromContext(ctx)}, bson.M{"$set": updatedFields})
+		key, err := s.db.Collection("api_keys").UpdateOne(ctx, bson.M{"_id": changes.ID}, bson.M{"$set": updatedFields})
 		if err != nil {
 			return FromMongoError(err)
 		}

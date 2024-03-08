@@ -1,0 +1,405 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Setting Namespace > Renders the component 1`] = `
+"<div data-v-80a16399=\\"\\" class=\\"v-container v-locale--is-ltr\\">
+  <div data-v-80a16399=\\"\\" class=\\"v-row align-center justify-center mt-4\\">
+    <div data-v-80a16399=\\"\\" class=\\"v-col-sm-8 v-col\\">
+      <div data-v-80a16399=\\"\\" class=\\"v-row\\">
+        <div data-v-80a16399=\\"\\" class=\\"v-col\\">
+          <h3 data-v-80a16399=\\"\\">Tenant ID:</h3>
+        </div>
+        <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
+        <div data-v-80a16399=\\"\\" class=\\"v-col\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated bg-v-theme-surface\\" tile=\\"\\">
+            <!---->
+            <div class=\\"v-card__loader\\">
+              <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <!---->
+                <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                  <div class=\\"v-progress-linear__indeterminate\\">
+                    <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                    <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!----><span data-v-80a16399=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+            <!---->
+            <!---->
+            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-80a16399=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-1\\" class=\\"hover-text\\" data-test=\\"tenant-id\\">fake-tenant <i data-v-80a16399=\\"\\" class=\\"mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+              <!--teleport start-->
+              <!--teleport end-->
+            </div>
+            <!---->
+            <!----></span>
+            <!---->
+            <!----><span class=\\"v-card__underlay\\"></span>
+          </div>
+        </div>
+      </div>
+      <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <div data-v-80a16399=\\"\\" class=\\"mt-6\\" data-test=\\"editOperation-div\\">
+        <div class=\\"v-row\\" data-test=\\"NamespaceEdit-component\\">
+          <div class=\\"v-col\\" data-test=\\"namespace-title\\">
+            <h3>Namespace</h3>
+          </div>
+          <div class=\\"v-spacer\\"></div>
+          <div class=\\"v-col-md-auto v-col ml-auto\\">
+            <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-2\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"edit-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Edit Namespace </span>
+                <!---->
+                <!---->
+              </button></div>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
+        </div>
+        <div class=\\"mt-4 mb-2\\">
+          <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined ml-3\\" data-test=\\"name-text\\">
+            <!---->
+            <div class=\\"v-input__control\\">
+              <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+                <div class=\\"v-field__overlay\\"></div>
+                <div class=\\"v-field__loader\\">
+                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                    <!---->
+                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                      <div class=\\"v-progress-linear__indeterminate\\">
+                        <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                        <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                </div>
+                <!---->
+                <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
+                    <!---->Name
+                  </label>
+                  <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                  <!---->
+                </div>
+                <!---->
+                <!---->
+                <div class=\\"v-field__outline\\">
+                  <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-4\\">
+                    <!---->Name
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!---->
+            <div class=\\"v-input__details\\">
+              <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-4-messages\\">
+                <!---->
+              </transition-group-stub>
+              <!---->
+            </div>
+          </div>
+        </div>
+        <div class=\\"mb-2\\">
+          <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-textarea v-text-field v-input--plain-underlined\\" data-test=\\"connectionAnnouncement-text\\">
+            <!---->
+            <div class=\\"v-input__control\\">
+              <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+                <div class=\\"v-field__overlay\\"></div>
+                <div class=\\"v-field__loader\\">
+                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                    <!---->
+                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                      <div class=\\"v-progress-linear__indeterminate\\">
+                        <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                        <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                </div>
+                <!---->
+                <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-6\\">
+                    <!---->Connection Announcement
+                  </label>
+                  <!----><textarea class=\\"v-field__input\\" disabled=\\"\\" rows=\\"5\\" id=\\"input-6\\" aria-describedby=\\"input-6-messages\\" required=\\"\\"></textarea>
+                  <!---->
+                  <!---->
+                </div>
+                <!---->
+                <!---->
+                <div class=\\"v-field__outline\\">
+                  <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-6\\">
+                    <!---->Connection Announcement
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!---->
+            <div class=\\"v-input__details\\">
+              <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-6-messages\\">
+                <div class=\\"v-messages__message\\">A connection announcement is a custom message written
+                  during a session when a connection is established on a device
+                  within the namespace.</div>
+              </transition-group-stub>
+              <!---->
+            </div>
+          </div>
+        </div>
+        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      </div>
+      <div data-v-80a16399=\\"\\" class=\\"mt-6\\" data-test=\\"userOperation-div\\">
+        <div data-v-80a16399=\\"\\" class=\\"v-row\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-col\\">
+            <h3 data-v-80a16399=\\"\\">Members</h3>
+          </div>
+          <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
+          <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
+            <div data-v-80a16399=\\"\\">
+              <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-8\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Member </span>
+                  <!---->
+                  <!---->
+                </button></div>
+              <!--teleport start-->
+              <!--teleport end-->
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+        <div data-v-80a16399=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+          <!---->
+          <div class=\\"v-table__wrapper\\">
+            <table>
+              <thead>
+                <tr>
+                  <th class=\\"text-start\\"><span>Username</span></th>
+                  <th class=\\"text-center\\"><span>Role</span></th>
+                  <th class=\\"text-end\\"><span>Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><i class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i> test</td>
+                  <td class=\\"text-center\\">owner</td>
+                  <td class=\\"text-end\\">
+                    <!--v-if-->
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!---->
+        </div>
+      </div>
+      <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <div data-v-80a16399=\\"\\" class=\\"mt-6\\">
+        <div data-v-80a16399=\\"\\" class=\\"v-row\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-col\\" data-test=\\"api-key-title\\">
+            <h3 data-v-80a16399=\\"\\">Api Keys</h3>
+          </div>
+          <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
+            <div data-v-80a16399=\\"\\" data-test=\\"api-key-generate\\">
+              <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-10\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Generate key </span>
+                  <!---->
+                  <!---->
+                </button></div>
+              <!--teleport start-->
+              <!--teleport end-->
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+        <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
+        <div data-v-80a16399=\\"\\" class=\\"v-row mt-2 mb-2\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-col ml-3\\" data-test=\\"api-key-text\\"> Generate a Api Key for quick access to your ShellHub account. </div>
+        </div>
+        <div data-v-80a16399=\\"\\" class=\\"v-row mt-2 mb-2\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-col\\">
+            <div data-v-80a16399=\\"\\" data-test=\\"api-key-list\\">
+              <div data-v-046d4556=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"api-key-list\\">
+                <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+                  <!---->
+                  <div class=\\"v-table__wrapper\\">
+                    <table>
+                      <thead data-v-046d4556=\\"\\">
+                        <tr data-v-046d4556=\\"\\">
+                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-12\\">Key Name <!----><!--teleport start--><!--teleport end--></span></th>
+                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-13\\">Expiration Date <!----><!--teleport start--><!--teleport end--></span></th>
+                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Actions</span></th>
+                        </tr>
+                      </thead>
+                      <tbody data-v-046d4556=\\"\\">
+                        <tr>
+                          <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\" data-test=\\"key-icon\\"></i> my api key</td>
+                          <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Feb 15 2024.</td>
+                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                            <!---->
+                            <!---->
+                            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                            <!---->
+                            <!----></span>
+                            <!--teleport start-->
+                            <!--teleport end-->
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\" data-test=\\"key-icon\\"></i> my api key</td>
+                          <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Feb 15 2024.</td>
+                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-20\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                            <!---->
+                            <!---->
+                            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                            <!---->
+                            <!----></span>
+                            <!--teleport start-->
+                            <!--teleport end-->
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <!---->
+                </div>
+                <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+                <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+                <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
+                  <div data-v-046d4556=\\"\\">
+                    <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
+                      <!---->
+                      <div class=\\"v-input__control\\">
+                        <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-28\\">
+                          <div class=\\"v-field__overlay\\"></div>
+                          <div class=\\"v-field__loader\\">
+                            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                              <!---->
+                              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                              <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                                <div class=\\"v-progress-linear__indeterminate\\">
+                                  <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                                  <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                            <!----><label class=\\"v-label v-field-label\\" for=\\"input-26\\">
+                              <!---->
+                              <!---->
+                            </label>
+                            <!---->
+                            <div class=\\"v-field__input\\" data-no-activator=\\"\\">
+                              <!---->
+                              <!---->
+                              <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-26\\" aria-describedby=\\"input-26-messages\\" outlined=\\"\\">
+                            </div>
+                            <!---->
+                          </div>
+                          <!---->
+                          <div class=\\"v-field__append-inner\\">
+                            <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
+                            <!---->
+                          </div>
+                          <div class=\\"v-field__outline\\">
+                            <!---->
+                            <!---->
+                          </div>
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                  <div data-v-046d4556=\\"\\" class=\\"d-flex align-center\\"><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                      <!---->
+                      <!---->
+                    </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of 1</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                      <!---->
+                      <!---->
+                    </button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-v-80a16399=\\"\\" class=\\"mt-6\\" data-test=\\"securityOperation-div\\">
+        <form data-v-80a16399=\\"\\" class=\\"v-form\\" novalidate=\\"\\">
+          <div class=\\"v-row\\">
+            <div class=\\"v-col mb-3\\">
+              <h3 class=\\"mb-3\\">Security</h3>
+              <div class=\\"ml-3\\">
+                <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--dirty v-checkbox\\">
+                  <!---->
+                  <div class=\\"v-input__control\\">
+                    <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
+                      <div class=\\"v-selection-control__wrapper text-primary\\">
+                        <!---->
+                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-31\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-31-messages\\" value=\\"true\\"></div>
+                      </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-31\\">
+                        <!---->Enable session record
+                      </label>
+                    </div>
+                  </div>
+                  <!---->
+                  <!---->
+                </div>
+                <p> Session record is a feature that allows you to check logged activity when connecting to a device. </p>
+              </div>
+            </div>
+          </div>
+        </form>
+        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      </div>
+      <div data-v-80a16399=\\"\\" class=\\"mt-6\\" data-test=\\"deleteOperation-div\\">
+        <h3 data-v-80a16399=\\"\\" class=\\"mb-2\\">Danger Zone</h3>
+        <!--v-if-->
+        <div data-v-80a16399=\\"\\" class=\\"v-row mt-2 mb-2\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-col ml-3\\">
+            <h4 data-v-80a16399=\\"\\">Delete this namespace</h4>
+            <div data-v-80a16399=\\"\\" class=\\"ml-2\\">
+              <p data-v-80a16399=\\"\\"> After deleting a namespace, there is no going back. Be sure. </p>
+            </div>
+          </div>
+          <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto mb-4\\">
+            <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-34\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete namespace </span>
+                <!---->
+                <!---->
+              </button></div>
+            <!--teleport start-->
+            <!--teleport end-->
+            <!---->
+            <!---->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;

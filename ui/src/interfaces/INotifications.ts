@@ -35,7 +35,9 @@ export enum INotificationsSuccess {
   subscription = "subscription",
   updateSubscription = "updating subscription",
   cancelSubscription = "cancelling subscription",
-  cancelMfa = "cancelling mfa"
+  cancelMfa = "cancelling mfa",
+  deleteKey = "deleting key",
+  editKey = "editing key"
 }
 
 export enum INotificationsError {
@@ -95,6 +97,9 @@ export enum INotificationsError {
   updatePaymentMethod = "updating payment method",
   deletePaymentMethod = "removing payment method",
   cancelSubscription = "cancelling subscription",
+  deleteKey = "deleting key",
+  generateKey = "generating key",
+  editKey = "editing key",
 }
 
 export enum INotificationsCopy {
@@ -102,4 +107,5 @@ export enum INotificationsCopy {
   deviceSSHID = "Device SSHID",
   recoveryCodes = "Recovery Codes",
   tenantId = "Tenant ID",
+  copyKey = "API Key"
 }

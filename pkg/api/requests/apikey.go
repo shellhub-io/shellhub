@@ -8,6 +8,7 @@ import (
 type CreateAPIKey struct {
 	Name      string `json:"name" validate:"required,min=3,max=20"`
 	ExpiresAt int    `json:"expires_at"  validate:"required,oneof=30 60 90 365 -1"`
+	TenantParam
 }
 
 // APIKeyParam is the structure to represent the request data for edit a APIKey.

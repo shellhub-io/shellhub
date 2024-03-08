@@ -112,6 +112,60 @@ export interface AnnouncementShort {
 /**
  * 
  * @export
+ * @interface ApiKey
+ */
+export interface ApiKey {
+    /**
+     * API Key ID.
+     * @type {string}
+     * @memberof ApiKey
+     */
+    'id'?: string;
+    /**
+     * Namespace\'s tenant ID
+     * @type {string}
+     * @memberof ApiKey
+     */
+    'tenant_id'?: string;
+    /**
+     * User\'s ID.
+     * @type {string}
+     * @memberof ApiKey
+     */
+    'user_id'?: string;
+    /**
+     * API Key name.
+     * @type {string}
+     * @memberof ApiKey
+     */
+    'name'?: string;
+    /**
+     * API Key expiration time until expiration.  It is a unix time or `-1` for unlimited tokens. 
+     * @type {number}
+     * @memberof ApiKey
+     */
+    'expires_in'?: number;
+}
+/**
+ * API Key expiration date.  Expiry date time following this pattern:   30 to 30 days   60 to 60 days   90 to 90 days   365 to 1 year   -1 for token without expiration date 
+ * @export
+ * @enum {string}
+ */
+
+export const ApiKeyExpiresAt = {
+    NUMBER_30: 30,
+    NUMBER_60: 60,
+    NUMBER_90: 90,
+    NUMBER_365: 365,
+    NUMBER_MINUS_1: -1
+} as const;
+
+export type ApiKeyExpiresAt = typeof ApiKeyExpiresAt[keyof typeof ApiKeyExpiresAt];
+
+
+/**
+ * 
+ * @export
  * @interface AttachPaymentMethodRequest
  */
 export interface AttachPaymentMethodRequest {
@@ -253,6 +307,38 @@ export interface ClsoeSessionRequest {
      * @memberof ClsoeSessionRequest
      */
     'device': string;
+}
+/**
+ * 
+ * @export
+ * @interface CreateApiKey200Response
+ */
+export interface CreateApiKey200Response {
+    /**
+     * API Key ID.
+     * @type {string}
+     * @memberof CreateApiKey200Response
+     */
+    'key'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface CreateApiKeyRequest
+ */
+export interface CreateApiKeyRequest {
+    /**
+     * API Key name.
+     * @type {string}
+     * @memberof CreateApiKeyRequest
+     */
+    'name': string;
+    /**
+     * 
+     * @type {ApiKeyExpiresAt}
+     * @memberof CreateApiKeyRequest
+     */
+    'expires_at': ApiKeyExpiresAt;
 }
 /**
  * 
@@ -1678,6 +1764,19 @@ export interface SetSessionRecordRequest {
 /**
  * 
  * @export
+ * @interface UpdateApiKeyRequest
+ */
+export interface UpdateApiKeyRequest {
+    /**
+     * API Key name.
+     * @type {string}
+     * @memberof UpdateApiKeyRequest
+     */
+    'name': string;
+}
+/**
+ * 
+ * @export
  * @interface UpdateDeviceRequest
  */
 export interface UpdateDeviceRequest {
@@ -2099,6 +2198,388 @@ export class AnnouncementsApi extends BaseAPI {
      */
     public listAnnouncements(page?: number, perPage?: number, orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig) {
         return AnnouncementsApiFp(this.configuration).listAnnouncements(page, perPage, orderBy, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * ApiKeysApi - axios parameter creator
+ * @export
+ */
+export const ApiKeysApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Creates an API Key.
+         * @summary Creates an API Key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateApiKeyRequest} [createApiKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createApiKey: async (tenant: string, createApiKeyRequest?: CreateApiKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('createApiKey', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/api-key`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createApiKeyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Delete an API key.
+         * @summary Delete an API key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} key Api key ID.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteApiKey: async (tenant: string, key: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('deleteApiKey', 'tenant', tenant)
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('deleteApiKey', 'key', key)
+            const localVarPath = `/api/namespaces/{tenant}/api-key/{key}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"key"}}`, encodeURIComponent(String(key)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List API Keys.
+         * @summary List API Keys
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {string} [sortBy] API Key\&#39;s property to sort of.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listApiKey: async (tenant: string, page?: number, perPage?: number, orderBy?: 'asc' | 'desc', sortBy?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('listApiKey', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/api-key`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Update an API key.
+         * @summary Update an API key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} key Api key ID.
+         * @param {UpdateApiKeyRequest} [updateApiKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateApiKey: async (tenant: string, key: string, updateApiKeyRequest?: UpdateApiKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateApiKey', 'tenant', tenant)
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('updateApiKey', 'key', key)
+            const localVarPath = `/api/namespaces/{tenant}/api-key/{key}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"key"}}`, encodeURIComponent(String(key)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateApiKeyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiKeysApi - functional programming interface
+ * @export
+ */
+export const ApiKeysApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiKeysApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Creates an API Key.
+         * @summary Creates an API Key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateApiKeyRequest} [createApiKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createApiKey(tenant: string, createApiKeyRequest?: CreateApiKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateApiKey200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createApiKey(tenant, createApiKeyRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Delete an API key.
+         * @summary Delete an API key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} key Api key ID.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteApiKey(tenant: string, key: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteApiKey(tenant, key, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List API Keys.
+         * @summary List API Keys
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {string} [sortBy] API Key\&#39;s property to sort of.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listApiKey(tenant: string, page?: number, perPage?: number, orderBy?: 'asc' | 'desc', sortBy?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ApiKey>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listApiKey(tenant, page, perPage, orderBy, sortBy, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Update an API key.
+         * @summary Update an API key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} key Api key ID.
+         * @param {UpdateApiKeyRequest} [updateApiKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateApiKey(tenant: string, key: string, updateApiKeyRequest?: UpdateApiKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiKey>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateApiKey(tenant, key, updateApiKeyRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ApiKeysApi - factory interface
+ * @export
+ */
+export const ApiKeysApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiKeysApiFp(configuration)
+    return {
+        /**
+         * Creates an API Key.
+         * @summary Creates an API Key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateApiKeyRequest} [createApiKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createApiKey(tenant: string, createApiKeyRequest?: CreateApiKeyRequest, options?: any): AxiosPromise<CreateApiKey200Response> {
+            return localVarFp.createApiKey(tenant, createApiKeyRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Delete an API key.
+         * @summary Delete an API key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} key Api key ID.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteApiKey(tenant: string, key: string, options?: any): AxiosPromise<void> {
+            return localVarFp.deleteApiKey(tenant, key, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List API Keys.
+         * @summary List API Keys
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {'asc' | 'desc'} [orderBy] 
+         * @param {string} [sortBy] API Key\&#39;s property to sort of.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listApiKey(tenant: string, page?: number, perPage?: number, orderBy?: 'asc' | 'desc', sortBy?: string, options?: any): AxiosPromise<Array<ApiKey>> {
+            return localVarFp.listApiKey(tenant, page, perPage, orderBy, sortBy, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Update an API key.
+         * @summary Update an API key
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} key Api key ID.
+         * @param {UpdateApiKeyRequest} [updateApiKeyRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateApiKey(tenant: string, key: string, updateApiKeyRequest?: UpdateApiKeyRequest, options?: any): AxiosPromise<ApiKey> {
+            return localVarFp.updateApiKey(tenant, key, updateApiKeyRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiKeysApi - object-oriented interface
+ * @export
+ * @class ApiKeysApi
+ * @extends {BaseAPI}
+ */
+export class ApiKeysApi extends BaseAPI {
+    /**
+     * Creates an API Key.
+     * @summary Creates an API Key
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {CreateApiKeyRequest} [createApiKeyRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiKeysApi
+     */
+    public createApiKey(tenant: string, createApiKeyRequest?: CreateApiKeyRequest, options?: AxiosRequestConfig) {
+        return ApiKeysApiFp(this.configuration).createApiKey(tenant, createApiKeyRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Delete an API key.
+     * @summary Delete an API key
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} key Api key ID.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiKeysApi
+     */
+    public deleteApiKey(tenant: string, key: string, options?: AxiosRequestConfig) {
+        return ApiKeysApiFp(this.configuration).deleteApiKey(tenant, key, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List API Keys.
+     * @summary List API Keys
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {'asc' | 'desc'} [orderBy] 
+     * @param {string} [sortBy] API Key\&#39;s property to sort of.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiKeysApi
+     */
+    public listApiKey(tenant: string, page?: number, perPage?: number, orderBy?: 'asc' | 'desc', sortBy?: string, options?: AxiosRequestConfig) {
+        return ApiKeysApiFp(this.configuration).listApiKey(tenant, page, perPage, orderBy, sortBy, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Update an API key.
+     * @summary Update an API key
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} key Api key ID.
+     * @param {UpdateApiKeyRequest} [updateApiKeyRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiKeysApi
+     */
+    public updateApiKey(tenant: string, key: string, updateApiKeyRequest?: UpdateApiKeyRequest, options?: AxiosRequestConfig) {
+        return ApiKeysApiFp(this.configuration).updateApiKey(tenant, key, updateApiKeyRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
