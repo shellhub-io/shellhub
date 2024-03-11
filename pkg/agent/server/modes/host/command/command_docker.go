@@ -12,7 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
 )
 
-func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
+func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, u.HomeDir, command...)
 
 	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:gosec
@@ -24,6 +24,7 @@ func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		"LOGNAME=" + u.Username,
 		"SHELLHUB_HOST=" + host,
 	}
+	cmd.Env = append(cmd.Env, envs...)
 
 	return cmd
 }
