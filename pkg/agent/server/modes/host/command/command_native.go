@@ -14,7 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.Cmd {
+func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	user, _ := user.Lookup(u.Username)
 	userGroups, _ := user.GroupIds()
 
@@ -35,6 +35,7 @@ func NewCmd(u *osauth.User, shell, term, host string, command ...string) *exec.C
 		"SHELL=" + shell,
 		"SHELLHUB_HOST=" + host,
 	}
+	cmd.Env = append(cmd.Env, envs...)
 
 	if _, err := os.Stat(u.HomeDir); err != nil {
 		log.WithError(err).WithField("dir", u.HomeDir).Warn("setting user's home directory to /")
