@@ -19,7 +19,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func newShellCmd(deviceName string, username string, term string) *exec.Cmd {
+func newShellCmd(deviceName string, username string, term string, envs []string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	user := new(osauth.OSAuth).LookupUser(username)
@@ -32,7 +32,7 @@ func newShellCmd(deviceName string, username string, term string) *exec.Cmd {
 		term = "xterm"
 	}
 
-	cmd := command.NewCmd(user, shell, term, deviceName, shell, "--login")
+	cmd := command.NewCmd(user, shell, term, deviceName, envs, shell, "--login")
 
 	return cmd
 }
@@ -68,7 +68,7 @@ func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd) *Sessioner {
 func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, winCh, isPty := session.Pty()
 
-	scmd := newShellCmd(*s.deviceName, session.User(), sspty.Term)
+	scmd := newShellCmd(*s.deviceName, session.User(), sspty.Term, session.Environ())
 
 	pts, err := startPty(scmd, session, winCh)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	_, _, isPty := session.Pty()
 
-	cmd := newShellCmd(*s.deviceName, session.User(), "")
+	cmd := newShellCmd(*s.deviceName, session.User(), "", session.Environ())
 
 	stdout, _ := cmd.StdoutPipe()
 	stdin, _ := cmd.StdinPipe()
@@ -213,7 +213,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		term = "xterm"
 	}
 
-	cmd := command.NewCmd(user, shell, term, *s.deviceName, shell, "-c", session.RawCommand())
+	cmd := command.NewCmd(user, shell, term, *s.deviceName, session.Environ(), shell, "-c", session.RawCommand())
 
 	wg := &sync.WaitGroup{}
 	if sIsPty {
