@@ -1,6 +1,9 @@
-package handlers
+package web
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrPublicKey               = fmt.Errorf("failed to get the parsed public key")
@@ -31,3 +34,26 @@ var (
 	ErrInvalidVersion          = fmt.Errorf("failed to parse device version")
 	ErrUnsuportedPublicKeyAuth = fmt.Errorf("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
 )
+
+var (
+	ErrConnReadMessageSocketRead  = errors.New("failed to read the message from socket")
+	ErrConnReadMessageSocketWrite = errors.New("failed to write the message's data to socket")
+	ErrConnReadMessageJSONInvalid = errors.New("failed to parse the message from json")
+	ErrConnReadMessageKindInvalid = errors.New("this kind of message is invalid")
+)
+
+var (
+	ErrWebSocketGetToken      = errors.New("failed to get the token from query")
+	ErrWebSocketGetDimensions = errors.New("failed to get terminal dimensions from query")
+	ErrWebSocketGetIP         = errors.New("failed to get IP from query")
+)
+
+var ErrBridgeCredentialsNotFound = errors.New("failed to find the credentials")
+
+var (
+	ErrGetToken      = errors.New("token not found on request query")
+	ErrGetIP         = errors.New("ip not found on request query")
+	ErrGetDimensions = errors.New("failed to get a terminal dimension")
+)
+
+var ErrCreditialsNoPassword = errors.New("this creditials does not have a password defined")

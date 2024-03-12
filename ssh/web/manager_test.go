@@ -34,11 +34,11 @@ func TestManagerSave(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			t.Parallel()
 
-			manager := NewManager(test.waitFor)
-			manager.Save(test.id, nil)
+			manager := newManager(test.waitFor)
+			manager.save(test.id, nil)
 
 			assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-				_, ok := manager.Get(test.id)
+				_, ok := manager.get(test.id)
 				assert.False(tt, ok)
 
 				// NOTICE: we are waiting for two times the defined time, verifying each 10 Millisecond if the condition

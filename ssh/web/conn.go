@@ -29,13 +29,6 @@ func NewConn(socket Socket) *Conn {
 	}
 }
 
-var (
-	ErrConnReadMessageSocketRead  = errors.New("failed to read the message from socket")
-	ErrConnReadMessageSocketWrite = errors.New("failed to write the message's data to socket")
-	ErrConnReadMessageJSONInvalid = errors.New("failed to parse the message from json")
-	ErrConnReadMessageKindInvalid = errors.New("this kind of message is invalid")
-)
-
 func (c *Conn) ReadMessage(message *Message) (int, error) {
 	buffer := make([]byte, 1024)
 
@@ -52,7 +45,7 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 	}
 
 	switch message.Kind {
-	case MessageKindInput:
+	case messageKindInput:
 		var bytes []byte
 
 		if err = json.Unmarshal(data, &bytes); err != nil {
@@ -60,7 +53,7 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 		}
 
 		message.Data = bytes
-	case MessageKindResize:
+	case messageKindResize:
 		var dim Dimensions
 
 		if err = json.Unmarshal(data, &dim); err != nil {
