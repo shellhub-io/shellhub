@@ -12,7 +12,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, req string) {
+func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, req string, opts DefaultSessionHandlerOptions) {
 	defer log.
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")
@@ -69,7 +69,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, req 
 						Message:   message,
 						Width:     int(sess.Pty.Columns),
 						Height:    int(sess.Pty.Rows),
-					}, "cloud-api:8080")
+					}, opts.RecordURL)
 				}
 			}
 		} else {

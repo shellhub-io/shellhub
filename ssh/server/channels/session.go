@@ -46,239 +46,245 @@ const (
 	KeepAliveRequestType    = "keepalive"
 )
 
+type DefaultSessionHandlerOptions struct {
+	RecordURL string
+}
+
 // DefaultSessionHandler is the default handler for session's channel.
 //
 // A session is a remote execution of a program.  The program may be a shell, an application, a system command, or some
 // built-in subsystem. It may or may not have a tty, and may or may not involve X11 forwarding.
 //
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
-func DefaultSessionHandler(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
-	reject := func(err error, msg string) {
-		log.WithError(err).Error(msg)
+func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelHandler {
+	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+		reject := func(err error, msg string) {
+			log.WithError(err).Error(msg)
 
-		newChan.Reject(gossh.ConnectionFailed, msg) //nolint:errcheck
-	}
+			newChan.Reject(gossh.ConnectionFailed, msg) //nolint:errcheck
+		}
 
-	defer conn.Close()
+		defer conn.Close()
 
-	sess, ok := ctx.Value("session").(*session.Session)
-	if !ok {
-		reject(nil, "failed to recover the session created")
-
-		return
-	}
-
-	defer sess.Finish() //nolint:errcheck
-
-	log.WithFields(
-		log.Fields{
-			"uid":      sess.UID,
-			"device":   sess.Device.UID,
-			"username": sess.Username,
-			"ip":       sess.IPAddress,
-		}).Info("session channel started")
-	defer log.WithFields(
-		log.Fields{
-			"uid":      sess.UID,
-			"device":   sess.Device.UID,
-			"username": sess.Username,
-			"ip":       sess.IPAddress,
-		}).Info("session channel done")
-
-	client, clientReqs, err := newChan.Accept()
-	if err != nil {
-		reject(err, "failed to accept the channel opening")
-
-		return
-	}
-
-	defer client.Close()
-
-	agent, agentReqs, err := sess.Agent.OpenChannel(SessionChannel, nil)
-	if err != nil {
-		reject(err, "failed to open the 'session' channel on agent")
-
-		return
-	}
-
-	defer agent.Close()
-
-	mu := new(sync.Mutex)
-
-	started := false
-
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info("context has done")
+		sess, ok := ctx.Value("session").(*session.Session)
+		if !ok {
+			reject(nil, "failed to recover the session created")
 
 			return
-		case req, ok := <-sess.AgentGlobalReqs:
-			if !ok {
-				log.Trace("global requests is closed")
+		}
+
+		defer sess.Finish() //nolint:errcheck
+
+		log.WithFields(
+			log.Fields{
+				"uid":      sess.UID,
+				"device":   sess.Device.UID,
+				"username": sess.Username,
+				"ip":       sess.IPAddress,
+			}).Info("session channel started")
+		defer log.WithFields(
+			log.Fields{
+				"uid":      sess.UID,
+				"device":   sess.Device.UID,
+				"username": sess.Username,
+				"ip":       sess.IPAddress,
+			}).Info("session channel done")
+
+		client, clientReqs, err := newChan.Accept()
+		if err != nil {
+			reject(err, "failed to accept the channel opening")
+
+			return
+		}
+
+		defer client.Close()
+
+		agent, agentReqs, err := sess.Agent.OpenChannel(SessionChannel, nil)
+		if err != nil {
+			reject(err, "failed to open the 'session' channel on agent")
+
+			return
+		}
+
+		defer agent.Close()
+
+		mu := new(sync.Mutex)
+
+		started := false
+
+		for {
+			select {
+			case <-ctx.Done():
+				log.Info("context has done")
 
 				return
-			}
-
-			log.Debugf("global request from agent: %s", req.Type)
-
-			switch req.Type {
-			case KeepAliveRequestType:
-				if err := sess.KeepAlive(); err != nil {
-					log.Error(err)
+			case req, ok := <-sess.AgentGlobalReqs:
+				if !ok {
+					log.Trace("global requests is closed")
 
 					return
 				}
 
-				if err := req.Reply(false, nil); err != nil {
-					log.Error(err)
-				}
-			default:
-				if req.WantReply {
+				log.Debugf("global request from agent: %s", req.Type)
+
+				switch req.Type {
+				case KeepAliveRequestType:
+					if err := sess.KeepAlive(); err != nil {
+						log.Error(err)
+
+						return
+					}
+
 					if err := req.Reply(false, nil); err != nil {
 						log.Error(err)
 					}
-				}
-			}
-		case req, ok := <-clientReqs:
-			if !ok {
-				log.Trace("client requests is closed")
-
-				return
-			}
-
-			log.Debugf("request from client to agent: %s", req.Type)
-
-			ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
-			if err != nil {
-				continue
-			}
-
-			switch req.Type {
-			// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an
-			// application program, or a subsystem with a host-independent name.  **Only one of these requests can
-			// succeed per channel.**
-			//
-			// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-			case ShellRequestType, ExecRequestType, SubsystemRequestType:
-				if !started {
-					// It is RECOMMENDED that the reply to these messages be requested and checked.  The client SHOULD
-					// ignore these messages.
-					//
-					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+				default:
 					if req.WantReply {
-						if err := req.Reply(ok, []byte{}); err != nil {
-							log.WithError(err).Error("failed to reply the client with right response for pipe request type")
-
-							return
+						if err := req.Reply(false, nil); err != nil {
+							log.Error(err)
 						}
+					}
+				}
+			case req, ok := <-clientReqs:
+				if !ok {
+					log.Trace("client requests is closed")
 
-						mu.Lock()
-						started = true
-						mu.Unlock()
+					return
+				}
 
-						log.WithFields(
-							log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Username,
-								"ip":       sess.IPAddress,
-								"type":     req,
-							}).Info("session type set")
+				log.Debugf("request from client to agent: %s", req.Type)
 
-						if req.Type == ShellRequestType {
-							if err := sess.Announce(client); err != nil {
-								log.WithError(err).WithFields(log.Fields{
+				ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
+				if err != nil {
+					continue
+				}
+
+				switch req.Type {
+				// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an
+				// application program, or a subsystem with a host-independent name.  **Only one of these requests can
+				// succeed per channel.**
+				//
+				// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+				case ShellRequestType, ExecRequestType, SubsystemRequestType:
+					if !started {
+						// It is RECOMMENDED that the reply to these messages be requested and checked.  The client SHOULD
+						// ignore these messages.
+						//
+						// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+						if req.WantReply {
+							if err := req.Reply(ok, []byte{}); err != nil {
+								log.WithError(err).Error("failed to reply the client with right response for pipe request type")
+
+								return
+							}
+
+							mu.Lock()
+							started = true
+							mu.Unlock()
+
+							log.WithFields(
+								log.Fields{
 									"uid":      sess.UID,
 									"device":   sess.Device.UID,
 									"username": sess.Username,
 									"ip":       sess.IPAddress,
 									"type":     req,
-								}).Warn("failed to get the namespace announcement")
+								}).Info("session type set")
+
+							if req.Type == ShellRequestType {
+								if err := sess.Announce(client); err != nil {
+									log.WithError(err).WithFields(log.Fields{
+										"uid":      sess.UID,
+										"device":   sess.Device.UID,
+										"username": sess.Username,
+										"ip":       sess.IPAddress,
+										"type":     req,
+									}).Warn("failed to get the namespace announcement")
+								}
 							}
+
+							// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
+							// program.  All input and output from these SHOULD be redirected to the channel or to the
+							// encrypted tunnel.
+							//
+							// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+
+							go pipe(sess, client, agent, req.Type, opts)
 						}
+					} else {
+						log.WithError(err).WithFields(log.Fields{
+							"uid":      sess.UID,
+							"device":   sess.Device.UID,
+							"username": sess.Username,
+							"ip":       sess.IPAddress,
+							"type":     req,
+						}).Warn("tried to start and forbidden request type")
 
-						// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
-						// program.  All input and output from these SHOULD be redirected to the channel or to the
-						// encrypted tunnel.
-						//
-						// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+						if err := req.Reply(false, nil); err != nil {
+							log.WithError(err).Error("failed to reply the client when data pipe already started")
 
-						go pipe(sess, client, agent, req.Type)
+							return
+						}
 					}
-				} else {
-					log.WithError(err).WithFields(log.Fields{
-						"uid":      sess.UID,
-						"device":   sess.Device.UID,
-						"username": sess.Username,
-						"ip":       sess.IPAddress,
-						"type":     req,
-					}).Warn("tried to start and forbidden request type")
+				case PtyRequestType:
+					var pty session.Pty
 
-					if err := req.Reply(false, nil); err != nil {
-						log.WithError(err).Error("failed to reply the client when data pipe already started")
-
-						return
+					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
+						reject(nil, "failed to recover the session dimensions")
 					}
-				}
-			case PtyRequestType:
-				var pty session.Pty
 
-				if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-					reject(nil, "failed to recover the session dimensions")
-				}
+					sess.Pty = pty
 
-				sess.Pty = pty
+					if req.WantReply {
+						// req.Reply(ok, nil) //nolint:errcheck
+						if err := req.Reply(ok, nil); err != nil {
+							log.WithError(err).Error("failed to reply for pty-req")
 
-				if req.WantReply {
-					// req.Reply(ok, nil) //nolint:errcheck
-					if err := req.Reply(ok, nil); err != nil {
-						log.WithError(err).Error("failed to reply for pty-req")
-
-						return
+							return
+						}
 					}
-				}
-			case WindowChangeRequestType:
-				var dimensions session.Dimensions
+				case WindowChangeRequestType:
+					var dimensions session.Dimensions
 
-				if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-					reject(nil, "failed to recover the session dimensions")
-				}
+					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
+						reject(nil, "failed to recover the session dimensions")
+					}
 
-				sess.Pty.Columns = dimensions.Columns
-				sess.Pty.Rows = dimensions.Rows
+					sess.Pty.Columns = dimensions.Columns
+					sess.Pty.Rows = dimensions.Rows
 
-				if req.WantReply {
-					req.Reply(ok, nil) //nolint:errcheck
-				}
-			default:
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						log.WithError(err).Error("failed to reply for window-change")
+					if req.WantReply {
+						req.Reply(ok, nil) //nolint:errcheck
+					}
+				default:
+					if req.WantReply {
+						if err := req.Reply(ok, nil); err != nil {
+							log.WithError(err).Error("failed to reply for window-change")
 
-						return
+							return
+						}
 					}
 				}
-			}
-		case req, ok := <-agentReqs:
-			if !ok {
-				log.Trace("agent requests is closed")
-
-				return
-			}
-
-			log.Debugf("request from agent to client: %s", req.Type)
-
-			ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
-			if err != nil {
-				continue
-			}
-
-			if req.WantReply {
-				if err := req.Reply(ok, nil); err != nil {
-					log.WithError(err).Error("failed to reply the agent request")
+			case req, ok := <-agentReqs:
+				if !ok {
+					log.Trace("agent requests is closed")
 
 					return
+				}
+
+				log.Debugf("request from agent to client: %s", req.Type)
+
+				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
+				if err != nil {
+					continue
+				}
+
+				if req.WantReply {
+					if err := req.Reply(ok, nil); err != nil {
+						log.WithError(err).Error("failed to reply the agent request")
+
+						return
+					}
 				}
 			}
 		}
