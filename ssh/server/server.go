@@ -45,7 +45,11 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,
 		// and securely forwarding network services.
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			channels.SessionChannel:     channels.DefaultSessionHandler,
+			channels.SessionChannel: channels.DefaultSessionHandler(
+				channels.DefaultSessionHandlerOptions{
+					RecordURL: opts.RecordURL,
+				},
+			),
 			channels.DirectTCPIPChannel: channels.DefaultDirectTCPIPHandler,
 		},
 		LocalPortForwardingCallback: func(ctx gliderssh.Context, dhost string, dport uint32) bool {
