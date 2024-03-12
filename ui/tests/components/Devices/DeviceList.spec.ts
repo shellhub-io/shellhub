@@ -1,7 +1,7 @@
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
+import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import DeviceList from "@/components/Devices/DeviceList.vue";
 import { envVariables } from "@/envVariables";
@@ -156,10 +156,6 @@ describe("Device List", () => {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
     });
-  });
-
-  afterEach(() => {
-    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
