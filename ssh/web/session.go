@@ -1,4 +1,4 @@
-package handlers
+package web
 
 import (
 	"bytes"
@@ -11,14 +11,13 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
-	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
 // getAuth gets the authentication methods from credentials.
-func getAuth(creds *web.Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
-	if creds.IsPassword() {
+func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
+	if creds.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
 
@@ -71,7 +70,7 @@ func getAuth(creds *web.Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
-func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info web.Info) error {
+func newSession(conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
 	log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -150,7 +149,7 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 		defer agent.Close()
 
 		for {
-			var message web.Message
+			var message Message
 
 			if _, err := conn.ReadMessage(&message); err != nil {
 				if errors.Is(err, io.EOF) {
@@ -168,7 +167,7 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 			}
 
 			switch message.Kind {
-			case web.MessageKindInput:
+			case messageKindInput:
 				buffer := message.Data.([]byte)
 
 				if _, err := stdin.Write(buffer); err != nil {
@@ -176,8 +175,8 @@ func WebSession(conn *web.Conn, creds *web.Credentials, dim web.Dimensions, info
 
 					return
 				}
-			case web.MessageKindResize:
-				dim := message.Data.(web.Dimensions)
+			case messageKindResize:
+				dim := message.Data.(Dimensions)
 
 				if err := agent.WindowChange(dim.Rows, dim.Cols); err != nil {
 					log.WithFields(

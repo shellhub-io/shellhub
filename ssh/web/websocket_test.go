@@ -48,7 +48,7 @@ func TestGetToken(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			req, _ := http.NewRequest("", test.uri, nil)
 
-			token, err := GetToken(req)
+			token, err := getToken(req)
 
 			assert.Equal(t, test.expected.token, token)
 			assert.ErrorIs(t, err, test.expected.err)
@@ -155,7 +155,7 @@ func TestGetDimensions(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			req, _ := http.NewRequest("", test.uri, nil)
 
-			cols, rows, err := GetDimensions(req)
+			cols, rows, err := getDimensions(req)
 
 			assert.Equal(t, test.expected.cols, cols)
 			assert.Equal(t, test.expected.rows, rows)
@@ -214,7 +214,7 @@ func TestGetIP(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			ip, err := GetIP(test.req)
+			ip, err := getIP(test.req)
 
 			assert.Equal(t, test.expected.ip, ip)
 			assert.ErrorIs(t, err, test.expected.err)

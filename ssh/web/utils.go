@@ -20,9 +20,7 @@ type Credentials struct {
 	Signature   string `json:"signature"`
 }
 
-var ErrCreditialsNoPassword = errors.New("this creditials does not have a password defined")
-
-func (c *Credentials) EncryptPassword(key *rsa.PrivateKey) error {
+func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {
 	if c.Password == "" {
 		return ErrCreditialsNoPassword
 	}
@@ -37,7 +35,7 @@ func (c *Credentials) EncryptPassword(key *rsa.PrivateKey) error {
 	return nil
 }
 
-func (c *Credentials) DecryptPassword(key *rsa.PrivateKey) error {
+func (c *Credentials) decryptPassword(key *rsa.PrivateKey) error {
 	if c.Password == "" {
 		return ErrCreditialsNoPassword
 	}
@@ -57,12 +55,12 @@ func (c *Credentials) DecryptPassword(key *rsa.PrivateKey) error {
 	return nil
 }
 
-func (c *Credentials) IsPublicKey() bool { // nolint: unused
+func (c *Credentials) isPublicKey() bool { // nolint: unused
 	return c.Fingerprint != "" && c.Signature != ""
 }
 
 // isPassword checks if connection is using password method.
-func (c *Credentials) IsPassword() bool {
+func (c *Credentials) isPassword() bool {
 	return c.Password != ""
 }
 

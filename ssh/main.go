@@ -15,7 +15,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	sshTunnel "github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/ssh/server"
-	"github.com/shellhub-io/shellhub/ssh/server/handlers"
 	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -117,25 +116,11 @@ func main() {
 		return nil
 	})
 
-	bridge := web.NewBridge(router.Router())
-	bridge.Handle(func(
-		conn *web.Conn,
-		creds *web.Credentials,
-		token string,
-		cols, rows int,
-		ip string,
-	) error { //nolint:whitespace
-		return handlers.WebSession(
-			conn,
-			creds,
-			web.Dimensions{Cols: cols, Rows: rows},
-			web.Info{IP: ip},
-		)
-	})
-
 	router.GET("/healthcheck", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
+
+	web.NewSSHServerBridge(router.Router())
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

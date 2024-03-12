@@ -58,7 +58,7 @@ func TestConnReadMessage_input(t *testing.T) {
 					b := args.Get(0).([]byte)
 
 					buf, _ := json.Marshal(Message{
-						Kind: MessageKindInput,
+						Kind: messageKindInput,
 						Data: []byte("a"),
 					})
 
@@ -67,7 +67,7 @@ func TestConnReadMessage_input(t *testing.T) {
 			},
 			expect: Expected{
 				message: &Message{
-					Kind: MessageKindInput,
+					Kind: messageKindInput,
 					Data: []byte("a"),
 				},
 				read: 24,
@@ -138,7 +138,7 @@ func TestConnReadMessage_resize(t *testing.T) {
 					b := args.Get(0).([]byte)
 
 					buf, _ := json.Marshal(Message{
-						Kind: MessageKindResize,
+						Kind: messageKindResize,
 						Data: Dimensions{Cols: 100, Rows: 50},
 					})
 
@@ -148,7 +148,7 @@ func TestConnReadMessage_resize(t *testing.T) {
 			expect: Expected{
 				message: func() *Message {
 					return &Message{
-						Kind: MessageKindResize,
+						Kind: messageKindResize,
 						Data: Dimensions{Cols: 100, Rows: 50},
 					}
 				}(),

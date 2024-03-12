@@ -6,13 +6,7 @@ import (
 	"strconv"
 )
 
-var (
-	ErrGetToken      = errors.New("token not found on request query")
-	ErrGetIP         = errors.New("ip not found on request query")
-	ErrGetDimensions = errors.New("failed to get a terminal dimension")
-)
-
-func GetToken(req *http.Request) (string, error) {
+func getToken(req *http.Request) (string, error) {
 	token := req.URL.Query().Get("token")
 
 	if token == "" {
@@ -22,7 +16,7 @@ func GetToken(req *http.Request) (string, error) {
 	return token, nil
 }
 
-func GetDimensions(req *http.Request) (int, int, error) {
+func getDimensions(req *http.Request) (int, int, error) {
 	toUint8 := func(text string) (uint64, error) {
 		integer, err := strconv.ParseUint(text, 10, 8)
 		if err != nil {
@@ -45,7 +39,7 @@ func GetDimensions(req *http.Request) (int, int, error) {
 	return int(cols), int(rows), nil
 }
 
-func GetIP(req *http.Request) (string, error) {
+func getIP(req *http.Request) (string, error) {
 	ip := req.Header.Get("X-Real-Ip")
 	if ip == "" {
 		return "", ErrGetIP
