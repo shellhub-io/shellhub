@@ -18,21 +18,22 @@
       min-width="55vw"
       @click:outside="close"
     >
-      <v-card data-test="terminal-dialog" class="bg-v-theme-surface">
+      <v-card data-test="terminal-card" class="bg-v-theme-surface">
         <v-card-title
           class="text-h5 pa-4 bg-primary d-flex align-center justify-center"
         >
           Terminal
           <v-spacer />
-          <v-icon @click="close()" class="bg-primary" size="24">mdi-close</v-icon>
+          <v-icon @click="close()" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
         </v-card-title>
 
         <div class="mt-2" v-if="showLoginForm">
           <v-tabs align-tabs="center" color="primary" v-model="tabActive">
-            <v-tab value="Password" @click="resetFieldValidation">Password</v-tab>
+            <v-tab value="Password" data-test="password-tab" @click="resetFieldValidation">Password</v-tab>
             <v-tab
-              value="PublicKey"
+              value="PrivateKey"
               @click="resetFieldValidation"
+              data-test="private-key-tab"
             >Private Key</v-tab
             >
           </v-tabs>
@@ -61,7 +62,7 @@
                     label="Password"
                     required
                     variant="underlined"
-                    data-test="password-text"
+                    data-test="password-field"
                     :type="showPassword ? 'text' : 'password'"
                     @click:append-inner="showPassword = !showPassword"
                   />
@@ -81,11 +82,10 @@
                 </v-form>
               </v-window-item>
 
-              <v-window-item value="PublicKey">
+              <v-window-item value="PrivateKey">
                 <v-form
                   lazy-validation
-                  @submit.prevent="connectWithPrivateKey()"
-                >
+                  @submit.prevent="connectWithPrivateKey()">
                   <v-text-field
                     v-model="username"
                     :error-messages="usernameError"
@@ -93,7 +93,7 @@
                     autofocus
                     variant="underlined"
                     :validate-on-blur="true"
-                    data-test="username-field"
+                    data-test="username-field-pk"
                   />
 
                   <v-select
@@ -113,7 +113,7 @@
                       color="primary"
                       class="mt-4"
                       variant="flat"
-                      data-test="connect2-btn"
+                      data-test="connect2-btn-pk"
                     >
                       Connect
                     </v-btn>
@@ -136,7 +136,6 @@ import {
   ref,
   computed,
   watch,
-  nextTick,
   onUnmounted,
 } from "vue";
 import { useField } from "vee-validate";
@@ -223,14 +222,7 @@ const nameOfPrivateKeys = computed(() => {
 });
 
 watch(showTerminal, (value) => {
-  if (!value) {
-    if (ws.value) ws.value.close();
-    if (xterm.value) {
-      xterm.value.dispose();
-    }
-  } else {
-    showLoginForm.value = true;
-  }
+  if (value) showLoginForm.value = true;
 });
 
 const encodeURLParams = (params: IParams) => Object.entries(params)
@@ -255,7 +247,6 @@ const connect = async (params: IConnectToTerminal) => {
   const { token } = response.data;
 
   showLoginForm.value = false;
-  nextTick(() => fitAddon.value.fit());
 
   if (!xterm.value.element) {
     xterm.value.open(terminal.value);
@@ -373,16 +364,20 @@ const connectWithPrivateKey = async () => {
 };
 
 const close = () => {
+  if (ws.value.OPEN) {
+    ws.value.close();
+  }
   showTerminal.value = false;
-  store.dispatch("modal/toggleTerminal", "");
+  xterm.value.clear();
   resetFieldValidation();
+  store.dispatch("modal/toggleTerminal", "");
 };
 
 onUnmounted(() => {
   close();
 });
 
-defineExpose({ open });
+defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
 
 <!-- <style lang="scss" scoped>
