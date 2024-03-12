@@ -312,6 +312,10 @@ const connect = async (params: IConnectToTerminal) => {
 
         ws.value.send(JSON.stringify(message));
       });
+
+      ws.value.onclose = () => {
+        xterm.value.writeln("Connection ended");
+      };
 };
 
 const open = () => {
