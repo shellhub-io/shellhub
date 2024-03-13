@@ -1,0 +1,48 @@
+#!/bin/sh
+
+set -e
+
+# Print the usage when none arguments are provided.
+if [ "$#" -eq 0 ]; then
+    cat <<EOF
+Runs a native agent with the provided git tag. Optionally, it can receive [tenant_id] and [server_address] parameters, which are used during agent initialization. Leave these parameters blank for default values.
+
+Usage:
+    $0 <tag> [tenant_id] [server_address]
+Examples:
+    $0 v0.15.0
+    $0 v0.14.2 00000000-0000-4000-0000-000000000000 http://127.0.0.1
+EOF
+    exit 0
+fi
+
+. "$(dirname "$0")/utils"
+
+tag=$1
+
+if [ ! -d ./bin/agent ]; then
+    mkdir ./bin/agent
+fi
+
+# If the tag binary does not exist, we need to build one.
+if [ ! -f ./bin/agent/$tag ]; then
+    echo "No '$tag' agent found. Building one."
+
+    check_bin "git"
+    branch=$(git symbolic-ref --short HEAD)
+
+    (
+        git checkout $tag
+
+        cd ./agent
+        go build -ldflags "-X main.AgentVersion=${tag:1}" -o "./../bin/agent/$tag" # Remove the 'v' from the beginning of the tag.
+        cd ./..
+
+        git switch $branch
+    )
+fi
+
+tenant_id=${2:-00000000-0000-4000-0000-000000000000}
+server_address=${3:-http://127.0.0.1}
+
+TENANT_ID=$tenant_id SERVER_ADDRESS=$server_address PRIVATE_KEY=/tmp/test.pk sudo -E ./bin/agent/$tag
