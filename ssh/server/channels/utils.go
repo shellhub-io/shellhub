@@ -23,14 +23,9 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, req 
 	c := io.MultiReader(client, client.Stderr())
 	a := io.MultiReader(agent, agent.Stderr())
 
-	once := new(sync.Once)
-
 	go func() {
 		defer wg.Done()
-		defer once.Do(func() {
-			agent.Close()
-			client.Close()
-		})
+		defer client.CloseWrite() //nolint:errcheck
 
 		if req == ShellRequestType {
 			buffer := make([]byte, 1024)
@@ -83,10 +78,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, req 
 
 	go func() {
 		defer wg.Done()
-		defer once.Do(func() {
-			agent.Close()
-			client.Close()
-		})
+		defer agent.CloseWrite() //nolint:errcheck
 
 		if _, err := io.Copy(agent, c); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
