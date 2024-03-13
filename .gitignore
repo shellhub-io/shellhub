@@ -16,3 +16,6 @@ go.work
 go.work.sum
 connector/.keys
 connector/connector
+
+# Directory used by devscripts/run-agent to store binaries
+bin/agent

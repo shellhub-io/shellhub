@@ -17,3 +17,4 @@ They are not intented for regular use by end users.
 * `lint-code`: Run code linter
 * `test-unit`: Run unit test
 * `gen-mock`: Generate/update mock objects for testing
+* `run-agent`: Runs a native agent, building if necessary, with the provided tag.
