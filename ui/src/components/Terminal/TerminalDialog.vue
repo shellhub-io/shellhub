@@ -136,7 +136,6 @@ import {
   ref,
   computed,
   watch,
-  onUnmounted,
 } from "vue";
 import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
@@ -372,10 +371,6 @@ const close = () => {
   resetFieldValidation();
   store.dispatch("modal/toggleTerminal", "");
 };
-
-onUnmounted(() => {
-  close();
-});
 
 defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
