@@ -60,13 +60,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 		defer conn.Close()
 
-		sess, ok := ctx.Value("session").(*session.Session)
-		if !ok {
-			newChan.Reject(gossh.ConnectionFailed, "failed to recover the session created") //nolint:errcheck
-
-			return
-		}
-
+		sess, _ := session.ObtainSession(ctx)
 		defer sess.Finish() //nolint:errcheck
 
 		reject := func(err error, msg string) {
@@ -74,7 +68,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				log.Fields{
 					"uid":      sess.UID,
 					"device":   sess.Device.UID,
-					"username": sess.Username,
+					"username": sess.Target.Username,
 					"ip":       sess.IPAddress,
 				}).Error(msg)
 
@@ -85,14 +79,14 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 			log.Fields{
 				"uid":      sess.UID,
 				"device":   sess.Device.UID,
-				"username": sess.Username,
+				"username": sess.Target.Username,
 				"ip":       sess.IPAddress,
 			}).Info("session channel started")
 		defer log.WithFields(
 			log.Fields{
 				"uid":      sess.UID,
 				"device":   sess.Device.UID,
-				"username": sess.Username,
+				"username": sess.Target.Username,
 				"ip":       sess.IPAddress,
 			}).Info("session channel done")
 
@@ -125,7 +119,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.Fields{
 						"uid":      sess.UID,
 						"device":   sess.Device.UID,
-						"username": sess.Username,
+						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
 					}).Info("context has done")
 
@@ -136,7 +130,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
-							"username": sess.Username,
+							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
 						}).Trace("global requests is closed")
 
@@ -147,7 +141,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.Fields{
 						"uid":      sess.UID,
 						"device":   sess.Device.UID,
-						"username": sess.Username,
+						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
 					}).Debugf("global request from agent: %s", req.Type)
 
@@ -158,7 +152,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.Fields{
 								"uid":      sess.UID,
 								"device":   sess.Device.UID,
-								"username": sess.Username,
+								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
 							}).Error(err)
 
@@ -170,7 +164,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.Fields{
 								"uid":      sess.UID,
 								"device":   sess.Device.UID,
-								"username": sess.Username,
+								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
 							}).Error(err)
 
@@ -183,7 +177,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 								log.Fields{
 									"uid":      sess.UID,
 									"device":   sess.Device.UID,
-									"username": sess.Username,
+									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
 								}).Error(err)
 						}
@@ -195,7 +189,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
-							"username": sess.Username,
+							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
 						}).Trace("client requests is closed")
 
@@ -206,7 +200,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.Fields{
 						"uid":      sess.UID,
 						"device":   sess.Device.UID,
-						"username": sess.Username,
+						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
 					}).Debugf("request from client to agent: %s", req.Type)
 
@@ -216,7 +210,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
-							"username": sess.Username,
+							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
 						}).Error("failed to send the request from client to agent")
 
@@ -241,7 +235,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 									log.Fields{
 										"uid":      sess.UID,
 										"device":   sess.Device.UID,
-										"username": sess.Username,
+										"username": sess.Target.Username,
 										"ip":       sess.IPAddress,
 									}).Error("failed to reply the client with right response for pipe request type")
 
@@ -256,7 +250,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 								log.Fields{
 									"uid":      sess.UID,
 									"device":   sess.Device.UID,
-									"username": sess.Username,
+									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
 									"type":     req.Type,
 								}).Info("session type set")
@@ -266,7 +260,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 									log.WithError(err).WithFields(log.Fields{
 										"uid":      sess.UID,
 										"device":   sess.Device.UID,
-										"username": sess.Username,
+										"username": sess.Target.Username,
 										"ip":       sess.IPAddress,
 										"type":     req,
 									}).Warn("failed to get the namespace announcement")
@@ -284,7 +278,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.WithError(err).WithFields(log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
-							"username": sess.Username,
+							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
 							"type":     req,
 						}).Warn("tried to start and forbidden request type")
@@ -294,7 +288,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 								log.Fields{
 									"uid":      sess.UID,
 									"device":   sess.Device.UID,
-									"username": sess.Username,
+									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
 								}).Error("failed to reply the client when data pipe already started")
 
@@ -338,7 +332,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 								log.Fields{
 									"uid":      sess.UID,
 									"device":   sess.Device.UID,
-									"username": sess.Username,
+									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
 								}).Error("failed to reply for window-change")
 
@@ -352,7 +346,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
-							"username": sess.Username,
+							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
 						}).Trace("agent requests is closed")
 
@@ -363,7 +357,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.Fields{
 						"uid":      sess.UID,
 						"device":   sess.Device.UID,
-						"username": sess.Username,
+						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
 					}).Debugf("request from agent to client: %s", req.Type)
 
@@ -373,7 +367,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
-							"username": sess.Username,
+							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
 						}).Error("failed to send the request from agent to client")
 
@@ -386,7 +380,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.Fields{
 								"uid":      sess.UID,
 								"device":   sess.Device.UID,
-								"username": sess.Username,
+								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
 							}).Error("failed to reply the agent request")
 

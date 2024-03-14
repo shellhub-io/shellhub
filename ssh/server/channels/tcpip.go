@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -15,11 +14,11 @@ import (
 // DefaultDirectTCPIPHandler is the channel's handler for direct-tcpip channels like "local port forwarding" and "dynamic
 // application-level port forwarding".
 func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
-	target := metadata.RestoreTarget(ctx)
+	sess, _ := session.ObtainSession(ctx)
 
 	log.WithFields(log.Fields{
-		"username": target.Username,
-		"sshid":    target.Data,
+		"username": sess.Target.Username,
+		"sshid":    sess.Target.Data,
 	}).Info("handling direct-tcpip channel")
 
 	type channelData struct {
@@ -33,8 +32,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	if err := gossh.Unmarshal(newChan.ExtraData(), data); err != nil {
 		newChan.Reject(gossh.ConnectionFailed, "faild to parse forward data: "+err.Error()) //nolint:errcheck
 		log.WithError(err).WithFields(log.Fields{
-			"username":    target.Username,
-			"sshid":       target.Data,
+			"username":    sess.Target.Username,
+			"sshid":       sess.Target.Data,
 			"origin_port": data.OriginAddr,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
@@ -47,8 +46,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	if server.LocalPortForwardingCallback == nil || !server.LocalPortForwardingCallback(ctx, data.DestAddr, data.DestPort) {
 		newChan.Reject(gossh.Prohibited, "port forwarding is disabled") //nolint:errcheck
 		log.WithFields(log.Fields{
-			"username":    target.Username,
-			"sshid":       target.Data,
+			"username":    sess.Target.Username,
+			"sshid":       sess.Target.Data,
 			"origin_port": data.OriginAddr,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
@@ -64,14 +63,14 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	// In such instances, a new connection to the agent is generated and saved in the metadata for
 	// subsequent use.
 	// An illustrative scenario is when the SSH connection is initiated with the "-N" flag.
-	connection := ctx.Value("session").(*session.Session).Agent
+	connection := sess.Agent
 
 	agent, err := connection.Dial("tcp", dest)
 	if err != nil {
 		newChan.Reject(gossh.ConnectionFailed, "failed dialing the agent to host and port: "+err.Error()) //nolint:errcheck
 		log.WithError(err).WithFields(log.Fields{
-			"username":    target.Username,
-			"sshid":       target.Data,
+			"username":    sess.Target.Username,
+			"sshid":       sess.Target.Data,
 			"origin_port": data.OriginAddr,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
@@ -85,8 +84,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	if err != nil {
 		newChan.Reject(gossh.ConnectionFailed, "failed accepting the channel: "+err.Error()) //nolint:errcheck
 		log.WithError(err).WithFields(log.Fields{
-			"username":    target.Username,
-			"sshid":       target.Data,
+			"username":    sess.Target.Username,
+			"sshid":       sess.Target.Data,
 			"origin_port": data.OriginAddr,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
@@ -99,8 +98,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	go gossh.DiscardRequests(reqs)
 
 	log.WithFields(log.Fields{
-		"username":    target.Username,
-		"sshid":       target.Data,
+		"username":    sess.Target.Username,
+		"sshid":       sess.Target.Data,
 		"origin_port": data.OriginAddr,
 		"origin_addr": data.OriginPort,
 		"dest_port":   data.DestPort,
@@ -110,8 +109,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	// TODO: control the running state of these goroutines.
 	go func() {
 		log.WithFields(log.Fields{
-			"username":    target.Username,
-			"sshid":       target.Data,
+			"username":    sess.Target.Username,
+			"sshid":       sess.Target.Data,
 			"origin_port": data.OriginAddr,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
@@ -123,8 +122,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	}()
 	go func() {
 		log.WithFields(log.Fields{
-			"username":    target.Username,
-			"sshid":       target.Data,
+			"username":    sess.Target.Username,
+			"sshid":       sess.Target.Data,
 			"origin_port": data.OriginAddr,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
