@@ -1,8 +1,6 @@
 package session
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -18,7 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
-	"github.com/shellhub-io/shellhub/ssh/pkg/metadata"
+	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -41,8 +39,7 @@ type Pty struct {
 }
 
 type Data struct {
-	// Username is the user on the device.
-	Username string
+	Target *target.Target
 	// SSHID is the combination of device's name and namespace name.
 	SSHID string
 	// Device is the device connected.
@@ -76,17 +73,160 @@ type Session struct {
 	Data
 }
 
-func (s *Session) checkFirewall() (bool, error) {
-	if envs.IsCloud() || envs.IsEnterprise() {
-		if err := s.api.FirewallEvaluate(s.Data.Lookup); err != nil {
-			switch {
-			case errors.Is(err, internalclient.ErrFirewallConnection):
-				return false, errors.Join(ErrFirewallConnection, err)
-			case errors.Is(err, internalclient.ErrFirewallBlock):
-				return false, errors.Join(ErrFirewallBlock, err)
-			default:
-				return false, errors.Join(ErrFirewallUnknown, err)
+// New creates a new [Session] based on the provided context, connecting to the agent and
+// authenticating it.
+//
+// As a client may try to create N sessions with the same context, a [snapshot] is used
+// to save/retrieve the current session state. To illustrate a practical use of this
+// pattern you can imagine a client that wants to connect to a specified device. It first
+// calls the `PublicKeyHandler` with a specified context. At this stage, there are no
+// sessions associated with the provided context, and a new one will be created. If it
+// fails, the same client (and consequently the same context) will call the
+// `PasswordHandler`, which also calls `session.New`. Since we have already created a
+// session in the previous authentication attempt, instead of repeating all operations,
+// we can safely retrieve the same session again but attempt authentication with a
+// password this time.
+//
+// Next steps can use the context's snapshot to retrieve the created session. An error is
+// returned if any occurs.
+func New(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, auth Auth) (*Session, error) {
+	var err error
+	snap := getSnapshot(ctx)
+
+	// The following code is structured to be read from top to bottom, disregarding the
+	// switch and case statements. These statements serve as a "cache" for handling
+	// different states efficiently.
+	sess, state := snap.retrieve()
+	switch state {
+	case StateNil:
+		if sess, err = newSession(ctx); err != nil {
+			return nil, err
+		}
+
+		if envs.IsCloud() || envs.IsEnterprise() {
+			if ok, err := sess.checkFirewall(); err != nil || !ok {
+				return nil, err
 			}
+
+			if envs.HasBilling() {
+				if ok, err := sess.checkBilling(); err != nil || !ok {
+					return nil, err
+				}
+			}
+		}
+
+		if sess.Dialed, err = sess.dial(ctx, tunnel); err != nil {
+			return nil, ErrDial
+		}
+
+		snap.save(sess, StateCreated)
+
+		if err := auth.Evaluate(sess); err != nil {
+			return nil, err
+		}
+
+		fallthrough
+	case StateCreated:
+		if err := sess.register(); err != nil {
+			return nil, err
+		}
+
+		snap.save(sess, StateRegistered)
+
+		fallthrough
+	case StateRegistered:
+		if err := sess.connectAgent(auth.Auth()); err != nil {
+			return nil, err
+		}
+
+		snap.save(sess, StateConnected)
+
+		fallthrough
+	case StateConnected:
+		if err := sess.authenticate(); err != nil {
+			return nil, err
+		}
+	}
+
+	snap.save(sess, StateFinished)
+
+	return sess, nil
+}
+
+// newSession creates a new Session but differs from [New] as it only creates
+// the session without registering, connecting to the agent and etc.
+//
+// It's designed to be used within New.
+func newSession(ctx gliderssh.Context) (*Session, error) {
+	api := internalclient.NewClient()
+	sshid := ctx.User()
+
+	target, err := target.NewTarget(sshid)
+	if err != nil {
+		return nil, err
+	}
+
+	var namespace, hostname string
+	if target.IsSSHID() {
+		namespace, hostname, err = target.SplitSSHID()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		device, err := api.GetDevice(target.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		namespace = device.Namespace
+		hostname = device.Name
+	}
+
+	lookup := map[string]string{
+		"domain": namespace,
+		"name":   hostname,
+	}
+
+	device, errs := api.DeviceLookup(lookup)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	hos, err := host.NewHost(ctx.RemoteAddr().String())
+	if err != nil {
+		log.WithError(err).
+			Error("failed to create a new host")
+
+		return nil, ErrHost
+	}
+
+	session := &Session{
+		UID: ctx.SessionID(),
+		api: api,
+		Data: Data{
+			IPAddress: hos.Host,
+			Target:    target,
+			Device:    device,
+			Lookup:    lookup,
+			SSHID:     ctx.User(),
+		},
+	}
+
+	session.Data.Lookup["username"] = target.Username
+	session.Data.Lookup["ip_address"] = hos.Host
+
+	return session, nil
+}
+
+func (s *Session) checkFirewall() (bool, error) {
+	if err := s.api.FirewallEvaluate(s.Data.Lookup); err != nil {
+		switch {
+		case errors.Is(err, internalclient.ErrFirewallConnection):
+			return false, errors.Join(ErrFirewallConnection, err)
+		case errors.Is(err, internalclient.ErrFirewallBlock):
+			return false, errors.Join(ErrFirewallBlock, err)
+		default:
+			return false, errors.Join(ErrFirewallUnknown, err)
 		}
 	}
 
@@ -94,27 +234,25 @@ func (s *Session) checkFirewall() (bool, error) {
 }
 
 func (s *Session) checkBilling() (bool, error) {
-	if envs.IsCloud() && envs.HasBilling() {
-		device, err := s.api.GetDevice(s.Device.UID)
-		if err != nil {
-			return false, errors.Join(ErrFindDevice, err)
-		}
+	device, err := s.api.GetDevice(s.Device.UID)
+	if err != nil {
+		return false, errors.Join(ErrFindDevice, err)
+	}
 
-		if evaluatation, status, _ := s.api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
-			return false, errors.Join(ErrBillingBlock, err)
-		}
+	if evaluatation, status, _ := s.api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
+		return false, errors.Join(ErrBillingBlock, err)
 	}
 
 	return true, nil
 }
 
-func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, device string, session string) (net.Conn, error) {
-	dialed, err := tunnel.Dial(ctx, device)
+func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (net.Conn, error) {
+	dialed, err := tunnel.Dial(ctx, s.Device.UID)
 	if err != nil {
 		return nil, errors.Join(ErrDial, err)
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", session), nil)
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
 	if err = req.Write(dialed); err != nil {
 		return nil, err
 	}
@@ -122,58 +260,36 @@ func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, device 
 	return dialed, nil
 }
 
-// NewSession creates a new session to connect the agent, validating data, instance and payment.
+// registerAPISession registers a new session on the API.
+func (s *Session) register() error {
+	err := s.api.SessionCreate(requests.SessionCreate{
+		UID:       s.UID,
+		DeviceUID: s.Device.UID,
+		Username:  s.Target.Username,
+		IPAddress: s.IPAddress,
+		Type:      "none",
+		Term:      "none",
+	})
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Error("Error when trying to register the client on API")
+
+		return err
+	}
+
+	return nil
+}
+
+// Authenticate marks the session as authenticated on the API.
 //
-// This function is used to create a new session when the client is not available, what is true when the SSH client
-// indicate that the request type is `none` or in the case of a port forwarding
-func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
-	hos, err := host.NewHost(ctx.RemoteAddr().String())
-	if err != nil {
-		return nil, ErrHost
+// It returns an error if authentication fails.
+func (s *Session) authenticate() error {
+	if errs := s.api.SessionAsAuthenticated(s.UID); len(errs) > 0 {
+		return errs[0]
 	}
 
-	uid := ctx.Value(gliderssh.ContextKeySessionID).(string) //nolint:forcetypeassert
-	session := &Session{
-		UID: uid,
-		api: metadata.RestoreAPI(ctx),
-		Data: Data{
-			Username:  metadata.RestoreTarget(ctx).Username,
-			IPAddress: hos.Host,
-			Device:    metadata.RestoreDevice(ctx),
-			Lookup:    metadata.RestoreLookup(ctx),
-			SSHID:     metadata.MaybeStoreSSHID(ctx, ctx.User()),
-		},
-	}
-
-	session.Data.Lookup["username"] = session.Data.Username
-	session.Data.Lookup["ip_address"] = session.IPAddress
-
-	if ok, err := session.checkFirewall(); err != nil || !ok {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
-			Error("Error when trying to evaluate firewall rules")
-
-		return nil, err
-	}
-
-	if ok, err := session.checkBilling(); err != nil || !ok {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
-			Error("Error when trying to evaluate billing")
-
-		return nil, err
-	}
-
-	session.Dialed, err = session.dial(ctx, tunnel, session.Device.UID, uid)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": uid, "sshid": session.Data.Username}).
-			Error("Error when trying to dial")
-
-		return nil, ErrDial
-	}
-
-	return session, nil
+	return nil
 }
 
 // NewAgentConnection creates a new connection to the agent.
@@ -199,7 +315,54 @@ func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 		return err
 	}
 
-	if err := s.Register(); err != nil {
+	if config.Timeout > 0 {
+		if err := s.Dialed.SetReadDeadline(time.Time{}); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Error("Error when trying to set dial deadline with Time{}")
+
+			return err
+		}
+	}
+
+	ch := make(chan *gossh.Request)
+	close(ch)
+
+	s.Agent = gossh.NewClient(conn, chans, ch)
+	s.AgentGlobalReqs = reqs
+
+	return nil
+}
+
+// connectAgent connects the session's client to the session's agent.
+func (s *Session) connectAgent(authOpt authFunc) error {
+	config := &gossh.ClientConfig{
+		User:            s.Target.Username,
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
+	}
+
+	if err := authOpt(s, config); err != nil {
+		return errors.New("failed to generate the authentication information")
+	}
+
+	const Addr = "tcp"
+
+	if config.Timeout > 0 {
+		if err := s.Dialed.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Error("Error when trying to set dial deadline")
+
+			return err
+		}
+	}
+
+	conn, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID}).
+			Error("Error when trying to create the client's connection")
+
 		return err
 	}
 
@@ -218,38 +381,6 @@ func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
 
 	s.Agent = gossh.NewClient(conn, chans, ch)
 	s.AgentGlobalReqs = reqs
-
-	return s.Authenticate()
-}
-
-// registerAPISession registers a new session on the API.
-func (s *Session) Register() error {
-	err := s.api.SessionCreate(requests.SessionCreate{
-		UID:       s.UID,
-		DeviceUID: s.Device.UID,
-		Username:  s.Username,
-		IPAddress: s.IPAddress,
-		Type:      "none",
-		Term:      "none",
-	})
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-			Error("Error when trying to register the client on API")
-
-		return err
-	}
-
-	return nil
-}
-
-// Authenticate marks the session as authenticated on the API.
-//
-// It returns an error if authentication fails.
-func (s *Session) Authenticate() error {
-	if errs := s.api.SessionAsAuthenticated(s.UID); len(errs) > 0 {
-		return errs[0]
-	}
 
 	return nil
 }
@@ -332,72 +463,4 @@ func (s *Session) Finish() error {
 	}
 
 	return nil
-}
-
-type ClientConfigurationAuthentication func(gliderssh.Context, *gossh.ClientConfig) error
-
-func ClientConfigurationAuthenticationPassword(password string) ClientConfigurationAuthentication {
-	return func(ctx gliderssh.Context, config *gossh.ClientConfig) error {
-		config.Auth = []gossh.AuthMethod{
-			gossh.Password(password),
-		}
-
-		return nil
-	}
-}
-
-func ClientConfigurationAuthenticationPublicKey() ClientConfigurationAuthentication {
-	return func(ctx gliderssh.Context, config *gossh.ClientConfig) error {
-		api := metadata.RestoreAPI(ctx)
-		if api == nil {
-			return errors.New("failed to get the API from context")
-		}
-
-		privateKey, err := api.CreatePrivateKey()
-		if err != nil {
-			return err
-		}
-
-		block, _ := pem.Decode(privateKey.Data)
-
-		parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return err
-		}
-
-		signer, err := gossh.NewSignerFromKey(parsed)
-		if err != nil {
-			return err
-		}
-
-		config.Auth = []gossh.AuthMethod{
-			gossh.PublicKeys(signer),
-		}
-
-		return nil
-	}
-}
-
-type AgentConfigurationOptions struct {
-	Auth ClientConfigurationAuthentication
-}
-
-// NewAgentConnectionConfiguration creates a [gossh.ClientConfig] with the default configuration required by ShellHub
-// to connect to the device agent that are inside the [gliderssh.Context].
-func NewAgentConnectionConfiguration(ctx gliderssh.Context, opts AgentConfigurationOptions) (*gossh.ClientConfig, error) {
-	target := metadata.RestoreTarget(ctx)
-	if target == nil {
-		return nil, errors.New("failed to get the target from context")
-	}
-
-	config := &gossh.ClientConfig{
-		User:            target.Username,
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
-	}
-
-	if err := opts.Auth(ctx, config); err != nil {
-		return nil, errors.New("failed to generate the authentication information")
-	}
-
-	return config, nil
 }

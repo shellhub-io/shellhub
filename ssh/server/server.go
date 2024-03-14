@@ -38,8 +38,8 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
 		Addr:             ":2222",
-		PasswordHandler:  auth.PasswordHandlerWithTunnel(tunnel),
-		PublicKeyHandler: auth.PublicKeyHandlerWithTunnel(tunnel),
+		PasswordHandler:  auth.PasswordHandler(tunnel),
+		PublicKeyHandler: auth.PublicKeyHandler(tunnel),
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
 		// channel, in the context of SSH, is a logical conduit through which data travels securely between the client
 		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,
