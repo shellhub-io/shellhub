@@ -10,19 +10,20 @@ import (
 // PasswordHandler handles ShellHub client's connection using the password authentication method.
 func PasswordHandler(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Context, password string) bool {
 	return func(ctx gliderssh.Context, pwd string) bool {
-		log.WithFields(log.Fields{"session": ctx.SessionID()}).
+		log.WithFields(log.Fields{"uid": ctx.SessionID()}).
 			Trace("trying to use password authentication")
 
 		_, err := session.New(ctx, tunnel, session.AuthPassword(pwd))
 		if err != nil {
 			log.WithError(err).
-				Error("failed to create a new session")
+				WithFields(log.Fields{"uid": ctx.SessionID()}).
+				Warn("failed to create a new session with password")
 
 			return false
 		}
 
-		log.WithFields(log.Fields{"session": ctx.SessionID()}).
-			Trace("succeeded to use password authentication.")
+		log.WithFields(log.Fields{"uid": ctx.SessionID()}).
+			Info("succeeded to use password authentication.")
 
 		return true
 	}

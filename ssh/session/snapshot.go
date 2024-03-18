@@ -14,7 +14,6 @@ const (
 	StateNil        = iota // stateNil represents an empty session.
 	StateCreated           // stateCreated represents a session that has been created but not yet registered with the API.
 	StateRegistered        // stateRegistered represents a session that has been registered with the API but not yet connected to an agent.
-	StateConnected         // stateConnected represents a session that has been connected to an agent but not yet authenticated with the API.
 	StateFinished          // stateFinished represents a session that has been completed.
 )
 
