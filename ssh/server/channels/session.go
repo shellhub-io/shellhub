@@ -1,6 +1,7 @@
 package channels
 
 import (
+	"strings"
 	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -8,6 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
+
+// KeepAliveRequestTypePrefix Through the time, the [KeepAliveRequestType] type sent from agent to server changed its
+// name, but always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this prefix
+// exists and perform the necessary operations.
+const KeepAliveRequestTypePrefix string = "keepalive"
 
 const (
 	// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an
@@ -43,7 +49,9 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.7
 	WindowChangeRequestType = "window-change"
-	KeepAliveRequestType    = "keepalive"
+	// In a defined interval, the Agent sends a keepalive request to maintain the session apoint, even when no data is
+	// send.
+	KeepAliveRequestType = KeepAliveRequestTypePrefix + "@shellhub.io"
 )
 
 type DefaultSessionHandlerOptions struct {
@@ -145,28 +153,45 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						"ip":       sess.IPAddress,
 					}).Debugf("global request from agent: %s", req.Type)
 
-				switch req.Type {
-				case KeepAliveRequestType:
-					if err := sess.KeepAlive(); err != nil {
-						log.WithFields(
+				switch {
+				// NOTICE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed due
+				// to inactivity. Through the time, the request type sent from agent to server changed its name, but
+				// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
+				// prefix exists and perform the necessary operations.
+				case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
+					wantReply, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload)
+					if err != nil {
+						log.WithError(err).WithFields(
 							log.Fields{
 								"uid":      sess.UID,
 								"device":   sess.Device.UID,
 								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
-							}).Error(err)
+							}).Error("failed to send the keepalive request received from agent to client")
 
 						return
 					}
 
-					if err := req.Reply(false, nil); err != nil {
-						log.WithFields(
+					if err := req.Reply(wantReply, nil); err != nil {
+						log.WithError(err).WithFields(
 							log.Fields{
 								"uid":      sess.UID,
 								"device":   sess.Device.UID,
 								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
-							}).Error(err)
+							}).Error("failed to send the keepalive response back to agent")
+
+						return
+					}
+
+					if err := sess.KeepAlive(); err != nil {
+						log.WithError(err).WithFields(
+							log.Fields{
+								"uid":      sess.UID,
+								"device":   sess.Device.UID,
+								"username": sess.Target.Username,
+								"ip":       sess.IPAddress,
+							}).Error("failed to send the API request to inform that the session is open")
 
 						return
 					}
