@@ -115,18 +115,14 @@ func New(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, auth Auth) (*Session,
 			}
 		}
 
-		if sess.Dialed, err = sess.dial(ctx, tunnel); err != nil {
-			return nil, ErrDial
-		}
-
 		snap.save(sess, StateCreated)
 
+		fallthrough
+	case StateCreated:
 		if err := auth.Evaluate(sess); err != nil {
 			return nil, err
 		}
 
-		fallthrough
-	case StateCreated:
 		if err := sess.register(); err != nil {
 			return nil, err
 		}
@@ -135,14 +131,14 @@ func New(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, auth Auth) (*Session,
 
 		fallthrough
 	case StateRegistered:
+		if sess.Dialed, err = sess.dial(ctx, tunnel); err != nil {
+			return nil, ErrDial
+		}
+
 		if err := sess.connectAgent(auth.Auth()); err != nil {
 			return nil, err
 		}
 
-		snap.save(sess, StateConnected)
-
-		fallthrough
-	case StateConnected:
 		if err := sess.authenticate(); err != nil {
 			return nil, err
 		}
