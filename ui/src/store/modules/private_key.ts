@@ -34,72 +34,79 @@ export const privateKey: Module<PrivateKeyState, State> = {
     },
 
     editPrivateKey: (state, data) => {
-      const {
-        index,
-        ...pk
-      } = data;
-      state.privateKeys.splice(index, 1, pk);
+      const index = state.privateKeys.findIndex((pk) => pk.id === data.id);
+      state.privateKeys.splice(index, 1, data);
       localStorage.setItem("privateKeys", JSON.stringify(state.privateKeys));
     },
+    
 
-    removePrivateKey: (state, data) => {
-      state.privateKeys.splice(state.privateKeys.findIndex((d) => d.data === data), 1);
-      state.numberPrivateKeys = state.privateKeys.length;
+    removePrivateKey: (state, id) => {
+      const index = state.privateKeys.findIndex((pk) => pk.id === id);
+      if (index !== -1) {
+        state.privateKeys.splice(index, 1);
+        state.numberPrivateKeys = state.privateKeys.length;
+        localStorage.setItem("privateKeys", JSON.stringify(state.privateKeys));
+      }
     },
   },
 
-actions: {
-  fetch: async (context) => {
-    // @ts-expect-error
-    const privateKeys = JSON.parse(localStorage.getItem("privateKeys"));
-    if (privateKeys !== null) {
-      context.commit("fetchPrivateKey", privateKeys);
-    }
-  },
+  actions: {
+      fetch: async (context) => {
+        // @ts-expect-error
+        let privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
+        let maxId = 0;
+        privateKeys = privateKeys.map((pk) => {
+          if (!pk.id) {
+            maxId += 1;
+            pk.id = maxId;
+          } else {
+            maxId = Math.max(maxId, pk.id);
+          }
+          return pk;
+        });
+        localStorage.setItem("privateKeys", JSON.stringify(privateKeys));
+        context.commit("fetchPrivateKey", privateKeys);
+      },
+    
+    set: async (context, privateKey) => {
+      // @ts-expect-error
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
+      const id = privateKeys.length ? Math.max(...privateKeys.map((pk: IPrivateKey) => pk.id)) + 1 : 1;
+      privateKey.id = id;
 
-  set: async (context, privateKey) => {
-    // @ts-expect-error
-    const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
-
-    privateKeys.forEach((pk: IPrivateKey) => {
-      if (pk.data === privateKey.data && pk.name === privateKey.name) {
-        throw new Error("both");
-      }
-      if (pk.data === privateKey.data) {
-        throw new Error("private_key");
-      }
-      if (pk.name === privateKey.name) {
-        throw new Error("name");
-      }
-    });
-    privateKeys.push(privateKey);
-    localStorage.setItem("privateKeys", JSON.stringify(privateKeys));
-    context.commit("setPrivateKey", privateKey);
-  },
-
-    edit: async (context, privateKey) => {
-      let index;
-      context.state.privateKeys.forEach((pk, i) => {
+      privateKeys.forEach((pk: IPrivateKey) => {
+        if (pk.data === privateKey.data && pk.name === privateKey.name) {
+          throw new Error("both");
+        }
         if (pk.data === privateKey.data) {
-          index = i;
+          throw new Error("private_key");
         }
         if (pk.name === privateKey.name) {
           throw new Error("name");
         }
       });
-      context.commit("editPrivateKey", { ...privateKey, ...{ index } });
+      privateKeys.push(privateKey);
+      localStorage.setItem("privateKeys", JSON.stringify(privateKeys));
+      context.commit("setPrivateKey", privateKey);
     },
 
-  remove: async (context, data) => {
-    // @ts-expect-error
-    const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
+    edit: async (context, privateKey) => {
+      context.commit("editPrivateKey", privateKey);
+    },
+
+    remove: async (context, id) => {
+      // @ts-expect-error
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
 
       if (privateKeys !== null) {
-        privateKeys.splice(privateKeys.findIndex((d: IPrivateKey) => d.data === data), 1);
+        const index = privateKeys.findIndex((pk: IPrivateKey) => pk.id === id);
+        if (index !== -1) {
+          privateKeys.splice(index, 1);
+        }
       }
 
       localStorage.setItem("privateKeys", JSON.stringify(privateKeys));
-      context.commit("removePrivateKey", data);
+      context.commit("removePrivateKey", id);
     },
   },
 };
