@@ -22,7 +22,7 @@
             <v-text-field
               v-model="name"
               label="Key name"
-              placeholder="Name used to identify the public key"
+              placeholder="Name used to identify the private key"
               :error-messages="nameError"
               required
               variant="underlined"
@@ -31,14 +31,14 @@
 
             <v-textarea
               v-model="keyLocal.data"
-              class="mt-5"
-              label="Public key data"
-              readonly
+              label="Private key data"
               :messages="supportedKeys"
+              :error-messages="keyLocalDataError"
+              :update:modelValue="validatePrivateKeyData"
+              @change="validatePrivateKeyData"
               variant="underlined"
-              data-test="data-field"
+              data-test="private-key-field"
               rows="5"
-              :style="{ cursor: 'not-allowed' }"
             />
           </v-card-text>
 
@@ -47,14 +47,15 @@
             <v-btn
               color="primary"
               @click="close"
-              data-test="device-add-cancel-btn"
+              data-test="pk-edit-cancel-btn"
             >
               Cancel
             </v-btn>
             <v-btn
               color="primary"
               type="submit"
-              data-test="device-add-save-btn"
+              data-test="pk-edit-save-btn"
+              :disabled="!isValid"
             >
               Save
             </v-btn>
@@ -65,10 +66,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useField } from "vee-validate";
 import {
-  defineComponent,
   ref,
   watch,
   onMounted,
@@ -82,97 +82,109 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import handleError from "../../utils/handleError";
+import { parsePrivateKeySsh } from "../../utils/validate";
 
-export default defineComponent({
-  props: {
-    show: {
-      type: Boolean,
-      required: false,
-    },
-    keyObject: {
-      type: Object,
-      required: true,
-      default: Object as unknown as IPublicKey,
-    },
-    style: {
-      type: [String, Object],
-      default: undefined,
-    },
+const props = defineProps({
+  show: {
+    type: Boolean,
+    required: false,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const showDialog = ref(false);
-    const store = useStore();
-    const keyLocal = ref<Partial<IPublicKey>>({
-      name: "",
-      username: "",
-      data: "",
-    });
-    const { keyObject } = toRefs(props);
-    const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
-    );
-
-    const { value: name, errorMessage: nameError } = useField<
-      string | undefined
-    >("name", yup.string().required(), {
-      initialValue: keyObject.value.name,
-    });
-
-    watch(name, () => {
-      keyLocal.value.name = name.value;
-    });
-
-    const setPrivateKey = () => {
-      keyLocal.value = { ...props.keyObject };
-    };
-
-    onMounted(() => {
-      setPrivateKey();
-    });
-
-    const close = () => {
-      setPrivateKey();
-      showDialog.value = false;
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const edit = async () => {
-      if (!nameError.value) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data) };
-
-        try {
-          await store.dispatch("privateKey/edit", keySend);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.privateKeyEditing,
-          );
-          update();
-        } catch (error: unknown) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.publicKeyEditing,
-          );
-          handleError(error);
-        }
-      }
-    };
-
-    return {
-      showDialog,
-      keyLocal,
-      name,
-      nameError,
-      supportedKeys,
-      close,
-      edit,
-    };
+  keyObject: {
+    type: Object,
+    required: true,
+    default: Object as unknown as IPublicKey,
+  },
+  style: {
+    type: [String, Object],
+    default: undefined,
   },
 });
+const emit = defineEmits(["update"]);
+const showDialog = ref(false);
+const store = useStore();
+const {
+  value: keyLocal,
+  errorMessage: keyLocalDataError,
+  setErrors: setKeyLocalDataError,
+} = useField<Partial<IPublicKey>>("privateKeyData", yup.object({
+  name: yup.string().required(),
+  data: yup.string().required(),
+}).required(), {
+  initialValue: {
+    name: "",
+    data: "",
+  },
+});
+
+const isValid = ref(true);
+
+const validatePrivateKeyData = () => {
+  try {
+    parsePrivateKeySsh(keyLocal.value.data);
+    isValid.value = true;
+  } catch (err: unknown) {
+    const typedErr = err as {name: string};
+    if (typedErr.name === "KeyEncryptedError") {
+      setKeyLocalDataError("Private key with passphrase is not supported");
+    } else {
+      setKeyLocalDataError("Invalid private key data");
+    }
+    isValid.value = false;
+  }
+};
+
+const { keyObject } = toRefs(props);
+
+const supportedKeys = ref(
+  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
+);
+
+const { value: name, errorMessage: nameError } = useField<string | undefined>("name", yup.string().required(), {
+  initialValue: keyObject.value.name || "",
+});
+
+watch(name, () => {
+  keyLocal.value.name = name.value;
+});
+
+const setPrivateKey = () => {
+  keyLocal.value = { ...props.keyObject };
+};
+
+onMounted(() => {
+  setPrivateKey();
+});
+
+const close = () => {
+  setPrivateKey();
+  showDialog.value = false;
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
+
+const edit = async () => {
+  if (!nameError.value && isValid.value) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const keySend = { ...keyLocal.value, data: keyLocal.value.data };
+
+    try {
+      await store.dispatch("privateKey/edit", keySend);
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.privateKeyEditing,
+      );
+      update();
+    } catch (error: unknown) {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.privateKeyEditing,
+      );
+      handleError(error);
+    }
+  }
+};
 </script>

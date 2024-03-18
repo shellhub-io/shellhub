@@ -45,7 +45,7 @@
               />
 
               <PrivateKeyDelete
-                :fingerprint="privateKey.data"
+                :id="privateKey.id"
                 @update="getPrivateKeys"
               />
             </v-list>
@@ -59,57 +59,46 @@
   </v-table>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, onMounted } from "vue";
 import { useStore } from "../../store";
 import { convertToFingerprint } from "../../utils/validate";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
-
-    const getPrivateKeys = async () => {
-      try {
-        await store.dispatch("privateKey/fetch");
-      } catch (error: unknown) {
-        handleError(error);
-      }
-    };
-
-    onMounted(() => {
-      getPrivateKeys();
-    });
-
-    return {
-      headers: [
-        {
-          text: "Name",
-          value: "name",
-          align: "center",
-          sortable: true,
-        },
-        {
-          text: "Fingerprint",
-          value: "data",
-          align: "center",
-          sortable: true,
-        },
-        {
-          text: "Actions",
-          value: "actions",
-          align: "center",
-          sortable: false,
-        },
-      ],
-      getListPrivateKeys,
-      convertToFingerprint,
-      getPrivateKeys,
-    };
+const store = useStore();
+const headers = [
+  {
+    text: "Name",
+    value: "name",
+    align: "center",
+    sortable: true,
   },
-  components: { PrivateKeyDelete, PrivateKeyEdit },
+  {
+    text: "Fingerprint",
+    value: "data",
+    align: "center",
+    sortable: true,
+  },
+  {
+    text: "Actions",
+    value: "actions",
+    align: "center",
+    sortable: false,
+  },
+];
+const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
+
+const getPrivateKeys = async () => {
+  try {
+    await store.dispatch("privateKey/fetch");
+  } catch (error: unknown) {
+    handleError(error);
+  }
+};
+
+onMounted(() => {
+  getPrivateKeys();
 });
 </script>
