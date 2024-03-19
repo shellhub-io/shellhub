@@ -2,7 +2,6 @@ package channels
 
 import (
 	"strings"
-	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -66,10 +65,15 @@ type DefaultSessionHandlerOptions struct {
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
-		defer conn.Close()
-
 		sess, _ := session.ObtainSession(ctx)
-		defer sess.Finish() //nolint:errcheck
+
+		go func() {
+			// NOTICE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
+			// other channel involkation. To avoid it, we wait for the connection be closed to finish the sesison.
+			conn.Wait() //nolint:errcheck
+
+			sess.Finish() //nolint:errcheck
+		}()
 
 		reject := func(err error, msg string) {
 			log.WithError(err).WithFields(
@@ -115,10 +119,6 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 		}
 
 		defer agent.Close()
-
-		mu := new(sync.Mutex)
-
-		started := false
 
 		for {
 			select {
@@ -243,63 +243,13 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				}
 
 				switch req.Type {
-				// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an
-				// application program, or a subsystem with a host-independent name.  **Only one of these requests can
-				// succeed per channel.**
-				//
-				// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
 				case ShellRequestType, ExecRequestType, SubsystemRequestType:
-					if !started {
-						// It is RECOMMENDED that the reply to these messages be requested and checked.  The client SHOULD
-						// ignore these messages.
-						//
-						// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-						if req.WantReply {
-							if err := req.Reply(ok, nil); err != nil {
-								log.WithError(err).WithFields(
-									log.Fields{
-										"uid":      sess.UID,
-										"device":   sess.Device.UID,
-										"username": sess.Target.Username,
-										"ip":       sess.IPAddress,
-									}).Error("failed to reply the client with right response for pipe request type")
-
-								return
-							}
-
-							mu.Lock()
-							started = true
-							mu.Unlock()
-
-							log.WithFields(
-								log.Fields{
-									"uid":      sess.UID,
-									"device":   sess.Device.UID,
-									"username": sess.Target.Username,
-									"ip":       sess.IPAddress,
-									"type":     req.Type,
-								}).Info("session type set")
-
-							if req.Type == ShellRequestType && sess.Pty.Term != "" {
-								if err := sess.Announce(client); err != nil {
-									log.WithError(err).WithFields(log.Fields{
-										"uid":      sess.UID,
-										"device":   sess.Device.UID,
-										"username": sess.Target.Username,
-										"ip":       sess.IPAddress,
-										"type":     req,
-									}).Warn("failed to get the namespace announcement")
-								}
-							}
-
-							// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
-							// program.  All input and output from these SHOULD be redirected to the channel or to the
-							// encrypted tunnel.
-							//
-							// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-							go pipe(sess, client, agent, req.Type, opts)
-						}
-					} else {
+					// Once the session has been set up, a program is started at the remote end.  The program can be a
+					// shell, an application program, or a subsystem with a host-independent name.  **Only one of these
+					// requests can succeed per channel.**
+					//
+					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+					if sess.Handled {
 						log.WithError(err).WithFields(log.Fields{
 							"uid":      sess.UID,
 							"device":   sess.Device.UID,
@@ -316,10 +266,54 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
 								}).Error("failed to reply the client when data pipe already started")
+						}
 
-							return
+						go pipe(sess, client, agent, ExecRequestType, opts)
+
+						continue
+					}
+
+					if err := req.Reply(ok, nil); err != nil {
+						log.WithError(err).WithFields(
+							log.Fields{
+								"uid":      sess.UID,
+								"device":   sess.Device.UID,
+								"username": sess.Target.Username,
+								"ip":       sess.IPAddress,
+							}).Error("failed to reply the client with right response for pipe request type")
+
+						return
+					}
+
+					sess.Handled = true
+
+					log.WithFields(
+						log.Fields{
+							"uid":      sess.UID,
+							"device":   sess.Device.UID,
+							"username": sess.Target.Username,
+							"ip":       sess.IPAddress,
+							"type":     req.Type,
+						}).Info("session type set")
+
+					if req.Type == ShellRequestType && sess.Pty.Term != "" {
+						if err := sess.Announce(client); err != nil {
+							log.WithError(err).WithFields(log.Fields{
+								"uid":      sess.UID,
+								"device":   sess.Device.UID,
+								"username": sess.Target.Username,
+								"ip":       sess.IPAddress,
+								"type":     req,
+							}).Warn("failed to get the namespace announcement")
 						}
 					}
+
+					// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
+					// program.  All input and output from these SHOULD be redirected to the channel or to the
+					// encrypted tunnel.
+					//
+					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+					go pipe(sess, client, agent, req.Type, opts)
 				case PtyRequestType:
 					var pty session.Pty
 
@@ -348,7 +342,17 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					sess.Pty.Rows = dimensions.Rows
 
 					if req.WantReply {
-						req.Reply(ok, nil) //nolint:errcheck
+						if err := req.Reply(ok, nil); err != nil {
+							log.WithError(err).WithFields(
+								log.Fields{
+									"uid":      sess.UID,
+									"device":   sess.Device.UID,
+									"username": sess.Target.Username,
+									"ip":       sess.IPAddress,
+								}).Error("failed to reply for window-change")
+
+							return
+						}
 					}
 				default:
 					if req.WantReply {
@@ -359,7 +363,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 									"device":   sess.Device.UID,
 									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
-								}).Error("failed to reply for window-change")
+								}).Error("failed to reply")
 
 							return
 						}
