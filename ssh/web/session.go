@@ -15,6 +15,20 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type BannerError struct {
+	Message string
+}
+
+func NewBannerError(message string) *BannerError {
+	return &BannerError{
+		Message: message,
+	}
+}
+
+func (b *BannerError) Error() string {
+	return b.Message
+}
+
 // getAuth gets the authentication methods from credentials.
 func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
 	if creds.isPassword() {
@@ -95,8 +109,22 @@ func newSession(conn *Conn, creds *Credentials, dim Dimensions, info Info) error
 		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		BannerCallback: func(message string) error {
+			if message != "" {
+				return NewBannerError(message)
+			}
+
+			return nil
+		},
 	})
 	if err != nil {
+		var e *BannerError
+
+		// NOTICE: if the connection return a banner, wrap that message into an error and return to the session.
+		if errors.As(err, &e) {
+			return e
+		}
+
 		return ErrAuthentication
 	}
 
