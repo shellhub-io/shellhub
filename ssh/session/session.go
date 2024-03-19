@@ -63,11 +63,10 @@ type Session struct {
 	// UID is the session's UID.
 	UID string
 
-	// Dialed is websocket connection established between the Agent and the ShellHub SSH server.
-	Dialed net.Conn
-
-	// Agent is a [gossh.Client] connected and authenticated to the agent, waiting for a open sesssion request.
-	Agent *gossh.Client
+	// AgentConn is the connection between the Server and Agent.
+	AgentConn net.Conn
+	// AgentClient is a [gossh.Client] connected and authenticated to the agent, waiting for a open sesssion request.
+	AgentClient *gossh.Client
 	// AgentGlobalReqs is the channel to handle global request like "keepalive".
 	AgentGlobalReqs <-chan *gossh.Request
 
@@ -78,87 +77,13 @@ type Session struct {
 	Data
 }
 
-// New creates a new [Session] based on the provided context, connecting to the agent and
-// authenticating it.
-//
-// As a client may try to create N sessions with the same context, a [snapshot] is used
-// to save/retrieve the current session state. To illustrate a practical use of this
-// pattern you can imagine a client that wants to connect to a specified device. It first
-// calls the `PublicKeyHandler` with a specified context. At this stage, there are no
-// sessions associated with the provided context, and a new one will be created. If it
-// fails, the same client (and consequently the same context) will call the
-// `PasswordHandler`, which also calls `session.New`. Since we have already created a
-// session in the previous authentication attempt, instead of repeating all operations,
-// we can safely retrieve the same session again but attempt authentication with a
-// password this time.
-//
-// Next steps can use the context's snapshot to retrieve the created session. An error is
-// returned if any occurs.
-func New(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, auth Auth) (*Session, error) {
-	var err error
-	snap := getSnapshot(ctx)
-
-	// The following code is structured to be read from top to bottom, disregarding the
-	// switch and case statements. These statements serve as a "cache" for handling
-	// different states efficiently.
-	sess, state := snap.retrieve()
-	switch state {
-	case StateNil:
-		if sess, err = newSession(ctx); err != nil {
-			return nil, err
-		}
-
-		if envs.IsCloud() || envs.IsEnterprise() {
-			if ok, err := sess.checkFirewall(); err != nil || !ok {
-				return nil, err
-			}
-
-			if envs.HasBilling() {
-				if ok, err := sess.checkBilling(); err != nil || !ok {
-					return nil, err
-				}
-			}
-		}
-
-		snap.save(sess, StateCreated)
-
-		fallthrough
-	case StateCreated:
-		if err := auth.Evaluate(sess); err != nil {
-			return nil, err
-		}
-
-		if err := sess.register(); err != nil {
-			return nil, err
-		}
-
-		snap.save(sess, StateRegistered)
-
-		fallthrough
-	case StateRegistered:
-		if sess.Dialed, err = sess.dial(ctx, tunnel); err != nil {
-			return nil, ErrDial
-		}
-
-		if err := sess.connectAgent(auth.Auth()); err != nil {
-			return nil, err
-		}
-
-		if err := sess.authenticate(); err != nil {
-			return nil, err
-		}
-	}
-
-	snap.save(sess, StateFinished)
-
-	return sess, nil
-}
-
-// newSession creates a new Session but differs from [New] as it only creates
+// NewSession creates a new Session but differs from [New] as it only creates
 // the session without registering, connecting to the agent and etc.
 //
 // It's designed to be used within New.
-func newSession(ctx gliderssh.Context) (*Session, error) {
+func NewSession(ctx gliderssh.Context) (*Session, error) {
+	snap := getSnapshot(ctx)
+
 	api := internalclient.NewClient()
 	sshid := ctx.User()
 
@@ -217,18 +142,25 @@ func newSession(ctx gliderssh.Context) (*Session, error) {
 	session.Data.Lookup["username"] = target.Username
 	session.Data.Lookup["ip_address"] = hos.Host
 
+	snap.save(session, StateCreated)
+
 	return session, nil
 }
 
 func (s *Session) checkFirewall() (bool, error) {
 	if err := s.api.FirewallEvaluate(s.Data.Lookup); err != nil {
+		defer log.WithError(err).WithFields(log.Fields{
+			"uid":   s.UID,
+			"sshid": s.SSHID,
+		}).Info("an error or a firewall rule block this connection")
+
 		switch {
 		case errors.Is(err, internalclient.ErrFirewallConnection):
-			return false, errors.Join(ErrFirewallConnection, err)
+			return false, ErrFirewallConnection
 		case errors.Is(err, internalclient.ErrFirewallBlock):
-			return false, errors.Join(ErrFirewallBlock, err)
+			return false, ErrFirewallBlock
 		default:
-			return false, errors.Join(ErrFirewallUnknown, err)
+			return false, ErrFirewallUnknown
 		}
 	}
 
@@ -238,28 +170,24 @@ func (s *Session) checkFirewall() (bool, error) {
 func (s *Session) checkBilling() (bool, error) {
 	device, err := s.api.GetDevice(s.Device.UID)
 	if err != nil {
-		return false, errors.Join(ErrFindDevice, err)
+		defer log.WithError(err).WithFields(log.Fields{
+			"uid":   s.UID,
+			"sshid": s.SSHID,
+		}).Info("failed to get the device on billing evaluation")
+
+		return false, ErrFindDevice
 	}
 
 	if evaluatation, status, _ := s.api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
-		return false, errors.Join(ErrBillingBlock, err)
+		defer log.WithError(err).WithFields(log.Fields{
+			"uid":   s.UID,
+			"sshid": s.SSHID,
+		}).Info("an error or a billing rule blocked this connection")
+
+		return false, ErrBillingBlock
 	}
 
 	return true, nil
-}
-
-func (s *Session) dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (net.Conn, error) {
-	dialed, err := tunnel.Dial(ctx, s.Device.UID)
-	if err != nil {
-		return nil, errors.Join(ErrDial, err)
-	}
-
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(dialed); err != nil {
-		return nil, err
-	}
-
-	return dialed, nil
 }
 
 // registerAPISession registers a new session on the API.
@@ -294,63 +222,21 @@ func (s *Session) authenticate() error {
 	return nil
 }
 
-// NewAgentConnection creates a new connection to the agent.
-func (s *Session) NewAgentConnection(config *gossh.ClientConfig) error {
-	const Addr = "tcp"
-
-	if config.Timeout > 0 {
-		if err := s.Dialed.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-				Error("Error when trying to set dial deadline")
-
-			return err
-		}
-	}
-
-	conn, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"session": s.UID}).
-			Error("Error when trying to create the client's connection")
-
-		return err
-	}
-
-	if config.Timeout > 0 {
-		if err := s.Dialed.SetReadDeadline(time.Time{}); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-				Error("Error when trying to set dial deadline with Time{}")
-
-			return err
-		}
-	}
-
-	ch := make(chan *gossh.Request)
-	close(ch)
-
-	s.Agent = gossh.NewClient(conn, chans, ch)
-	s.AgentGlobalReqs = reqs
-
-	return nil
-}
-
-// connectAgent connects the session's client to the session's agent.
-func (s *Session) connectAgent(authOpt authFunc) error {
+// connect connects the session's client to the session's agent.
+func (s *Session) connect(authOpt authFunc) error {
 	config := &gossh.ClientConfig{
 		User:            s.Target.Username,
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
 	}
 
 	if err := authOpt(s, config); err != nil {
-		return errors.New("failed to generate the authentication information")
+		return errors.New("fail to generate the authentication information")
 	}
 
 	const Addr = "tcp"
 
 	if config.Timeout > 0 {
-		if err := s.Dialed.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+		if err := s.AgentConn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
@@ -359,7 +245,7 @@ func (s *Session) connectAgent(authOpt authFunc) error {
 		}
 	}
 
-	conn, chans, reqs, err := gossh.NewClientConn(s.Dialed, Addr, config)
+	conn, chans, reqs, err := gossh.NewClientConn(s.AgentConn, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
@@ -369,7 +255,7 @@ func (s *Session) connectAgent(authOpt authFunc) error {
 	}
 
 	if config.Timeout > 0 {
-		if err := s.Dialed.SetReadDeadline(time.Time{}); err != nil {
+		if err := s.AgentConn.SetReadDeadline(time.Time{}); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline with Time{}")
@@ -381,8 +267,104 @@ func (s *Session) connectAgent(authOpt authFunc) error {
 	ch := make(chan *gossh.Request)
 	close(ch)
 
-	s.Agent = gossh.NewClient(conn, chans, ch)
+	s.AgentClient = gossh.NewClient(conn, chans, ch)
 	s.AgentGlobalReqs = reqs
+
+	return nil
+}
+
+func (s *Session) Dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) error {
+	snap := getSnapshot(ctx)
+
+	var err error
+
+	ctx.Lock()
+	s.AgentConn, err = tunnel.Dial(ctx, s.Device.UID)
+	if err != nil {
+		return errors.Join(ErrDial, err)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
+	if err = req.Write(s.AgentConn); err != nil {
+		return err
+	}
+
+	snap.save(s, StateDialed)
+
+	ctx.Unlock()
+
+	return nil
+}
+
+func (s *Session) Evaluate(ctx gliderssh.Context) error {
+	snap := getSnapshot(ctx)
+
+	if envs.IsCloud() || envs.IsEnterprise() {
+		if ok, err := s.checkFirewall(); err != nil || !ok {
+			return err
+		}
+
+		if envs.HasBilling() {
+			if ok, err := s.checkBilling(); err != nil || !ok {
+				return err
+			}
+		}
+	}
+
+	snap.save(s, StateEvaluated)
+
+	return nil
+}
+
+// Auth authenticate a [Session] based on the provided context.
+//
+// As a client may try to create N sessions with the same context, a [snapshot] is used
+// to save/retrieve the current session state. To illustrate a practical use of this
+// pattern you can imagine a client that wants to connect to a specified device. It first
+// calls the `PublicKeyHandler` with a specified context. At this stage, there are no
+// sessions associated with the provided context, and a new one will be created. If it
+// fails, the same client (and consequently the same context) will call the
+// `PasswordHandler`, which also calls `session.New`. Since we have already created a
+// session in the previous authentication attempt, instead of repeating all operations,
+// we can safely retrieve the same session again but attempt authentication with a
+// password this time.
+//
+// Next steps can use the context's snapshot to retrieve the created session. An error is
+// returned if any occurs.
+func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
+	snap := getSnapshot(ctx)
+
+	// The following code is structured to be read from top to bottom, disregarding the
+	// switch and case statements. These statements serve as a "cache" for handling
+	// different states efficiently.
+	sess, state := snap.retrieve()
+	switch state {
+	case StateEvaluated:
+		if err := auth.Evaluate(sess); err != nil {
+			return err
+		}
+
+		if err := sess.register(); err != nil {
+			return err
+		}
+
+		snap.save(sess, StateRegistered)
+
+		fallthrough
+	case StateRegistered:
+		if err := sess.connect(auth.Auth()); err != nil {
+			return err
+		}
+
+		if err := sess.authenticate(); err != nil {
+			return err
+		}
+	default:
+		// The default arm is intended to avoid [StateNil] and [StateCreated], what are used before the authentication.
+		return errors.New("invalid session state")
+	}
+
+	snap.save(sess, StateFinished)
 
 	return nil
 }
@@ -448,10 +430,10 @@ func (s *Session) Announce(client gossh.Channel) error {
 // Finish terminate the session between Agent and Client, sending a request to Agent to closes it.
 func (s *Session) Finish() (err error) {
 	s.once.Do(func() {
-		if s.Dialed != nil {
+		if s.AgentConn != nil {
 			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
-			if err = request.Write(s.Dialed); err != nil {
+			if err = request.Write(s.AgentConn); err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 					Warning("Error when trying write the request to /ssh/close")

@@ -111,7 +111,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 		defer client.Close()
 
-		agent, agentReqs, err := sess.Agent.OpenChannel(SessionChannel, nil)
+		agent, agentReqs, err := sess.AgentClient.OpenChannel(SessionChannel, nil)
 		if err != nil {
 			reject(err, "failed to open the 'session' channel on agent")
 

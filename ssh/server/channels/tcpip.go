@@ -13,8 +13,11 @@ import (
 
 // DefaultDirectTCPIPHandler is the channel's handler for direct-tcpip channels like "local port forwarding" and "dynamic
 // application-level port forwarding".
-func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+	defer conn.Close()
+
 	sess, _ := session.ObtainSession(ctx)
+	defer sess.Finish() //nolint:errcheck
 
 	log.WithFields(log.Fields{
 		"username": sess.Target.Username,
@@ -63,7 +66,7 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, ne
 	// In such instances, a new connection to the agent is generated and saved in the metadata for
 	// subsequent use.
 	// An illustrative scenario is when the SSH connection is initiated with the "-N" flag.
-	connection := sess.Agent
+	connection := sess.AgentClient
 
 	agent, err := connection.Dial("tcp", dest)
 	if err != nil {

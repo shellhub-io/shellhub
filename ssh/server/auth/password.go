@@ -1,30 +1,42 @@
 package auth
 
 import (
+	"net"
+
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
 
 // PasswordHandler handles ShellHub client's connection using the password authentication method.
-func PasswordHandler(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Context, password string) bool {
-	return func(ctx gliderssh.Context, pwd string) bool {
-		log.WithFields(log.Fields{"uid": ctx.SessionID()}).
-			Trace("trying to use password authentication")
+func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
+	logger := log.WithFields(
+		log.Fields{
+			"uid":   ctx.SessionID(),
+			"sshid": ctx.User(),
+		})
 
-		_, err := session.New(ctx, tunnel, session.AuthPassword(pwd))
-		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"uid": ctx.SessionID()}).
-				Warn("failed to create a new session with password")
+	logger.Trace("trying to use password authentication")
 
-			return false
+	sess, state := session.ObtainSession(ctx)
+	if state < session.StateEvaluated {
+		logger.Trace("failed to get the session from context on password handler")
+
+		conn, ok := ctx.Value("conn").(net.Conn)
+		if ok {
+			conn.Close()
 		}
 
-		log.WithFields(log.Fields{"uid": ctx.SessionID()}).
-			Info("succeeded to use password authentication.")
-
-		return true
+		return false
 	}
+
+	if err := sess.Auth(ctx, session.AuthPassword(passwd)); err != nil {
+		logger.Warn("failed to authenticate on device using password")
+
+		return false
+	}
+
+	logger.Info("succeeded to use password authentication.")
+
+	return true
 }
