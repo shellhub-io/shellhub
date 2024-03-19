@@ -75,6 +75,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 			log.WithError(err).WithFields(
 				log.Fields{
 					"uid":      sess.UID,
+					"sshid":    sess.SSHID,
 					"device":   sess.Device.UID,
 					"username": sess.Target.Username,
 					"ip":       sess.IPAddress,
@@ -86,6 +87,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 		log.WithFields(
 			log.Fields{
 				"uid":      sess.UID,
+				"sshid":    sess.SSHID,
 				"device":   sess.Device.UID,
 				"username": sess.Target.Username,
 				"ip":       sess.IPAddress,
@@ -93,6 +95,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 		defer log.WithFields(
 			log.Fields{
 				"uid":      sess.UID,
+				"sshid":    sess.SSHID,
 				"device":   sess.Device.UID,
 				"username": sess.Target.Username,
 				"ip":       sess.IPAddress,
@@ -126,6 +129,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				log.WithFields(
 					log.Fields{
 						"uid":      sess.UID,
+						"sshid":    sess.SSHID,
 						"device":   sess.Device.UID,
 						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
@@ -137,6 +141,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.WithFields(
 						log.Fields{
 							"uid":      sess.UID,
+							"sshid":    sess.SSHID,
 							"device":   sess.Device.UID,
 							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
@@ -148,6 +153,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				log.WithFields(
 					log.Fields{
 						"uid":      sess.UID,
+						"sshid":    sess.SSHID,
 						"device":   sess.Device.UID,
 						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
@@ -164,6 +170,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.WithError(err).WithFields(
 							log.Fields{
 								"uid":      sess.UID,
+								"sshid":    sess.SSHID,
 								"device":   sess.Device.UID,
 								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
@@ -176,6 +183,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.WithError(err).WithFields(
 							log.Fields{
 								"uid":      sess.UID,
+								"sshid":    sess.SSHID,
 								"device":   sess.Device.UID,
 								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
@@ -188,6 +196,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.WithError(err).WithFields(
 							log.Fields{
 								"uid":      sess.UID,
+								"sshid":    sess.SSHID,
 								"device":   sess.Device.UID,
 								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
@@ -201,6 +210,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.WithFields(
 								log.Fields{
 									"uid":      sess.UID,
+									"sshid":    sess.SSHID,
 									"device":   sess.Device.UID,
 									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
@@ -213,6 +223,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.WithFields(
 						log.Fields{
 							"uid":      sess.UID,
+							"sshid":    sess.SSHID,
 							"device":   sess.Device.UID,
 							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
@@ -224,6 +235,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				log.WithFields(
 					log.Fields{
 						"uid":      sess.UID,
+						"sshid":    sess.SSHID,
 						"device":   sess.Device.UID,
 						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
@@ -234,6 +246,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.WithError(err).WithFields(
 						log.Fields{
 							"uid":      sess.UID,
+							"sshid":    sess.SSHID,
 							"device":   sess.Device.UID,
 							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
@@ -259,6 +272,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 								log.WithError(err).WithFields(
 									log.Fields{
 										"uid":      sess.UID,
+										"sshid":    sess.SSHID,
 										"device":   sess.Device.UID,
 										"username": sess.Target.Username,
 										"ip":       sess.IPAddress,
@@ -274,6 +288,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.WithFields(
 								log.Fields{
 									"uid":      sess.UID,
+									"sshid":    sess.SSHID,
 									"device":   sess.Device.UID,
 									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
@@ -284,6 +299,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 								if err := sess.Announce(client); err != nil {
 									log.WithError(err).WithFields(log.Fields{
 										"uid":      sess.UID,
+										"sshid":    sess.SSHID,
 										"device":   sess.Device.UID,
 										"username": sess.Target.Username,
 										"ip":       sess.IPAddress,
@@ -302,6 +318,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					} else {
 						log.WithError(err).WithFields(log.Fields{
 							"uid":      sess.UID,
+							"sshid":    sess.SSHID,
 							"device":   sess.Device.UID,
 							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
@@ -312,6 +329,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.WithError(err).WithFields(
 								log.Fields{
 									"uid":      sess.UID,
+									"sshid":    sess.SSHID,
 									"device":   sess.Device.UID,
 									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
@@ -356,6 +374,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							log.WithError(err).WithFields(
 								log.Fields{
 									"uid":      sess.UID,
+									"sshid":    sess.SSHID,
 									"device":   sess.Device.UID,
 									"username": sess.Target.Username,
 									"ip":       sess.IPAddress,
@@ -370,6 +389,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.WithFields(
 						log.Fields{
 							"uid":      sess.UID,
+							"sshid":    sess.SSHID,
 							"device":   sess.Device.UID,
 							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
@@ -381,6 +401,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				log.WithFields(
 					log.Fields{
 						"uid":      sess.UID,
+						"sshid":    sess.SSHID,
 						"device":   sess.Device.UID,
 						"username": sess.Target.Username,
 						"ip":       sess.IPAddress,
@@ -391,6 +412,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					log.WithError(err).WithFields(
 						log.Fields{
 							"uid":      sess.UID,
+							"sshid":    sess.SSHID,
 							"device":   sess.Device.UID,
 							"username": sess.Target.Username,
 							"ip":       sess.IPAddress,
@@ -404,6 +426,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						log.WithError(err).WithFields(
 							log.Fields{
 								"uid":      sess.UID,
+								"sshid":    sess.SSHID,
 								"device":   sess.Device.UID,
 								"username": sess.Target.Username,
 								"ip":       sess.IPAddress,
