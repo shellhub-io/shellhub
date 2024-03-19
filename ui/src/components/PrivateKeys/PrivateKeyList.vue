@@ -16,7 +16,7 @@
         <td class="text-center" data-test="privateKey-name">
           {{ privateKey.name }}
         </td>
-        <td class="text-center" data-test="privateKey-fingerpint">
+        <td class="text-center" data-test="privateKey-fingerprint">
           {{ convertToFingerprint(privateKey.data) }}
         </td>
         <td class="text-center">
@@ -53,7 +53,7 @@
         </td>
       </tr>
     </tbody>
-    <div v-else sm="12" class="text-start mt-2 text-medium-emphasis">
+    <div v-else sm="12" class="text-start mt-2 text-medium-emphasis" data-test="no-private-key-warning">
       <span>No data avaliable</span>
     </div>
   </v-table>

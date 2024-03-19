@@ -91,8 +91,17 @@ export const privateKey: Module<PrivateKeyState, State> = {
     },
 
     edit: async (context, privateKey) => {
+      // @ts-expect-error
+      const privateKeys = JSON.parse(localStorage.getItem("privateKeys")) || [];
+      const existingKey = privateKeys.find((pk: IPrivateKey) => pk.id === privateKey.id);
+    
+      if (existingKey && existingKey.data === privateKey.data && existingKey.name === privateKey.name) {
+        throw new Error();
+      }
+    
       context.commit("editPrivateKey", privateKey);
     },
+    
 
     remove: async (context, id) => {
       // @ts-expect-error

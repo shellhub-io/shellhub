@@ -68,7 +68,7 @@ exports[`Setting Private Keys > Renders the component 1`] = `
               <th class=\\"text-center\\"><span>Actions</span></th>
             </tr>
           </thead>
-          <div sm=\\"12\\" class=\\"text-start mt-2 text-medium-emphasis\\"><span>No data avaliable</span></div>
+          <div sm=\\"12\\" class=\\"text-start mt-2 text-medium-emphasis\\" data-test=\\"no-private-key-warning\\"><span>No data avaliable</span></div>
         </table>
       </div>
       <!---->

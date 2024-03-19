@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Private Key Edit > Renders the component 1`] = `
+"<div>
+  <div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\" show=\\"false\\" keyobject=\\"[object Object]\\" data-test=\\"privatekey-edit-btn\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+    <!---->
+    <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+      <!---->
+      <!---->
+      <div class=\\"d-flex align-center\\">
+        <div data-test=\\"privatekey-icon\\" class=\\"mr-2\\"><i class=\\"mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+        <div class=\\"v-list-item-title\\" data-test=\\"privatekey-title\\"> Edit </div>
+      </div>
+    </div>
+    <!---->
+  </div>
+  <!---->
+  <!---->
+</div>"
+`;
