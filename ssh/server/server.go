@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -8,8 +9,10 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	"github.com/shellhub-io/shellhub/ssh/server/auth"
 	"github.com/shellhub-io/shellhub/ssh/server/channels"
+	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,9 +40,51 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 	}
 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
-		Addr:             ":2222",
-		PasswordHandler:  auth.PasswordHandler(tunnel),
-		PublicKeyHandler: auth.PublicKeyHandler(tunnel),
+		Addr: ":2222",
+		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
+			ctx.SetValue("conn", conn)
+
+			return conn
+		},
+		BannerHandler: func(ctx gliderssh.Context) string {
+			logger := log.WithFields(
+				log.Fields{
+					"uid":   ctx.SessionID(),
+					"sshid": ctx.User(),
+				})
+
+			logger.Info("new connection established")
+
+			target, err := target.NewTarget(ctx.User())
+			if err != nil {
+				logger.WithError(err).Error("invalid SSHID")
+
+				return fmt.Sprintf("%s is not a valid SSHID\n", ctx.User())
+			}
+
+			sess, err := session.NewSession(ctx)
+			if err != nil {
+				logger.WithError(err).Error("failed to create the session")
+
+				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
+			}
+
+			if err := sess.Dial(ctx, tunnel); err != nil {
+				logger.WithError(err).Error("destination device is offline or connot be reached")
+
+				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
+			}
+
+			if err := sess.Evaluate(ctx); err != nil {
+				logger.WithError(err).Error("destination device has a firewall to blocked it or a billing issue")
+
+				return fmt.Sprintf("you cannot access %s due a policy rule\n", target.Data)
+			}
+
+			return ""
+		},
+		PasswordHandler:  auth.PasswordHandler,
+		PublicKeyHandler: auth.PublicKeyHandler,
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
 		// channel, in the context of SSH, is a logical conduit through which data travels securely between the client
 		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,

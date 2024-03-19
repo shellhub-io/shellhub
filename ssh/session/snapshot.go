@@ -11,10 +11,12 @@ type snapshot struct {
 type State int
 
 const (
-	StateNil        = iota // stateNil represents an empty session.
-	StateCreated           // stateCreated represents a session that has been created but not yet registered with the API.
-	StateRegistered        // stateRegistered represents a session that has been registered with the API but not yet connected to an agent.
-	StateFinished          // stateFinished represents a session that has been completed.
+	StateNil        = iota + 1 // StateNil represents a non initialized session.
+	StateCreated               // StateCreated represents a session that has been created but not yet registered with the API.
+	StateDialed                // StateDialed represents a session that has been connected to a device.
+	StateEvaluated             // StateEvaluated represents a evaluated session.
+	StateRegistered            // StateRegistered represents a session that has been registered with the API but not yet connected to an agent.
+	StateFinished              // StateFinished represents a session that has been completed.
 )
 
 // getSnapshot is responsible for managing the state of a session associated with

@@ -82,7 +82,7 @@ func (c *client) DeviceLookup(lookup map[string]string) (*models.Device, []error
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return nil, []error{err}
+		return nil, []error{errors.New("fail to get the device from the API")}
 	}
 
 	return device, nil

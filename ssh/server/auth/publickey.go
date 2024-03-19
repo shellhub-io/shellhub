@@ -1,30 +1,42 @@
 package auth
 
 import (
+	"net"
+
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
 
 // PublicKeyHandler handles ShellHub client's connection using the public key authentication method.
-func PublicKeyHandler(tunnel *httptunnel.Tunnel) func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
-	return func(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
-		log.WithFields(log.Fields{"uid": ctx.SessionID()}).
-			Trace("trying to use public key authentication")
+func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
+	logger := log.WithFields(
+		log.Fields{
+			"uid":   ctx.SessionID(),
+			"sshid": ctx.User(),
+		})
 
-		_, err := session.New(ctx, tunnel, session.AuthPublicKey(publicKey))
-		if err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"uid": ctx.SessionID()}).
-				Warn("failed to create a new session with public key")
+	logger.Trace("trying to use public key authentication")
 
-			return false
+	sess, state := session.ObtainSession(ctx)
+	if state < session.StateEvaluated {
+		logger.Trace("failed to get the session from context on public key handler")
+
+		conn, ok := ctx.Value("conn").(net.Conn)
+		if ok {
+			conn.Close()
 		}
 
-		log.WithFields(log.Fields{"uid": ctx.SessionID()}).
-			Info("succeeded to use public key authentication.")
-
-		return true
+		return false
 	}
+
+	if err := sess.Auth(ctx, session.AuthPublicKey(publicKey)); err != nil {
+		logger.Warn("failed to authenticate on device using public key")
+
+		return false
+	}
+
+	logger.Info("succeeded to use public key authentication.")
+
+	return true
 }
