@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -53,6 +54,8 @@ type Data struct {
 	Lookup map[string]string
 	// Pty is the PTY dimension.
 	Pty Pty
+	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
+	Handled bool
 }
 
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
@@ -69,6 +72,8 @@ type Session struct {
 	AgentGlobalReqs <-chan *gossh.Request
 
 	api internalclient.Client
+
+	once *sync.Once
 
 	Data
 }
@@ -206,6 +211,7 @@ func newSession(ctx gliderssh.Context) (*Session, error) {
 			Lookup:    lookup,
 			SSHID:     ctx.User(),
 		},
+		once: new(sync.Once),
 	}
 
 	session.Data.Lookup["username"] = target.Username
@@ -439,24 +445,35 @@ func (s *Session) Announce(client gossh.Channel) error {
 	return nil
 }
 
-func (s *Session) Finish() error {
-	if s.Dialed != nil {
-		request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
+// Finish terminate the session between Agent and Client, sending a request to Agent to closes it.
+func (s *Session) Finish() (err error) {
+	s.once.Do(func() {
+		if s.Dialed != nil {
+			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
-		if err := request.Write(s.Dialed); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-				Warning("Error when trying write the request to /ssh/close")
+			if err = request.Write(s.Dialed); err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+					Warning("Error when trying write the request to /ssh/close")
+			}
 		}
-	}
 
-	if errs := s.api.FinishSession(s.UID); len(errs) > 0 {
-		log.WithError(errs[0]).
-			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
-			Error("Error when trying to finish the session")
+		if errs := s.api.FinishSession(s.UID); len(errs) > 0 {
+			log.WithError(errs[0]).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Error("Error when trying to finish the session")
 
-		return errs[0]
-	}
+			err = errs[0]
+		}
+
+		log.WithFields(
+			log.Fields{
+				"uid":      s.UID,
+				"device":   s.Device.UID,
+				"username": s.Target.Username,
+				"ip":       s.IPAddress,
+			}).Info("session finished")
+	})
 
 	return nil
 }
