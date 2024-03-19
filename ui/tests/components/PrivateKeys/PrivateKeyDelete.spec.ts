@@ -2,21 +2,21 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import PrivateKeyAdd from "@/components/PrivateKeys/PrivateKeyAdd.vue";
+import PrivateKeyDelete from "@/components/PrivateKeys/PrivateKeyDelete.vue";
 import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type PrivateKeyAddWrapper = VueWrapper<InstanceType<typeof PrivateKeyAdd>>;
+const node = document.createElement("div");
+node.setAttribute("id", "app");
+document.body.appendChild(node);
 
-describe("Setting Private Keys", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
+type PrivateKeyDeleteWrapper = VueWrapper<InstanceType<typeof PrivateKeyDelete>>;
 
-  let wrapper: PrivateKeyAddWrapper;
+describe("Private Key Delete", () => {
+  let wrapper: PrivateKeyDeleteWrapper;
 
   const vuetify = createVuetify();
 
@@ -39,6 +39,7 @@ describe("Setting Private Keys", () => {
     members,
     settings: {
       session_record: true,
+      connection_announcement: "",
     },
     max_devices: 3,
     devices_count: 3,
@@ -76,16 +77,18 @@ describe("Setting Private Keys", () => {
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
+    wrapper = mount(PrivateKeyDelete, {
+      global: {
+        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        config: {
+          errorHandler: () => { /* ignore global error handler */ },
+        },
+      },
+    });
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
-    wrapper = mount(PrivateKeyAdd, {
-      global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-      },
-      attachTo: el,
-    });
   });
 
   it("Is a Vue instance", () => {
@@ -101,39 +104,23 @@ describe("Setting Private Keys", () => {
   });
 
   it("Renders components", async () => {
+    expect(wrapper.find('[data-test="privatekey-delete-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="privatekey-delete-btn-title"]').exists()).toBe(true);
+    await wrapper.findComponent('[data-test="privatekey-delete-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
-
-    await wrapper.findComponent('[data-test="private-key-dialog-btn"]').trigger("click");
-
-    expect(wrapper.findComponent('[data-test="private-key-dialog-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="card-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="name-field"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="private-key-field"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="private-key-cancel-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="private-key-save-btn"]').exists()).toBe(true);
+    await flushPromises();
+    expect(dialog.find('[data-test="privatekey-dialog-title"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="privatekey-dialog-text"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="privatekey-close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="privatekey-remove-btn"]').exists()).toBe(true);
   });
 
-  it("Sets private key data error message", async () => {
-    await wrapper.findComponent('[data-test="private-key-dialog-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="name-field"]').setValue("not-working-name");
-
-    await wrapper.findComponent('[data-test="name-field"]').setValue("");
-
+  it("Checks if the remove function updates the store on success", async () => {
+    const storeSpy = vi.spyOn(store, "dispatch");
+    await wrapper.setProps({ id: 1 });
+    await wrapper.findComponent('[data-test="privatekey-delete-btn"]').trigger("click");
     await flushPromises();
-
-    expect(wrapper.vm.nameError).toEqual("this is a required field");
-  });
-
-  it("Sets private key data error message", async () => {
-    await wrapper.findComponent('[data-test="private-key-dialog-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="private-key-field"]').setValue("not-working-key");
-
-    await wrapper.findComponent('[data-test="private-key-field"]').setValue("");
-
-    await flushPromises();
-
-    expect(wrapper.vm.privateKeyDataError).toEqual("this is a required field");
+    await wrapper.findComponent('[data-test="privatekey-remove-btn"]').trigger("click");
+    expect(storeSpy).toHaveBeenCalledWith("privateKey/remove", 1);
   });
 });

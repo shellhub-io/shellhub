@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-list-item @click="showDialog = true" v-bind="$props">
+    <v-list-item @click="showDialog = true" v-bind="$props" data-test="privatekey-edit-btn">
       <div class="d-flex align-center">
         <div data-test="privatekey-icon" class="mr-2">
           <v-icon> mdi-pencil </v-icon>
@@ -183,8 +183,9 @@ const edit = async () => {
         "snackbar/showSnackbarErrorAction",
         INotificationsError.privateKeyEditing,
       );
-      handleError(error);
     }
   }
 };
+
+defineExpose({ keyLocal, isValid, name, update, edit, handleError, setPrivateKey });
 </script>

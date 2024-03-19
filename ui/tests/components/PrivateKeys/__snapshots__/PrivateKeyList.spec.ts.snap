@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Private Key List > Renders the component 1`] = `
+"<div class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-table__wrapper\\">
+    <table>
+      <thead data-test=\\"privateKey-thead\\">
+        <tr>
+          <th class=\\"text-center\\"><span>Name</span></th>
+          <th class=\\"text-center\\"><span>Fingerprint</span></th>
+          <th class=\\"text-center\\"><span>Actions</span></th>
+        </tr>
+      </thead>
+      <div sm=\\"12\\" class=\\"text-start mt-2 text-medium-emphasis\\" data-test=\\"no-private-key-warning\\"><span>No data avaliable</span></div>
+    </table>
+  </div>
+  <!---->
+</div>"
+`;
