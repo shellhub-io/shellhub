@@ -304,7 +304,7 @@ const connect = async (params: IConnectToTerminal) => {
       });
 
       ws.value.onclose = () => {
-        xterm.value.writeln("Connection ended");
+        xterm.value.write("\r\nConnection ended");
       };
 };
 
