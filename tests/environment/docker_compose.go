@@ -47,6 +47,13 @@ func (dc *DockerCompose) R(ctx context.Context) *resty.Request {
 	return dc.client.R().SetContext(ctx)
 }
 
+func (dc *DockerCompose) JWT(jwt string) {
+	dc.t.Helper()
+
+	dc.client.SetAuthScheme("Bearer")
+	dc.client.SetAuthToken(jwt)
+}
+
 // Env retrieves a environment variable with the specified key.
 func (dc *DockerCompose) Env(key string) string {
 	dc.t.Helper()
