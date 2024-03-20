@@ -181,13 +181,11 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					//
 					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
 					if sess.Handled {
-						logger.Warn("tried to start and forbidden request type")
+						logger.Warn("fail to start a new session before ending the previous one")
 
 						if err := req.Reply(false, nil); err != nil {
 							logger.WithError(err).Error("failed to reply the client when data pipe already started")
 						}
-
-						go pipe(sess, client, agent, ExecRequestType, opts)
 
 						continue
 					}
@@ -197,8 +195,6 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 						return
 					}
-
-					sess.Handled = true
 
 					logger.Info("session type set")
 
@@ -213,7 +209,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					// encrypted tunnel.
 					//
 					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					go pipe(sess, client, agent, req.Type, opts)
+					go pipe(ctx, sess, client, agent, req.Type, opts)
 				case PtyRequestType:
 					var pty session.Pty
 
