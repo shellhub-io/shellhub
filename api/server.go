@@ -63,6 +63,7 @@ var serverCmd = &cobra.Command{
 // Provides the configuration for the API service.
 // The values are load from the system environment variables.
 type config struct {
+	HttpPort string `env:"HTTP_PORT"`
 	// MongoDB connection string (URI format)
 	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
 	// Redis connection string (URI format)
@@ -155,7 +156,7 @@ func startServer(cfg *config, store store.Store, cache storecache.Cache) error {
 		}
 	})
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":" + cfg.HttpPort))
 
 	return nil
 }

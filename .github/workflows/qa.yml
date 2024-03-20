@@ -39,6 +39,9 @@ jobs:
           - project: connector
             extra_args: ""
             lint_args: ""
+          - project: tests
+            extra_args: ""
+            lint_args: ""
 
     runs-on: ubuntu-latest
 
@@ -60,6 +63,7 @@ jobs:
               - 'ssh/**'
               - 'cli/**'
               - 'connector/**'
+              - 'tests/**'
 
       - name: Set up Go 1.x [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
