@@ -75,32 +75,23 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 			sess.Finish() //nolint:errcheck
 		}()
 
+		logger := log.WithFields(
+			log.Fields{
+				"uid":      sess.UID,
+				"sshid":    sess.SSHID,
+				"device":   sess.Device.UID,
+				"username": sess.Target.Username,
+				"ip":       sess.IPAddress,
+			})
+
 		reject := func(err error, msg string) {
-			log.WithError(err).WithFields(
-				log.Fields{
-					"uid":      sess.UID,
-					"device":   sess.Device.UID,
-					"username": sess.Target.Username,
-					"ip":       sess.IPAddress,
-				}).Error(msg)
+			logger.WithError(err).Error(msg)
 
 			newChan.Reject(gossh.ConnectionFailed, msg) //nolint:errcheck
 		}
 
-		log.WithFields(
-			log.Fields{
-				"uid":      sess.UID,
-				"device":   sess.Device.UID,
-				"username": sess.Target.Username,
-				"ip":       sess.IPAddress,
-			}).Info("session channel started")
-		defer log.WithFields(
-			log.Fields{
-				"uid":      sess.UID,
-				"device":   sess.Device.UID,
-				"username": sess.Target.Username,
-				"ip":       sess.IPAddress,
-			}).Info("session channel done")
+		logger.Info("session channel started")
+		defer logger.Info("session channel done")
 
 		client, clientReqs, err := newChan.Accept()
 		if err != nil {
@@ -123,35 +114,17 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 		for {
 			select {
 			case <-ctx.Done():
-				log.WithFields(
-					log.Fields{
-						"uid":      sess.UID,
-						"device":   sess.Device.UID,
-						"username": sess.Target.Username,
-						"ip":       sess.IPAddress,
-					}).Info("context has done")
+				logger.Info("context has done")
 
 				return
 			case req, ok := <-sess.AgentGlobalReqs:
 				if !ok {
-					log.WithFields(
-						log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-						}).Trace("global requests is closed")
+					logger.Trace("global requests is closed")
 
 					return
 				}
 
-				log.WithFields(
-					log.Fields{
-						"uid":      sess.UID,
-						"device":   sess.Device.UID,
-						"username": sess.Target.Username,
-						"ip":       sess.IPAddress,
-					}).Debugf("global request from agent: %s", req.Type)
+				logger.Debugf("global request from agent: %s", req.Type)
 
 				switch {
 				// NOTICE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed due
@@ -161,83 +134,41 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
 					wantReply, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload)
 					if err != nil {
-						log.WithError(err).WithFields(
-							log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Target.Username,
-								"ip":       sess.IPAddress,
-							}).Error("failed to send the keepalive request received from agent to client")
+						logger.Error("failed to send the keepalive request received from agent to client")
 
 						return
 					}
 
 					if err := req.Reply(wantReply, nil); err != nil {
-						log.WithError(err).WithFields(
-							log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Target.Username,
-								"ip":       sess.IPAddress,
-							}).Error("failed to send the keepalive response back to agent")
+						logger.WithError(err).Error("failed to send the keepalive response back to agent")
 
 						return
 					}
 
 					if err := sess.KeepAlive(); err != nil {
-						log.WithError(err).WithFields(
-							log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Target.Username,
-								"ip":       sess.IPAddress,
-							}).Error("failed to send the API request to inform that the session is open")
+						logger.WithError(err).Error("failed to send the API request to inform that the session is open")
 
 						return
 					}
 				default:
 					if req.WantReply {
 						if err := req.Reply(false, nil); err != nil {
-							log.WithFields(
-								log.Fields{
-									"uid":      sess.UID,
-									"device":   sess.Device.UID,
-									"username": sess.Target.Username,
-									"ip":       sess.IPAddress,
-								}).Error(err)
+							logger.WithError(err).Error(err)
 						}
 					}
 				}
 			case req, ok := <-clientReqs:
 				if !ok {
-					log.WithFields(
-						log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-						}).Trace("client requests is closed")
+					logger.Trace("client requests is closed")
 
 					return
 				}
 
-				log.WithFields(
-					log.Fields{
-						"uid":      sess.UID,
-						"device":   sess.Device.UID,
-						"username": sess.Target.Username,
-						"ip":       sess.IPAddress,
-					}).Debugf("request from client to agent: %s", req.Type)
+				logger.Debugf("request from client to agent: %s", req.Type)
 
 				ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
 				if err != nil {
-					log.WithError(err).WithFields(
-						log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-						}).Error("failed to send the request from client to agent")
+					logger.WithError(err).Error("failed to send the request from client to agent")
 
 					continue
 				}
@@ -250,22 +181,10 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					//
 					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
 					if sess.Handled {
-						log.WithError(err).WithFields(log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-							"type":     req,
-						}).Warn("tried to start and forbidden request type")
+						logger.Warn("tried to start and forbidden request type")
 
 						if err := req.Reply(false, nil); err != nil {
-							log.WithError(err).WithFields(
-								log.Fields{
-									"uid":      sess.UID,
-									"device":   sess.Device.UID,
-									"username": sess.Target.Username,
-									"ip":       sess.IPAddress,
-								}).Error("failed to reply the client when data pipe already started")
+							logger.WithError(err).Error("failed to reply the client when data pipe already started")
 						}
 
 						go pipe(sess, client, agent, ExecRequestType, opts)
@@ -274,37 +193,18 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					}
 
 					if err := req.Reply(ok, nil); err != nil {
-						log.WithError(err).WithFields(
-							log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Target.Username,
-								"ip":       sess.IPAddress,
-							}).Error("failed to reply the client with right response for pipe request type")
+						logger.WithError(err).Error("failed to reply the client with right response for pipe request type")
 
 						return
 					}
 
 					sess.Handled = true
 
-					log.WithFields(
-						log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-							"type":     req.Type,
-						}).Info("session type set")
+					logger.Info("session type set")
 
 					if req.Type == ShellRequestType && sess.Pty.Term != "" {
 						if err := sess.Announce(client); err != nil {
-							log.WithError(err).WithFields(log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Target.Username,
-								"ip":       sess.IPAddress,
-								"type":     req,
-							}).Warn("failed to get the namespace announcement")
+							logger.WithError(err).Warn("failed to get the namespace announcement")
 						}
 					}
 
@@ -326,7 +226,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					if req.WantReply {
 						// req.Reply(ok, nil) //nolint:errcheck
 						if err := req.Reply(ok, nil); err != nil {
-							log.WithError(err).Error("failed to reply for pty-req")
+							logger.WithError(err).Error("failed to reply for pty-req")
 
 							return
 						}
@@ -343,13 +243,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 					if req.WantReply {
 						if err := req.Reply(ok, nil); err != nil {
-							log.WithError(err).WithFields(
-								log.Fields{
-									"uid":      sess.UID,
-									"device":   sess.Device.UID,
-									"username": sess.Target.Username,
-									"ip":       sess.IPAddress,
-								}).Error("failed to reply for window-change")
+							logger.Error("failed to reply for window-change")
 
 							return
 						}
@@ -357,13 +251,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				default:
 					if req.WantReply {
 						if err := req.Reply(ok, nil); err != nil {
-							log.WithError(err).WithFields(
-								log.Fields{
-									"uid":      sess.UID,
-									"device":   sess.Device.UID,
-									"username": sess.Target.Username,
-									"ip":       sess.IPAddress,
-								}).Error("failed to reply")
+							logger.WithError(err).Error("failed to reply")
 
 							return
 						}
@@ -371,47 +259,23 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				}
 			case req, ok := <-agentReqs:
 				if !ok {
-					log.WithFields(
-						log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-						}).Trace("agent requests is closed")
+					logger.Trace("agent requests is closed")
 
 					return
 				}
 
-				log.WithFields(
-					log.Fields{
-						"uid":      sess.UID,
-						"device":   sess.Device.UID,
-						"username": sess.Target.Username,
-						"ip":       sess.IPAddress,
-					}).Debugf("request from agent to client: %s", req.Type)
+				logger.Debugf("request from agent to client: %s", req.Type)
 
 				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
 				if err != nil {
-					log.WithError(err).WithFields(
-						log.Fields{
-							"uid":      sess.UID,
-							"device":   sess.Device.UID,
-							"username": sess.Target.Username,
-							"ip":       sess.IPAddress,
-						}).Error("failed to send the request from agent to client")
+					logger.WithError(err).Error("failed to send the request from agent to client")
 
 					continue
 				}
 
 				if req.WantReply {
 					if err := req.Reply(ok, nil); err != nil {
-						log.WithError(err).WithFields(
-							log.Fields{
-								"uid":      sess.UID,
-								"device":   sess.Device.UID,
-								"username": sess.Target.Username,
-								"ip":       sess.IPAddress,
-							}).Error("failed to reply the agent request")
+						logger.WithError(err).Error("failed to reply the agent request")
 
 						return
 					}
