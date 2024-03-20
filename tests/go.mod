@@ -3,10 +3,9 @@ module github.com/shellhub-io/shellhub/tests
 go 1.21
 
 require (
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/joho/godotenv v1.5.1
 	github.com/shellhub-io/shellhub v0.14.3
-	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.26.0
 	github.com/testcontainers/testcontainers-go/modules/compose v0.26.0
@@ -135,6 +134,7 @@ require (
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.9 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/theupdateframework/notary v0.7.0 // indirect
