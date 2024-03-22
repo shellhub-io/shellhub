@@ -17,16 +17,16 @@
       data-test="publicKeys-list"
     >
       <template v-slot:rows>
-        <tr v-for="(item, i) in publicKeys" :key="i">
-          <td class="text-center">
+        <tr v-for="(item, i) in publicKeys" :key="i" data-test="public-key-item">
+          <td class="text-center" data-test="public-key-name">
             {{ item.name }}
           </td>
 
-          <td class="text-center">
+          <td class="text-center" data-test="public-key-fingerprint">
             {{ item.fingerprint }}
           </td>
 
-          <td class="text-center">
+          <td class="text-center" data-test="public-key-filter">
             <div v-if="isHostname(item.filter)">
               {{ formatHostnameFilter(item.filter) }}
             </div>
@@ -55,15 +55,15 @@
             </div>
           </td>
 
-          <td class="text-center">
+          <td class="text-center" data-test="public-key-username">
             {{ formatUsername(item.username) }}
           </td>
 
-          <td class="text-center">
+          <td class="text-center" data-test="public-key-created-at">
             {{ formatDateFullAbrevied(item.created_at) }}
           </td>
 
-          <td class="text-center">
+          <td class="text-center" data-test="public-key-actions">
             <v-menu location="bottom" scrim eager>
               <template v-slot:activator="{ props }">
                 <v-chip v-bind="props" density="comfortable" size="small">
@@ -113,8 +113,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
 import { actions, authorizer } from "../../authorizer";
 import { filterType } from "../../interfaces/IFirewallRule";
 import { useStore } from "../../store";
@@ -132,138 +132,115 @@ import PublicKeyEdit from "./PublicKeyEdit.vue";
 import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const loading = ref(false);
-    const itemsPerPage = ref(10);
-    const page = ref(1);
-    const publicKeys = computed(() => store.getters["publicKeys/list"]);
-    const getNumberPublicKeys = computed(
-      () => store.getters["publicKeys/getNumberPublicKeys"],
-    );
-
-    const hasAuthorizationFormDialogEdit = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.publicKey.edit);
-      }
-      return false;
-    });
-
-    const hasAuthorizationFormDialogRemove = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.publicKey.remove,
-        );
-      }
-      return false;
-    });
-
-    const getPublicKeysList = async (
-      perPagaeValue: number,
-      pageValue: number,
-    ) => {
-      if (store.getters["box/getStatus"]) {
-        const data = {
-          perPage: perPagaeValue,
-          page: pageValue,
-        };
-        try {
-          loading.value = true;
-          const hasPublicKeys = await store.dispatch("publicKeys/fetch", data);
-
-          if (!hasPublicKeys) {
-            page.value--;
-          }
-          loading.value = false;
-        } catch (error: unknown) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorLoading",
-            INotificationsError.publicKeyList,
-          );
-          handleError(error);
-        }
-      } else {
-        store.dispatch("box/setStatus", false);
-      }
-    };
-
-    const next = async () => {
-      await getPublicKeysList(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getPublicKeysList(itemsPerPage.value, --page.value);
-      } catch (error: unknown) {
-        store.dispatch("snackbar/setSnackbarErrorDefault");
-        handleError(error);
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, async () => {
-      await getPublicKeysList(itemsPerPage.value, page.value);
-    });
-
-    const refreshPublicKeys = async () => {
-      await store.dispatch("publicKeys/refresh");
-    };
-
-    const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
-
-    return {
-      headers: [
-        {
-          text: "Name",
-          value: "name",
-        },
-        {
-          text: "Fingerprint",
-          value: "fingerprint",
-        },
-        {
-          text: "Filter",
-          value: "filter",
-        },
-        {
-          text: "Username",
-          value: "username",
-        },
-        {
-          text: "Created At",
-          value: "created_at",
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      loading,
-      itemsPerPage,
-      page,
-      publicKeys,
-      getNumberPublicKeys,
-      hasAuthorizationFormDialogEdit,
-      hasAuthorizationFormDialogRemove,
-      next,
-      prev,
-      changeItemsPerPage,
-      refreshPublicKeys,
-      isHostname,
-      displayOnlyTenCharacters,
-      showTag,
-      formatHostnameFilter,
-      formatUsername,
-      formatDateFullAbrevied,
-    };
+const headers = [
+  {
+    text: "Name",
+    value: "name",
   },
-  components: { DataTable, PublicKeyDelete, PublicKeyEdit },
+  {
+    text: "Fingerprint",
+    value: "fingerprint",
+  },
+  {
+    text: "Filter",
+    value: "filter",
+  },
+  {
+    text: "Username",
+    value: "username",
+  },
+  {
+    text: "Created At",
+    value: "created_at",
+  },
+  {
+    text: "Actions",
+    value: "actions",
+  },
+];
+const store = useStore();
+const loading = ref(false);
+const itemsPerPage = ref(10);
+const page = ref(1);
+const publicKeys = computed(() => store.getters["publicKeys/list"]);
+const getNumberPublicKeys = computed(
+  () => store.getters["publicKeys/getNumberPublicKeys"],
+);
+
+const hasAuthorizationFormDialogEdit = computed(() => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(authorizer.role[role], actions.publicKey.edit);
+  }
+  return false;
 });
+
+const hasAuthorizationFormDialogRemove = computed(() => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.publicKey.remove,
+    );
+  }
+  return false;
+});
+
+const getPublicKeysList = async (
+  perPagaeValue: number,
+  pageValue: number,
+) => {
+  if (store.getters["box/getStatus"]) {
+    const data = {
+      perPage: perPagaeValue,
+      page: pageValue,
+    };
+    try {
+      loading.value = true;
+      const hasPublicKeys = await store.dispatch("publicKeys/fetch", data);
+
+      if (!hasPublicKeys) {
+        page.value--;
+      }
+      loading.value = false;
+    } catch (error: unknown) {
+      store.dispatch(
+        "snackbar/showSnackbarErrorLoading",
+        INotificationsError.publicKeyList,
+      );
+      handleError(error);
+    }
+  } else {
+    store.dispatch("box/setStatus", false);
+  }
+};
+
+const next = async () => {
+  await getPublicKeysList(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getPublicKeysList(itemsPerPage.value, --page.value);
+  } catch (error: unknown) {
+    store.dispatch("snackbar/setSnackbarErrorDefault");
+    handleError(error);
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async () => {
+  await getPublicKeysList(itemsPerPage.value, page.value);
+});
+
+const refreshPublicKeys = async () => {
+  await store.dispatch("publicKeys/refresh");
+};
+
+const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+
+defineExpose({ publicKeys, hasAuthorizationFormDialogEdit, hasAuthorizationFormDialogRemove });
 </script>

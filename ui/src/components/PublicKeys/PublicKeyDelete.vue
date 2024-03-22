@@ -1,7 +1,7 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="showDialog = true" :disabled="notHasAuthorization">
+  <v-list-item v-bind="$attrs" @click="showDialog = true" :disabled="notHasAuthorization" data-test="public-key-remove-btn">
     <div class="d-flex align-center">
-      <div data-test="remove-icon" class="mr-2">
+      <div class="mr-2">
         <v-icon data-test="remove-icon"> mdi-delete </v-icon>
       </div>
 
@@ -16,7 +16,7 @@
       </v-card-title>
       <v-divider />
 
-      <v-card-text data-test="text-text" class="mt-4 mb-0 pb-1">
+      <v-card-text data-test="text" class="mt-4 mb-0 pb-1">
         <p class="text-body-2 mb-2">You are about to remove this public key.</p>
 
         <p class="text-body-2 mb-2">
@@ -44,8 +44,8 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -53,46 +53,37 @@ import {
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    fingerprint: {
-      type: String,
-      required: true,
-    },
-    notHasAuthorization: {
-      type: Boolean,
-      required: true,
-    },
+const props = defineProps({
+  fingerprint: {
+    type: String,
+    required: true,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const showDialog = ref(false);
-    const store = useStore();
-
-    const remove = async () => {
-      try {
-        await store.dispatch("publicKeys/remove", props.fingerprint);
-
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.publicKeyDeleting,
-        );
-        ctx.emit("update");
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.publicKeyDeleting,
-        );
-        handleError(error);
-      } finally {
-        showDialog.value = false;
-      }
-    };
-
-    return {
-      showDialog,
-      remove,
-    };
+  notHasAuthorization: {
+    type: Boolean,
+    required: true,
   },
 });
+const emit = defineEmits(["update"]);
+const showDialog = ref(false);
+const store = useStore();
+const remove = async () => {
+  try {
+    await store.dispatch("publicKeys/remove", props.fingerprint);
+
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.publicKeyDeleting,
+    );
+    emit("update");
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.publicKeyDeleting,
+    );
+    handleError(error);
+  } finally {
+    showDialog.value = false;
+  }
+};
+
 </script>

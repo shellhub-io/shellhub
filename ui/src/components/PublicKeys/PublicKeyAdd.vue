@@ -23,7 +23,7 @@
 
     <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary">
+        <v-card-title class="text-h5 pa-3 bg-primary" data-test="pk-add-title">
           New Public Key
         </v-card-title>
         <form @submit.prevent="create" class="mt-3">
@@ -45,7 +45,7 @@
                 variant="underlined"
                 item-title="filterText"
                 item-value="filterName"
-                data-test="access-restriction-field"
+                data-test="username-restriction-field"
               />
             </v-row>
 
@@ -55,6 +55,7 @@
               label="Rule source IP"
               variant="underlined"
               :error-messages="usernameError"
+              data-test="rule-field"
             />
 
             <v-row class="mt-1 px-3">
@@ -65,7 +66,7 @@
                 variant="underlined"
                 item-title="filterText"
                 item-value="filterName"
-                data-test="access-restriction-field"
+                data-test="filter-restriction-field"
               />
             </v-row>
 
@@ -110,14 +111,14 @@
             <v-btn
               color="primary"
               @click="close"
-              data-test="device-add-cancel-btn"
+              data-test="pk-add-cancel-btn"
             >
               Cancel
             </v-btn>
             <v-btn
               color="primary"
               type="submit"
-              data-test="device-add-save-btn"
+              data-test="pk-add-save-btn"
             >
               Save
             </v-btn>
@@ -128,9 +129,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, defineComponent, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "../../authorizer";
@@ -143,276 +144,244 @@ import {
 } from "../../interfaces/INotifications";
 import handleError from "../../utils/handleError";
 
-export default defineComponent({
-  props: {
-    size: {
-      type: String,
-      default: "default",
-      required: false,
-    },
-  },
-  emits: ["update"],
-  setup(props, ctx) {
-    const store = useStore();
-    const dialog = ref(false);
-    const validateLength = ref(true);
-    const choiceFilter = ref("all");
-    const choiceUsername = ref("all");
-    const tagChoices = ref([]);
-    const errMsg = ref("");
-    const keyLocal = ref({});
-    const usernameList = ref([
-      {
-        filterName: "all",
-        filterText: "Allow any user",
-      },
-      {
-        filterName: "username",
-        filterText: "Restrict access using a regexp for username",
-      },
-    ]);
-    const filterList = ref([
-      {
-        filterName: "all",
-        filterText: "Allow the key to connect to all available devices",
-      },
-      {
-        filterName: "hostname",
-        filterText: "Restrict access using a regexp for hostname",
-      },
-      {
-        filterName: "tags",
-        filterText: "Restrict access by tags",
-      },
-    ]);
-    const supportedKeys = ref(
-      "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
-    );
-
-    const {
-      value: name,
-      errorMessage: nameError,
-      setErrors: setnameError,
-      resetField: resetName,
-    } = useField<string | undefined>("name", yup.string().required(), {
-      initialValue: "",
-    });
-
-    const {
-      value: username,
-      errorMessage: usernameError,
-      setErrors: setUsernameError,
-      resetField: resetUsername,
-    } = useField<string | undefined>("username", yup.string().required(), {
-      initialValue: "",
-    });
-
-    const {
-      value: hostname,
-      errorMessage: hostnameError,
-      setErrors: setHostnameError,
-      resetField: resetHostname,
-    } = useField<string | undefined>("hostname", yup.string().required(), {
-      initialValue: "",
-    });
-
-    const {
-      value: publicKeyData,
-      errorMessage: publicKeyDataError,
-      setErrors: setPublicKeyDataError,
-      resetField: resetPublicKeyData,
-    } = useField<string>("publicKeyData", yup.string().required(), {
-      initialValue: "",
-    });
-
-    const tagNames = computed(() => store.getters["tags/list"]);
-
-    const hasAuthorization = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.publicKey.create,
-        );
-      }
-      return false;
-    });
-
-    watch(tagChoices, (list) => {
-      if (list.length > 3) {
-        validateLength.value = false;
-        nextTick(() => tagChoices.value.pop());
-        errMsg.value = "The maximum capacity has reached";
-      } else if (list.length === 0) {
-        validateLength.value = false;
-        errMsg.value = "You must choose at least one tag";
-      } else if (list.length <= 2) {
-        validateLength.value = true;
-        errMsg.value = "";
-      }
-    });
-
-    watch(publicKeyData, async () => {
-      if (publicKeyData.value !== "") {
-        setPublicKeyDataError("Field is required");
-      }
-
-      if (await validateKey("public", publicKeyData.value)) {
-        setPublicKeyDataError("This is not valid key");
-      }
-    });
-
-    const chooseUsername = () => {
-      switch (choiceUsername.value) {
-        case "all": {
-          keyLocal.value = { ...keyLocal.value, username: ".*" };
-          break;
-        }
-        case "username": {
-          keyLocal.value = { ...keyLocal.value, username: username.value };
-          break;
-        }
-        default:
-      }
-    };
-
-    const chooseFilter = () => {
-      switch (choiceFilter.value) {
-        case "all": {
-          keyLocal.value = { ...keyLocal.value, filter: { hostname: ".*" } };
-          break;
-        }
-        case "hostname": {
-          keyLocal.value = {
-            ...keyLocal.value,
-            filter: { hostname: hostname.value },
-          };
-          break;
-        }
-        case "tags": {
-          keyLocal.value = {
-            ...keyLocal.value,
-            filter: { tags: tagChoices.value },
-          };
-          break;
-        }
-        default:
-      }
-    };
-
-    const setLocalVariable = () => {
-      keyLocal.value = {};
-      hostname.value = "";
-      tagChoices.value = [];
-      choiceFilter.value = "all";
-      choiceUsername.value = "all";
-    };
-    watch(dialog, (value) => {
-      if (!value) {
-        setLocalVariable();
-      }
-    });
-
-    const close = () => {
-      dialog.value = false;
-      setLocalVariable();
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const hasErros = () => {
-      if (name.value === "") {
-        setnameError("This Field is required !");
-        return true;
-      }
-
-      if (choiceUsername.value === "username" && username.value === "") {
-        setUsernameError("This Field is required !");
-        return true;
-      }
-
-      if (choiceFilter.value === "hostname" && hostname.value === "") {
-        setHostnameError("This Field is required !");
-        return true;
-      }
-
-      if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
-        return true;
-      }
-
-      return false;
-    };
-
-    const resetFields = () => {
-      resetName();
-      resetUsername();
-      resetHostname();
-      resetPublicKeyData();
-    };
-
-    const create = async () => {
-      if (!hasErros()) {
-        try {
-          chooseFilter();
-          chooseUsername();
-          const keySend = {
-            ...keyLocal.value,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            data: btoa(publicKeyData.value),
-            name: name.value,
-          };
-          await store.dispatch("publicKeys/post", keySend);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.publicKeyCreating,
-          );
-          update();
-          resetFields();
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            if (axiosError.response?.status === 409) {
-              setPublicKeyDataError("Public Key data already exists");
-            }
-          } else {
-            store.dispatch(
-              "snackbar/showSnackbarErrorAction",
-              INotificationsError.publicKeyCreating,
-            );
-            handleError(error);
-          }
-        }
-      }
-    };
-
-    return {
-      dialog,
-      keyLocal,
-      name,
-      nameError,
-      choiceUsername,
-      usernameList,
-      username,
-      usernameError,
-      choiceFilter,
-      filterList,
-      tagChoices,
-      tagNames,
-      validateLength,
-      errMsg,
-      hostname,
-      hostnameError,
-      publicKeyData,
-      publicKeyDataError,
-      supportedKeys,
-      hasAuthorization,
-      create,
-      close,
-    };
+const props = defineProps({
+  size: {
+    type: String,
+    default: "default",
+    required: false,
   },
 });
+const size = computed(() => props.size);
+const emit = defineEmits(["update"]);
+const store = useStore();
+const dialog = ref(false);
+const validateLength = ref(true);
+const choiceFilter = ref("all");
+const choiceUsername = ref("all");
+const tagChoices = ref([]);
+const errMsg = ref("");
+const keyLocal = ref({});
+const usernameList = ref([
+  {
+    filterName: "all",
+    filterText: "Allow any user",
+  },
+  {
+    filterName: "username",
+    filterText: "Restrict access using a regexp for username",
+  },
+]);
+const filterList = ref([
+  {
+    filterName: "all",
+    filterText: "Allow the key to connect to all available devices",
+  },
+  {
+    filterName: "hostname",
+    filterText: "Restrict access using a regexp for hostname",
+  },
+  {
+    filterName: "tags",
+    filterText: "Restrict access by tags",
+  },
+]);
+const supportedKeys = ref(
+  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
+);
+
+const {
+  value: name,
+  errorMessage: nameError,
+  resetField: resetName,
+} = useField<string | undefined>("name", yup.string().required(), {
+  initialValue: "",
+});
+
+const {
+  value: username,
+  errorMessage: usernameError,
+  setErrors: setUsernameError,
+  resetField: resetUsername,
+} = useField<string | undefined>("username", yup.string().required(), {
+  initialValue: "",
+});
+
+const {
+  value: hostname,
+  errorMessage: hostnameError,
+  setErrors: setHostnameError,
+  resetField: resetHostname,
+} = useField<string | undefined>("hostname", yup.string().required(), {
+  initialValue: "",
+});
+
+const {
+  value: publicKeyData,
+  errorMessage: publicKeyDataError,
+  setErrors: setPublicKeyDataError,
+  resetField: resetPublicKeyData,
+} = useField<string>("publicKeyData", yup.string().required(), {
+  initialValue: "",
+});
+
+const tagNames = computed(() => store.getters["tags/list"]);
+
+const hasAuthorization = computed(() => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.publicKey.create,
+    );
+  }
+  return false;
+});
+
+watch(tagChoices, (list) => {
+  if (list.length > 3) {
+    validateLength.value = false;
+    nextTick(() => tagChoices.value.pop());
+    errMsg.value = "The maximum capacity has reached";
+  } else if (list.length === 0) {
+    validateLength.value = false;
+    errMsg.value = "You must choose at least one tag";
+  } else if (list.length <= 2) {
+    validateLength.value = true;
+    errMsg.value = "";
+  }
+});
+
+watch(publicKeyData, async () => {
+  if (publicKeyData.value !== "") {
+    setPublicKeyDataError("Field is required");
+  }
+
+  if (await validateKey("public", publicKeyData.value)) {
+    setPublicKeyDataError("This is not valid key");
+  }
+});
+
+const chooseUsername = () => {
+  switch (choiceUsername.value) {
+    case "all": {
+      keyLocal.value = { ...keyLocal.value, username: ".*" };
+      break;
+    }
+    case "username": {
+      keyLocal.value = { ...keyLocal.value, username: username.value };
+      break;
+    }
+    default:
+  }
+};
+
+const chooseFilter = () => {
+  switch (choiceFilter.value) {
+    case "all": {
+      keyLocal.value = { ...keyLocal.value, filter: { hostname: ".*" } };
+      break;
+    }
+    case "hostname": {
+      keyLocal.value = {
+        ...keyLocal.value,
+        filter: { hostname: hostname.value },
+      };
+      break;
+    }
+    case "tags": {
+      keyLocal.value = {
+        ...keyLocal.value,
+        filter: { tags: tagChoices.value },
+      };
+      break;
+    }
+    default:
+  }
+};
+
+const setLocalVariable = () => {
+  keyLocal.value = {};
+  hostname.value = "";
+  tagChoices.value = [];
+  choiceFilter.value = "all";
+  choiceUsername.value = "all";
+};
+watch(dialog, (value) => {
+  if (!value) {
+    setLocalVariable();
+  }
+});
+
+const close = () => {
+  dialog.value = false;
+  setLocalVariable();
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
+
+const hasErrors = () => {
+  if (choiceUsername.value === "username" && username.value === "") {
+    setUsernameError("This Field is required!");
+    return true;
+  }
+
+  if (choiceFilter.value === "hostname" && hostname.value === "") {
+    setHostnameError("This Field is required!");
+    return true;
+  }
+
+  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
+    return true;
+  }
+
+  return false;
+};
+
+const resetFields = () => {
+  resetName();
+  resetUsername();
+  resetHostname();
+  resetPublicKeyData();
+};
+
+const create = async () => {
+  if (!hasErrors()) {
+    try {
+      chooseFilter();
+      chooseUsername();
+      const keySend = {
+        ...keyLocal.value,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        data: btoa(publicKeyData.value),
+        name: name.value,
+      };
+      await store.dispatch("publicKeys/post", keySend);
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.publicKeyCreating,
+      );
+      update();
+      resetFields();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 409) {
+          setPublicKeyDataError("Public Key data already exists");
+        }
+      } else {
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.publicKeyCreating,
+        );
+        handleError(error);
+      }
+    }
+  }
+};
+
+defineExpose({ publicKeyDataError, nameError });
 </script>
