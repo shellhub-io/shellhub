@@ -1,6 +1,8 @@
 // Package requests defines structures to represent requests' bodies from API.
 package requests
 
+import "github.com/shellhub-io/shellhub/pkg/models"
+
 type UserParam struct {
 	ID string `param:"id" validate:"required"`
 }
@@ -22,6 +24,9 @@ type UserPasswordUpdate struct {
 
 // UserAuth is the structure to represent the request body for the user auth endpoint.
 type UserAuth struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	// Identifier represents an username or email.
+	//
+	// TODO: change json tag from username to identifier and update the OpenAPI.
+	Identifier models.UserAuthIdentifier `json:"username" validate:"required"`
+	Password   string                    `json:"password" validate:"required"`
 }

@@ -32,20 +32,23 @@ func TestSetup(t *testing.T) {
 				Email:     "teste@google.com",
 				Name:      "userteste",
 				Username:  "userteste",
-				Password:  "123456",
+				Password:  "secret",
 				Namespace: "teste-space",
 			},
 			requiredMocks: func() {
 				clockMock.On("Now").Return(now).Once()
 				user := &models.User{
+					Confirmed: true,
+					CreatedAt: now,
 					UserData: models.UserData{
 						Name:     "userteste",
 						Email:    "teste@google.com",
 						Username: "userteste",
 					},
-					UserPassword: models.NewUserPassword("123456"),
-					Confirmed:    true,
-					CreatedAt:    now,
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}
 				mock.On("UserCreate", ctx, user).Return(errors.New("error", "", 0)).Once()
 			},
@@ -57,7 +60,7 @@ func TestSetup(t *testing.T) {
 				Email:     "teste@google.com",
 				Name:      "userteste",
 				Username:  "userteste",
-				Password:  "123456",
+				Password:  "secret",
 				Namespace: "teste-space",
 			},
 			requiredMocks: func() {
@@ -65,14 +68,17 @@ func TestSetup(t *testing.T) {
 				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
 				user := &models.User{
+					Confirmed: true,
+					CreatedAt: now,
 					UserData: models.UserData{
 						Name:     "userteste",
 						Email:    "teste@google.com",
 						Username: "userteste",
 					},
-					UserPassword: models.NewUserPassword("123456"),
-					Confirmed:    true,
-					CreatedAt:    now,
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}
 				namespace := &models.Namespace{
 					Name:       "teste-space",
@@ -101,7 +107,7 @@ func TestSetup(t *testing.T) {
 				Email:     "teste@google.com",
 				Name:      "userteste",
 				Username:  "userteste",
-				Password:  "123456",
+				Password:  "secret",
 				Namespace: "teste-space",
 			},
 			requiredMocks: func() {
@@ -109,14 +115,17 @@ func TestSetup(t *testing.T) {
 				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
 				user := &models.User{
+					Confirmed: true,
+					CreatedAt: now,
 					UserData: models.UserData{
 						Name:     "userteste",
 						Email:    "teste@google.com",
 						Username: "userteste",
 					},
-					UserPassword: models.NewUserPassword("123456"),
-					Confirmed:    true,
-					CreatedAt:    now,
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}
 				namespace := &models.Namespace{
 					Name:       "teste-space",

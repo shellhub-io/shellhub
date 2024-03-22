@@ -56,22 +56,22 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 		return NewErrUserNotFound(id, err)
 	}
 
-	current := models.NewUserPassword(currentPassword)
+	current := models.HashUserPassword(currentPassword)
 
-	if !user.UserPassword.Compare(current) {
+	if !user.Password.Compare(current) {
 		return NewErrUserPasswordNotMatch(nil)
 	}
 
-	neo := models.NewUserPassword(newPassword)
+	neo := models.HashUserPassword(newPassword)
 
 	if ok, err := s.validator.Struct(neo); !ok || err != nil {
 		return NewErrUserPasswordInvalid(err)
 	}
 
 	// NOTE: when the password is equal to previous one, we return success without action on the database.
-	if user.UserPassword.Compare(neo) {
+	if user.Password.Compare(neo) {
 		return nil
 	}
 
-	return s.store.UserUpdatePassword(ctx, neo.HashedPassword, id)
+	return s.store.UserUpdatePassword(ctx, neo.Hash, id)
 }

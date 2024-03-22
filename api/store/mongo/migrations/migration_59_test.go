@@ -44,7 +44,9 @@ func TestMigration59(t *testing.T) {
 						Email:    "JohnDoe@test.com",
 						Username: "John Doe",
 					},
-					UserPassword: models.NewUserPassword(""),
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}); err != nil {
 					return nil, err
 				}
@@ -90,7 +92,9 @@ func TestMigration59(t *testing.T) {
 						Email:    "johndoe@test.com",
 						Username: "john doe",
 					},
-					UserPassword: models.NewUserPassword(""),
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				},
 				err: nil,
 			},

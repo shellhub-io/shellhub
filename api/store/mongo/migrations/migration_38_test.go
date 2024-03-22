@@ -44,7 +44,9 @@ func TestMigration38(t *testing.T) {
 			Email:    "userNoCreatedAt@mail.com",
 			Username: "userNoCreatedAt",
 		},
-		UserPassword: models.NewUserPassword(""),
+		Password: models.UserPassword{
+			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+		},
 	}
 	userWithCreatedAt := models.User{
 		ID:         "userWithCreatedID",
@@ -57,7 +59,9 @@ func TestMigration38(t *testing.T) {
 			Email:    "userWithCreatedAt@mail.com",
 			Username: "userWithCreatedAt",
 		},
-		UserPassword: models.NewUserPassword(""),
+		Password: models.UserPassword{
+			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+		},
 	}
 
 	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), userNoCreatedAt)

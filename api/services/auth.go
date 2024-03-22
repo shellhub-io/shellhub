@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 )
 
 type AuthService interface {
@@ -26,7 +27,7 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error)
+	AuthUser(ctx context.Context, model *requests.UserAuth) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
@@ -136,14 +137,14 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models.UserAuthResponse, error) {
 	var err error
 	var user *models.User
 
-	if model.Identifier.IsEmail() {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(model.Identifier)))
+	if req.Identifier.IsEmail() {
+		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.Identifier)))
 	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(model.Identifier)))
+		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.Identifier)))
 	}
 
 	if err != nil {
@@ -154,44 +155,41 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (
 		return nil, NewErrUserNotConfirmed(nil)
 	}
 
-	namespace, _ := s.store.NamespaceGetFirst(ctx, user.ID)
-
-	var role string
-	var tenant string
-
-	if namespace != nil {
-		tenant = namespace.TenantID
-		if member, _ := namespace.FindMember(user.ID); member != nil {
-			role = member.Role
-		}
-	}
-
-	if !user.UserPassword.Compare(models.NewUserPassword(model.Password)) {
+	if !user.Password.Compare(models.HashUserPassword(req.Password)) {
 		return nil, NewErrAuthUnathorized(nil)
 	}
 
-	status, err := s.AuthMFA(ctx, user.ID)
+	hasMFA, err := s.AuthMFA(ctx, user.ID)
 	if err != nil {
-		return nil, NewErrUserNotFound(user.ID, err)
+		return nil, err // TODO: handle this error
+	}
+
+	claims := &models.UserAuthClaims{
+		ID:       user.ID,
+		Tenant:   "",
+		Role:     "",
+		Username: user.Username,
+		MFA: models.MFA{
+			Enable:   hasMFA,
+			Validate: false,
+		},
+		AuthClaims: models.AuthClaims{
+			Claims: "user",
+		},
+	}
+
+	// Populate the tenant and role when the user is associated with a namespace.
+	if ns, _ := s.store.NamespaceGetFirst(ctx, user.ID); ns != nil {
+		info, _ := ns.FindMember(user.ID)
+
+		claims.Tenant = ns.TenantID
+		claims.Role = info.Role
 	}
 
 	token, err := jwttoken.New().
 		WithMethod(jwt.SigningMethodRS256).
 		WithExpire(clock.Now().Add(time.Hour * 72)).
-		WithClaims(&models.UserAuthClaims{
-			ID:       user.ID,
-			Tenant:   tenant,
-			Role:     role,
-			Admin:    true,
-			Username: user.Username,
-			MFA: models.MFA{
-				Enable:   status,
-				Validate: false,
-			},
-			AuthClaims: models.AuthClaims{
-				Claims: "user",
-			},
-		}).
+		WithClaims(claims).
 		WithPrivateKey(s.privKey).
 		Sign()
 	if err != nil {
@@ -199,23 +197,26 @@ func (s *service) AuthUser(ctx context.Context, model *models.UserAuthRequest) (
 	}
 
 	user.LastLogin = clock.Now()
-
 	if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
 		return nil, NewErrUserUpdate(user, err)
 	}
 
-	s.AuthCacheToken(ctx, tenant, user.ID, token.String()) // nolint: errcheck
+	if err := s.AuthCacheToken(ctx, claims.Tenant, user.ID, token.String()); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"id": user.ID}).
+			Warn("unable to cache the authentication token")
+	}
 
 	return &models.UserAuthResponse{
 		Token:  token.String(),
 		Name:   user.Name,
 		ID:     user.ID,
 		User:   user.Username,
-		Tenant: tenant,
-		Role:   role,
+		Tenant: claims.Tenant,
+		Role:   claims.Role,
 		Email:  user.Email,
 		MFA: models.MFA{
-			Enable:   status,
+			Enable:   hasMFA,
 			Validate: false,
 		},
 	}, nil
@@ -435,10 +436,5 @@ func (s *service) AuthUncacheToken(ctx context.Context, tenant, id string) error
 }
 
 func (s *service) AuthMFA(ctx context.Context, id string) (bool, error) {
-	status, err := s.store.GetStatusMFA(ctx, id)
-	if err != nil {
-		return false, err
-	}
-
-	return status, nil
+	return s.store.GetStatusMFA(ctx, id)
 }
