@@ -14,7 +14,7 @@ export interface PublicKeysState {
 export const publicKeys: Module<PublicKeysState, State> = {
   namespaced: true,
   state: {
-    publicKeys: [],
+    publicKeys: [] as Array<IPublicKey>,
     publicKey: {} as IPublicKey,
     numberPublicKeys: 0,
     page: 1,
