@@ -27,7 +27,7 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, model *requests.UserAuth) (*models.UserAuthResponse, error)
+	AuthUser(ctx context.Context, req *requests.UserAuth) (*models.UserAuthResponse, error)
 	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
