@@ -1,11 +1,10 @@
 package models
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/password"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
@@ -23,6 +22,7 @@ type User struct {
 	UserData       `bson:",inline"`
 	Password       UserPassword `bson:",inline"`
 }
+
 type UserData struct {
 	Name     string `json:"name" validate:"required,name"`
 	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
@@ -36,28 +36,26 @@ type UserPassword struct {
 	Hash string `json:"-" bson:"password"`
 }
 
-// HashUserPassword creates a new [UserPassword] and hashes it.
-func HashUserPassword(password string) UserPassword {
-	model := UserPassword{
-		Plain: password,
+// HashUserPassword receives a plain password and hash it, returning
+// a [UserPassword].
+func HashUserPassword(plain string) (UserPassword, error) {
+	p := UserPassword{
+		Plain: plain,
 	}
 
-	model.hash()
+	var err error
+	p.Hash, err = password.Hash(p.Plain)
 
-	return model
+	return p, err
 }
 
-// Hash hashes the plain password.
-func (p *UserPassword) hash() {
-	sum := sha256.Sum256([]byte(p.Plain))
-	p.Hash = hex.EncodeToString(sum[:])
-}
-
-// Compare the hashed password with the parameter.
+// Compare reports whether a plain password matches with hash.
 //
-// The compared password must be hashed.
-func (p *UserPassword) Compare(password UserPassword) bool {
-	return password.Hash == p.Hash
+// For compatibility purposes, it can compare using both SHA256 and bcrypt algorithms.
+// Hashes starting with "$" are assumed to be a bcrypt hash; otherwise, they are treated as
+// SHA256 hashes.
+func (p *UserPassword) Compare(plain string) bool {
+	return password.Compare(plain, p.Hash)
 }
 
 // UserAuthIdentifier is an username or email used to authenticate.
