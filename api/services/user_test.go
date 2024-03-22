@@ -251,15 +251,18 @@ func TestUpdatePasswordUser(t *testing.T) {
 		expected        error
 	}{
 		{
-			description: "Fail when user is not found",
-			id:          "1",
+			description: "fails when user is not found",
+			id:          "65fde3a72c4c7507c7f53c43",
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, "1", false).Return(nil, 0, errors.New("error", "", 0)).Once()
+				mock.
+					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
-			expected: NewErrUserNotFound("1", errors.New("error", "", 0)),
+			expected: NewErrUserNotFound("65fde3a72c4c7507c7f53c43", errors.New("error", "", 0)),
 		},
 		{
-			description:     "Fail when the current password doesn't match with user's password",
+			description:     "fails when the current password doesn't match with user's password",
 			id:              "1",
 			currentPassword: "wrong_password",
 			newPassword:     "newSecret",
@@ -270,26 +273,62 @@ func TestUpdatePasswordUser(t *testing.T) {
 					},
 				}
 
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
+				mock.
+					On("UserGetByID", ctx, "1", false).
+					Return(user, 1, nil).
+					Once()
 			},
 			expected: NewErrUserPasswordNotMatch(nil),
 		},
 		{
-			description:     "Fail to update user's password",
-			id:              "1",
+			description:     "fail to update the user's password",
+			id:              "65fde3a72c4c7507c7f53c43",
 			currentPassword: "secret",
 			newPassword:     "newSecret",
 			requiredMocks: func() {
 				user := &models.User{
 					Password: models.UserPassword{
-						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 					},
 				}
 
 				password := models.HashUserPassword("newSecret")
 
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserUpdatePassword", ctx, password.Hash, "1").Return(nil).Once()
+				mock.
+					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
+					Return(user, 1, nil).
+					Once()
+				mock.
+					On("UserUpdatePassword", ctx, password.Hash, "65fde3a72c4c7507c7f53c43").
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: NewErrUserUpdate(&models.User{Password: models.HashUserPassword("secret")}, errors.New("error", "", 0)),
+		},
+		{
+			description:     "succeeds to update the password",
+			id:              "65fde3a72c4c7507c7f53c43",
+			currentPassword: "secret",
+			newPassword:     "newSecret",
+			requiredMocks: func() {
+				user := &models.User{
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				password := models.HashUserPassword("newSecret")
+
+				mock.
+					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
+					Return(user, 1, nil).
+					Once()
+				mock.
+					On("UserUpdatePassword", ctx, password.Hash, "65fde3a72c4c7507c7f53c43").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
