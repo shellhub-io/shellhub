@@ -14,6 +14,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -92,86 +94,408 @@ func TestAuthUser(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
-		userAuthResponse *models.UserAuthResponse
-		err              error
+		res *models.UserAuthResponse
+		err error
 	}
 
 	tests := []struct {
 		description   string
-		req           requests.UserAuth
+		req           *requests.UserAuth
 		requiredMocks func()
 		expected      Expected
-		expectedErr   error
 	}{
 		{
-			description: "Fails when username is not found",
-			req: requests.UserAuth{
-				Username: "user",
-				Password: "passwd",
+			description: "fails when username is not found",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
 			},
-			expectedErr: errors.New("error", "", 0),
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "user").Return(nil, errors.New("error", "", 0)).Once()
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(nil, store.ErrNoDocuments).
+					Once()
 			},
-			expected: Expected{nil, NewErrAuthUnathorized(nil)},
+			expected: Expected{
+				res: nil,
+				err: NewErrAuthUnathorized(nil),
+			},
 		},
 		{
-			description: "Fails when email is not found",
-			req: requests.UserAuth{
-				Username: "user@test.com",
-				Password: "passwd",
+			description: "fails when email is not found",
+			req: &requests.UserAuth{
+				Identifier: "john.doe@test.com",
+				Password:   "secret",
 			},
-			expectedErr: errors.New("error", "", 0),
 			requiredMocks: func() {
-				mock.On("UserGetByEmail", ctx, "user@test.com").Return(nil, errors.New("error", "", 0)).Once()
+				mock.
+					On("UserGetByEmail", ctx, "john.doe@test.com").
+					Return(nil, store.ErrNoDocuments).
+					Once()
 			},
-			expected: Expected{nil, NewErrAuthUnathorized(nil)},
+			expected: Expected{
+				res: nil,
+				err: NewErrAuthUnathorized(nil),
+			},
 		},
 		{
-			description: "Fails when user has account but wrong password",
-			req: requests.UserAuth{
-				Username: "user",
-				Password: "passwd",
+			description: "fails when user is not confimed",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: false,
+					LastLogin: now,
 					UserData: models.UserData{
-						Username: "user",
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
 					},
-
-					UserPassword: models.NewUserPassword("wrongPassword"),
-					ID:           "id",
-					Confirmed:    true,
-					LastLogin:    now,
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}
 
-				mock.On("UserGetByUsername", ctx, "user").Return(user, nil).Once()
-
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "tenant",
-				}
-
-				mock.On("NamespaceGetFirst", ctx, user.ID).Return(namespace, nil).Once()
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 			},
-			expected: Expected{nil, NewErrAuthUnathorized(nil)},
+			expected: Expected{
+				res: nil,
+				err: NewErrUserNotConfirmed(nil),
+			},
+		},
+		{
+			description: "fails when input password is wrong",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrAuthUnathorized(nil),
+			},
+		},
+		{
+			description: "fails when can not retrieve MFA status",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				mock.
+					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(false, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: errors.New("error", "", 0),
+			},
+		},
+		{
+			description: "fails when can not update the last_login field",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				mock.
+					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(true, nil).
+					Once()
+				mock.
+					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(nil, nil).
+					Once()
+
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				mock.
+					On("UserUpdateData", ctx, user.ID, *user).
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrUserUpdate(&models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}, errors.New("error", "", 0)),
+			},
+		},
+		{
+			description: "succeeds to authenticate with MFA",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				mock.
+					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(true, nil).
+					Once()
+				mock.
+					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(nil, nil).
+					Once()
+
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				mock.
+					On("UserUpdateData", ctx, user.ID, *user).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "65fdd16b5f62f93184ec8a39",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "",
+					Role:   "",
+					Token:  "must ignore",
+					MFA: models.MFA{
+						Enable:   true,
+						Validate: false,
+					},
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds to authenticate without a namespace",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				mock.
+					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(false, nil).
+					Once()
+				mock.
+					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(nil, nil).
+					Once()
+
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				mock.
+					On("UserUpdateData", ctx, user.ID, *user).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "65fdd16b5f62f93184ec8a39",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "",
+					Role:   "",
+					Token:  "must ignore",
+					MFA: models.MFA{
+						Enable:   false,
+						Validate: false,
+					},
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds to authenticate with a namespace",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				mock.
+					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(false, nil).
+					Once()
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:   "65fdd16b5f62f93184ec8a39",
+							Role: "owner",
+						},
+					},
+				}
+
+				mock.
+					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(ns, nil).
+					Once()
+
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				mock.
+					On("UserUpdateData", ctx, user.ID, *user).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "65fdd16b5f62f93184ec8a39",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000000",
+					Role:   "owner",
+					Token:  "must ignore",
+					MFA: models.MFA{
+						Enable:   false,
+						Validate: false,
+					},
+				},
+				err: nil,
+			},
 		},
 	}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if !assert.NoError(t, err) {
+		assert.FailNow(t, err.Error())
+	}
+
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-			assert.NoError(t, err)
+			res, err := service.AuthUser(ctx, tc.req)
+			// Since the resulting token is not crucial for the assertion and
+			// difficult to mock, it is safe to ignore this field.
+			if res != nil {
+				res.Token = "must ignore"
+			}
 
-			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
-			authRes, err := service.AuthUser(ctx, &models.UserAuthRequest{
-				Identifier: models.UserAuthIdentifier(tc.req.Username),
-				Password:   tc.req.Password,
-			})
-			assert.Equal(t, tc.expected, Expected{authRes, err})
+			assert.Equal(t, tc.expected, Expected{res, err})
 		})
 	}
 

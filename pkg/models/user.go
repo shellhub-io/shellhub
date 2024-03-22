@@ -9,54 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
-type UserData struct {
-	Name     string `json:"name" validate:"required,name"`
-	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
-	Username string `json:"username" bson:",omitempty" validate:"required,username"`
-}
-
-type UserPassword struct {
-	// PlainPassword contains the plain text password.
-	PlainPassword string `json:"password" bson:"-" validate:"required,password"`
-	// HashedPassword contains the hashed pasword from plain text.
-	HashedPassword string `json:"-" bson:"password"`
-}
-
-// NewUserPassword creates a new [UserPassword] and hashes it.
-func NewUserPassword(password string) UserPassword {
-	model := UserPassword{
-		PlainPassword: password,
-	}
-
-	model.Hash()
-
-	return model
-}
-
-func (p *UserPassword) hash(string) string {
-	sum := sha256.Sum256([]byte(p.PlainPassword))
-
-	return hex.EncodeToString(sum[:])
-}
-
-// Hash hashes the plain password.
-func (p *UserPassword) Hash() string {
-	p.HashedPassword = p.hash(p.PlainPassword)
-
-	return p.HashedPassword
-}
-
-// Compare the hashed password with the parameter.
-//
-// The compared password must be hashed.
-func (p *UserPassword) Compare(password UserPassword) bool {
-	return password.HashedPassword == p.HashedPassword
-}
-
-func (p *UserPassword) String() string {
-	return p.HashedPassword
-}
-
 type User struct {
 	ID             string    `json:"id,omitempty" bson:"_id,omitempty"`
 	Namespaces     int       `json:"namespaces" bson:"namespaces,omitempty"`
@@ -69,7 +21,43 @@ type User struct {
 	Secret         string    `json:"secret" bson:"secret"`
 	Codes          []string  `json:"codes" bson:"codes"`
 	UserData       `bson:",inline"`
-	UserPassword   `bson:",inline"`
+	Password       UserPassword `bson:",inline"`
+}
+type UserData struct {
+	Name     string `json:"name" validate:"required,name"`
+	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
+	Username string `json:"username" bson:",omitempty" validate:"required,username"`
+}
+
+type UserPassword struct {
+	// Plain contains the plain text password.
+	Plain string `json:"password" bson:"-" validate:"required,password"`
+	// Hash contains the hashed pasword from plain text.
+	Hash string `json:"-" bson:"password"`
+}
+
+// HashUserPassword creates a new [UserPassword] and hashes it.
+func HashUserPassword(password string) UserPassword {
+	model := UserPassword{
+		Plain: password,
+	}
+
+	model.hash()
+
+	return model
+}
+
+// Hash hashes the plain password.
+func (p *UserPassword) hash() {
+	sum := sha256.Sum256([]byte(p.Plain))
+	p.Hash = hex.EncodeToString(sum[:])
+}
+
+// Compare the hashed password with the parameter.
+//
+// The compared password must be hashed.
+func (p *UserPassword) Compare(password UserPassword) bool {
+	return password.Hash == p.Hash
 }
 
 // UserAuthIdentifier is an username or email used to authenticate.
@@ -82,14 +70,6 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 	}
 
 	return true
-}
-
-type UserAuthRequest struct {
-	// Identifier represents an username or email.
-	//
-	// TODO: change json tag from username to identifier and update the OpenAPI.
-	Identifier UserAuthIdentifier `json:"username"`
-	Password   string             `json:"password"`
 }
 
 type UserAuthResponse struct {

@@ -173,80 +173,131 @@ func TestAuthUser(t *testing.T) {
 	mock := new(mocks.Service)
 
 	type Expected struct {
-		expectedResponse *models.UserAuthResponse
-		expectedStatus   int
+		body   *models.UserAuthResponse
+		status int
 	}
 
 	cases := []struct {
-		title         string
-		requestBody   *models.UserAuthRequest
-		requiredMocks func()
-		expected      Expected
+		description string
+		req         *requests.UserAuth
+		mocks       func()
+		expected    Expected
 	}{
 		{
-			title: "success when try to auth a user",
-			requestBody: &models.UserAuthRequest{
-				Identifier: "testuser",
-				Password:   "testpassword",
-			},
-			requiredMocks: func() {
-				req := &models.UserAuthRequest{
-					Identifier: "testuser",
-					Password:   "testpassword",
-				}
-
-				mock.On("AuthUser", gomock.Anything, req).Return(&models.UserAuthResponse{}, nil).Once()
-			},
-			expected: Expected{
-				expectedResponse: &models.UserAuthResponse{},
-				expectedStatus:   http.StatusOK,
-			},
-		},
-		{
-			title: "fails when try to validate a username",
-			requestBody: &models.UserAuthRequest{
+			description: "fails when the identifier is empty",
+			req: &requests.UserAuth{
 				Identifier: "",
-				Password:   "testpassword",
+				Password:   "secret",
 			},
-			requiredMocks: func() {},
+			mocks: func() {},
 			expected: Expected{
-				expectedResponse: nil,
-				expectedStatus:   http.StatusBadRequest,
+				body:   nil,
+				status: http.StatusBadRequest,
 			},
 		},
 		{
-			title: "fails when try to validate a password",
-			requestBody: &models.UserAuthRequest{
-				Identifier: "username",
+			description: "fails when the password is empty",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
 				Password:   "",
 			},
-			requiredMocks: func() {},
+			mocks: func() {},
 			expected: Expected{
-				expectedResponse: nil,
-				expectedStatus:   http.StatusBadRequest,
+				body:   nil,
+				status: http.StatusBadRequest,
 			},
 		},
 		{
-			title: "fail when try to auth a user",
-			requestBody: &models.UserAuthRequest{
-				Identifier: "username",
-				Password:   "password",
+			description: "fails when the user is not found",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
 			},
-			requiredMocks: func() {
-				mock.On("AuthUser", gomock.Anything, gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
+			mocks: func() {
+				mock.
+					On("AuthUser", gomock.Anything, &requests.UserAuth{
+						Identifier: "john_doe",
+						Password:   "wrong_password",
+					}).
+					Return(nil, svc.ErrUserNotFound).
+					Once()
 			},
 			expected: Expected{
-				expectedResponse: nil,
-				expectedStatus:   http.StatusUnauthorized,
+				body:   nil,
+				status: http.StatusUnauthorized,
+			},
+		},
+		{
+			description: "fails when the password is wrong",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			mocks: func() {
+				mock.
+					On("AuthUser", gomock.Anything, &requests.UserAuth{
+						Identifier: "john_doe",
+						Password:   "wrong_password",
+					}).
+					Return(nil, svc.ErrAuthUnathorized).
+					Once()
+			},
+			expected: Expected{
+				body:   nil,
+				status: http.StatusUnauthorized,
+			},
+		},
+		{
+			description: "success when try to auth a user",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			mocks: func() {
+				mock.
+					On("AuthUser", gomock.Anything, &requests.UserAuth{
+						Identifier: "john_doe",
+						Password:   "secret",
+					}).
+					Return(&models.UserAuthResponse{
+						ID:     "65fdd16b5f62f93184ec8a39",
+						Name:   "john doe",
+						User:   "john_doe",
+						Email:  "john.doe@test.com",
+						Tenant: "00000000-0000-4000-0000-000000000000",
+						Role:   "owner",
+						Token:  "not-empty",
+						MFA: models.MFA{
+							Enable:   false,
+							Validate: false,
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				body: &models.UserAuthResponse{
+					ID:     "65fdd16b5f62f93184ec8a39",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000000",
+					Role:   "owner",
+					Token:  "not-empty",
+					MFA: models.MFA{
+						Enable:   false,
+						Validate: false,
+					},
+				},
+				status: http.StatusOK,
 			},
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.description, func(t *testing.T) {
+			tc.mocks()
 
-			jsonData, err := json.Marshal(tc.requestBody)
+			jsonData, err := json.Marshal(tc.req)
 			if err != nil {
 				assert.NoError(t, err)
 			}
@@ -258,16 +309,16 @@ func TestAuthUser(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
+			status := rec.Result().StatusCode
+			var body *models.UserAuthResponse
 
-			if tc.expected.expectedResponse != nil {
-				var response models.UserAuthResponse
-				if err := json.NewDecoder(rec.Result().Body).Decode(&response); err != nil {
+			if tc.expected.body != nil {
+				if err := json.NewDecoder(rec.Result().Body).Decode(&body); err != nil {
 					assert.ErrorIs(t, io.EOF, err)
 				}
-
-				assert.Equal(t, tc.expected.expectedResponse, &response)
 			}
+
+			assert.Equal(t, tc.expected, Expected{body, status})
 		})
 	}
 }

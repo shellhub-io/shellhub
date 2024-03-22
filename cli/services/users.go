@@ -22,7 +22,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		return nil, ErrUserDataInvalid
 	}
 
-	userPassword := models.NewUserPassword(input.Password)
+	userPassword := models.HashUserPassword(input.Password)
 
 	if ok, err := s.validator.Struct(userPassword); !ok || err != nil {
 		return nil, ErrUserPasswordInvalid
@@ -30,7 +30,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 	user := &models.User{
 		UserData:      userData,
-		UserPassword:  userPassword,
+		Password:      userPassword,
 		Confirmed:     true,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -108,7 +108,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserDataInvalid
 	}
 
-	password := models.NewUserPassword(input.Password)
+	password := models.HashUserPassword(input.Password)
 
 	if ok, err := s.validator.Struct(password); !ok || err != nil {
 		return ErrUserPasswordInvalid
@@ -119,7 +119,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserNotFound
 	}
 
-	if err := s.store.UserUpdatePassword(ctx, password.HashedPassword, user.ID); err != nil {
+	if err := s.store.UserUpdatePassword(ctx, password.Hash, user.ID); err != nil {
 		return ErrFailedUpdateUser
 	}
 

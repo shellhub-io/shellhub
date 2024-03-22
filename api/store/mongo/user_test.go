@@ -51,8 +51,8 @@ func TestUserList(t *testing.T) {
 							Email:    "john.doe@test.com",
 						},
 						MaxNamespaces: 0,
-						UserPassword: models.UserPassword{
-							HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+						Password: models.UserPassword{
+							Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 						},
 					},
 					{
@@ -67,8 +67,8 @@ func TestUserList(t *testing.T) {
 							Email:    "jane.smith@test.com",
 						},
 						MaxNamespaces: 3,
-						UserPassword: models.UserPassword{
-							HashedPassword: "a0b8c29f4c8d57e542f5e81d35ebe801fd27f569f116fe670e8962d798512a1d",
+						Password: models.UserPassword{
+							Hash: "a0b8c29f4c8d57e542f5e81d35ebe801fd27f569f116fe670e8962d798512a1d",
 						},
 					},
 					{
@@ -83,8 +83,8 @@ func TestUserList(t *testing.T) {
 							Email:    "bob.johnson@test.com",
 						},
 						MaxNamespaces: 10,
-						UserPassword: models.UserPassword{
-							HashedPassword: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
+						Password: models.UserPassword{
+							Hash: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
 						},
 					},
 					{
@@ -98,8 +98,8 @@ func TestUserList(t *testing.T) {
 							Email:    "alex.rodriguez@test.com",
 						},
 						MaxNamespaces: 3,
-						UserPassword: models.UserPassword{
-							HashedPassword: "c5093eb98678c7a3324825b84c6b67c1127b93786482ddbbd356e67e29b2763f",
+						Password: models.UserPassword{
+							Hash: "c5093eb98678c7a3324825b84c6b67c1127b93786482ddbbd356e67e29b2763f",
 						},
 					},
 				},
@@ -137,8 +137,8 @@ func TestUserList(t *testing.T) {
 							Email:    "bob.johnson@test.com",
 						},
 						MaxNamespaces: 10,
-						UserPassword: models.UserPassword{
-							HashedPassword: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
+						Password: models.UserPassword{
+							Hash: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
 						},
 					},
 				},
@@ -191,8 +191,8 @@ func TestUserCreate(t *testing.T) {
 					Username: "john_doe",
 					Email:    "john.doe@test.com",
 				},
-				UserPassword: models.UserPassword{
-					HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+				Password: models.UserPassword{
+					Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 				},
 			},
 			fixtures: []string{},
@@ -255,8 +255,8 @@ func TestUserGetByUsername(t *testing.T) {
 						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
-					UserPassword: models.UserPassword{
-						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					Password: models.UserPassword{
+						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				err: nil,
@@ -319,8 +319,8 @@ func TestUserGetByEmail(t *testing.T) {
 						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
-					UserPassword: models.UserPassword{
-						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					Password: models.UserPassword{
+						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				err: nil,
@@ -387,8 +387,8 @@ func TestUserGetByID(t *testing.T) {
 						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
-					UserPassword: models.UserPassword{
-						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					Password: models.UserPassword{
+						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				ns:  0,
@@ -413,8 +413,8 @@ func TestUserGetByID(t *testing.T) {
 						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
-					UserPassword: models.UserPassword{
-						HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					Password: models.UserPassword{
+						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 					},
 				},
 				ns:  1,
@@ -808,8 +808,8 @@ func TestUserDetachInfo(t *testing.T) {
 			Username: "username",
 			Email:    "user@email.com",
 		},
-		UserPassword: models.UserPassword{
-			HashedPassword: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+		Password: models.UserPassword{
+			Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
 		},
 	}
 
@@ -821,7 +821,7 @@ func TestUserDetachInfo(t *testing.T) {
 		"_id":      objID,
 		"name":     user.Name,
 		"username": user.Username,
-		"password": user.HashedPassword,
+		"password": user.Password.Hash,
 		"email":    user.Email,
 	})
 

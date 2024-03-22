@@ -41,7 +41,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails when email is invalid",
 			username:    "john_doe",
 			email:       "invalidmail.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 			},
 			expected: Expected{nil, ErrUserDataInvalid},
@@ -50,7 +50,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails when username is invalid",
 			username:    "",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 			},
 			expected: Expected{nil, ErrUserDataInvalid},
@@ -68,7 +68,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails when email is duplicated",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
@@ -76,7 +76,10 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -88,7 +91,9 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "jane_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -102,7 +107,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails when username is duplicated",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
@@ -110,7 +115,10 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -122,7 +130,9 @@ func TestUserCreate(t *testing.T) {
 						Email:    "jane.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -136,7 +146,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails when email and username is duplicated",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
@@ -144,7 +154,10 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -156,7 +169,9 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -170,7 +185,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails when some field is duplicated but unhandled",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
@@ -178,7 +193,10 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -193,7 +211,7 @@ func TestUserCreate(t *testing.T) {
 			description: "fails creates a user",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
@@ -201,7 +219,10 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -214,7 +235,7 @@ func TestUserCreate(t *testing.T) {
 			description: "successfully creates a user",
 			username:    "john_doe",
 			email:       "john.doe@test.com",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				user := &models.User{
 					UserData: models.UserData{
@@ -222,7 +243,10 @@ func TestUserCreate(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword:  models.NewUserPassword("password"),
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 					Confirmed:     true,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -235,7 +259,10 @@ func TestUserCreate(t *testing.T) {
 					Email:    "john.doe@test.com",
 					Username: "john_doe",
 				},
-				UserPassword:  models.NewUserPassword("password"),
+				Password: models.UserPassword{
+					Plain: "secret",
+					Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+				},
 				Confirmed:     true,
 				CreatedAt:     clock.Now(),
 				MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -410,7 +437,7 @@ func TestUserResetPassword(t *testing.T) {
 		{
 			description: "fails when could not find a user",
 			username:    "john_doe",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
 			},
@@ -419,9 +446,8 @@ func TestUserResetPassword(t *testing.T) {
 		{
 			description: "fails to reset the user password",
 			username:    "john_doe",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
-				password := models.NewUserPassword("password")
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -429,19 +455,20 @@ func TestUserResetPassword(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword: password,
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
-				mock.On("UserUpdatePassword", ctx, password.HashedPassword, "507f191e810c19729de860ea").Return(errors.New("error")).Once()
+				mock.On("UserUpdatePassword", ctx, "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", "507f191e810c19729de860ea").Return(errors.New("error")).Once()
 			},
 			expected: ErrFailedUpdateUser,
 		},
 		{
 			description: "successfully reset the user password",
 			username:    "john_doe",
-			password:    "password",
+			password:    "secret",
 			requiredMocks: func() {
-				password := models.NewUserPassword("password")
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -449,10 +476,12 @@ func TestUserResetPassword(t *testing.T) {
 						Email:    "john.doe@test.com",
 						Username: "john_doe",
 					},
-					UserPassword: password,
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
 				}
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
-				mock.On("UserUpdatePassword", ctx, password.HashedPassword, "507f191e810c19729de860ea").Return(nil).Once()
+				mock.On("UserUpdatePassword", ctx, "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", "507f191e810c19729de860ea").Return(nil).Once()
 			},
 			expected: nil,
 		},

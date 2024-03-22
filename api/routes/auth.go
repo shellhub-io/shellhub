@@ -202,26 +202,24 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 }
 
 func (h *Handler) AuthUser(c gateway.Context) error {
-	var req requests.UserAuth
+	req := new(requests.UserAuth)
 
-	if err := c.Bind(&req); err != nil {
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
-	res, err := h.service.AuthUser(c.Ctx(), &models.UserAuthRequest{
-		Identifier: models.UserAuthIdentifier(req.Username),
-		Password:   req.Password,
-	})
+	res, err := h.service.AuthUser(c.Ctx(), req)
 	if err != nil {
-		if errors.Is(err, svc.ErrUserNotFound) {
+		switch {
+		case errors.Is(err, svc.ErrUserNotFound):
 			return errs.NewErrUnauthorized(err)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return c.JSON(http.StatusOK, res)
