@@ -22,15 +22,19 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		return nil, ErrUserDataInvalid
 	}
 
-	userPassword := models.HashUserPassword(input.Password)
+	password, err := models.HashUserPassword(input.Password)
+	if err != nil {
+		return nil, ErrUserPasswordInvalid
+	}
 
-	if ok, err := s.validator.Struct(userPassword); !ok || err != nil {
+	// TODO: validate this at cmd layer
+	if ok, err := s.validator.Struct(password); !ok || err != nil {
 		return nil, ErrUserPasswordInvalid
 	}
 
 	user := &models.User{
 		UserData:      userData,
-		Password:      userPassword,
+		Password:      password,
 		Confirmed:     true,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
@@ -108,15 +112,19 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserDataInvalid
 	}
 
-	password := models.HashUserPassword(input.Password)
-
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return ErrUserPasswordInvalid
-	}
-
 	user, err := s.store.UserGetByUsername(ctx, input.Username)
 	if err != nil {
 		return ErrUserNotFound
+	}
+
+	password, err := models.HashUserPassword(input.Password)
+	if err != nil {
+		return ErrUserPasswordInvalid
+	}
+
+	// TODO: validate this at cmd layer
+	if ok, err := s.validator.Struct(password); !ok || err != nil {
+		return ErrUserPasswordInvalid
 	}
 
 	if err := s.store.UserUpdatePassword(ctx, password.Hash, user.ID); err != nil {

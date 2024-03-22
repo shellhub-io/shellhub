@@ -36,7 +36,30 @@ func TestSetup(t *testing.T) {
 				Namespace: "teste-space",
 			},
 			requiredMocks: func() {
+				passwordMock.
+					On("Hash", "secret").
+					Return("", errors.New("error", "", 0)).
+					Once()
+			},
+			expected: NewErrUserPasswordInvalid(errors.New("error", "", 0)),
+		},
+		{
+			description: "Fail when cannot create the user",
+			req: requests.Setup{
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "teste-space",
+			},
+			requiredMocks: func() {
 				clockMock.On("Now").Return(now).Once()
+
+				passwordMock.
+					On("Hash", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
 				user := &models.User{
 					Confirmed: true,
 					CreatedAt: now,
@@ -47,7 +70,7 @@ func TestSetup(t *testing.T) {
 					},
 					Password: models.UserPassword{
 						Plain: "secret",
-						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 				}
 				mock.On("UserCreate", ctx, user).Return(errors.New("error", "", 0)).Once()
@@ -65,8 +88,15 @@ func TestSetup(t *testing.T) {
 			},
 			requiredMocks: func() {
 				clockMock.On("Now").Return(now).Twice()
+
 				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
+
+				passwordMock.
+					On("Hash", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
 				user := &models.User{
 					Confirmed: true,
 					CreatedAt: now,
@@ -77,7 +107,7 @@ func TestSetup(t *testing.T) {
 					},
 					Password: models.UserPassword{
 						Plain: "secret",
-						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 				}
 				namespace := &models.Namespace{
@@ -114,6 +144,12 @@ func TestSetup(t *testing.T) {
 				clockMock.On("Now").Return(now).Twice()
 				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
+
+				passwordMock.
+					On("Hash", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
 				user := &models.User{
 					Confirmed: true,
 					CreatedAt: now,
@@ -124,7 +160,7 @@ func TestSetup(t *testing.T) {
 					},
 					Password: models.UserPassword{
 						Plain: "secret",
-						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 				}
 				namespace := &models.Namespace{

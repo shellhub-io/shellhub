@@ -24,7 +24,10 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		return NewErrUserInvalid(nil, err)
 	}
 
-	password := models.HashUserPassword(req.Password)
+	password, err := models.HashUserPassword(req.Password)
+	if err != nil {
+		return NewErrUserPasswordInvalid(err)
+	}
 
 	if ok, err := s.validator.Struct(password); !ok || err != nil {
 		return NewErrUserPasswordInvalid(err)
@@ -38,8 +41,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		CreatedAt: clock.Now(),
 	}
 
-	err := s.store.UserCreate(ctx, user)
-	if err != nil {
+	if err := s.store.UserCreate(ctx, user); err != nil {
 		return NewErrUserDuplicated([]string{req.Username}, err)
 	}
 

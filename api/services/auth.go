@@ -155,7 +155,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models
 		return nil, NewErrUserNotConfirmed(nil)
 	}
 
-	if !user.Password.Compare(models.HashUserPassword(req.Password)) {
+	if !user.Password.Compare(req.Password) {
 		return nil, NewErrAuthUnathorized(nil)
 	}
 
@@ -205,6 +205,13 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models
 		log.WithError(err).
 			WithFields(log.Fields{"id": user.ID}).
 			Warn("unable to cache the authentication token")
+	}
+
+	// Updates the hash algorithm to bcrypt if still using SHA256
+	if !strings.HasPrefix(user.Password.Hash, "$") {
+		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
+			s.store.UserUpdatePassword(ctx, neo.Hash, user.ID) // nolint: errcheck
+		}
 	}
 
 	return &models.UserAuthResponse{

@@ -269,7 +269,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					Password: models.UserPassword{
-						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
 				}
 
@@ -277,8 +277,40 @@ func TestUpdatePasswordUser(t *testing.T) {
 					On("UserGetByID", ctx, "1", false).
 					Return(user, 1, nil).
 					Once()
+				passwordMock.
+					On("Compare", "wrong_password", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
 			},
 			expected: NewErrUserPasswordNotMatch(nil),
+		},
+		{
+			description:     "fail when unable to hash the new password",
+			id:              "65fde3a72c4c7507c7f53c43",
+			currentPassword: "secret",
+			newPassword:     "newSecret",
+			requiredMocks: func() {
+				user := &models.User{
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				mock.
+					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
+					Return(user, 1, nil).
+					Once()
+				passwordMock.
+					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				passwordMock.
+					On("Hash", "newSecret").
+					Return("", errors.New("error", "", 0)).
+					Once()
+			},
+			expected: NewErrUserPasswordInvalid(errors.New("error", "", 0)),
 		},
 		{
 			description:     "fail to update the user's password",
@@ -289,22 +321,36 @@ func TestUpdatePasswordUser(t *testing.T) {
 				user := &models.User{
 					Password: models.UserPassword{
 						Plain: "secret",
-						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
 				}
-
-				password := models.HashUserPassword("newSecret")
 
 				mock.
 					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
 					Return(user, 1, nil).
 					Once()
+				passwordMock.
+					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				passwordMock.
+					On("Hash", "newSecret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
 				mock.
-					On("UserUpdatePassword", ctx, password.Hash, "65fde3a72c4c7507c7f53c43").
+					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", "65fde3a72c4c7507c7f53c43").
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
-			expected: NewErrUserUpdate(&models.User{Password: models.HashUserPassword("secret")}, errors.New("error", "", 0)),
+			expected: NewErrUserUpdate(
+				&models.User{
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				},
+				errors.New("error", "", 0),
+			),
 		},
 		{
 			description:     "succeeds to update the password",
@@ -315,18 +361,24 @@ func TestUpdatePasswordUser(t *testing.T) {
 				user := &models.User{
 					Password: models.UserPassword{
 						Plain: "secret",
-						Hash:  "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
 				}
-
-				password := models.HashUserPassword("newSecret")
 
 				mock.
 					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
 					Return(user, 1, nil).
 					Once()
+				passwordMock.
+					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				passwordMock.
+					On("Hash", "newSecret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
 				mock.
-					On("UserUpdatePassword", ctx, password.Hash, "65fde3a72c4c7507c7f53c43").
+					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", "65fde3a72c4c7507c7f53c43").
 					Return(nil).
 					Once()
 			},
