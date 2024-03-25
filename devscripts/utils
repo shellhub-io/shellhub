@@ -12,3 +12,4 @@ check_bin() {
     fi
 }
 
+SHELLHUB_PATH=$(dirname $(dirname "$(realpath "$0")"))

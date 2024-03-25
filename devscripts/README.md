@@ -18,3 +18,4 @@ They are not intented for regular use by end users.
 * `test-unit`: Run unit test
 * `gen-mock`: Generate/update mock objects for testing
 * `run-agent`: Runs a native agent, building if necessary, with the provided tag.
+* `update-go`: Updates the Go version of the project to <version>.
