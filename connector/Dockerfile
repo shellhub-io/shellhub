@@ -1,16 +1,16 @@
 # base stage
-FROM golang:1.20.4-alpine3.16 AS base
+FROM golang:1.21.8-alpine3.19 AS base
 
 ARG GOPROXY
 
-RUN apk add --update git ca-certificates build-base bash util-linux perl xz
+RUN apk add --update git ca-certificates build-base bash util-linux perl xz linux-headers
 
 # We are using libxcrypt to support yescrypt password hashing method
 # Since libxcrypt package is not available in Alpine, so we need to build libxcrypt from source code
-RUN wget -q https://github.com/besser82/libxcrypt/releases/download/v4.4.27/libxcrypt-4.4.27.tar.xz && \
-    tar xvf libxcrypt-4.4.27.tar.xz && cd libxcrypt-4.4.27 && \
+RUN wget -q https://github.com/besser82/libxcrypt/releases/download/v4.4.36/libxcrypt-4.4.36.tar.xz && \
+    tar xvf libxcrypt-4.4.36.tar.xz && cd libxcrypt-4.4.36 && \
     ./configure --prefix /usr && make -j$(nproc) && make install && \
-    cd .. && rm -rf libxcrypt-4.4.27*
+    cd .. && rm -rf libxcrypt-4.4.36*
 
 RUN ln -sf /bin/bash /bin/sh
 

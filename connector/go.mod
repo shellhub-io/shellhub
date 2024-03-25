@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/connector
 
-go 1.20
+go 1.21
 
 require (
 	github.com/shellhub-io/shellhub v0.13.0-rc.6.0.20231026135513-f00f02afa3d1
