@@ -28,7 +28,7 @@ func main() {
 	// Populates configuration based on environment variables prefixed with 'SSH_'.
 	env, err := envs.ParseWithPrefix[server.Options]("SSH_")
 	if err != nil {
-		log.WithError(err).Fatal("Failed to load environment variables")
+		log.WithError(err).Fatal("Failed to load environment variables2")
 	}
 
 	tunnel := sshTunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
