@@ -30,7 +30,7 @@ export HOST_IP=$(ip -4 route show default | awk '{ print $3 }')
 
 wait_for_acme_webserver() {
   for i in `seq 30` ; do
-    nc -z localhost 80 > /dev/null 2>&1
+    curl -sSf http://localhost > /dev/null 2>&1
 
     if [ $? -eq 0 ] ; then
         return
