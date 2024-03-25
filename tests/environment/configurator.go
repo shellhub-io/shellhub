@@ -2,6 +2,8 @@ package environment
 
 import (
 	"context"
+	"io"
+	"log"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -90,7 +92,10 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		down:     nil,
 	}
 
-	tcDc, err := compose.NewDockerCompose("../docker-compose.yml", "../docker-compose.dev.yml")
+	tcDc, err := compose.NewDockerComposeWith(
+		compose.WithStackFiles("../docker-compose.yml", "../docker-compose.test.yml"),
+		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
+	)
 	if !assert.NoError(dcc.t, err) {
 		assert.FailNow(dcc.t, err.Error())
 	}
