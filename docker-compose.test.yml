@@ -1,0 +1,54 @@
+version: "3.7"
+
+services:
+  ssh:
+    image: ssh:test
+    build:
+      context: .
+      dockerfile: ssh/Dockerfile
+      target: production 
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      retries: 20
+  api:
+    image: api:test
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      target: production 
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      retries: 20
+  ui:
+    image: ui:test
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+      target: production 
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      retries: 20
+  cli:
+    image: cli:test
+    build:
+      context: .
+      dockerfile: cli/Dockerfile
+      target: production 
+  gateway:
+   image: gateway:test
+   build:
+     context: .
+     dockerfile: gateway/Dockerfile
+     target: production 
+   healthcheck:
+     interval: 5s
+     start_period: 10s
+     retries: 20
+  mongo:
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      retries: 20

@@ -2,6 +2,8 @@ package environment
 
 import (
 	"context"
+	"io"
+	"log"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -90,7 +92,10 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		down:     nil,
 	}
 
-	tcDc, err := compose.NewDockerCompose("../docker-compose.yml", "../docker-compose.dev.yml")
+	tcDc, err := compose.NewDockerComposeWith(
+		compose.WithStackFiles("../docker-compose.yml", "../docker-compose.test.yml"),
+		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
+	)
 	if !assert.NoError(dcc.t, err) {
 		assert.FailNow(dcc.t, err.Error())
 	}
@@ -98,7 +103,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	// Since we can't utilize [compose.dockerCompose] in the parameters,
 	// we must implement the [DockerCompose.down] method here.
 	dc.down = func() {
-		err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true), compose.RemoveImagesLocal)
+		err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
 		if !assert.NoError(dc.t, err) {
 			assert.FailNow(dc.t, err.Error())
 		}
