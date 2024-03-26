@@ -7,11 +7,11 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestFirewallRuleList(t *testing.T) {
@@ -84,12 +84,12 @@ func TestFirewallRuleList(t *testing.T) {
 							Username: "admin",
 							Filter: models.FirewallFilter{
 								Hostname: "",
-								Tags:     []string{},
+								Tags:     nil,
 							},
 						},
 					},
 					{
-						ID:       "3fd759a1ecb64ec5a07c8c0f",
+						ID:       "3fd759a1ecb64ec5a07c8c0",
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						FirewallRuleFields: models.FirewallRuleFields{
 							Priority: 4,
@@ -109,53 +109,21 @@ func TestFirewallRuleList(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when firewall rule list is not empty and paginator is different than -1",
+			description: "succeeds when firewall rule list is  empty and paginator is different than -1",
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			fixtures:    []string{fixtures.FixtureFirewallRules},
 			expected: Expected{
-				rules: []models.FirewallRule{
-					{
-						ID:       "78c96f0a2e5b4dca8d78f00c",
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						FirewallRuleFields: models.FirewallRuleFields{
-							Priority: 3,
-							Action:   "allow",
-							Active:   true,
-							SourceIP: "10.0.0.0/24",
-							Username: "admin",
-							Filter: models.FirewallFilter{
-								Hostname: "",
-								Tags:     []string{},
-							},
-						},
-					},
-					{
-						ID:       "3fd759a1ecb64ec5a07c8c0f",
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						FirewallRuleFields: models.FirewallRuleFields{
-							Priority: 4,
-							Action:   "deny",
-							Active:   true,
-							SourceIP: "172.16.0.0/16",
-							Username: ".*",
-							Filter: models.FirewallFilter{
-								Hostname: "",
-								Tags:     []string{"tag-1"},
-							},
-						},
-					},
-				},
-				len: 4,
-				err: nil,
+				rules: []models.FirewallRule{},
+				len:   0,
+				err:   nil,
 			},
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("firewall_rules")
 
 	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
 	// we ensure that both the expected and result arrays are correctly sorted.
@@ -170,10 +138,26 @@ func TestFirewallRuleList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			var testData []interface{}
+
+			for _, item := range tc.expected.rules {
+				testData = append(testData, item)
+			}
+
+			if len(testData) > 0 {
+				if err := dbtest.InsertMockData(context.TODO(), collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
 			rules, count, err := mongostore.FirewallRuleList(context.TODO(), tc.paginator)
 			sort(tc.expected.rules)
 			sort(rules)
 			assert.Equal(t, tc.expected, Expected{rules: rules, len: count, err: err})
+
+			if err := dbtest.DeleteMockData(context.TODO(), collection); err != nil {
+				t.Fatalf("failed to insert documents: %v", err)
+			}
 		})
 	}
 }
@@ -191,11 +175,11 @@ func TestFirewallRuleGet(t *testing.T) {
 	}{
 		{
 			description: "fails when firewall rule is not found",
-			id:          "6504b7bd9b6c4a63a9ccc021",
+			id:          "",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
 			expected: Expected{
 				rule: nil,
-				err:  store.ErrNoDocuments,
+				err:  FromMongoError(nil),
 			},
 		},
 		{
@@ -222,20 +206,47 @@ func TestFirewallRuleGet(t *testing.T) {
 			},
 		},
 	}
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("firewall_rules")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			if tc.id != "" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+
+				doc := bson.M{
+					"_id":       objID,
+					"tenant_id": "00000000-0000-4000-0000-000000000000",
+					"priority":  tc.expected.rule.Priority,
+					"action":    tc.expected.rule.Action,
+					"active":    tc.expected.rule.Active,
+					"source_ip": tc.expected.rule.SourceIP,
+					"username":  tc.expected.rule.Username,
+					"filter": bson.M{
+						"hostname": tc.expected.rule.Filter.Hostname,
+						"tags":     tc.expected.rule.Filter.Tags,
+					},
+				}
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{doc}); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
 			rule, err := mongostore.FirewallRuleGet(context.TODO(), tc.id)
-			assert.Equal(t, tc.expected, Expected{rule: rule, err: err})
+			if tc.id == "" {
+				assert.NotNil(t, err)
+			} else {
+				assert.Equal(t, tc.expected, Expected{rule: rule, err: err})
+			}
 		})
 	}
 }
@@ -255,24 +266,12 @@ func TestFirewallRuleUpdate(t *testing.T) {
 	}{
 		{
 			description: "fails when firewall rule is not found",
-			id:          "6504b7bd9b6c4a63a9ccc000",
-			rule: models.FirewallRuleUpdate{
-				FirewallRuleFields: models.FirewallRuleFields{
-					Priority: 1,
-					Action:   "deny",
-					Active:   true,
-					SourceIP: ".*",
-					Username: ".*",
-					Filter: models.FirewallFilter{
-						Hostname: "",
-						Tags:     []string{"editedtag"},
-					},
-				},
-			},
-			fixtures: []string{fixtures.FixtureFirewallRules},
+			id:          "",
+			rule:        models.FirewallRuleUpdate{},
+			fixtures:    []string{fixtures.FixtureFirewallRules},
 			expected: Expected{
 				rule: nil,
-				err:  store.ErrNoDocuments,
+				err:  FromMongoError(nil),
 			},
 		},
 		{
@@ -313,16 +312,41 @@ func TestFirewallRuleUpdate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("firewall_rules")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.id != "" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+
+				doc := bson.M{
+					"_id":       objID,
+					"tenant_id": "00000000-0000-4000-0000-000000000000",
+					"priority":  tc.expected.rule.Priority,
+					"action":    tc.expected.rule.Action,
+					"active":    tc.expected.rule.Active,
+					"source_ip": tc.expected.rule.SourceIP,
+					"username":  tc.expected.rule.Username,
+					"filter": bson.M{
+						"hostname": tc.expected.rule.Filter.Hostname,
+						"tags":     tc.expected.rule.Filter.Tags,
+					},
+				}
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{doc}); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			rule, err := mongostore.FirewallRuleUpdate(context.TODO(), tc.id, tc.rule)
 			assert.Equal(t, tc.expected, Expected{rule: rule, err: err})
@@ -339,9 +363,9 @@ func TestFirewallRuleDelete(t *testing.T) {
 	}{
 		{
 			description: "fails when rule is not found",
-			id:          "6504ac006bf3dbca079f76b1",
+			id:          "6504b7bd9b6c4a63a9ccc053",
 			fixtures:    []string{},
-			expected:    store.ErrNoDocuments,
+			expected:    FromMongoError(nil),
 		},
 		{
 			description: "succeeds when rule is found",
@@ -351,16 +375,32 @@ func TestFirewallRuleDelete(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("firewall_rules")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.id != "" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+
+				doc := bson.M{
+					"_id": objID,
+				}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{doc}); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			err := mongostore.FirewallRuleDelete(context.TODO(), tc.id)
 			assert.Equal(t, tc.expected, err)

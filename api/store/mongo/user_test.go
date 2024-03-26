@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -72,7 +72,7 @@ func TestUserList(t *testing.T) {
 						},
 					},
 					{
-						ID:             "709f45b5e812c1002f3a67e7",
+						ID:             "709f45b5e812c1002f3a67e",
 						CreatedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						LastLogin:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						EmailMarketing: true,
@@ -148,11 +148,10 @@ func TestUserList(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("users")
 
 	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
 	// we ensure that both the expected and result arrays are correctly sorted.
@@ -167,10 +166,26 @@ func TestUserList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			var testData []interface{}
+
+			for _, item := range tc.expected.users {
+				testData = append(testData, item)
+			}
+
+			if len(testData) > 0 {
+				if err := dbtest.InsertMockData(context.TODO(), collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
 			users, count, err := mongostore.UserList(context.TODO(), tc.page, tc.filters)
 			sort(tc.expected.users)
 			sort(users)
 			assert.Equal(t, tc.expected, Expected{users: users, count: count, err: err})
+
+			if err := dbtest.DeleteMockData(context.TODO(), collection); err != nil {
+				t.Fatalf("failed to insert documents: %v", err)
+			}
 		})
 	}
 }
@@ -200,16 +215,30 @@ func TestUserCreate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			doc := bson.M{
+				"id":       tc.user.ID,
+				"name":     tc.user.Name,
+				"email":    tc.user.Email,
+				"username": tc.user.Username,
+			}
+			testData = append(testData, doc)
+
+			if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+				t.Fatalf("failed to insert documents: %v", err)
+			}
 
 			err := mongostore.UserCreate(context.TODO(), tc.user)
 			assert.Equal(t, tc.expected, err)
@@ -231,7 +260,7 @@ func TestUserGetByUsername(t *testing.T) {
 	}{
 		{
 			description: "fails when user is not found",
-			username:    "nonexistent",
+			username:    "",
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected: Expected{
 				user: nil,
@@ -263,17 +292,40 @@ func TestUserGetByUsername(t *testing.T) {
 			},
 		},
 	}
+	ctx := context.TODO()
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.username != "" {
+				doc := &models.User{
+					ID:             tc.expected.user.ID,
+					CreatedAt:      tc.expected.user.CreatedAt,
+					LastLogin:      tc.expected.user.LastLogin,
+					EmailMarketing: tc.expected.user.EmailMarketing,
+					Confirmed:      tc.expected.user.Confirmed,
+					UserData: models.UserData{
+						Name:     tc.expected.user.UserData.Name,
+						Username: tc.expected.user.UserData.Username,
+						Email:    tc.expected.user.UserData.Email,
+					},
+					MaxNamespaces: tc.expected.user.MaxNamespaces,
+					Password:      tc.expected.user.Password,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			user, err := mongostore.UserGetByUsername(context.TODO(), tc.username)
 			assert.Equal(t, tc.expected, Expected{user: user, err: err})
@@ -295,7 +347,7 @@ func TestUserGetByEmail(t *testing.T) {
 	}{
 		{
 			description: "fails when email is not found",
-			email:       "nonexistent",
+			email:       "",
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected: Expected{
 				user: nil,
@@ -328,16 +380,40 @@ func TestUserGetByEmail(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.email != "" {
+				doc := &models.User{
+					ID:             tc.expected.user.ID,
+					CreatedAt:      tc.expected.user.CreatedAt,
+					LastLogin:      tc.expected.user.LastLogin,
+					EmailMarketing: tc.expected.user.EmailMarketing,
+					Confirmed:      tc.expected.user.Confirmed,
+					UserData: models.UserData{
+						Name:     tc.expected.user.UserData.Name,
+						Username: tc.expected.user.UserData.Username,
+						Email:    tc.expected.user.UserData.Email,
+					},
+					MaxNamespaces: tc.expected.user.MaxNamespaces,
+					Password:      tc.expected.user.Password,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			user, err := mongostore.UserGetByEmail(context.TODO(), tc.email)
 			assert.Equal(t, tc.expected, Expected{user: user, err: err})
@@ -361,7 +437,7 @@ func TestUserGetByID(t *testing.T) {
 	}{
 		{
 			description: "fails when user is not found",
-			id:          "507f1f77bcf86cd7994390bb",
+			id:          "000000000000000000000000",
 			fixtures:    []string{fixtures.FixtureUsers, fixtures.FixtureNamespaces},
 			expected: Expected{
 				user: nil,
@@ -387,9 +463,6 @@ func TestUserGetByID(t *testing.T) {
 						Email:    "john.doe@test.com",
 					},
 					MaxNamespaces: 0,
-					Password: models.UserPassword{
-						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-					},
 				},
 				ns:  0,
 				err: nil,
@@ -397,12 +470,12 @@ func TestUserGetByID(t *testing.T) {
 		},
 		{
 			description: "succeeds when user is found with ns equal true",
-			id:          "507f1f77bcf86cd799439011",
+			id:          "507f1f77bcf86cd799439012",
 			ns:          true,
 			fixtures:    []string{fixtures.FixtureUsers, fixtures.FixtureNamespaces},
 			expected: Expected{
 				user: &models.User{
-					ID:             "507f1f77bcf86cd799439011",
+					ID:             "507f1f77bcf86cd799439012",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					EmailMarketing: true,
@@ -412,10 +485,7 @@ func TestUserGetByID(t *testing.T) {
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
 					},
-					MaxNamespaces: 0,
-					Password: models.UserPassword{
-						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-					},
+					MaxNamespaces: 1,
 				},
 				ns:  1,
 				err: nil,
@@ -423,16 +493,67 @@ func TestUserGetByID(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collectionUsers := mongostore.db.Collection("users")
+	collectionNamespaces := mongostore.db.Collection("namespaces")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			objID, err := primitive.ObjectIDFromHex(tc.id)
+			if err != nil {
+				t.Fatalf("failed to convert ID to ObjectID: %v", err)
+			}
+
+			var testData []interface{}
+			if tc.id != "000000000000000000000000" {
+				doc := bson.M{
+					"_id":             objID,
+					"namespaces":      tc.expected.user.Namespaces,
+					"max_namespaces":  tc.expected.user.MaxNamespaces,
+					"confirmed":       tc.expected.user.Confirmed,
+					"created_at":      tc.expected.user.CreatedAt,
+					"last_login":      tc.expected.user.LastLogin,
+					"email_marketing": tc.expected.user.EmailMarketing,
+					"status_mfa":      tc.expected.user.MFA,
+					"secret":          tc.expected.user.Secret,
+					"codes":           tc.expected.user.Codes,
+					"name":            tc.expected.user.UserData.Name,
+					"username":        tc.expected.user.UserData.Username,
+					"email":           tc.expected.user.UserData.Email,
+				}
+
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collectionUsers, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+
+				if tc.expected.ns > 0 {
+					var testDataNamespaces []interface{}
+					for i := 0; i < tc.expected.ns; i++ {
+						docNamespace := bson.M{
+							"created_at":  time.Now(),
+							"name":        fmt.Sprintf("namespace-%d", i+1),
+							"owner":       tc.expected.user.ID,
+							"tenant_id":   "00000000-0000-4000-0000-000000000000",
+							"description": fmt.Sprintf("Description of namespace-%d", i+1),
+						}
+						testDataNamespaces = append(testDataNamespaces, docNamespace)
+					}
+
+					if err := dbtest.InsertMockData(ctx, collectionNamespaces, testDataNamespaces); err != nil {
+						t.Fatalf("failed to insert namespace documents: %v", err)
+
+					}
+				}
+			}
 
 			user, ns, err := mongostore.UserGetByID(context.TODO(), tc.id, tc.ns)
 			assert.Equal(t, tc.expected, Expected{user: user, ns: ns, err: err})
@@ -478,16 +599,38 @@ func TestUserUpdateData(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.id != "000000000000000000000000" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+
+				doc := bson.M{
+					"_id":        objID,
+					"last_login": tc.data.LastLogin,
+					"name":       "old",
+					"username":   tc.data.UserData.Username,
+					"email":      tc.data.UserData.Email,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			err := mongostore.UserUpdateData(context.TODO(), tc.id, tc.data)
 			assert.Equal(t, tc.expected, err)
@@ -505,7 +648,7 @@ func TestUserUpdatePassword(t *testing.T) {
 	}{
 		{
 			description: "fails when user id is not valid",
-			id:          "invalid",
+			id:          "",
 			password:    "other_password",
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected:    store.ErrInvalidHex,
@@ -526,16 +669,34 @@ func TestUserUpdatePassword(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.id != "000000000000000000000000" && tc.id != "" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+				doc := bson.M{
+					"_id":      objID,
+					"password": "old",
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			err := mongostore.UserUpdatePassword(context.TODO(), tc.password, tc.id)
 			assert.Equal(t, tc.expected, err)
@@ -552,7 +713,7 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 	}{
 		{
 			description: "fails when user id is not valid",
-			id:          "invalid",
+			id:          "",
 			fixtures:    []string{fixtures.FixtureUsers},
 			expected:    store.ErrInvalidHex,
 		},
@@ -570,16 +731,34 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.id != "000000000000000000000000" && tc.id != "" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+				doc := bson.M{
+					"_id":       objID,
+					"confirmed": false,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			err := mongostore.UserUpdateAccountStatus(context.TODO(), tc.id)
 			assert.Equal(t, tc.expected, err)
@@ -620,16 +799,37 @@ func TestUserUpdateFromAdmin(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.id != "000000000000000000000000" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+				doc := bson.M{
+					"_id":      objID,
+					"name":     "old",
+					"username": tc.username,
+					"email":    tc.email,
+					"password": tc.password,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			err := mongostore.UserUpdateFromAdmin(context.TODO(), tc.name, tc.username, tc.email, tc.password, tc.id)
 			assert.Equal(t, tc.expected, err)
@@ -655,16 +855,28 @@ func TestUserCreateToken(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("recovery_tokens")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+
+			doc := &models.UserTokenRecover{
+				Token: tc.token.Token,
+			}
+			testData = append(testData, doc)
+
+			if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+				t.Fatalf("failed to insert documents: %v", err)
+			}
 
 			err := mongostore.UserCreateToken(context.TODO(), tc.token)
 			assert.Equal(t, tc.expected, err)
@@ -686,7 +898,7 @@ func TestUserTokenGet(t *testing.T) {
 	}{
 		{
 			description: "fails when user is not found",
-			id:          "000000000000000000000000",
+			id:          "",
 			fixtures:    []string{fixtures.FixtureUsers, fixtures.FixtureRecoveryTokens},
 			expected: Expected{
 				token: nil,
@@ -700,7 +912,6 @@ func TestUserTokenGet(t *testing.T) {
 			expected: Expected{
 				token: &models.UserTokenRecover{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Token:     "token",
 					User:      "507f1f77bcf86cd799439011",
 				},
 				err: nil,
@@ -708,16 +919,31 @@ func TestUserTokenGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("recovery_tokens")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.id != "" {
+				doc := bson.M{
+					"uid":        tc.expected.token.Token,
+					"created_at": tc.expected.token.CreatedAt,
+					"user":       tc.id,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			token, err := mongostore.UserGetToken(context.TODO(), tc.id)
 			assert.Equal(t, tc.expected, Expected{token: token, err: err})
@@ -740,16 +966,29 @@ func TestUserDeleteTokens(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("recovery_tokens")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			if tc.id != "" {
+				doc := bson.M{
+					"user": tc.id,
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 
 			err := mongostore.UserDeleteTokens(context.TODO(), tc.id)
 			assert.Equal(t, tc.expected, err)
@@ -778,17 +1017,34 @@ func TestUserDelete(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+
+	collection := mongostore.db.Collection("users")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			var testData []interface{}
+			if tc.id != "000000000000000000000000" {
+				objID, err := primitive.ObjectIDFromHex(tc.id)
+				if err != nil {
+					t.Fatalf("failed to convert ID to ObjectID: %v", err)
+				}
+				doc := bson.M{
+					"_id":  objID,
+					"name": "name",
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 			err := mongostore.UserDelete(context.TODO(), tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -796,10 +1052,8 @@ func TestUserDelete(t *testing.T) {
 }
 
 func TestUserDetachInfo(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	user := models.User{
 		ID: "60af83d418d2dc3007cd445c",
@@ -817,7 +1071,7 @@ func TestUserDetachInfo(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, _ = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), bson.M{
+	_, _ = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), bson.M{
 		"_id":      objID,
 		"name":     user.Name,
 		"username": user.Username,
@@ -882,13 +1136,13 @@ func TestUserDetachInfo(t *testing.T) {
 	}
 
 	for _, n := range namespacesOwner {
-		inserted, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), n)
+		inserted, err := mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), n)
 		t.Log(inserted.InsertedID)
 		assert.NoError(t, err)
 	}
 
 	for _, n := range namespacesMember {
-		inserted, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), n)
+		inserted, err := mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), n)
 		t.Log(inserted.InsertedID)
 		assert.NoError(t, err)
 	}

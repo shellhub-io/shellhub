@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -15,19 +14,16 @@ import (
 func TestMigration31(t *testing.T) {
 	logrus.Info("Testing Migration 31 - Test whether the collection of namespaces the field created_at was created")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	namespace := models.Namespace{
 		Name: "Test",
 	}
 
-	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err := mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[30:31]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 	err = migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -36,7 +32,7 @@ func TestMigration31(t *testing.T) {
 	assert.Equal(t, uint64(31), version)
 
 	var migratedNamespace *models.Namespace
-	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": namespace.Name}).Decode(&migratedNamespace)
+	err = mongoClient.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": namespace.Name}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 	assert.NotNil(t, migratedNamespace.CreatedAt)
 }

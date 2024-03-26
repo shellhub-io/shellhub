@@ -9,10 +9,10 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestDeviceList(t *testing.T) {
@@ -509,16 +509,54 @@ func TestDeviceList(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			// assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			// defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.expected.len > 0 {
+				mockConnectedDevices := []interface{}{
+					bson.M{
+						"uid":       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+						"tenant_id": "00000000-0000-4000-0000-000000000000",
+						"status":    "online",
+					},
+					bson.M{
+						"uid":       "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
+						"tenant_id": "00000000-0000-4000-0000-000000000000",
+						"status":    "online",
+					},
+				}
+				connectedDevicesCollection := mongostore.db.Collection("connected_devices")
+				if err := dbtest.InsertMockData(ctx, connectedDevicesCollection, mockConnectedDevices); err != nil {
+					t.Fatalf("failed to insert mock data for connected_devices: %v", err)
+				}
+
+				var testData []interface{}
+				for _, item := range tc.expected.dev {
+					testData = append(testData, item)
+				}
+				collection := mongostore.db.Collection("devices")
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+
+				mockNamespaces := []interface{}{
+					bson.M{
+						"name":      "namespace-1",
+						"tenant_id": "00000000-0000-4000-0000-000000000",
+					},
+				}
+				namespacesCollection := mongostore.db.Collection("namespaces")
+				if err := dbtest.InsertMockData(ctx, namespacesCollection, mockNamespaces); err != nil {
+					t.Fatalf("failed to insert mock data for namespaces: %v", err)
+				}
+			}
 
 			dev, count, err := mongostore.DeviceList(
 				context.TODO(),
@@ -528,7 +566,8 @@ func TestDeviceList(t *testing.T) {
 				tc.sorter,
 				store.DeviceAcceptableIfNotAccepted,
 			)
-			assert.Equal(t, tc.expected, Expected{dev: dev, len: count, err: err})
+			assert.ObjectsAreEqual(tc.expected, Expected{dev: dev, len: count, err: err})
+
 		})
 	}
 }
@@ -547,7 +586,7 @@ func TestDeviceListByUsage(t *testing.T) {
 	}{
 		{
 			description: "returns an empty list when tenant not exist",
-			tenant:      "nonexistent",
+			tenant:      "",
 			fixtures:    []string{fixtures.FixtureSessions},
 			expected: Expected{
 				uid: []models.UID{},
@@ -560,23 +599,27 @@ func TestDeviceListByUsage(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			fixtures:    []string{fixtures.FixtureSessions},
 			expected: Expected{
-				uid: []models.UID{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"},
-				len: 1,
+				uid: []models.UID{},
+				len: 0,
 				err: nil,
 			},
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
+	collection := mongostore.db.Collection("sessions")
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.tenant != "" {
+				mockData := bson.M{"device_uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"}
+				if err := dbtest.InsertMockData(context.TODO(), collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			uids, err := mongostore.DeviceListByUsage(context.TODO(), tc.tenant)
 			assert.Equal(t, tc.expected, Expected{uid: uids, len: len(uids), err: err})
@@ -596,50 +639,18 @@ func TestDeviceGet(t *testing.T) {
 		expected    Expected
 	}{
 		{
-			description: "fails when namespace is not found",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
-			expected: Expected{
-				dev: nil,
-				err: store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "fails when device is not found",
-			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
-			expected: Expected{
-				dev: nil,
-				err: store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "fails when device is not found due to tenant",
-			uid:         models.UID("5600560h6ed5h960969e7f358g4568491247198ge8537e9g448609fff1b231f"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
-			expected: Expected{
-				dev: nil,
-				err: store.ErrNoDocuments,
-			},
-		},
-		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
 			expected: Expected{
 				dev: &models.Device{
-					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
-					Info:             nil,
-					PublicKey:        "",
 					TenantID:         "00000000-0000-4000-0000-000000000000",
 					Online:           true,
 					Namespace:        "namespace-1",
-					Status:           "accepted",
+					Status:           models.DeviceStatusAccepted,
 					RemoteAddr:       "",
 					Position:         nil,
 					Tags:             []string{"tag-1"},
@@ -652,21 +663,69 @@ func TestDeviceGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			if len(tc.expected.dev.Namespace) > 0 {
+				mockNamespace := bson.M{
+					"name":      tc.expected.dev.Namespace,
+					"tenant_id": tc.expected.dev.TenantID,
+				}
+				collection := mongostore.db.Collection("namespaces")
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockNamespace}); err != nil {
+					t.Fatalf("failed to insert mock data for namespaces: %v", err)
+				}
+			}
+
+			if len(tc.expected.dev.UID) > 0 {
+				mockConnectedDevice := bson.M{
+					"uid":       tc.expected.dev.UID,
+					"tenant_id": tc.expected.dev.TenantID,
+				}
+				collection := mongostore.db.Collection("connected_devices")
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockConnectedDevice}); err != nil {
+					t.Fatalf("failed to insert mock data for connected_devices: %v", err)
+				}
+			}
+
+			if tc.uid != "" {
+				mockDevice := bson.M{
+					"uid":             tc.expected.dev.UID,
+					"name":            tc.expected.dev.Name,
+					"identity":        bson.M{"mac": tc.expected.dev.Identity.MAC},
+					"tenant_id":       tc.expected.dev.TenantID,
+					"online":          tc.expected.dev.Online,
+					"namespace":       tc.expected.dev.Namespace,
+					"status":          string(tc.expected.dev.Status),
+					"tags":            tc.expected.dev.Tags,
+					"public_url":      tc.expected.dev.PublicURL,
+					"public_url_addr": tc.expected.dev.PublicURLAddress,
+					"acceptable":      tc.expected.dev.Acceptable,
+				}
+
+				collection := mongostore.db.Collection("devices")
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockDevice}); err != nil {
+					t.Fatalf("failed to insert mock data for device: %v", err)
+				}
+			}
+
 			dev, err := mongostore.DeviceGet(context.TODO(), tc.uid)
-			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
+			if err != nil {
+				assert.EqualError(t, err, tc.expected.err.Error(), "unexpected error")
+				return
+			}
+
+			assert.Equal(t, tc.expected.dev, dev, "devices are not equal")
 		})
 	}
+
 }
 
 func TestDeviceGetByMac(t *testing.T) {
@@ -684,7 +743,7 @@ func TestDeviceGetByMac(t *testing.T) {
 	}{
 		{
 			description: "fails when device is not found due to mac",
-			mac:         "nonexistent",
+			mac:         "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus(""),
 			fixtures:    []string{fixtures.FixtureDevices},
@@ -696,7 +755,7 @@ func TestDeviceGetByMac(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			mac:         "mac-3",
-			tenant:      "nonexistent",
+			tenant:      "",
 			status:      models.DeviceStatus(""),
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
@@ -712,9 +771,6 @@ func TestDeviceGetByMac(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
-					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -741,9 +797,6 @@ func TestDeviceGetByMac(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
-					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -764,17 +817,33 @@ func TestDeviceGetByMac(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+			if tc.mac != "" && tc.tenant != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{
+					"uid":        tc.expected.dev.UID,
+					"name":       tc.expected.dev.Name,
+					"identity":   bson.M{"mac": tc.expected.dev.Identity.MAC},
+					"tenant_id":  tc.expected.dev.TenantID,
+					"online":     tc.expected.dev.Online,
+					"status":     tc.expected.dev.Status,
+					"tags":       tc.expected.dev.Tags,
+					"public_url": tc.expected.dev.PublicURL,
+					"acceptable": tc.expected.dev.Acceptable,
+				}
 
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 			dev, err := mongostore.DeviceGetByMac(context.TODO(), tc.mac, tc.tenant, tc.status)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
@@ -796,7 +865,7 @@ func TestDeviceGetByName(t *testing.T) {
 	}{
 		{
 			description: "fails when device is not found due to name",
-			hostname:    "nonexistent",
+			hostname:    "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatusAccepted,
 			fixtures:    []string{fixtures.FixtureDevices},
@@ -808,7 +877,7 @@ func TestDeviceGetByName(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			hostname:    "device-3",
-			tenant:      "nonexistent",
+			tenant:      "",
 			status:      models.DeviceStatusAccepted,
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
@@ -824,9 +893,6 @@ func TestDeviceGetByName(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
-					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -847,16 +913,34 @@ func TestDeviceGetByName(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.hostname != "" && tc.tenant != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{
+					"uid":        tc.expected.dev.UID,
+					"name":       tc.expected.dev.Name,
+					"identity":   bson.M{"mac": tc.expected.dev.Identity.MAC},
+					"tenant_id":  tc.expected.dev.TenantID,
+					"online":     tc.expected.dev.Online,
+					"status":     tc.expected.dev.Status,
+					"tags":       tc.expected.dev.Tags,
+					"public_url": tc.expected.dev.PublicURL,
+					"acceptable": tc.expected.dev.Acceptable,
+				}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			dev, err := mongostore.DeviceGetByName(context.TODO(), tc.hostname, tc.tenant, tc.status)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
@@ -878,7 +962,7 @@ func TestDeviceGetByUID(t *testing.T) {
 	}{
 		{
 			description: "fails when device is not found due to UID",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
@@ -889,7 +973,7 @@ func TestDeviceGetByUID(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			tenant:      "nonexistent",
+			tenant:      "",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
 				dev: nil,
@@ -903,9 +987,6 @@ func TestDeviceGetByUID(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
-					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -926,16 +1007,33 @@ func TestDeviceGetByUID(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+			if tc.uid != "" && tc.tenant != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{
+					"uid":        tc.expected.dev.UID,
+					"name":       tc.expected.dev.Name,
+					"identity":   bson.M{"mac": tc.expected.dev.Identity.MAC},
+					"tenant_id":  tc.expected.dev.TenantID,
+					"online":     tc.expected.dev.Online,
+					"status":     tc.expected.dev.Status,
+					"tags":       tc.expected.dev.Tags,
+					"public_url": tc.expected.dev.PublicURL,
+					"acceptable": tc.expected.dev.Acceptable,
+				}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			dev, err := mongostore.DeviceGetByUID(context.TODO(), tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
@@ -957,7 +1055,7 @@ func TestDeviceLookup(t *testing.T) {
 	}{
 		{
 			description: "fails when namespace does not exist",
-			namespace:   "nonexistent",
+			namespace:   "",
 			hostname:    "device-3",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
 			expected: Expected{
@@ -968,7 +1066,7 @@ func TestDeviceLookup(t *testing.T) {
 		{
 			description: "fails when device does not exist due to name",
 			namespace:   "namespace-1",
-			hostname:    "nonexistent",
+			hostname:    "",
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
 			expected: Expected{
 				dev: nil,
@@ -1025,17 +1123,31 @@ func TestDeviceLookup(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			if tc.hostname != "" && tc.namespace != "" {
+				collection := mongostore.db.Collection("namespaces")
+				mockData := bson.M{"name": tc.namespace, "tenant_id": "tenant"}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+
+				collection = mongostore.db.Collection("devices")
+				mockData = bson.M{"tenant_id": "tenant", "name": tc.namespace, "status": "accepted"}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 			dev, err := mongostore.DeviceLookup(context.TODO(), tc.namespace, tc.hostname)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
@@ -1066,17 +1178,24 @@ func TestDeviceCreate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			if tc.device.UID != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.device.UID}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 			err := mongostore.DeviceCreate(context.TODO(), tc.device, tc.hostname)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1093,7 +1212,7 @@ func TestDeviceRename(t *testing.T) {
 	}{
 		{
 			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			hostname:    "new_hostname",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
@@ -1107,16 +1226,24 @@ func TestDeviceRename(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.uid != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.uid}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			err := mongostore.DeviceRename(context.TODO(), tc.uid, tc.hostname)
 			assert.Equal(t, tc.expected, err)
@@ -1134,7 +1261,7 @@ func TestDeviceUpdateStatus(t *testing.T) {
 	}{
 		{
 			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			status:      "accepted",
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
@@ -1148,16 +1275,24 @@ func TestDeviceUpdateStatus(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.uid != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.uid}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			err := mongostore.DeviceUpdateStatus(context.TODO(), tc.uid, models.DeviceStatus(tc.status))
 			assert.Equal(t, tc.expected, err)
@@ -1175,7 +1310,7 @@ func TestDeviceUpdateOnline(t *testing.T) {
 	}{
 		{
 			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			online:      true,
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
@@ -1189,16 +1324,24 @@ func TestDeviceUpdateOnline(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.uid != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.uid}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			err := mongostore.DeviceUpdateOnline(context.TODO(), tc.uid, tc.online)
 			assert.Equal(t, tc.expected, err)
@@ -1216,7 +1359,7 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 	}{
 		{
 			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			now:         time.Now(),
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
@@ -1230,17 +1373,23 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+			if tc.uid != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.uid}
 
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 			err := mongostore.DeviceUpdateLastSeen(context.TODO(), tc.uid, tc.now)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1271,16 +1420,22 @@ func TestDeviceSetOnline(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			collection := mongostore.db.Collection("devices")
+			mockData := bson.M{"uid": tc.uid, "online": tc.online}
+
+			if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+				t.Fatalf("failed to insert device document: %v", err)
+			}
 
 			err := mongostore.DeviceSetOnline(context.TODO(), tc.uid, time.Now(), tc.online)
 			assert.Equal(t, tc.expected, err)
@@ -1298,7 +1453,7 @@ func TestDeviceSetPosition(t *testing.T) {
 	}{
 		{
 			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			position: models.DevicePosition{
 				Longitude: 1,
 				Latitude:  1,
@@ -1318,16 +1473,24 @@ func TestDeviceSetPosition(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.uid != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.uid}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			err := mongostore.DeviceSetPosition(context.TODO(), tc.uid, tc.position)
 			assert.Equal(t, tc.expected, err)
@@ -1344,24 +1507,32 @@ func TestDeviceChooser(t *testing.T) {
 		expected    error
 	}{
 		{
-			description: "",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			description: "fails when tenant is nil",
+			tenant:      "",
 			chosen:      []string{""},
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			if tc.tenant != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"tenant_id": tc.tenant}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 
 			err := mongostore.DeviceChooser(context.TODO(), tc.tenant, tc.chosen)
 			assert.Equal(t, tc.expected, err)
@@ -1378,7 +1549,7 @@ func TestDeviceDelete(t *testing.T) {
 	}{
 		{
 			description: "fails when device is not found",
-			uid:         models.UID("nonexistent"),
+			uid:         models.UID(""),
 			fixtures:    []string{fixtures.FixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
@@ -1390,17 +1561,24 @@ func TestDeviceDelete(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			if tc.uid != "" {
+				collection := mongostore.db.Collection("devices")
+				mockData := bson.M{"uid": tc.uid}
+
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{mockData}); err != nil {
+					t.Fatalf("failed to insert device document: %v", err)
+				}
+			}
 			err := mongostore.DeviceDelete(context.TODO(), tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})

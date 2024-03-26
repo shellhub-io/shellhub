@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -18,8 +17,6 @@ func TestMigration59(t *testing.T) {
 	logrus.Info("Testing Migration 59")
 
 	ctx := context.TODO()
-	db := dbtest.DBServer{}
-	defer db.Stop()
 
 	type Expected struct {
 		user *models.User
@@ -35,7 +32,7 @@ func TestMigration59(t *testing.T) {
 		{
 			description: "Success to apply up on migration 59",
 			setup: func() (func() error, error) {
-				if _, err := db.Client().Database("test").Collection("users").InsertOne(ctx, models.User{
+				if _, err := mongoClient.Database("test").Collection("users").InsertOne(ctx, models.User{
 					ID:        "652594bcc7b001c6f298df48",
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -52,12 +49,12 @@ func TestMigration59(t *testing.T) {
 				}
 
 				user := new(models.User)
-				if err := db.Client().Database("test").Collection("users").FindOne(ctx, bson.M{"name": "John Doe"}).Decode(&user); err != nil {
+				if err := mongoClient.Database("test").Collection("users").FindOne(ctx, bson.M{"name": "John Doe"}).Decode(&user); err != nil {
 					return nil, err
 				}
 
 				return func() error {
-					d, err := db.Client().Database("test").Collection("users").DeleteOne(ctx, bson.M{"username": "john doe"})
+					d, err := mongoClient.Database("test").Collection("users").DeleteOne(ctx, bson.M{"username": "john doe"})
 					if err != nil {
 						return err
 					}
@@ -72,7 +69,7 @@ func TestMigration59(t *testing.T) {
 			check: func() (*models.User, error) {
 				user := new(models.User)
 
-				if err := db.Client().Database("test").Collection("users").FindOne(ctx, bson.M{"username": "john doe"}).Decode(&user); err != nil {
+				if err := mongoClient.Database("test").Collection("users").FindOne(ctx, bson.M{"username": "john doe"}).Decode(&user); err != nil {
 					return nil, err
 				}
 
@@ -106,7 +103,7 @@ func TestMigration59(t *testing.T) {
 			teardown, err := tc.setup()
 			assert.NoError(t, err)
 
-			migrates := migrate.NewMigrate(db.Client().Database("test"), migration59)
+			migrates := migrate.NewMigrate(mongoClient.Database("test"), migration59)
 			assert.NoError(t, migrates.Up(migrate.AllAvailable))
 
 			user, err := tc.check()

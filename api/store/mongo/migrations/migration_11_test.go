@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -17,10 +16,7 @@ import (
 func TestMigration11(t *testing.T) {
 	logrus.Info("Testing Migration 11 - Test if the private_keys has ttl system")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:11]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:11]...)
 	err := migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -28,10 +24,10 @@ func TestMigration11(t *testing.T) {
 		CreatedAt: clock.Now(),
 	}
 
-	_, err = db.Client().Database("test").Collection("private_keys").InsertOne(context.TODO(), pk)
+	_, err = mongoClient.Database("test").Collection("private_keys").InsertOne(context.TODO(), pk)
 	assert.NoError(t, err)
 
-	index := db.Client().Database("test").Collection("private_keys").Indexes()
+	index := mongoClient.Database("test").Collection("private_keys").Indexes()
 
 	cursor, err := index.List(context.TODO())
 	assert.NoError(t, err)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -13,8 +12,6 @@ import (
 )
 
 func TestMigration4(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
 
 	logrus.Info("Testing Migration 4 - Test if the column version was renamed to info.version")
 
@@ -27,18 +24,18 @@ func TestMigration4(t *testing.T) {
 		Info: &deviceInfo,
 	}
 
-	_, err := db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err := mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	var afterMigrateDevice *models.Device
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&afterMigrateDevice)
+	err = mongoClient.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&afterMigrateDevice)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:4]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:4]...)
 	err = migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	type DeviceInfo struct {
@@ -51,6 +48,6 @@ func TestMigration4(t *testing.T) {
 	}
 
 	var migratedDevice *Device
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&migratedDevice)
+	err = mongoClient.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 }

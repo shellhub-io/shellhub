@@ -3,12 +3,13 @@ package mongo
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestPublicKeyPushTag(t *testing.T) {
@@ -22,7 +23,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
-			fingerprint: "nonexistent",
+			fingerprint: "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "new-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
@@ -31,7 +32,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 		{
 			description: "fails when public key is not found due to tenant",
 			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
+			tenant:      "",
 			tag:         "new-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
@@ -46,18 +47,38 @@ func TestPublicKeyPushTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("public_keys")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyPushTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			var testData []interface{}
+			if tc.fingerprint != "" && tc.tenant != "" {
+				doc := bson.M{
+					"fingerprint": tc.fingerprint,
+					"tenant_id":   tc.tenant,
+					"data":        []byte("test"),
+					"created_at":  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					"name":        "public_key",
+					"filter": bson.M{
+						"hostname": ".*",
+						"tags":     []string{},
+					},
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
+			err := mongostore.PublicKeyPushTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -74,7 +95,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
-			fingerprint: "nonexistent",
+			fingerprint: "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
@@ -83,7 +104,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 		{
 			description: "fails when public key is not found due to tenant",
 			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
+			tenant:      "",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
@@ -92,7 +113,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			description: "fails when public key is not found due to tag",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			tag:         "nonexistent",
+			tag:         "",
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
@@ -106,18 +127,38 @@ func TestPublicKeyPullTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("public_keys")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			err := mongostore.PublicKeyPullTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			var testData []interface{}
+			if tc.fingerprint != "" && tc.tenant != "" && tc.tag != "" {
+				doc := bson.M{
+					"fingerprint": tc.fingerprint,
+					"tenant_id":   tc.tenant,
+					"data":        []byte("test"),
+					"created_at":  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					"name":        "public_key",
+					"filter": bson.M{
+						"hostname": ".*",
+						"tags":     []string{tc.tag},
+					},
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
+			err := mongostore.PublicKeyPullTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -140,7 +181,7 @@ func TestPublicKeySetTags(t *testing.T) {
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
-			fingerprint: "nonexistent",
+			fingerprint: "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag-1"},
 			fixtures:    []string{fixtures.FixturePublicKeys},
@@ -153,7 +194,7 @@ func TestPublicKeySetTags(t *testing.T) {
 		{
 			description: "fails when public key is not found due to tenant",
 			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
+			tenant:      "",
 			tags:        []string{"tag-1"},
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected: Expected{
@@ -163,7 +204,7 @@ func TestPublicKeySetTags(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when tags public key is found and tags are equal than current public key tags",
+			description: "succeeds when tags public key is found and tags are equal to current public key tags",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag-1"},
@@ -188,18 +229,38 @@ func TestPublicKeySetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("public_keys")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			matchedCount, updatedCount, err := mongostore.PublicKeySetTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
+			var testData []interface{}
+			if tc.fingerprint != "" && tc.tenant != "" {
+				doc := bson.M{
+					"fingerprint": tc.fingerprint,
+					"tenant_id":   tc.tenant,
+					"data":        []byte("test"),
+					"created_at":  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					"name":        "public_key",
+					"filter": bson.M{
+						"hostname": ".*",
+						"tags":     tc.tags,
+					},
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
+			matchedCount, updatedCount, err := mongostore.PublicKeySetTags(ctx, tc.tenant, tc.fingerprint, tc.tags)
 			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
@@ -222,8 +283,7 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 	}{
 		{
 			description: "fails when public key is not found due to tenant",
-			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
+			tenant:      "",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
@@ -235,7 +295,7 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 		{
 			description: "fails when public key is not found due to tag",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			oldTag:      "nonexistent",
+			oldTag:      "",
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected: Expected{
@@ -256,18 +316,37 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("public_keys")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			count, err := mongostore.PublicKeyBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			var testData []interface{}
+			if tc.oldTag != "" && tc.tenant != "" {
+				doc := bson.M{
+					"fingerprint": "fingerprint",
+					"tenant_id":   tc.tenant,
+					"data":        []byte("test"),
+					"created_at":  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					"name":        "public_key",
+					"filter": bson.M{
+						"hostname": ".*",
+						"tags":     []string{tc.oldTag},
+					},
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+			count, err := mongostore.PublicKeyBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -288,7 +367,7 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 	}{
 		{
 			description: "fails when public key is not found due to tenant",
-			tenant:      "nonexistent",
+			tenant:      "",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected: Expected{
@@ -299,7 +378,7 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 		{
 			description: "fails when public key is not found due to tag",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			tag:         "nonexistent",
+			tag:         "",
 			fixtures:    []string{fixtures.FixturePublicKeys},
 			expected: Expected{
 				count: 0,
@@ -318,17 +397,36 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("public_keys")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
+			var testData []interface{}
+			if tc.tag != "" && tc.tenant != "" {
+				doc := bson.M{
+					"fingerprint": "fingerprint",
+					"tenant_id":   tc.tenant,
+					"data":        []byte("test"),
+					"created_at":  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					"name":        "public_key",
+					"filter": bson.M{
+						"hostname": ".*",
+						"tags":     []string{"tag-1"},
+					},
+				}
+				testData = append(testData, doc)
+
+				if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
 			count, err := mongostore.PublicKeyBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
@@ -360,16 +458,34 @@ func TestPublicKeyGetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("public_keys")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			var testData []interface{}
+			doc := bson.M{
+				"fingerprint": "fingerprint",
+				"tenant_id":   tc.tenant,
+				"data":        []byte("test"),
+				"created_at":  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+				"name":        "public_key",
+				"filter": bson.M{
+					"hostname": ".*",
+					"tags":     []string{"tag-1"},
+				},
+			}
+			testData = append(testData, doc)
+
+			if err := dbtest.InsertMockData(ctx, collection, testData); err != nil {
+				t.Fatalf("failed to insert documents: %v", err)
+			}
 
 			tags, count, err := mongostore.PublicKeyGetTags(context.TODO(), tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})

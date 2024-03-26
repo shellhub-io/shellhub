@@ -1,6 +1,7 @@
 package fixtures
 
 import (
+	"fmt"
 	"path/filepath"
 	"runtime"
 
@@ -42,7 +43,14 @@ func Init(host, database string) {
 
 // Apply applies 'n' fixtures in the database.
 func Apply(fixtures ...string) error {
-	return mongotest.UseFixture(fixtures...)
+	err := mongotest.UseFixture(fixtures...)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("fixtures applied success:", fixtures)
+
+	return nil
 }
 
 // Teardown resets all applied fixtures.

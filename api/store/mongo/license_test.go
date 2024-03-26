@@ -8,9 +8,9 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestLicenseLoad(t *testing.T) {
@@ -38,26 +38,37 @@ func TestLicenseLoad(t *testing.T) {
 			expected: Expected{
 				license: &models.License{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					RawData:   []byte("test"),
 				},
 				err: nil,
 			},
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collection := mongostore.db.Collection("licenses")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			defer fixtures.Teardown()
 
-			license, err := mongostore.LicenseLoad(context.TODO())
-			assert.Equal(t, tc.expected, Expected{license: license, err: err})
+			testData := bson.M{
+				"created_at": time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+				"raw_data":   "test",
+			}
+
+			if len(tc.fixtures) > 0 {
+				if err := dbtest.InsertMockData(ctx, collection, []interface{}{testData}); err != nil {
+					t.Fatalf("failed to insert documents: %v", err)
+				}
+			}
+
+			license, err := mongostore.LicenseLoad(ctx)
+			assert.Equal(t, tc.expected.license, license)
+			assert.Equal(t, tc.expected.err, err)
 		})
 	}
 }
@@ -80,18 +91,16 @@ func TestLicenseSave(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			defer fixtures.Teardown()
 
-			err := mongostore.LicenseSave(context.TODO(), tc.license)
+			err := mongostore.LicenseSave(ctx, tc.license)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

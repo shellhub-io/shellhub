@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -15,12 +14,9 @@ import (
 func TestMigration52(t *testing.T) {
 	logrus.Info("Testing Migration 52")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	user := models.User{}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.Background(), user)
+	_, err := mongoClient.Database("test").Collection("users").InsertOne(context.Background(), user)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -33,12 +29,12 @@ func TestMigration52(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[51:52]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Up(migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
+				result := mongoClient.Database("test").Collection("users").FindOne(context.Background(), bson.M{})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -53,12 +49,12 @@ func TestMigration52(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[51:52]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
+				result := mongoClient.Database("test").Collection("users").FindOne(context.Background(), bson.M{})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)

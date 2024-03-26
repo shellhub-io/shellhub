@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -14,9 +13,6 @@ import (
 
 func TestMigration14(t *testing.T) {
 	logrus.Info("Testing Migration 14 - Test if the right tenant_id is set")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
 
 	type user struct {
 		Username      string `json:"username" bson:",omitempty"`
@@ -52,16 +48,16 @@ func TestMigration14(t *testing.T) {
 		TenantID: "1",
 	}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err := mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:14]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:14]...)
 	err = migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"tenant_id": "1"}).Decode(&user1)
+	err = mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"tenant_id": "1"}).Decode(&user1)
 	assert.NoError(t, err)
 }

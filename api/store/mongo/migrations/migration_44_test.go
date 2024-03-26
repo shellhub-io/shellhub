@@ -5,7 +5,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -15,9 +14,6 @@ import (
 
 func TestMigration44(t *testing.T) {
 	logrus.Info("Testing Migration 44")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
 
 	keyTagDuplicated := &models.PublicKey{
 		Fingerprint: "fingerprint",
@@ -67,11 +63,11 @@ func TestMigration44(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
+	_, err := mongoClient.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
+	_, err = mongoClient.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
+	_, err = mongoClient.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -84,12 +80,12 @@ func TestMigration44(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[43:44]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Up(migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagDuplicated.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -106,12 +102,12 @@ func TestMigration44(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[43:44]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Up(migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagNoDuplicated.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagNoDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -128,12 +124,12 @@ func TestMigration44(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[43:44]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Up(migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyHostname.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyHostname.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)

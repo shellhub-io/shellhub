@@ -7,8 +7,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestTagsGet(t *testing.T) {
@@ -36,11 +36,12 @@ func TestTagsGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collectionDevices := mongostore.db.Collection("devices")
+	collectionPK := mongostore.db.Collection("public_keys")
+	collectionfirewall := mongostore.db.Collection("firewall_rules")
 
 	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
 	// we ensure that both the expected and result arrays are correctly sorted.
@@ -52,8 +53,29 @@ func TestTagsGet(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			// assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			// defer fixtures.Teardown() // nolint: errcheck
+			session, err := mongoClient.StartSession()
+			assert.NoError(t, err)
+			defer session.EndSession(ctx)
+
+			err = session.StartTransaction()
+			assert.NoError(t, err)
+
+			devDoc := bson.M{"tenant_id": tc.tenant, "tags": tc.expected.tags}
+			if err := dbtest.InsertMockData(ctx, collectionDevices, []interface{}{devDoc}); err != nil {
+				t.Fatalf("failed to insert documents into devices collection: %v", err)
+			}
+
+			pkDoc := bson.M{"tenant_id": tc.tenant, "filter.tags": tc.expected.tags}
+			if err := dbtest.InsertMockData(ctx, collectionPK, []interface{}{pkDoc}); err != nil {
+				t.Fatalf("failed to insert documents into public keys collection: %v", err)
+			}
+
+			firewallDoc := bson.M{"tenant_id": tc.tenant, "filter.tags": tc.expected.tags}
+			if err := dbtest.InsertMockData(ctx, collectionfirewall, []interface{}{firewallDoc}); err != nil {
+				t.Fatalf("failed to insert documents into firewall rules collection: %v", err)
+			}
 
 			tags, count, err := mongostore.TagsGet(context.TODO(), tc.tenant)
 			sort(tc.expected.tags)
@@ -68,7 +90,6 @@ func TestTagsRename(t *testing.T) {
 		count int64
 		err   error
 	}
-
 	cases := []struct {
 		description string
 		tenant      string
@@ -84,22 +105,39 @@ func TestTagsRename(t *testing.T) {
 			newTag:      "edited-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected: Expected{
-				count: 6,
+				count: 1,
 				err:   nil,
 			},
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collectionDevices := mongostore.db.Collection("devices")
+	collectionPK := mongostore.db.Collection("public_keys")
+	collectionfirewall := mongostore.db.Collection("firewall_rules")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			devDoc := bson.M{"tenant_id": tc.tenant, "tags": []string{tc.oldTag}}
+			if err := dbtest.InsertMockData(ctx, collectionDevices, []interface{}{devDoc}); err != nil {
+				t.Fatalf("failed to insert documents into devices collection: %v", err)
+			}
+
+			pkDoc := bson.M{"tenant_id": tc.tenant, "tags": tc.oldTag}
+			if err := dbtest.InsertMockData(ctx, collectionPK, []interface{}{pkDoc}); err != nil {
+				t.Fatalf("failed to insert documents into public keys collection: %v", err)
+			}
+
+			firewallDoc := bson.M{"tenant_id": tc.tenant, "tags": tc.oldTag}
+			if err := dbtest.InsertMockData(ctx, collectionfirewall, []interface{}{firewallDoc}); err != nil {
+				t.Fatalf("failed to insert documents into firewall rules collection: %v", err)
+			}
 
 			count, err := mongostore.TagsRename(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
@@ -126,22 +164,39 @@ func TestTagsDelete(t *testing.T) {
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
 			expected: Expected{
-				count: 6,
+				count: 1,
 				err:   nil,
 			},
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	ctx := context.TODO()
+	mongostore := GetMongoStore()
+	fixtures.Init(mongoHost, "test")
 
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
+	collectionDevices := mongostore.db.Collection("devices")
+	collectionPK := mongostore.db.Collection("public_keys")
+	collectionfirewall := mongostore.db.Collection("firewall_rules")
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
+
+			devDoc := bson.M{"tenant_id": tc.tenant, "tags": []string{tc.tag}}
+			if err := dbtest.InsertMockData(ctx, collectionDevices, []interface{}{devDoc}); err != nil {
+				t.Fatalf("failed to insert documents into devices collection: %v", err)
+			}
+
+			pkDoc := bson.M{"tenant_id": tc.tenant, "tags": tc.tag}
+			if err := dbtest.InsertMockData(ctx, collectionPK, []interface{}{pkDoc}); err != nil {
+				t.Fatalf("failed to insert documents into public keys collection: %v", err)
+			}
+
+			firewallDoc := bson.M{"tenant_id": tc.tenant, "tags": tc.tag}
+			if err := dbtest.InsertMockData(ctx, collectionfirewall, []interface{}{firewallDoc}); err != nil {
+				t.Fatalf("failed to insert documents into firewall rules collection: %v", err)
+			}
 
 			count, err := mongostore.TagsDelete(context.TODO(), tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -15,21 +14,18 @@ import (
 func TestMigration63(t *testing.T) {
 	logrus.Info("Testing Migration 63 - Test whether MFA fields were added to the users collection")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	user := models.User{
 		UserData: models.UserData{
 			Name: "Test",
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err := mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[62:63]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 	err = migrates.Up(migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -38,7 +34,7 @@ func TestMigration63(t *testing.T) {
 	assert.Equal(t, uint64(63), version)
 
 	var migratedUser *models.User
-	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
+	err = mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.False(t, migratedUser.MFA)
 	assert.Equal(t, "", migratedUser.Secret)
@@ -47,7 +43,7 @@ func TestMigration63(t *testing.T) {
 	err = migrates.Down(migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
+	err = mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.False(t, migratedUser.MFA)
 	assert.Equal(t, "", migratedUser.Secret)

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -17,9 +16,6 @@ func TestMigration56(t *testing.T) {
 
 	const field string = "public_url_address"
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	cases := []struct {
 		description string
 		test        func() error
@@ -28,13 +24,13 @@ func TestMigration56(t *testing.T) {
 			"Success to apply up on migration 56",
 			func() error {
 				migrations := GenerateMigrations()[55:56]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Up(migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := db.Client().Database("test").Collection("devices").Indexes().List(context.Background())
+				cursor, err := mongoClient.Database("test").Collection("devices").Indexes().List(context.Background())
 				if err != nil {
 					return err
 				}
@@ -62,13 +58,13 @@ func TestMigration56(t *testing.T) {
 			"Success to apply down on migration 56",
 			func() error {
 				migrations := GenerateMigrations()[55:56]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := db.Client().Database("test").Collection("devices").Indexes().List(context.Background())
+				cursor, err := mongoClient.Database("test").Collection("devices").Indexes().List(context.Background())
 				if err != nil {
 					return errors.New("index not dropped")
 				}
