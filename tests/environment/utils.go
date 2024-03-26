@@ -4,7 +4,6 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,12 +42,10 @@ func getFreePort(t *testing.T) string {
 func ReaderToString(t *testing.T, reader io.Reader) string {
 	t.Helper()
 
-	buf := new(strings.Builder)
-
-	_, err := io.Copy(buf, reader)
+	data, err := io.ReadAll(reader)
 	if !assert.NoError(t, err) {
 		assert.FailNow(t, err.Error())
 	}
 
-	return buf.String()
+	return string(data)
 }

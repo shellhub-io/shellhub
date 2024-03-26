@@ -106,7 +106,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	if err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true), compose.RemoveImagesLocal); err != nil {
+	if err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true)); err != nil {
 		log.WithError(err).Error("failed to teardown ShellHub instance")
 
 		os.Exit(1)
