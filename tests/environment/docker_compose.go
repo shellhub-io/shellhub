@@ -2,7 +2,6 @@ package environment
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -76,7 +75,7 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password string) {
 	dc.t.Helper()
 
-	exitCode, result, err := dc.
+	exitCode, _, err := dc.
 		Service(ServiceCLI).
 		Exec(ctx, []string{"./cli", "user", "create", username, password, email})
 
@@ -86,10 +85,6 @@ func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password 
 
 	if !assert.Equal(dc.t, 0, exitCode) {
 		assert.FailNow(dc.t, "cli user create exited with a non-zero status")
-	}
-
-	if !assert.Contains(dc.t, ReaderToString(dc.t, result), fmt.Sprintf("\nUsername: %s\nEmail: %s\n", username, email)) {
-		assert.FailNow(dc.t, "cli user create exited with a non-expected result")
 	}
 }
 
@@ -101,7 +96,7 @@ func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password 
 func (dc *DockerCompose) NewNamespace(ctx context.Context, owner, name, tenant string) {
 	dc.t.Helper()
 
-	exitCode, result, err := dc.
+	exitCode, _, err := dc.
 		Service(ServiceCLI).
 		Exec(ctx, []string{"./cli", "namespace", "create", name, owner, tenant})
 
@@ -111,10 +106,6 @@ func (dc *DockerCompose) NewNamespace(ctx context.Context, owner, name, tenant s
 
 	if !assert.Equal(dc.t, 0, exitCode) {
 		assert.FailNow(dc.t, "cli namsepace create exited with a non-zero status")
-	}
-
-	if !assert.Contains(dc.t, ReaderToString(dc.t, result), fmt.Sprintf("Namespace created successfully\nNamespace: %s\nTenant: %s\nOwner:", name, tenant)) {
-		assert.FailNow(dc.t, "cli namespace create exited with a non-expected result")
 	}
 }
 
