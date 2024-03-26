@@ -1,11 +1,13 @@
 package environment
 
 import (
+	"bytes"
 	"io"
 	"net"
 	"strconv"
 	"testing"
 
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,10 +44,12 @@ func getFreePort(t *testing.T) string {
 func ReaderToString(t *testing.T, reader io.Reader) string {
 	t.Helper()
 
-	data, err := io.ReadAll(reader)
+	buffer := bytes.NewBuffer(make([]byte, 1024))
+
+	_, err := stdcopy.StdCopy(buffer, io.Discard, reader)
 	if !assert.NoError(t, err) {
 		assert.FailNow(t, err.Error())
 	}
 
-	return string(data)
+	return buffer.String()
 }
