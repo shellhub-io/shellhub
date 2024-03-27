@@ -6,7 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/cli/cmd"
 	"github.com/shellhub-io/shellhub/cli/services"
-	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/cache/redis"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
@@ -41,7 +41,7 @@ func main() {
 		log.Error(err)
 	}
 
-	cache, err := storecache.NewRedisCache(cfg.RedisURI)
+	cache, err := redis.New(cfg.RedisURI)
 	if err != nil {
 		log.Fatal(err)
 	}

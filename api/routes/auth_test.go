@@ -218,8 +218,8 @@ func TestAuthUser(t *testing.T) {
 					On("AuthUser", gomock.Anything, &requests.UserAuth{
 						Identifier: "john_doe",
 						Password:   "wrong_password",
-					}).
-					Return(nil, svc.ErrUserNotFound).
+					}, gomock.Anything).
+					Return(nil, int64(0), svc.ErrUserNotFound).
 					Once()
 			},
 			expected: Expected{
@@ -238,13 +238,33 @@ func TestAuthUser(t *testing.T) {
 					On("AuthUser", gomock.Anything, &requests.UserAuth{
 						Identifier: "john_doe",
 						Password:   "wrong_password",
-					}).
-					Return(nil, svc.ErrAuthUnathorized).
+					}, gomock.Anything).
+					Return(nil, int64(0), svc.ErrAuthUnathorized).
 					Once()
 			},
 			expected: Expected{
 				body:   nil,
 				status: http.StatusUnauthorized,
+			},
+		},
+		{
+			description: "fails when reaching the attempt limits",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			mocks: func() {
+				mock.
+					On("AuthUser", gomock.Anything, &requests.UserAuth{
+						Identifier: "john_doe",
+						Password:   "wrong_password",
+					}, gomock.Anything).
+					Return(nil, int64(1711176851), svc.ErrAuthUnathorized).
+					Once()
+			},
+			expected: Expected{
+				body:   nil,
+				status: http.StatusTooManyRequests,
 			},
 		},
 		{
@@ -258,20 +278,24 @@ func TestAuthUser(t *testing.T) {
 					On("AuthUser", gomock.Anything, &requests.UserAuth{
 						Identifier: "john_doe",
 						Password:   "secret",
-					}).
-					Return(&models.UserAuthResponse{
-						ID:     "65fdd16b5f62f93184ec8a39",
-						Name:   "john doe",
-						User:   "john_doe",
-						Email:  "john.doe@test.com",
-						Tenant: "00000000-0000-4000-0000-000000000000",
-						Role:   "owner",
-						Token:  "not-empty",
-						MFA: models.MFA{
-							Enable:   false,
-							Validate: false,
+					}, gomock.Anything).
+					Return(
+						&models.UserAuthResponse{
+							ID:     "65fdd16b5f62f93184ec8a39",
+							Name:   "john doe",
+							User:   "john_doe",
+							Email:  "john.doe@test.com",
+							Tenant: "00000000-0000-4000-0000-000000000000",
+							Role:   "owner",
+							Token:  "not-empty",
+							MFA: models.MFA{
+								Enable:   false,
+								Validate: false,
+							},
 						},
-					}, nil).
+						int64(0),
+						nil,
+					).
 					Once()
 			},
 			expected: Expected{

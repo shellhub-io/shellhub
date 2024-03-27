@@ -15,7 +15,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/workers"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/cache/redis"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
 	log "github.com/sirupsen/logrus"
@@ -34,7 +35,7 @@ var serverCmd = &cobra.Command{
 
 		log.Trace("Connecting to Redis")
 
-		cache, err := storecache.NewRedisCache(cfg.RedisURI)
+		cache, err := redis.New(cfg.RedisURI)
 		if err != nil {
 			log.WithError(err).Error("Failed to configure redis store cache")
 		}
@@ -114,7 +115,7 @@ func startSentry(dsn string) (*sentry.Client, error) {
 	return nil, errors.New("sentry DSN not provided")
 }
 
-func startServer(cfg *config, store store.Store, cache storecache.Cache) error {
+func startServer(cfg *config, store store.Store, cache cache.Cache) error {
 	log.Info("Starting Sentry client")
 
 	reporter, err := startSentry(cfg.SentryDSN)
