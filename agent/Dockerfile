@@ -65,14 +65,3 @@ COPY ./agent/entrypoint-dev.sh /entrypoint.sh
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 ENTRYPOINT ["/entrypoint.sh"]
-
-# production stage
-FROM alpine:3.19 AS production
-
-# Copy the libcrypt from builder stage to avoid rebuild it.
-COPY --from=builder /usr/lib/libcrypt.so.* /usr/lib/
-
-WORKDIR /app
-COPY --from=builder /app/ /app/
-
-ENTRYPOINT ./agent
