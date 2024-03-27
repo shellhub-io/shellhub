@@ -70,7 +70,8 @@ type Session struct {
 	// AgentGlobalReqs is the channel to handle global request like "keepalive".
 	AgentGlobalReqs <-chan *gossh.Request
 
-	api internalclient.Client
+	api    internalclient.Client
+	tunnel *httptunnel.Tunnel
 
 	once *sync.Once
 
@@ -81,7 +82,7 @@ type Session struct {
 // the session without registering, connecting to the agent and etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context) (*Session, error) {
+func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
 	snap := getSnapshot(ctx)
 
 	api := internalclient.NewClient()
@@ -127,8 +128,9 @@ func NewSession(ctx gliderssh.Context) (*Session, error) {
 	}
 
 	session := &Session{
-		UID: ctx.SessionID(),
-		api: api,
+		UID:    ctx.SessionID(),
+		api:    api,
+		tunnel: tunnel,
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -223,7 +225,7 @@ func (s *Session) authenticate() error {
 }
 
 // connect connects the session's client to the session's agent.
-func (s *Session) connect(authOpt authFunc) error {
+func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	config := &gossh.ClientConfig{
 		User:            s.Target.Username,
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
@@ -245,11 +247,22 @@ func (s *Session) connect(authOpt authFunc) error {
 		}
 	}
 
+	// NOTICE: When the agent connection is closed, we should redial this connection before try to authenticate.
+	if s.AgentConn == nil {
+		if err := s.Dial(ctx); err != nil {
+			return err
+		}
+	}
+
 	conn, chans, reqs, err := gossh.NewClientConn(s.AgentConn, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
+
+			// NOTICE: To help identifing when the Agent's connection is closed, we set it to nil when a authentication
+			// error happens.
+		s.AgentConn = nil
 
 		return err
 	}
@@ -273,13 +286,11 @@ func (s *Session) connect(authOpt authFunc) error {
 	return nil
 }
 
-func (s *Session) Dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) error {
-	snap := getSnapshot(ctx)
-
+func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	s.AgentConn, err = tunnel.Dial(ctx, s.Device.UID)
+	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
@@ -288,9 +299,6 @@ func (s *Session) Dial(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) error {
 	if err = req.Write(s.AgentConn); err != nil {
 		return err
 	}
-
-	snap.save(s, StateDialed)
-
 	ctx.Unlock()
 
 	return nil
@@ -352,7 +360,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 
 		fallthrough
 	case StateRegistered:
-		if err := sess.connect(auth.Auth()); err != nil {
+		if err := sess.connect(ctx, auth.Auth()); err != nil {
 			return err
 		}
 

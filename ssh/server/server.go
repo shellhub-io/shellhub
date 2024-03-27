@@ -62,14 +62,14 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 				return fmt.Sprintf("%s is not a valid SSHID\n", ctx.User())
 			}
 
-			sess, err := session.NewSession(ctx)
+			sess, err := session.NewSession(ctx, tunnel)
 			if err != nil {
 				logger.WithError(err).Error("failed to create the session")
 
 				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
 			}
 
-			if err := sess.Dial(ctx, tunnel); err != nil {
+			if err := sess.Dial(ctx); err != nil {
 				logger.WithError(err).Error("destination device is offline or connot be reached")
 
 				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
