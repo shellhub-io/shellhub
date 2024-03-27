@@ -14,11 +14,13 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	testifymock "github.com/stretchr/testify/mock"
 	"github.com/undefinedlabs/go-mpatch"
 )
 
@@ -89,20 +91,21 @@ func TestAuthDevice(t *testing.T) {
 }
 
 func TestAuthUser(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(mocks.Store)
+	cacheMock := new(cachemock.Cache)
 
-	ctx := context.TODO()
-
-	type Expected struct {
-		res *models.UserAuthResponse
-		err error
+	type Actual struct {
+		res     *models.UserAuthResponse
+		lockout int64
+		err     error
 	}
 
 	tests := []struct {
-		description   string
-		req           *requests.UserAuth
-		requiredMocks func()
-		expected      Expected
+		description string
+		req         *requests.UserAuth
+		source      string
+		mocks       func(context.Context)
+		expected    Actual
 	}{
 		{
 			description: "fails when username is not found",
@@ -110,15 +113,16 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
-				mock.
+			mocks: func(ctx context.Context) {
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
-			expected: Expected{
-				res: nil,
-				err: NewErrAuthUnathorized(nil),
+			expected: Actual{
+				res:     nil,
+				lockout: int64(0),
+				err:     NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -127,15 +131,16 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john.doe@test.com",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
-				mock.
+			mocks: func(ctx context.Context) {
+				storeMock.
 					On("UserGetByEmail", ctx, "john.doe@test.com").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
-			expected: Expected{
-				res: nil,
-				err: NewErrAuthUnathorized(nil),
+			expected: Actual{
+				res:     nil,
+				lockout: int64(0),
+				err:     NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -144,7 +149,7 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: false,
@@ -158,11 +163,48 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				storeMock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 			},
-			expected: Expected{
-				res: nil,
-				err: NewErrUserNotConfirmed(nil),
+			expected: Actual{
+				res:     nil,
+				lockout: int64(0),
+				err:     NewErrUserNotConfirmed(nil),
+			},
+		},
+		{
+			description: "fails when an account lockout occurs",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				storeMock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(1711510689), 3, nil).
+					Once()
+			},
+			expected: Actual{
+				res:     nil,
+				lockout: int64(1711510689),
+				err:     NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -171,7 +213,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -185,18 +228,27 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "wrong_password", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(false).
 					Once()
+				cacheMock.
+					On("StoreLoginAttempt", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
 			},
-			expected: Expected{
-				res: nil,
-				err: NewErrAuthUnathorized(nil),
+			expected: Actual{
+				res:     nil,
+				lockout: int64(0),
+				err:     NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -205,7 +257,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -219,22 +272,31 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				mock.
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				storeMock.
 					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(false, errors.New("error", "", 0)).
 					Once()
 			},
-			expected: Expected{
-				res: nil,
-				err: errors.New("error", "", 0),
+			expected: Actual{
+				res:     nil,
+				lockout: int64(0),
+				err:     errors.New("error", "", 0),
 			},
 		},
 		{
@@ -243,7 +305,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -257,19 +320,27 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				mock.
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				storeMock.
 					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(true, nil).
 					Once()
-				mock.
+				storeMock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, nil).
 					Once()
@@ -278,13 +349,14 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
+				storeMock.
 					On("UserUpdateData", ctx, user.ID, *user).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
-			expected: Expected{
-				res: nil,
+			expected: Actual{
+				res:     nil,
+				lockout: int64(0),
 				err: NewErrUserUpdate(&models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -305,7 +377,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -320,19 +393,27 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				mock.
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				storeMock.
 					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(true, nil).
 					Once()
-				mock.
+				storeMock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, nil).
 					Once()
@@ -341,12 +422,16 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
+				storeMock.
 					On("UserUpdateData", ctx, user.ID, *user).
 					Return(nil).
 					Once()
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
 			},
-			expected: Expected{
+			expected: Actual{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
 					Name:   "john doe",
@@ -360,7 +445,8 @@ func TestAuthUser(t *testing.T) {
 						Validate: false,
 					},
 				},
-				err: nil,
+				lockout: int64(0),
+				err:     nil,
 			},
 		},
 		{
@@ -369,7 +455,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -384,19 +471,27 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				mock.
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				storeMock.
 					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(false, nil).
 					Once()
-				mock.
+				storeMock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, nil).
 					Once()
@@ -405,12 +500,16 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
+				storeMock.
 					On("UserUpdateData", ctx, user.ID, *user).
 					Return(nil).
 					Once()
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
 			},
-			expected: Expected{
+			expected: Actual{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
 					Name:   "john doe",
@@ -424,7 +523,8 @@ func TestAuthUser(t *testing.T) {
 						Validate: false,
 					},
 				},
-				err: nil,
+				lockout: int64(0),
+				err:     nil,
 			},
 		},
 		{
@@ -433,7 +533,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -448,15 +549,23 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				mock.
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				storeMock.
 					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(false, nil).
 					Once()
@@ -471,7 +580,7 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
@@ -480,12 +589,16 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
+				storeMock.
 					On("UserUpdateData", ctx, user.ID, *user).
 					Return(nil).
 					Once()
+				cacheMock.
+					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
 			},
-			expected: Expected{
+			expected: Actual{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
 					Name:   "john doe",
@@ -499,7 +612,8 @@ func TestAuthUser(t *testing.T) {
 						Validate: false,
 					},
 				},
-				err: nil,
+				lockout: int64(0),
+				err:     nil,
 			},
 		},
 		{
@@ -508,7 +622,8 @@ func TestAuthUser(t *testing.T) {
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
-			requiredMocks: func() {
+			source: "127.0.0.1",
+			mocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -523,20 +638,28 @@ func TestAuthUser(t *testing.T) {
 					},
 				}
 
-				mock.
+				storeMock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
 					Once()
 				passwordMock.
 					On("Compare", "secret", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b").
 					Return(true).
 					Once()
-				mock.
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				storeMock.
 					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(false, nil).
 					Once()
 
-				mock.
+				storeMock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, nil).
 					Once()
@@ -545,8 +668,12 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
+				storeMock.
 					On("UserUpdateData", ctx, user.ID, *user).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
 					Return(nil).
 					Once()
 
@@ -555,12 +682,12 @@ func TestAuthUser(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
-				mock.
+				storeMock.
 					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
 					Once()
 			},
-			expected: Expected{
+			expected: Actual{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
 					Name:   "john doe",
@@ -574,7 +701,8 @@ func TestAuthUser(t *testing.T) {
 						Validate: false,
 					},
 				},
-				err: nil,
+				lockout: int64(0),
+				err:     nil,
 			},
 		},
 	}
@@ -584,24 +712,25 @@ func TestAuthUser(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, storecache.Cache(cacheMock), clientMock, nil)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+			ctx := context.TODO()
 
-			res, err := service.AuthUser(ctx, tc.req)
+			tc.mocks(ctx)
+			res, lockout, err := service.AuthUser(ctx, tc.req, tc.source)
 			// Since the resulting token is not crucial for the assertion and
 			// difficult to mock, it is safe to ignore this field.
 			if res != nil {
 				res.Token = "must ignore"
 			}
 
-			assert.Equal(t, tc.expected, Expected{res, err})
+			assert.Equal(t, tc.expected, Actual{res, lockout, err})
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestAuthUserInfo(t *testing.T) {

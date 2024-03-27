@@ -52,5 +52,13 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &APIService{service: &service{store, privKey, pubKey, cache, c, l, validator.New()}}
+	return &APIService{service: &service{
+		client:    c,
+		locator:   l,
+		store:     store,
+		privKey:   privKey,
+		pubKey:    pubKey,
+		cache:     cache,
+		validator: validator.New(),
+	}}
 }

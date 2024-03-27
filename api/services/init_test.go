@@ -31,9 +31,11 @@ func TestMain(m *testing.M) {
 	publicKey = &privateKey.PublicKey
 	clientMock = &mocks.Client{}
 	clockMock = &clockmocks.Clock{}
-	envMock = &env_mocks.Backend{}
 	clock.DefaultBackend = clockMock
+
+	envMock = &env_mocks.Backend{}
 	envs.DefaultBackend = envMock
+
 	passwordMock = &passwordmock.Password{}
 	password.Backend = passwordMock
 	now = time.Now()
