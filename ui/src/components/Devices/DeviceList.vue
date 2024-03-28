@@ -105,7 +105,6 @@
                         :tagsList="item.tags"
                         :notHasAuthorization="!hasAuthorizationFormUpdate()"
                         @update="refreshDevices"
-                        data-test="tagUpdate-component"
                       />
                     </div>
                   </template>
@@ -123,7 +122,6 @@
                         :uid="item.uid"
                         :notHasAuthorization="!hasAuthorizationRemove()"
                         @update="refreshDevices"
-                        data-test="deviceDelete-component"
                       />
                     </div>
                   </template>

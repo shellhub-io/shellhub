@@ -27,7 +27,7 @@
             </router-link>
           </td>
           <td class="text-center">
-            <DeviceIcon :icon="item.info.id" class="mr-2" />
+            <DeviceIcon :icon="item.info.id" class="mr-2" data-test="device-icon" />
             <span>{{ item.info.pretty_name }}</span>
           </td>
           <td class="text-center">
@@ -41,7 +41,7 @@
                   <v-icon v-bind="props">mdi-dots-horizontal</v-icon>
                 </v-chip>
               </template>
-              <v-list class="bg-v-theme-surface" lines="two" density="compact">
+              <v-list class="bg-v-theme-surface" lines="two" density="compact" data-test="sshid-chip">
                 <DeviceActionButton
                   :uid="item.uid"
                   :name="item.name"
@@ -65,194 +65,147 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted, watch, computed } from "vue";
-import { useRouter } from "vue-router";
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from "vue";
 import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatDate } from "../../utils/formateDate";
-import { displayOnlyTenCharacters } from "../../utils/string";
-import showTag from "../../utils/tag";
 import {
-  INotificationsCopy,
   INotificationsError,
 } from "../../interfaces/INotifications";
 import DeviceActionButton from "./DeviceActionButton.vue";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const loading = ref(false);
-    const filter = ref("");
-    const itemsPerPage = ref(10);
-    const page = ref(1);
-
-    const devices = computed(() => store.getters["devices/list"]);
-    const numberDevices = computed<number>(
-      () => store.getters["devices/getNumberDevices"],
-    );
-
-    onMounted(async () => {
-      try {
-        loading.value = true;
-        await store.dispatch("devices/fetch", {
-          page: 1,
-          perPage: itemsPerPage.value,
-          filter: "",
-          status: "rejected",
-          sortStatusField: "",
-          sortStatusString: "",
-        });
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceRejecting,
-        );
-        handleError(error);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const getDevices = async (perPagaeValue: number, pageValue: number) => {
-      try {
-        loading.value = true;
-
-        const hasDevices = await store.dispatch("devices/fetch", {
-          perPage: perPagaeValue,
-          page: pageValue,
-          filter: filter.value,
-          status: "rejected",
-          sortStatusField: store.getters["devices/getSortStatusField"],
-          sortStatusString: store.getters["devices/getSortStatusString"],
-        });
-
-        if (!hasDevices) {
-          page.value--;
-        }
-
-        loading.value = false;
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceRejecting,
-        );
-        handleError(error);
-      }
-    };
-
-    const sortByItem = async (field: string) => {
-      let sortStatusString = store.getters["devices/getSortStatusString"];
-      const sortStatusField = store.getters["devices/getSortStatusField"];
-
-      if (field !== sortStatusField && sortStatusField) {
-        if (sortStatusString === "asc") {
-          sortStatusString = "desc";
-        } else {
-          sortStatusString = "asc";
-        }
-      }
-
-      if (sortStatusString === "") {
-        sortStatusString = "asc";
-      } else if (sortStatusString === "asc") {
-        sortStatusString = "desc";
-      } else {
-        sortStatusString = "asc";
-      }
-      await store.dispatch("devices/setSortStatus", {
-        sortStatusField: field,
-        sortStatusString,
-      });
-      await getDevices(itemsPerPage.value, page.value);
-    };
-
-    const next = async () => {
-      await getDevices(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-      } catch (error: unknown) {
-        store.dispatch("snackbar/setSnackbarErrorDefault");
-        handleError(error);
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, async () => {
-      await getDevices(itemsPerPage.value, page.value);
-    });
-
-    const goToNamespace = (namespace: string) => {
-      router.push({ name: "namespaceDetails", params: { id: namespace } });
-    };
-
-    const redirectToDevice = (deviceId: string) => {
-      router.push({ name: "deviceDetails", params: { id: deviceId } });
-    };
-
-    const refreshDevices = () => {
-      getDevices(itemsPerPage.value, page.value);
-    };
-
-    const copyText = (value: string | undefined) => {
-      if (value) {
-        navigator.clipboard.writeText(value);
-        store.dispatch(
-          "snackbar/showSnackbarCopy",
-          INotificationsCopy.tenantId,
-        );
-      }
-    };
-
-    return {
-      headers: [
-        {
-          text: "Hostname",
-          value: "name",
-          sortable: true,
-        },
-        {
-          text: "Operating System",
-          value: "operating_system",
-        },
-        {
-          text: "Request Time",
-          value: "request_time",
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      itemsPerPage,
-      page,
-      loading,
-      devices,
-      numberDevices,
-      next,
-      prev,
-      sortByItem,
-      showTag,
-      displayOnlyTenCharacters,
-      formatDate,
-      goToNamespace,
-      changeItemsPerPage,
-      redirectToDevice,
-      copyText,
-      refreshDevices,
-    };
+const store = useStore();
+const headers = [
+  {
+    text: "Hostname",
+    value: "name",
+    sortable: true,
   },
-  components: { DataTable, DeviceIcon, DeviceActionButton },
+  {
+    text: "Operating System",
+    value: "operating_system",
+  },
+  {
+    text: "Request Time",
+    value: "request_time",
+  },
+  {
+    text: "Actions",
+    value: "actions",
+  },
+];
+const loading = ref(false);
+const filter = ref("");
+const itemsPerPage = ref(10);
+const page = ref(1);
+
+const devices = computed(() => store.getters["devices/list"]);
+const numberDevices = computed<number>(
+  () => store.getters["devices/getNumberDevices"],
+);
+
+onMounted(async () => {
+  try {
+    loading.value = true;
+    await store.dispatch("devices/fetch", {
+      page: 1,
+      perPage: itemsPerPage.value,
+      filter: "",
+      status: "rejected",
+      sortStatusField: "",
+      sortStatusString: "",
+    });
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceRejecting,
+    );
+    handleError(error);
+  } finally {
+    loading.value = false;
+  }
 });
+
+const getDevices = async (perPagaeValue: number, pageValue: number) => {
+  try {
+    loading.value = true;
+
+    const hasDevices = await store.dispatch("devices/fetch", {
+      perPage: perPagaeValue,
+      page: pageValue,
+      filter: filter.value,
+      status: "rejected",
+      sortStatusField: store.getters["devices/getSortStatusField"],
+      sortStatusString: store.getters["devices/getSortStatusString"],
+    });
+
+    if (!hasDevices) {
+      page.value--;
+    }
+
+    loading.value = false;
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceRejecting,
+    );
+    handleError(error);
+  }
+};
+
+const sortByItem = async (field: string) => {
+  let sortStatusString = store.getters["devices/getSortStatusString"];
+  const sortStatusField = store.getters["devices/getSortStatusField"];
+
+  if (field !== sortStatusField && sortStatusField) {
+    if (sortStatusString === "asc") {
+      sortStatusString = "desc";
+    } else {
+      sortStatusString = "asc";
+    }
+  }
+
+  if (sortStatusString === "") {
+    sortStatusString = "asc";
+  } else if (sortStatusString === "asc") {
+    sortStatusString = "desc";
+  } else {
+    sortStatusString = "asc";
+  }
+  await store.dispatch("devices/setSortStatus", {
+    sortStatusField: field,
+    sortStatusString,
+  });
+  await getDevices(itemsPerPage.value, page.value);
+};
+
+const next = async () => {
+  await getDevices(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
+  } catch (error: unknown) {
+    store.dispatch("snackbar/setSnackbarErrorDefault");
+    handleError(error);
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async () => {
+  await getDevices(itemsPerPage.value, page.value);
+});
+
+const refreshDevices = () => {
+  getDevices(itemsPerPage.value, page.value);
+};
 </script>
 
 <style scoped>
