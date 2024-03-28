@@ -56,7 +56,7 @@ const {
   billingSubscribe,
   billingUnsubscribe,
   // Notification
-  notificaitonView,
+  notificationView,
   apiKeyCreate,
   apiKeyDelete,
 } = iota();
@@ -108,7 +108,7 @@ export const actions: { [key: string]: any } = {
     unsubscribe: billingUnsubscribe,
   },
   notification: {
-    view: notificaitonView,
+    view: notificationView,
   },
   apiKey: {
     create: apiKeyCreate,
