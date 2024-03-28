@@ -54,8 +54,6 @@ type Data struct {
 	Lookup map[string]string
 	// Pty is the PTY dimension.
 	Pty Pty
-	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
-	Handled bool
 }
 
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.

@@ -5,7 +5,6 @@ import (
 	"io"
 	"sync"
 
-	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -13,18 +12,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, req string, opts DefaultSessionHandlerOptions) {
-	defer func() {
-		ctx.Lock()
-		sess.Handled = false
-		ctx.Unlock()
-	}()
-
-	// NOTICE: avoid multiple pipe data in same channel due to protocol limitaion.
-	ctx.Lock()
-	sess.Handled = true
-	ctx.Unlock()
-
+func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, req string, opts DefaultSessionHandlerOptions) {
 	defer log.
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")

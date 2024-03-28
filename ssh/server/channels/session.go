@@ -175,21 +175,6 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 				switch req.Type {
 				case ShellRequestType, ExecRequestType, SubsystemRequestType:
-					// Once the session has been set up, a program is started at the remote end.  The program can be a
-					// shell, an application program, or a subsystem with a host-independent name.  **Only one of these
-					// requests can succeed per channel.**
-					//
-					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					if sess.Handled {
-						logger.Warn("fail to start a new session before ending the previous one")
-
-						if err := req.Reply(false, nil); err != nil {
-							logger.WithError(err).Error("failed to reply the client when data pipe already started")
-						}
-
-						continue
-					}
-
 					if err := req.Reply(ok, nil); err != nil {
 						logger.WithError(err).Error("failed to reply the client with right response for pipe request type")
 
@@ -209,7 +194,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					// encrypted tunnel.
 					//
 					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					go pipe(ctx, sess, client, agent, req.Type, opts)
+					go pipe(sess, client, agent, req.Type, opts)
 				case PtyRequestType:
 					var pty session.Pty
 
