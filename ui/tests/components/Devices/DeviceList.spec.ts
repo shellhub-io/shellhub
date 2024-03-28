@@ -172,10 +172,10 @@ describe("Device List", () => {
 
   it("Renders the component HTML", async () => {
     expect(wrapper.findComponent('[data-test="devices-list"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="terminalDialog-component"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="deviceIcon-component"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="sshid-chip"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="tag-chip"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="mdi-information-list-item"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="deviceDelete-component"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="open-tags-btn"]').exists()).toBe(true);
   });
 });
