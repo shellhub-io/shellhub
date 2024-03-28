@@ -15,16 +15,5 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
-
-export default defineComponent({
-  name: "Device",
-  setup() {
-    const tab = ref("list");
-    return {
-      tab,
-    };
-  },
-});
+<script setup lang="ts">
 </script>

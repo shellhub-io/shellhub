@@ -7,18 +7,18 @@
     aria-label="Dialog Add device"
     @keypress.enter="dialog = !dialog"
     data-test="device-add-btn"
-    :size="size"
+    :size="props.size"
   >
     Add Device
   </v-btn>
 
-  <v-dialog v-model="dialog" width="800" transition="dialog-bottom-transition">
+  <v-dialog v-model="dialog" width="800" transition="dialog-bottom-transition" data-test="dialog">
     <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary">
+      <v-card-title class="text-h5 pa-4 bg-primary" data-test="dialog-title">
         Registering a device
       </v-card-title>
 
-      <v-card-text class="mt-4 mb-0 pb-1">
+      <v-card-text class="mt-4 mb-0 pb-1" data-test="dialog-text">
         <p class="text-body-2 mb-2">
           In order to register a device on ShellHub, you need to install
           ShellHub agent onto it.
@@ -54,6 +54,7 @@
             :href="'https://docs.shellhub.io/user-guides/devices/adding'"
             target="_blank"
             rel="noopener noreferrer"
+            data-test="documentation-link"
           >documentation</a
           >
           for more information and alternative install methods.
@@ -70,46 +71,35 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 import { useStore } from "../../store";
 import { INotificationsCopy } from "@/interfaces/INotifications";
 
-export default defineComponent({
-  props: {
-    size: {
-      type: String,
-      default: "default",
-      required: false,
-    },
-  },
-  setup() {
-    const store = useStore();
-
-    const dialog = ref(false);
-
-    const tenant = computed(() => store.getters["auth/tenant"]);
-
-    const command = () => {
-      const port = window.location.port ? `:${window.location.port}` : "";
-      const { hostname } = window.location;
-
-      return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh?tenant_id=${tenant.value}" | sh`;
-    };
-
-    const copyCommand = () => {
-      navigator.clipboard.writeText(command());
-      store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.command);
-    };
-
-    return {
-      tenant,
-      dialog,
-      command,
-      copyCommand,
-    };
+const props = defineProps({
+  size: {
+    type: String,
+    default: "default",
+    required: false,
   },
 });
+const store = useStore();
+
+const dialog = ref(false);
+
+const tenant = computed(() => store.getters["auth/tenant"]);
+
+const command = () => {
+  const port = window.location.port ? `:${window.location.port}` : "";
+  const { hostname } = window.location;
+
+  return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh?tenant_id=${tenant.value}" | sh`;
+};
+
+const copyCommand = () => {
+  navigator.clipboard.writeText(command());
+  store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.command);
+};
 </script>
 
 <style lang="scss" scoped>
