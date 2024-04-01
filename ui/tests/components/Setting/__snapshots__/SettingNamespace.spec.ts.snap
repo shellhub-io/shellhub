@@ -10,7 +10,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
         </div>
         <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
         <div data-v-80a16399=\\"\\" class=\\"v-col\\">
-          <div data-v-80a16399=\\"\\" class=\\"v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated bg-v-theme-surface\\" tile=\\"\\">
+          <div data-v-80a16399=\\"\\" class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated bg-v-theme-surface\\">
             <!---->
             <div class=\\"v-card__loader\\">
               <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -319,7 +319,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                           </div>
                           <!---->
                           <div class=\\"v-field__append-inner\\">
-                            <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
+                            <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
                             <!---->
                           </div>
                           <div class=\\"v-field__outline\\">
@@ -359,7 +359,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                     <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
                       <div class=\\"v-selection-control__wrapper text-primary\\">
                         <!---->
-                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-31\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-31-messages\\" value=\\"true\\"></div>
+                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-31\\" aria-disabled=\\"false\\" aria-label=\\"Enable session record\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-31-messages\\" value=\\"true\\"></div>
                       </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-31\\">
                         <!---->Enable session record
                       </label>
