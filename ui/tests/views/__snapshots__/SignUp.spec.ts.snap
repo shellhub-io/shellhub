@@ -170,7 +170,7 @@ exports[`Login > Renders the component 1`] = `
             </div>
             <!---->
             <div class=\\"v-field__append-inner\\">
-              <!----><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Password appended action\\"></i>
+              <!----><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Password appended action\\"></i>
             </div>
             <div class=\\"v-field__outline\\">
               <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-6\\">
@@ -217,7 +217,7 @@ exports[`Login > Renders the component 1`] = `
             </div>
             <!---->
             <div class=\\"v-field__append-inner\\">
-              <!----><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Confirm Password appended action\\"></i>
+              <!----><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Confirm Password appended action\\"></i>
             </div>
             <div class=\\"v-field__outline\\">
               <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-8\\">

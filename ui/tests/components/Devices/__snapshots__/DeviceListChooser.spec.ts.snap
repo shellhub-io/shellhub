@@ -76,7 +76,7 @@ exports[`Device Chooser List > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__append-inner\\">
-                <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
+                <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
                 <!---->
               </div>
               <div class=\\"v-field__outline\\">
