@@ -18,7 +18,7 @@ func TestMigration6(t *testing.T) {
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:5]...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	device1 := models.Device{
@@ -36,6 +36,6 @@ func TestMigration6(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:6]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

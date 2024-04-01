@@ -12,14 +12,14 @@ import (
 var migration42 = migrate.Migration{
 	Version:     42,
 	Description: "change hostname to filter hostname",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   42,
 			"action":    "Up",
 		}).Info("Applying migration")
 
-		_, err := db.Collection("public_keys").Aggregate(context.TODO(),
+		_, err := db.Collection("public_keys").Aggregate(ctx,
 			mongo.Pipeline{
 				{
 					{"$match", bson.M{}},
@@ -40,15 +40,15 @@ var migration42 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   42,
 			"action":    "Down",
 		}).Info("Applying migration")
 
-		_, err := db.Collection("public_keys").Aggregate(context.TODO(),
+		_, err := db.Collection("public_keys").Aggregate(ctx,
 			mongo.Pipeline{
 				{
 					{"$match", bson.M{}},
@@ -69,5 +69,5 @@ var migration42 = migrate.Migration{
 		}
 
 		return nil
-	},
+	}),
 }

@@ -13,7 +13,7 @@ import (
 var migration26 = migrate.Migration{
 	Version:     26,
 	Description: "Create collection used to recover password and activate account",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   26,
@@ -23,7 +23,7 @@ var migration26 = migrate.Migration{
 			Keys:    bson.D{{"created_at", 1}},
 			Options: options.Index().SetName("ttl").SetExpireAfterSeconds(86400),
 		}
-		_, err := db.Collection("recovery_tokens").Indexes().CreateOne(context.TODO(), indexModel)
+		_, err := db.Collection("recovery_tokens").Indexes().CreateOne(ctx, indexModel)
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ var migration26 = migrate.Migration{
 			Keys:    bson.D{{"token", 1}},
 			Options: options.Index().SetName("token").SetUnique(false),
 		}
-		if _, err := db.Collection("recovery_tokens").Indexes().CreateOne(context.TODO(), indexModel); err != nil {
+		if _, err := db.Collection("recovery_tokens").Indexes().CreateOne(ctx, indexModel); err != nil {
 			return err
 		}
 
@@ -40,13 +40,13 @@ var migration26 = migrate.Migration{
 			Keys:    bson.D{{"user", 1}},
 			Options: options.Index().SetName("user").SetUnique(false),
 		}
-		if _, err := db.Collection("recovery_tokens").Indexes().CreateOne(context.TODO(), indexModel); err != nil {
+		if _, err := db.Collection("recovery_tokens").Indexes().CreateOne(ctx, indexModel); err != nil {
 			return err
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   26,
@@ -54,5 +54,5 @@ var migration26 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

@@ -27,10 +27,10 @@ func TestMigration16(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:15]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:16]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.Error(t, err)
 }

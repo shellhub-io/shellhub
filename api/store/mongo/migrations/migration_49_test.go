@@ -66,7 +66,7 @@ func TestMigration49(t *testing.T) {
 
 				migrations := GenerateMigrations()[48:49]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				user := new(models.User)
@@ -86,7 +86,7 @@ func TestMigration49(t *testing.T) {
 
 				migrations := GenerateMigrations()[48:49]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(migrate.AllAvailable)
+				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				user := new(models.User)

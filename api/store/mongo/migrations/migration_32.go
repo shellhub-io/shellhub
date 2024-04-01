@@ -12,19 +12,19 @@ import (
 var migration32 = migrate.Migration{
 	Version:     32,
 	Description: "add authenticated field to collection users",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   32,
 			"action":    "Up",
 		}).Info("Applying migration")
-		if _, err := db.Collection("users").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"authenticated": true}}); err != nil {
+		if _, err := db.Collection("users").UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"authenticated": true}}); err != nil {
 			return err
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   32,
@@ -32,5 +32,5 @@ var migration32 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

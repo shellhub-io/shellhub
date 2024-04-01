@@ -17,6 +17,8 @@ import (
 func ApplyMigrations(db *mongo.Database) error {
 	logrus.Info("Creating lock for the resource migrations")
 
+	ctx := context.Background()
+
 	lockClient := lock.NewClient(db.Collection("locks", options.Collection().SetWriteConcern(writeconcern.Majority())))
 	if err := lockClient.CreateIndexes(context.TODO()); err != nil {
 		logrus.WithError(err).Fatal("Failed to create a lock for the database")
@@ -26,14 +28,14 @@ func ApplyMigrations(db *mongo.Database) error {
 
 	lockID := "0"
 
-	if err := lockClient.XLock(context.TODO(), "migrations", lockID, lock.LockDetails{}); err != nil {
+	if err := lockClient.XLock(ctx, "migrations", lockID, lock.LockDetails{}); err != nil {
 		logrus.WithError(err).Fatal("Failed to lock the migrations")
 	}
 
 	defer func() {
 		logrus.Info("Unlocking the resource migrations")
 
-		if _, err := lockClient.Unlock(context.TODO(), lockID); err != nil {
+		if _, err := lockClient.Unlock(ctx, lockID); err != nil {
 			logrus.WithError(err).Fatal("Failed to unlock the migrations")
 		}
 	}()
@@ -45,7 +47,7 @@ func ApplyMigrations(db *mongo.Database) error {
 	list := migrations.GenerateMigrations()
 	migration := migrate.NewMigrate(db, list...)
 
-	current, _, err := migration.Version()
+	current, _, err := migration.Version(ctx)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to get current migration version")
 	}
@@ -63,7 +65,7 @@ func ApplyMigrations(db *mongo.Database) error {
 		"to":   latest.Version,
 	}).Info("Migrating database")
 
-	return migration.Up(migrate.AllAvailable)
+	return migration.Up(ctx, migrate.AllAvailable)
 }
 
 // This function is necessary due the lock bug on v0.7.2.

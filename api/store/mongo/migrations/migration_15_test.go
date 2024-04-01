@@ -19,7 +19,7 @@ func TestMigration15(t *testing.T) {
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:14]...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	ns := models.Namespace{
@@ -30,7 +30,7 @@ func TestMigration15(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:15]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&ns)

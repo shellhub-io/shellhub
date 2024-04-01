@@ -33,7 +33,7 @@ func TestMigration20(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[19:20]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	var migratedFirewallRules *models.FirewallRule

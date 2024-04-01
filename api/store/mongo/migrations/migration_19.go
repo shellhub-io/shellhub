@@ -13,17 +13,17 @@ import (
 var migration19 = migrate.Migration{
 	Version:     19,
 	Description: "Remove all fingerprint associated with a public keys collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   19,
 			"action":    "Up",
 		}).Info("Applying migration")
-		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
+		_, err := db.Collection("public_keys").Indexes().DropOne(ctx, "fingerprint")
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   19,
@@ -33,8 +33,8 @@ var migration19 = migrate.Migration{
 			Keys:    bson.D{{"fingerprint", 1}},
 			Options: options.Index().SetName("fingerprint").SetUnique(true),
 		}
-		_, err := db.Collection("public_keys").Indexes().CreateOne(context.TODO(), mod)
+		_, err := db.Collection("public_keys").Indexes().CreateOne(ctx, mod)
 
 		return err
-	},
+	}),
 }

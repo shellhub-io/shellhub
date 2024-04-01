@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
@@ -16,6 +17,6 @@ func TestMigration1(t *testing.T) {
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:1]...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

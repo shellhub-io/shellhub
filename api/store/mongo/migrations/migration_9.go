@@ -14,18 +14,18 @@ import (
 var migration9 = migrate.Migration{
 	Version:     9,
 	Description: "Set all devices names to lowercase in the devices colletion",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   9,
 			"action":    "Up",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("devices").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("devices").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
-		defer cursor.Close(context.TODO())
-		for cursor.Next(context.TODO()) {
+		defer cursor.Close(ctx)
+		for cursor.Next(ctx) {
 			device := new(models.Device)
 			err := cursor.Decode(&device)
 			if err != nil {
@@ -33,15 +33,14 @@ var migration9 = migrate.Migration{
 			}
 
 			device.Name = strings.ToLower(device.Name)
-			if _, err = db.Collection("devices").UpdateOne(context.TODO(), bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"name": strings.ToLower(device.Name)}}); err != nil {
+			if _, err = db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"name": strings.ToLower(device.Name)}}); err != nil {
 				return err
 			}
 		}
 
 		return nil
-	},
-
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   9,
@@ -49,5 +48,5 @@ var migration9 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

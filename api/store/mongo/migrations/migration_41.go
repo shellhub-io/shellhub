@@ -13,14 +13,14 @@ import (
 var migration41 = migrate.Migration{
 	Version:     41,
 	Description: "update online index from devices collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   41,
 			"action":    "Up",
 		}).Info("Applying migration")
 
-		if _, err := db.Collection("connected_devices").Indexes().DropOne(context.TODO(), "last_seen"); err != nil {
+		if _, err := db.Collection("connected_devices").Indexes().DropOne(ctx, "last_seen"); err != nil {
 			return err
 		}
 
@@ -28,20 +28,20 @@ var migration41 = migrate.Migration{
 			Keys:    bson.D{{"last_seen", 1}},
 			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(120),
 		}
-		if _, err := db.Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod); err != nil {
+		if _, err := db.Collection("connected_devices").Indexes().CreateOne(ctx, mod); err != nil {
 			return err
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   41,
 			"action":    "Down",
 		}).Info("Applying migration")
 
-		if _, err := db.Collection("connected_devices").Indexes().DropOne(context.TODO(), "last_seen"); err != nil {
+		if _, err := db.Collection("connected_devices").Indexes().DropOne(ctx, "last_seen"); err != nil {
 			return err
 		}
 
@@ -49,10 +49,10 @@ var migration41 = migrate.Migration{
 			Keys:    bson.D{{"last_seen", 1}},
 			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(60),
 		}
-		if _, err := db.Collection("connected_devices").Indexes().CreateOne(context.TODO(), mod); err != nil {
+		if _, err := db.Collection("connected_devices").Indexes().CreateOne(ctx, mod); err != nil {
 			return err
 		}
 
 		return nil
-	},
+	}),
 }

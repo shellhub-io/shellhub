@@ -30,10 +30,10 @@ func TestMigration63(t *testing.T) {
 	migrations := GenerateMigrations()[62:63]
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	version, _, err := migrates.Version()
+	version, _, err := migrates.Version(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(63), version)
 
@@ -44,7 +44,7 @@ func TestMigration63(t *testing.T) {
 	assert.Equal(t, "", migratedUser.Secret)
 	assert.Empty(t, migratedUser.Codes)
 
-	err = migrates.Down(migrate.AllAvailable)
+	err = migrates.Down(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)

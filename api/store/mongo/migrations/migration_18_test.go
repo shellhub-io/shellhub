@@ -27,14 +27,14 @@ func TestMigration18(t *testing.T) {
 	migrations := GenerateMigrations()[:17]
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[17])
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&namespace)

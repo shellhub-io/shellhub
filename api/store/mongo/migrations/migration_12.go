@@ -13,7 +13,7 @@ import (
 var migration12 = migrate.Migration{
 	Version:     12,
 	Description: "Set the tenant_id as unique in the namespaces collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   12,
@@ -23,25 +23,25 @@ var migration12 = migrate.Migration{
 			Keys:    bson.D{{"tenant_id", 1}},
 			Options: options.Index().SetName("tenant_id").SetUnique(true),
 		}
-		if _, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod); err != nil {
+		if _, err := db.Collection("namespaces").Indexes().CreateOne(ctx, mod); err != nil {
 			return err
 		}
 		mod = mongo.IndexModel{
 			Keys:    bson.D{{"name", 1}},
 			Options: options.Index().SetName("name").SetUnique(true),
 		}
-		_, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod)
+		_, err := db.Collection("namespaces").Indexes().CreateOne(ctx, mod)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   12,
 			"action":    "Down",
 		}).Info("Applying migration")
-		_, err := db.Collection("namespaces").Indexes().DropOne(context.TODO(), "tenant_id")
+		_, err := db.Collection("namespaces").Indexes().DropOne(ctx, "tenant_id")
 
 		return err
-	},
+	}),
 }

@@ -12,7 +12,7 @@ import (
 var migration52 = migrate.Migration{
 	Version:     52,
 	Description: "add marketing field to users",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   52,
@@ -37,8 +37,8 @@ var migration52 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   52,
@@ -63,5 +63,5 @@ var migration52 = migrate.Migration{
 		}
 
 		return nil
-	},
+	}),
 }

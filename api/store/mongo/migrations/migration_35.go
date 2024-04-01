@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,7 +11,7 @@ import (
 var migration35 = migrate.Migration{
 	Version:     35,
 	Description: "Rename the column authenticated to confirmed",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   35,
@@ -17,8 +19,8 @@ var migration35 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return renameField(db, "users", "authenticated", "confirmed")
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   35,
@@ -26,5 +28,5 @@ var migration35 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return renameField(db, "users", "confirmed", "authenticated")
-	},
+	}),
 }

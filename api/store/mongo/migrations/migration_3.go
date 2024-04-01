@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,7 +11,7 @@ import (
 var migration3 = migrate.Migration{
 	Version:     3,
 	Description: "Rename the column attributes to info",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   3,
@@ -17,8 +19,8 @@ var migration3 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return renameField(db, "devices", "attributes", "info")
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   3,
@@ -26,5 +28,5 @@ var migration3 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return renameField(db, "devices", "info", "attributes")
-	},
+	}),
 }

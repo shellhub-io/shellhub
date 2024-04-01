@@ -19,7 +19,7 @@ func TestMigration19(t *testing.T) {
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:19]...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	type PublicKeyFields struct {

@@ -65,7 +65,7 @@ func TestMigration62Up(t *testing.T) {
 
 			migrations := GenerateMigrations()[61:62]
 			migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-			assert.NoError(t, migrates.Up(migrate.AllAvailable))
+			assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			assert.NoError(t, tc.expected())
 		})
@@ -122,7 +122,7 @@ func TestMigration62Down(t *testing.T) {
 
 			migrations := GenerateMigrations()[61:62]
 			migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-			assert.NoError(t, migrates.Down(migrate.AllAvailable))
+			assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 			assert.NoError(t, tc.expected())
 		})

@@ -15,13 +15,13 @@ import (
 var migration37 = migrate.Migration{
 	Version:     37,
 	Description: "Change member's role from array of ID to a list of members' object",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   37,
 			"action":    "Up",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ var migration37 = migrate.Migration{
 			Billing      interface{}        `json:"billing" bson:"billing,omitempty"`
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			namespace := new(Namespace)
 			err = cursor.Decode(&namespace)
 			if err != nil {
@@ -73,7 +73,7 @@ var migration37 = migrate.Migration{
 				}
 			}
 
-			if _, err := db.Collection("namespaces").UpdateOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"members": memberList}}); err != nil {
+			if _, err := db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"members": memberList}}); err != nil {
 				return err
 			}
 		}
@@ -82,22 +82,22 @@ var migration37 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   37,
 			"action":    "Down",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			namespace := new(models.Namespace)
 			err = cursor.Decode(&namespace)
 			if err != nil {
@@ -109,7 +109,7 @@ var migration37 = migrate.Migration{
 				membersList = append(membersList, member.ID)
 			}
 
-			if _, err := db.Collection("namespaces").UpdateOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"members": membersList}}); err != nil {
+			if _, err := db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": bson.M{"members": membersList}}); err != nil {
 				return err
 			}
 		}
@@ -118,8 +118,8 @@ var migration37 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
 		return nil
-	},
+	}),
 }

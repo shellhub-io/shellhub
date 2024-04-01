@@ -13,7 +13,7 @@ import (
 var migration11 = migrate.Migration{
 	Version:     11,
 	Description: "Create a ttl for the private_keys collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   11,
@@ -23,21 +23,21 @@ var migration11 = migrate.Migration{
 			Keys:    bson.D{{"created_at", 1}},
 			Options: options.Index().SetName("ttl").SetExpireAfterSeconds(60),
 		}
-		_, err := db.Collection("private_keys").Indexes().CreateOne(context.TODO(), mod)
+		_, err := db.Collection("private_keys").Indexes().CreateOne(ctx, mod)
 		if err != nil {
 			return err
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   11,
 			"action":    "Down",
 		}).Info("Applying migration")
-		_, err := db.Collection("private_keys").Indexes().DropOne(context.TODO(), "ttl")
+		_, err := db.Collection("private_keys").Indexes().DropOne(ctx, "ttl")
 
 		return err
-	},
+	}),
 }

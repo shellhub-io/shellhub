@@ -101,7 +101,7 @@ func TestMigration17(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:17]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	err = db.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}).Decode(&namespace)

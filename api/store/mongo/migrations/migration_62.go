@@ -13,7 +13,7 @@ import (
 var migration62 = migrate.Migration{
 	Version:     62,
 	Description: "create index for tenant_id on recorded_sessions",
-	Up: func(database *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
 			"version":   62,
@@ -21,7 +21,7 @@ var migration62 = migrate.Migration{
 		}).Info("Applying migration up")
 
 		indexName := "tenant_id"
-		_, err := database.Collection("recorded_sessions").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.Background(), mongo.IndexModel{
 			Keys: bson.M{
 				"tenant_id": 1,
 			},
@@ -46,17 +46,17 @@ var migration62 = migrate.Migration{
 		}).Info("Succeeds to to apply migration 62")
 
 		return nil
-	},
-	Down: func(database *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
 			"version":   62,
 			"action":    "Down",
 		}).Info("Applying migration down")
-		if _, err := database.Collection("recorded_sessions").Indexes().DropOne(context.Background(), "tenant_id"); err != nil {
+		if _, err := db.Collection("recorded_sessions").Indexes().DropOne(context.Background(), "tenant_id"); err != nil {
 			return err
 		}
 
 		return nil
-	},
+	}),
 }
