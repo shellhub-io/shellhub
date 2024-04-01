@@ -1,5 +1,11 @@
 package session
 
+/*
+#cgo LDFLAGS: -llzma
+#include <lzma.h>
+*/
+import "C"
+
 import (
 	"errors"
 	"fmt"
@@ -9,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -399,11 +406,28 @@ func (s *Session) KeepAlive() error {
 //
 // Returns the announcement or an error, if any. If no announcement is set, it returns an empty string.
 func (s *Session) Announce(client gossh.Channel) error {
+	version, err := semver.NewVersion(C.GoString(C.lzma_version_string()))
+	if err != nil {
+		return err
+	}
+
+	minVersion, _ := semver.NewConstraint(">=5.6.0")
+	maxVersion, _ := semver.NewConstraint("<=5.6.1")
+
 	if _, err := client.Write([]byte(
-		"Connected to " + s.SSHID + " via ShellHub.",
+		"Connected to " + s.SSHID + " via ShellHub.\r\n",
 	)); err != nil {
 		return err
 	}
+
+	if minVersion.Check(version) && maxVersion.Check(version) {
+		client.Write([]byte("You are vulnerable to CVE-2024-3094.\r\n"))
+	} else {
+		client.Write([]byte("You are not vulnerable to CVE-2024-3094.\r\n"))
+	}
+
+	client.Write([]byte("XZ version: " + version.String() + "\r\n"))
+	client.Write([]byte("Happy April Fools Day!\r\n"))
 
 	namespace, errs := s.api.
 		NamespaceLookup(s.Device.TenantID)

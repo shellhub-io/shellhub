@@ -3,7 +3,7 @@ FROM golang:1.22.1-alpine3.19 AS base
 
 ARG GOPROXY
 
-RUN apk add --update git ca-certificates build-base openssh-client
+RUN apk add --update git ca-certificates build-base openssh-client xz xz-dev
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
