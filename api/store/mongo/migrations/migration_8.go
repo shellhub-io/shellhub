@@ -13,7 +13,7 @@ import (
 var migration8 = migrate.Migration{
 	Version:     8,
 	Description: "Unset unique on recorded in the sessions collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   8,
@@ -23,24 +23,24 @@ var migration8 = migrate.Migration{
 			Keys:    bson.D{{"recorded", 1}},
 			Options: options.Index().SetName("recorded").SetUnique(false),
 		}
-		if _, err := db.Collection("sessions").Indexes().CreateOne(context.TODO(), mod); err != nil {
+		if _, err := db.Collection("sessions").Indexes().CreateOne(ctx, mod); err != nil {
 			return err
 		}
-		_, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"recorded": false}})
+		_, err := db.Collection("sessions").UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"recorded": false}})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   8,
 			"action":    "Down",
 		}).Info("Applying migration")
-		if _, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"recorded": ""}}); err != nil {
+		if _, err := db.Collection("sessions").UpdateMany(ctx, bson.M{}, bson.M{"$unset": bson.M{"recorded": ""}}); err != nil {
 			return err
 		}
-		_, err := db.Collection("sessions").Indexes().DropOne(context.TODO(), "recorded")
+		_, err := db.Collection("sessions").Indexes().DropOne(ctx, "recorded")
 
 		return err
-	},
+	}),
 }

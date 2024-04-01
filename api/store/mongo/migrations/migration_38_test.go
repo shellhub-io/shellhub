@@ -71,7 +71,7 @@ func TestMigration38(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	cases := []struct {

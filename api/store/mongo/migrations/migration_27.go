@@ -12,17 +12,17 @@ import (
 var migration27 = migrate.Migration{
 	Version:     27,
 	Description: "Set closed field in the sessions",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   27,
 			"action":    "Up",
 		}).Info("Applying migration")
-		_, err := db.Collection("sessions").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"closed": true}})
+		_, err := db.Collection("sessions").UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"closed": true}})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   27,
@@ -30,5 +30,5 @@ var migration27 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

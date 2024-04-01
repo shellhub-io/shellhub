@@ -13,22 +13,22 @@ import (
 var migration18 = migrate.Migration{
 	Version:     18,
 	Description: "Set the max_devices value in the namespaces collection to 3 on enterprise",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   18,
 			"action":    "Up",
 		}).Info("Applying migration")
 		if envs.IsEnterprise() {
-			_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"max_devices": 3}})
+			_, err := db.Collection("namespaces").UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"max_devices": 3}})
 
 			return err
 		}
-		_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"max_devices": -1}})
+		_, err := db.Collection("namespaces").UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"max_devices": -1}})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   18,
@@ -36,5 +36,5 @@ var migration18 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

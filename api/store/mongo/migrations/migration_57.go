@@ -12,7 +12,7 @@ import (
 var migration57 = migrate.Migration{
 	Version:     57,
 	Description: "update billing state to status and its values",
-	Up: func(database *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   57,
@@ -79,14 +79,14 @@ var migration57 = migrate.Migration{
 			},
 		}
 
-		_, err := database.Collection("namespaces").Aggregate(context.Background(), pipeline)
+		_, err := db.Collection("namespaces").Aggregate(context.Background(), pipeline)
 		if err != nil {
 			return err
 		}
 
 		return nil
-	},
-	Down: func(database *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   57,
@@ -147,11 +147,11 @@ var migration57 = migrate.Migration{
 			},
 		}
 
-		_, err := database.Collection("namespaces").Aggregate(context.Background(), pipeline)
+		_, err := db.Collection("namespaces").Aggregate(context.Background(), pipeline)
 		if err != nil {
 			return err
 		}
 
 		return nil
-	},
+	}),
 }

@@ -60,7 +60,7 @@ func TestMigration61(t *testing.T) {
 			func() error {
 				migrations := GenerateMigrations()[60:61]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}

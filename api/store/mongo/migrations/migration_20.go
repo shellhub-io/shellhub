@@ -14,13 +14,13 @@ import (
 var migration20 = migrate.Migration{
 	Version:     20,
 	Description: "Change the model on db for firewall_rules collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   20,
 			"action":    "Up",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("firewall_rules").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("firewall_rules").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
@@ -31,8 +31,8 @@ var migration20 = migrate.Migration{
 			models.FirewallRuleFields `bson:",inline"`
 		}
 
-		defer cursor.Close(context.TODO())
-		for cursor.Next(context.TODO()) {
+		defer cursor.Close(ctx)
+		for cursor.Next(ctx) {
 			firewall := new(models.FirewallRule)
 			err := cursor.Decode(&firewall)
 			if err != nil {
@@ -46,20 +46,19 @@ var migration20 = migrate.Migration{
 			}
 
 			if err == nil {
-				if errDelete := db.Collection("firewall_rules").FindOneAndDelete(context.TODO(), bson.M{"_id": firewall.ID}); errDelete.Err() != nil {
+				if errDelete := db.Collection("firewall_rules").FindOneAndDelete(ctx, bson.M{"_id": firewall.ID}); errDelete.Err() != nil {
 					continue
 				}
 
-				if _, err := db.Collection("firewall_rules").InsertOne(context.TODO(), replacedRule); err != nil {
+				if _, err := db.Collection("firewall_rules").InsertOne(ctx, replacedRule); err != nil {
 					return err
 				}
 			}
 		}
 
 		return nil
-	},
-
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   20,
@@ -67,5 +66,5 @@ var migration20 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

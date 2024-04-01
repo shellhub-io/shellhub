@@ -12,13 +12,13 @@ import (
 var migration24 = migrate.Migration{
 	Version:     24,
 	Description: "convert names and emails to lowercase",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   24,
 			"action":    "Up",
 		}).Info("Applying migration")
-		if _, err := db.Collection("users").UpdateMany(context.TODO(), bson.D{}, []bson.M{
+		if _, err := db.Collection("users").UpdateMany(ctx, bson.D{}, []bson.M{
 			{
 				"$set": bson.M{
 					"username": bson.M{"$toLower": "$username"},
@@ -29,15 +29,15 @@ var migration24 = migrate.Migration{
 			return err
 		}
 
-		_, err := db.Collection("namespaces").UpdateMany(context.TODO(), bson.D{}, []bson.M{
+		_, err := db.Collection("namespaces").UpdateMany(ctx, bson.D{}, []bson.M{
 			{
 				"$set": bson.M{"name": bson.M{"$toLower": "$name"}},
 			},
 		})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   24,
@@ -45,5 +45,5 @@ var migration24 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

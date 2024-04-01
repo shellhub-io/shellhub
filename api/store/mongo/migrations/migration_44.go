@@ -12,14 +12,14 @@ import (
 var migration44 = migrate.Migration{
 	Version:     44,
 	Description: "remove duplicated tags on public keys",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   44,
 			"action":    "Up",
 		}).Info("Applying migration")
 
-		_, err := db.Collection("public_keys").Aggregate(context.TODO(),
+		_, err := db.Collection("public_keys").Aggregate(ctx,
 			mongo.Pipeline{
 				{
 					{"$match", bson.M{"filter.tags": bson.M{"$exists": true}}},
@@ -52,8 +52,8 @@ var migration44 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   44,
@@ -61,5 +61,5 @@ var migration44 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

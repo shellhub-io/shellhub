@@ -48,7 +48,7 @@ func TestMigration64(t *testing.T) {
 			test: func() error {
 				migrations := GenerateMigrations()[63:64]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
@@ -90,7 +90,7 @@ func TestMigration64(t *testing.T) {
 			test: func() error {
 				migrations := GenerateMigrations()[63:64]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(migrate.AllAvailable)
+				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}

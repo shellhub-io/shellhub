@@ -13,7 +13,7 @@ import (
 var migration51 = migrate.Migration{
 	Version:     51,
 	Description: "create index for name on devices",
-	Up: func(database *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   51,
@@ -21,7 +21,7 @@ var migration51 = migrate.Migration{
 		}).Info("Applying migration up")
 		Name := "name"
 
-		if _, err := database.Collection("devices").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		if _, err := db.Collection("devices").Indexes().CreateOne(context.Background(), mongo.IndexModel{
 			Keys: bson.M{
 				Name: 1,
 			},
@@ -33,8 +33,8 @@ var migration51 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(database *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   51,
@@ -42,10 +42,10 @@ var migration51 = migrate.Migration{
 		}).Info("Applying migration down")
 		Name := "name"
 
-		if _, err := database.Collection("devices").Indexes().DropOne(context.Background(), Name); err != nil {
+		if _, err := db.Collection("devices").Indexes().DropOne(context.Background(), Name); err != nil {
 			return err
 		}
 
 		return nil
-	},
+	}),
 }

@@ -18,7 +18,7 @@ func TestMigration7(t *testing.T) {
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:6]...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	recordedSession1 := models.RecordedSession{
@@ -38,6 +38,6 @@ func TestMigration7(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:7]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

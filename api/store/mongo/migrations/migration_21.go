@@ -13,18 +13,18 @@ import (
 var migration21 = migrate.Migration{
 	Version:     21,
 	Description: "Remove all sessions, recorded_sessions for the devices",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   21,
 			"action":    "Up",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("sessions").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("sessions").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			session := new(models.Session)
 			err = cursor.Decode(&session)
 			if err != nil {
@@ -32,12 +32,12 @@ var migration21 = migrate.Migration{
 			}
 
 			device := new(models.Device)
-			if err := db.Collection("devices").FindOne(context.TODO(), bson.M{"uid": session.DeviceUID}).Decode(&device); err != nil {
+			if err := db.Collection("devices").FindOne(ctx, bson.M{"uid": session.DeviceUID}).Decode(&device); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
 
-				if _, err := db.Collection("sessions").DeleteMany(context.TODO(), bson.M{"device_uid": session.DeviceUID}); err != nil {
+				if _, err := db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": session.DeviceUID}); err != nil {
 					return err
 				}
 			}
@@ -47,14 +47,14 @@ var migration21 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
-		cursor, err = db.Collection("recorded_sessions").Find(context.TODO(), bson.D{})
+		cursor, err = db.Collection("recorded_sessions").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			record := new(models.RecordedSession)
 			err = cursor.Decode(&record)
 			if err != nil {
@@ -62,22 +62,22 @@ var migration21 = migrate.Migration{
 			}
 
 			namespace := new(models.Namespace)
-			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": record.TenantID}).Decode(&namespace); err != nil {
+			if err := db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": record.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
 
-				if _, err := db.Collection("recorded_sessions").DeleteMany(context.TODO(), bson.M{"tenant_id": record.TenantID}); err != nil {
+				if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"tenant_id": record.TenantID}); err != nil {
 					return err
 				}
 			}
 			session := new(models.Session)
-			if err := db.Collection("sessions").FindOne(context.TODO(), bson.M{"uid": record.UID}).Decode(&session); err != nil {
+			if err := db.Collection("sessions").FindOne(ctx, bson.M{"uid": record.UID}).Decode(&session); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
 
-				if _, err := db.Collection("recorded_sessions").DeleteMany(context.TODO(), bson.M{"uid": record.UID}); err != nil {
+				if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": record.UID}); err != nil {
 					return err
 				}
 			}
@@ -87,11 +87,11 @@ var migration21 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   21,
@@ -99,5 +99,5 @@ var migration21 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

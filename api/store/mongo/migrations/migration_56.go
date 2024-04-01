@@ -13,7 +13,7 @@ import (
 var migration56 = migrate.Migration{
 	Version:     56,
 	Description: "create index for public url address on devices",
-	Up: func(database *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   56,
@@ -23,7 +23,7 @@ var migration56 = migrate.Migration{
 		unique := true
 		sparse := true
 
-		if _, err := database.Collection("devices").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		if _, err := db.Collection("devices").Indexes().CreateOne(context.Background(), mongo.IndexModel{
 			Keys: bson.M{
 				field: 1,
 			},
@@ -37,8 +37,8 @@ var migration56 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(database *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   56,
@@ -46,10 +46,10 @@ var migration56 = migrate.Migration{
 		}).Info("Applying migration down")
 		field := "public_url_address"
 
-		if _, err := database.Collection("devices").Indexes().DropOne(context.Background(), field); err != nil {
+		if _, err := db.Collection("devices").Indexes().DropOne(context.Background(), field); err != nil {
 			return err
 		}
 
 		return nil
-	},
+	}),
 }

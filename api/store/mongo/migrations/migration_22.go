@@ -15,13 +15,13 @@ import (
 var migration22 = migrate.Migration{
 	Version:     22,
 	Description: "Insert the user on the members group for the namespace",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   22,
 			"action":    "Up",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ var migration22 = migrate.Migration{
 			CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 
 			namespace := Namespace{}
 
@@ -58,8 +58,8 @@ var migration22 = migrate.Migration{
 				if err != nil {
 					return err
 				}
-				if err := db.Collection("users").FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&user); err != nil {
-					if _, err := db.Collection("namespaces").UpdateOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}, bson.M{"$pull": bson.M{"members": memberID}}); err != nil {
+				if err := db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
+					if _, err := db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$pull": bson.M{"members": memberID}}); err != nil {
 						return err
 					}
 				}
@@ -67,8 +67,8 @@ var migration22 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   22,
@@ -76,5 +76,5 @@ var migration22 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

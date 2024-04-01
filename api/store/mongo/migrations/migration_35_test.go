@@ -44,7 +44,7 @@ func TestMigration35(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[34:35]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	var migratedUser *models.User

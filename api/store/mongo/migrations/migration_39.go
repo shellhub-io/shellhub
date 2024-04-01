@@ -12,22 +12,22 @@ import (
 var migration39 = migrate.Migration{
 	Version:     39,
 	Description: "remove online index from devices collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   39,
 			"action":    "Up",
 		}).Info("Applying migration")
 
-		if _, err := db.Collection("devices").Indexes().DropOne(context.TODO(), "online_1"); err != nil {
+		if _, err := db.Collection("devices").Indexes().DropOne(ctx, "online_1"); err != nil {
 			return err
 		}
 
-		_, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$unset": bson.M{"online": nil}})
+		_, err := db.Collection("devices").UpdateMany(ctx, bson.M{}, bson.M{"$unset": bson.M{"online": nil}})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   39,
@@ -38,8 +38,8 @@ var migration39 = migrate.Migration{
 			Keys: bson.D{{"online", 1}},
 		}
 
-		_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), indexModel)
+		_, err := db.Collection("devices").Indexes().CreateOne(ctx, indexModel)
 
 		return err
-	},
+	}),
 }

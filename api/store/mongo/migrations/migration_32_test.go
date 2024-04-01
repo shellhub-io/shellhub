@@ -18,10 +18,10 @@ func TestMigration32(t *testing.T) {
 	migrations := GenerateMigrations()[:31]
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	version, _, err := migrates.Version()
+	version, _, err := migrates.Version(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(31), version)
 
@@ -41,10 +41,10 @@ func TestMigration32(t *testing.T) {
 	migration := GenerateMigrations()[31]
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), migration)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	version, _, err = migrates.Version()
+	version, _, err = migrates.Version(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(32), version)
 

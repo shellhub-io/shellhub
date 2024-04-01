@@ -15,13 +15,13 @@ import (
 var migration17 = migrate.Migration{
 	Version:     17,
 	Description: "Remove the namespaces, devices, session, connected_devices, firewall_rules and public_keys in the users",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   17,
 			"action":    "Up",
 		}).Info("Applying migration")
-		cursor, err := db.Collection("namespaces").Find(context.TODO(), bson.D{})
+		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ var migration17 = migrate.Migration{
 			CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			namespace := Namespace{}
 
 			err = cursor.Decode(&namespace)
@@ -57,11 +57,11 @@ var migration17 = migrate.Migration{
 			}
 
 			user := new(models.User)
-			if err := db.Collection("users").FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&user); err != nil {
+			if err := db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
-				if _, err := db.Collection("namespaces").DeleteOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}); err != nil {
+				if _, err := db.Collection("namespaces").DeleteOne(ctx, bson.M{"tenant_id": namespace.TenantID}); err != nil {
 					return err
 				}
 			}
@@ -71,14 +71,14 @@ var migration17 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
-		cursor, err = db.Collection("devices").Find(context.TODO(), bson.D{})
+		cursor, err = db.Collection("devices").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			device := new(models.Device)
 			err = cursor.Decode(&device)
 			if err != nil {
@@ -86,19 +86,19 @@ var migration17 = migrate.Migration{
 			}
 
 			namespace := Namespace{}
-			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": device.TenantID}).Decode(&namespace); err != nil {
+			if err := db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": device.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
-				if _, err := db.Collection("devices").DeleteOne(context.TODO(), bson.M{"uid": device.UID}); err != nil {
+				if _, err := db.Collection("devices").DeleteOne(ctx, bson.M{"uid": device.UID}); err != nil {
 					return err
 				}
 
-				if _, err := db.Collection("sessions").DeleteMany(context.TODO(), bson.M{"device_uid": device.UID}); err != nil {
+				if _, err := db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": device.UID}); err != nil {
 					return err
 				}
 
-				if _, err := db.Collection("connected_devices").DeleteMany(context.TODO(), bson.M{"uid": device.UID}); err != nil {
+				if _, err := db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": device.UID}); err != nil {
 					return err
 				}
 			}
@@ -107,13 +107,13 @@ var migration17 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
-		cursor, err = db.Collection("firewall_rules").Find(context.TODO(), bson.D{})
+		cursor, err = db.Collection("firewall_rules").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			rule := new(models.FirewallRule)
 			err := cursor.Decode(&rule)
 			if err != nil {
@@ -121,11 +121,11 @@ var migration17 = migrate.Migration{
 			}
 
 			namespace := Namespace{}
-			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": rule.TenantID}).Decode(&namespace); err != nil {
+			if err := db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": rule.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
-				if _, err := db.Collection("firewall_rules").DeleteOne(context.TODO(), bson.M{"tenant_id": rule.TenantID}); err != nil {
+				if _, err := db.Collection("firewall_rules").DeleteOne(ctx, bson.M{"tenant_id": rule.TenantID}); err != nil {
 					return err
 				}
 			}
@@ -134,25 +134,25 @@ var migration17 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
-		cursor, err = db.Collection("public_keys").Find(context.TODO(), bson.D{})
+		cursor, err = db.Collection("public_keys").Find(ctx, bson.D{})
 		if err != nil {
 			return err
 		}
 
-		for cursor.Next(context.TODO()) {
+		for cursor.Next(ctx) {
 			key := new(models.PublicKey)
 			err := cursor.Decode(&key)
 			if err != nil {
 				return err
 			}
 			namespace := Namespace{}
-			if err := db.Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": key.TenantID}).Decode(&namespace); err != nil {
+			if err := db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": key.TenantID}).Decode(&namespace); err != nil {
 				if err != mongo.ErrNoDocuments {
 					return err
 				}
-				if _, err := db.Collection("public_keys").DeleteOne(context.TODO(), bson.M{"tenant_id": key.TenantID}); err != nil {
+				if _, err := db.Collection("public_keys").DeleteOne(ctx, bson.M{"tenant_id": key.TenantID}); err != nil {
 					return err
 				}
 			}
@@ -161,11 +161,11 @@ var migration17 = migrate.Migration{
 			return err
 		}
 
-		cursor.Close(context.TODO())
+		cursor.Close(ctx)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   17,
@@ -173,5 +173,5 @@ var migration17 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

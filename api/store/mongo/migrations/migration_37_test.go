@@ -54,7 +54,7 @@ func TestMigration37(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	migratedNamespace := &models.Namespace{}
@@ -73,7 +73,7 @@ func TestMigration37(t *testing.T) {
 	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 	migrates = migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err = migrates.Down(migrate.AllAvailable)
+	err = migrates.Down(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	migratedNamespaceDown := &Namespace{}

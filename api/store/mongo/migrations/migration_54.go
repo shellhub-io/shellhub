@@ -13,7 +13,7 @@ import (
 var migration54 = migrate.Migration{
 	Version:     54,
 	Description: "create index to devices' tenant_id and status",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   54,
@@ -36,8 +36,8 @@ var migration54 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   54,
@@ -50,5 +50,5 @@ var migration54 = migrate.Migration{
 		}
 
 		return nil
-	},
+	}),
 }
