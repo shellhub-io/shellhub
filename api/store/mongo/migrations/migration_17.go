@@ -15,7 +15,7 @@ import (
 var migration17 = migrate.Migration{
 	Version:     17,
 	Description: "Remove the namespaces, devices, session, connected_devices, firewall_rules and public_keys in the users",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   17,
@@ -164,8 +164,8 @@ var migration17 = migrate.Migration{
 		cursor.Close(context.TODO())
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   17,
@@ -173,5 +173,5 @@ var migration17 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

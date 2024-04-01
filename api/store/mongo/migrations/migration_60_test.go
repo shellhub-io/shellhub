@@ -34,7 +34,7 @@ func TestMigration60(t *testing.T) {
 
 				migrations := GenerateMigrations()[59:60]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
@@ -68,7 +68,7 @@ func TestMigration60(t *testing.T) {
 			func() error {
 				migrations := GenerateMigrations()[59:60]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(migrate.AllAvailable)
+				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}

@@ -14,7 +14,7 @@ import (
 var migration14 = migrate.Migration{
 	Version:     14,
 	Description: "Set the right tenant_id in the users collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   14,
@@ -88,8 +88,8 @@ var migration14 = migrate.Migration{
 		}
 
 		return cursor.Err()
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   14,
@@ -114,5 +114,5 @@ var migration14 = migrate.Migration{
 		}
 
 		return err
-	},
+	}),
 }

@@ -13,7 +13,7 @@ import (
 var migration21 = migrate.Migration{
 	Version:     21,
 	Description: "Remove all sessions, recorded_sessions for the devices",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   21,
@@ -90,8 +90,8 @@ var migration21 = migrate.Migration{
 		cursor.Close(context.TODO())
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   21,
@@ -99,5 +99,5 @@ var migration21 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

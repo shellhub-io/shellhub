@@ -13,7 +13,7 @@ import (
 var migration38 = migrate.Migration{
 	Version:     38,
 	Description: "Set last_login to created_at, when created_at is a zero value",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   38,
@@ -46,8 +46,8 @@ var migration38 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   38,
@@ -55,5 +55,5 @@ var migration38 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

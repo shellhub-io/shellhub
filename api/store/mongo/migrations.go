@@ -45,7 +45,7 @@ func ApplyMigrations(db *mongo.Database) error {
 	list := migrations.GenerateMigrations()
 	migration := migrate.NewMigrate(db, list...)
 
-	current, _, err := migration.Version()
+	current, _, err := migration.Version(context.Background())
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to get current migration version")
 	}
@@ -63,7 +63,7 @@ func ApplyMigrations(db *mongo.Database) error {
 		"to":   latest.Version,
 	}).Info("Migrating database")
 
-	return migration.Up(migrate.AllAvailable)
+	return migration.Up(context.Background(), migrate.AllAvailable)
 }
 
 // This function is necessary due the lock bug on v0.7.2.

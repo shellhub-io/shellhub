@@ -12,7 +12,7 @@ import (
 var migration34 = migrate.Migration{
 	Version:     34,
 	Description: "create online index in devices collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   34,
@@ -26,8 +26,8 @@ var migration34 = migrate.Migration{
 		_, err := db.Collection("devices").Indexes().CreateOne(context.TODO(), indexModel)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   34,
@@ -37,5 +37,5 @@ var migration34 = migrate.Migration{
 		_, err := db.Collection("devices").Indexes().DropOne(context.TODO(), "online")
 
 		return err
-	},
+	}),
 }

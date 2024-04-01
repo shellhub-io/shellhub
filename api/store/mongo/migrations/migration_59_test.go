@@ -107,7 +107,7 @@ func TestMigration59(t *testing.T) {
 			assert.NoError(t, err)
 
 			migrates := migrate.NewMigrate(db.Client().Database("test"), migration59)
-			assert.NoError(t, migrates.Up(migrate.AllAvailable))
+			assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			user, err := tc.check()
 			assert.Equal(t, tc.expected, Expected{user, err})

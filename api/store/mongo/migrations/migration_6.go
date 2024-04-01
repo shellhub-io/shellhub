@@ -13,7 +13,7 @@ import (
 var migration6 = migrate.Migration{
 	Version:     6,
 	Description: "Unset unique on status in the devices collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   6,
@@ -29,8 +29,8 @@ var migration6 = migrate.Migration{
 		_, err := db.Collection("devices").UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"status": "accepted"}})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   6,
@@ -42,5 +42,5 @@ var migration6 = migrate.Migration{
 		_, err := db.Collection("status").Indexes().DropOne(context.TODO(), "status")
 
 		return err
-	},
+	}),
 }

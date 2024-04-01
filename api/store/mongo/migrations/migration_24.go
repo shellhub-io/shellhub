@@ -12,7 +12,7 @@ import (
 var migration24 = migrate.Migration{
 	Version:     24,
 	Description: "convert names and emails to lowercase",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   24,
@@ -36,8 +36,8 @@ var migration24 = migrate.Migration{
 		})
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   24,
@@ -45,5 +45,5 @@ var migration24 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

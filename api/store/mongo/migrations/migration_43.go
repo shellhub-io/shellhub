@@ -12,7 +12,7 @@ import (
 var migration43 = migrate.Migration{
 	Version:     43,
 	Description: "add tags field to firewall_rules collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   43,
@@ -40,8 +40,8 @@ var migration43 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   43,
@@ -69,5 +69,5 @@ var migration43 = migrate.Migration{
 		}
 
 		return nil
-	},
+	}),
 }

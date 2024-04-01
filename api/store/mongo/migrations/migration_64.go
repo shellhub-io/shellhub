@@ -12,7 +12,7 @@ import (
 var migration64 = migrate.Migration{
 	Version:     64,
 	Description: "Adding the 'settings.connection_announcement' attribute to the namespace if it does not already exist.",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   64,
@@ -34,8 +34,8 @@ var migration64 = migrate.Migration{
 			UpdateMany(context.TODO(), filter, update)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   64,
@@ -57,5 +57,5 @@ var migration64 = migrate.Migration{
 			UpdateMany(context.TODO(), filter, update)
 
 		return err
-	},
+	}),
 }

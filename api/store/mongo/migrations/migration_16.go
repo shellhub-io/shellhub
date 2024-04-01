@@ -13,7 +13,7 @@ import (
 var migration16 = migrate.Migration{
 	Version:     16,
 	Description: "Set the fingerprint as unique on public_keys collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   16,
@@ -26,9 +26,8 @@ var migration16 = migrate.Migration{
 		_, err := db.Collection("public_keys").Indexes().CreateOne(context.TODO(), mod)
 
 		return err
-	},
-
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   16,
@@ -37,5 +36,5 @@ var migration16 = migrate.Migration{
 		_, err := db.Collection("public_keys").Indexes().DropOne(context.TODO(), "fingerprint")
 
 		return err
-	},
+	}),
 }

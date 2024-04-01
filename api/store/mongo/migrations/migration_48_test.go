@@ -65,7 +65,7 @@ func TestMigration48(t *testing.T) {
 
 				migrations := GenerateMigrations()[47:48]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.FirewallRule)
@@ -85,7 +85,7 @@ func TestMigration48(t *testing.T) {
 
 				migrations := GenerateMigrations()[47:48]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(migrate.AllAvailable)
+				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.FirewallRule)

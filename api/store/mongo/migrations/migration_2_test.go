@@ -41,7 +41,7 @@ func TestMigration2(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:2]...)
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	_, err = db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session)

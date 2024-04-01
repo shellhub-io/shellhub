@@ -14,7 +14,7 @@ import (
 var migration20 = migrate.Migration{
 	Version:     20,
 	Description: "Change the model on db for firewall_rules collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   20,
@@ -57,9 +57,8 @@ var migration20 = migrate.Migration{
 		}
 
 		return nil
-	},
-
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   20,
@@ -67,5 +66,5 @@ var migration20 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

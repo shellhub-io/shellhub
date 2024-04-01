@@ -21,10 +21,10 @@ func TestMigration36(t *testing.T) {
 	migrations := GenerateMigrations()[:35]
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-	err := migrates.Up(migrate.AllAvailable)
+	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	version, _, err := migrates.Version()
+	version, _, err := migrates.Version(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(35), version)
 
@@ -79,10 +79,10 @@ func TestMigration36(t *testing.T) {
 	assert.NoError(t, err)
 
 	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[35])
-	err = migrates.Up(migrate.AllAvailable)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	version, _, err = migrates.Version()
+	version, _, err = migrates.Version(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(36), version)
 

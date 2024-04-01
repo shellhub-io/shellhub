@@ -13,7 +13,7 @@ import (
 var migration7 = migrate.Migration{
 	Version:     7,
 	Description: "Unset unique on uid and message in the recoded_sessions collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   7,
@@ -34,8 +34,8 @@ var migration7 = migrate.Migration{
 		_, err := db.Collection("recorded_sessions").Indexes().CreateOne(context.TODO(), mod)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   7,
@@ -53,5 +53,5 @@ var migration7 = migrate.Migration{
 		_, err := db.Collection("recorded_sessions").Indexes().DropOne(context.TODO(), "message")
 
 		return err
-	},
+	}),
 }

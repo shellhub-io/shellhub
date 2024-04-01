@@ -13,7 +13,7 @@ import (
 var migration5 = migrate.Migration{
 	Version:     5,
 	Description: "Set the email as unique on users collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   5,
@@ -26,8 +26,8 @@ var migration5 = migrate.Migration{
 		_, err := db.Collection("users").Indexes().CreateOne(context.TODO(), mod)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   5,
@@ -36,5 +36,5 @@ var migration5 = migrate.Migration{
 		_, err := db.Collection("users").Indexes().DropOne(context.TODO(), "email")
 
 		return err
-	},
+	}),
 }

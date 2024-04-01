@@ -13,7 +13,7 @@ import (
 var migration41 = migrate.Migration{
 	Version:     41,
 	Description: "update online index from devices collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   41,
@@ -33,8 +33,8 @@ var migration41 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   41,
@@ -54,5 +54,5 @@ var migration41 = migrate.Migration{
 		}
 
 		return nil
-	},
+	}),
 }

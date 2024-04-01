@@ -85,7 +85,7 @@ func TestMigration44(t *testing.T) {
 
 				migrations := GenerateMigrations()[43:44]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
@@ -107,7 +107,7 @@ func TestMigration44(t *testing.T) {
 
 				migrations := GenerateMigrations()[43:44]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
@@ -129,7 +129,7 @@ func TestMigration44(t *testing.T) {
 
 				migrations := GenerateMigrations()[43:44]
 				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(migrate.AllAvailable)
+				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)

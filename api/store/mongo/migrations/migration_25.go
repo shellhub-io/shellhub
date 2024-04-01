@@ -12,7 +12,7 @@ import (
 var migration25 = migrate.Migration{
 	Version:     25,
 	Description: "remove devices with no namespaces related",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   25,
@@ -51,8 +51,8 @@ var migration25 = migrate.Migration{
 		_, err := db.Collection("devices").Aggregate(context.TODO(), query)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   25,
@@ -60,5 +60,5 @@ var migration25 = migrate.Migration{
 		}).Info("Applying migration")
 
 		return nil
-	},
+	}),
 }

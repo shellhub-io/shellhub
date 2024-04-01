@@ -13,7 +13,7 @@ import (
 var migration12 = migrate.Migration{
 	Version:     12,
 	Description: "Set the tenant_id as unique in the namespaces collection",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   12,
@@ -33,8 +33,8 @@ var migration12 = migrate.Migration{
 		_, err := db.Collection("namespaces").Indexes().CreateOne(context.TODO(), mod)
 
 		return err
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   12,
@@ -43,5 +43,5 @@ var migration12 = migrate.Migration{
 		_, err := db.Collection("namespaces").Indexes().DropOne(context.TODO(), "tenant_id")
 
 		return err
-	},
+	}),
 }

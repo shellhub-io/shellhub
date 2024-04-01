@@ -13,7 +13,7 @@ import (
 var migration13 = migrate.Migration{
 	Version:     13,
 	Description: "Change on several collections",
-	Up: func(db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   13,
@@ -92,8 +92,8 @@ var migration13 = migrate.Migration{
 		}
 
 		return nil
-	},
-	Down: func(db *mongo.Database) error {
+	}),
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   13,
@@ -120,5 +120,5 @@ var migration13 = migrate.Migration{
 		_, err := db.Collection("users").Indexes().DropOne(context.TODO(), "tenant_id")
 
 		return err
-	},
+	}),
 }
