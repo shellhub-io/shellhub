@@ -24,6 +24,8 @@ services:
       test: "curl -f http://ssh:8080/healthcheck || exit 1"
       interval: 30s
       start_period: 10s
+    depends_on:
+      - redis
   api:
     image: shellhubio/api:${SHELLHUB_VERSION}
     restart: unless-stopped
@@ -51,8 +53,10 @@ services:
       - ASYNQ_GROUP_MAX_SIZE=${SHELLHUB_ASYNQ_GROUP_MAX_SIZE}
     depends_on:
       - mongo
+      - redis
     links:
       - mongo
+      - redis
     secrets:
       - api_private_key
       - api_public_key
