@@ -9,4 +9,4 @@ shift $@ # remove the first argument; script name.
 
 DOCKER_COMPOSE=$(evaluate_docker_compose)
 
-exec $DOCKER_COMPOSE exec cli ./cli $@
+exec $DOCKER_COMPOSE run cli ./cli $@

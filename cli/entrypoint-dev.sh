@@ -1,5 +1,5 @@
 #!/bin/sh
 
-refresh run &
+go build
 
-sleep infinity
+exec "$@"

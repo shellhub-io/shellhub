@@ -8,4 +8,4 @@ DOCKER_COMPOSE=$(evaluate_docker_compose)
 
 USERNAME=$1
 
-exec $DOCKER_COMPOSE exec cli ./cli del-user $USERNAME
+exec $DOCKER_COMPOSE run cli ./cli del-user $USERNAME

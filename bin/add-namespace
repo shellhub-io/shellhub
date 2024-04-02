@@ -9,4 +9,4 @@ DOCKER_COMPOSE=$(evaluate_docker_compose)
 NAMESPACE=$1
 OWNER=$2
 
-exec $DOCKER_COMPOSE exec cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"
+exec $DOCKER_COMPOSE run cli ./cli add-namespace "$NAMESPACE" "$OWNER" "$TENANT_ID"

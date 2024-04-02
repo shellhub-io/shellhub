@@ -66,7 +66,6 @@ services:
       context: .
       dockerfile: cli/Dockerfile
       target: development
-    entrypoint: /entrypoint.sh
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
@@ -75,6 +74,3 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./.golangci.yaml:/.golangci.yaml
-    depends_on:
-      - api
-      - mongo

@@ -108,14 +108,10 @@ services:
       start_period: 10s
   cli:
     image: shellhubio/cli:${SHELLHUB_VERSION}
-    entrypoint: /bin/sleep infinity
-    restart: unless-stopped
+    scale: 0
     environment:
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
-    depends_on:
-      - api
-      - mongo
     networks:
       - shellhub
   mongo:

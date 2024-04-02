@@ -9,4 +9,4 @@ DOCKER_COMPOSE=$(evaluate_docker_compose)
 USERNAME=$1
 NAMESPACE=$2
 
-exec $DOCKER_COMPOSE exec cli ./cli del-user-namespace $USERNAME $NAMESPACE
+exec $DOCKER_COMPOSE run cli ./cli del-user-namespace $USERNAME $NAMESPACE
