@@ -237,19 +237,19 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 	const Addr = "tcp"
 
+	// NOTICE: When the agent connection is closed, we should redial this connection before try to authenticate.
+	if s.AgentConn == nil {
+		if err := s.Dial(ctx); err != nil {
+			return err
+		}
+	}
+
 	if config.Timeout > 0 {
 		if err := s.AgentConn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
 
-			return err
-		}
-	}
-
-	// NOTICE: When the agent connection is closed, we should redial this connection before try to authenticate.
-	if s.AgentConn == nil {
-		if err := s.Dial(ctx); err != nil {
 			return err
 		}
 	}
