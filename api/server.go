@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
@@ -25,7 +28,10 @@ import (
 var serverCmd = &cobra.Command{
 	Use: "server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
+		ctx, cancel := context.WithCancel(cmd.Context())
+
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 		cfg, ok := ctx.Value("cfg").(*config)
 		if !ok {
@@ -43,7 +49,7 @@ var serverCmd = &cobra.Command{
 
 		log.Trace("Connecting to MongoDB")
 
-		store, err := mongo.NewStoreMongo(cmd.Context(), cache, cfg.MongoURI)
+		store, err := mongo.NewStoreMongo(ctx, cache, cfg.MongoURI)
 		if err != nil {
 			log.WithError(err).Fatal("failed to create the store")
 		}
@@ -54,9 +60,20 @@ var serverCmd = &cobra.Command{
 		if err != nil {
 			log.WithError(err).Warn("Failed to create workers.")
 		}
-		worker.Start()
 
-		return startServer(cfg, store, cache)
+		worker.Start(ctx)
+
+		go func() {
+			sig := <-sigs
+
+			log.WithFields(log.Fields{
+				"signal": sig,
+			}).Info("signal received to terminate API")
+
+			cancel()
+		}()
+
+		return startServer(ctx, cfg, store, cache)
 	},
 }
 
@@ -114,7 +131,7 @@ func startSentry(dsn string) (*sentry.Client, error) {
 	return nil, errors.New("sentry DSN not provided")
 }
 
-func startServer(cfg *config, store store.Store, cache storecache.Cache) error {
+func startServer(ctx context.Context, cfg *config, store store.Store, cache storecache.Cache) error {
 	log.Info("Starting Sentry client")
 
 	reporter, err := startSentry(cfg.SentryDSN)
@@ -155,7 +172,17 @@ func startServer(cfg *config, store store.Store, cache storecache.Cache) error {
 		}
 	})
 
-	e.Logger.Fatal(e.Start(":8080"))
+	go func() {
+		<-ctx.Done()
+
+		log.Debug("Closing HTTP server due context cancellation")
+
+		e.Close()
+	}()
+
+	err = e.Start(":8080") //nolint:errcheck
+
+	log.WithError(err).Info("HTTP server closed")
 
 	return nil
 }

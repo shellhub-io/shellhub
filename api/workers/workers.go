@@ -1,6 +1,7 @@
 package workers
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"strings"
@@ -87,7 +88,7 @@ func New(store store.Store) (*Workers, error) {
 // Start initiates the server. It creates two new goroutines: one for the server itself
 // and another for the scheduler. This method is also responsible for setting up all
 // the server handlers.
-func (w *Workers) Start() {
+func (w *Workers) Start(ctx context.Context) {
 	log.WithFields(log.Fields{"component": "worker"}).Info("Starting workers")
 
 	w.setupHandlers()
@@ -106,6 +107,15 @@ func (w *Workers) Start() {
 				WithError(err).
 				Error("Unable to run the scheduler.")
 		}
+	}()
+
+	go func() {
+		<-ctx.Done()
+
+		log.Info("Shutdown workers")
+
+		w.srv.Shutdown()
+		w.scheduler.Shutdown()
 	}()
 }
 
