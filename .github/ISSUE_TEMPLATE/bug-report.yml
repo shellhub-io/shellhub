@@ -1,27 +1,73 @@
 name: Bug report
 description: Create a bug report
+title: "bug: "
+labels: ["kind/bug"]
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
+      description: A concise description about what the issue is.
     validations:
       required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Describe the specific steps to reproduce the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A concise description about what you expected to happen.
+    validations:
+      required: true
+
   - type: dropdown
     id: edition
     attributes:
       label: Edition
-      description: Which edition of ShellHub are you running?
+      description: The edition of ShellHub you are using.
       options:
         - Community
         - Enterprise
         - Cloud
     validations:
       required: true
+
   - type: input
     id: version
     attributes:
       label: Version
-      description: Which version of ShellHub are you running?
+      description: The version of ShellHub you are currently using.
     validations:
       required: true
+
+  - type: textarea
+    id: related-logs
+    attributes:
+      label: Related Logs
+      render: shell
+      description: Relevant log output. This will be automatically formatted into shell code.
+    validations:
+      required: false
+
+  - type: textarea
+    id: related-code
+    attributes:
+      label: Related Code
+      description: Links or snippets of (possibly) relevant code for debugging or reproducing the issue.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Include any additional details such as screenshots or videos, if applicable.
+    validations:
+      required: false
