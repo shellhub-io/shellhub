@@ -10,4 +10,4 @@ USERNAME=$1
 NAMESPACE=$2
 ROLE=$3
 
-exec $DOCKER_COMPOSE exec cli ./cli add-user-namespace $USERNAME $NAMESPACE $ROLE
+exec $DOCKER_COMPOSE run cli ./cli add-user-namespace $USERNAME $NAMESPACE $ROLE

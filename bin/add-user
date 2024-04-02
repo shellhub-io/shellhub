@@ -10,4 +10,4 @@ USERNAME=$1
 PASSWORD=$2
 EMAIL=$3
 
-exec $DOCKER_COMPOSE exec cli ./cli add-user $USERNAME $PASSWORD $EMAIL
+exec $DOCKER_COMPOSE run cli ./cli add-user $USERNAME $PASSWORD $EMAIL
