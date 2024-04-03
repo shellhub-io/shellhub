@@ -41,29 +41,21 @@ func (dc *DockerCompose) Down() {
 
 // R return a [resty.R] with `http://localhost:{SHELLHUB_HTTP_PORT}` as base URL.
 func (dc *DockerCompose) R(ctx context.Context) *resty.Request {
-	dc.t.Helper()
-
 	return dc.client.R().SetContext(ctx)
 }
 
 func (dc *DockerCompose) JWT(jwt string) {
-	dc.t.Helper()
-
 	dc.client.SetAuthScheme("Bearer")
 	dc.client.SetAuthToken(jwt)
 }
 
 // Env retrieves a environment variable with the specified key.
 func (dc *DockerCompose) Env(key string) string {
-	dc.t.Helper()
-
 	return dc.envs[key]
 }
 
 // Service retrieves the specified service.
 func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
-	dc.t.Helper()
-
 	return dc.services[service]
 }
 
@@ -93,8 +85,6 @@ func (dc *DockerCompose) runCLICommand(ctx context.Context, cmds []string) error
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password string) {
-	dc.t.Helper()
-
 	err := dc.runCLICommand(
 		ctx,
 		[]string{"./cli", "user", "create", username, password, email},
@@ -110,8 +100,6 @@ func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password 
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewNamespace(ctx context.Context, owner, name, tenant string) {
-	dc.t.Helper()
-
 	err := dc.runCLICommand(
 		ctx,
 		[]string{"./cli", "namespace", "create", name, owner, tenant},
@@ -127,8 +115,6 @@ func (dc *DockerCompose) NewNamespace(ctx context.Context, owner, name, tenant s
 // It is not intended to be a test of the endpoint, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) AuthUser(ctx context.Context, username, password string) *models.UserAuthResponse {
-	dc.t.Helper()
-
 	auth := new(models.UserAuthResponse)
 
 	res, err := dc.R(ctx).

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"sync"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -17,6 +18,7 @@ import (
 type DockerComposeConfigurator struct {
 	envs map[string]string
 	t    *testing.T
+	mu   *sync.Mutex
 }
 
 // New creates a new [DockerComposeConfigurator]. By default, it reads from the .env file, but
@@ -35,6 +37,7 @@ func New(t *testing.T) *DockerComposeConfigurator {
 	return &DockerComposeConfigurator{
 		envs: envs,
 		t:    t,
+		mu:   new(sync.Mutex),
 	}
 }
 
@@ -69,9 +72,11 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 		clonedEnv.envs[k] = v
 	}
 
+	dcc.mu.Lock()
 	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = getFreePort(t)
 	clonedEnv.envs["SHELLHUB_SSH_PORT"] = getFreePort(t)
 	clonedEnv.envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
+	dcc.mu.Unlock()
 
 	return clonedEnv
 }
@@ -82,8 +87,6 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
 // [assert.FailNow] if an error arises.
 func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
-	dcc.t.Helper()
-
 	dc := &DockerCompose{
 		envs:     dcc.envs,
 		services: make(map[Service]*tc.DockerContainer),

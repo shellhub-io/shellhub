@@ -11,6 +11,7 @@ services:
       interval: 5s
       start_period: 10s
       retries: 20
+    ports: []
   api:
     image: api:test
     build:
@@ -21,6 +22,7 @@ services:
       interval: 5s
       start_period: 10s
       retries: 20
+    ports: []
   ui:
     image: ui:test
     build:
@@ -31,24 +33,28 @@ services:
       interval: 5s
       start_period: 10s
       retries: 20
+    ports: []
   cli:
     image: cli:test
     build:
       context: .
       dockerfile: cli/Dockerfile
       target: production 
+    ports: []
   gateway:
-   image: gateway:test
-   build:
-     context: .
-     dockerfile: gateway/Dockerfile
-     target: production 
-   healthcheck:
-     interval: 5s
-     start_period: 10s
-     retries: 20
+    image: gateway:test
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+      target: production 
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      retries: 20
+    ports: []
   mongo:
     healthcheck:
       interval: 5s
       start_period: 10s
       retries: 20
+    ports: []
