@@ -23,7 +23,7 @@ exports[`Device Pending List > Renders the component 1`] = `
               <td data-v-9b499844=\\"\\" class=\\"text-center\\"><span data-v-9b499844=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-9b499844=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-9b499844=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
@@ -37,7 +37,7 @@ exports[`Device Pending List > Renders the component 1`] = `
               <td data-v-9b499844=\\"\\" class=\\"text-center\\"><span data-v-9b499844=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-9b499844=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-9b499844=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
@@ -97,7 +97,7 @@ exports[`Device Pending List > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__append-inner\\">
-                <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
+                <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
                 <!---->
               </div>
               <div class=\\"v-field__outline\\">
