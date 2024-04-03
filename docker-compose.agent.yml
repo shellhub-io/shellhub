@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   agent:
     image: agent
@@ -11,7 +9,7 @@ services:
       network: host
       args:
         - SHELLHUB_VERSION=latest
-        - GOPROXY=${SHELLHUB_GOPROXY}
+        - GOPROXY=${SHELLHUB_GOPROXY:-}
         - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
     privileged: true
     network_mode: host

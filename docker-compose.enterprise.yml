@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   api:
     image: registry.infra.ossystems.io/cache/shellhubio/api:${SHELLHUB_VERSION}
