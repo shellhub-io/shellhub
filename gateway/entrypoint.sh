@@ -27,6 +27,7 @@ export WORKER_PROCESSES
 export MAX_WORKER_OPEN_FILES
 export MAX_WORKER_CONNECTIONS
 export HOST_IP=$(ip -4 route show default | awk '{ print $3 }')
+export BACKLOG_SIZE=$(sysctl -n net.core.somaxconn)
 
 wait_for_acme_webserver() {
   for i in `seq 30` ; do
