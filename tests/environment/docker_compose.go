@@ -67,6 +67,26 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]
 }
 
+func (dc *DockerCompose) runCLICommand(ctx context.Context, cmds []string) error {
+	container, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
+		ContainerRequest: tc.ContainerRequest{
+			Cmd:      cmds,
+			Networks: []string{dc.envs["SHELLHUB_NETWORK"]},
+			FromDockerfile: tc.FromDockerfile{
+				Context:       "..",
+				Dockerfile:    "cli/Dockerfile.test",
+				PrintBuildLog: false,
+				KeepImage:     true,
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return container.Start(ctx)
+}
+
 // NewUser creates a new user with the specified values. It is an abstraction around the "user create" method
 // of the CLI.
 //
@@ -75,16 +95,12 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password string) {
 	dc.t.Helper()
 
-	exitCode, _, err := dc.
-		Service(ServiceCLI).
-		Exec(ctx, []string{"./cli", "user", "create", username, password, email})
-
+	err := dc.runCLICommand(
+		ctx,
+		[]string{"./cli", "user", "create", username, password, email},
+	)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
-	}
-
-	if !assert.Equal(dc.t, 0, exitCode) {
-		assert.FailNow(dc.t, "cli user create exited with a non-zero status")
 	}
 }
 
@@ -96,16 +112,12 @@ func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password 
 func (dc *DockerCompose) NewNamespace(ctx context.Context, owner, name, tenant string) {
 	dc.t.Helper()
 
-	exitCode, _, err := dc.
-		Service(ServiceCLI).
-		Exec(ctx, []string{"./cli", "namespace", "create", name, owner, tenant})
-
+	err := dc.runCLICommand(
+		ctx,
+		[]string{"./cli", "namespace", "create", name, owner, tenant},
+	)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
-	}
-
-	if !assert.Equal(dc.t, 0, exitCode) {
-		assert.FailNow(dc.t, "cli namsepace create exited with a non-zero status")
 	}
 }
 

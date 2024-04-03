@@ -17,7 +17,6 @@ const (
 	ServiceGateway Service = "gateway"
 	ServiceAgent   Service = "agent"
 	ServiceAPI     Service = "api"
-	ServiceCLI     Service = "cli"
 	ServiceSSH     Service = "ssh"
 	ServiceUI      Service = "ui"
 )

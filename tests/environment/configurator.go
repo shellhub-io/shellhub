@@ -113,7 +113,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		}
 	}
 
-	services := []Service{ServiceGateway, ServiceAPI, ServiceCLI, ServiceSSH, ServiceUI}
+	services := []Service{ServiceGateway, ServiceAPI, ServiceSSH, ServiceUI}
 	// TODO: Perhaps we could devise a strategy to wait for specific services instead
 	// of blocking until all are running|healthy?
 	if !assert.NoError(dc.t, tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true))) {
