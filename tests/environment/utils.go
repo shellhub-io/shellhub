@@ -9,6 +9,8 @@ import (
 
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/slices"
 )
 
 type Service string
@@ -21,28 +23,30 @@ const (
 	ServiceUI      Service = "ui"
 )
 
+var freePortController []string
+
 // getFreePort returns a randomly available TCP port. It can be used to avoid
 // network conflicts in Docker Compose.
 func getFreePort(t *testing.T) string {
-	t.Helper()
-
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
-	if !assert.NoError(t, err) {
-		assert.FailNow(t, err.Error())
-	}
+	require.NoError(t, err)
 
 	l, err := net.ListenTCP("tcp", addr)
-	if !assert.NoError(t, err) {
-		assert.FailNow(t, err.Error())
-	}
+	require.NoError(t, err)
+
 	defer l.Close()
 
-	return strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
+	port := strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
+	if slices.Contains(freePortController, port) {
+		return getFreePort(t)
+	}
+
+	freePortController = append(freePortController, port)
+
+	return port
 }
 
 func ReaderToString(t *testing.T, reader io.Reader) string {
-	t.Helper()
-
 	buffer := bytes.NewBuffer(make([]byte, 1024))
 
 	_, err := stdcopy.StdCopy(buffer, io.Discard, reader)

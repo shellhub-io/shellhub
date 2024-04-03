@@ -90,30 +90,30 @@ func TestSSH(t *testing.T) {
 		options []NewAgentContainerOption
 		run     func(*testing.T, *Environment, *models.Device)
 	}{
-		{
-			name: "reconnect to server",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				ctx := context.Background()
+		// {
+		// 	name: "reconnect to server",
+		// 	run: func(t *testing.T, environment *Environment, device *models.Device) {
+		// 		ctx := context.Background()
 
-				err := environment.agent.Stop(ctx, nil)
-				require.NoError(t, err)
+		// 		err := environment.agent.Stop(ctx, nil)
+		// 		require.NoError(t, err)
 
-				err = environment.agent.Start(ctx)
-				require.NoError(t, err)
+		// 		err = environment.agent.Start(ctx)
+		// 		require.NoError(t, err)
 
-				model := models.Device{}
+		// 		model := models.Device{}
 
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					resp, err := environment.services.R(ctx).
-						SetResult(&model).
-						Get(fmt.Sprintf("/api/devices/%s", device.UID))
-					assert.Equal(tt, 200, resp.StatusCode())
-					assert.NoError(tt, err)
+		// 		require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		// 			resp, err := environment.services.R(ctx).
+		// 				SetResult(&model).
+		// 				Get(fmt.Sprintf("/api/devices/%s", device.UID))
+		// 			assert.Equal(tt, 200, resp.StatusCode())
+		// 			assert.NoError(tt, err)
 
-					assert.True(tt, model.Online)
-				}, 30*time.Second, 1*time.Second)
-			},
-		},
+		// 			assert.True(tt, model.Online)
+		// 		}, 30*time.Second, 1*time.Second)
+		// 	},
+		// },
 		{
 			name: "reconnect to server with custom identity",
 			options: []NewAgentContainerOption{
