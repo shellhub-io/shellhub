@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -10,7 +9,6 @@ import (
 	"testing"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/testcontainers/testcontainers-go/modules/compose"
 )
 
 // keygen generates private and public keys required to startup a ShellHub instance.
@@ -82,50 +80,11 @@ func keygen() error {
 }
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	log.Info("Starting the image cache process")
-
 	if err := keygen(); err != nil {
 		log.WithError(err).Error("failed to generate the ShellHub keys")
 
 		os.Exit(1)
 	}
-
-	// NOTICE: It is used to cache the images, avoiding the override when running in parallel.
-	tcDc, err := compose.NewDockerCompose("../docker-compose.yml", "../docker-compose.test.yml")
-	if err != nil {
-		log.WithError(err).Error("failed to screate the ShellHub instance from docker cmpose files")
-
-		os.Exit(1)
-	}
-
-	if err := tcDc.Up(ctx); err != nil {
-		log.WithError(err).Error("failed to startup ShellHub instance")
-
-		os.Exit(1)
-	}
-
-	if err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true)); err != nil {
-		log.WithError(err).Error("failed to teardown ShellHub instance")
-
-		os.Exit(1)
-	}
-
-	agent, err := NewAgentContainer(ctx, "")
-	if err != nil {
-		log.WithError(err).Error("failed to startup the Agent")
-
-		os.Exit(1)
-	}
-
-	if err := agent.Stop(ctx, nil); err != nil {
-		log.WithError(err).Error("failed to stop the Agent")
-
-		os.Exit(1)
-	}
-
-	log.Info("Image cache process done")
 
 	os.Exit(m.Run())
 }
