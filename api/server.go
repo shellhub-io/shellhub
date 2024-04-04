@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	"github.com/shellhub-io/shellhub/api/store/mongo/options"
 	"github.com/shellhub-io/shellhub/api/workers"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
@@ -49,9 +50,18 @@ var serverCmd = &cobra.Command{
 
 		log.Trace("Connecting to MongoDB")
 
-		store, err := mongo.NewStoreMongo(ctx, cache, cfg.MongoURI)
+		_, db, err := mongo.Connect(ctx, cfg.MongoURI)
 		if err != nil {
-			log.WithError(err).Fatal("failed to create the store")
+			log.
+				WithError(err).
+				Fatal("unable to connect to MongoDB")
+		}
+
+		store, err := mongo.NewStore(ctx, db, cache, options.RunMigatrions)
+		if err != nil {
+			log.
+				WithError(err).
+				Fatal("failed to create the store")
 		}
 
 		log.Info("Connected to MongoDB")
