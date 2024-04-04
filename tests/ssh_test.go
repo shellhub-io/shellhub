@@ -7,8 +7,8 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"io"
+	"log"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -71,6 +71,7 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 				},
 			},
 		},
+		Logger: log.New(io.Discard, "", log.LstdFlags),
 	})
 	if err != nil {
 		return nil, err
@@ -682,21 +683,38 @@ func TestSSH(t *testing.T) {
 		},
 	}
 
-	mu := new(sync.Mutex)
+	ctx := context.Background()
+
+	compose := environment.New(t).Up(ctx)
+	t.Cleanup(func() {
+		compose.Down()
+	})
+
+	compose.NewUser(ctx, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+	compose.NewNamespace(ctx, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+
+	auth := models.UserAuthResponse{}
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := compose.R(ctx).
+			SetBody(map[string]string{
+				"username": ShellHubUsername,
+				"password": ShellHubPassword,
+			}).
+			SetResult(&auth).
+			Post("/api/login")
+		assert.Equal(tt, 200, resp.StatusCode())
+		assert.NoError(tt, err)
+	}, 30*time.Second, 1*time.Second)
+
+	// compose.R(ctx).SetAuthScheme("Bearer")
+	// compose.R(ctx).SetAuthToken(auth.Token)
+
+	compose.JWT(auth.Token)
 
 	for _, tc := range tests {
 		test := tc
 		t.Run(test.name, func(t *testing.T) {
-			ctx := context.Background()
-
-			mu.Lock()
-			compose := environment.New(t).Up(ctx)
-			mu.Unlock()
-
-			t.Cleanup(func() {
-				compose.Down()
-			})
-
 			agent, err := NewAgentContainer(
 				ctx,
 				compose.Env("SHELLHUB_HTTP_PORT"),
@@ -704,34 +722,12 @@ func TestSSH(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			compose.NewUser(ctx, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-			compose.NewNamespace(ctx, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
-
 			err = agent.Start(ctx)
 			require.NoError(t, err)
 
 			t.Cleanup(func() {
 				assert.NoError(t, agent.Terminate(ctx))
 			})
-
-			auth := models.UserAuthResponse{}
-
-			require.EventuallyWithT(t, func(tt *assert.CollectT) {
-				resp, err := compose.R(ctx).
-					SetBody(map[string]string{
-						"username": ShellHubUsername,
-						"password": ShellHubPassword,
-					}).
-					SetResult(&auth).
-					Post("/api/login")
-				assert.Equal(tt, 200, resp.StatusCode())
-				assert.NoError(tt, err)
-			}, 30*time.Second, 1*time.Second)
-
-			// compose.R(ctx).SetAuthScheme("Bearer")
-			// compose.R(ctx).SetAuthToken(auth.Token)
-
-			compose.JWT(auth.Token)
 
 			devices := []models.Device{}
 

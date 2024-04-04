@@ -2,6 +2,8 @@ package environment
 
 import (
 	"context"
+	"io"
+	"log"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -71,6 +73,7 @@ func (dc *DockerCompose) runCLICommand(ctx context.Context, cmds []string) error
 				KeepImage:     true,
 			},
 		},
+		Logger: log.New(io.Discard, "", log.LstdFlags),
 	})
 	if err != nil {
 		return err
