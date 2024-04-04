@@ -15,7 +15,7 @@ import (
 func TestMigration35(t *testing.T) {
 	logrus.Info("Testing Migration 35 - Test if the column authenticated was renamed to confirmed")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type User struct {

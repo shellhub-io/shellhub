@@ -14,7 +14,7 @@ import (
 func TestMigration5(t *testing.T) {
 	logrus.Info("Testing Migration 5 - Test if the email is set unique")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user1 := models.User{

@@ -5,7 +5,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +24,7 @@ func TestTagsGet(t *testing.T) {
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
+			fixtures:    []string{fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
 			expected: Expected{
 				tags: []string{"tag-1"},
 				len:  1,
@@ -46,9 +45,9 @@ func TestTagsGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			tags, count, err := store.TagsGet(ctx, tc.tenant)
@@ -80,7 +79,7 @@ func TestTagsRename(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
+			fixtures:    []string{fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
 			expected: Expected{
 				count: 6,
 				err:   nil,
@@ -92,9 +91,9 @@ func TestTagsRename(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			count, err := store.TagsRename(ctx, tc.tenant, tc.oldTag, tc.newTag)
@@ -120,7 +119,7 @@ func TestTagsDelete(t *testing.T) {
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixturePublicKeys, fixtures.FixtureFirewallRules, fixtures.FixtureDevices},
+			fixtures:    []string{fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
 			expected: Expected{
 				count: 6,
 				err:   nil,
@@ -132,9 +131,9 @@ func TestTagsDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			count, err := store.TagsDelete(ctx, tc.tenant, tc.tag)

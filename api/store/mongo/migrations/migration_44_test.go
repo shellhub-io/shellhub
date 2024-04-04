@@ -16,7 +16,7 @@ import (
 func TestMigration44(t *testing.T) {
 	logrus.Info("Testing Migration 44")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	keyTagDuplicated := &models.PublicKey{

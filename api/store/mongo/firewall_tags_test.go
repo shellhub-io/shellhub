@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,21 +20,21 @@ func TestFirewallRulePushTag(t *testing.T) {
 			description: "fails when firewall rule is not found",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails to add a tag that already exists",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds to add a new tag when firewall rule is found and tag is not set yet",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "tag4",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    nil,
 		},
 	}
@@ -44,9 +43,9 @@ func TestFirewallRulePushTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.FirewallRulePushTag(ctx, tc.id, tc.tag)
@@ -67,21 +66,21 @@ func TestFirewallRulePullTag(t *testing.T) {
 			description: "fails when firewall rule is not found",
 			id:          "6504b7bd9b6c4a63a9ccc054",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when firewall rule but tag is not",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "nonexistent",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when firewall rule and tag is found",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    nil,
 		},
 	}
@@ -90,9 +89,9 @@ func TestFirewallRulePullTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.FirewallRulePullTag(ctx, tc.id, tc.tag)
@@ -113,14 +112,14 @@ func TestFirewallRuleSetTags(t *testing.T) {
 			description: "fails when firewall rule is not found",
 			id:          "6504b7bd9b6c4a63a9ccc054",
 			tags:        []string{"tag-1", "tag2"},
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when firewall rule and tag is found",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tags:        []string{"tag-1", "tag2"},
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    nil,
 		},
 	}
@@ -129,9 +128,9 @@ func TestFirewallRuleSetTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.FirewallRuleSetTags(ctx, tc.id, tc.tags)
@@ -159,7 +158,7 @@ func TestFirewallRuleBulkRenameTags(t *testing.T) {
 			tenant:      "nonexistent",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -170,7 +169,7 @@ func TestFirewallRuleBulkRenameTags(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "nonexistent",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -181,7 +180,7 @@ func TestFirewallRuleBulkRenameTags(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				count: 3,
 				err:   nil,
@@ -193,9 +192,9 @@ func TestFirewallRuleBulkRenameTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			count, err := store.FirewallRuleBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
@@ -221,7 +220,7 @@ func TestFirewallRuleBulkDeleteTags(t *testing.T) {
 			description: "fails when tenant is not found",
 			tenant:      "nonexistent",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -231,7 +230,7 @@ func TestFirewallRuleBulkDeleteTags(t *testing.T) {
 			description: "fails when tag is not found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -241,7 +240,7 @@ func TestFirewallRuleBulkDeleteTags(t *testing.T) {
 			description: "succeeds when tenant and tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				count: 3,
 				err:   nil,
@@ -253,9 +252,9 @@ func TestFirewallRuleBulkDeleteTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			count, err := store.FirewallRuleBulkDeleteTag(ctx, tc.tenant, tc.tag)
@@ -290,7 +289,7 @@ func TestFirewallRuleGetTags(t *testing.T) {
 		{
 			description: "succeeds when one or more tags are found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				tags: []string{"tag-1"},
 				len:  1,
@@ -303,9 +302,9 @@ func TestFirewallRuleGetTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			tags, count, err := store.FirewallRuleGetTags(ctx, tc.tenant)

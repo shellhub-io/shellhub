@@ -15,7 +15,7 @@ import (
 
 func TestMigration36(t *testing.T) {
 	logrus.Info("Testing Migration 36 - Test namespace update max_devices in Cloud")
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrations := GenerateMigrations()[:35]

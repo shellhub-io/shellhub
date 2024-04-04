@@ -17,7 +17,7 @@ import (
 func TestMigration11(t *testing.T) {
 	logrus.Info("Testing Migration 11 - Test if the private_keys has ttl system")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:11]...)

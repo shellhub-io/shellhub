@@ -17,7 +17,7 @@ import (
 func TestMigration62Up(t *testing.T) {
 	logrus.Info("Testing Migration 62")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	cases := []struct {
@@ -75,7 +75,7 @@ func TestMigration62Up(t *testing.T) {
 func TestMigration62Down(t *testing.T) {
 	logrus.Info("Testing Migration 62")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	mock := &envMocks.Backend{}

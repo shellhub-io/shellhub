@@ -16,7 +16,7 @@ import (
 func TestMigration41(t *testing.T) {
 	logrus.Info("Testing Migration 41")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	oldIndex := mongo.IndexModel{

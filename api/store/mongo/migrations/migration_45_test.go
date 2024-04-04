@@ -16,7 +16,7 @@ import (
 func TestMigration45(t *testing.T) {
 	logrus.Info("Testing Migration 45")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	ruleTagDuplicated := &models.FirewallRule{

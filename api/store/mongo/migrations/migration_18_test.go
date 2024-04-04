@@ -15,7 +15,7 @@ import (
 func TestMigration18(t *testing.T) {
 	logrus.Info("Testing Migration 18 - Test if the max_devices is 3")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	namespace := models.Namespace{

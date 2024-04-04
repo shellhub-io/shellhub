@@ -14,7 +14,7 @@ import (
 func TestMigration7(t *testing.T) {
 	logrus.Info("Testing Migration 7 - Test if the uid and message is not unique")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:6]...)

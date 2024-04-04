@@ -15,7 +15,7 @@ import (
 func TestMigration19(t *testing.T) {
 	logrus.Info("Testing Migration 19 - Test if the fingerprint is removed")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:19]...)

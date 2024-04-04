@@ -15,7 +15,7 @@ import (
 func TestMigration15(t *testing.T) {
 	logrus.Info("Testing Migration 15 - Test if the name is in lowercase")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:14]...)

@@ -14,7 +14,7 @@ import (
 func TestMigration13(t *testing.T) {
 	logrus.Info("Testing Migration 13 - Test the several changes on the collections")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	logrus.Info("Test if the UID is unique in the devices collection")

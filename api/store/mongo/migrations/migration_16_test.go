@@ -14,7 +14,7 @@ import (
 func TestMigration16(t *testing.T) {
 	logrus.Info("Testing Migration 16 - Test if the fingerprint is set unique")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	pk1 := models.PublicKey{Fingerprint: "test"}

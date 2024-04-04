@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,12 +22,12 @@ func TestGetStats(t *testing.T) {
 		{
 			description: "succeeds",
 			fixtures: []string{
-				fixtures.FixtureUsers,
-				fixtures.FixtureNamespaces,
-				fixtures.FixtureSessions,
-				fixtures.FixtureActiveSessions,
-				fixtures.FixtureDevices,
-				fixtures.FixtureConnectedDevices,
+				fixtureUsers,
+				fixtureNamespaces,
+				fixtureSessions,
+				fixtureActiveSessions,
+				fixtureDevices,
+				fixtureConnectedDevices,
 			},
 			expected: Expected{
 				stats: &models.Stats{
@@ -47,9 +46,9 @@ func TestGetStats(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			stats, err := store.GetStats(ctx)

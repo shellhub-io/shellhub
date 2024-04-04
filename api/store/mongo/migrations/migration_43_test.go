@@ -15,7 +15,7 @@ import (
 func TestMigration43(t *testing.T) {
 	logrus.Info("Testing Migration 43")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type FirewallRuleFields struct {

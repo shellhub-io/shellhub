@@ -16,7 +16,7 @@ import (
 func TestMigration49(t *testing.T) {
 	logrus.Info("Testing Migration 49")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user1ID, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")

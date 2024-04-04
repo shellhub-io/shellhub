@@ -13,7 +13,7 @@ import (
 func TestMigration1(t *testing.T) {
 	logrus.Info("Testing Migration 1 - Create the database for the system")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:1]...)

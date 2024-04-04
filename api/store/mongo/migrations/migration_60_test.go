@@ -17,7 +17,7 @@ import (
 func TestMigration60(t *testing.T) {
 	logrus.Info("Testing Migration 60")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	mock := &envMocks.Backend{}

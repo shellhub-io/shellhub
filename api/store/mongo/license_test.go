@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +31,7 @@ func TestLicenseLoad(t *testing.T) {
 		},
 		{
 			description: "succeeds when license is found",
-			fixtures:    []string{fixtures.FixtureLicenses},
+			fixtures:    []string{fixtureLicenses},
 			expected: Expected{
 				license: &models.License{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -47,9 +46,9 @@ func TestLicenseLoad(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			license, err := store.LicenseLoad(ctx)
@@ -80,9 +79,9 @@ func TestLicenseSave(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.LicenseSave(ctx, tc.license)

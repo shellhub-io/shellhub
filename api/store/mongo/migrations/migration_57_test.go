@@ -41,7 +41,7 @@ func TestMigration57(t *testing.T) {
 		Billing  *Billing `json:"billing" bson:"billing,omitempty"`
 	}
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	cases := []struct {

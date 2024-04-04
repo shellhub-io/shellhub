@@ -28,6 +28,7 @@ type Store struct {
 	cache cache.Cache
 }
 
+// TODO: disconnect function
 func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
 	client, err := mongo.Connect(ctx, mongooptions.Client().ApplyURI(uri))
 	if err != nil {

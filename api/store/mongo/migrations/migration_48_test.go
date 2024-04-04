@@ -17,7 +17,7 @@ func TestMigration48(t *testing.T) {
 
 	ctx := context.Background()
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	namespace := models.Namespace{

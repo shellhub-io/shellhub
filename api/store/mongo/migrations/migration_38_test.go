@@ -16,7 +16,7 @@ import (
 func TestMigration38(t *testing.T) {
 	logrus.Info("Testing Migration 38")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type Expected struct {

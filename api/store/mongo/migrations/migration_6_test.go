@@ -14,7 +14,7 @@ import (
 func TestMigration6(t *testing.T) {
 	logrus.Info("Testing Migration 6 - Test if the status is not unique")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:5]...)

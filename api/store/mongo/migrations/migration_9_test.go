@@ -15,7 +15,7 @@ import (
 func TestMigration9(t *testing.T) {
 	logrus.Info("Testing Migration 9 - Test if the device's name is in lowercase")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:8]...)

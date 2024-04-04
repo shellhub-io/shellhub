@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -25,7 +24,7 @@ func TestAPIKeyCreate(t *testing.T) {
 				UserID: "id",
 				Name:   "APIKeyName",
 			},
-			fixtures: []string{fixtures.FixtureUsers},
+			fixtures: []string{fixtureUsers},
 			expected: nil,
 		},
 	}
@@ -34,9 +33,9 @@ func TestAPIKeyCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.APIKeyCreate(ctx, tc.APIKey)
@@ -59,7 +58,7 @@ func TestAPIKeyList(t *testing.T) {
 				Paginator:   query.Paginator{Page: 1, PerPage: 10},
 				Sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
 			},
-			fixtures: []string{fixtures.FixtureUsers},
+			fixtures: []string{fixtureUsers},
 			expected: nil,
 		},
 	}
@@ -68,9 +67,9 @@ func TestAPIKeyList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			_, _, err := store.APIKeyList(ctx, tc.requestParams.UserID, tc.requestParams.Paginator, tc.requestParams.Sorter, "tenant")
@@ -88,7 +87,7 @@ func TestDeleteAPIKey(t *testing.T) {
 	}{
 		{
 			description: "fails when try delete with a invalid id",
-			fixtures:    []string{fixtures.FixtureUsers},
+			fixtures:    []string{fixtureUsers},
 			id:          "507f1f77bcf86cd7994390bb",
 			expected:    shstore.ErrNoDocuments,
 		},
@@ -98,9 +97,9 @@ func TestDeleteAPIKey(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.APIKeyDelete(ctx, tc.id, "tenant")
@@ -122,7 +121,7 @@ func TestRenameAPIKey(t *testing.T) {
 				ID:   "507f1f77bcf86cd7994390bb",
 				Name: "invalid",
 			},
-			fixtures: []string{fixtures.FixtureUsers},
+			fixtures: []string{fixtureUsers},
 			expected: shstore.ErrNoDocuments,
 		},
 		{
@@ -130,7 +129,7 @@ func TestRenameAPIKey(t *testing.T) {
 			requestParams: &requests.APIKeyChanges{
 				ID: "507f1f77bcf86cd7994390bb",
 			},
-			fixtures: []string{fixtures.FixtureUsers},
+			fixtures: []string{fixtureUsers},
 			expected: nil,
 		},
 	}
@@ -139,9 +138,9 @@ func TestRenameAPIKey(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.APIKeyEdit(ctx, tc.requestParams)

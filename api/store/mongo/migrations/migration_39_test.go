@@ -13,7 +13,7 @@ import (
 func TestMigration39(t *testing.T) {
 	logrus.Info("Testing Migration 39")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrations := GenerateMigrations()[:39]

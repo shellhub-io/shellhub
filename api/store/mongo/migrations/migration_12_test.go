@@ -14,7 +14,7 @@ import (
 func TestMigration12(t *testing.T) {
 	logrus.Info("Testing Migration 12 - Test if the tenant_id is set unique")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	ns1 := models.Namespace{Name: "name", TenantID: "1"}

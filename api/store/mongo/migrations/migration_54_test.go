@@ -17,7 +17,7 @@ func TestMigration54(t *testing.T) {
 
 	const Name string = "tenant_id_1_status_1"
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	cases := []struct {

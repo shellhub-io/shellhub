@@ -17,7 +17,7 @@ func TestMigration56(t *testing.T) {
 
 	const field string = "public_url_address"
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	cases := []struct {

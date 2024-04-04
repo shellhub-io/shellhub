@@ -20,7 +20,7 @@ func TestMigration55(t *testing.T) {
 	fieldNameTenantIDUID := "tenant_id_1_uid_1"
 	fieldNameTimestamp := "timestamp_1"
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	cases := []struct {

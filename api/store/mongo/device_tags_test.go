@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -22,14 +21,14 @@ func TestDevicePushTag(t *testing.T) {
 			description: "fails when device doesn't exist",
 			uid:         models.UID("nonexistent"),
 			tag:         "tag4",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "successfully creates single tag for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tag:         "tag4",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -38,9 +37,9 @@ func TestDevicePushTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.DevicePushTag(ctx, tc.uid, tc.tag)
@@ -61,21 +60,21 @@ func TestDevicePullTag(t *testing.T) {
 			description: "fails when device doesn't exist",
 			uid:         models.UID("nonexistent"),
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when device's tag doesn't exist",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tag:         "nonexistent",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "successfully remove a single tag for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -84,9 +83,9 @@ func TestDevicePullTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.DevicePullTag(ctx, tc.uid, tc.tag)
@@ -112,7 +111,7 @@ func TestDeviceSetTags(t *testing.T) {
 			description: "successfully when device doesn't exist",
 			uid:         models.UID("nonexistent"),
 			tags:        []string{"new-tag"},
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				matchedCount: 0,
 				updatedCount: 0,
@@ -123,7 +122,7 @@ func TestDeviceSetTags(t *testing.T) {
 			description: "successfully when tags are equal than current device's tags",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tags:        []string{"tag-1"},
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				matchedCount: 1,
 				updatedCount: 0,
@@ -134,7 +133,7 @@ func TestDeviceSetTags(t *testing.T) {
 			description: "successfully update tags for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tags:        []string{"new-tag"},
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				matchedCount: 1,
 				updatedCount: 1,
@@ -147,9 +146,9 @@ func TestDeviceSetTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			matchedCount, updatedCount, err := store.DeviceSetTags(ctx, tc.uid, tc.tags)
@@ -177,7 +176,7 @@ func TestDeviceBulkRenameTag(t *testing.T) {
 			tenant:      "nonexistent",
 			oldTag:      "tag-1",
 			newTag:      "newtag",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -188,7 +187,7 @@ func TestDeviceBulkRenameTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "nonexistent",
 			newTag:      "newtag",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -199,7 +198,7 @@ func TestDeviceBulkRenameTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag-1",
 			newTag:      "newtag",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				count: 2,
 				err:   nil,
@@ -211,9 +210,9 @@ func TestDeviceBulkRenameTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			count, err := store.DeviceBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
@@ -239,7 +238,7 @@ func TestDeviceBulkDeleteTag(t *testing.T) {
 			description: "fails when tenant doesn't exist",
 			tenant:      "nonexistent",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -249,7 +248,7 @@ func TestDeviceBulkDeleteTag(t *testing.T) {
 			description: "fails when device's tag doesn't exist",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -259,7 +258,7 @@ func TestDeviceBulkDeleteTag(t *testing.T) {
 			description: "successfully delete single tag for an existing device",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				count: 2,
 				err:   nil,
@@ -271,9 +270,9 @@ func TestDeviceBulkDeleteTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			count, err := store.DeviceBulkDeleteTag(ctx, tc.tenant, tc.tag)
@@ -298,7 +297,7 @@ func TestDeviceGetTags(t *testing.T) {
 		{
 			description: "succeeds when tags list is greater than 1",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				tags: []string{"tag-1"},
 				len:  1,
@@ -311,9 +310,9 @@ func TestDeviceGetTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			tags, count, err := store.DeviceGetTags(ctx, tc.tenant)

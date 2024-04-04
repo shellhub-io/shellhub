@@ -16,7 +16,7 @@ import (
 func TestMigration17(t *testing.T) {
 	logrus.Info("Testing Migration 17 - Test if the namespaces, devices, session, connected_devices, firewall_rules and public_keys was deleted for users")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user := models.User{

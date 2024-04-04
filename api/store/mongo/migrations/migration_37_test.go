@@ -17,7 +17,7 @@ import (
 func TestMigration37(t *testing.T) {
 	logrus.Info("Testing Migration 37")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user := models.User{

@@ -15,7 +15,7 @@ import (
 func TestMigration2(t *testing.T) {
 	logrus.Info("Testing Migration 2 - Test if the column device was renamed to device_uid")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type Session struct {

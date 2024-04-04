@@ -15,7 +15,7 @@ import (
 func TestMigration31(t *testing.T) {
 	logrus.Info("Testing Migration 31 - Test whether the collection of namespaces the field created_at was created")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	namespace := models.Namespace{

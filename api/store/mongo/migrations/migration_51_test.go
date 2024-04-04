@@ -19,7 +19,7 @@ func TestMigration51(t *testing.T) {
 
 	const Name string = "name"
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	mock := &envMocks.Backend{}

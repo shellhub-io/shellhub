@@ -15,7 +15,7 @@ import (
 func TestMigration30(t *testing.T) {
 	logrus.Info("Testing Migration 30 - Test whether the collection of devices the field remote_addr was created")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	device := models.Device{

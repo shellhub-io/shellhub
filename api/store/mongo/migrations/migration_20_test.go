@@ -16,7 +16,7 @@ import (
 func TestMigration20(t *testing.T) {
 	logrus.Info("Testing Migration 20 - Test if the firewall_rules has change to new one")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type firewallRule struct {

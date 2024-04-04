@@ -15,7 +15,7 @@ import (
 func TestMigration14(t *testing.T) {
 	logrus.Info("Testing Migration 14 - Test if the right tenant_id is set")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type user struct {

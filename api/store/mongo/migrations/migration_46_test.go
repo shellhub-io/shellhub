@@ -16,7 +16,7 @@ import (
 func TestMigration46(t *testing.T) {
 	logrus.Info("Testing Migration 46")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	keyUsernameEmpty := &models.PublicKey{

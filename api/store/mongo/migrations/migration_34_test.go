@@ -12,7 +12,7 @@ import (
 )
 
 func TestMigration34(t *testing.T) {
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrations := GenerateMigrations()[:33]

@@ -16,7 +16,7 @@ import (
 func TestMigration42(t *testing.T) {
 	logrus.Info("Testing Migration 42")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	type PublicKeyFields struct {

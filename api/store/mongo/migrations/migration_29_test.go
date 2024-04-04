@@ -16,7 +16,7 @@ import (
 func TestMigration29(t *testing.T) {
 	logrus.Info("Testing Migration 29 - Test whether the collection of users the field last_login was created")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user := models.User{

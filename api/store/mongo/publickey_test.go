@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -29,7 +28,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is not found due to fingerprint",
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
 				err:    shstore.ErrNoDocuments,
@@ -39,7 +38,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is not found due to tenant",
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
 				err:    shstore.ErrNoDocuments,
@@ -49,7 +48,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is found",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: &models.PublicKey{
 					Data:        []byte("test"),
@@ -73,9 +72,9 @@ func TestPublicKeyGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			pubKey, err := store.PublicKeyGet(ctx, tc.fingerprint, tc.tenant)
@@ -107,7 +106,7 @@ func TestPublicKeyList(t *testing.T) {
 		},
 		{
 			description: "succeeds when public key list len is greater than 1",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: []models.PublicKey{
 					{
@@ -134,9 +133,9 @@ func TestPublicKeyList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			pubKey, count, err := store.PublicKeyList(ctx, query.Paginator{Page: -1, PerPage: -1})
@@ -169,9 +168,9 @@ func TestPublicKeyCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.PublicKeyCreate(ctx, tc.key)
@@ -204,7 +203,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					Filter: models.PublicKeyFilter{Hostname: ".*"},
 				},
 			},
-			fixtures: []string{fixtures.FixturePublicKeys},
+			fixtures: []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
 				err:    shstore.ErrNoDocuments,
@@ -220,7 +219,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					Filter: models.PublicKeyFilter{Hostname: ".*"},
 				},
 			},
-			fixtures: []string{fixtures.FixturePublicKeys},
+			fixtures: []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
 				err:    shstore.ErrNoDocuments,
@@ -239,7 +238,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					},
 				},
 			},
-			fixtures: []string{fixtures.FixturePublicKeys},
+			fixtures: []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: &models.PublicKey{
 					Data:        []byte("test"),
@@ -263,9 +262,9 @@ func TestPublicKeyUpdate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			pubKey, err := store.PublicKeyUpdate(ctx, tc.fingerprint, tc.tenant, tc.key)
@@ -286,21 +285,21 @@ func TestPublicKeyDelete(t *testing.T) {
 			description: "fails when public key is not found due to fingerprint",
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tenant",
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    nil,
 		},
 	}
@@ -309,9 +308,9 @@ func TestPublicKeyDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, db.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, db.Reset())
 			})
 
 			err := store.PublicKeyDelete(ctx, tc.fingerprint, tc.tenant)

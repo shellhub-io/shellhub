@@ -15,7 +15,7 @@ import (
 func TestMigration63(t *testing.T) {
 	logrus.Info("Testing Migration 63 - Test whether MFA fields were added to the users collection")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user := models.User{

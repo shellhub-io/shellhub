@@ -15,7 +15,7 @@ import (
 func TestMigration28(t *testing.T) {
 	logrus.Info("Testing Migration 28 - Test whether the collection of users and devices the field created_at was created")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user := models.User{

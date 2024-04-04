@@ -16,7 +16,7 @@ import (
 func TestMigration47(t *testing.T) {
 	logrus.Info("Testing Migration 47")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	sessionWithoutPossition := &models.Session{

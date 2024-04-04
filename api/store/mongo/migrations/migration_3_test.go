@@ -13,7 +13,7 @@ import (
 )
 
 func TestMigration3(t *testing.T) {
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	logrus.Info("Testing Migration 3 - Test if the column attributes was renamed to info")

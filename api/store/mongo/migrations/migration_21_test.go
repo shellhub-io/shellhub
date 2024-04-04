@@ -15,7 +15,7 @@ import (
 func TestMigration21(t *testing.T) {
 	logrus.Info("Testing Migration 21 - Test if the sessions and connected_devices was removed for the devices")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	device := models.Device{

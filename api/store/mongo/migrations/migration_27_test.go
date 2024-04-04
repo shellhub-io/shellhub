@@ -15,7 +15,7 @@ import (
 func TestMigration27(t *testing.T) {
 	logrus.Info("Testing Migration 27 - Test closed field in the sessions")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:26]...)

@@ -16,7 +16,7 @@ import (
 func TestMigration22(t *testing.T) {
 	logrus.Info("Testing Migration 22 - Test if the user was added to membres group for the namespace")
 
-	db := dbtest.DBServer{}
+	db := dbtest.DB{}
 	defer db.Stop()
 
 	user := models.User{
