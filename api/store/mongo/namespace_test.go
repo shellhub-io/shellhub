@@ -1,4 +1,4 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
-	"github.com/shellhub-io/shellhub/api/store"
+	shstore "github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -110,12 +109,6 @@ func TestNamespaceList(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
 	// we ensure that both the expected and result arrays are correctly sorted.
 	sort := func(ns []models.Namespace) {
@@ -126,12 +119,18 @@ func TestNamespaceList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, count, err := mongostore.NamespaceList(context.TODO(), tc.page, tc.filters, tc.export)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, count, err := store.NamespaceList(ctx, tc.page, tc.filters, tc.export)
+
 			sort(tc.expected.ns)
 			sort(ns)
+
 			assert.Equal(t, tc.expected, Expected{ns: ns, count: count, err: err})
 		})
 	}
@@ -155,7 +154,7 @@ func TestNamespaceGet(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
 			expected: Expected{
 				ns:  nil,
-				err: store.ErrNoDocuments,
+				err: shstore.ErrNoDocuments,
 			},
 		},
 		{
@@ -187,18 +186,16 @@ func TestNamespaceGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, err := mongostore.NamespaceGet(context.TODO(), tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, err := store.NamespaceGet(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -222,7 +219,7 @@ func TestNamespaceGetByName(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
-				err: store.ErrNoDocuments,
+				err: shstore.ErrNoDocuments,
 			},
 		},
 		{
@@ -253,18 +250,16 @@ func TestNamespaceGetByName(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, err := mongostore.NamespaceGetByName(context.TODO(), tc.name)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, err := store.NamespaceGetByName(ctx, tc.name)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -288,7 +283,7 @@ func TestNamespaceGetFirst(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
-				err: store.ErrNoDocuments,
+				err: shstore.ErrNoDocuments,
 			},
 		},
 		{
@@ -319,18 +314,16 @@ func TestNamespaceGetFirst(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, err := mongostore.NamespaceGetFirst(context.TODO(), tc.member)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, err := store.NamespaceGetFirst(ctx, tc.member)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -383,18 +376,16 @@ func TestNamespaceCreate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, err := mongostore.NamespaceCreate(context.TODO(), tc.ns)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, err := store.NamespaceCreate(ctx, tc.ns)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -415,7 +406,7 @@ func TestNamespaceEdit(t *testing.T) {
 				Name: "edited-namespace",
 			},
 			fixtures: []string{fixtures.FixtureNamespaces},
-			expected: store.ErrNoDocuments,
+			expected: shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when tenant is found",
@@ -428,18 +419,16 @@ func TestNamespaceEdit(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.NamespaceEdit(context.TODO(), tc.tenant, tc.changes)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.NamespaceEdit(ctx, tc.tenant, tc.changes)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -462,7 +451,7 @@ func TestNamespaceUpdate(t *testing.T) {
 				Settings:   &models.NamespaceSettings{SessionRecord: true},
 			},
 			fixtures: []string{fixtures.FixtureNamespaces},
-			expected: store.ErrNoDocuments,
+			expected: shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when tenant is found",
@@ -477,18 +466,16 @@ func TestNamespaceUpdate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.NamespaceUpdate(context.TODO(), tc.tenant, tc.ns)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.NamespaceUpdate(ctx, tc.tenant, tc.ns)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -505,7 +492,7 @@ func TestNamespaceDelete(t *testing.T) {
 			description: "fails when namespace is not found",
 			tenant:      "nonexistent",
 			fixtures:    []string{fixtures.FixtureNamespaces},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when namespace is found",
@@ -515,18 +502,16 @@ func TestNamespaceDelete(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.NamespaceDelete(context.TODO(), tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.NamespaceDelete(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -554,7 +539,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
-				err: store.ErrNoDocuments,
+				err: shstore.ErrNoDocuments,
 			},
 		},
 		{
@@ -565,7 +550,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
-				err: ErrNamespaceDuplicatedMember,
+				err: mongo.ErrNamespaceDuplicatedMember,
 			},
 		},
 		{
@@ -603,18 +588,16 @@ func TestNamespaceAddMember(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, err := mongostore.NamespaceAddMember(context.TODO(), tc.tenant, tc.member, tc.role)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, err := store.NamespaceAddMember(ctx, tc.tenant, tc.member, tc.role)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -635,7 +618,7 @@ func TestNamespaceEditMember(t *testing.T) {
 			member:      "000000000000000000000000",
 			role:        guard.RoleObserver,
 			fixtures:    []string{fixtures.FixtureNamespaces},
-			expected:    ErrUserNotFound,
+			expected:    mongo.ErrUserNotFound,
 		},
 		{
 			description: "succeeds when tenant and user is found",
@@ -647,18 +630,16 @@ func TestNamespaceEditMember(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.NamespaceEditMember(context.TODO(), tc.tenant, tc.member, tc.role)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.NamespaceEditMember(ctx, tc.tenant, tc.member, tc.role)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -684,7 +665,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
-				err: store.ErrNoDocuments,
+				err: shstore.ErrNoDocuments,
 			},
 		},
 		{
@@ -694,7 +675,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
-				err: ErrUserNotFound,
+				err: mongo.ErrUserNotFound,
 			},
 		},
 		{
@@ -723,18 +704,16 @@ func TestNamespaceRemoveMember(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ns, err := mongostore.NamespaceRemoveMember(context.TODO(), tc.tenant, tc.member)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			ns, err := store.NamespaceRemoveMember(ctx, tc.tenant, tc.member)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -753,7 +732,7 @@ func TestNamespaceSetSessionRecord(t *testing.T) {
 			tenant:      "nonexistent",
 			sessionRec:  true,
 			fixtures:    []string{fixtures.FixtureNamespaces},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when tenant is found",
@@ -764,18 +743,16 @@ func TestNamespaceSetSessionRecord(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.NamespaceSetSessionRecord(context.TODO(), tc.sessionRec, tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.NamespaceSetSessionRecord(ctx, tc.sessionRec, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -799,7 +776,7 @@ func TestNamespaceGetSessionRecord(t *testing.T) {
 			fixtures:    []string{fixtures.FixtureNamespaces},
 			expected: Expected{
 				set: false,
-				err: store.ErrNoDocuments,
+				err: shstore.ErrNoDocuments,
 			},
 		},
 		{
@@ -813,18 +790,16 @@ func TestNamespaceGetSessionRecord(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			set, err := mongostore.NamespaceGetSessionRecord(context.TODO(), tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			set, err := store.NamespaceGetSessionRecord(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{set: set, err: err})
 		})
 	}

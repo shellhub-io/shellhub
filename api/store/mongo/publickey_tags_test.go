@@ -1,13 +1,11 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
-	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/cache"
+	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +24,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "new-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tenant",
@@ -34,7 +32,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 			tenant:      "nonexistent",
 			tag:         "new-tag",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
@@ -46,18 +44,16 @@ func TestPublicKeyPushTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.PublicKeyPushTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.PublicKeyPushTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -78,7 +74,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tenant",
@@ -86,7 +82,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			tenant:      "nonexistent",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tag",
@@ -94,7 +90,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
 			fixtures:    []string{fixtures.FixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
@@ -106,18 +102,16 @@ func TestPublicKeyPullTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.PublicKeyPullTag(context.TODO(), tc.tenant, tc.fingerprint, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.PublicKeyPullTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -188,18 +182,16 @@ func TestPublicKeySetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			matchedCount, updatedCount, err := mongostore.PublicKeySetTags(context.TODO(), tc.tenant, tc.fingerprint, tc.tags)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			matchedCount, updatedCount, err := store.PublicKeySetTags(ctx, tc.tenant, tc.fingerprint, tc.tags)
 			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
@@ -256,18 +248,16 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			count, err := mongostore.PublicKeyBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			count, err := store.PublicKeyBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -318,18 +308,16 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			count, err := mongostore.PublicKeyBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			count, err := store.PublicKeyBulkDeleteTag(ctx, tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -360,18 +348,16 @@ func TestPublicKeyGetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			tags, count, err := mongostore.PublicKeyGetTags(context.TODO(), tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			tags, count, err := store.PublicKeyGetTags(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
 		})
 	}

@@ -1,13 +1,11 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
-	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/cache"
+	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,14 +22,14 @@ func TestFirewallRulePushTag(t *testing.T) {
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails to add a tag that already exists",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds to add a new tag when firewall rule is found and tag is not set yet",
@@ -42,18 +40,16 @@ func TestFirewallRulePushTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.FirewallRulePushTag(context.TODO(), tc.id, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.FirewallRulePushTag(ctx, tc.id, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -72,14 +68,14 @@ func TestFirewallRulePullTag(t *testing.T) {
 			id:          "6504b7bd9b6c4a63a9ccc054",
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when firewall rule but tag is not",
 			id:          "6504b7bd9b6c4a63a9ccc053",
 			tag:         "nonexistent",
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when firewall rule and tag is found",
@@ -90,18 +86,16 @@ func TestFirewallRulePullTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.FirewallRulePullTag(context.TODO(), tc.id, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.FirewallRulePullTag(ctx, tc.id, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -120,7 +114,7 @@ func TestFirewallRuleSetTags(t *testing.T) {
 			id:          "6504b7bd9b6c4a63a9ccc054",
 			tags:        []string{"tag-1", "tag2"},
 			fixtures:    []string{fixtures.FixtureFirewallRules},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when firewall rule and tag is found",
@@ -131,18 +125,16 @@ func TestFirewallRuleSetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.FirewallRuleSetTags(context.TODO(), tc.id, tc.tags)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.FirewallRuleSetTags(ctx, tc.id, tc.tags)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -197,18 +189,16 @@ func TestFirewallRuleBulkRenameTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			count, err := mongostore.FirewallRuleBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			count, err := store.FirewallRuleBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -259,18 +249,16 @@ func TestFirewallRuleBulkDeleteTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			count, err := mongostore.FirewallRuleBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			count, err := store.FirewallRuleBulkDeleteTag(ctx, tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -311,18 +299,16 @@ func TestFirewallRuleGetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			tags, count, err := mongostore.FirewallRuleGetTags(context.TODO(), tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			tags, count, err := store.FirewallRuleGetTags(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
 		})
 	}

@@ -1,13 +1,11 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
-	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/cache"
+	shstore "github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,7 +23,7 @@ func TestDevicePushTag(t *testing.T) {
 			uid:         models.UID("nonexistent"),
 			tag:         "tag4",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "successfully creates single tag for an existing device",
@@ -36,18 +34,16 @@ func TestDevicePushTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DevicePushTag(context.TODO(), tc.uid, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.DevicePushTag(ctx, tc.uid, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -66,14 +62,14 @@ func TestDevicePullTag(t *testing.T) {
 			uid:         models.UID("nonexistent"),
 			tag:         "tag-1",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "fails when device's tag doesn't exist",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tag:         "nonexistent",
 			fixtures:    []string{fixtures.FixtureDevices},
-			expected:    store.ErrNoDocuments,
+			expected:    shstore.ErrNoDocuments,
 		},
 		{
 			description: "successfully remove a single tag for an existing device",
@@ -84,18 +80,16 @@ func TestDevicePullTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DevicePullTag(context.TODO(), tc.uid, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := store.DevicePullTag(ctx, tc.uid, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -149,18 +143,16 @@ func TestDeviceSetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			matchedCount, updatedCount, err := mongostore.DeviceSetTags(context.TODO(), tc.uid, tc.tags)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			matchedCount, updatedCount, err := store.DeviceSetTags(ctx, tc.uid, tc.tags)
 			assert.Equal(t, tc.expected, Expected{matchedCount, updatedCount, err})
 		})
 	}
@@ -215,18 +207,16 @@ func TestDeviceBulkRenameTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			count, err := mongostore.DeviceBulkRenameTag(context.TODO(), tc.tenant, tc.oldTag, tc.newTag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			count, err := store.DeviceBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -277,18 +267,16 @@ func TestDeviceBulkDeleteTag(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			count, err := mongostore.DeviceBulkDeleteTag(context.TODO(), tc.tenant, tc.tag)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			count, err := store.DeviceBulkDeleteTag(ctx, tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, Expected{count, err})
 		})
 	}
@@ -319,18 +307,16 @@ func TestDeviceGetTags(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			tags, count, err := mongostore.DeviceGetTags(context.TODO(), tc.tenant)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			tags, count, err := store.DeviceGetTags(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{tags: tags, len: count, err: err})
 		})
 	}
