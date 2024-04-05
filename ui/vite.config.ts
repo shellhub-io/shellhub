@@ -60,30 +60,6 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      output: {
-        manualChunks: {
-          dashboard: ["./src/views/Dashboard.vue"],
-          devices: [
-            "./src/views/Devices.vue",
-            "./src/components/Devices/DeviceList.vue",
-            "./src/components/Devices/DevicePendingList.vue",
-            "./src/components/Devices/DeviceRejectedList.vue",
-          ],
-          "details-device": ["./src/views/DetailsDevice.vue"],
-          sessions: ["./src/views/Sessions.vue"],
-          "details-sessions": ["./src/views/DetailsSessions.vue"],
-          "firewall-rules": ["./src/views/FirewallRules.vue"],
-          "public-keys": ["./src/views/PublicKeys.vue"],
-          settings: [
-            "./src/views/Settings.vue",
-            "./src/components/Setting/SettingProfile.vue",
-            "./src/components/Setting/SettingNamespace.vue",
-            "./src/components/Setting/SettingPrivateKeys.vue",
-            "./src/components/Setting/SettingTags.vue",
-            "./src/components/Setting/SettingBilling.vue",
-          ],
-        },
-      },
       plugins: [
         polyfillNode(),
         NodeGlobalsPolyfillPlugin({
