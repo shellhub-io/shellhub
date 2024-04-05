@@ -2,22 +2,22 @@ import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
 
-const Dashboard = () => import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue");
-const Devices = () => import(/* webpackChunkName: "devices" */ "@/views/Devices.vue");
-const DeviceList = () => import(/* webpackChunkName: "devices" */ "@/components/Devices/DeviceList.vue");
-const DevicePendingList = () => import(/* webpackChunkName: "devices" */ "@/components/Devices/DevicePendingList.vue");
-const DeviceRejectedList = () => import(/* webpackChunkName: "devices" */ "@/components/Devices/DeviceRejectedList.vue");
-const DetailsDevice = () => import(/* webpackChunkName: "device" */ "@/views/DetailsDevice.vue");
-const Sessions = () => import(/* webpackChunkName: "sessions" */ "@/views/Sessions.vue");
-const DetailsSessions = () => import(/* webpackChunkName: "sessions" */ "@/views/DetailsSessions.vue");
-const FirewallRules = () => import(/* webpackChunkName: "firewall-rules" */ "@/views/FirewallRules.vue");
-const PublicKeys = () => import(/* webpackChunkName: "public-keys" */ "@/views/PublicKeys.vue");
-const Settings = () => import(/* webpackChunkName: "settings" */ "@/views/Settings.vue");
-const SettingProfile = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingProfile.vue");
-const SettingNamespace = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingNamespace.vue");
-const SettingPrivateKeys = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingPrivateKeys.vue");
-const SettingTags = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingTags.vue");
-const SettingBilling = () => import(/* webpackChunkName: "settings" */ "@/components/Setting/SettingBilling.vue");
+const Dashboard = () => import("@/views/Dashboard.vue");
+const Devices = () => import("@/views/Devices.vue");
+const DeviceList = () => import("@/components/Devices/DeviceList.vue");
+const DevicePendingList = () => import("@/components/Devices/DevicePendingList.vue");
+const DeviceRejectedList = () => import("@/components/Devices/DeviceRejectedList.vue");
+const DetailsDevice = () => import("@/views/DetailsDevice.vue");
+const Sessions = () => import("@/views/Sessions.vue");
+const DetailsSessions = () => import("@/views/DetailsSessions.vue");
+const FirewallRules = () => import("@/views/FirewallRules.vue");
+const PublicKeys = () => import("@/views/PublicKeys.vue");
+const Settings = () => import("@/views/Settings.vue");
+const SettingProfile = () => import("@/components/Setting/SettingProfile.vue");
+const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue");
+const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
+const SettingTags = () => import("@/components/Setting/SettingTags.vue");
+const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -27,7 +27,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "login" */ "../views/Login.vue"),
+    component: () => import("../views/Login.vue"),
   },
   {
     path: "/mfa-login",
@@ -46,7 +46,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "login" */ "../components/AuthMFA/MfaLogin.vue"),
+    component: () => import("../components/AuthMFA/MfaLogin.vue"),
   },
   {
     path: "/recover-mfa",
@@ -65,7 +65,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "login" */ "../components/AuthMFA/MfaRecover.vue"),
+    component: () => import("../components/AuthMFA/MfaRecover.vue"),
   },
   {
     path: "/forgot-pass",
@@ -74,7 +74,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "forgot-password" */ "../views/ForgotPassword.vue"),
+    component: () => import("../views/ForgotPassword.vue"),
   },
   {
     path: "/validation-account",
@@ -83,7 +83,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "validation-account" */ "../views/ValidationAccount.vue"),
+    component: () => import("../views/ValidationAccount.vue"),
   },
   {
     path: "/update-password",
@@ -92,7 +92,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "update-password" */ "../views/UpdatePassword.vue"),
+    component: () => import("../views/UpdatePassword.vue"),
   },
   {
     path: "/sign-up",
@@ -101,7 +101,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "sign-up" */ "../views/SignUp.vue"),
+    component: () => import("../views/SignUp.vue"),
   },
   {
     path: "/confirm-account",
@@ -110,7 +110,7 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import(/* webpackChunkName: "confirm-account" */ "../views/ConfirmAccount.vue"),
+    component: () => import("../views/ConfirmAccount.vue"),
   },
   {
     path: "/",
