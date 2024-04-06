@@ -290,18 +290,16 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
+	defer ctx.Unlock()
+
 	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(s.AgentConn); err != nil {
-		return err
-	}
-	ctx.Unlock()
 
-	return nil
+	return req.Write(s.AgentConn)
 }
 
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
