@@ -13,7 +13,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, req string, opts DefaultSessionHandlerOptions) {
+func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, piping *sync.WaitGroup, req string, opts DefaultSessionHandlerOptions) {
 	defer func() {
 		ctx.Lock()
 		sess.Handled = false
@@ -35,9 +35,10 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 	c := io.MultiReader(client, client.Stderr())
 	a := io.MultiReader(agent, agent.Stderr())
 
+	piping.Add(1)
 	go func() {
 		defer wg.Done()
-		defer client.CloseWrite() //nolint:errcheck
+		defer piping.Done()
 
 		if req == ShellRequestType {
 			buffer := make([]byte, 1024)

@@ -75,6 +75,8 @@ type Session struct {
 
 	once *sync.Once
 
+	ExitCode int
+
 	Data
 }
 
@@ -138,7 +140,8 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 			Lookup:    lookup,
 			SSHID:     ctx.User(),
 		},
-		once: new(sync.Once),
+		once:     new(sync.Once),
+		ExitCode: -1,
 	}
 
 	session.Data.Lookup["username"] = target.Username

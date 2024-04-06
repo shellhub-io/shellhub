@@ -1,7 +1,9 @@
 package channels
 
 import (
+	"encoding/binary"
 	"strings"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -51,6 +53,11 @@ const (
 	// In a defined interval, the Agent sends a keepalive request to maintain the session apoint, even when no data is
 	// send.
 	KeepAliveRequestType = KeepAliveRequestTypePrefix + "@shellhub.io"
+	//  When the command running at the other end terminates, the following message can be sent to return the exit
+	//  status of the command. Returning the status is RECOMMENDED.
+	//
+	// https://www.rfc-editor.org/rfc/rfc4254#section-6.10
+	ExitStatusRequest = "exit-status"
 )
 
 type DefaultSessionHandlerOptions struct {
@@ -65,6 +72,8 @@ type DefaultSessionHandlerOptions struct {
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+		wg := new(sync.WaitGroup)
+
 		sess, _ := session.ObtainSession(ctx)
 
 		go func() {
@@ -111,172 +120,225 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 		defer agent.Close()
 
-		for {
-			select {
-			case <-ctx.Done():
-				logger.Info("context has done")
-
-				return
-			case req, ok := <-sess.AgentGlobalReqs:
-				if !ok {
-					logger.Trace("global requests is closed")
-
+		go func() {
+			for { //nolint:gosimple
+				select {
+				case <-ctx.Done():
 					return
+				case req, ok := <-sess.AgentGlobalReqs:
+					if !ok {
+						logger.Trace("global requests is closed")
+
+						return
+					}
+
+					logger.Debugf("global request from agent: %s", req.Type)
+
+					switch {
+					// NOTICE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed
+					// due to inactivity. Through the time, the request type sent from agent to server changed its name,
+					// but always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if
+					// this prefix exists and perform the necessary operations.
+					case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
+						wantReply, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload)
+						if err != nil {
+							logger.Error("failed to send the keepalive request received from agent to client")
+
+							return
+						}
+
+						if err := req.Reply(wantReply, nil); err != nil {
+							logger.WithError(err).Error("failed to send the keepalive response back to agent")
+
+							return
+						}
+
+						if err := sess.KeepAlive(); err != nil {
+							logger.WithError(err).Error("failed to send the API request to inform that the session is open")
+
+							return
+						}
+					default:
+						if req.WantReply {
+							if err := req.Reply(false, nil); err != nil {
+								logger.WithError(err).Error(err)
+							}
+						}
+					}
 				}
+			}
+		}()
 
-				logger.Debugf("global request from agent: %s", req.Type)
+		go func() {
+			for { //nolint:gosimple
+				select {
+				case <-ctx.Done():
+					return
+				case req, ok := <-clientReqs:
+					if !ok {
+						logger.Trace("client requests is closed")
 
-				switch {
-				// NOTICE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed due
-				// to inactivity. Through the time, the request type sent from agent to server changed its name, but
-				// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
-				// prefix exists and perform the necessary operations.
-				case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
-					wantReply, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload)
+						return
+					}
+
+					logger.Debugf("request from client to agent: %s", req.Type)
+
+					ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
 					if err != nil {
-						logger.Error("failed to send the keepalive request received from agent to client")
-
-						return
-					}
-
-					if err := req.Reply(wantReply, nil); err != nil {
-						logger.WithError(err).Error("failed to send the keepalive response back to agent")
-
-						return
-					}
-
-					if err := sess.KeepAlive(); err != nil {
-						logger.WithError(err).Error("failed to send the API request to inform that the session is open")
-
-						return
-					}
-				default:
-					if req.WantReply {
-						if err := req.Reply(false, nil); err != nil {
-							logger.WithError(err).Error(err)
-						}
-					}
-				}
-			case req, ok := <-clientReqs:
-				if !ok {
-					logger.Trace("client requests is closed")
-
-					return
-				}
-
-				logger.Debugf("request from client to agent: %s", req.Type)
-
-				ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from client to agent")
-
-					continue
-				}
-
-				switch req.Type {
-				case ShellRequestType, ExecRequestType, SubsystemRequestType:
-					// Once the session has been set up, a program is started at the remote end.  The program can be a
-					// shell, an application program, or a subsystem with a host-independent name.  **Only one of these
-					// requests can succeed per channel.**
-					//
-					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					if sess.Handled {
-						logger.Warn("fail to start a new session before ending the previous one")
-
-						if err := req.Reply(false, nil); err != nil {
-							logger.WithError(err).Error("failed to reply the client when data pipe already started")
-						}
+						logger.WithError(err).Error("failed to send the request from client to agent")
 
 						continue
 					}
 
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error("failed to reply the client with right response for pipe request type")
+					switch req.Type {
+					case ShellRequestType, ExecRequestType, SubsystemRequestType:
+						// Once the session has been set up, a program is started at the remote end.  The program can be a
+						// shell, an application program, or a subsystem with a host-independent name.  **Only one of these
+						// requests can succeed per channel.**
+						//
+						// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+						if sess.Handled {
+							logger.Warn("fail to start a new session before ending the previous one")
 
-						return
-					}
+							if err := req.Reply(false, nil); err != nil {
+								logger.WithError(err).Error("failed to reply the client when data pipe already started")
+							}
 
-					logger.Info("session type set")
-
-					if req.Type == ShellRequestType && sess.Pty.Term != "" {
-						if err := sess.Announce(client); err != nil {
-							logger.WithError(err).Warn("failed to get the namespace announcement")
+							continue
 						}
-					}
 
-					// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
-					// program.  All input and output from these SHOULD be redirected to the channel or to the
-					// encrypted tunnel.
-					//
-					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					go pipe(ctx, sess, client, agent, req.Type, opts)
-				case PtyRequestType:
-					var pty session.Pty
-
-					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-						reject(nil, "failed to recover the session dimensions")
-					}
-
-					sess.Pty = pty
-
-					if req.WantReply {
-						// req.Reply(ok, nil) //nolint:errcheck
 						if err := req.Reply(ok, nil); err != nil {
-							logger.WithError(err).Error("failed to reply for pty-req")
+							logger.WithError(err).Error("failed to reply the client with right response for pipe request type")
 
 							return
 						}
-					}
-				case WindowChangeRequestType:
-					var dimensions session.Dimensions
 
-					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-						reject(nil, "failed to recover the session dimensions")
-					}
+						logger.Info("session type set")
 
-					sess.Pty.Columns = dimensions.Columns
-					sess.Pty.Rows = dimensions.Rows
-
-					if req.WantReply {
-						if err := req.Reply(ok, nil); err != nil {
-							logger.Error("failed to reply for window-change")
-
-							return
+						if req.Type == ShellRequestType && sess.Pty.Term != "" {
+							if err := sess.Announce(client); err != nil {
+								logger.WithError(err).Warn("failed to get the namespace announcement")
+							}
 						}
-					}
-				default:
-					if req.WantReply {
-						if err := req.Reply(ok, nil); err != nil {
-							logger.WithError(err).Error("failed to reply")
 
-							return
+						// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
+						// program.  All input and output from these SHOULD be redirected to the channel or to the
+						// encrypted tunnel.
+						//
+						// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
+						go pipe(ctx, sess, client, agent, wg, req.Type, opts)
+					case PtyRequestType:
+						var pty session.Pty
+
+						if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
+							reject(nil, "failed to recover the session dimensions")
 						}
-					}
-				}
-			case req, ok := <-agentReqs:
-				if !ok {
-					logger.Trace("agent requests is closed")
 
-					return
-				}
+						sess.Pty = pty
 
-				logger.Debugf("request from agent to client: %s", req.Type)
+						if req.WantReply {
+							// req.Reply(ok, nil) //nolint:errcheck
+							if err := req.Reply(ok, nil); err != nil {
+								logger.WithError(err).Error("failed to reply for pty-req")
 
-				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from agent to client")
+								return
+							}
+						}
+					case WindowChangeRequestType:
+						var dimensions session.Dimensions
 
-					continue
-				}
+						if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
+							reject(nil, "failed to recover the session dimensions")
+						}
 
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error("failed to reply the agent request")
+						sess.Pty.Columns = dimensions.Columns
+						sess.Pty.Rows = dimensions.Rows
 
-						return
+						if req.WantReply {
+							if err := req.Reply(ok, nil); err != nil {
+								logger.Error("failed to reply for window-change")
+
+								return
+							}
+						}
+					default:
+						if req.WantReply {
+							if err := req.Reply(ok, nil); err != nil {
+								logger.WithError(err).Error("failed to reply")
+
+								return
+							}
+						}
 					}
 				}
 			}
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for { //nolint:gosimple
+				select {
+				case <-ctx.Done():
+					return
+				case req, ok := <-agentReqs:
+					if !ok {
+						logger.Trace("agent requests is closed")
+
+						return
+					}
+
+					logger.Debugf("request from agent to client: %s", req.Type)
+
+					switch req.Type {
+					case ExitStatusRequest:
+						// NOTICE: When the session receives from the Agent a [ExitStatusRequest], it indicates to the
+						// Client that the connection should end, that causes some data in piping process don't be sent.
+						// To fix it, when the Agent sends this request, we store it and send to the Client when the
+						// session is closed between the Server and the Client.
+
+						sess.ExitCode = int(binary.BigEndian.Uint32(req.Payload))
+
+						logger.Info("exit status received from agent")
+
+						continue
+					default:
+						ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
+						if err != nil {
+							logger.WithError(err).Error("failed to send the request from agent to client")
+
+							continue
+						}
+
+						if req.WantReply {
+							if err := req.Reply(ok, nil); err != nil {
+								logger.WithError(err).Error("failed to reply the agent request")
+
+								return
+							}
+						}
+					}
+				}
+			}
+		}()
+
+		wg.Wait()
+		// NOTICE: When the data piping is concluded between client and agent, and the agent's request channel is
+		// closed, we get the `exit-status` request received from the agent and return it to the client before closing
+		// the communication between server and client.
+
+		status := make([]byte, 4)
+		binary.BigEndian.PutUint32(status, uint32(sess.ExitCode))
+
+		ok, err := client.SendRequest(ExitStatusRequest, false, status) //nolint
+		if err != nil {
+			log.WithError(err).Error("failed to send the exit status from agent to client")
 		}
+
+		log.WithFields(log.Fields{
+			"wantReply": ok,
+			"status":    status,
+		}).Info("exit status sent from agent to client")
 	}
 }
