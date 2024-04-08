@@ -2,6 +2,7 @@ package channels
 
 import (
 	"strings"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -51,6 +52,11 @@ const (
 	// In a defined interval, the Agent sends a keepalive request to maintain the session apoint, even when no data is
 	// send.
 	KeepAliveRequestType = KeepAliveRequestTypePrefix + "@shellhub.io"
+	//  When the command running at the other end terminates, the following message can be sent to return the exit
+	//  status of the command. Returning the status is RECOMMENDED.
+	//
+	// https://www.rfc-editor.org/rfc/rfc4254#section-6.10
+	ExitStatusRequest = "exit-status"
 )
 
 type DefaultSessionHandlerOptions struct {
@@ -110,6 +116,8 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 		}
 
 		defer agent.Close()
+
+		var wg sync.WaitGroup
 
 		for {
 			select {
@@ -180,7 +188,7 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					// requests can succeed per channel.**
 					//
 					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					if sess.Handled {
+					if sess.Handled && req.Type == ShellRequestType {
 						logger.Warn("fail to start a new session before ending the previous one")
 
 						if err := req.Reply(false, nil); err != nil {
@@ -209,7 +217,16 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 					// encrypted tunnel.
 					//
 					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					go pipe(ctx, sess, client, agent, req.Type, opts)
+					wg.Add(1)
+					go func() {
+						ch := make(chan bool)
+						go func() {
+							<-ch
+							wg.Done()
+						}()
+
+						pipe(ctx, sess, client, agent, req.Type, opts, ch)
+					}()
 				case PtyRequestType:
 					var pty session.Pty
 
@@ -261,6 +278,10 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				}
 
 				logger.Debugf("request from agent to client: %s", req.Type)
+
+				if req.Type == ExitStatusRequest {
+					wg.Wait()
+				}
 
 				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
 				if err != nil {
