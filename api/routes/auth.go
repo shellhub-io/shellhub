@@ -193,11 +193,6 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 		return err
 	}
 
-	err = h.service.SetDevicePosition(c.Ctx(), models.UID(res.UID), ip)
-	if err != nil {
-		return err
-	}
-
 	return c.JSON(http.StatusOK, res)
 }
 

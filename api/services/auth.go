@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"net"
 	"strings"
 	"time"
 
@@ -93,6 +94,12 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 			Platform:   req.Info.Platform,
 		}
 	}
+
+	position, err := s.locator.GetPosition(net.ParseIP(remoteAddr))
+	if err != nil {
+		return nil, err
+	}
+
 	device := models.Device{
 		UID:        key,
 		Identity:   identity,
@@ -101,6 +108,10 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		TenantID:   req.TenantID,
 		LastSeen:   clock.Now(),
 		RemoteAddr: remoteAddr,
+		Position: &models.DevicePosition{
+			Longitude: position.Longitude,
+			Latitude:  position.Latitude,
+		},
 	}
 
 	// The order here is critical as we don't want to register devices if the tenant id is invalid
