@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"net"
 	"testing"
 	"time"
 
@@ -13,8 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
-	"github.com/shellhub-io/shellhub/pkg/geoip"
-	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -3210,77 +3207,6 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
-func TestSetDevicePosition(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
-	locator := &mocksGeoIp.Locator{}
-
-	cases := []struct {
-		description   string
-		requiredMocks func()
-		uid           models.UID
-		ip            string
-		expected      error
-	}{
-		{
-			description: "fails when DeviceSetPosition return error",
-			requiredMocks: func() {
-				positionGeoIP := geoip.Position{
-					Longitude: 0,
-					Latitude:  0,
-				}
-				positionDeviceModel := models.DevicePosition{
-					Longitude: 0,
-					Latitude:  0,
-				}
-
-				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
-					Return(positionGeoIP, nil).Once()
-				mock.On("DeviceSetPosition", ctx, models.UID("uid"), positionDeviceModel).
-					Return(errors.New("error", "", 0)).Once()
-			},
-			uid:      models.UID("uid"),
-			ip:       "127.0.0.1",
-			expected: errors.New("error", "", 0),
-		},
-		{
-			description: "success",
-			requiredMocks: func() {
-				positionGeoIP := geoip.Position{
-					Longitude: 0,
-					Latitude:  0,
-				}
-				positionDeviceModel := models.DevicePosition{
-					Longitude: 0,
-					Latitude:  0,
-				}
-
-				locator.On("GetPosition", net.ParseIP("127.0.0.1")).
-					Return(positionGeoIP, nil).Once()
-				mock.On("DeviceSetPosition", ctx, models.UID("uid"), positionDeviceModel).
-					Return(nil).Once()
-			},
-			uid:      models.UID("uid"),
-			ip:       "127.0.0.1",
-			expected: nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
-			err := service.SetDevicePosition(ctx, tc.uid, tc.ip)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

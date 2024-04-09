@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
+	"net"
 	"testing"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
+	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/undefinedlabs/go-mpatch"
@@ -51,7 +54,11 @@ func TestAuthDevice(t *testing.T) {
 		},
 		TenantID:   authReq.TenantID,
 		LastSeen:   now,
-		RemoteAddr: "0.0.0.0",
+		RemoteAddr: "127.0.0.1",
+		Position: &models.DevicePosition{
+			Latitude:  0,
+			Longitude: 0,
+		},
 	}
 
 	clockMock.On("Now").Return(now).Twice()
@@ -74,16 +81,23 @@ func TestAuthDevice(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(t, err)
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	locator := &mocksGeoIp.Locator{}
+	locator.On("GetPosition", net.ParseIP("127.0.0.1")).
+		Return(geoip.Position{
+			Latitude:  0,
+			Longitude: 0,
+		}, nil).Once()
 
-	authRes, err := service.AuthDevice(ctx, authReq, "0.0.0.0")
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, locator)
+
+	authRes, err := service.AuthDevice(ctx, authReq, "127.0.0.1")
 	assert.NoError(t, err)
 
 	assert.Equal(t, device.UID, authRes.UID)
 	assert.Equal(t, device.Name, authRes.Name)
 	assert.Equal(t, namespace.Name, authRes.Namespace)
 	assert.NotEmpty(t, authRes.Token)
-	assert.Equal(t, device.RemoteAddr, "0.0.0.0")
+	assert.Equal(t, device.RemoteAddr, "127.0.0.1")
 
 	mock.AssertExpectations(t)
 }

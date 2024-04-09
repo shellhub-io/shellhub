@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
-	"github.com/sirupsen/logrus"
 )
 
 const StatusAccepted = "accepted"
@@ -28,7 +26,6 @@ type DeviceService interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OffineDevice(ctx context.Context, uid models.UID, online bool) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
-	SetDevicePosition(ctx context.Context, uid models.UID, ip string) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
@@ -297,44 +294,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
-}
-
-// SetDevicePosition sets the position to a device from its IP.
-func (s *service) SetDevicePosition(ctx context.Context, uid models.UID, ip string) error {
-	ipParsed := net.ParseIP(ip)
-	position, err := s.locator.GetPosition(ipParsed)
-	if err != nil {
-		logrus.
-			WithError(err).
-			WithFields(logrus.Fields{
-				"uid": uid,
-				"ip":  ip,
-			}).Error("Failed to get device's position")
-	}
-
-	devicePosition := models.DevicePosition{
-		Longitude: position.Longitude,
-		Latitude:  position.Latitude,
-	}
-
-	err = s.store.DeviceSetPosition(ctx, uid, devicePosition)
-	if err != nil {
-		logrus.
-			WithError(err).
-			WithFields(logrus.Fields{
-				"uid": uid,
-				"ip":  ip,
-			}).Error("Failed to set device's position to database")
-
-		return err
-	}
-	logrus.WithFields(logrus.Fields{
-		"uid":      uid,
-		"ip":       ip,
-		"position": position,
-	}).Debug("Success to set device's position")
-
-	return nil
 }
 
 func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
