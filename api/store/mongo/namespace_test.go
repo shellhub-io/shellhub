@@ -144,24 +144,55 @@ func TestNamespaceGet(t *testing.T) {
 	}
 
 	cases := []struct {
-		description string
-		tenant      string
-		fixtures    []string
-		expected    Expected
+		description  string
+		tenant       string
+		countDevices bool
+		fixtures     []string
+		expected     Expected
 	}{
 		{
-			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			description:  "fails when tenant is not found",
+			tenant:       "nonexistent",
+			countDevices: false,
+			fixtures:     []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
 			},
 		},
 		{
-			description: "succeeds when tenant is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			description:  "succeeds when tenant is found without countDevices",
+			tenant:       "00000000-0000-4000-0000-000000000000",
+			countDevices: false,
+			fixtures:     []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			expected: Expected{
+				ns: &models.Namespace{
+					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					Name:      "namespace-1",
+					Owner:     "507f1f77bcf86cd799439011",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:   "507f1f77bcf86cd799439011",
+							Role: guard.RoleOwner,
+						},
+						{
+							ID:   "6509e169ae6144b2f56bf288",
+							Role: guard.RoleObserver,
+						},
+					},
+					MaxDevices:   -1,
+					Settings:     &models.NamespaceSettings{SessionRecord: true},
+					DevicesCount: 0,
+				},
+				err: nil,
+			},
+		},
+		{
+			description:  "succeeds when tenant is found with countDevices",
+			tenant:       "00000000-0000-4000-0000-000000000000",
+			countDevices: true,
+			fixtures:     []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -198,7 +229,7 @@ func TestNamespaceGet(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			ns, err := mongostore.NamespaceGet(context.TODO(), tc.tenant)
+			ns, err := mongostore.NamespaceGet(context.TODO(), tc.tenant, tc.countDevices)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}

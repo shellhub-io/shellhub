@@ -20,7 +20,7 @@ type APIKeyService interface {
 }
 
 func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, req *requests.CreateAPIKey) (string, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantParam.Tenant)
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantParam.Tenant, false)
 	if err != nil {
 		return "", NewErrNamespaceNotFound(userID, err)
 	}

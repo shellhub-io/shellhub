@@ -218,7 +218,7 @@ func TestGetPublicKeys(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenantID:    InvalidTenantID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, InvalidTenantID, false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrNamespaceNotFound(InvalidTenantID, errors.New("error", "", 0))},
 		},
@@ -230,7 +230,7 @@ func TestGetPublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				namespace := models.Namespace{TenantID: "tenant1"}
 
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID, false).Return(&namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, InvalidFingerprint, "tenant1").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
@@ -245,7 +245,7 @@ func TestGetPublicKeys(t *testing.T) {
 				key := models.PublicKey{
 					Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 				}
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(&namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID, false).Return(&namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant1").Return(&key, nil).Once()
 			},
 			expected: Expected{&models.PublicKey{
@@ -471,7 +471,7 @@ func TestDeletePublicKeys(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenantID:    InvalidTenantID,
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, InvalidTenantID).Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, InvalidTenantID, false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{NewErrNamespaceNotFound(InvalidTenantID, errors.New("error", "", 0))},
 		},
@@ -483,7 +483,7 @@ func TestDeletePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "tenant1"}
 
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID, false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, InvalidFingerprint, namespace.TenantID).
 					Return(nil, errors.New("error", "", 0)).Once()
 			},
@@ -497,7 +497,7 @@ func TestDeletePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "tenant1"}
 
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID, false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", namespace.TenantID).
 					Return(&models.PublicKey{
 						Data:            []byte("teste"),
@@ -519,7 +519,7 @@ func TestDeletePublicKeys(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "tenant1"}
 
-				mock.On("NamespaceGet", ctx, namespace.TenantID).Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, namespace.TenantID, false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", namespace.TenantID).
 					Return(&models.PublicKey{
 						Data:            []byte("teste"),

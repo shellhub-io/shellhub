@@ -125,7 +125,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 //
 // GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -147,7 +147,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 // When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
 // service if it exists.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	ns, err := s.store.NamespaceGet(ctx, tenantID, true)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -204,7 +204,7 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.Tenant)
+	return s.store.NamespaceGet(ctx, req.Tenant, true)
 }
 
 // AddNamespaceUser adds a member to a namespace.
@@ -221,7 +221,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 		return nil, NewErrNamespaceMemberInvalid(err)
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -265,7 +265,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 //
 // RemoveNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -319,7 +319,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 // If user from user's ID has a role what does not allow to edit a member or the member's role is the same as the user
 // one, EditNamespaceUser will return error.
 func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -382,7 +382,7 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 // GetSessionRecord returns a boolean indicating the session record status and an error. When error is not nil,
 // the boolean is false.
 func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, tenantID, false); err != nil {
 		return false, NewErrNamespaceNotFound(tenantID, err)
 	}
 

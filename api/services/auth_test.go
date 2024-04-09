@@ -63,7 +63,7 @@ func TestAuthDevice(t *testing.T) {
 		Return(nil).Once()
 	mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 		Return(device, nil).Once()
-	mock.On("NamespaceGet", ctx, namespace.TenantID).
+	mock.On("NamespaceGet", ctx, namespace.TenantID, false).
 		Return(namespace, nil).Once()
 
 	// Mock time.Now using monkey patch
@@ -656,7 +656,7 @@ func TestAuthUserInfo(t *testing.T) {
 					},
 					ID: "id",
 				}, nil).Once()
-				mock.On("NamespaceGet", ctx, "xxxxxx").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "xxxxxx", false).Return(namespace, nil).Once()
 				mock.On("GetStatusMFA", ctx, "id").Return(false, nil).Once()
 			},
 			expected: Expected{
