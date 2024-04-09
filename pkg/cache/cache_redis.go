@@ -15,10 +15,14 @@ type redisCache struct {
 var _ Cache = &redisCache{}
 
 // NewRedisCache creates and returns a new redis cache.
-func NewRedisCache(uri string) (Cache, error) {
+func NewRedisCache(uri string, pool int) (Cache, error) {
 	opt, err := redis.ParseURL(uri)
 	if err != nil {
 		return nil, err
+	}
+
+	if pool > 0 {
+		opt.PoolSize = pool
 	}
 
 	return &redisCache{

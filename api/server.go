@@ -40,7 +40,7 @@ var serverCmd = &cobra.Command{
 
 		log.Trace("Connecting to Redis")
 
-		cache, err := storecache.NewRedisCache(cfg.RedisURI)
+		cache, err := storecache.NewRedisCache(cfg.RedisURI, cfg.RedisCachePoolSize)
 		if err != nil {
 			log.WithError(err).Error("Failed to configure redis store cache")
 		}
@@ -84,6 +84,8 @@ type config struct {
 	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
 	// Redis connection string (URI format)
 	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
+	// RedisCachePoolSize is the pool size of connections available for Redis cache.
+	RedisCachePoolSize int `env:"REDIS_CACHE_POOL_SIZE,default=0"`
 	// Enable GeoIP feature.
 	//
 	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.

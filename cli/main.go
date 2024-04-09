@@ -41,7 +41,7 @@ func main() {
 		log.Error(err)
 	}
 
-	cache, err := storecache.NewRedisCache(cfg.RedisURI)
+	cache, err := storecache.NewRedisCache(cfg.RedisURI, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
