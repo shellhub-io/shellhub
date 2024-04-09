@@ -38,7 +38,7 @@ func TestCreateAPIKey(t *testing.T) {
 			userID:      "id",
 			tenant:      "",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, "", false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
 				APIKeys: "",
@@ -69,7 +69,7 @@ func TestCreateAPIKey(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).Return(namespace, nil).Once()
 
 				clockMock.On("Now").Return(now).Twice()
 			},
@@ -102,7 +102,7 @@ func TestCreateAPIKey(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "00000000-0000-5000-0000-000000000000").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "00000000-0000-5000-0000-000000000000", false).Return(namespace, nil).Once()
 
 				clockMock.On("Now").Return(now).Twice()
 			},
@@ -135,7 +135,7 @@ func TestCreateAPIKey(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).Return(namespace, nil).Once()
 				mock.On("APIKeyGetByName", ctx, "nameAPIKey").Return(nil, nil).Once()
 				mock.On("APIKeyCreate", ctx, gomock.Anything).Return(nil).Once()
 

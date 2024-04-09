@@ -31,7 +31,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tag:         "tag",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceNotFound("tenant", errors.New("error", "", 0)),
 		},
@@ -43,7 +43,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "tenant"}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrPublicKeyNotFound("fingerprint", errors.New("error", "", 0)),
@@ -68,7 +68,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 			},
 			expected: NewErrTagLimit(DeviceMaxTags, nil),
@@ -93,7 +93,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 			},
@@ -118,7 +118,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 						},
 					},
 				}
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 				mock.On("PublicKeyPushTag", ctx, "tenant", "fingerprint", "tag").Return(errors.New("error", "", 0)).Once()
@@ -144,7 +144,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 						},
 					},
 				}
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 				mock.On("PublicKeyPushTag", ctx, "tenant", "fingerprint", "tag").Return(nil).Once()
@@ -185,7 +185,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tag:         "tag",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceNotFound("tenant", nil),
 		},
@@ -197,7 +197,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "tenant"}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrPublicKeyNotFound("fingerprint", errors.New("error", "", 0)),
@@ -222,7 +222,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 			},
 			expected: NewErrTagNotFound("tag", nil),
@@ -246,7 +246,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 						},
 					},
 				}
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("PublicKeyPullTag", ctx, "tenant", "fingerprint", "tag").Return(errors.New("error", "", 0)).Once()
 			},
@@ -271,7 +271,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 						},
 					},
 				}
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("PublicKeyPullTag", ctx, "tenant", "fingerprint", "tag").Return(nil).Once()
 			},
@@ -310,7 +310,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tags:        []string{"tag1", "tag2", "tag3"},
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenant").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceNotFound("tenant", nil),
 		},
@@ -322,7 +322,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "tenant"}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrPublicKeyNotFound("fingerprint", errors.New("error", "", 0)),
@@ -346,7 +346,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 			},
 			expected: NewErrTagLimit(DeviceMaxTags, nil),
@@ -371,7 +371,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 			},
@@ -397,7 +397,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 				mock.On("PublicKeySetTags", ctx, "tenant", "fingerprint", []string{"tag1", "tag2", "tag3"}).Return(int64(0), int64(0), errors.New("error", "", 0)).Once()
@@ -424,7 +424,7 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 					},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Twice()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("PublicKeyGet", ctx, "fingerprint", "tenant").Return(key, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(tags, len(tags), nil).Once()
 				mock.On("PublicKeySetTags", ctx, "tenant", "fingerprint", []string{"tag1", "tag2", "tag3"}).Return(int64(1), int64(1), nil).Once()

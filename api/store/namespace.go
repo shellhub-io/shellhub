@@ -9,7 +9,14 @@ import (
 
 type NamespaceStore interface {
 	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error)
-	NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error)
+
+	// NamespaceGet retrieves a namespace identified by the given tenantID.
+	// If countDevices is set to true, it populates the [github.com/shellhub-io/shellhub/pkg/models.Namespace.DevicesCount].
+	// Otherwise, the value will always be 0.
+	//
+	// It returns the namespace or an error if any.
+	NamespaceGet(ctx context.Context, tenantID string, countDevices bool) (*models.Namespace, error)
+
 	NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error)
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 

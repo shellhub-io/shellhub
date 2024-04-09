@@ -113,7 +113,7 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, fi
 	return namespaces, count, err
 }
 
-func (s *Store) NamespaceGet(ctx context.Context, tenantID string) (*models.Namespace, error) {
+func (s *Store) NamespaceGet(ctx context.Context, tenantID string, countDevices bool) (*models.Namespace, error) {
 	var ns *models.Namespace
 
 	if err := s.cache.Get(ctx, strings.Join([]string{"namespace", tenantID}, "/"), &ns); err != nil {
@@ -121,24 +121,27 @@ func (s *Store) NamespaceGet(ctx context.Context, tenantID string) (*models.Name
 	}
 
 	if ns != nil {
-		goto count
+		return ns, nil
 	}
 
 	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&ns); err != nil {
 		return ns, FromMongoError(err)
 	}
 
+	if countDevices {
+		// WARN: This operation involves a slow query.
+		// TODO: Consider leveraging an alternative approach if possible.
+		countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": tenantID, "status": "accepted"})
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		ns.DevicesCount = int(countDevice)
+	}
+
 	if err := s.cache.Set(ctx, strings.Join([]string{"namespace", tenantID}, "/"), ns, time.Minute); err != nil {
 		logrus.Error(err)
 	}
-
-count:
-	countDevice, err := s.db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": tenantID, "status": "accepted"})
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	ns.DevicesCount = int(countDevice)
 
 	return ns, nil
 }
@@ -199,7 +202,7 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	defer session.EndSession(ctx)
 
 	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
-		ns, err := s.NamespaceGet(ctx, tenantID)
+		ns, err := s.NamespaceGet(ctx, tenantID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -299,7 +302,7 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberI
 		logrus.Error(err)
 	}
 
-	return s.NamespaceGet(ctx, tenantID)
+	return s.NamespaceGet(ctx, tenantID, true)
 }
 
 func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) (*models.Namespace, error) {
@@ -321,7 +324,7 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 		logrus.Error(err)
 	}
 
-	return s.NamespaceGet(ctx, tenantID)
+	return s.NamespaceGet(ctx, tenantID, true)
 }
 
 func (s *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error {

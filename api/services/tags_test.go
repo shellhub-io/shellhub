@@ -36,7 +36,7 @@ func TestGetTags(t *testing.T) {
 			name:     "fail when namespace is not found",
 			tenantID: "not_found_tenant",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, "not_found_tenant", false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
 				Tags:  nil,
@@ -50,7 +50,7 @@ func TestGetTags(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
@@ -72,7 +72,7 @@ func TestGetTags(t *testing.T) {
 
 				namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
 			},
 			expected: Expected{
@@ -265,7 +265,7 @@ func TestDeleteTag(t *testing.T) {
 			tag:    "device1",
 			tenant: "not_found_tenant",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "not_found_tenant").Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("NamespaceGet", ctx, "not_found_tenant", false).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceNotFound("not_found_tenant", errors.New("error", "", 0)),
 		},
@@ -276,7 +276,7 @@ func TestDeleteTag(t *testing.T) {
 			requiredMocks: func() {
 				namespace := &models.Namespace{Name: "namespace", TenantID: "tenant"}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrTagEmpty("tenant", errors.New("error", "", 0)),
@@ -295,7 +295,7 @@ func TestDeleteTag(t *testing.T) {
 					Tags:      []string{"device1", "device2"},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
 			},
 			expected: NewErrTagNotFound("device3", nil),
@@ -314,7 +314,7 @@ func TestDeleteTag(t *testing.T) {
 					Tags:      []string{"device1", "device2"},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
 				mock.On("TagsDelete", ctx, "tenant", "device1").Return(int64(0), errors.New("error", "", 0)).Once()
 			},
@@ -334,7 +334,7 @@ func TestDeleteTag(t *testing.T) {
 					Tags:      []string{"device1", "device2"},
 				}
 
-				mock.On("NamespaceGet", ctx, "tenant").Return(namespace, nil).Once()
+				mock.On("NamespaceGet", ctx, "tenant", false).Return(namespace, nil).Once()
 				mock.On("TagsGet", ctx, "tenant").Return(device.Tags, len(device.Tags), nil).Once()
 				mock.On("TagsDelete", ctx, "tenant", "device1").Return(int64(1), nil).Once()
 			},

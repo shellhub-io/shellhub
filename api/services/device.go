@@ -34,7 +34,7 @@ type DeviceService interface {
 }
 
 func (s *service) ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenant)
+	ns, err := s.store.NamespaceGet(ctx, tenant, true)
 	if err != nil {
 		return nil, 0, NewErrNamespaceNotFound(tenant, err)
 	}
@@ -106,7 +106,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	ns, err := s.store.NamespaceGet(ctx, tenant)
+	ns, err := s.store.NamespaceGet(ctx, tenant, false)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
@@ -191,7 +191,7 @@ func (s *service) OffineDevice(ctx context.Context, uid models.UID, online bool)
 
 // UpdateDeviceStatus updates the device status.
 func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, tenant, true)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
