@@ -15,16 +15,6 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import TagList from "../Tags/TagList.vue";
-
-export default defineComponent({
-  setup() {
-    return {
-      //
-    };
-  },
-  components: { TagList },
-});
 </script>

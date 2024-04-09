@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Setting Security > Renders the component 1`] = `
+"<form class=\\"v-form\\" novalidate=\\"\\">
+  <div class=\\"v-row\\">
+    <div class=\\"v-col mb-3\\">
+      <h3 class=\\"mb-3\\" data-test=\\"security-title\\">Security</h3>
+      <div class=\\"ml-3\\">
+        <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--dirty v-checkbox\\" data-test=\\"security-checkbox\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
+              <div class=\\"v-selection-control__wrapper text-primary\\">
+                <!---->
+                <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-0\\" aria-disabled=\\"false\\" aria-label=\\"Enable session record\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-0-messages\\" value=\\"true\\"></div>
+              </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-0\\">
+                <!---->Enable session record
+              </label>
+            </div>
+          </div>
+          <!---->
+          <!---->
+        </div>
+        <p> Session record is a feature that allows you to check logged activity when connecting to a device. </p>
+      </div>
+    </div>
+  </div>
+</form>"
+`;

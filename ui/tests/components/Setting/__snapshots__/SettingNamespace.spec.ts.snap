@@ -351,9 +351,9 @@ exports[`Setting Namespace > Renders the component 1`] = `
         <form data-v-80a16399=\\"\\" class=\\"v-form\\" novalidate=\\"\\">
           <div class=\\"v-row\\">
             <div class=\\"v-col mb-3\\">
-              <h3 class=\\"mb-3\\">Security</h3>
+              <h3 class=\\"mb-3\\" data-test=\\"security-title\\">Security</h3>
               <div class=\\"ml-3\\">
-                <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--dirty v-checkbox\\">
+                <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--dirty v-checkbox\\" data-test=\\"security-checkbox\\">
                   <!---->
                   <div class=\\"v-input__control\\">
                     <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
