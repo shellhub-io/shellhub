@@ -463,8 +463,6 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 
 // Listen creates a new SSH server, through a reverse connection between the Agent and the ShellHub server.
 func (a *Agent) Listen(ctx context.Context) error {
-	a.listening = make(chan bool)
-
 	a.mode.Serve(a)
 
 	a.tunnel = tunnel.NewBuilder().
@@ -577,12 +575,14 @@ const AgentPingDefaultInterval time.Duration = 0
 // Ping will only sends its requests to the server if the agent is listening for connections. If the agent is not
 // listening, the ping will be stopped.
 func (a *Agent) Ping(ctx context.Context, durantion time.Duration) error {
+	a.listening = make(chan bool)
+
 	if durantion == AgentPingDefaultInterval {
 		durantion = 10 * time.Minute
 	}
 
-	ticker := time.NewTicker(durantion)
 	<-a.listening // NOTE: wait for the first connection to start to ping the server.
+	ticker := time.NewTicker(durantion)
 
 	for {
 		if a.isClosed() {
