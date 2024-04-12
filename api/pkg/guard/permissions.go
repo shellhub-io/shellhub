@@ -54,6 +54,10 @@ const (
 	BillingCreateSubscription
 	BillingGetPaymentMethod
 	BillingGetSubscription
+
+	APIKeyCreate
+	APIKeyEdit
+	APIKeyDelete
 )
 
 var observerPermissions = Permissions{
@@ -120,6 +124,10 @@ var adminPermissions = Permissions{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
+
+	APIKeyCreate,
+	APIKeyEdit,
+	APIKeyDelete,
 }
 
 var ownerPermissions = Permissions{
@@ -173,4 +181,8 @@ var ownerPermissions = Permissions{
 	BillingCancelSubscription,
 	BillingCreateSubscription,
 	BillingGetSubscription,
+
+	APIKeyCreate,
+	APIKeyEdit,
+	APIKeyDelete,
 }

@@ -5,7 +5,9 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
@@ -34,8 +36,15 @@ func (h *Handler) CreateAPIKey(c gateway.Context) error {
 	key := c.Request().Header.Get("X-API-KEY")
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 
-	uid, err := h.service.CreateAPIKey(c.Ctx(), userID, tenant, key, &req)
-	if err != nil {
+	var uid string
+
+	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Create, func() error {
+		var err error
+
+		uid, err = h.service.CreateAPIKey(c.Ctx(), userID, tenant, key, &req)
+
+		return err
+	}); err != nil {
 		return err
 	}
 
@@ -88,8 +97,15 @@ func (h *Handler) EditAPIKey(c gateway.Context) error {
 		return err
 	}
 
-	key, err := h.service.EditAPIKey(c.Ctx(), &req)
-	if err != nil {
+	var key *models.APIKey
+
+	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Edit, func() error {
+		var err error
+
+		key, err = h.service.EditAPIKey(c.Ctx(), &req)
+
+		return err
+	}); err != nil {
 		return err
 	}
 
@@ -109,8 +125,9 @@ func (h *Handler) DeleteAPIKey(c gateway.Context) error {
 
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 
-	err := h.service.DeleteAPIKey(c.Ctx(), req.ID, tenant)
-	if err != nil {
+	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Delete, func() error {
+		return h.service.DeleteAPIKey(c.Ctx(), req.ID, tenant)
+	}); err != nil {
 		return err
 	}
 

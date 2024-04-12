@@ -10,6 +10,7 @@ type AllActions struct {
 	PublicKey PublicKeyActions
 	Namespace NamespaceActions
 	Billing   BillingActions
+	APIKey    APIKeyActions
 }
 
 type DeviceActions struct {
@@ -34,6 +35,10 @@ type NamespaceActions struct {
 
 type BillingActions struct {
 	CreateCustomer, ChooseDevices, AddPaymentMethod, UpdatePaymentMethod, RemovePaymentMethod, CancelSubscription, CreateSubscription, GetSubscription int
+}
+
+type APIKeyActions struct {
+	Create, Edit, Delete int
 }
 
 // Actions has all available and allowed actions.
@@ -88,5 +93,10 @@ var Actions = AllActions{
 		CancelSubscription:  BillingCancelSubscription,
 		CreateSubscription:  BillingCreateSubscription,
 		GetSubscription:     BillingGetSubscription,
+	},
+	APIKey: APIKeyActions{
+		Create: APIKeyCreate,
+		Edit:   APIKeyEdit,
+		Delete: APIKeyDelete,
 	},
 }
