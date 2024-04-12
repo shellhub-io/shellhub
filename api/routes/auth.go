@@ -71,9 +71,8 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		}
 
 		c.Response().Header().Set("X-Tenant-ID", token.TenantID)
-		c.Response().Header().Set("X-Username", token.Name)
 		c.Response().Header().Set("X-ID", token.UserID)
-		c.Response().Header().Set("X-Role", namespace.Owner)
+		c.Response().Header().Set("X-Role", token.Role)
 		c.Response().Header().Set("X-MFA", strconv.FormatBool(MFA))
 		c.Response().Header().Set("X-Validate-MFA", strconv.FormatBool(MFA))
 		c.Response().Header().Set("X-API-KEY", apiKey)

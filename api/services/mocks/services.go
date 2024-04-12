@@ -336,23 +336,23 @@ func (_m *Service) BillingReport(_a0 internalclient.Client, _a1 string, _a2 stri
 	return r0
 }
 
-// CreateAPIKey provides a mock function with given fields: ctx, userID, tenant, key, req
-func (_m *Service) CreateAPIKey(ctx context.Context, userID string, tenant string, key string, req *requests.CreateAPIKey) (string, error) {
-	ret := _m.Called(ctx, userID, tenant, key, req)
+// CreateAPIKey provides a mock function with given fields: ctx, userID, tenant, key, role, req
+func (_m *Service) CreateAPIKey(ctx context.Context, userID string, tenant string, key string, role string, req *requests.CreateAPIKey) (string, error) {
+	ret := _m.Called(ctx, userID, tenant, key, role, req)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, *requests.CreateAPIKey) (string, error)); ok {
-		return rf(ctx, userID, tenant, key, req)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, *requests.CreateAPIKey) (string, error)); ok {
+		return rf(ctx, userID, tenant, key, role, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, *requests.CreateAPIKey) string); ok {
-		r0 = rf(ctx, userID, tenant, key, req)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, *requests.CreateAPIKey) string); ok {
+		r0 = rf(ctx, userID, tenant, key, role, req)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, *requests.CreateAPIKey) error); ok {
-		r1 = rf(ctx, userID, tenant, key, req)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, *requests.CreateAPIKey) error); ok {
+		r1 = rf(ctx, userID, tenant, key, role, req)
 	} else {
 		r1 = ret.Error(1)
 	}
