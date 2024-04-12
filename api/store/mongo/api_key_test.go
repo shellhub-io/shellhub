@@ -87,7 +87,7 @@ func TestAPIKeyList(t *testing.T) {
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
 			defer fixtures.Teardown() // nolint: errcheck
 
-			_, _, err := mongostore.APIKeyList(ctx, tc.requestParams.UserID, tc.requestParams.Paginator, tc.requestParams.Sorter, "tenant")
+			_, _, err := mongostore.APIKeyList(ctx, "tenant", tc.requestParams.Paginator, tc.requestParams.Sorter)
 			assert.Equal(t, tc.expected, err)
 
 			err = mongotest.DropDatabase()

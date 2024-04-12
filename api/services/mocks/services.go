@@ -576,25 +576,25 @@ func (_m *Service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// EditAPIKey provides a mock function with given fields: ctx, changes
-func (_m *Service) EditAPIKey(ctx context.Context, changes *requests.APIKeyChanges) (*models.APIKey, error) {
-	ret := _m.Called(ctx, changes)
+// EditAPIKey provides a mock function with given fields: ctx, tenantID, changes
+func (_m *Service) EditAPIKey(ctx context.Context, tenantID string, changes *requests.APIKeyChanges) (*models.APIKey, error) {
+	ret := _m.Called(ctx, tenantID, changes)
 
 	var r0 *models.APIKey
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.APIKeyChanges) (*models.APIKey, error)); ok {
-		return rf(ctx, changes)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.APIKeyChanges) (*models.APIKey, error)); ok {
+		return rf(ctx, tenantID, changes)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.APIKeyChanges) *models.APIKey); ok {
-		r0 = rf(ctx, changes)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.APIKeyChanges) *models.APIKey); ok {
+		r0 = rf(ctx, tenantID, changes)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.APIKey)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *requests.APIKeyChanges) error); ok {
-		r1 = rf(ctx, changes)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.APIKeyChanges) error); ok {
+		r1 = rf(ctx, tenantID, changes)
 	} else {
 		r1 = ret.Error(1)
 	}

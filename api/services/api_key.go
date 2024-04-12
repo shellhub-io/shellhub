@@ -15,7 +15,7 @@ type APIKeyService interface {
 	CreateAPIKey(ctx context.Context, userID, tenant, key string, req *requests.CreateAPIKey) (string, error)
 	ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([]models.APIKey, int, error)
 	GetAPIKeyByUID(ctx context.Context, id string) (*models.APIKey, error)
-	EditAPIKey(ctx context.Context, changes *requests.APIKeyChanges) (*models.APIKey, error)
+	EditAPIKey(ctx context.Context, tenantID string, changes *requests.APIKeyChanges) (*models.APIKey, error)
 	DeleteAPIKey(ctx context.Context, id, tenantID string) error
 }
 
@@ -65,7 +65,7 @@ func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, 
 		ExpiresIn: expiredTime,
 	}
 
-	existingKey, err := s.store.APIKeyGetByName(ctx, req.Name)
+	existingKey, err := s.store.APIKeyGetByName(ctx, tenant, req.Name)
 	if err != nil {
 		return "", NewErrAPIKeyNotFound(userID, err)
 	}
@@ -99,9 +99,16 @@ func (s *service) GetAPIKeyByUID(ctx context.Context, id string) (*models.APIKey
 	return apiKey, nil
 }
 
-func (s *service) EditAPIKey(ctx context.Context, changes *requests.APIKeyChanges) (*models.APIKey, error) {
-	err := s.store.APIKeyEdit(ctx, changes)
+func (s *service) EditAPIKey(ctx context.Context, tenantID string, changes *requests.APIKeyChanges) (*models.APIKey, error) {
+	existingKey, err := s.store.APIKeyGetByName(ctx, tenantID, changes.Name)
 	if err != nil {
+		return nil, NewErrAPIKeyNotFound(changes.Name, err)
+	}
+	if existingKey != nil {
+		return nil, NewErrAPIKeyDuplicated(err)
+	}
+
+	if err := s.store.APIKeyEdit(ctx, changes); err != nil {
 		return nil, NewErrAPIKeyNotFound(changes.ID, err)
 	}
 

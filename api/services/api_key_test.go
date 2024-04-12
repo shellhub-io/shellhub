@@ -136,7 +136,7 @@ func TestCreateAPIKey(t *testing.T) {
 				}
 
 				mock.On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).Return(namespace, nil).Once()
-				mock.On("APIKeyGetByName", ctx, "nameAPIKey").Return(nil, nil).Once()
+				mock.On("APIKeyGetByName", ctx, "00000000-0000-4000-0000-000000000000", "nameAPIKey").Return(nil, nil).Once()
 				mock.On("APIKeyCreate", ctx, gomock.Anything).Return(nil).Once()
 
 				clockMock.On("Now").Return(now).Twice()
@@ -200,7 +200,7 @@ func TestListAPIKey(t *testing.T) {
 					Paginator:   query.Paginator{Page: 1, PerPage: 10},
 					Sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
 				}
-				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter, "").Return(nil, 0, errors.New("error", "", 0)).Once()
+				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter).Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
 				APIKeys: nil,
@@ -220,7 +220,8 @@ func TestListAPIKey(t *testing.T) {
 					{
 						UserID: "id",
 						Name:   "nameAPIKey",
-					}}
+					},
+				}
 
 				req := &requests.APIKeyList{
 					TenantParam: requests.TenantParam{Tenant: "00000000-0000-4000-0000-000000000000"},
@@ -228,14 +229,15 @@ func TestListAPIKey(t *testing.T) {
 					Sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
 				}
 
-				mock.On("APIKeyList", ctx, "", req.Paginator, req.Sorter, "00000000-0000-4000-0000-000000000000").Return(APIKey, 1, nil).Once()
+				mock.On("APIKeyList", ctx, "00000000-0000-4000-0000-000000000000", req.Paginator, req.Sorter).Return(APIKey, 1, nil).Once()
 			},
 			expected: Expected{
 				APIKeys: []models.APIKey{
 					{
 						UserID: "id",
 						Name:   "nameAPIKey",
-					}},
+					},
+				},
 				Count: 1,
 				err:   nil,
 			},
@@ -333,6 +335,7 @@ func TestEditAPIKey(t *testing.T) {
 					Name: "newName",
 				}
 				mock.On("APIKeyEdit", ctx, req).Return(nil).Once()
+				mock.On("APIKeyGetByName", ctx, "tenant", "newName").Return(nil, nil).Once()
 				mock.On("APIKeyGetByUID", ctx, "id").Return(&models.APIKey{}, nil).Once()
 			},
 			expected: Expected{
@@ -352,7 +355,7 @@ func TestEditAPIKey(t *testing.T) {
 
 			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
-			req, err := service.EditAPIKey(ctx, tc.requestParams)
+			req, err := service.EditAPIKey(ctx, "tenant", tc.requestParams)
 			assert.Equal(t, tc.expected.err, err)
 			assert.True(t, reflect.DeepEqual(tc.expected.APIKey, req))
 
