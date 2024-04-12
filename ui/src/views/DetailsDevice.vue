@@ -116,8 +116,8 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
@@ -131,63 +131,41 @@ import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
 import { formatDate } from "@/utils/formateDate";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  name: "DeviceDetails",
-  inheritAttrs: true,
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const deviceId = computed(() => route.params.id);
-    const device = computed(() => store.getters["devices/get"]);
+const store = useStore();
+const route = useRoute();
+const deviceId = computed(() => route.params.id);
+const device = computed(() => store.getters["devices/get"]);
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("devices/get", deviceId.value);
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceDetails,
-        );
-        handleError(error);
-      }
-    });
-    const deviceIsEmpty = computed(
-      () => store.getters["devices/get"]
-        && Object.keys(store.getters["devices/get"]).length === 0,
+onMounted(async () => {
+  try {
+    await store.dispatch("devices/get", deviceId.value);
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceDetails,
     );
-
-    const refreshUsers = async () => {
-      try {
-        await store.dispatch("devices/get", deviceId.value);
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceDetails,
-        );
-        handleError(error);
-      }
-    };
-
-    const receiveName = (params: string) => {
-      device.value.name = params;
-    };
-
-    return {
-      device,
-      deviceIsEmpty,
-      displayOnlyTenCharacters,
-      showTag,
-      formatDate,
-      refreshUsers,
-      receiveName,
-    };
-  },
-  components: {
-    DeviceIcon,
-    TagFormUpdate,
-    DeviceDelete,
-    DeviceRename,
-    TerminalDialog,
-  },
+    handleError(error);
+  }
 });
+const deviceIsEmpty = computed(
+  () => store.getters["devices/get"]
+        && Object.keys(store.getters["devices/get"]).length === 0,
+);
+
+const refreshUsers = async () => {
+  try {
+    await store.dispatch("devices/get", deviceId.value);
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceDetails,
+    );
+    handleError(error);
+  }
+};
+
+const receiveName = (params: string) => {
+  device.value.name = params;
+};
+
 </script>

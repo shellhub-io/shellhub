@@ -1,0 +1,81 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Details Sessions > Renders the component 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Session Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\" data-test=\\"sessionDetails-card\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\"><i class=\\"mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-small\\" aria-hidden=\\"true\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\" data-test=\\"sessionInactive-icon\\"></i>
+      <!--teleport start-->
+      <!--teleport end-->
+      <!--v-if-->
+    </div>
+    <div><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\" data-test=\\"sessionMenu-chip\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!---->
+      <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"sessionUid-field\\">
+        <p></p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">user:</div>
+      <div data-test=\\"sessionUser-field\\">
+        <p></p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Authenticated:</div>
+      <div data-test=\\"sessionAuthenticated-field\\"><i class=\\"mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error\\" aria-hidden=\\"true\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-6\\"></i>
+        <!--teleport start-->
+        <!--teleport end-->
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">IP address:</div>
+      <div data-test=\\"sessionIpAddress-field\\"><code class=\\"bg-tabs pa-1\\"></code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Started:</div>
+      <div data-test=\\"sessionStartedAt-field\\">
+        <p></p>
+      </div>
+    </div>
+    <div>
+      <div>Last seen:</div>
+      <div data-test=\\"sessionLastSeen-field\\">
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;

@@ -1,11 +1,12 @@
 <template>
   <div
     class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2"
+    data-test="sessions-title"
   >
     <h1>Sessions</h1>
   </div>
   <div>
-    <SessionList v-if="hasSession" />
+    <SessionList v-if="hasSession" data-test="sessions-list" />
 
     <BoxMessage
       v-if="showBoxMessage"
@@ -15,46 +16,35 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import { useStore } from "../store";
 import SessionList from "../components/Sessions/SessionList.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const show = ref(false);
+const store = useStore();
+const show = ref(false);
 
-    onMounted(async () => {
-      try {
-        store.dispatch("box/setStatus", true);
-        store.dispatch("sessions/resetPagePerpage");
+onMounted(async () => {
+  try {
+    store.dispatch("box/setStatus", true);
+    store.dispatch("sessions/resetPagePerpage");
 
-        await store.dispatch("sessions/refresh");
-        show.value = true;
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.sessionList,
-        );
-        handleError(error);
-      }
-    });
-
-    const hasSession = computed(
-      () => store.getters["sessions/getNumberSessions"] > 0,
+    await store.dispatch("sessions/refresh");
+    show.value = true;
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.sessionList,
     );
-    const showBoxMessage = computed(() => !hasSession.value && show.value);
-
-    return {
-      show,
-      hasSession,
-      showBoxMessage,
-    };
-  },
-  components: { BoxMessage, SessionList },
+    handleError(error);
+  }
 });
+
+const hasSession = computed(
+  () => store.getters["sessions/getNumberSessions"] > 0,
+);
+const showBoxMessage = computed(() => !hasSession.value && show.value);
 </script>

@@ -25,4 +25,5 @@ const goToDashboard = () => {
   router.push({ name: "Dashboard" });
 };
 
+defineExpose({ goToDashboard });
 </script>

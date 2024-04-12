@@ -1,0 +1,421 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Details Device > Renders the component 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\">
+      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+          <!---->
+          <!---->
+        </button>
+        <!---->
+        <!---->
+      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!---->
+      <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>123456</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
+
+exports[`Details Device > Renders the component when device has no last seen date 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\">
+      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+          <!---->
+          <!---->
+        </button>
+        <!---->
+        <!---->
+      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!---->
+      <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>123456</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
+
+exports[`Details Device > Renders the component when device has no tags 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\">
+      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+          <!---->
+          <!---->
+        </button>
+        <!---->
+        <!---->
+      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!---->
+      <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>123456</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
+
+exports[`Details Device > Renders the component when device is offline 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\">
+      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Offline</span>
+          <!---->
+          <!---->
+        </button>
+        <!---->
+        <!---->
+      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!---->
+      <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>123456</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
+
+exports[`Details Device > Renders the component when device status is not accepted 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
+    <div class=\\"d-flex align-center\\">
+      <!--v-if--><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+    </div>
+    <div><span class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+      <!---->
+      <!---->
+      <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+      <!---->
+      <!----></span>
+      <!--teleport start-->
+      <!--teleport end-->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <div class=\\"v-card-text pa-4 pt-0\\">
+    <div>
+      <div class=\\"text-overline mt-3\\">uid:</div>
+      <div data-test=\\"deviceUid-field\\">
+        <p>123456</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">mac:</div>
+      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Operating System:</div>
+      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Agent Version:</div>
+      <div data-test=\\"deviceVersion-field\\">
+        <p>latest</p>
+      </div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Tags:</div>
+      <div data-test=\\"deviceTags-field\\"></div>
+    </div>
+    <div>
+      <div class=\\"text-overline mt-3\\">Last Seen:</div>
+      <div data-test=\\"deviceConvertDate-field\\">
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
+
+exports[`Details Device > Renders the component when deviceIsEmpty is true 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\">
+  <h1>Device Details</h1>
+</div>
+<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface\\">
+  <!---->
+  <div class=\\"v-card__loader\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <!---->
+      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+        <div class=\\"v-progress-linear__indeterminate\\">
+          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <p class=\\"text-center\\">Something is wrong, try again !</p>
+  <!---->
+  <!----><span class=\\"v-card__underlay\\"></span>
+</div>"
+`;
