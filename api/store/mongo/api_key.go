@@ -18,10 +18,10 @@ func (s *Store) APIKeyCreate(ctx context.Context, req *models.APIKey) error {
 	return FromMongoError(err)
 }
 
-func (s *Store) APIKeyList(ctx context.Context, userID string, paginator query.Paginator, sorter query.Sorter, tenantID string) ([]models.APIKey, int, error) {
+func (s *Store) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
 	query := []bson.M{}
 
-	query = append(query, bson.M{"$match": bson.M{"user_id": userID, "tenant_id": tenantID}})
+	query = append(query, bson.M{"$match": bson.M{"tenant_id": tenantID}})
 	queryCount := append(query, bson.M{"$count": "count"})
 
 	count, err := AggregateCount(ctx, s.db.Collection("api_keys"), queryCount)

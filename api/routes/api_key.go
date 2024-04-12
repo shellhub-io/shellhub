@@ -66,10 +66,6 @@ func (h *Handler) ListAPIKeys(c gateway.Context) error {
 		req.Sorter.Order = "desc"
 	}
 
-	if v := c.ID(); v != nil {
-		req.UserID = v.ID
-	}
-
 	if err := c.Validate(&req); err != nil {
 		return err
 	}
