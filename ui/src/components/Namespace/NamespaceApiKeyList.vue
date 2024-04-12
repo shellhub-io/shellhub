@@ -19,8 +19,11 @@
       <template v-slot:rows>
         <tr v-for="(item, i) in keyList" :key="i">
           <td :class="formatKey(item.expires_in) ? 'text-warning' : ''">
-            <v-icon class="mr-1" :icon="formatKey(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" data-test="key-icon" />
+            <v-icon class="mr-1" :icon="formatKey(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" />
             {{ item.name }}
+          </td>
+          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" data-test="key-name">
+            {{ item.role }}
           </td>
           <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" data-test="key-name">
             {{ formatDate(item.expires_in) }}
@@ -43,6 +46,7 @@
                       <NamespaceEditApiKey
                         :key-name="item.name"
                         :key-id="item.id"
+                        :key-role="item.role"
                         :has-authorization="hasAuthorizationRemoveKey()"
                         :disabled="formatKey(item.expires_in)"
                         @update="refresh()"
@@ -60,7 +64,7 @@
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <NamespaceDeleteApiKey
-                        :keyId="item.id"
+                        :keyId="item.name"
                         :has-authorization="hasAuthorizationRemoveKey()"
                         @update="refresh()"
                       />
@@ -97,6 +101,10 @@ const headers = [
     sortable: true,
   },
   {
+    text: "Role",
+    value: "role",
+  },
+  {
     text: "Expiration Date",
     value: "expires_in",
     sortable: true,
@@ -111,9 +119,9 @@ const itemsPerPage = ref(10);
 const page = ref(1);
 const store = useStore();
 const numberKeys = computed<number>(
-  () => store.getters["auth/getNumberApiKeys"],
+  () => store.getters["apiKeys/getNumberApiKeys"],
 );
-const keyList = computed(() => store.getters["auth/apiKeyList"]);
+const keyList = computed(() => store.getters["apiKeys/apiKeyList"]);
 const hasAuthorizationRemoveKey = () => {
   const role = store.getters["auth/role"];
   if (role !== "") {
@@ -150,17 +158,14 @@ const formatDate = (unixTime: number): string => {
     : `Expires on ${expiryDate.format(format)}.`;
 };
 
-const tenant = computed(() => localStorage.getItem("tenant"));
-
 const getKey = async (perPagaeValue: number, pageValue: number) => {
   try {
     loading.value = true;
-    await store.dispatch("auth/getApiKey", {
-      tenant: tenant.value,
-      perPage: perPagaeValue,
+    await store.dispatch("apiKeys/getApiKey", {
       page: pageValue,
-      sortStatusField: store.getters["auth/getSortStatusField"],
-      sortStatusString: store.getters["auth/getSortStatusString"],
+      perPage: perPagaeValue,
+      sortStatusField: store.getters["apiKeys/getSortStatusField"],
+      sortStatusString: store.getters["apiKeys/getSortStatusString"],
     });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -210,8 +215,8 @@ watch(itemsPerPage, async (newItemsPerPage) => {
 });
 
 const sortByItem = async (field: string) => {
-  let sortStatusString = store.getters["auth/getSortStatusString"];
-  const sortStatusField = store.getters["auth/getSortStatusField"];
+  let sortStatusString = store.getters["apiKeys/getSortStatusString"];
+  const sortStatusField = store.getters["apiKeys/getSortStatusField"];
 
   if (field !== sortStatusField && sortStatusField) {
     if (sortStatusString === "asc") {
@@ -228,7 +233,7 @@ const sortByItem = async (field: string) => {
   } else {
     sortStatusString = "asc";
   }
-  await store.dispatch("auth/setSortStatus", {
+  await store.dispatch("apiKeys/setSortStatus", {
     sortStatusField: field,
     sortStatusString,
   });

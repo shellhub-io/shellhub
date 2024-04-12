@@ -2,7 +2,7 @@ import { configuration } from "@/api/http";
 
 const apiPlugin = (store) => {
   store.subscribe((mutation, state) => {
-    if (mutation.type === "auth/authSuccess" || mutation.type === "auth/mfaToken") {
+    if (mutation.type === "auth/authSuccess") {
       configuration.accessToken = state.auth.token;
     }
   });

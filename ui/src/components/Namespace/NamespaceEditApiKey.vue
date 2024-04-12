@@ -20,17 +20,37 @@
       <v-divider />
 
       <v-card-text class="mt-3">
-        <v-text-field
-          v-model="keyInput"
-          label="key name"
-          prepend-icon="mdi-key-outline"
-          :error-messages="keyInputError"
-          required
-          variant="underlined"
-          data-test="key-name-text"
-          messages="Please note that the new name must be unique
+
+        <v-row>
+          <v-col>
+            <v-text-field
+              v-model="keyInput"
+              label="key name"
+              prepend-icon="mdi-key-outline"
+              :error-messages="keyInputError"
+              required
+              variant="underlined"
+              data-test="key-name-text"
+              messages="Please note that the new name must be unique
           and not already in use by another key."
-        />
+            />
+
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-select
+              v-if="hasAuthorization"
+              v-model="selectedRole"
+              label="Key Role"
+              :items="itemsRoles"
+              :item-props="true"
+              variant="outlined"
+              return-object
+              data-test="namespace-generate-role"
+            />
+          </v-col>
+        </v-row>
       </v-card-text>
 
       <v-card-actions>
@@ -61,7 +81,7 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  keyId: {
+  keyRole: {
     type: String,
     required: true,
   },
@@ -78,15 +98,23 @@ const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
 const keyGetter = computed(() => props.keyName);
-const tenant = computed(() => localStorage.getItem("tenant"));
-
+const isOwner = computed(() => store.getters["auth/role"] === "owner");
 const {
   value: keyInput,
   errorMessage: keyInputError,
   setErrors: setKeyInputError,
-} = useField<string | undefined>("name", yup.string().required(), {
-  initialValue: keyGetter.value,
-});
+} = useField<string | undefined>(
+  "name",
+  yup
+    .string()
+    .required()
+    .min(3)
+    .max(20)
+    .matches(/^(?!.*\s).*$/, "This field cannot contain any blankspaces"),
+  {
+    initialValue: keyGetter.value,
+  },
+);
 
 const open = () => {
   showDialog.value = true;
@@ -98,13 +126,38 @@ const update = () => {
   showDialog.value = false;
 };
 
+const itemsRoles = [
+  {
+    title: "observer",
+    value: "observer",
+  },
+  {
+    title: "operator",
+    value: "operator",
+  },
+  {
+    title: "administrator",
+    value: "administrator",
+    disabled: !props.hasAuthorization || !isOwner.value,
+  },
+];
+
+const selectedRole = ref(itemsRoles.find((role) => role.value === props.keyRole) || itemsRoles[0]);
+
 const edit = async () => {
+  const equalName = props.keyName === keyInput.value;
+  const equalRole = props.keyRole === selectedRole.value.value;
+  const payload: { key: string; name?: string; role?: string } = { key: props.keyName };
+
+  if (!equalName) {
+    payload.name = keyInput.value;
+  }
+  if (!equalRole) {
+    payload.role = selectedRole.value.value;
+  }
+
   try {
-    await store.dispatch("auth/editApiKey", {
-      tenant: tenant.value,
-      name: keyInput.value,
-      id: props.keyId,
-    });
+    await store.dispatch("apiKeys/editApiKey", payload);
     update();
     store.dispatch(
       "snackbar/showSnackbarSuccessAction",

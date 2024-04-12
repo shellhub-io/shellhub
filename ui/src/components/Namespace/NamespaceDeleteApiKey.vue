@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -64,7 +64,6 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
-const tenant = computed(() => localStorage.getItem("tenant"));
 
 const update = () => {
   emit("update");
@@ -73,9 +72,8 @@ const update = () => {
 
 const remove = async () => {
   try {
-    await store.dispatch("auth/removeApiKey", {
-      tenant: tenant.value,
-      id: props.keyId,
+    await store.dispatch("apiKeys/removeApiKey", {
+      key: props.keyId,
     });
     update();
     store.dispatch(

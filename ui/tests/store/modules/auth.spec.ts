@@ -40,11 +40,6 @@ describe("Auth Store Actions", () => {
       expect(store.getters["auth/recoveryCodes"]).toEqual([]);
       expect(store.getters["auth/secret"]).toEqual("");
       expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
-      expect(store.getters["auth/getSortStatusField"]).toEqual(undefined);
-      expect(store.getters["auth/getSortStatusString"]).toEqual("asc");
-      expect(store.getters["auth/apiKey"]).toEqual("");
-      expect(store.getters["auth/apiKeyList"]).toEqual([]);
-      expect(store.getters["auth/getNumberApiKeys"]).toEqual(0);
     });
   });
 
@@ -157,52 +152,6 @@ describe("Auth Store Actions", () => {
       expect(store.getters["auth/id"]).toEqual(getUserStatusResponse.id);
       expect(store.getters["auth/role"]).toEqual(getUserStatusResponse.role);
       expect(store.getters["auth/isMfa"]).toEqual(getUserStatusResponse.mfa);
-    });
-  });
-
-  describe("API Key Actions", () => {
-    it("should generate API key", async () => {
-      const generateApiResponse = { key: "fake-api-key" };
-      const generateApiData = {
-        tenant: "fake-tenant",
-        name: "my api key",
-        expires_at: 30,
-      };
-
-      const dispatchSpy = vi.spyOn(store, "dispatch");
-
-      mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, generateApiResponse);
-
-      await store.dispatch("auth/generateApiKey", generateApiData);
-      await flushPromises();
-
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/generateApiKey", generateApiData);
-      expect(store.getters["auth/apiKey"]).toEqual(generateApiResponse);
-    });
-
-    it("should get API keys", async () => {
-      const getApiResponse = [
-        {
-          id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
-          tenant_id: "fake-tenant",
-          user_id: "507f1f77bcf86cd799439011",
-          name: "my api key",
-          expires_in: 1707958989,
-        },
-      ];
-
-      const getApiData = { tenant: "fake-tenant" };
-
-      const dispatchSpy = vi.spyOn(store, "dispatch");
-
-      mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getApiResponse, { "x-total-count": 1 });
-
-      await store.dispatch("auth/getApiKey", getApiData);
-      await flushPromises();
-
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/getApiKey", getApiData);
-      expect(store.getters["auth/apiKeyList"]).toEqual(getApiResponse);
-      expect(store.getters["auth/getNumberApiKeys"]).toEqual(1);
     });
   });
 });

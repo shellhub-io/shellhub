@@ -104,7 +104,7 @@ describe("Namespace Api Key Delete", () => {
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
-    store.commit("auth/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
+    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
     wrapper = mount(NamespaceDeleteApiKey, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
@@ -149,9 +149,8 @@ describe("Namespace Api Key Delete", () => {
 
     await wrapper.findComponent('[data-test="delete-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("auth/removeApiKey", {
-      id: "fake-id",
-      tenant: "fake-tenant",
+    expect(StoreSpy).toHaveBeenCalledWith("apiKeys/removeApiKey", {
+      key: "fake-id",
     });
   });
 

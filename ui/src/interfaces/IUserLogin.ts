@@ -40,13 +40,14 @@ enum ApiKeyExpireList {
 export interface ApiKeyValidation {
   tenant: string,
   name: string,
+  role: string,
   expires_at: ApiKeyExpireList,
 }
 
 export interface ApiKeyEdit {
-  tenant: string,
+  key: string,
   name: string,
-  id: string,
+  role: string,
 }
 
 export interface ApiKey {
@@ -55,8 +56,7 @@ export interface ApiKey {
 }
 
 export interface ApiKeyRemove {
-  tenant: string,
-  id: string,
+  key: string,
 }
 export interface ApiKeyGetValidation {
   tenant: string,
