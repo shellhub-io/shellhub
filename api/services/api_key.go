@@ -82,7 +82,7 @@ func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, 
 }
 
 func (s *service) ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([]models.APIKey, int, error) {
-	apiKey, count, err := s.store.APIKeyList(ctx, req.UserID, req.Paginator, req.Sorter, req.TenantParam.Tenant)
+	apiKey, count, err := s.store.APIKeyList(ctx, req.TenantParam.Tenant, req.Paginator, req.Sorter)
 	if err != nil {
 		return nil, 0, NewErrAPIKeyNotFound(req.Tenant, err)
 	}

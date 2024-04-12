@@ -25,7 +25,6 @@ type APIKeyID struct {
 // APIKeyList is the structure to represent the date to list a APIKey.
 type APIKeyList struct {
 	TenantParam
-	UserID string `query:"user_id" validate:"required"`
 	query.Paginator
 	query.Sorter
 }
