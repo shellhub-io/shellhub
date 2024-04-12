@@ -1,7 +1,6 @@
 import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 import vuetify from "vite-plugin-vuetify";
-
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
@@ -14,6 +13,11 @@ export default defineConfig({
   },
   // plugins
   plugins: [
+    vue() as any,
+    vuetify({ 
+      autoImport: true,
+      styles: { configFile: "./src/styles/variables.scss" },
+     }),
     {
       name: "vitest-plugin-beforeall",
       config: () => ({
@@ -24,14 +28,6 @@ export default defineConfig({
         },
       }),
     },
-    // Vue3
-    vue(),
-    // Vuetify Loader
-    // https://github.com/vuetifyjs/vuetify-loader
-    vuetify({
-      autoImport: true,
-      styles: { configFile: "./src/styles/variables.scss" },
-    }),
   ],
   test: {
     // https://vitest.dev/guide/#configuring-vitest
