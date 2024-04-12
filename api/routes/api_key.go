@@ -93,12 +93,14 @@ func (h *Handler) EditAPIKey(c gateway.Context) error {
 		return err
 	}
 
+	tenant := c.Request().Header.Get("X-Tenant-ID")
+
 	var key *models.APIKey
 
 	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Edit, func() error {
 		var err error
 
-		key, err = h.service.EditAPIKey(c.Ctx(), &req)
+		key, err = h.service.EditAPIKey(c.Ctx(), tenant, &req)
 
 		return err
 	}); err != nil {

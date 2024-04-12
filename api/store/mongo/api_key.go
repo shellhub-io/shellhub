@@ -69,10 +69,10 @@ func (s *Store) APIKeyGetByUID(ctx context.Context, uid string) (*models.APIKey,
 	return APIKey, nil
 }
 
-func (s *Store) APIKeyGetByName(ctx context.Context, name string) (*models.APIKey, error) {
+func (s *Store) APIKeyGetByName(ctx context.Context, tenantID string, name string) (*models.APIKey, error) {
 	var APIKey models.APIKey
 
-	err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"name": name}).Decode(&APIKey)
+	err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name}).Decode(&APIKey)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
