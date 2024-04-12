@@ -2,27 +2,25 @@
   <div class="d-flex pa-0 align-center">
     <h1>Session Details</h1>
   </div>
-  <v-card class="mt-2 bg-v-theme-surface" v-if="!sessionIsEmpty">
+  <v-card class="mt-2 bg-v-theme-surface" v-if="!sessionIsEmpty" data-test="sessionDetails-card">
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <v-icon v-if="session.active" color="success" size="small">
+        <v-icon v-if="session.active" color="success" size="small" data-test="sessionActive-icon">
           mdi-check-circle
         </v-icon>
         <v-tooltip location="bottom" v-else>
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small"> mdi-check-circle </v-icon>
+            <v-icon v-bind="props" size="small" data-test="sessionInactive-icon"> mdi-check-circle </v-icon>
           </template>
           <span>{{ lastSeen(session.last_seen) }}</span>
         </v-tooltip>
-        <span class="ml-2" v-if="session.device">{{
-          session.device.name
-        }}</span>
+        <span class="ml-2" v-if="session.device" data-test="sessionDeviceName">{{ session.device.name }}</span>
       </div>
 
       <div>
         <v-menu location="bottom" scrim eager>
           <template v-slot:activator="{ props }">
-            <v-chip v-bind="props" density="comfortable" size="small">
+            <v-chip v-bind="props" density="comfortable" size="small" data-test="sessionMenu-chip">
               <v-icon>mdi-dots-horizontal</v-icon>
             </v-chip>
           </template>
@@ -31,6 +29,7 @@
               location="bottom"
               class="text-center"
               :disabled="hasAuthorizationPlay()"
+              data-test="sessionPlay-tooltip"
             >
               <template v-slot:activator="{ props }">
                 <div v-bind="props">
@@ -52,6 +51,7 @@
               location="bottom"
               class="text-center"
               :disabled="hasAuthorizationRemoveRecord()"
+              data-test="sessionClose-tooltip"
             >
               <template v-slot:activator="{ props }">
                 <div v-bind="props">
@@ -72,15 +72,18 @@
               location="bottom"
               class="text-center"
               :disabled="hasAuthorizationRemoveRecord()"
+              data-test="sessionDelete-tooltip"
             >
               <template v-slot:activator="{ props }">
                 <div v-bind="props">
                   <SessionDelete
+                    v-if="session.uid"
                     :uid="session.uid"
                     :notHasAuthorization="!hasAuthorizationRemoveRecord()"
                     @update="refreshSessions"
                     data-test="sessionDeleteRecord-component"
                   />
+
                 </div>
               </template>
               <span> You don't have this kind of authorization. </span>
@@ -154,14 +157,12 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, ref, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
 import { formatDate, lastSeen } from "..//utils/formateDate";
 import hasPermission from "..//utils/permission";
-import { displayOnlyTenCharacters } from "../utils/string";
-import showTag from "../utils/tag";
 import { ISessions } from "../interfaces/ISessions";
 import { authorizer, actions } from "../authorizer";
 import SessionDelete from "../components/Sessions/SessionDelete.vue";
@@ -170,81 +171,60 @@ import SessionPlay from "../components/Sessions/SessionPlay.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const sessionId = computed(() => route.params.id);
-    const session = ref({} as ISessions);
+const store = useStore();
+const route = useRoute();
+const sessionId = computed(() => route.params.id);
+const session = ref({} as ISessions);
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("sessions/get", sessionId.value);
-        session.value = store.getters["sessions/get"];
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.sessionDetails,
-        );
-        handleError(error);
-      }
-    });
-
-    const sessionIsEmpty = computed(
-      () => store.getters["sessions/get"]
-        && store.getters["sessions/get"].lenght === 0,
+onMounted(async () => {
+  try {
+    await store.dispatch("sessions/get", sessionId.value);
+    session.value = store.getters["sessions/get"];
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.sessionDetails,
     );
-
-    const refreshSessions = async () => {
-      try {
-        await store.dispatch("sessions/get", sessionId.value);
-        session.value = store.getters["sessions/get"];
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.sessionDetails,
-        );
-        handleError(error);
-      }
-    };
-
-    const hasAuthorizationRemoveRecord = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.session.removeRecord,
-        );
-      }
-
-      return false;
-    };
-
-    const hasAuthorizationPlay = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.session.play);
-      }
-
-      return false;
-    };
-
-    return {
-      session,
-      sessionIsEmpty,
-      displayOnlyTenCharacters,
-      showTag,
-      formatDate,
-      lastSeen,
-      refreshSessions,
-      hasAuthorizationRemoveRecord,
-      hasAuthorizationPlay,
-    };
-  },
-  components: {
-    SessionDelete,
-    SessionClose,
-    SessionPlay,
-  },
+    handleError(error);
+  }
 });
+
+const sessionIsEmpty = computed(
+  () => store.getters["sessions/get"]
+        && store.getters["sessions/get"].lenght === 0,
+);
+
+const refreshSessions = async () => {
+  try {
+    await store.dispatch("sessions/get", sessionId.value);
+    session.value = store.getters["sessions/get"];
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.sessionDetails,
+    );
+    handleError(error);
+  }
+};
+
+const hasAuthorizationRemoveRecord = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.session.removeRecord,
+    );
+  }
+
+  return false;
+};
+
+const hasAuthorizationPlay = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(authorizer.role[role], actions.session.play);
+  }
+
+  return false;
+};
 </script>

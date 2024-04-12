@@ -1,0 +1,131 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Firewall Rules > Renders the component 1`] = `
+"<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row mb-2\\" data-test=\\"firewall-rules\\">
+  <div class=\\"d-flex align-center\\">
+    <h1>Firewall Rules</h1><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--light v-icon--size-small v-icon--clickable ml-2\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" data-test=\\"help-icon\\"></i>
+    <div class=\\"v-spacer\\"></div>
+    <div class=\\"v-spacer\\"></div>
+  </div>
+  <div>
+    <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"device-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Rule </span>
+        <!---->
+        <!---->
+      </button></div>
+    <!--teleport start-->
+    <!--teleport end-->
+    <!---->
+    <!---->
+  </div>
+</div>
+<!--v-if-->
+<div>
+  <div>
+    <div data-v-046d4556=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"firewallRules-list\\">
+      <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+        <!---->
+        <div class=\\"v-table__wrapper\\">
+          <table>
+            <thead data-v-046d4556=\\"\\">
+              <tr data-v-046d4556=\\"\\">
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Active</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Priority</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Action</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Source IP</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Username</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Filter</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody data-v-046d4556=\\"\\">
+              <tr>
+                <td class=\\"text-center\\"><i class=\\"mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\"></i></td>
+                <td class=\\"text-center\\">1</td>
+                <td class=\\"text-center\\">Allow</td>
+                <td class=\\"text-center\\">Any IP</td>
+                <td class=\\"text-center\\">All users</td>
+                <td class=\\"text-center\\">
+                  <div>All devices</div>
+                </td>
+                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                  <!---->
+                  <!---->
+                  <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                  <!---->
+                  <!----></span>
+                  <!--teleport start-->
+                  <!--teleport end-->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!---->
+      </div>
+      <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <!--v-if-->
+      <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
+        <div data-v-046d4556=\\"\\">
+          <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
+            <!---->
+            <div class=\\"v-input__control\\">
+              <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-9\\">
+                <div class=\\"v-field__overlay\\"></div>
+                <div class=\\"v-field__loader\\">
+                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                    <!---->
+                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                      <div class=\\"v-progress-linear__indeterminate\\">
+                        <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                        <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                </div>
+                <!---->
+                <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-7\\">
+                    <!---->
+                    <!---->
+                  </label>
+                  <!---->
+                  <div class=\\"v-field__input\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!---->
+                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-7\\" aria-describedby=\\"input-7-messages\\" outlined=\\"\\">
+                  </div>
+                  <!---->
+                </div>
+                <!---->
+                <div class=\\"v-field__append-inner\\">
+                  <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
+                  <!---->
+                </div>
+                <div class=\\"v-field__outline\\">
+                  <!---->
+                  <!---->
+                </div>
+              </div>
+            </div>
+            <!---->
+            <!---->
+          </div>
+        </div>
+        <div data-v-046d4556=\\"\\" class=\\"d-flex align-center\\"><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+            <!---->
+            <!---->
+          </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of 1</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+            <!---->
+            <!---->
+          </button></div>
+      </div>
+    </div>
+  </div>
+  <!--v-if-->
+</div>"
+`;

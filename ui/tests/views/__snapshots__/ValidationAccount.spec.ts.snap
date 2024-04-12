@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Validation Account > Renders the component 1`] = `
+"<div class=\\"v-container v-locale--is-ltr\\">
+  <div class=\\"v-card-title d-flex justify-center\\" data-test=\\"verification-title\\"> Verification Account </div>
+  <div class=\\"v-card-text d-flex align-center justify-center\\" data-test=\\"processing-cardText\\"> Processing activation. </div>
+  <!--v-if-->
+  <!--v-if-->
+  <!--v-if-->
+  <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-2\\" data-test=\\"isCloud-card\\"> Back to <a href=\\"/login\\" class=\\"ml-1\\" data-test=\\"login-btn\\">zz Login </a></div>
+</div>"
+`;

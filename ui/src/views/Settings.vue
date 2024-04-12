@@ -1,5 +1,5 @@
 <template>
-  <v-card class="bg-v-theme-surface">
+  <v-card class="bg-v-theme-surface" data-test="settings-card">
     <v-tabs background-color="secondary" stacked color="primary" align-tabs="center">
       <v-tab
         v-for="item in visibleItems"
@@ -60,4 +60,6 @@ const items = computed(() => [
 ]);
 
 const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
+
+defineExpose({ visibleItems });
 </script>

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Login > Renders the component 1`] = `
+exports[`Sign Up > Renders the component 1`] = `
 "<div class=\\"v-container v-locale--is-ltr pb-0 mb-0\\">
   <form>
     <div class=\\"v-card-title text-center\\">Create Account</div>

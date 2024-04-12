@@ -106,6 +106,7 @@
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <FirewallRuleDelete
+                        v-if="item.id"
                         :id="item.id"
                         @update="refreshFirewallRules"
                         :notHasAuthorization="!hasAuthorizationFormDialogEdit()"

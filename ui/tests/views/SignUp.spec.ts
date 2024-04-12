@@ -12,7 +12,7 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type SignUpWrapper = VueWrapper<InstanceType<typeof SignUp>>;
 
-describe("Login", () => {
+describe("Sign Up", () => {
   let wrapper: SignUpWrapper;
   const vuetify = createVuetify();
 

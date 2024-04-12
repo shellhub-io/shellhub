@@ -21,8 +21,8 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import Card from "../components/Card/Card.vue";
 import { useStore } from "../store";
@@ -41,84 +41,74 @@ type ItemCard = {
   stats: number;
 };
 
-export default defineComponent({
-  name: "DashboardView",
-  components: { Card },
-  setup() {
-    const store = useStore();
-    const hasStatus = ref(false);
-    const itemsStats = computed(() => store.getters["stats/stats"]);
-    const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-    );
-    const items = computed(() => [
-      {
-        id: 1,
-        title: "Registered Devices",
-        fieldObject: "registered_devices",
-        content: "Registered devices into the tenancy account",
-        icon: "mdi-devices",
-        stats: itemsStats.value.registered_devices || 0,
-        buttonName: "Add Device",
-        pathName: "devices",
-        nameUseTest: "registeredDevices-btn",
-      },
-      {
-        id: 2,
-        title: "Online Devices",
-        fieldObject: "online_devices",
-        content: "Devices are online and ready for connecting",
-        icon: "mdi-devices",
-        stats: itemsStats.value.online_devices || 0,
-        buttonName: "View all Devices",
-        pathName: "devices",
-        nameUseTest: "viewOnlineDevices-btn",
-      },
-      {
-        id: 3,
-        title: "Active Sessions",
-        fieldObject: "active_sessions",
-        content: "Active SSH Sessions opened by users",
-        icon: "mdi-devices",
-        stats: itemsStats.value.active_sessions || 0,
-        buttonName: "View all Sessions",
-        pathName: "sessions",
-        nameUseTest: "viewActiveSession-btn",
-      },
-    ] as ItemCard[]);
-
-    onMounted(async () => {
-      if (!hasNamespace.value) return;
-
-      try {
-        await store.dispatch("stats/get");
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          switch (true) {
-            case axiosError.response && axiosError.response?.status === 403: {
-              hasStatus.value = true;
-              break;
-            }
-            default: {
-              hasStatus.value = true;
-              store.dispatch(
-                "snackbar/showSnackbarErrorAction",
-                INotificationsError.dashboard,
-              );
-              break;
-            }
-          }
-        }
-        handleError(error);
-      }
-    });
-
-    return {
-      hasStatus,
-      itemsStats,
-      items,
-    };
+const store = useStore();
+const hasStatus = ref(false);
+const itemsStats = computed(() => store.getters["stats/stats"]);
+const hasNamespace = computed(
+  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
+);
+const items = computed(() => [
+  {
+    id: 1,
+    title: "Registered Devices",
+    fieldObject: "registered_devices",
+    content: "Registered devices into the tenancy account",
+    icon: "mdi-devices",
+    stats: itemsStats.value.registered_devices || 0,
+    buttonName: "Add Device",
+    pathName: "devices",
+    nameUseTest: "registeredDevices-btn",
   },
+  {
+    id: 2,
+    title: "Online Devices",
+    fieldObject: "online_devices",
+    content: "Devices are online and ready for connecting",
+    icon: "mdi-devices",
+    stats: itemsStats.value.online_devices || 0,
+    buttonName: "View all Devices",
+    pathName: "devices",
+    nameUseTest: "viewOnlineDevices-btn",
+  },
+  {
+    id: 3,
+    title: "Active Sessions",
+    fieldObject: "active_sessions",
+    content: "Active SSH Sessions opened by users",
+    icon: "mdi-devices",
+    stats: itemsStats.value.active_sessions || 0,
+    buttonName: "View all Sessions",
+    pathName: "sessions",
+    nameUseTest: "viewActiveSession-btn",
+  },
+] as ItemCard[]);
+
+onMounted(async () => {
+  if (!hasNamespace.value) return;
+
+  try {
+    await store.dispatch("stats/get");
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (true) {
+        case axiosError.response && axiosError.response?.status === 403: {
+          hasStatus.value = true;
+          break;
+        }
+        default: {
+          hasStatus.value = true;
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.dashboard,
+          );
+          break;
+        }
+      }
+    }
+    handleError(error);
+  }
 });
+
+defineExpose({ hasStatus });
 </script>
