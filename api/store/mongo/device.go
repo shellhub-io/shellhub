@@ -371,6 +371,39 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp t
 	return nil
 }
 
+func (s *Store) DeviceBulkSetOnline(ctx context.Context, devices []models.Device, timestamp time.Time) error {
+	collOptions := options.Collection().SetWriteConcern(writeconcern.W1())
+
+	uModels := make([]mongo.WriteModel, 0)
+	rModels := make([]mongo.WriteModel, 0)
+
+	for _, d := range devices {
+		op := bson.M{
+			"$set": bson.M{
+				"last_seen": timestamp,
+			},
+		}
+
+		cd := &models.ConnectedDevice{
+			UID:      d.UID,
+			TenantID: d.TenantID,
+			LastSeen: d.LastSeen,
+			Status:   string(d.Status),
+		}
+
+		uModels = append(uModels, mongo.NewUpdateOneModel().SetFilter(bson.M{"uid": d.UID}).SetUpdate(op).SetUpsert(false))
+		rModels = append(rModels, mongo.NewReplaceOneModel().SetFilter(bson.M{"uid": d.UID}).SetReplacement(&cd).SetUpsert(true))
+	}
+
+	if _, err := s.db.Collection("devices", collOptions).BulkWrite(ctx, uModels); err != nil {
+		return FromMongoError(err)
+	}
+
+	_, err := s.db.Collection("connect_devices", collOptions).BulkWrite(ctx, rModels)
+
+	return FromMongoError(err)
+}
+
 func (s *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
 	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
 	if err != nil {

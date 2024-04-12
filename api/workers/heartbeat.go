@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,27 +28,65 @@ func (w *Workers) registerHeartbeat() {
 		scanner := bufio.NewScanner(bytes.NewReader(task.Payload()))
 		scanner.Split(bufio.ScanLines)
 
-		for scanner.Scan() {
-			parts := strings.SplitN(scanner.Text(), ":", 2)
-			uid := parts[0]
+		// for scanner.Scan() {
+		// 	parts := strings.SplitN(scanner.Text(), ":", 2)
+		// 	uid := parts[0]
+		//
+		// 	i, err := strconv.ParseInt(parts[1], 10, 64)
+		// 	if err != nil {
+		// 		log.WithFields(
+		// 			log.Fields{
+		// 				"component": "worker",
+		// 				"task":      TaskHeartbeat,
+		// 				"index":     rune(i),
+		// 			}).
+		// 			WithError(err).
+		// 			Warn("Failed to parse timestamp to integer.")
+		//
+		// 		continue
+		// 	}
+		//
+		// 	timestamp := time.Unix(i, 0)
+		//
+		// 	w.store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
+		// }
 
-			i, err := strconv.ParseInt(parts[1], 10, 64)
-			if err != nil {
-				log.WithFields(
-					log.Fields{
+		i := 0
+		devices := make([]models.Device, 0)
+		for scanner.Scan() {
+			defer func() { i++ }()
+
+			parts := strings.Split(scanner.Text(), ":")
+			if len(parts) != 3 {
+				log.
+					WithFields(log.Fields{
 						"component": "worker",
 						"task":      TaskHeartbeat,
-						"index":     rune(i),
+						"index":     i,
 					}).
-					WithError(err).
-					Warn("Failed to parse timestamp to integer.")
+					Warn("Failed to parse queue payload")
 
 				continue
 			}
 
-			timestamp := time.Unix(i, 0)
+			uid := parts[0]
+			tenantID := parts[1]
+			status := models.DeviceStatus(parts[2])
 
-			w.store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
+			devices = append(devices, models.Device{
+				UID:      uid,
+				TenantID: tenantID,
+				Status:   status,
+			})
+		}
+
+		if err := w.store.DeviceBulkSetOnline(ctx, devices, time.Now()); err != nil {
+			log.
+				WithFields(log.Fields{
+					"component": "worker",
+					"task":      TaskHeartbeat,
+				}).
+				Warn("Failed update devices status")
 		}
 
 		return nil

@@ -16,6 +16,7 @@ import (
 	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -167,8 +168,19 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			return err
 		}
 
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+		logrus.Infof("%+v\n", claims)
+
 		// Extract device UID from JWT and set it into the header.
 		setHeader(c, client.DeviceUIDHeader, claims.UID)
+		setHeader(c, "X-Tenant-ID", claims.Tenant)
 
 		return c.NoContent(http.StatusOK)
 	default:

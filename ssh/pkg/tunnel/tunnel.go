@@ -23,6 +23,8 @@ func NewTunnel(connection, dial string) *Tunnel {
 	}
 
 	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
+		log.Info(request.Header)
+
 		return request.Header.Get(internalclient.DeviceUIDHeader), nil
 	}
 	tunnel.Tunnel.CloseHandler = func(id string) {

@@ -40,7 +40,8 @@ type Device struct {
 }
 
 type DeviceAuthClaims struct {
-	UID string `json:"uid"`
+	UID    string `json:"uid"`
+	Tenant string `json:"tenant"`
 
 	AuthClaims           `mapstruct:",squash"`
 	jwt.RegisteredClaims `mapstruct:",squash"`
