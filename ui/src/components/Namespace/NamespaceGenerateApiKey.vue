@@ -71,7 +71,7 @@
 
         <v-card-text v-if="failKey">
           <v-alert
-            :text="failMessage"
+            :text="errorMessage"
             type="error"
             class="mb-2"
             data-test="failMessage-alert"
@@ -94,6 +94,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import moment from "moment";
+import axios, { AxiosError } from "axios";
 import hasPermission from "../../utils/permission";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
@@ -118,7 +119,7 @@ const dialog = ref(false);
 const keyName = ref("");
 const successKey = ref(false);
 const failKey = ref(false);
-const failMessage = ref("");
+const errorMessage = ref("");
 const keyResponse = computed(() => store.getters["auth/apiKey"]);
 
 const copyText = (value: string | undefined) => {
@@ -195,12 +196,30 @@ const generateKey = async () => {
     failKey.value = false;
     emit("update");
   } catch (error: unknown) {
+    failKey.value = true;
+    successKey.value = false;
     store.dispatch(
       "snackbar/showSnackbarErrorAction",
       INotificationsError.generateKey,
     );
-    successKey.value = false;
-    failKey.value = true;
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (axiosError.response?.status) {
+        case 400:
+          errorMessage.value = "Please provide a name for the API key.";
+          break;
+        case 401:
+          errorMessage.value = "You are not authorized to create an API key.";
+          break;
+        case 409:
+          errorMessage.value = "An API key with the same name already exists.";
+          break;
+        default:
+          errorMessage.value = "An error occurred while generating your API key. Please try again later.";
+          handleError(error);
+      }
+      return;
+    }
     handleError(error);
   }
 };
@@ -212,4 +231,6 @@ const close = () => {
   keyName.value = "";
   [selectedItem.value] = items;
 };
+
+defineExpose({ errorMessage });
 </script>

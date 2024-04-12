@@ -165,7 +165,7 @@ describe("Namespace Api Key Generate", () => {
   });
 
   it("Fails to Generate Api Key", async () => {
-    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(404);
+    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(500);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
@@ -180,6 +180,58 @@ describe("Namespace Api Key Generate", () => {
       "snackbar/showSnackbarErrorAction",
       INotificationsError.generateKey,
     );
+
+    expect(wrapper.vm.errorMessage).toBe("An error occurred while generating your API key. Please try again later.");
+
+    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+  });
+
+  it("Fails to Generate Api Key (400)", async () => {
+    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(400);
+
+    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    const dialog = new DOMWrapper(document.body);
+
+    await wrapper.findComponent('[data-test="key-name-text"]').setValue("");
+
+    await wrapper.findComponent('[data-test="add-btn"]').trigger("click");
+
+    await flushPromises();
+
+    expect(wrapper.vm.errorMessage).toBe("Please provide a name for the API key.");
+
+    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+  });
+
+  it("Fails to Generate Api Key (401)", async () => {
+    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(401);
+
+    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+
+    const dialog = new DOMWrapper(document.body);
+
+    await wrapper.findComponent('[data-test="key-name-text"]').setValue("my api key");
+
+    await wrapper.findComponent('[data-test="add-btn"]').trigger("click");
+
+    await flushPromises();
+
+    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+  });
+
+  it("Fails to Generate Api Key (409)", async () => {
+    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(409);
+
+    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    const dialog = new DOMWrapper(document.body);
+
+    await wrapper.findComponent('[data-test="key-name-text"]').setValue("my api key");
+
+    await wrapper.findComponent('[data-test="add-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(wrapper.vm.errorMessage).toBe("An API key with the same name already exists.");
+
     expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
   });
 });
