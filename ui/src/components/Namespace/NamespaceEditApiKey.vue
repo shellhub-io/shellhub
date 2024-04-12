@@ -48,6 +48,7 @@
 import { computed, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import axios, { AxiosError } from "axios";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -82,6 +83,7 @@ const tenant = computed(() => localStorage.getItem("tenant"));
 const {
   value: keyInput,
   errorMessage: keyInputError,
+  setErrors: setKeyInputError,
 } = useField<string | undefined>("name", yup.string().required(), {
   initialValue: keyGetter.value,
 });
@@ -113,7 +115,21 @@ const edit = async () => {
       "snackbar/showSnackbarErrorAction",
       INotificationsError.editKey,
     );
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (axiosError.response?.status) {
+        case 409:
+          setKeyInputError("An API key with the same name already exists.");
+          break;
+        default:
+          setKeyInputError("An error occurred while editing your API key");
+          handleError(error);
+      }
+      return;
+    }
     handleError(error);
   }
 };
+
+defineExpose({ keyInputError });
 </script>

@@ -164,7 +164,7 @@ describe("Namespace Api Key Edit", () => {
   it("Fails to Edit Api Key", async () => {
     await wrapper.setProps({ keyId: "fake-id", hasAuthorization: true, keyName: "fake-key", disabled: false });
 
-    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(401);
+    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(400);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
@@ -176,5 +176,21 @@ describe("Namespace Api Key Edit", () => {
       "snackbar/showSnackbarErrorAction",
       INotificationsError.editKey,
     );
+  });
+
+  it("Fails to Edit Api Key (409)", async () => {
+    await wrapper.setProps({ keyId: "fake-id", hasAuthorization: true, keyName: "fake-key", disabled: false });
+
+    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-id").reply(409);
+
+    await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
+
+    await wrapper.findComponent('[data-test="key-name-text"]').setValue("fake-key");
+
+    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
+
+    await flushPromises();
+
+    expect(wrapper.vm.keyInputError).toBe("An API key with the same name already exists.");
   });
 });
