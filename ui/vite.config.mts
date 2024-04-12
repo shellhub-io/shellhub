@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
-import VuetifyPlugin from "vite-plugin-vuetify";
+import vuetify from "vite-plugin-vuetify";
 import Markdown from "unplugin-vue-markdown/vite";
 import * as path from "node:path";
 
@@ -36,7 +36,7 @@ function NodeGlobalsPolyfillPlugin(options) {
 export default defineConfig({
   plugins: [
     Vue(),
-    VuetifyPlugin({
+    vuetify({
       autoImport: true,
     }),
     Markdown({ markdownItOptions: {
