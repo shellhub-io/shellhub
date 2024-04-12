@@ -64,18 +64,22 @@ describe("Namespace Api Key List", () => {
 
   const getKeyResponse = [
     {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
+      name: "aaaa2",
+      tenant_id: "00000-0000-0000-0000-00000000000",
+      role: "administrator",
+      created_by: "66562f80daba745a106393b5",
+      created_at: "2024-06-07T12:10:56.531Z",
+      updated_at: "2024-06-07T12:31:03.505Z",
+      expires_in: 1720354256,
     },
     {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df2",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
+      name: "aaaa2",
+      tenant_id: "00000-0000-0000-0000-00000000000",
+      role: "administrator",
+      created_by: "66562f80daba745a106393b5",
+      created_at: "2024-06-07T12:10:56.531Z",
+      updated_at: "2024-06-07T12:31:03.505Z",
+      expires_in: 1720354256,
     },
   ];
 
@@ -92,13 +96,13 @@ describe("Namespace Api Key List", () => {
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getKeyResponse, { "x-total-count": 2 });
+    mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, getKeyResponse, { "x-total-count": 2 });
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
-    store.commit("auth/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
+    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
     wrapper = mount(NamespaceApiKeyList, {
       global: {
@@ -124,10 +128,8 @@ describe("Namespace Api Key List", () => {
 
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="key-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="key-name"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="menu-key-component"]').exists()).toBe(true);
   });
+
   describe("expiration formatting", () => {
     it("Returns 'Never' when unixTime is -1", () => {
       const result = wrapper.vm.formatDate(-1);

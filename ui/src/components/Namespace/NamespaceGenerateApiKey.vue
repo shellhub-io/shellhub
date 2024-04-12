@@ -27,6 +27,7 @@
         <v-card-text>
           <v-text-field
             v-model="keyName"
+            :error-messages="keyInputError"
             label="Key Name"
             prepend-icon="mdi-key-outline"
             required
@@ -38,17 +39,32 @@
         </v-card-text>
 
         <v-card-text class="mt-2">
-          <v-select
-            v-model="selectedItem"
-            label="Expiration date"
-            :items="items"
-            :item-props="true"
-            :hint="expirationHint"
-            variant="outlined"
-            return-object
-            data-test="namespace-generate-date"
-          />
-
+          <v-row>
+            <v-col>
+              <v-select
+                v-model="selectedDate"
+                label="Expiration date"
+                :items="itemsDate"
+                :item-props="true"
+                :hint="expirationHint"
+                variant="outlined"
+                return-object
+                data-test="namespace-generate-date"
+              />
+            </v-col>
+            <v-col>
+              <v-select
+                v-if="hasAuthorization"
+                v-model="selectedRole"
+                label="Key Role"
+                :items="itemsRoles"
+                :item-props="true"
+                variant="outlined"
+                return-object
+                data-test="namespace-generate-role"
+              />
+            </v-col>
+          </v-row>
         </v-card-text>
 
         <v-card-text v-if="successKey">
@@ -94,7 +110,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import moment from "moment";
+import * as yup from "yup";
 import axios, { AxiosError } from "axios";
+import { useField } from "vee-validate";
 import hasPermission from "../../utils/permission";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
@@ -104,23 +122,39 @@ import { INotificationsCopy, INotificationsError } from "@/interfaces/INotificat
 const emit = defineEmits(["update"]);
 
 const store = useStore();
+
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
   if (role !== "") {
     return hasPermission(
       authorizer.role[role],
-      actions.notification.view,
+      actions.apiKey.create,
     );
   }
   return false;
 });
 
 const dialog = ref(false);
-const keyName = ref("");
 const successKey = ref(false);
 const failKey = ref(false);
 const errorMessage = ref("");
-const keyResponse = computed(() => store.getters["auth/apiKey"]);
+const keyResponse = computed(() => store.getters["apiKeys/apiKey"]);
+const isOwner = computed(() => store.getters["auth/role"] === "owner");
+const {
+  value: keyName,
+  errorMessage: keyInputError,
+} = useField<string | undefined>(
+  "name",
+  yup
+    .string()
+    .required()
+    .min(3)
+    .max(20)
+    .matches(/^(?!.*\s).*$/, "This field cannot contain any blankspaces"),
+  {
+    initialValue: "",
+  },
+);
 
 const copyText = (value: string | undefined) => {
   if (value) {
@@ -149,7 +183,23 @@ const getExpiryDate = (item) => {
   };
 };
 
-const items = [
+const itemsRoles = [
+  {
+    title: "observer",
+    value: "observer",
+  },
+  {
+    title: "operator",
+    value: "operator",
+  },
+  {
+    title: "administrator",
+    value: "administrator",
+    disabled: !hasAuthorization.value || !isOwner.value,
+  },
+];
+
+const itemsDate = [
   {
     title: "30 days",
     subtitle: getExpiryDate("30 days").expirationDateSelect,
@@ -177,20 +227,22 @@ const items = [
   },
 ];
 
-const selectedItem = ref(items[0]);
-const expirationHint = ref(getExpiryDate(selectedItem.value.title).expirationDate);
+const selectedDate = ref(itemsDate[0]);
+const selectedRole = ref(itemsRoles[0]);
+const expirationHint = ref(getExpiryDate(selectedDate.value.title).expirationDate);
 const tenant = computed(() => localStorage.getItem("tenant"));
 
-watch(selectedItem, (newVal) => {
+watch(selectedDate, (newVal) => {
   expirationHint.value = getExpiryDate(newVal.title).expirationDate;
 });
 
 const generateKey = async () => {
   try {
-    await store.dispatch("auth/generateApiKey", {
+    await store.dispatch("apiKeys/generateApiKey", {
       tenant: tenant.value,
       name: keyName.value,
-      expires_at: selectedItem.value.time,
+      expires_at: selectedDate.value.time,
+      role: selectedRole.value.title,
     });
     successKey.value = true;
     failKey.value = false;
@@ -229,8 +281,8 @@ const close = () => {
   dialog.value = false;
   successKey.value = false;
   keyName.value = "";
-  [selectedItem.value] = items;
+  [selectedDate.value] = itemsDate;
+  [selectedRole.value] = itemsRoles;
 };
-
 defineExpose({ errorMessage });
 </script>

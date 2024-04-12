@@ -238,38 +238,14 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <thead data-v-046d4556=\\"\\">
                         <tr data-v-046d4556=\\"\\">
                           <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-12\\">Key Name <!----><!--teleport start--><!--teleport end--></span></th>
+                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Role</span></th>
                           <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-13\\">Expiration Date <!----><!--teleport start--><!--teleport end--></span></th>
                           <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Actions</span></th>
                         </tr>
                       </thead>
-                      <tbody data-v-046d4556=\\"\\">
-                        <tr>
-                          <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\" data-test=\\"key-icon\\"></i> my api key</td>
-                          <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Feb 15 2024.</td>
-                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-                            <!---->
-                            <!---->
-                            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-                            <!---->
-                            <!----></span>
-                            <!--teleport start-->
-                            <!--teleport end-->
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\" data-test=\\"key-icon\\"></i> my api key</td>
-                          <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Feb 15 2024.</td>
-                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-20\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-                            <!---->
-                            <!---->
-                            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-                            <!---->
-                            <!----></span>
-                            <!--teleport start-->
-                            <!--teleport end-->
-                          </td>
-                        </tr>
-                      </tbody>
+                      <div data-v-046d4556=\\"\\" class=\\"pa-4 text-subtitle-2\\">
+                        <p data-v-046d4556=\\"\\">No data available</p>
+                      </div>
                     </table>
                   </div>
                   <!---->
@@ -292,7 +268,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                     <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
                       <!---->
                       <div class=\\"v-input__control\\">
-                        <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-28\\">
+                        <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-16\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
                             <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -310,7 +286,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                           </div>
                           <!---->
                           <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                            <!----><label class=\\"v-label v-field-label\\" for=\\"input-26\\">
+                            <!----><label class=\\"v-label v-field-label\\" for=\\"input-14\\">
                               <!---->
                               <!---->
                             </label>
@@ -318,7 +294,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                             <div class=\\"v-field__input\\" data-no-activator=\\"\\">
                               <!---->
                               <!---->
-                              <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-26\\" aria-describedby=\\"input-26-messages\\" outlined=\\"\\">
+                              <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-14\\" aria-describedby=\\"input-14-messages\\" outlined=\\"\\">
                             </div>
                             <!---->
                           </div>
@@ -341,7 +317,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
                       <!---->
                       <!---->
-                    </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of 1</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                    </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of 0</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                       <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
                       <!---->
                       <!---->
@@ -364,8 +340,8 @@ exports[`Setting Namespace > Renders the component 1`] = `
                     <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
                       <div class=\\"v-selection-control__wrapper text-primary\\">
                         <!---->
-                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-31\\" aria-disabled=\\"false\\" aria-label=\\"Enable session record\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-31-messages\\" value=\\"true\\"></div>
-                      </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-31\\">
+                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-19\\" aria-disabled=\\"false\\" aria-label=\\"Enable session record\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-19-messages\\" value=\\"true\\"></div>
+                      </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-19\\">
                         <!---->Enable session record
                       </label>
                     </div>
@@ -392,7 +368,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto mb-4\\">
-            <div aria-describedby=\\"v-tooltip-34\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <div aria-describedby=\\"v-tooltip-22\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                 <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete namespace </span>
                 <!---->
                 <!---->

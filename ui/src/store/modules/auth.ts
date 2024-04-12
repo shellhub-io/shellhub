@@ -1,7 +1,7 @@
 import { Module } from "vuex";
 import { AxiosError } from "axios";
 import * as apiAuth from "../api/auth";
-import { IUserLogin, ApiKey } from "@/interfaces/IUserLogin";
+import { IUserLogin } from "@/interfaces/IUserLogin";
 import { State } from "..";
 
 export interface AuthState {
@@ -20,13 +20,6 @@ export interface AuthState {
   recoveryCode: string,
   recoveryCodes: Array<number>;
   showRecoveryModal: boolean;
-  page: number;
-  perPage: number;
-  sortStatusField: undefined | string;
-  sortStatusString: "asc" | "desc" | "";
-  keyList: Array<ApiKey>,
-  keyResponse: string,
-  numberApiKeys: number,
   loginTimeout: number,
   disableTimeout: number,
   mfaToken: string,
@@ -49,13 +42,6 @@ export const auth: Module<AuthState, State> = {
     recoveryCode: "",
     recoveryCodes: [],
     showRecoveryModal: false,
-    page: 1,
-    perPage: 10,
-    sortStatusField: undefined,
-    sortStatusString: "asc",
-    keyList: [],
-    keyResponse: "",
-    numberApiKeys: 0,
     loginTimeout: 0,
     disableTimeout: 0,
     mfaToken: "",
@@ -79,11 +65,6 @@ export const auth: Module<AuthState, State> = {
     stateRecoveryCode: (state) => state.recoveryCode,
     recoveryCodes: (state) => state.recoveryCodes,
     showRecoveryModal: (state) => state.showRecoveryModal,
-    getSortStatusField: (state) => state.sortStatusField,
-    getSortStatusString: (state) => state.sortStatusString,
-    apiKey: (state) => state.keyResponse,
-    apiKeyList: (state) => state.keyList,
-    getNumberApiKeys: (state) => state.numberApiKeys,
     getLoginTimeout: (state) => state.loginTimeout,
     getDisableTokenTimeout: (state) => state.disableTimeout,
     showForceRecoveryMail: (state) => !state.recoveryEmail && state.mfa,
@@ -174,32 +155,6 @@ export const auth: Module<AuthState, State> = {
 
     accountRecoveryHelper(state) {
       state.showRecoveryModal = !state.showRecoveryModal;
-    },
-
-    clearApiKeysList: (state) => {
-      state.keyList = [];
-      state.numberApiKeys = 0;
-    },
-
-    setQueryApiKeyGet: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-      state.sortStatusField = data.sortStatusField;
-      state.sortStatusString = data.sortStatusString;
-    },
-
-    apiKey(state, data) {
-      state.keyResponse = data;
-    },
-
-    setKeyList(state, res) {
-      state.keyList = res.data;
-      state.numberApiKeys = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setSortStatus: (state, data) => {
-      state.sortStatusString = data.sortStatusString;
-      state.sortStatusField = data.sortStatusField;
     },
 
     setLoginTimeout: (state, data) => {
@@ -351,59 +306,6 @@ export const auth: Module<AuthState, State> = {
       context.commit("authSuccess", resp.data);
     },
 
-    async generateApiKey(context, data) {
-      try {
-        const resp = await apiAuth.generateApiKey(data);
-        if (resp.status === 200) {
-          context.commit("apiKey", resp.data);
-        }
-      } catch (error) {
-        context.commit("authError");
-        throw error;
-      }
-    },
-
-    async getApiKey(context, data) {
-      try {
-        const resp = await apiAuth.getApiKey(
-          data.tenant,
-          data.page,
-          data.perPage,
-          data.sortStatusString,
-          data.sortStatusField,
-        );
-        if (resp.data.length) {
-          context.commit("setKeyList", resp);
-          context.commit("setQueryApiKeyGet", data);
-          return resp;
-        }
-
-        context.commit("clearApiKeysList");
-        return false;
-      } catch (error) {
-        context.commit("authError");
-        throw error;
-      }
-    },
-
-    async editApiKey(context, data) {
-      try {
-        await apiAuth.renameApiKey(data);
-      } catch (error) {
-        context.commit("authError");
-        throw error;
-      }
-    },
-
-    async removeApiKey(context, data) {
-      try {
-        await apiAuth.removeApiKey(data);
-      } catch (error) {
-        context.commit("authError");
-        throw error;
-      }
-    },
-
     logout(context) {
       context.commit("logout");
       localStorage.removeItem("token");
@@ -439,10 +341,6 @@ export const auth: Module<AuthState, State> = {
           { ...{ [tenantID]: true } },
         ),
       ));
-    },
-
-    async setSortStatus({ commit }, data) {
-      commit("setSortStatus", data);
     },
   },
 };

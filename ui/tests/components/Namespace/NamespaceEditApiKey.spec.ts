@@ -104,7 +104,7 @@ describe("Namespace Api Key Edit", () => {
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
-    store.commit("auth/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
+    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
     wrapper = mount(NamespaceEditApiKey, {
       global: {
@@ -129,7 +129,7 @@ describe("Namespace Api Key Edit", () => {
   });
 
   it("Renders components", async () => {
-    await wrapper.setProps({ keyId: "fake-id", hasAuthorization: true, keyName: "fake-key", disabled: false });
+    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
 
     expect(wrapper.find('[data-test="edit-icon"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="edit-main-btn-title"]').exists()).toBe(true);
@@ -143,9 +143,9 @@ describe("Namespace Api Key Edit", () => {
   });
 
   it("Successfully Edit Api Key", async () => {
-    await wrapper.setProps({ keyId: "fake-id", hasAuthorization: true, keyName: "fake-key", disabled: false });
+    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
 
-    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-id").reply(200);
+    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
@@ -154,17 +154,17 @@ describe("Namespace Api Key Edit", () => {
 
     await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("auth/editApiKey", {
-      id: "fake-id",
+    expect(StoreSpy).toHaveBeenCalledWith("apiKeys/editApiKey", {
+      key: "fake-id",
       name: "fake-key-changed-name",
-      tenant: "fake-tenant",
+      role: "observer",
     });
   });
 
   it("Fails to Edit Api Key", async () => {
-    await wrapper.setProps({ keyId: "fake-id", hasAuthorization: true, keyName: "fake-key", disabled: false });
+    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
 
-    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(400);
+    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(400);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
@@ -179,9 +179,9 @@ describe("Namespace Api Key Edit", () => {
   });
 
   it("Fails to Edit Api Key (409)", async () => {
-    await wrapper.setProps({ keyId: "fake-id", hasAuthorization: true, keyName: "fake-key", disabled: false });
+    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
 
-    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-id").reply(409);
+    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(409);
 
     await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
 
