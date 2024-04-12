@@ -12,14 +12,14 @@ import (
 )
 
 type APIKeyService interface {
-	CreateAPIKey(ctx context.Context, userID, tenant, key string, req *requests.CreateAPIKey) (string, error)
+	CreateAPIKey(ctx context.Context, userID, tenant, key string, role string, req *requests.CreateAPIKey) (string, error)
 	ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([]models.APIKey, int, error)
 	GetAPIKeyByUID(ctx context.Context, id string) (*models.APIKey, error)
 	EditAPIKey(ctx context.Context, tenantID string, changes *requests.APIKeyChanges) (*models.APIKey, error)
 	DeleteAPIKey(ctx context.Context, id, tenantID string) error
 }
 
-func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, req *requests.CreateAPIKey) (string, error) {
+func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, role string, req *requests.CreateAPIKey) (string, error) {
 	namespace, err := s.store.NamespaceGet(ctx, req.TenantParam.Tenant, false)
 	if err != nil {
 		return "", NewErrNamespaceNotFound(userID, err)
@@ -62,6 +62,7 @@ func (s *service) CreateAPIKey(ctx context.Context, userID, tenant, key string, 
 		TenantID:  namespace.TenantID,
 		UserID:    userID,
 		Name:      req.Name,
+		Role:      role,
 		ExpiresIn: expiredTime,
 	}
 

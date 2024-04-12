@@ -53,7 +53,7 @@ func TestCreateAPIKey(t *testing.T) {
 						Tenant: "00000000-0000-4000-0000-000000000000",
 					},
 				}
-				mock.On("CreateAPIKey", gomock.Anything, "id", "", "", req).Return("APIKey", nil).Once()
+				mock.On("CreateAPIKey", gomock.Anything, "id", "", "", "owner", req).Return("APIKey", nil).Once()
 			},
 			expected: Expected{
 				expectedSession: "APIKey",
@@ -262,7 +262,7 @@ func TestEditAPIKey(t *testing.T) {
 				Name: "newName",
 			},
 			requiredMocks: func() {
-				mock.On("EditAPIKey", gomock.Anything, gomock.Anything).Return(&models.APIKey{}, nil).Once()
+				mock.On("EditAPIKey", gomock.Anything, gomock.Anything, gomock.Anything).Return(&models.APIKey{}, nil).Once()
 			},
 			expected: Expected{
 				expectedSession: &models.APIKey{},

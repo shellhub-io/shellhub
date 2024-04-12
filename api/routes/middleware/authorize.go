@@ -21,3 +21,14 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+// BlockAPIKey blocks request using API keys to continue.
+func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if key := c.Request().Header.Get("X-API-Key"); key != "" {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		return next(c)
+	}
+}

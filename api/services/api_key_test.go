@@ -158,7 +158,7 @@ func TestCreateAPIKey(t *testing.T) {
 
 			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
-			authRes, err := service.CreateAPIKey(ctx, tc.userID, tc.tenant, tc.apiKey, &tc.APIKeyRequest)
+			authRes, err := service.CreateAPIKey(ctx, tc.userID, tc.tenant, tc.apiKey, "owner", &tc.APIKeyRequest)
 			if tc.expected.err != nil {
 				assert.Error(t, err)
 				assert.EqualError(t, err, tc.expected.err.Error())

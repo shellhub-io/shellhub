@@ -41,7 +41,7 @@ func (h *Handler) CreateAPIKey(c gateway.Context) error {
 	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Create, func() error {
 		var err error
 
-		uid, err = h.service.CreateAPIKey(c.Ctx(), userID, tenant, key, &req)
+		uid, err = h.service.CreateAPIKey(c.Ctx(), userID, tenant, key, c.Role(), &req)
 
 		return err
 	}); err != nil {
