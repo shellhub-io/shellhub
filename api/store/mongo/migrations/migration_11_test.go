@@ -17,21 +17,26 @@ import (
 func TestMigration11(t *testing.T) {
 	logrus.Info("Testing Migration 11 - Test if the private_keys has ttl system")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:11]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:11]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	pk := models.PrivateKey{
 		CreatedAt: clock.Now(),
 	}
 
-	_, err = db.Client().Database("test").Collection("private_keys").InsertOne(context.TODO(), pk)
+	_, err = mongoClient.Database("test").Collection("private_keys").InsertOne(context.TODO(), pk)
 	assert.NoError(t, err)
 
-	index := db.Client().Database("test").Collection("private_keys").Indexes()
+	index := mongoClient.Database("test").Collection("private_keys").Indexes()
 
 	cursor, err := index.List(context.TODO())
 	assert.NoError(t, err)

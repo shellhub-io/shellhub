@@ -14,8 +14,13 @@ import (
 func TestMigration5(t *testing.T) {
 	logrus.Info("Testing Migration 5 - Test if the email is set unique")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	user1 := models.User{
 		UserData: models.UserData{
@@ -38,17 +43,17 @@ func TestMigration5(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user2)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:4]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:4]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:5]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:5]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.Error(t, err)
 }

@@ -1,15 +1,12 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -43,7 +40,7 @@ func TestAnnouncementList(t *testing.T) {
 			description: "succeeds when announcement list is not empty",
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			sorter:      query.Sorter{Order: query.OrderAsc},
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
@@ -75,7 +72,7 @@ func TestAnnouncementList(t *testing.T) {
 			description: "succeeds when announcement list is not empty and paginator and paginator size is limited",
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			sorter:      query.Sorter{Order: query.OrderAsc},
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
@@ -97,7 +94,7 @@ func TestAnnouncementList(t *testing.T) {
 			description: "succeeds when announcement list is not empty and order is desc",
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			sorter:      query.Sorter{Order: query.OrderDesc},
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
@@ -127,18 +124,16 @@ func TestAnnouncementList(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ann, count, err := mongostore.AnnouncementList(context.TODO(), tc.paginator, tc.sorter)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			ann, count, err := s.AnnouncementList(ctx, tc.paginator, tc.sorter)
 			assert.Equal(t, tc.expected, Expected{ann: ann, len: count, err: err})
 		})
 	}
@@ -159,7 +154,7 @@ func TestAnnouncementGet(t *testing.T) {
 		{
 			description: "fails when announcement is not found",
 			uuid:        "nonexistent",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: nil,
 				err: store.ErrNoDocuments,
@@ -168,7 +163,7 @@ func TestAnnouncementGet(t *testing.T) {
 		{
 			description: "succeeds when announcement is found",
 			uuid:        "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: &models.Announcement{
 					Date:    time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -181,18 +176,16 @@ func TestAnnouncementGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			ann, err := mongostore.AnnouncementGet(context.TODO(), tc.uuid)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			ann, err := s.AnnouncementGet(ctx, tc.uuid)
 			assert.Equal(t, tc.expected, Expected{ann: ann, err: err})
 		})
 	}
@@ -217,18 +210,16 @@ func TestAnnouncementCreate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	store := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := store.AnnouncementCreate(context.TODO(), tc.announcement)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.AnnouncementCreate(ctx, tc.announcement)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -248,7 +239,7 @@ func TestAnnouncementUpdate(t *testing.T) {
 				Title:   "edited title",
 				Content: "edited content",
 			},
-			fixtures: []string{fixtures.FixtureAnnouncements},
+			fixtures: []string{fixtureAnnouncements},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -258,23 +249,21 @@ func TestAnnouncementUpdate(t *testing.T) {
 				Title:   "edited title",
 				Content: "edited content",
 			},
-			fixtures: []string{fixtures.FixtureAnnouncements},
+			fixtures: []string{fixtureAnnouncements},
 			expected: nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.AnnouncementUpdate(context.TODO(), tc.ann)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.AnnouncementUpdate(ctx, tc.ann)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -290,29 +279,27 @@ func TestAnnouncementDelete(t *testing.T) {
 		{
 			description: "fails when announcement is not found",
 			uuid:        "nonexistent",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when announcement is found",
 			uuid:        "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.AnnouncementDelete(context.TODO(), tc.uuid)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.AnnouncementDelete(ctx, tc.uuid)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

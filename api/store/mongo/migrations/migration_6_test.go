@@ -14,11 +14,16 @@ import (
 func TestMigration6(t *testing.T) {
 	logrus.Info("Testing Migration 6 - Test if the status is not unique")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:5]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:5]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	device1 := models.Device{
@@ -29,13 +34,13 @@ func TestMigration6(t *testing.T) {
 		Status: "accepted",
 	}
 
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device1)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device2)
+	_, err = mongoClient.Database("test").Collection("devices").InsertOne(context.TODO(), device2)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:6]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:6]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

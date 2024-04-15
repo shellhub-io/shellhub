@@ -13,10 +13,15 @@ import (
 func TestMigration1(t *testing.T) {
 	logrus.Info("Testing Migration 1 - Create the database for the system")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:1]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:1]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

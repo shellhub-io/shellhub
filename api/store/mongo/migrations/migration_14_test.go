@@ -15,8 +15,13 @@ import (
 func TestMigration14(t *testing.T) {
 	logrus.Info("Testing Migration 14 - Test if the right tenant_id is set")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	type user struct {
 		Username      string `json:"username" bson:",omitempty"`
@@ -52,16 +57,16 @@ func TestMigration14(t *testing.T) {
 		TenantID: "1",
 	}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:14]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:14]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"tenant_id": "1"}).Decode(&user1)
+	err = mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"tenant_id": "1"}).Decode(&user1)
 	assert.NoError(t, err)
 }

@@ -1,4 +1,4 @@
-package mongo
+package options
 
 import (
 	"context"
@@ -14,10 +14,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
-func ApplyMigrations(db *mongo.Database) error {
-	logrus.Info("Creating lock for the resource migrations")
+type DatabaseOpt func(ctx context.Context, db *mongo.Database) error
 
-	ctx := context.Background()
+func RunMigatrions(ctx context.Context, db *mongo.Database) error {
+	logrus.Info("Creating lock for the resource migrations")
 
 	lockClient := lock.NewClient(db.Collection("locks", options.Collection().SetWriteConcern(writeconcern.Majority())))
 	if err := lockClient.CreateIndexes(context.TODO()); err != nil {

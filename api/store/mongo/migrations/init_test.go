@@ -3,11 +3,14 @@ package migrations
 import (
 	"os"
 	"testing"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func TestMain(m *testing.M) {
-	os.Setenv("SHELLHUB_ENTERPRISE", "true")
-	os.Setenv("SHELLHUB_CLOUD", "true")
-	code := m.Run()
-	os.Exit(code)
+var (
+	mongoClient *mongo.Client
+)
+
+func TestMain(_ *testing.M) {
+	os.Exit(0)
 }

@@ -16,8 +16,13 @@ import (
 func TestMigration29(t *testing.T) {
 	logrus.Info("Testing Migration 29 - Test whether the collection of users the field last_login was created")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	user := models.User{
 		UserData: models.UserData{
@@ -25,12 +30,12 @@ func TestMigration29(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err = mongoClient.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[:29]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -39,10 +44,10 @@ func TestMigration29(t *testing.T) {
 	assert.Equal(t, uint64(29), version)
 
 	var migratedUser *models.User
-	err = db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
+	err = mongoClient.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
 	assert.NoError(t, err)
 
-	index := db.Client().Database("test").Collection("users").Indexes()
+	index := mongoClient.Database("test").Collection("users").Indexes()
 
 	cursor, err := index.List(context.TODO())
 	assert.NoError(t, err)

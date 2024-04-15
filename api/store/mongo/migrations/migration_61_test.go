@@ -20,8 +20,13 @@ func TestMigration61(t *testing.T) {
 
 	ctx := context.Background()
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	mock := &envMocks.Backend{}
 	envs.DefaultBackend = mock
@@ -34,20 +39,20 @@ func TestMigration61(t *testing.T) {
 		{
 			"Success to apply up on migration 61",
 			func() (func() error, error) {
-				if _, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
+				if _, err = mongoClient.Database("test").Collection("devices").InsertOne(ctx, models.Device{
 					Name: "",
 				}); err != nil {
 					return nil, err
 				}
 
-				if _, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
+				if _, err = mongoClient.Database("test").Collection("devices").InsertOne(ctx, models.Device{
 					Name: "test",
 				}); err != nil {
 					return nil, err
 				}
 
 				return func() error {
-					_, err := db.Client().Database("test").Collection("devices").DeleteOne(ctx, bson.M{
+					_, err = mongoClient.Database("test").Collection("devices").DeleteOne(ctx, bson.M{
 						"name": "test",
 					})
 					if err != nil {
@@ -59,13 +64,13 @@ func TestMigration61(t *testing.T) {
 			},
 			func() error {
 				migrations := GenerateMigrations()[60:61]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				count, err := db.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": ""})
+				count, err := mongoClient.Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": ""})
 				if err != nil {
 					return err
 				}
@@ -74,7 +79,7 @@ func TestMigration61(t *testing.T) {
 					return errors.New("failed because don't deleted the expected")
 				}
 
-				count, err = db.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": "test"})
+				count, err = mongoClient.Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": "test"})
 				if err != nil {
 					return err
 				}

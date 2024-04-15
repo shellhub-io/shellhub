@@ -1,14 +1,11 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,7 +31,7 @@ func TestLicenseLoad(t *testing.T) {
 		},
 		{
 			description: "succeeds when license is found",
-			fixtures:    []string{fixtures.FixtureLicenses},
+			fixtures:    []string{fixtureLicenses},
 			expected: Expected{
 				license: &models.License{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -45,18 +42,16 @@ func TestLicenseLoad(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			license, err := mongostore.LicenseLoad(context.TODO())
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			license, err := s.LicenseLoad(ctx)
 			assert.Equal(t, tc.expected, Expected{license: license, err: err})
 		})
 	}
@@ -80,18 +75,16 @@ func TestLicenseSave(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.LicenseSave(context.TODO(), tc.license)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.LicenseSave(ctx, tc.license)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

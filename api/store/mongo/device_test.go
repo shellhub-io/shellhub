@@ -1,15 +1,12 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -49,7 +46,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -143,7 +140,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -197,7 +194,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -291,7 +288,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -385,7 +382,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -479,7 +476,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatusPending,
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -509,19 +506,17 @@ func TestDeviceList(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			dev, count, err := mongostore.DeviceList(
-				context.TODO(),
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			dev, count, err := s.DeviceList(
+				ctx,
 				tc.status,
 				tc.paginator,
 				tc.filters,
@@ -548,7 +543,7 @@ func TestDeviceListByUsage(t *testing.T) {
 		{
 			description: "returns an empty list when tenant not exist",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureSessions},
+			fixtures:    []string{fixtureSessions},
 			expected: Expected{
 				uid: []models.UID{},
 				len: 0,
@@ -558,7 +553,7 @@ func TestDeviceListByUsage(t *testing.T) {
 		{
 			description: "succeeds when has 1 or more device sessions",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureSessions},
+			fixtures:    []string{fixtureSessions},
 			expected: Expected{
 				uid: []models.UID{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"},
 				len: 1,
@@ -567,18 +562,16 @@ func TestDeviceListByUsage(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			uids, err := mongostore.DeviceListByUsage(context.TODO(), tc.tenant)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			uids, err := s.DeviceListByUsage(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{uid: uids, len: len(uids), err: err})
 		})
 	}
@@ -598,7 +591,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when namespace is not found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -607,7 +600,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found",
 			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -616,7 +609,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("5600560h6ed5h960969e7f358g4568491247198ge8537e9g448609fff1b231f"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -625,7 +618,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -652,18 +645,16 @@ func TestDeviceGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			dev, err := mongostore.DeviceGet(context.TODO(), tc.uid)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			dev, err := s.DeviceGet(ctx, tc.uid)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
 	}
@@ -687,7 +678,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -698,7 +689,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "mac-3",
 			tenant:      "nonexistent",
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -709,7 +700,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "mac-3",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -738,7 +729,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "mac-3",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus("accepted"),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -764,18 +755,16 @@ func TestDeviceGetByMac(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			dev, err := mongostore.DeviceGetByMac(context.TODO(), tc.mac, tc.tenant, tc.status)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			dev, err := s.DeviceGetByMac(ctx, tc.mac, tc.tenant, tc.status)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
 	}
@@ -799,7 +788,7 @@ func TestDeviceGetByName(t *testing.T) {
 			hostname:    "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatusAccepted,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -810,7 +799,7 @@ func TestDeviceGetByName(t *testing.T) {
 			hostname:    "device-3",
 			tenant:      "nonexistent",
 			status:      models.DeviceStatusAccepted,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -821,7 +810,7 @@ func TestDeviceGetByName(t *testing.T) {
 			hostname:    "device-3",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatusAccepted,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -847,18 +836,16 @@ func TestDeviceGetByName(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			dev, err := mongostore.DeviceGetByName(context.TODO(), tc.hostname, tc.tenant, tc.status)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			dev, err := s.DeviceGetByName(ctx, tc.hostname, tc.tenant, tc.status)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
 	}
@@ -880,7 +867,7 @@ func TestDeviceGetByUID(t *testing.T) {
 			description: "fails when device is not found due to UID",
 			uid:         models.UID("nonexistent"),
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -890,7 +877,7 @@ func TestDeviceGetByUID(t *testing.T) {
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -900,7 +887,7 @@ func TestDeviceGetByUID(t *testing.T) {
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -926,18 +913,16 @@ func TestDeviceGetByUID(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			dev, err := mongostore.DeviceGetByUID(context.TODO(), tc.uid, tc.tenant)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			dev, err := s.DeviceGetByUID(ctx, tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
 	}
@@ -959,7 +944,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when namespace does not exist",
 			namespace:   "nonexistent",
 			hostname:    "device-3",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -969,7 +954,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when device does not exist due to name",
 			namespace:   "namespace-1",
 			hostname:    "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -979,7 +964,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when device does not exist due to tenant-id",
 			namespace:   "namespace-1",
 			hostname:    "invalid_tenant",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -989,7 +974,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when device does not exist due to status other than accepted",
 			namespace:   "namespace-1",
 			hostname:    "pending",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -999,7 +984,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "succeeds when namespace exists and hostname status is accepted",
 			namespace:   "namespace-1",
 			hostname:    "device-3",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -1025,18 +1010,16 @@ func TestDeviceLookup(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			dev, err := mongostore.DeviceLookup(context.TODO(), tc.namespace, tc.hostname)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			dev, err := s.DeviceLookup(ctx, tc.namespace, tc.hostname)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
 	}
@@ -1066,18 +1049,16 @@ func TestDeviceCreate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceCreate(context.TODO(), tc.device, tc.hostname)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceCreate(ctx, tc.device, tc.hostname)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1095,30 +1076,28 @@ func TestDeviceRename(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			hostname:    "new_hostname",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			hostname:    "new_hostname",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceRename(context.TODO(), tc.uid, tc.hostname)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceRename(ctx, tc.uid, tc.hostname)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1136,30 +1115,28 @@ func TestDeviceUpdateStatus(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			status:      "accepted",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			status:      "accepted",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceUpdateStatus(context.TODO(), tc.uid, models.DeviceStatus(tc.status))
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceUpdateStatus(ctx, tc.uid, models.DeviceStatus(tc.status))
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1177,30 +1154,28 @@ func TestDeviceUpdateOnline(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			online:      true,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			online:      true,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceUpdateOnline(context.TODO(), tc.uid, tc.online)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceUpdateOnline(ctx, tc.uid, tc.online)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1218,30 +1193,28 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			now:         time.Now(),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			now:         time.Now(),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceUpdateLastSeen(context.TODO(), tc.uid, tc.now)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceUpdateLastSeen(ctx, tc.uid, tc.now)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1259,30 +1232,28 @@ func TestDeviceSetOnline(t *testing.T) {
 			description: "succeeds when UID is valid and online is true",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			online:      true,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 		{
 			description: "succeeds when UID is valid and online is false",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			online:      false,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceSetOnline(context.TODO(), tc.uid, time.Now(), tc.online)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceSetOnline(ctx, tc.uid, time.Now(), tc.online)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1303,7 +1274,7 @@ func TestDeviceSetPosition(t *testing.T) {
 				Longitude: 1,
 				Latitude:  1,
 			},
-			fixtures: []string{fixtures.FixtureDevices},
+			fixtures: []string{fixtureDevices},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -1313,23 +1284,21 @@ func TestDeviceSetPosition(t *testing.T) {
 				Longitude: 1,
 				Latitude:  1,
 			},
-			fixtures: []string{fixtures.FixtureDevices},
+			fixtures: []string{fixtureDevices},
 			expected: nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceSetPosition(context.TODO(), tc.uid, tc.position)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceSetPosition(ctx, tc.uid, tc.position)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1347,23 +1316,21 @@ func TestDeviceChooser(t *testing.T) {
 			description: "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			chosen:      []string{""},
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceChooser(context.TODO(), tc.tenant, tc.chosen)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceChooser(ctx, tc.tenant, tc.chosen)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1379,29 +1346,27 @@ func TestDeviceDelete(t *testing.T) {
 		{
 			description: "fails when device is not found",
 			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.DeviceDelete(context.TODO(), tc.uid)
+			assert.NoError(t, db.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, db.Reset())
+			})
+
+			err := s.DeviceDelete(ctx, tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

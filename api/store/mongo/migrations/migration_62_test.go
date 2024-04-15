@@ -17,8 +17,15 @@ import (
 func TestMigration62Up(t *testing.T) {
 	logrus.Info("Testing Migration 62")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
 
 	cases := []struct {
 		description string
@@ -33,7 +40,7 @@ func TestMigration62Up(t *testing.T) {
 				mock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 			},
 			expected: func() error {
-				cursor, err := db.Client().Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
+				cursor, err := mongoClient.Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
 				if err != nil {
 					return err
 				}
@@ -64,7 +71,7 @@ func TestMigration62Up(t *testing.T) {
 			tc.mocks()
 
 			migrations := GenerateMigrations()[61:62]
-			migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+			migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 			assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			assert.NoError(t, tc.expected())
@@ -75,8 +82,15 @@ func TestMigration62Up(t *testing.T) {
 func TestMigration62Down(t *testing.T) {
 	logrus.Info("Testing Migration 62")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
 
 	mock := &envMocks.Backend{}
 	envs.DefaultBackend = mock
@@ -90,7 +104,7 @@ func TestMigration62Down(t *testing.T) {
 			description: "Success to apply down on migration 62",
 			mocks:       func() {},
 			expected: func() error {
-				cursor, err := db.Client().Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
+				cursor, err := mongoClient.Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
 				if err != nil {
 					return errors.New("index not dropped")
 				}
@@ -121,7 +135,7 @@ func TestMigration62Down(t *testing.T) {
 			tc.mocks()
 
 			migrations := GenerateMigrations()[61:62]
-			migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+			migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 			assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 			assert.NoError(t, tc.expected())

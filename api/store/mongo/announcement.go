@@ -12,7 +12,6 @@ import (
 
 func (s *Store) AnnouncementList(ctx context.Context, paginator query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
 	query := []bson.M{}
-
 	queryCount := append(query, bson.M{"$count": "count"})
 	count, err := AggregateCount(ctx, s.db.Collection("announcements"), queryCount)
 	if err != nil {

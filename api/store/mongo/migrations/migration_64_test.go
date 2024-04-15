@@ -20,8 +20,13 @@ func TestMigration64(t *testing.T) {
 
 	ctx := context.Background()
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	mock := &envMocks.Backend{}
 	envs.DefaultBackend = mock
@@ -34,9 +39,7 @@ func TestMigration64(t *testing.T) {
 		{
 			description: "Success to apply up on migration 64",
 			setup: func() error {
-				_, err := db.
-					Client().
-					Database("test").
+				_, err = mongoClient.Database("test").
 					Collection("namespaces").
 					InsertOne(ctx, models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -47,15 +50,13 @@ func TestMigration64(t *testing.T) {
 			},
 			test: func() error {
 				migrations := GenerateMigrations()[63:64]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				query := db.
-					Client().
-					Database("test").
+				query := mongoClient.Database("test").
 					Collection("namespaces").
 					FindOne(context.TODO(), bson.M{"tenant_id": "00000000-0000-4000-0000-000000000000"})
 
@@ -74,9 +75,7 @@ func TestMigration64(t *testing.T) {
 		{
 			description: "Success to apply down on migration 64",
 			setup: func() error {
-				_, err := db.
-					Client().
-					Database("test").
+				_, err = mongoClient.Database("test").
 					Collection("namespaces").
 					InsertOne(ctx, models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -89,15 +88,13 @@ func TestMigration64(t *testing.T) {
 			},
 			test: func() error {
 				migrations := GenerateMigrations()[63:64]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				query := db.
-					Client().
-					Database("test").
+				query := mongoClient.Database("test").
 					Collection("namespaces").
 					FindOne(context.TODO(), bson.M{"tenant_id": "00000000-0000-4000-0000-000000000000"})
 

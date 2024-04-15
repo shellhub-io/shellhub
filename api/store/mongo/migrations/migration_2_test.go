@@ -15,8 +15,13 @@ import (
 func TestMigration2(t *testing.T) {
 	logrus.Info("Testing Migration 2 - Test if the column device was renamed to device_uid")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	type Session struct {
 		UID       string `json:"uid"`
@@ -33,21 +38,21 @@ func TestMigration2(t *testing.T) {
 		IPAddress: "0.0.0.0",
 	}
 
-	_, err := db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.TODO(), session)
 	assert.NoError(t, err)
 
 	var afterMigrationSession *Session
-	err = db.Client().Database("test").Collection("sessions").FindOne(context.TODO(), bson.M{"device": "deviceUID"}).Decode(&afterMigrationSession)
+	err = mongoClient.Database("test").Collection("sessions").FindOne(context.TODO(), bson.M{"device": "deviceUID"}).Decode(&afterMigrationSession)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:2]...)
+	migrates := migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:2]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.TODO(), session)
 	assert.NoError(t, err)
 
 	var migratedSession *models.Session
-	err = db.Client().Database("test").Collection("sessions").FindOne(context.TODO(), bson.M{"device_uid": "deviceUID"}).Decode(&migratedSession)
+	err = mongoClient.Database("test").Collection("sessions").FindOne(context.TODO(), bson.M{"device_uid": "deviceUID"}).Decode(&migratedSession)
 	assert.NoError(t, err)
 }

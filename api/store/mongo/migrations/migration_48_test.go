@@ -17,8 +17,13 @@ func TestMigration48(t *testing.T) {
 
 	ctx := context.Background()
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	namespace := models.Namespace{
 		TenantID: "tenant",
@@ -45,13 +50,13 @@ func TestMigration48(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	_, err = mongoClient.Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule0)
+	_, err = mongoClient.Database("test").Collection("firewall_rules").InsertOne(ctx, rule0)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule1)
+	_, err = mongoClient.Database("test").Collection("firewall_rules").InsertOne(ctx, rule1)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule2)
+	_, err = mongoClient.Database("test").Collection("firewall_rules").InsertOne(ctx, rule2)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -64,12 +69,12 @@ func TestMigration48(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[47:48]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
+				result := mongoClient.Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -84,12 +89,12 @@ func TestMigration48(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[47:48]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
+				result := mongoClient.Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)

@@ -14,11 +14,16 @@ import (
 func TestMigration8(t *testing.T) {
 	logrus.Info("Testing Migration 8 - Test if the recorded is not unique")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:7]...)
-	err := migrates.Up(context.Background(), migrate.AllAvailable)
+		return err
+	}()
+	assert.NoError(t, err)
+
+	migrates := migrate.NewMigrate(db.MongoClient.Database("test"), GenerateMigrations()[:7]...)
+	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	session1 := models.Session{
@@ -29,13 +34,13 @@ func TestMigration8(t *testing.T) {
 		Recorded: true,
 	}
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session1)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.TODO(), session1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session2)
+	_, err = mongoClient.Database("test").Collection("sessions").InsertOne(context.TODO(), session2)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:8]...)
+	migrates = migrate.NewMigrate(mongoClient.Database("test"), GenerateMigrations()[:8]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

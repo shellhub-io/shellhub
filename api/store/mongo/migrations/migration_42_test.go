@@ -16,8 +16,13 @@ import (
 func TestMigration42(t *testing.T) {
 	logrus.Info("Testing Migration 42")
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	db := dbtest.DB{}
+	err := func() error {
+		err := db.Down(context.Background())
+
+		return err
+	}()
+	assert.NoError(t, err)
 
 	type PublicKeyFields struct {
 		Name     string `json:"name"`
@@ -55,7 +60,7 @@ func TestMigration42(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
+	_, err = mongoClient.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -68,12 +73,12 @@ func TestMigration42(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[41:42]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
+				err = migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyOld.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyOld.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -88,12 +93,12 @@ func TestMigration42(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[41:42]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(mongoClient.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				key := new(PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyNew.TenantID})
+				result := mongoClient.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyNew.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
