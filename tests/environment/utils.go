@@ -25,9 +25,9 @@ const (
 
 var freePortController []string
 
-// getFreePort returns a randomly available TCP port. It can be used to avoid
+// GetFreePort returns a randomly available TCP port. It can be used to avoid
 // network conflicts in Docker Compose.
-func getFreePort(t *testing.T) string {
+func GetFreePort(t *testing.T) string {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	require.NoError(t, err)
 
@@ -38,7 +38,7 @@ func getFreePort(t *testing.T) string {
 
 	port := strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
 	if slices.Contains(freePortController, port) {
-		return getFreePort(t)
+		return GetFreePort(t)
 	}
 
 	freePortController = append(freePortController, port)

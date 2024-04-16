@@ -30,8 +30,8 @@ func New(t *testing.T) *DockerComposeConfigurator {
 		assert.FailNow(t, err.Error())
 	}
 
-	envs["SHELLHUB_HTTP_PORT"] = getFreePort(t)
-	envs["SHELLHUB_SSH_PORT"] = getFreePort(t)
+	envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
+	envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
 	envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
 
 	return &DockerComposeConfigurator{
@@ -73,8 +73,8 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 	}
 
 	dcc.mu.Lock()
-	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = getFreePort(t)
-	clonedEnv.envs["SHELLHUB_SSH_PORT"] = getFreePort(t)
+	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
+	clonedEnv.envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
 	clonedEnv.envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
 	dcc.mu.Unlock()
 
