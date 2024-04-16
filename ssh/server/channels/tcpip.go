@@ -4,6 +4,7 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -14,15 +15,19 @@ import (
 // DefaultDirectTCPIPHandler is the channel's handler for direct-tcpip channels like "local port forwarding" and "dynamic
 // application-level port forwarding".
 func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
-	defer conn.Close()
-
 	sess, _ := session.ObtainSession(ctx)
-	defer sess.Finish() //nolint:errcheck
+	go func() {
+		// NOTICE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
+		// other channel involkation. To avoid it, we wait for the connection be closed to finish the sesison.
+		conn.Wait() //nolint:errcheck
+
+		sess.Finish() //nolint:errcheck
+	}()
 
 	log.WithFields(log.Fields{
 		"username": sess.Target.Username,
 		"sshid":    sess.Target.Data,
-	}).Info("handling direct-tcpip channel")
+	}).Trace("handling direct-tcpip channel")
 
 	type channelData struct {
 		DestAddr   string
@@ -83,7 +88,9 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 		return
 	}
 
-	channel, reqs, err := newChan.Accept()
+	defer agent.Close()
+
+	client, reqs, err := newChan.Accept()
 	if err != nil {
 		newChan.Reject(gossh.ConnectionFailed, "failed accepting the channel: "+err.Error()) //nolint:errcheck
 		log.WithError(err).WithFields(log.Fields{
@@ -98,6 +105,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 		return
 	}
 
+	defer client.Close()
+
 	go gossh.DiscardRequests(reqs)
 
 	log.WithFields(log.Fields{
@@ -109,8 +118,13 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 		"dest_addr":   data.DestAddr,
 	}).Info("piping data between client and agent")
 
+	wg := new(sync.WaitGroup)
+
 	// TODO: control the running state of these goroutines.
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
 		log.WithFields(log.Fields{
 			"username":    sess.Target.Username,
 			"sshid":       sess.Target.Data,
@@ -118,12 +132,19 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
 			"dest_addr":   data.DestAddr,
-		}).Debug("copying data from client to agent")
+		}).Trace("copying data from client to agent")
 
-		defer channel.Close()
-		io.Copy(channel, agent) //nolint:errcheck
+		if _, err := io.Copy(client, agent); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed to copy data from agent to client")
+
+			return
+		}
 	}()
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
 		log.WithFields(log.Fields{
 			"username":    sess.Target.Username,
 			"sshid":       sess.Target.Data,
@@ -131,9 +152,23 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 			"origin_addr": data.OriginPort,
 			"dest_port":   data.DestPort,
 			"dest_addr":   data.DestAddr,
-		}).Debug("copying data from agent to client")
+		}).Trace("copying data from agent to client")
 
-		defer channel.Close()
-		io.Copy(agent, channel) //nolint:errcheck
+		if _, err := io.Copy(agent, client); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed to copy data from client to agent")
+
+			return
+		}
 	}()
+
+	wg.Wait()
+
+	log.WithFields(log.Fields{
+		"username":    sess.Target.Username,
+		"sshid":       sess.Target.Data,
+		"origin_port": data.OriginAddr,
+		"origin_addr": data.OriginPort,
+		"dest_port":   data.DestPort,
+		"dest_addr":   data.DestAddr,
+	}).Trace("handling direct-tcpip finished")
 }
