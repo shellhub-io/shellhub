@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"os"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -678,6 +681,80 @@ func TestSSH(t *testing.T) {
 				require.NoError(t, err)
 
 				sess.Close()
+				conn.Close()
+			},
+		},
+		{
+			name:    "direct tcpip port redirect",
+			options: []NewAgentContainerOption{},
+			run: func(t *testing.T, env *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", env.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+
+				type Data struct {
+					DestAddr   string
+					DestPort   uint32
+					OriginAddr string
+					OriginPort uint32
+				}
+
+				port := environment.GetFreePort(t)
+
+				listener, err := net.Listen("tcp", ":"+port)
+				require.NoError(t, err)
+
+				wg := new(sync.WaitGroup)
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+
+					conn, err := listener.Accept()
+					require.NoError(t, err)
+
+					buffer := make([]byte, 1024)
+
+					read, err := conn.Read(buffer)
+					require.NoError(t, err)
+
+					require.Equal(t, read, 4)
+					require.Equal(t, "test", string(buffer[:4]))
+
+					conn.Close()
+				}()
+
+				dest, err := strconv.Atoi(port)
+				require.NoError(t, err)
+
+				orig, err := strconv.Atoi(environment.GetFreePort(t))
+				require.NoError(t, err)
+
+				data := Data{
+					DestAddr:   "0.0.0.0",
+					DestPort:   uint32(dest),
+					OriginAddr: "127.0.0.1",
+					OriginPort: uint32(orig),
+				}
+
+				ch, _, err := conn.OpenChannel("direct-tcpip", ssh.Marshal(data))
+				require.NoError(t, err)
+
+				wrote, err := ch.Write([]byte("test"))
+				require.NoError(t, err)
+
+				require.Equal(t, wrote, 4)
+
+				wg.Wait()
+
+				ch.Close()
 				conn.Close()
 			},
 		},
