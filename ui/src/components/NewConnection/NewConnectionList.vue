@@ -1,38 +1,38 @@
 <template>
   <template v-if="onlineDevices.length === 0">
-    <v-card class="bg-v-theme-surface mx-auto py-3 border mt-5">
+    <v-card class="bg-v-theme-surface mx-auto py-3 border mt-5" data-test="no-online-devices">
       <v-card-title class="text-center d-flex justify-center pa-1">
         <div>
-          <v-icon size="x-large">
+          <v-icon size="x-large" data-test="no-online-devices-icon">
             mdi-laptop-off
           </v-icon>
         </div>
       </v-card-title>
       <v-row>
         <v-col class="text-center d-flex justify-center pa-5">
-          <p>No online device was found!</p>
+          <p data-test="no-online-devices-message">No online device was found!</p>
         </v-col>
       </v-row>
     </v-card>
   </template>
   <v-list ref="rootEl" nav bg-color="transparent" class="content-card" data-test="devices-list">
     <v-col v-for="(item, i) in onlineDevices" :key="i" class="ma-0 mb-3 pa-0">
-      <v-card :key="i">
-        <v-list-item @click="open(i)" @keydown="copyMacro(sshidAddress(item))" :key="i" class="ma-0 pa-0 card">
+      <v-card :key="i" data-test="device-card">
+        <v-list-item @click="open(i)" @keydown="copyMacro(sshidAddress(item))" :key="i" class="ma-0 pa-0 card" data-test="device-list-item">
           <v-row align="center" no-gutters>
             <TerminalDialog
               :uid="item.uid"
               :online="item.online"
               ref="terminalFn"
               data-test="terminalDialog-component" />
-            <v-col class="text-center" md="3">
+            <v-col class="text-center" md="3" data-test="device-name">
               {{ item.name }}
             </v-col>
-            <v-col class="text-center pr-6 text-truncate" md="3">
+            <v-col class="text-center pr-6 text-truncate" md="3" data-test="device-info">
               <DeviceIcon :icon="item.info.id" />
               <span>{{ item.info.pretty_name }}</span>
             </v-col>
-            <v-col class="text-truncate" md="3">
+            <v-col class="text-truncate" md="3" data-test="device-ssh-id">
               <v-chip class="bg-grey-darken-4">
                 <v-tooltip location="bottom">
                   <template v-slot:activator="{ props }">
@@ -40,7 +40,8 @@
                       v-bind="props"
                       @click="copyText(sshidAddress(item))"
                       @keypress="copyText(sshidAddress(item))"
-                      class="hover-text">
+                      class="hover-text"
+                      data-test="copy-id-button">
                       {{ sshidAddress(item) }}
                     </span>
                   </template>
@@ -48,25 +49,24 @@
                 </v-tooltip>
               </v-chip>
             </v-col>
-            <v-col md="3">
+            <v-col md="3" data-test="device-tags">
               <div class="text-center">
                 <div v-if="item.tags[0]">
                   <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag)">
                     <template #activator="{ props }">
-                      <v-chip size="small" v-bind="props" v-on="props" class="mr-1">
+                      <v-chip size="small" v-bind="props" v-on="props" class="mr-1" data-test="tag-chip">
                         {{ displayOnlyTenCharacters(tag) }}
                       </v-chip>
                     </template>
 
-                    <span v-if="showTag(tag)">
+                    <span v-if="showTag(tag)" data-test="tag-name">
                       {{ tag }}
                     </span>
                   </v-tooltip>
                 </div>
                 <div v-else>
-                  <v-chip size="small" color="grey-darken-2"> No tags </v-chip>
+                  <v-chip size="small" color="grey-darken-2" data-test="no-tags-chip"> No tags </v-chip>
                 </div>
-
               </div>
             </v-col>
           </v-row>
@@ -102,8 +102,11 @@ const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref();
 const rootEl = ref<VList>();
+
 defineExpose({ rootEl });
+
 let encodedFilter = "";
+
 const filterToEncodeBase64 = [
   {
     type: "property",
@@ -111,9 +114,13 @@ const filterToEncodeBase64 = [
   },
 ];
 encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
+
 const filter = ref(encodedFilter);
+
 const devices = computed(() => store.getters["devices/listQuickConnection"]);
+
 const onlineDevices = computed(() => devices.value.filter((item: Device) => item.online));
+
 const open = (i: number) => {
   if (terminalFn.value !== undefined) {
     const items = terminalFn.value;

@@ -1,0 +1,69 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`New Connection List > Renders the component 1`] = `
+"<!--v-if-->
+<div data-v-7233d251=\\"\\" class=\\"v-list v-list--nav v-theme--light bg-transparent v-list--density-default v-list--one-line content-card\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"devices-list\\">
+  <div data-v-7233d251=\\"\\" class=\\"v-col ma-0 mb-3 pa-0\\">
+    <div data-v-7233d251=\\"\\" class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated\\" data-test=\\"device-card\\">
+      <!---->
+      <div class=\\"v-card__loader\\">
+        <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <!---->
+          <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+          <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+            <div class=\\"v-progress-linear__indeterminate\\">
+              <div class=\\"v-progress-linear__indeterminate long\\"></div>
+              <div class=\\"v-progress-linear__indeterminate short\\"></div>
+            </div>
+          </transition-stub>
+          <!---->
+        </div>
+      </div>
+      <!---->
+      <!---->
+      <div data-v-7233d251=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--nav v-theme--light v-list-item--density-default v-list-item--one-line v-list-item--rounded v-list-item--variant-text ma-0 pa-0 card\\" tabindex=\\"-2\\" data-test=\\"device-list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+        <!---->
+        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+          <!---->
+          <!---->
+          <div data-v-7233d251=\\"\\" class=\\"v-row v-row--no-gutters align-center\\">
+            <div data-v-7233d251=\\"\\" data-test=\\"terminalDialog-component\\">
+              <!--v-if-->
+              <!---->
+              <!---->
+            </div>
+            <div data-v-7233d251=\\"\\" class=\\"v-col-md-3 v-col text-center\\" data-test=\\"device-name\\">39-5e-2b</div>
+            <div data-v-7233d251=\\"\\" class=\\"v-col-md-3 v-col text-center pr-6 text-truncate\\" data-test=\\"device-info\\"><i data-v-7233d251=\\"\\" data-test=\\"type-icon\\" class=\\"fl-linuxmint mr-1\\" style=\\"font-size: 20px;\\"></i><span data-v-7233d251=\\"\\">Linux Mint 19.3</span></div>
+            <div data-v-7233d251=\\"\\" class=\\"v-col-md-3 v-col text-truncate\\" data-test=\\"device-ssh-id\\"><span data-v-7233d251=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal bg-grey-darken-4\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <!---->
+              <!---->
+              <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-7233d251=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-2\\" class=\\"hover-text\\" data-test=\\"copy-id-button\\">user.39-5e-2b@localhost</span>
+                <!--teleport start-->
+                <!--teleport end-->
+              </div>
+              <!---->
+              <!----></span>
+            </div>
+            <div data-v-7233d251=\\"\\" class=\\"v-col-md-3 v-col\\" data-test=\\"device-tags\\">
+              <div data-v-7233d251=\\"\\" class=\\"text-center\\">
+                <div data-v-7233d251=\\"\\"><span data-v-7233d251=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-3\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
+                  <!---->
+                  <!---->
+                  <div class=\\"v-chip__content\\" data-no-activator=\\"\\">test-tag</div>
+                  <!---->
+                  <!----></span>
+                  <!--teleport start-->
+                  <!--teleport end-->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!---->
+      </div>
+      <!---->
+      <!----><span class=\\"v-card__underlay\\"></span>
+    </div>
+  </div>
+</div>"
+`;

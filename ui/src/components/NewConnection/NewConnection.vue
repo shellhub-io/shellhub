@@ -6,26 +6,31 @@
       tabindex="0"
       variant="elevated"
       aria-label="Dialog New Connection"
-      data-test="new-connection-add-btn"
+      data-test="new-connection-open-btn"
       prepend-icon="mdi-link"
     >
       New Connection
     </v-btn>
     <div>
       <p
-        class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1">Press "Ctrl + K" to Quick Connect!</p>
+        class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1"
+        data-test="quick-connect-instructions"
+      >
+        Press "Ctrl + K" to Quick Connect!
+      </p>
     </div>
     <v-dialog
       v-model="dialog"
       width="1000"
       transition="dialog-bottom-transition"
+      data-test="new-connection-dialog"
     >
-      <v-card class="bg-v-theme-surface content">
+      <v-card class="bg-v-theme-surface content" min-height="700" max-height="700">
         <div class="pa-5">
           <v-row>
             <v-col>
               <v-text-field
-                label="Search your online devices with ease!"
+                label="Search your online devices!"
                 variant="solo"
                 color="primary"
                 single-line
@@ -44,22 +49,22 @@
         <v-card-text class="mt-4 mb-0 pb-1 flex">
           <v-row>
             <v-col>
-              <p class="text-body-2 mb-2 font-weight-bold text-center">
+              <p class="text-body-2 mb-2 font-weight-bold text-center" data-test="hostname-header">
                 Hostname
               </p>
             </v-col>
             <v-col>
-              <p class="text-body-2 mb-2 font-weight-bold text-center">
+              <p class="text-body-2 mb-2 font-weight-bold text-center" data-test="os-header">
                 Operating System
               </p>
             </v-col>
             <v-col>
-              <p class="text-body-2 mb-2 font-weight-bold text-center">
+              <p class="text-body-2 mb-2 font-weight-bold text-center" data-test="sshid-header">
                 SSHID
               </p>
             </v-col>
             <v-col>
-              <p class="text-body-2 mr-3 font-weight-bold text-center">
+              <p class="text-body-2 mr-3 font-weight-bold text-center" data-test="tags-header">
                 Tags
               </p>
             </v-col>
@@ -70,19 +75,24 @@
           <v-row class="ml-2">
             <v-col>
               <p class="text-body-2 mb-0 font-weight-bold text-grey-darken-1">
-                <v-icon color="#7284D0" data-test="connect-icon"> mdi-arrow-u-left-bottom </v-icon>To connect</p>
+                <v-icon color="#7284D0" data-test="connect-icon">mdi-arrow-u-left-bottom</v-icon>
+                To connect
+              </p>
             </v-col>
             <v-col>
               <p class="text-body-2 mb-0 font-weight-bold text-grey-darken-1">
-                <v-icon color="#7284D0" data-test="navigate-up-icon"> mdi-arrow-up </v-icon>
-                <v-icon color="#7284D0" data-test="navigate-down-icon"> mdi-arrow-down  </v-icon>
+                <v-icon color="#7284D0" data-test="navigate-up-icon">mdi-arrow-up</v-icon>
+                <v-icon color="#7284D0" data-test="navigate-down-icon">mdi-arrow-down</v-icon>
                 To navigate
               </p>
             </v-col>
             <v-col>
               <p
                 class="text-body-2 font-weight-bold text-grey-darken-1"
-                data-test="copy-sshid-instructions">Press "Ctrl + C" to copy SSHID</p>
+                data-test="copy-sshid-instructions"
+              >
+                Press "Ctrl + C" to copy SSHID
+              </p>
             </v-col>
           </v-row>
           <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
@@ -108,6 +118,7 @@ const dialog = ref(false);
 const store = useStore();
 const filter = ref("");
 const show = ref(false);
+
 const searchDevices = () => {
   let encodedFilter = "";
 
@@ -180,11 +191,4 @@ const keyboardMacros = useMagicKeys({
   font-size: 85%;
   font-weight: normal;
 }
-
-.content {
-  min-height: 70vh;
-  max-height: 70vh;
-  overflow: auto;
-}
-
 </style>
