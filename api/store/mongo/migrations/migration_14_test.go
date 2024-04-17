@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,7 +12,7 @@ import (
 
 func TestMigration14(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	type user struct {
@@ -50,16 +49,16 @@ func TestMigration14(t *testing.T) {
 		TenantID: "1",
 	}
 
-	_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err := c.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:14]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:14]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"tenant_id": "1"}).Decode(&user1)
+	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"tenant_id": "1"}).Decode(&user1)
 	assert.NoError(t, err)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,7 +12,6 @@ import (
 )
 
 func TestMigration40(t *testing.T) {
-
 	cases := []struct {
 		description string
 		Test        func(t *testing.T)
@@ -33,20 +31,20 @@ func TestMigration40(t *testing.T) {
 					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
 				}
 
-				_, err := srv.Client().Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
+				_, err := c.Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[39:40]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[39:40]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
-				_, err = srv.Client().Database("test").Collection("connected_devices").Indexes().DropOne(context.TODO(), "last_seen")
+				_, err = c.Database("test").Collection("connected_devices").Indexes().DropOne(context.TODO(), "last_seen")
 				assert.NoError(t, err)
 
-				_, err = srv.Client().Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), newIndex)
+				_, err = c.Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), newIndex)
 				assert.NoError(t, err)
 
 				const Expected = 1
-				list, err := srv.Client().Database("test").Collection("connected_devices").Indexes().ListSpecifications(context.TODO())
+				list, err := c.Database("test").Collection("connected_devices").Indexes().ListSpecifications(context.TODO())
 				assert.NoError(t, err)
 
 				assert.Equal(t, newIndex.Options.ExpireAfterSeconds, list[Expected].ExpireAfterSeconds)
@@ -62,21 +60,21 @@ func TestMigration40(t *testing.T) {
 					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
 				}
 
-				_, err := srv.Client().Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
+				_, err := c.Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[39:40]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[39:40]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("connected_devices").Indexes().DropOne(context.TODO(), "last_seen")
+				_, err = c.Database("test").Collection("connected_devices").Indexes().DropOne(context.TODO(), "last_seen")
 				assert.NoError(t, err)
 
-				_, err = srv.Client().Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
+				_, err = c.Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
 				assert.NoError(t, err)
 
 				const Expected = 1
-				list, err := srv.Client().Database("test").Collection("connected_devices").Indexes().ListSpecifications(context.TODO())
+				list, err := c.Database("test").Collection("connected_devices").Indexes().ListSpecifications(context.TODO())
 				assert.NoError(t, err)
 
 				assert.Equal(t, oldIndex.Options.ExpireAfterSeconds, list[Expected].ExpireAfterSeconds)
@@ -88,7 +86,7 @@ func TestMigration40(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

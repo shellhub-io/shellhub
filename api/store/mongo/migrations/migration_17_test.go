@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -14,7 +13,7 @@ import (
 
 func TestMigration17(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	user := models.User{
@@ -77,46 +76,46 @@ func TestMigration17(t *testing.T) {
 		TenantID: "tenant",
 	}
 
-	_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err := c.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = c.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("sessions").InsertOne(context.TODO(), session)
+	_, err = c.Database("test").Collection("sessions").InsertOne(context.TODO(), session)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("connected_devices").InsertOne(context.TODO(), connectedDevice)
+	_, err = c.Database("test").Collection("connected_devices").InsertOne(context.TODO(), connectedDevice)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), firewallRules)
+	_, err = c.Database("test").Collection("firewall_rules").InsertOne(context.TODO(), firewallRules)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
+	_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:17]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:17]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}).Decode(&namespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": namespace.TenantID}).Decode(&namespace)
 	assert.Error(t, err)
 
-	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": device.TenantID}).Decode(&device)
+	err = c.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": device.TenantID}).Decode(&device)
 	assert.Error(t, err)
 
-	err = srv.Client().Database("test").Collection("sessions").FindOne(context.TODO(), bson.M{"device_uid": session.DeviceUID}).Decode(&session)
+	err = c.Database("test").Collection("sessions").FindOne(context.TODO(), bson.M{"device_uid": session.DeviceUID}).Decode(&session)
 	assert.Error(t, err)
 
-	err = srv.Client().Database("test").Collection("connected_devices").FindOne(context.TODO(), bson.M{"uid": connectedDevice.UID}).Decode(&connectedDevice)
+	err = c.Database("test").Collection("connected_devices").FindOne(context.TODO(), bson.M{"uid": connectedDevice.UID}).Decode(&connectedDevice)
 	assert.Error(t, err)
 
-	err = srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": firewallRules.TenantID}).Decode(&firewallRules)
+	err = c.Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": firewallRules.TenantID}).Decode(&firewallRules)
 	assert.Error(t, err)
 
-	err = srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": pk.TenantID}).Decode(&pk)
+	err = c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": pk.TenantID}).Decode(&pk)
 	assert.Error(t, err)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -13,7 +12,7 @@ import (
 
 func TestMigration28(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	user := models.User{
@@ -26,15 +25,15 @@ func TestMigration28(t *testing.T) {
 		UID: "1",
 	}
 
-	_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err := c.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = c.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	migrations := GenerateMigrations()[27:28]
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -43,12 +42,12 @@ func TestMigration28(t *testing.T) {
 	assert.Equal(t, uint64(28), version)
 
 	var migratedUser *models.User
-	err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
+	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.NotNil(t, migratedUser.CreatedAt)
 
 	var migratedDevice *models.Device
-	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"uid": device.UID}).Decode(&migratedDevice)
+	err = c.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"uid": device.UID}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 	assert.NotNil(t, migratedDevice.CreatedAt)
 }

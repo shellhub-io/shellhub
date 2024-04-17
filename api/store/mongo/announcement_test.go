@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -41,7 +40,7 @@ func TestAnnouncementList(t *testing.T) {
 			description: "succeeds when announcement list is not empty",
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			sorter:      query.Sorter{Order: query.OrderAsc},
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
@@ -73,7 +72,7 @@ func TestAnnouncementList(t *testing.T) {
 			description: "succeeds when announcement list is not empty and paginator and paginator size is limited",
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			sorter:      query.Sorter{Order: query.OrderAsc},
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
@@ -95,7 +94,7 @@ func TestAnnouncementList(t *testing.T) {
 			description: "succeeds when announcement list is not empty and order is desc",
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			sorter:      query.Sorter{Order: query.OrderDesc},
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: []models.AnnouncementShort{
 					{
@@ -129,9 +128,9 @@ func TestAnnouncementList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ann, count, err := s.AnnouncementList(ctx, tc.paginator, tc.sorter)
@@ -155,7 +154,7 @@ func TestAnnouncementGet(t *testing.T) {
 		{
 			description: "fails when announcement is not found",
 			uuid:        "nonexistent",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: nil,
 				err: store.ErrNoDocuments,
@@ -164,7 +163,7 @@ func TestAnnouncementGet(t *testing.T) {
 		{
 			description: "succeeds when announcement is found",
 			uuid:        "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected: Expected{
 				ann: &models.Announcement{
 					Date:    time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -181,9 +180,9 @@ func TestAnnouncementGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ann, err := s.AnnouncementGet(ctx, tc.uuid)
@@ -215,9 +214,9 @@ func TestAnnouncementCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.AnnouncementCreate(ctx, tc.announcement)
@@ -240,7 +239,7 @@ func TestAnnouncementUpdate(t *testing.T) {
 				Title:   "edited title",
 				Content: "edited content",
 			},
-			fixtures: []string{fixtures.FixtureAnnouncements},
+			fixtures: []string{fixtureAnnouncements},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -250,7 +249,7 @@ func TestAnnouncementUpdate(t *testing.T) {
 				Title:   "edited title",
 				Content: "edited content",
 			},
-			fixtures: []string{fixtures.FixtureAnnouncements},
+			fixtures: []string{fixtureAnnouncements},
 			expected: nil,
 		},
 	}
@@ -259,9 +258,9 @@ func TestAnnouncementUpdate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.AnnouncementUpdate(ctx, tc.ann)
@@ -280,13 +279,13 @@ func TestAnnouncementDelete(t *testing.T) {
 		{
 			description: "fails when announcement is not found",
 			uuid:        "nonexistent",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when announcement is found",
 			uuid:        "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureAnnouncements},
+			fixtures:    []string{fixtureAnnouncements},
 			expected:    nil,
 		},
 	}
@@ -295,9 +294,9 @@ func TestAnnouncementDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.AnnouncementDelete(ctx, tc.uuid)

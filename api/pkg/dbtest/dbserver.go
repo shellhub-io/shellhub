@@ -1,297 +1,117 @@
 package dbtest
 
-// mgo - MongoDB driver for Go
-
-// Copyright (c) 2010-2013 - Gustavo Niemeyer <gustavo@niemeyer.net>
-
-// All rights reserved.
-
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
-
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEV
-
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"net"
-	"os"
-	"os/exec"
-	"runtime"
-	"strconv"
-	"syscall"
-	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/dockerutils"
-	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"gopkg.in/tomb.v2"
+	"github.com/shellhub-io/mongotest"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 )
 
-func init() {
-	cmd := exec.Command("/bin/sh", "-c", "docker info")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "---- Failed to initialize dbtest:\n")
-		fmt.Fprint(os.Stderr, out.String())
-		panic("Docker is not installed or is not running properly")
+// WARN: copy of https://github.com/testcontainers/testcontainers-go/pull/2469. should be removed
+// if merged.
+func withReplicaSet() testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) {
+		req.Cmd = append(req.Cmd, "--replSet", "rs")
+		req.LifecycleHooks = append(req.LifecycleHooks, testcontainers.ContainerLifecycleHooks{
+			PostReadies: []testcontainers.ContainerHook{
+				func(ctx context.Context, c testcontainers.Container) error {
+					cIP, err := c.ContainerIP(ctx)
+					if err != nil {
+						return err
+					}
+
+					cmd := []string{
+						"/bin/mongo",
+						"--eval",
+						fmt.Sprintf("rs.initiate({ _id: 'rs', members: [ { _id: 0, host: '%s:27017' } ] })", cIP),
+					}
+
+					if exitCode, _, err := c.Exec(ctx, cmd); err != nil || exitCode != 0 {
+						return fmt.Errorf("fails to initiate replica set with status %d: %s", exitCode, err)
+					}
+
+					return nil
+				},
+			},
+		})
 	}
 }
 
-// DBServer controls a MongoDB server process to be used within test suites.
-//
-// The test server is started when Client is called the first time and should
-// remain running for the duration of all tests, with the Wipe method being
-// called between tests (before each of them) to clear stored data. After all tests
-// are done, the Stop method should be called to stop the test server.
-type DBServer struct {
-	Ctx     context.Context
-	timeout time.Duration
-	client  *mongo.Client
-	output  bytes.Buffer
-	server  *exec.Cmd
-	Host    string
-	network string
-	tomb    tomb.Tomb
-}
+// Server represents a MongoDB test server instance.
+type Server struct {
+	tContainer *mongodb.MongoDBContainer // Container is the MongoDB container instance.
 
-func (dbs *DBServer) SetTimeout(timeout int) {
-	dbs.timeout = time.Duration(timeout)
-}
-
-func (dbs *DBServer) start() {
-	if dbs.server != nil {
-		log.Panic("DBServer already started")
+	Container struct {
+		ConnectionString string
+		ExposedPort      string
+		Database         string
 	}
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+
+	Fixtures struct {
+		Root           string                    // Root is the absolute path to seek fixture files.
+		PreInsertFuncs []mongotest.PreInsertFunc // PreInsertFuncs is a list of functions to run before inserting data.
+	}
+}
+
+func (srv *Server) configure(ctx context.Context) error {
+	ports, err := srv.tContainer.Ports(ctx)
 	if err != nil {
-		log.WithError(err).Panic("unable to listen on a local address")
-	}
-
-	addr, ok := l.Addr().(*net.TCPAddr)
-	if !ok {
-		log.Panic("Type assertion failed")
-	}
-
-	l.Close()
-
-	dbs.network = "host" // Use same network as docker host
-	dbs.Host = addr.String()
-
-	if dockerutils.IsRunningInDocker() {
-		containerID, err := dockerutils.CurrentContainerID()
-		if err != nil {
-			log.Panic("failed to get current container id: " + err.Error())
-		}
-
-		if containerID != "" {
-			// If tests are running in a docker container use the same container network
-			dbs.network = fmt.Sprintf("container:%s", containerID)
-		}
-	}
-	dbs.tomb = tomb.Tomb{}
-
-	args := []string{
-		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
-		"--bind_ip", "127.0.0.1",
-		"--port", strconv.Itoa(addr.Port),
-		"--replSet", "rs0",
-	}
-
-	dbs.server = exec.Command("docker", args...)
-	dbs.server.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGTERM}
-	dbs.server.Stdout = &dbs.output
-	dbs.server.Stderr = &dbs.output
-	err = dbs.server.Start()
-	if err != nil {
-		// print error to facilitate troubleshooting as the panic will be caught in a panic handler
-		fmt.Fprintf(os.Stderr, "mongod failed to start: %v\n", err)
-		log.WithError(err).Warning("mongod failed to start")
-		log.Panic(err)
-	}
-	dbs.tomb.Go(dbs.monitor)
-	dbs.Wipe()
-}
-
-func (dbs *DBServer) monitor() error {
-	if _, err := dbs.server.Process.Wait(); err != nil {
-		log.WithError(err).Warning("mongod container process wait error")
-
 		return err
 	}
+	// Index 0 is the IPV4 addr
+	srv.Container.ExposedPort = ports["27017/tcp"][0].HostPort
 
-	if dbs.tomb.Alive() {
-		// Present some debugging information.
-		log.Error("---- mongod container died unexpectedly ----")
-		fmt.Fprintf(os.Stderr, "%s", dbs.output.Bytes())
-		log.Error("---- mongod containers running right now ----")
+	cIP, err := srv.tContainer.ContainerIP(ctx)
+	if err != nil {
+		return err
+	}
+	srv.Container.ConnectionString = "mongodb://" + cIP + ":27017"
 
-		cmd := exec.Command("/bin/sh", "-c", "docker ps --filter ancestor=mongo")
-		cmd.Stdout = os.Stderr
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			log.WithError(err).Warning("Failed to list running mongo containers")
-
-			return err
-		}
-
-		log.Error("----------------------------------------")
-		log.Panic("mongod container died unexpectedly")
+	if srv.Container.Database == "" {
+		srv.Container.Database = "test"
 	}
 
 	return nil
 }
 
-// Stop stops the test server process, if it is running.
-//
-// It's okay to call Stop multiple times. After the test server is
-// stopped it cannot be restarted.
-//
-// All database clients must be closed before or while the Stop method
-// is running. Otherwise Stop will panic after a timeout informing that
-// there is a client leak.
-func (dbs *DBServer) Stop() {
-	if dbs.client != nil {
-		if err := dbs.client.Disconnect(dbs.Ctx); err != nil {
-			log.Panic("fail to disconnect the database")
-		}
-
-		dbs.client = nil
-	}
-
-	if dbs.server != nil { //nolint:nestif
-		dbs.tomb.Kill(nil)
-
-		// Windows doesn't support Interrupt
-		if runtime.GOOS == "windows" {
-			if err := dbs.server.Process.Signal(os.Kill); err != nil {
-				log.Panic("fail to send os.Kill to the server")
-			}
-		} else {
-			if err := dbs.server.Process.Signal(os.Interrupt); err != nil {
-				log.Panic("fail to send os.Interrupt to the server")
-			}
-		}
-
-		select {
-		case <-dbs.tomb.Dead():
-		case <-time.After(5 * time.Second):
-			log.Panic("timeout waiting for mongod process to die")
-		}
-		dbs.server = nil
-	}
-}
-
-// Client returns a new client to the server. The returned client
-// must be disconnected after the tests are finished.
-//
-// The first call to Client will start the DBServer.
-func (dbs *DBServer) Client() *mongo.Client {
-	if dbs.server == nil {
-		dbs.start()
-	}
-
-	if dbs.client != nil {
-		return dbs.client
-	}
-
+// Up starts a new MongoDB container, configures the database to receive fixtures,
+// and returns a DBServer instance.
+func (srv *Server) Up(ctx context.Context) error {
 	var err error
 
-	if dbs.timeout == 0 {
-		dbs.timeout = 8 * time.Second
-	}
-
-	// Wait for mongodb to be available
-	ticker := time.NewTicker(time.Second)
-ticker:
-	for {
-		select {
-		case <-time.After(dbs.timeout):
-			log.Panic("mongodb connection timeout")
-		case <-ticker.C:
-			if _, err := net.Dial("tcp", dbs.Host); err != nil {
-				continue
-			}
-
-			break ticker
-		}
-	}
-
-	args := []string{
-		"run", "--rm", fmt.Sprintf("--net=%s", dbs.network), "mongo:4.4.8",
-		"mongo",
-		"--host", dbs.Host,
-		"--eval", "rs.initiate()",
-		"--quiet",
-	}
-
-	// Initiates mongodb replica set before anything else
-	cmd := exec.Command("docker", args...)
-	out, err := cmd.CombinedOutput()
+	srv.tContainer, err = mongodb.RunContainer(ctx, testcontainers.WithImage("mongo:4.4.8"), withReplicaSet())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", out)
-		log.Panic(err)
+		return err
 	}
 
-	clientOptions := options.Client().ApplyURI("mongodb://" + dbs.Host + "/test")
-	dbs.Ctx = context.Background()
-
-	dbs.client, err = mongo.Connect(dbs.Ctx, clientOptions)
-	if err != nil {
-		log.Panic(err)
-	}
-	if dbs.client == nil {
-		log.Panic("cant connect")
+	if err := srv.configure(ctx); err != nil {
+		return err
 	}
 
-	// Verify that the server is accepting connections
-	if err := dbs.client.Ping(dbs.Ctx, nil); err != nil {
-		log.Panic(err)
-	}
+	mongotest.Configure(mongotest.Config{
+		URL:            srv.Container.ConnectionString,
+		Database:       srv.Container.Database,
+		FixtureRootDir: srv.Fixtures.Root,
+		PreInsertFuncs: srv.Fixtures.PreInsertFuncs,
+		FixtureFormat:  mongotest.FixtureFormatJSON,
+	})
 
-	return dbs.client
+	return nil
 }
 
-func (dbs *DBServer) CTX() context.Context {
-	return dbs.Ctx
+// Down gracefully terminates the MongoDB container.
+func (srv *Server) Down(ctx context.Context) error {
+	return srv.tContainer.Terminate(ctx)
 }
 
-// Wipe drops all created databases and their data.
-func (dbs *DBServer) Wipe() {
-	if dbs.server == nil || dbs.client == nil {
-		return
-	}
-	client := dbs.Client()
-	names, err := client.ListDatabaseNames(dbs.Ctx, bson.M{})
-	if err != nil {
-		log.Panic(err)
-	}
-	for _, name := range names {
-		switch name {
-		case "admin", "local", "config":
-		default:
-			err = dbs.client.Database(name).Drop(dbs.Ctx)
-			if err != nil {
-				log.Panic(err)
-			}
-		}
-	}
+// Apply applies specified fixtures to the database.
+func (*Server) Apply(fixtures ...string) error {
+	return mongotest.UseFixture(fixtures...)
+}
+
+// Reset resets the entire database, removing all data.
+func (*Server) Reset() error {
+	return mongotest.DropDatabase()
 }

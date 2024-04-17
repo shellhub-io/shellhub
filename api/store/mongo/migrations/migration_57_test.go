@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -15,7 +14,7 @@ import (
 
 func TestMigration57(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	type PaymentFailed struct {
@@ -52,7 +51,7 @@ func TestMigration57(t *testing.T) {
 		{
 			description: "Success to apply up on migration 57 when namespace has billing",
 			setup: func() error {
-				_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), Namespace{
+				_, err := c.Database("test").Collection("namespaces").InsertOne(context.TODO(), Namespace{
 					TenantID: "00000000-0000-0000-0000-000000000001",
 					Billing: &Billing{
 						State: "processed",
@@ -62,13 +61,13 @@ func TestMigration57(t *testing.T) {
 				return err
 			},
 			run: func() error {
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[56:57]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[56:57]...)
 
 				return migrates.Up(context.Background(), migrate.AllAvailable)
 			},
 			check: func() (string, error) {
 				namespace := new(models.Namespace)
-				err := srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{
+				err := c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{
 					"tenant_id": "00000000-0000-0000-0000-000000000001",
 				}).Decode(&namespace)
 				if err != nil {
@@ -82,20 +81,20 @@ func TestMigration57(t *testing.T) {
 		{
 			description: "Success to apply up on migration 57 when namespace has no billing",
 			setup: func() error {
-				_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), Namespace{
+				_, err := c.Database("test").Collection("namespaces").InsertOne(context.TODO(), Namespace{
 					TenantID: "00000000-0000-0000-0000-000000000002",
 				})
 
 				return err
 			},
 			run: func() error {
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[56:57]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[56:57]...)
 
 				return migrates.Up(context.Background(), migrate.AllAvailable)
 			},
 			check: func() (string, error) {
 				namespace := new(models.Namespace)
-				if err := srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "00000000-0000-0000-0000-000000000002"}).Decode(&namespace); err != nil {
+				if err := c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "00000000-0000-0000-0000-000000000002"}).Decode(&namespace); err != nil {
 					return "", err
 				}
 
@@ -110,7 +109,7 @@ func TestMigration57(t *testing.T) {
 		{
 			description: "Success to apply down on migration 57 when namespace has billing",
 			setup: func() error {
-				_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), &models.Namespace{
+				_, err := c.Database("test").Collection("namespaces").InsertOne(context.TODO(), &models.Namespace{
 					TenantID: "00000000-0000-0000-0000-000000000003",
 					Billing: &models.Billing{
 						Status: "active",
@@ -120,13 +119,13 @@ func TestMigration57(t *testing.T) {
 				return err
 			},
 			run: func() error {
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[56:57]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[56:57]...)
 
 				return migrates.Down(context.Background(), migrate.AllAvailable)
 			},
 			check: func() (string, error) {
 				namespace := new(Namespace)
-				err := srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{
+				err := c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{
 					"tenant_id": "00000000-0000-0000-0000-000000000003",
 				}).Decode(&namespace)
 				if err != nil {
@@ -140,20 +139,20 @@ func TestMigration57(t *testing.T) {
 		{
 			description: "Success to apply down on migration 57 when namespace has no billing",
 			setup: func() error {
-				_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), &models.Namespace{
+				_, err := c.Database("test").Collection("namespaces").InsertOne(context.TODO(), &models.Namespace{
 					TenantID: "00000000-0000-0000-0000-000000000004",
 				})
 
 				return err
 			},
 			run: func() error {
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[56:57]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[56:57]...)
 
 				return migrates.Down(context.Background(), migrate.AllAvailable)
 			},
 			check: func() (string, error) {
 				namespace := new(Namespace)
-				err := srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{
+				err := c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{
 					"tenant_id": "00000000-0000-0000-0000-000000000004",
 				}).Decode(&namespace)
 				if err != nil {

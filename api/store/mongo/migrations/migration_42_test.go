@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -58,14 +57,14 @@ func TestMigration42(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[41:42]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[41:42]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				key := new(models.PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyOld.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyOld.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -101,14 +100,14 @@ func TestMigration42(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[41:42]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[41:42]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 				key := new(PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyNew.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyNew.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -123,7 +122,7 @@ func TestMigration42(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -34,9 +33,9 @@ func TestPrivateKeyCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.PrivateKeyCreate(ctx, tc.priKey)
@@ -60,7 +59,7 @@ func TestPrivateKeyGet(t *testing.T) {
 		{
 			description: "fails when private key is not found",
 			fingerprint: "nonexistent",
-			fixtures:    []string{fixtures.FixturePrivateKeys},
+			fixtures:    []string{fixturePrivateKeys},
 			expected: Expected{
 				privKey: nil,
 				err:     store.ErrNoDocuments,
@@ -69,7 +68,7 @@ func TestPrivateKeyGet(t *testing.T) {
 		{
 			description: "succeeds when private key is found",
 			fingerprint: "fingerprint",
-			fixtures:    []string{fixtures.FixturePrivateKeys},
+			fixtures:    []string{fixturePrivateKeys},
 			expected: Expected{
 				privKey: &models.PrivateKey{
 					Data:        []byte("test"),
@@ -85,9 +84,9 @@ func TestPrivateKeyGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			privKey, err := s.PrivateKeyGet(ctx, tc.fingerprint)

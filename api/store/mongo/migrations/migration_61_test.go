@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -28,20 +27,20 @@ func TestMigration61(t *testing.T) {
 		{
 			"Success to apply up on migration 61",
 			func() (func() error, error) {
-				if _, err := srv.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
+				if _, err := c.Database("test").Collection("devices").InsertOne(ctx, models.Device{
 					Name: "",
 				}); err != nil {
 					return nil, err
 				}
 
-				if _, err := srv.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
+				if _, err := c.Database("test").Collection("devices").InsertOne(ctx, models.Device{
 					Name: "test",
 				}); err != nil {
 					return nil, err
 				}
 
 				return func() error {
-					_, err := srv.Client().Database("test").Collection("devices").DeleteOne(ctx, bson.M{
+					_, err := c.Database("test").Collection("devices").DeleteOne(ctx, bson.M{
 						"name": "test",
 					})
 					if err != nil {
@@ -53,13 +52,13 @@ func TestMigration61(t *testing.T) {
 			},
 			func() error {
 				migrations := GenerateMigrations()[60:61]
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				count, err := srv.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": ""})
+				count, err := c.Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": ""})
 				if err != nil {
 					return err
 				}
@@ -68,7 +67,7 @@ func TestMigration61(t *testing.T) {
 					return errors.New("failed because don't deleted the expected")
 				}
 
-				count, err = srv.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": "test"})
+				count, err = c.Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": "test"})
 				if err != nil {
 					return err
 				}
@@ -86,7 +85,7 @@ func TestMigration61(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			teardown, err := tc.setup()

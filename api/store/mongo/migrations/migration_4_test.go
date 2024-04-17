@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -13,7 +12,7 @@ import (
 
 func TestMigration4(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	deviceInfo := models.DeviceInfo{
@@ -25,18 +24,18 @@ func TestMigration4(t *testing.T) {
 		Info: &deviceInfo,
 	}
 
-	_, err := srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err := c.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	var afterMigrateDevice *models.Device
-	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&afterMigrateDevice)
+	err = c.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&afterMigrateDevice)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:4]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:4]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = c.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	type DeviceInfo struct {
@@ -49,6 +48,6 @@ func TestMigration4(t *testing.T) {
 	}
 
 	var migratedDevice *Device
-	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&migratedDevice)
+	err = c.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"info": &deviceInfo}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 }

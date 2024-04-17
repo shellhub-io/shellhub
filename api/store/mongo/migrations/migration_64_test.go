@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -28,8 +27,7 @@ func TestMigration64(t *testing.T) {
 		{
 			description: "Success to apply up on migration 64",
 			setup: func() error {
-				_, err := srv.
-					Client().
+				_, err := c.
 					Database("test").
 					Collection("namespaces").
 					InsertOne(ctx, models.Namespace{
@@ -41,14 +39,13 @@ func TestMigration64(t *testing.T) {
 			},
 			test: func() error {
 				migrations := GenerateMigrations()[63:64]
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				query := srv.
-					Client().
+				query := c.
 					Database("test").
 					Collection("namespaces").
 					FindOne(context.TODO(), bson.M{"tenant_id": "00000000-0000-4000-0000-000000000000"})
@@ -71,7 +68,7 @@ func TestMigration64(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			assert.NoError(t, tc.setup())

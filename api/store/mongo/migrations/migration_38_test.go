@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -14,7 +13,7 @@ import (
 
 func TestMigration38(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	type Expected struct {
@@ -62,13 +61,13 @@ func TestMigration38(t *testing.T) {
 		},
 	}
 
-	_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), userNoCreatedAt)
+	_, err := c.Database("test").Collection("users").InsertOne(context.TODO(), userNoCreatedAt)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), userWithCreatedAt)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), userWithCreatedAt)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -82,7 +81,7 @@ func TestMigration38(t *testing.T) {
 				t.Helper()
 
 				var userMigrated *models.User
-				err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.D{{"username", userNoCreatedAt.Username}}).Decode(&userMigrated)
+				err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.D{{"username", userNoCreatedAt.Username}}).Decode(&userMigrated)
 				assert.NoError(t, err)
 				assert.Equal(t,
 					Expected{CreatedAt: convertDate(userNoCreatedAt.LastLogin), LastLogin: convertDate(userNoCreatedAt.LastLogin)},
@@ -96,7 +95,7 @@ func TestMigration38(t *testing.T) {
 				t.Helper()
 
 				var userMigrated *models.User
-				err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.D{{"username", userWithCreatedAt.Username}}).Decode(&userMigrated)
+				err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.D{{"username", userWithCreatedAt.Username}}).Decode(&userMigrated)
 				assert.NoError(t, err)
 				assert.Equal(t,
 					Expected{CreatedAt: convertDate(userWithCreatedAt.CreatedAt), LastLogin: convertDate(userWithCreatedAt.LastLogin)},

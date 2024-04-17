@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -30,7 +29,7 @@ func TestMigration59(t *testing.T) {
 		{
 			description: "Success to apply up on migration 59",
 			setup: func() (func() error, error) {
-				if _, err := srv.Client().Database("test").Collection("users").InsertOne(ctx, models.User{
+				if _, err := c.Database("test").Collection("users").InsertOne(ctx, models.User{
 					ID:        "652594bcc7b001c6f298df48",
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -47,12 +46,12 @@ func TestMigration59(t *testing.T) {
 				}
 
 				user := new(models.User)
-				if err := srv.Client().Database("test").Collection("users").FindOne(ctx, bson.M{"name": "John Doe"}).Decode(&user); err != nil {
+				if err := c.Database("test").Collection("users").FindOne(ctx, bson.M{"name": "John Doe"}).Decode(&user); err != nil {
 					return nil, err
 				}
 
 				return func() error {
-					d, err := srv.Client().Database("test").Collection("users").DeleteOne(ctx, bson.M{"username": "john doe"})
+					d, err := c.Database("test").Collection("users").DeleteOne(ctx, bson.M{"username": "john doe"})
 					if err != nil {
 						return err
 					}
@@ -67,7 +66,7 @@ func TestMigration59(t *testing.T) {
 			check: func() (*models.User, error) {
 				user := new(models.User)
 
-				if err := srv.Client().Database("test").Collection("users").FindOne(ctx, bson.M{"username": "john doe"}).Decode(&user); err != nil {
+				if err := c.Database("test").Collection("users").FindOne(ctx, bson.M{"username": "john doe"}).Decode(&user); err != nil {
 					return nil, err
 				}
 
@@ -99,13 +98,13 @@ func TestMigration59(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			teardown, err := tc.setup()
 			assert.NoError(t, err)
 
-			migrates := migrate.NewMigrate(srv.Client().Database("test"), migration59)
+			migrates := migrate.NewMigrate(c.Database("test"), migration59)
 			assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			user, err := tc.check()

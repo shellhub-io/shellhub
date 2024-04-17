@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +22,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "new-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -31,7 +30,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
 			tag:         "new-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -39,7 +38,7 @@ func TestPublicKeyPushTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "new-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    nil,
 		},
 	}
@@ -48,9 +47,9 @@ func TestPublicKeyPushTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.PublicKeyPushTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
@@ -73,7 +72,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -81,7 +80,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -89,7 +88,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    store.ErrNoDocuments,
 		},
 		{
@@ -97,7 +96,7 @@ func TestPublicKeyPullTag(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected:    nil,
 		},
 	}
@@ -106,9 +105,9 @@ func TestPublicKeyPullTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.PublicKeyPullTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
@@ -137,7 +136,7 @@ func TestPublicKeySetTags(t *testing.T) {
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag-1"},
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				matchedCount: 0,
 				updatedCount: 0,
@@ -149,7 +148,7 @@ func TestPublicKeySetTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
 			tags:        []string{"tag-1"},
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				matchedCount: 0,
 				updatedCount: 0,
@@ -161,7 +160,7 @@ func TestPublicKeySetTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"tag-1"},
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				matchedCount: 1,
 				updatedCount: 0,
@@ -173,7 +172,7 @@ func TestPublicKeySetTags(t *testing.T) {
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tags:        []string{"new-tag"},
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				matchedCount: 1,
 				updatedCount: 1,
@@ -186,9 +185,9 @@ func TestPublicKeySetTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			matchedCount, updatedCount, err := s.PublicKeySetTags(ctx, tc.tenant, tc.fingerprint, tc.tags)
@@ -218,7 +217,7 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 			tenant:      "nonexistent",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -229,7 +228,7 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "nonexistent",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -240,7 +239,7 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				count: 1,
 				err:   nil,
@@ -252,9 +251,9 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			count, err := s.PublicKeyBulkRenameTag(ctx, tc.tenant, tc.oldTag, tc.newTag)
@@ -280,7 +279,7 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 			description: "fails when public key is not found due to tenant",
 			tenant:      "nonexistent",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -290,7 +289,7 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 			description: "fails when public key is not found due to tag",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "nonexistent",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				count: 0,
 				err:   nil,
@@ -300,7 +299,7 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 			description: "succeeds when public key is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			tag:         "tag-1",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				count: 1,
 				err:   nil,
@@ -312,9 +311,9 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			count, err := s.PublicKeyBulkDeleteTag(ctx, tc.tenant, tc.tag)
@@ -339,7 +338,7 @@ func TestPublicKeyGetTags(t *testing.T) {
 		{
 			description: "succeeds when tags list is greater than 1",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixturePublicKeys},
+			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				tags: []string{"tag-1"},
 				len:  1,
@@ -352,9 +351,9 @@ func TestPublicKeyGetTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			tags, count, err := s.PublicKeyGetTags(ctx, tc.tenant)

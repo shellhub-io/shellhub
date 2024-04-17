@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -14,7 +13,7 @@ import (
 
 func TestMigration22(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	user := models.User{
@@ -45,17 +44,17 @@ func TestMigration22(t *testing.T) {
 		Members:    []interface{}{"60df59bc65f88d92b974a60f"},
 		MaxDevices: -1,
 	}
-	_, err := srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), user)
+	_, err := c.Database("test").Collection("devices").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[21:22]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[21:22]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	var migratedNamespace *models.Namespace
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedNamespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 }

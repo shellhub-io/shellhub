@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +17,7 @@ func TestDeleteCodes(t *testing.T) {
 		{
 			description: "success when try to delete codes",
 			username:    "username",
-			fixtures:    []string{fixtures.FixtureUsers},
+			fixtures:    []string{fixtureUsers},
 			expected:    nil,
 		},
 	}
@@ -27,9 +26,9 @@ func TestDeleteCodes(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeleteCodes(ctx, tc.username)
@@ -50,7 +49,7 @@ func TestAddStatusMFA(t *testing.T) {
 			description: "success when try to add status MFA",
 			username:    "username",
 			status:      true,
-			fixtures:    []string{fixtures.FixtureUsers},
+			fixtures:    []string{fixtureUsers},
 			expected:    nil,
 		},
 	}
@@ -59,9 +58,9 @@ func TestAddStatusMFA(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.AddStatusMFA(ctx, tc.username, tc.status)
@@ -82,7 +81,7 @@ func TestAddSecret(t *testing.T) {
 			description: "success when try to add status MFA",
 			username:    "username",
 			secret:      "IOJDSFIAWMKXskdlmawOSDMCALWC",
-			fixtures:    []string{fixtures.FixtureUsers},
+			fixtures:    []string{fixtureUsers},
 			expected:    nil,
 		},
 	}
@@ -91,9 +90,9 @@ func TestAddSecret(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.AddSecret(ctx, tc.username, tc.secret)
@@ -112,7 +111,7 @@ func TestDeleteSecret(t *testing.T) {
 		{
 			description: "success to delete a status MFA",
 			username:    "username",
-			fixtures:    []string{fixtures.FixtureUsers},
+			fixtures:    []string{fixtureUsers},
 			expected:    nil,
 		},
 	}
@@ -121,9 +120,9 @@ func TestDeleteSecret(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeleteSecret(ctx, tc.username)

@@ -7,7 +7,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 )
@@ -25,13 +24,13 @@ func TestMigration55(t *testing.T) {
 			"Success to apply up on migration 55",
 			func() error {
 				migrations := GenerateMigrations()[54:55]
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := srv.Client().Database("test").Collection("removed_devices").Indexes().List(context.Background())
+				cursor, err := c.Database("test").Collection("removed_devices").Indexes().List(context.Background())
 				if err != nil {
 					return err
 				}
@@ -66,13 +65,13 @@ func TestMigration55(t *testing.T) {
 			"Success to apply down on migration 55",
 			func() error {
 				migrations := GenerateMigrations()[54:55]
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := srv.Client().Database("test").Collection("removed_devices").Indexes().List(context.Background())
+				cursor, err := c.Database("test").Collection("removed_devices").Indexes().List(context.Background())
 				if err != nil {
 					return errors.New("index not dropped")
 				}
@@ -109,7 +108,7 @@ func TestMigration55(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := tc.test()

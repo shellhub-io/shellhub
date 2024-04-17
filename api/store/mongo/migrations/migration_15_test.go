@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -13,10 +12,10 @@ import (
 
 func TestMigration15(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:14]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:14]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -24,13 +23,13 @@ func TestMigration15(t *testing.T) {
 		Name: "Test",
 	}
 
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), ns)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:15]...)
+	migrates = migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:15]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&ns)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "test"}).Decode(&ns)
 	assert.NoError(t, err)
 }
