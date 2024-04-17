@@ -4,20 +4,18 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 )
 
 func TestMigration7(t *testing.T) {
-	logrus.Info("Testing Migration 7 - Test if the uid and message is not unique")
+	t.Cleanup(func() {
+		assert.NoError(t, fixtures.Teardown())
+	})
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:6]...)
+	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:6]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -31,13 +29,13 @@ func TestMigration7(t *testing.T) {
 		Message: "message",
 	}
 
-	_, err = db.Client().Database("test").Collection("recorded_sessions").InsertOne(context.TODO(), recordedSession1)
+	_, err = srv.Client().Database("test").Collection("recorded_sessions").InsertOne(context.TODO(), recordedSession1)
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("recorded_sessions").InsertOne(context.TODO(), recordedSession2)
+	_, err = srv.Client().Database("test").Collection("recorded_sessions").InsertOne(context.TODO(), recordedSession2)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:7]...)
+	migrates = migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:7]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

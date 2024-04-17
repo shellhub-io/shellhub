@@ -4,11 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,11 +15,6 @@ import (
 )
 
 func TestMigration50(t *testing.T) {
-	logrus.Info("Testing Migration 50")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	mock := &envMocks.Backend{}
 	envs.DefaultBackend = mock
 
@@ -62,29 +56,29 @@ func TestMigration50(t *testing.T) {
 		{
 			"Success to apply up on migration 50 when it is a ShellHub Cloud instance",
 			func() {
-				_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+				_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
 				assert.NoError(t, err)
 			},
 			func() (int, error) {
 				mock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				migrations := GenerateMigrations()[49:50]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return 0, err
 				}
 
 				user := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				if err != nil {
 					return 0, err
 				}
@@ -98,40 +92,40 @@ func TestMigration50(t *testing.T) {
 			},
 			2,
 			func() {
-				err = db.Client().Database("test").Collection("users").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("users").Drop(context.TODO())
 				assert.NoError(t, err)
-				err = db.Client().Database("test").Collection("namespaces").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("namespaces").Drop(context.TODO())
 				assert.NoError(t, err)
-				err = db.Client().Database("test").Collection("migrations").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("migrations").Drop(context.TODO())
 				assert.NoError(t, err)
 			},
 		},
 		{
 			"Success to apply up on migration 50 when it is a ShellHub Community instance",
 			func() {
-				_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+				_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
 				assert.NoError(t, err)
 			},
 			func() (int, error) {
 				mock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
 
 				migrations := GenerateMigrations()[49:50]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return 0, err
 				}
 
 				user := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				if err != nil {
 					return 0, err
 				}
@@ -145,38 +139,38 @@ func TestMigration50(t *testing.T) {
 			},
 			-1,
 			func() {
-				err = db.Client().Database("test").Collection("users").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("users").Drop(context.TODO())
 				assert.NoError(t, err)
-				err = db.Client().Database("test").Collection("namespaces").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("namespaces").Drop(context.TODO())
 				assert.NoError(t, err)
-				err = db.Client().Database("test").Collection("migrations").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("migrations").Drop(context.TODO())
 				assert.NoError(t, err)
 			},
 		},
 		{
 			"Success to apply down on migration 50",
 			func() {
-				_, err := db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+				_, err := srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
 				assert.NoError(t, err)
-				_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
+				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
 				assert.NoError(t, err)
 			},
 			func() (int, error) {
 				migrations := GenerateMigrations()[49:50]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return 0, err
 				}
 
 				user := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				if err != nil {
 					return 0, err
 				}
@@ -190,11 +184,11 @@ func TestMigration50(t *testing.T) {
 			},
 			0,
 			func() {
-				err = db.Client().Database("test").Collection("users").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("users").Drop(context.TODO())
 				assert.NoError(t, err)
-				err = db.Client().Database("test").Collection("namespaces").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("namespaces").Drop(context.TODO())
 				assert.NoError(t, err)
-				err = db.Client().Database("test").Collection("migrations").Drop(context.TODO())
+				err = srv.Client().Database("test").Collection("migrations").Drop(context.TODO())
 				assert.NoError(t, err)
 			},
 		},
@@ -203,6 +197,10 @@ func TestMigration50(t *testing.T) {
 	for _, test := range cases {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
 			tc.before()
 
 			actual, err := tc.test()

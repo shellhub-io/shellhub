@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -14,12 +14,13 @@ import (
 )
 
 func TestMigration25(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	t.Cleanup(func() {
+		assert.NoError(t, fixtures.Teardown())
+	})
 
 	migrations := GenerateMigrations()[:24]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -32,7 +33,7 @@ func TestMigration25(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "tenant",
 	}
-	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	device := models.Device{
@@ -42,7 +43,7 @@ func TestMigration25(t *testing.T) {
 		TenantID: "tenant",
 		LastSeen: time.Now(),
 	}
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	device = models.Device{
@@ -52,7 +53,7 @@ func TestMigration25(t *testing.T) {
 		TenantID: "tenant2",
 		LastSeen: time.Now(),
 	}
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	device = models.Device{
@@ -62,12 +63,12 @@ func TestMigration25(t *testing.T) {
 		TenantID: "tenant3",
 		LastSeen: time.Now(),
 	}
-	_, err = db.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	migration := GenerateMigrations()[24]
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), migration)
+	migrates = migrate.NewMigrate(srv.Client().Database("test"), migration)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -76,13 +77,13 @@ func TestMigration25(t *testing.T) {
 	assert.Equal(t, uint64(25), version)
 
 	var migratedDevice *models.Device
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedDevice)
+	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 	assert.Equal(t, "device", migratedDevice.Name)
 
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&models.Namespace{})
+	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&models.Namespace{})
 	assert.EqualError(t, mongo.ErrNoDocuments, err.Error())
 
-	err = db.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant3"}).Decode(&models.Namespace{})
+	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant3"}).Decode(&models.Namespace{})
 	assert.EqualError(t, mongo.ErrNoDocuments, err.Error())
 }

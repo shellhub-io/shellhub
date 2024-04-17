@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,10 +13,9 @@ import (
 )
 
 func TestMigration20(t *testing.T) {
-	logrus.Info("Testing Migration 20 - Test if the firewall_rules has change to new one")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	t.Cleanup(func() {
+		assert.NoError(t, fixtures.Teardown())
+	})
 
 	type firewallRule struct {
 		ID                        primitive.ObjectID `json:"id" bson:"_id"`
@@ -29,14 +27,14 @@ func TestMigration20(t *testing.T) {
 		TenantID: "tenant",
 	}
 
-	_, err := db.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), fRule)
+	_, err := srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), fRule)
 	assert.NoError(t, err)
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[19:20]...)
+	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[19:20]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	var migratedFirewallRules *models.FirewallRule
-	err = db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedFirewallRules)
+	err = srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedFirewallRules)
 	assert.NoError(t, err)
 }

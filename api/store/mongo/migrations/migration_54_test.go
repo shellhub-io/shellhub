@@ -5,20 +5,14 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/sirupsen/logrus"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration54(t *testing.T) {
-	logrus.Info("Testing Migration 54")
-
 	const Name string = "tenant_id_1_status_1"
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
 
 	cases := []struct {
 		description string
@@ -28,13 +22,13 @@ func TestMigration54(t *testing.T) {
 			"Success to apply up on migration 54",
 			func() error {
 				migrations := GenerateMigrations()[53:54]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := db.Client().Database("test").Collection("devices").Indexes().List(context.Background())
+				cursor, err := srv.Client().Database("test").Collection("devices").Indexes().List(context.Background())
 				if err != nil {
 					return err
 				}
@@ -62,13 +56,13 @@ func TestMigration54(t *testing.T) {
 			"Success to apply down on migration 54",
 			func() error {
 				migrations := GenerateMigrations()[53:54]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := db.Client().Database("test").Collection("devices").Indexes().List(context.Background())
+				cursor, err := srv.Client().Database("test").Collection("devices").Indexes().List(context.Background())
 				if err != nil {
 					return errors.New("index not dropped")
 				}
@@ -97,6 +91,10 @@ func TestMigration54(t *testing.T) {
 	for _, test := range cases {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
 			err := tc.test()
 			assert.NoError(t, err)
 		})

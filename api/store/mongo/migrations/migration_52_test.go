@@ -4,24 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration52(t *testing.T) {
-	logrus.Info("Testing Migration 52")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	user := models.User{}
-
-	_, err := db.Client().Database("test").Collection("users").InsertOne(context.Background(), user)
-	assert.NoError(t, err)
 
 	cases := []struct {
 		description string
@@ -32,13 +23,14 @@ func TestMigration52(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[51:52]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				_, err := srv.Client().Database("test").Collection("users").InsertOne(context.Background(), user)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[51:52]...)
+				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
+
 				key := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
+				result := srv.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -52,13 +44,14 @@ func TestMigration52(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[51:52]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(context.Background(), migrate.AllAvailable)
+				_, err := srv.Client().Database("test").Collection("users").InsertOne(context.Background(), user)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[51:52]...)
+				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
+
 				key := new(models.User)
-				result := db.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
+				result := srv.Client().Database("test").Collection("users").FindOne(context.Background(), bson.M{})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -70,6 +63,11 @@ func TestMigration52(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, tc.Test)
+		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+			tc.Test(t)
+		})
 	}
 }

@@ -5,20 +5,14 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration45(t *testing.T) {
-	logrus.Info("Testing Migration 45")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	ruleTagDuplicated := &models.FirewallRule{
 		ID:       "id",
 		TenantID: "tenant",
@@ -79,11 +73,11 @@ func TestMigration45(t *testing.T) {
 		},
 	}
 
-	_, err := db.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleTagDuplicated)
+	_, err := srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleTagDuplicated)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleTagNoDuplicated)
+	_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleTagNoDuplicated)
 	assert.NoError(t, err)
-	_, err = db.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleHostname)
+	_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleHostname)
 	assert.NoError(t, err)
 
 	cases := []struct {
@@ -96,12 +90,12 @@ func TestMigration45(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[44:45]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				rule := new(models.FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleTagDuplicated.TenantID})
+				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleTagDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -118,12 +112,12 @@ func TestMigration45(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[44:45]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				rule := new(models.FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleTagNoDuplicated.TenantID})
+				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleTagNoDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -140,12 +134,12 @@ func TestMigration45(t *testing.T) {
 				t.Helper()
 
 				migrations := GenerateMigrations()[44:45]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				assert.NoError(t, err)
 
 				rule := new(models.FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleHostname.TenantID})
+				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleHostname.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -157,6 +151,10 @@ func TestMigration45(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, tc.Test)
+		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+		})
 	}
 }

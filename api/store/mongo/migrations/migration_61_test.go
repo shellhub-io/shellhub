@@ -5,23 +5,17 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration61(t *testing.T) {
-	logrus.Info("Testing Migration 61")
-
 	ctx := context.Background()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
 
 	mock := &envMocks.Backend{}
 	envs.DefaultBackend = mock
@@ -34,20 +28,20 @@ func TestMigration61(t *testing.T) {
 		{
 			"Success to apply up on migration 61",
 			func() (func() error, error) {
-				if _, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
+				if _, err := srv.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
 					Name: "",
 				}); err != nil {
 					return nil, err
 				}
 
-				if _, err := db.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
+				if _, err := srv.Client().Database("test").Collection("devices").InsertOne(ctx, models.Device{
 					Name: "test",
 				}); err != nil {
 					return nil, err
 				}
 
 				return func() error {
-					_, err := db.Client().Database("test").Collection("devices").DeleteOne(ctx, bson.M{
+					_, err := srv.Client().Database("test").Collection("devices").DeleteOne(ctx, bson.M{
 						"name": "test",
 					})
 					if err != nil {
@@ -59,13 +53,13 @@ func TestMigration61(t *testing.T) {
 			},
 			func() error {
 				migrations := GenerateMigrations()[60:61]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				count, err := db.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": ""})
+				count, err := srv.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": ""})
 				if err != nil {
 					return err
 				}
@@ -74,7 +68,7 @@ func TestMigration61(t *testing.T) {
 					return errors.New("failed because don't deleted the expected")
 				}
 
-				count, err = db.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": "test"})
+				count, err = srv.Client().Database("test").Collection("devices").CountDocuments(ctx, bson.M{"name": "test"})
 				if err != nil {
 					return err
 				}
@@ -91,6 +85,10 @@ func TestMigration61(t *testing.T) {
 	for _, test := range cases {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
 			teardown, err := tc.setup()
 			assert.NoError(t, err)
 

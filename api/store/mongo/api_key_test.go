@@ -1,29 +1,18 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/mongotest"
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAPIKeyCreate(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	cases := []struct {
 		description string
 		APIKey      *models.APIKey
@@ -43,27 +32,20 @@ func TestAPIKeyCreate(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
 
-			err := mongostore.APIKeyCreate(ctx, tc.APIKey)
+			err := s.APIKeyCreate(ctx, tc.APIKey)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
 
 func TestAPIKeyList(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	cases := []struct {
 		description   string
 		requestParams *requests.APIKeyList
@@ -84,27 +66,20 @@ func TestAPIKeyList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
 
-			_, _, err := mongostore.APIKeyList(ctx, "tenant", tc.requestParams.Paginator, tc.requestParams.Sorter)
+			_, _, err := s.APIKeyList(ctx, "tenant", tc.requestParams.Paginator, tc.requestParams.Sorter)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
 
 func TestDeleteAPIKey(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	cases := []struct {
 		description string
 		id          string
@@ -121,27 +96,20 @@ func TestDeleteAPIKey(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
 
-			err := mongostore.APIKeyDelete(ctx, tc.id, "tenant")
+			err := s.APIKeyDelete(ctx, tc.id, "tenant")
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
 
-func TestRenameAPIKey(t *testing.T) {
-	ctx := context.TODO()
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
+func TestAPIKeyEdit(t *testing.T) {
 	cases := []struct {
 		description   string
 		requestParams *requests.APIKeyChanges
@@ -169,14 +137,15 @@ func TestRenameAPIKey(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
 			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
 
-			err := mongostore.APIKeyEdit(ctx, tc.requestParams)
+			err := s.APIKeyEdit(ctx, tc.requestParams)
 			assert.Equal(t, tc.expected, err)
-
-			err = mongotest.DropDatabase()
-			assert.NoError(t, err)
 		})
 	}
 }
