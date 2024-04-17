@@ -4,19 +4,17 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
-	"github.com/sirupsen/logrus"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 )
 
 func TestMigration1(t *testing.T) {
-	logrus.Info("Testing Migration 1 - Create the database for the system")
+	t.Cleanup(func() {
+		assert.NoError(t, fixtures.Teardown())
+	})
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:1]...)
+	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:1]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

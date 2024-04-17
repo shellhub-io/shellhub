@@ -5,20 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration42(t *testing.T) {
-	logrus.Info("Testing Migration 42")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	type PublicKeyFields struct {
 		Name     string `json:"name"`
 		Username string `json:"username" bson:"username,omitempty" validate:"regexp"`
@@ -33,31 +27,6 @@ func TestMigration42(t *testing.T) {
 		PublicKeyFields `bson:",inline"`
 	}
 
-	keyOld := &PublicKey{
-		Fingerprint: "fingerprint",
-		TenantID:    "tenant",
-		PublicKeyFields: PublicKeyFields{
-			Name:     "key",
-			Username: ".*",
-			Hostname: ".*",
-		},
-	}
-
-	keyNew := &models.PublicKey{
-		Fingerprint: "fingerprint",
-		TenantID:    "tenant",
-		PublicKeyFields: models.PublicKeyFields{
-			Name:     "key",
-			Username: ".*",
-			Filter: models.PublicKeyFilter{
-				Hostname: ".*",
-			},
-		},
-	}
-
-	_, err := db.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
-	assert.NoError(t, err)
-
 	cases := []struct {
 		description string
 		Test        func(t *testing.T)
@@ -67,13 +36,36 @@ func TestMigration42(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[41:42]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				keyOld := &PublicKey{
+					Fingerprint: "fingerprint",
+					TenantID:    "tenant",
+					PublicKeyFields: PublicKeyFields{
+						Name:     "key",
+						Username: ".*",
+						Hostname: ".*",
+					},
+				}
+
+				keyNew := &models.PublicKey{
+					Fingerprint: "fingerprint",
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Name:     "key",
+						Username: ".*",
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
+				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[41:42]...)
+				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
+
 				key := new(models.PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyOld.TenantID})
+				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyOld.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -87,13 +79,36 @@ func TestMigration42(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[41:42]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(context.Background(), migrate.AllAvailable)
+				keyOld := &PublicKey{
+					Fingerprint: "fingerprint",
+					TenantID:    "tenant",
+					PublicKeyFields: PublicKeyFields{
+						Name:     "key",
+						Username: ".*",
+						Hostname: ".*",
+					},
+				}
+
+				keyNew := &models.PublicKey{
+					Fingerprint: "fingerprint",
+					TenantID:    "tenant",
+					PublicKeyFields: models.PublicKeyFields{
+						Name:     "key",
+						Username: ".*",
+						Filter: models.PublicKeyFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
+				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyOld)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[41:42]...)
+				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
+
 				key := new(PublicKey)
-				result := db.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyNew.TenantID})
+				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyNew.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -106,6 +121,11 @@ func TestMigration42(t *testing.T) {
 
 	for _, test := range cases {
 		tc := test
-		t.Run(tc.description, tc.Test)
+		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+			tc.Test(t)
+		})
 	}
 }

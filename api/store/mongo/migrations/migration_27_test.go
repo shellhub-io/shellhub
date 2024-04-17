@@ -4,21 +4,19 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration27(t *testing.T) {
-	logrus.Info("Testing Migration 27 - Test closed field in the sessions")
+	t.Cleanup(func() {
+		assert.NoError(t, fixtures.Teardown())
+	})
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	migrates := migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:26]...)
+	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:26]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -41,15 +39,15 @@ func TestMigration27(t *testing.T) {
 		sessions[i] = v
 	}
 
-	_, err = db.Client().Database("test").Collection("sessions").InsertMany(context.TODO(), sessions)
+	_, err = srv.Client().Database("test").Collection("sessions").InsertMany(context.TODO(), sessions)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(db.Client().Database("test"), GenerateMigrations()[:27]...)
+	migrates = migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:27]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	migratedSessions := []models.Session{}
-	cur, err := db.Client().Database("test").Collection("sessions").Find(context.TODO(), bson.D{})
+	cur, err := srv.Client().Database("test").Collection("sessions").Find(context.TODO(), bson.D{})
 	assert.NoError(t, err)
 	for cur.Next(context.TODO()) {
 		var ses models.Session

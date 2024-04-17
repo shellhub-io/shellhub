@@ -1,4 +1,4 @@
-package mongo
+package mongo_test
 
 import (
 	"context"
@@ -6,12 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
 	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -148,12 +146,6 @@ func TestUserList(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
 	// we ensure that both the expected and result arrays are correctly sorted.
 	sort := func(users []models.User) {
@@ -164,12 +156,18 @@ func TestUserList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			users, count, err := mongostore.UserList(context.TODO(), tc.page, tc.filters)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			users, count, err := s.UserList(ctx, tc.page, tc.filters)
+
 			sort(tc.expected.users)
 			sort(users)
+
 			assert.Equal(t, tc.expected, Expected{users: users, count: count, err: err})
 		})
 	}
@@ -200,18 +198,16 @@ func TestUserCreate(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserCreate(context.TODO(), tc.user)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserCreate(ctx, tc.user)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -264,18 +260,16 @@ func TestUserGetByUsername(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			user, err := mongostore.UserGetByUsername(context.TODO(), tc.username)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			user, err := s.UserGetByUsername(ctx, tc.username)
 			assert.Equal(t, tc.expected, Expected{user: user, err: err})
 		})
 	}
@@ -328,18 +322,16 @@ func TestUserGetByEmail(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			user, err := mongostore.UserGetByEmail(context.TODO(), tc.email)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			user, err := s.UserGetByEmail(ctx, tc.email)
 			assert.Equal(t, tc.expected, Expected{user: user, err: err})
 		})
 	}
@@ -423,18 +415,16 @@ func TestUserGetByID(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			user, ns, err := mongostore.UserGetByID(context.TODO(), tc.id, tc.ns)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			user, ns, err := s.UserGetByID(ctx, tc.id, tc.ns)
 			assert.Equal(t, tc.expected, Expected{user: user, ns: ns, err: err})
 		})
 	}
@@ -478,18 +468,16 @@ func TestUserUpdateData(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserUpdateData(context.TODO(), tc.id, tc.data)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserUpdateData(ctx, tc.id, tc.data)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -526,18 +514,16 @@ func TestUserUpdatePassword(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserUpdatePassword(context.TODO(), tc.password, tc.id)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserUpdatePassword(ctx, tc.password, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -570,18 +556,16 @@ func TestUserUpdateAccountStatus(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserUpdateAccountStatus(context.TODO(), tc.id)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserUpdateAccountStatus(ctx, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -620,18 +604,16 @@ func TestUserUpdateFromAdmin(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserUpdateFromAdmin(context.TODO(), tc.name, tc.username, tc.email, tc.password, tc.id)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserUpdateFromAdmin(ctx, tc.name, tc.username, tc.email, tc.password, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -655,18 +637,16 @@ func TestUserCreateToken(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserCreateToken(context.TODO(), tc.token)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserCreateToken(ctx, tc.token)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -708,18 +688,16 @@ func TestUserTokenGet(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			token, err := mongostore.UserGetToken(context.TODO(), tc.id)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			token, err := s.UserGetToken(ctx, tc.id)
 			assert.Equal(t, tc.expected, Expected{token: token, err: err})
 		})
 	}
@@ -740,18 +718,16 @@ func TestUserDeleteTokens(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserDeleteTokens(context.TODO(), tc.id)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserDeleteTokens(ctx, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -778,28 +754,23 @@ func TestUserDelete(t *testing.T) {
 		},
 	}
 
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
-	fixtures.Init(db.Host, "test")
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
-			defer fixtures.Teardown() // nolint: errcheck
+			ctx := context.Background()
 
-			err := mongostore.UserDelete(context.TODO(), tc.id)
+			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+
+			err := s.UserDelete(ctx, tc.id)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
 func TestUserDetachInfo(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ctx := context.Background()
 
 	user := models.User{
 		ID: "60af83d418d2dc3007cd445c",
@@ -817,7 +788,7 @@ func TestUserDetachInfo(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, _ = db.Client().Database("test").Collection("users").InsertOne(context.TODO(), bson.M{
+	_, _ = srv.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
 		"_id":      objID,
 		"name":     user.Name,
 		"username": user.Username,
@@ -882,22 +853,20 @@ func TestUserDetachInfo(t *testing.T) {
 	}
 
 	for _, n := range namespacesOwner {
-		inserted, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), n)
-		t.Log(inserted.InsertedID)
+		_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(ctx, n)
 		assert.NoError(t, err)
 	}
 
 	for _, n := range namespacesMember {
-		inserted, err := db.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), n)
-		t.Log(inserted.InsertedID)
+		_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(ctx, n)
 		assert.NoError(t, err)
 	}
 
-	u, err := mongostore.UserGetByUsername(context.TODO(), "username")
+	u, err := s.UserGetByUsername(ctx, "username")
 	assert.NoError(t, err)
 	assert.Equal(t, user.Username, u.Username)
 
-	namespacesMap, err := mongostore.UserDetachInfo(context.TODO(), user.ID)
+	namespacesMap, err := s.UserDetachInfo(ctx, user.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, namespacesMap["owner"], namespacesOwner)

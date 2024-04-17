@@ -5,27 +5,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration47(t *testing.T) {
-	logrus.Info("Testing Migration 47")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
-	sessionWithoutPossition := &models.Session{
-		UID:       "test",
-		IPAddress: "201.182.197.68",
-	}
-
-	_, err := db.Client().Database("test").Collection("sessions").InsertOne(context.Background(), sessionWithoutPossition)
-	assert.NoError(t, err)
 
 	cases := []struct {
 		description string
@@ -36,13 +23,19 @@ func TestMigration47(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[46:47]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				sessionWithoutPossition := &models.Session{
+					UID:       "test",
+					IPAddress: "201.182.197.68",
+				}
+
+				_, err := srv.Client().Database("test").Collection("sessions").InsertOne(context.Background(), sessionWithoutPossition)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[46:47]...)
+				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
+
 				key := new(models.Session)
-				result := db.Client().Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
+				result := srv.Client().Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -60,13 +53,19 @@ func TestMigration47(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[46:47]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(context.Background(), migrate.AllAvailable)
+				sessionWithoutPossition := &models.Session{
+					UID:       "test",
+					IPAddress: "201.182.197.68",
+				}
+
+				_, err := srv.Client().Database("test").Collection("sessions").InsertOne(context.Background(), sessionWithoutPossition)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[46:47]...)
+				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
+
 				key := new(models.Session)
-				result := db.Client().Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
+				result := srv.Client().Database("test").Collection("sessions").FindOne(context.Background(), bson.M{"uid": sessionWithoutPossition.UID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -78,6 +77,11 @@ func TestMigration47(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, tc.Test)
+		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+			tc.Test(t)
+		})
 	}
 }

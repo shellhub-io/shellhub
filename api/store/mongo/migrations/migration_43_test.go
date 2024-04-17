@@ -4,20 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration43(t *testing.T) {
-	logrus.Info("Testing Migration 43")
-
-	db := dbtest.DBServer{}
-	defer db.Stop()
-
 	type FirewallRuleFields struct {
 		Priority int    `json:"priority"`
 		Action   string `json:"action" validate:"required,oneof=allow deny"`
@@ -33,27 +27,6 @@ func TestMigration43(t *testing.T) {
 		FirewallRuleFields `bson:",inline"`
 	}
 
-	ruleOld := &FirewallRule{
-		ID:       "ruleID",
-		TenantID: "tenant",
-		FirewallRuleFields: FirewallRuleFields{
-			Hostname: ".*",
-		},
-	}
-
-	ruleNew := &models.FirewallRule{
-		ID:       "ruleID",
-		TenantID: "tenant",
-		FirewallRuleFields: models.FirewallRuleFields{
-			Filter: models.FirewallFilter{
-				Hostname: ".*",
-			},
-		},
-	}
-
-	_, err := db.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
-	assert.NoError(t, err)
-
 	cases := []struct {
 		description string
 		Test        func(t *testing.T)
@@ -63,13 +36,32 @@ func TestMigration43(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[42:43]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Up(context.Background(), migrate.AllAvailable)
+				ruleOld := &FirewallRule{
+					ID:       "ruleID",
+					TenantID: "tenant",
+					FirewallRuleFields: FirewallRuleFields{
+						Hostname: ".*",
+					},
+				}
+
+				ruleNew := &models.FirewallRule{
+					ID:       "ruleID",
+					TenantID: "tenant",
+					FirewallRuleFields: models.FirewallRuleFields{
+						Filter: models.FirewallFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
+				_, err := srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[42:43]...)
+				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
+
 				rule := new(models.FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleOld.TenantID})
+				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleOld.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -83,13 +75,32 @@ func TestMigration43(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				migrations := GenerateMigrations()[42:43]
-				migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
-				err := migrates.Down(context.Background(), migrate.AllAvailable)
+				ruleOld := &FirewallRule{
+					ID:       "ruleID",
+					TenantID: "tenant",
+					FirewallRuleFields: FirewallRuleFields{
+						Hostname: ".*",
+					},
+				}
+
+				ruleNew := &models.FirewallRule{
+					ID:       "ruleID",
+					TenantID: "tenant",
+					FirewallRuleFields: models.FirewallRuleFields{
+						Filter: models.FirewallFilter{
+							Hostname: ".*",
+						},
+					},
+				}
+
+				_, err := srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
 				assert.NoError(t, err)
 
+				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[42:43]...)
+				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
+
 				rule := new(FirewallRule)
-				result := db.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleNew.TenantID})
+				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleNew.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -102,6 +113,11 @@ func TestMigration43(t *testing.T) {
 
 	for _, test := range cases {
 		tc := test
-		t.Run(tc.description, tc.Test)
+		t.Run(tc.description, func(t *testing.T) {
+			t.Cleanup(func() {
+				assert.NoError(t, fixtures.Teardown())
+			})
+			tc.Test(t)
+		})
 	}
 }

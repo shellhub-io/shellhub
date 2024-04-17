@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/dbtest"
+	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -15,12 +15,13 @@ import (
 )
 
 func TestMigration26(t *testing.T) {
-	db := dbtest.DBServer{}
-	defer db.Stop()
+	t.Cleanup(func() {
+		assert.NoError(t, fixtures.Teardown())
+	})
 
 	migrations := GenerateMigrations()[:26]
 
-	migrates := migrate.NewMigrate(db.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -33,15 +34,15 @@ func TestMigration26(t *testing.T) {
 		User:      "user",
 		CreatedAt: clock.Now(),
 	}
-	_, err = db.Client().Database("test").Collection("recovery_tokens").InsertOne(context.TODO(), userToken)
+	_, err = srv.Client().Database("test").Collection("recovery_tokens").InsertOne(context.TODO(), userToken)
 	assert.NoError(t, err)
 
 	var migratedUserToken *models.UserTokenRecover
-	err = db.Client().Database("test").Collection("recovery_tokens").FindOne(context.TODO(), bson.M{"user": userToken.User}).Decode(&migratedUserToken)
+	err = srv.Client().Database("test").Collection("recovery_tokens").FindOne(context.TODO(), bson.M{"user": userToken.User}).Decode(&migratedUserToken)
 	assert.NoError(t, err)
 	assert.Equal(t, userToken.Token, migratedUserToken.Token)
 
-	index := db.Client().Database("test").Collection("recovery_tokens").Indexes()
+	index := srv.Client().Database("test").Collection("recovery_tokens").Indexes()
 
 	cursor, err := index.List(context.TODO())
 	assert.NoError(t, err)
