@@ -4,17 +4,16 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 )
 
 func TestMigration10(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:9]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:9]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -46,13 +45,13 @@ func TestMigration10(t *testing.T) {
 		SessionRecord: true,
 	}
 
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 	assert.NoError(t, err)
 
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user2)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:10]...)
+	migrates = migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:10]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 }

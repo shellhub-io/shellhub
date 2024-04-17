@@ -5,7 +5,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -46,14 +45,14 @@ func TestMigration46(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.Background(), keyUsernameEmpty)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.Background(), keyUsernameEmpty)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[45:46]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[45:46]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				key := new(models.PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameEmpty.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameEmpty.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -93,14 +92,14 @@ func TestMigration46(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.Background(), keyUsernameEmpty)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.Background(), keyUsernameEmpty)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[45:46]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[45:46]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 				key := new(models.PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameRegexp.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameRegexp.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -114,7 +113,7 @@ func TestMigration46(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

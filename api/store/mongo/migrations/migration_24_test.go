@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -14,12 +13,12 @@ import (
 
 func TestMigration24(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	migrations := GenerateMigrations()[:23]
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -37,7 +36,7 @@ func TestMigration24(t *testing.T) {
 			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 		},
 	}
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	user = models.User{
@@ -50,7 +49,7 @@ func TestMigration24(t *testing.T) {
 			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 		},
 	}
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	user = models.User{
@@ -63,7 +62,7 @@ func TestMigration24(t *testing.T) {
 			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 		},
 	}
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	namespace := models.Namespace{
@@ -71,7 +70,7 @@ func TestMigration24(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "tenant",
 	}
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	namespace = models.Namespace{
@@ -79,7 +78,7 @@ func TestMigration24(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "tenant2",
 	}
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	namespace = models.Namespace{
@@ -87,12 +86,12 @@ func TestMigration24(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "tenant3",
 	}
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	migration := GenerateMigrations()[23]
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), migration)
+	migrates = migrate.NewMigrate(c.Database("test"), migration)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -101,34 +100,34 @@ func TestMigration24(t *testing.T) {
 	assert.Equal(t, uint64(24), version)
 
 	var migratedUser *models.User
-	err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
+	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.Equal(t, "username", migratedUser.Username)
 	assert.Equal(t, "email@mail.com", migratedUser.Email)
 
-	err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name2"}).Decode(&migratedUser)
+	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name2"}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.Equal(t, "username2", migratedUser.Username)
 	assert.Equal(t, "email@mail-test.com", migratedUser.Email)
 
-	err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name3"}).Decode(&migratedUser)
+	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name3"}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.Equal(t, "username3", migratedUser.Username)
 	assert.Equal(t, "email@e-mail.com", migratedUser.Email)
 
 	var migratedNamespace *models.Namespace
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedNamespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 	assert.Equal(t, "name", migratedNamespace.Name)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&migratedNamespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 	assert.Equal(t, "test", migratedNamespace.Name)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant3"}).Decode(&migratedNamespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant3"}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 	assert.Equal(t, "teste", migratedNamespace.Name)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"username": "USERNAME"}).Decode(&models.Namespace{})
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"username": "USERNAME"}).Decode(&models.Namespace{})
 	assert.EqualError(t, mongo.ErrNoDocuments, err.Error())
 }

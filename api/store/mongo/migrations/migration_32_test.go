@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -13,12 +12,12 @@ import (
 
 func TestMigration32(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	migrations := GenerateMigrations()[:31]
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -36,12 +35,12 @@ func TestMigration32(t *testing.T) {
 			Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 		},
 	}
-	_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user)
+	_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user)
 	assert.NoError(t, err)
 
 	migration := GenerateMigrations()[31]
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), migration)
+	migrates = migrate.NewMigrate(c.Database("test"), migration)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -50,7 +49,7 @@ func TestMigration32(t *testing.T) {
 	assert.Equal(t, uint64(32), version)
 
 	var migratedUser *models.User
-	err = srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
+	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
 	assert.NoError(t, err)
 	assert.Equal(t, false, migratedUser.Confirmed)
 }

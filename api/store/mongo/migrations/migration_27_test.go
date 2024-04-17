@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -13,10 +12,10 @@ import (
 
 func TestMigration27(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:26]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:26]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -39,15 +38,15 @@ func TestMigration27(t *testing.T) {
 		sessions[i] = v
 	}
 
-	_, err = srv.Client().Database("test").Collection("sessions").InsertMany(context.TODO(), sessions)
+	_, err = c.Database("test").Collection("sessions").InsertMany(context.TODO(), sessions)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:27]...)
+	migrates = migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:27]...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	migratedSessions := []models.Session{}
-	cur, err := srv.Client().Database("test").Collection("sessions").Find(context.TODO(), bson.D{})
+	cur, err := c.Database("test").Collection("sessions").Find(context.TODO(), bson.D{})
 	assert.NoError(t, err)
 	for cur.Next(context.TODO()) {
 		var ses models.Session

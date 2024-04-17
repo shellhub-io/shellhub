@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
@@ -35,7 +34,7 @@ func TestNamespaceList(t *testing.T) {
 			page:        query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			export:      false,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: []models.Namespace{
 					{
@@ -121,9 +120,9 @@ func TestNamespaceList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, count, err := s.NamespaceList(ctx, tc.page, tc.filters, tc.export)
@@ -151,7 +150,7 @@ func TestNamespaceGet(t *testing.T) {
 			description:  "fails when tenant is not found",
 			tenant:       "nonexistent",
 			countDevices: false,
-			fixtures:     []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:     []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
@@ -161,7 +160,7 @@ func TestNamespaceGet(t *testing.T) {
 			description:  "succeeds when tenant is found without countDevices",
 			tenant:       "00000000-0000-4000-0000-000000000000",
 			countDevices: false,
-			fixtures:     []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:     []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -189,7 +188,7 @@ func TestNamespaceGet(t *testing.T) {
 			description:  "succeeds when tenant is found with countDevices",
 			tenant:       "00000000-0000-4000-0000-000000000000",
 			countDevices: true,
-			fixtures:     []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:     []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -219,9 +218,9 @@ func TestNamespaceGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, err := s.NamespaceGet(ctx, tc.tenant, tc.countDevices)
@@ -245,7 +244,7 @@ func TestNamespaceGetByName(t *testing.T) {
 		{
 			description: "fails when namespace is not found",
 			name:        "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
@@ -254,7 +253,7 @@ func TestNamespaceGetByName(t *testing.T) {
 		{
 			description: "succeeds when namespace is found",
 			name:        "namespace-1",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -283,9 +282,9 @@ func TestNamespaceGetByName(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, err := s.NamespaceGetByName(ctx, tc.name)
@@ -309,7 +308,7 @@ func TestNamespaceGetFirst(t *testing.T) {
 		{
 			description: "fails when member is not found",
 			member:      "000000000000000000000000",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
@@ -318,7 +317,7 @@ func TestNamespaceGetFirst(t *testing.T) {
 		{
 			description: "succeeds when member is found",
 			member:      "507f1f77bcf86cd799439011",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -347,9 +346,9 @@ func TestNamespaceGetFirst(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, err := s.NamespaceGetFirst(ctx, tc.member)
@@ -409,9 +408,9 @@ func TestNamespaceCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, err := s.NamespaceCreate(ctx, tc.ns)
@@ -434,7 +433,7 @@ func TestNamespaceEdit(t *testing.T) {
 			changes: &models.NamespaceChanges{
 				Name: "edited-namespace",
 			},
-			fixtures: []string{fixtures.FixtureNamespaces},
+			fixtures: []string{fixtureNamespaces},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -443,7 +442,7 @@ func TestNamespaceEdit(t *testing.T) {
 			changes: &models.NamespaceChanges{
 				Name: "edited-namespace",
 			},
-			fixtures: []string{fixtures.FixtureNamespaces},
+			fixtures: []string{fixtureNamespaces},
 			expected: nil,
 		},
 	}
@@ -452,9 +451,9 @@ func TestNamespaceEdit(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.NamespaceEdit(ctx, tc.tenant, tc.changes)
@@ -479,7 +478,7 @@ func TestNamespaceUpdate(t *testing.T) {
 				MaxDevices: 3,
 				Settings:   &models.NamespaceSettings{SessionRecord: true},
 			},
-			fixtures: []string{fixtures.FixtureNamespaces},
+			fixtures: []string{fixtureNamespaces},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -490,7 +489,7 @@ func TestNamespaceUpdate(t *testing.T) {
 				MaxDevices: 3,
 				Settings:   &models.NamespaceSettings{SessionRecord: true},
 			},
-			fixtures: []string{fixtures.FixtureNamespaces},
+			fixtures: []string{fixtureNamespaces},
 			expected: nil,
 		},
 	}
@@ -499,9 +498,9 @@ func TestNamespaceUpdate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.NamespaceUpdate(ctx, tc.tenant, tc.ns)
@@ -520,13 +519,13 @@ func TestNamespaceDelete(t *testing.T) {
 		{
 			description: "fails when namespace is not found",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when namespace is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected:    nil,
 		},
 	}
@@ -535,9 +534,9 @@ func TestNamespaceDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.NamespaceDelete(ctx, tc.tenant)
@@ -565,7 +564,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			tenant:      "nonexistent",
 			member:      "6509de884238881ac1b2b289",
 			role:        guard.RoleObserver,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
@@ -576,7 +575,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			member:      "6509e169ae6144b2f56bf288",
 			role:        guard.RoleObserver,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
 				err: mongo.ErrNamespaceDuplicatedMember,
@@ -587,7 +586,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			member:      "6509de884238881ac1b2b289",
 			role:        guard.RoleObserver,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -621,9 +620,9 @@ func TestNamespaceAddMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, err := s.NamespaceAddMember(ctx, tc.tenant, tc.member, tc.role)
@@ -646,7 +645,7 @@ func TestNamespaceEditMember(t *testing.T) {
 			tenant:      "nonexistent",
 			member:      "000000000000000000000000",
 			role:        guard.RoleObserver,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected:    mongo.ErrUserNotFound,
 		},
 		{
@@ -654,7 +653,7 @@ func TestNamespaceEditMember(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			member:      "6509e169ae6144b2f56bf288",
 			role:        guard.RoleOperator,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected:    nil,
 		},
 	}
@@ -663,9 +662,9 @@ func TestNamespaceEditMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.NamespaceEditMember(ctx, tc.tenant, tc.member, tc.role)
@@ -691,7 +690,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			description: "fails when tenant is not found",
 			tenant:      "nonexistent",
 			member:      "6509de884238881ac1b2b289",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
@@ -701,7 +700,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			description: "fails when member is not found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			member:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
 				err: mongo.ErrUserNotFound,
@@ -711,7 +710,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			description: "succeeds when tenant and user is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			member:      "6509e169ae6144b2f56bf288",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -737,9 +736,9 @@ func TestNamespaceRemoveMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			ns, err := s.NamespaceRemoveMember(ctx, tc.tenant, tc.member)
@@ -760,14 +759,14 @@ func TestNamespaceSetSessionRecord(t *testing.T) {
 			description: "fails when tenant is not found",
 			tenant:      "nonexistent",
 			sessionRec:  true,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when tenant is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			sessionRec:  true,
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected:    nil,
 		},
 	}
@@ -776,9 +775,9 @@ func TestNamespaceSetSessionRecord(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.NamespaceSetSessionRecord(ctx, tc.sessionRec, tc.tenant)
@@ -802,7 +801,7 @@ func TestNamespaceGetSessionRecord(t *testing.T) {
 		{
 			description: "fails when tenant is not found",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				set: false,
 				err: store.ErrNoDocuments,
@@ -811,7 +810,7 @@ func TestNamespaceGetSessionRecord(t *testing.T) {
 		{
 			description: "succeeds when tenant is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureNamespaces},
+			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				set: true,
 				err: nil,
@@ -823,9 +822,9 @@ func TestNamespaceGetSessionRecord(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			set, err := s.NamespaceGetSessionRecord(ctx, tc.tenant)

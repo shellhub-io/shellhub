@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -12,7 +11,6 @@ import (
 )
 
 func TestMigration48(t *testing.T) {
-
 	cases := []struct {
 		description string
 		Test        func(t *testing.T)
@@ -49,20 +47,20 @@ func TestMigration48(t *testing.T) {
 
 				ctx := context.Background()
 
-				_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+				_, err := c.Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule0)
+				_, err = c.Database("test").Collection("firewall_rules").InsertOne(ctx, rule0)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule1)
+				_, err = c.Database("test").Collection("firewall_rules").InsertOne(ctx, rule1)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule2)
+				_, err = c.Database("test").Collection("firewall_rules").InsertOne(ctx, rule2)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[47:48]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[47:48]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				key := new(models.FirewallRule)
-				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
+				result := c.Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
 				assert.NoError(t, result.Err())
 
 				assert.NoError(t, result.Decode(key))
@@ -101,20 +99,20 @@ func TestMigration48(t *testing.T) {
 
 				ctx := context.Background()
 
-				_, err := srv.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+				_, err := c.Database("test").Collection("namespaces").InsertOne(ctx, namespace)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule0)
+				_, err = c.Database("test").Collection("firewall_rules").InsertOne(ctx, rule0)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule1)
+				_, err = c.Database("test").Collection("firewall_rules").InsertOne(ctx, rule1)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("firewall_rules").InsertOne(ctx, rule2)
+				_, err = c.Database("test").Collection("firewall_rules").InsertOne(ctx, rule2)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[47:48]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[47:48]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 				key := new(models.FirewallRule)
-				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
+				result := c.Database("test").Collection("firewall_rules").FindOne(ctx, bson.M{"tenant_id": namespace.TenantID})
 				assert.NoError(t, result.Err())
 
 				assert.NoError(t, result.Decode(key))
@@ -126,7 +124,7 @@ func TestMigration48(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

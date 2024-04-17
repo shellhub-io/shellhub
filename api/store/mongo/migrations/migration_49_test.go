@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -47,22 +46,22 @@ func TestMigration49(t *testing.T) {
 					Owner: user2ID.String(),
 				}
 
-				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+				_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+				_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user2)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
+				_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
+				_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
+				_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[48:49]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[48:49]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				user := new(models.User)
-				result := srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(user)
@@ -101,22 +100,22 @@ func TestMigration49(t *testing.T) {
 					Owner: user2ID.String(),
 				}
 
-				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user1)
+				_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user1)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("users").InsertOne(context.TODO(), user2)
+				_, err = c.Database("test").Collection("users").InsertOne(context.TODO(), user2)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
+				_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace1)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
+				_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace2)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
+				_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace3)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[48:49]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[48:49]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 				user := new(models.User)
-				result := srv.Client().Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
+				result := c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"_id": user1ID.String()})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(user)
@@ -131,7 +130,7 @@ func TestMigration49(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,7 @@ func TestMigration62Up(t *testing.T) {
 				mock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 			},
 			expected: func() error {
-				cursor, err := srv.Client().Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
+				cursor, err := c.Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
 				if err != nil {
 					return err
 				}
@@ -56,13 +55,13 @@ func TestMigration62Up(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			tc.mocks()
 
 			migrations := GenerateMigrations()[61:62]
-			migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+			migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 			assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			assert.NoError(t, tc.expected())
@@ -83,7 +82,7 @@ func TestMigration62Down(t *testing.T) {
 			description: "Success to apply down on migration 62",
 			mocks:       func() {},
 			expected: func() error {
-				cursor, err := srv.Client().Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
+				cursor, err := c.Database("test").Collection("recorded_sessions").Indexes().List(context.Background())
 				if err != nil {
 					return errors.New("index not dropped")
 				}
@@ -112,13 +111,13 @@ func TestMigration62Down(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			tc.mocks()
 
 			migrations := GenerateMigrations()[61:62]
-			migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+			migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 			assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 			assert.NoError(t, tc.expected())

@@ -5,7 +5,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -70,18 +69,18 @@ func TestMigration44(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
+				_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
+				_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[43:44]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[43:44]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				key := new(models.PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagDuplicated.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -133,18 +132,18 @@ func TestMigration44(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
+				_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
+				_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[43:44]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[43:44]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				key := new(models.PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagNoDuplicated.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagNoDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -196,18 +195,18 @@ func TestMigration44(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
+				_, err := c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagDuplicated)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
+				_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyTagNoDuplicated)
 				assert.NoError(t, err)
-				_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
+				_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), keyHostname)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[43:44]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[43:44]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				key := new(models.PublicKey)
-				result := srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyHostname.TenantID})
+				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyHostname.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(key)
@@ -221,7 +220,7 @@ func TestMigration44(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

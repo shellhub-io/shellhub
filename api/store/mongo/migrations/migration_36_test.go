@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -14,12 +13,12 @@ import (
 
 func TestMigration36(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	migrations := GenerateMigrations()[:35]
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -74,10 +73,10 @@ func TestMigration36(t *testing.T) {
 		namespaces[i] = v.toBeMigrated
 	}
 
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertMany(context.TODO(), namespaces)
+	_, err = c.Database("test").Collection("namespaces").InsertMany(context.TODO(), namespaces)
 	assert.NoError(t, err)
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[35])
+	migrates = migrate.NewMigrate(c.Database("test"), GenerateMigrations()[35])
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -85,7 +84,7 @@ func TestMigration36(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(36), version)
 
-	cur, err := srv.Client().Database("test").Collection("namespaces").Find(context.TODO(), bson.D{})
+	cur, err := c.Database("test").Collection("namespaces").Find(context.TODO(), bson.D{})
 	assert.NoError(t, err)
 
 	index := 0

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/stretchr/testify/assert"
@@ -27,13 +26,13 @@ func TestMigration60(t *testing.T) {
 				mock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
 
 				migrations := GenerateMigrations()[59:60]
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 				err := migrates.Up(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := srv.Client().Database("test").Collection("active_sessions").Indexes().List(context.Background())
+				cursor, err := c.Database("test").Collection("active_sessions").Indexes().List(context.Background())
 				if err != nil {
 					return err
 				}
@@ -61,13 +60,13 @@ func TestMigration60(t *testing.T) {
 			"Success to apply down on migration 60",
 			func() error {
 				migrations := GenerateMigrations()[59:60]
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+				migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 				err := migrates.Down(context.Background(), migrate.AllAvailable)
 				if err != nil {
 					return err
 				}
 
-				cursor, err := srv.Client().Database("test").Collection("active_sessions").Indexes().List(context.Background())
+				cursor, err := c.Database("test").Collection("active_sessions").Indexes().List(context.Background())
 				if err != nil {
 					return errors.New("index not dropped")
 				}
@@ -97,7 +96,7 @@ func TestMigration60(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := tc.test()

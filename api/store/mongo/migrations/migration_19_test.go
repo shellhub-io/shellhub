@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,10 +12,10 @@ import (
 
 func TestMigration19(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[:19]...)
+	migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[:19]...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -40,10 +39,10 @@ func TestMigration19(t *testing.T) {
 		PublicKeyFields: PublicKeyFields{Name: "teste1", Hostname: ".*"},
 	}
 
-	_, err = srv.Client().Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
+	_, err = c.Database("test").Collection("public_keys").InsertOne(context.TODO(), pk)
 	assert.NoError(t, err)
 
-	err = srv.Client().Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&pk)
+	err = c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&pk)
 	assert.NoError(t, err)
 	assert.Equal(t, pk.Fingerprint, "")
 }

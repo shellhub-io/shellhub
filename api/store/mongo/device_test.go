@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -47,7 +46,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -141,7 +140,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -195,7 +194,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -289,7 +288,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -383,7 +382,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -477,7 +476,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatusPending,
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -511,9 +510,9 @@ func TestDeviceList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			dev, count, err := s.DeviceList(
@@ -544,7 +543,7 @@ func TestDeviceListByUsage(t *testing.T) {
 		{
 			description: "returns an empty list when tenant not exist",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureSessions},
+			fixtures:    []string{fixtureSessions},
 			expected: Expected{
 				uid: []models.UID{},
 				len: 0,
@@ -554,7 +553,7 @@ func TestDeviceListByUsage(t *testing.T) {
 		{
 			description: "succeeds when has 1 or more device sessions",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureSessions},
+			fixtures:    []string{fixtureSessions},
 			expected: Expected{
 				uid: []models.UID{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"},
 				len: 1,
@@ -567,9 +566,9 @@ func TestDeviceListByUsage(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			uids, err := s.DeviceListByUsage(ctx, tc.tenant)
@@ -592,7 +591,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when namespace is not found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -601,7 +600,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found",
 			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -610,7 +609,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("5600560h6ed5h960969e7f358g4568491247198ge8537e9g448609fff1b231f"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -619,7 +618,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices, fixtures.FixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -650,9 +649,9 @@ func TestDeviceGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			dev, err := s.DeviceGet(ctx, tc.uid)
@@ -679,7 +678,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -690,7 +689,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "mac-3",
 			tenant:      "nonexistent",
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -701,7 +700,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "mac-3",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -730,7 +729,7 @@ func TestDeviceGetByMac(t *testing.T) {
 			mac:         "mac-3",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatus("accepted"),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -760,9 +759,9 @@ func TestDeviceGetByMac(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			dev, err := s.DeviceGetByMac(ctx, tc.mac, tc.tenant, tc.status)
@@ -789,7 +788,7 @@ func TestDeviceGetByName(t *testing.T) {
 			hostname:    "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatusAccepted,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -800,7 +799,7 @@ func TestDeviceGetByName(t *testing.T) {
 			hostname:    "device-3",
 			tenant:      "nonexistent",
 			status:      models.DeviceStatusAccepted,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -811,7 +810,7 @@ func TestDeviceGetByName(t *testing.T) {
 			hostname:    "device-3",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			status:      models.DeviceStatusAccepted,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -841,9 +840,9 @@ func TestDeviceGetByName(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			dev, err := s.DeviceGetByName(ctx, tc.hostname, tc.tenant, tc.status)
@@ -868,7 +867,7 @@ func TestDeviceGetByUID(t *testing.T) {
 			description: "fails when device is not found due to UID",
 			uid:         models.UID("nonexistent"),
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -878,7 +877,7 @@ func TestDeviceGetByUID(t *testing.T) {
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tenant:      "nonexistent",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -888,7 +887,7 @@ func TestDeviceGetByUID(t *testing.T) {
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -918,9 +917,9 @@ func TestDeviceGetByUID(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			dev, err := s.DeviceGetByUID(ctx, tc.uid, tc.tenant)
@@ -945,7 +944,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when namespace does not exist",
 			namespace:   "nonexistent",
 			hostname:    "device-3",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -955,7 +954,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when device does not exist due to name",
 			namespace:   "namespace-1",
 			hostname:    "nonexistent",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -965,7 +964,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when device does not exist due to tenant-id",
 			namespace:   "namespace-1",
 			hostname:    "invalid_tenant",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -975,7 +974,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "fails when device does not exist due to status other than accepted",
 			namespace:   "namespace-1",
 			hostname:    "pending",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -985,7 +984,7 @@ func TestDeviceLookup(t *testing.T) {
 			description: "succeeds when namespace exists and hostname status is accepted",
 			namespace:   "namespace-1",
 			hostname:    "device-3",
-			fixtures:    []string{fixtures.FixtureNamespaces, fixtures.FixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -1015,9 +1014,9 @@ func TestDeviceLookup(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			dev, err := s.DeviceLookup(ctx, tc.namespace, tc.hostname)
@@ -1054,9 +1053,9 @@ func TestDeviceCreate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceCreate(ctx, tc.device, tc.hostname)
@@ -1077,14 +1076,14 @@ func TestDeviceRename(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			hostname:    "new_hostname",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			hostname:    "new_hostname",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1093,9 +1092,9 @@ func TestDeviceRename(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceRename(ctx, tc.uid, tc.hostname)
@@ -1116,14 +1115,14 @@ func TestDeviceUpdateStatus(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			status:      "accepted",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			status:      "accepted",
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1132,9 +1131,9 @@ func TestDeviceUpdateStatus(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceUpdateStatus(ctx, tc.uid, models.DeviceStatus(tc.status))
@@ -1155,14 +1154,14 @@ func TestDeviceUpdateOnline(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			online:      true,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			online:      true,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1171,9 +1170,9 @@ func TestDeviceUpdateOnline(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceUpdateOnline(ctx, tc.uid, tc.online)
@@ -1194,14 +1193,14 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 			description: "fails when the device is not found",
 			uid:         models.UID("nonexistent"),
 			now:         time.Now(),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when the device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			now:         time.Now(),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1210,9 +1209,9 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceUpdateLastSeen(ctx, tc.uid, tc.now)
@@ -1233,14 +1232,14 @@ func TestDeviceSetOnline(t *testing.T) {
 			description: "succeeds when UID is valid and online is true",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			online:      true,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 		{
 			description: "succeeds when UID is valid and online is false",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			online:      false,
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1249,9 +1248,9 @@ func TestDeviceSetOnline(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceSetOnline(ctx, tc.uid, time.Now(), tc.online)
@@ -1275,7 +1274,7 @@ func TestDeviceSetPosition(t *testing.T) {
 				Longitude: 1,
 				Latitude:  1,
 			},
-			fixtures: []string{fixtures.FixtureDevices},
+			fixtures: []string{fixtureDevices},
 			expected: store.ErrNoDocuments,
 		},
 		{
@@ -1285,7 +1284,7 @@ func TestDeviceSetPosition(t *testing.T) {
 				Longitude: 1,
 				Latitude:  1,
 			},
-			fixtures: []string{fixtures.FixtureDevices},
+			fixtures: []string{fixtureDevices},
 			expected: nil,
 		},
 	}
@@ -1294,9 +1293,9 @@ func TestDeviceSetPosition(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceSetPosition(ctx, tc.uid, tc.position)
@@ -1317,7 +1316,7 @@ func TestDeviceChooser(t *testing.T) {
 			description: "",
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			chosen:      []string{""},
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1326,9 +1325,9 @@ func TestDeviceChooser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceChooser(ctx, tc.tenant, tc.chosen)
@@ -1347,13 +1346,13 @@ func TestDeviceDelete(t *testing.T) {
 		{
 			description: "fails when device is not found",
 			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtures.FixtureDevices},
+			fixtures:    []string{fixtureDevices},
 			expected:    nil,
 		},
 	}
@@ -1362,9 +1361,9 @@ func TestDeviceDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.DeviceDelete(ctx, tc.uid)

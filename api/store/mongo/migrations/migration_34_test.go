@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,12 +12,12 @@ import (
 
 func TestMigration34(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	migrations := GenerateMigrations()[:33]
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
@@ -29,7 +28,7 @@ func TestMigration34(t *testing.T) {
 
 	migrations = GenerateMigrations()[:34]
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates = migrate.NewMigrate(c.Database("test"), migrations...)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -37,7 +36,7 @@ func TestMigration34(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(34), version)
 
-	cursor, err := srv.Client().Database("test").Collection("devices").Indexes().List(context.TODO())
+	cursor, err := c.Database("test").Collection("devices").Indexes().List(context.TODO())
 	assert.NoError(t, err)
 
 	var results []bson.M

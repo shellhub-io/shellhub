@@ -5,7 +5,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -38,7 +37,7 @@ func TestFirewallRuleList(t *testing.T) {
 		{
 			description: "succeeds when a firewall rule is found",
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				rules: []models.FirewallRule{
 					{
@@ -109,7 +108,7 @@ func TestFirewallRuleList(t *testing.T) {
 		{
 			description: "succeeds when firewall rule list is not empty and paginator is different than -1",
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				rules: []models.FirewallRule{
 					{
@@ -161,9 +160,9 @@ func TestFirewallRuleList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			rules, count, err := s.FirewallRuleList(ctx, tc.paginator)
@@ -190,7 +189,7 @@ func TestFirewallRuleGet(t *testing.T) {
 		{
 			description: "fails when firewall rule is not found",
 			id:          "6504b7bd9b6c4a63a9ccc021",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				rule: nil,
 				err:  store.ErrNoDocuments,
@@ -199,7 +198,7 @@ func TestFirewallRuleGet(t *testing.T) {
 		{
 			description: "succeeds when firewall rule is found",
 			id:          "6504b7bd9b6c4a63a9ccc053",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected: Expected{
 				rule: &models.FirewallRule{
 					ID:       "6504b7bd9b6c4a63a9ccc053",
@@ -225,9 +224,9 @@ func TestFirewallRuleGet(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			rule, err := s.FirewallRuleGet(ctx, tc.id)
@@ -265,7 +264,7 @@ func TestFirewallRuleUpdate(t *testing.T) {
 					},
 				},
 			},
-			fixtures: []string{fixtures.FixtureFirewallRules},
+			fixtures: []string{fixtureFirewallRules},
 			expected: Expected{
 				rule: nil,
 				err:  store.ErrNoDocuments,
@@ -287,7 +286,7 @@ func TestFirewallRuleUpdate(t *testing.T) {
 					},
 				},
 			},
-			fixtures: []string{fixtures.FixtureFirewallRules},
+			fixtures: []string{fixtureFirewallRules},
 			expected: Expected{
 				rule: &models.FirewallRule{
 					ID:       "6504b7bd9b6c4a63a9ccc053",
@@ -313,9 +312,9 @@ func TestFirewallRuleUpdate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			rule, err := s.FirewallRuleUpdate(ctx, tc.id, tc.rule)
@@ -340,7 +339,7 @@ func TestFirewallRuleDelete(t *testing.T) {
 		{
 			description: "succeeds when rule is found",
 			id:          "6504b7bd9b6c4a63a9ccc053",
-			fixtures:    []string{fixtures.FixtureFirewallRules},
+			fixtures:    []string{fixtureFirewallRules},
 			expected:    nil,
 		},
 	}
@@ -349,9 +348,9 @@ func TestFirewallRuleDelete(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			assert.NoError(t, fixtures.Apply(tc.fixtures...))
+			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 
 			err := s.FirewallRuleDelete(ctx, tc.id)

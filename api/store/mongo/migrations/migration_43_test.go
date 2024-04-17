@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -54,14 +53,14 @@ func TestMigration43(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
+				_, err := c.Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[42:43]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[42:43]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
 				rule := new(models.FirewallRule)
-				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleOld.TenantID})
+				result := c.Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleOld.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -93,14 +92,14 @@ func TestMigration43(t *testing.T) {
 					},
 				}
 
-				_, err := srv.Client().Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
+				_, err := c.Database("test").Collection("firewall_rules").InsertOne(context.TODO(), ruleOld)
 				assert.NoError(t, err)
 
-				migrates := migrate.NewMigrate(srv.Client().Database("test"), GenerateMigrations()[42:43]...)
+				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[42:43]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
 				rule := new(FirewallRule)
-				result := srv.Client().Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleNew.TenantID})
+				result := c.Database("test").Collection("firewall_rules").FindOne(context.TODO(), bson.M{"tenant_id": ruleNew.TenantID})
 				assert.NoError(t, result.Err())
 
 				err = result.Decode(rule)
@@ -115,7 +114,7 @@ func TestMigration43(t *testing.T) {
 		tc := test
 		t.Run(tc.description, func(t *testing.T) {
 			t.Cleanup(func() {
-				assert.NoError(t, fixtures.Teardown())
+				assert.NoError(t, srv.Reset())
 			})
 			tc.Test(t)
 		})

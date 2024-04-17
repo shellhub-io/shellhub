@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/fixtures"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -15,12 +14,12 @@ import (
 
 func TestMigration23(t *testing.T) {
 	t.Cleanup(func() {
-		assert.NoError(t, fixtures.Teardown())
+		assert.NoError(t, srv.Reset())
 	})
 
 	migrations := GenerateMigrations()[:22]
 
-	migrates := migrate.NewMigrate(srv.Client().Database("test"), migrations...)
+	migrates := migrate.NewMigrate(c.Database("test"), migrations...)
 	err := migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -33,7 +32,7 @@ func TestMigration23(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "tenant",
 	}
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	namespace = models.Namespace{
@@ -41,7 +40,7 @@ func TestMigration23(t *testing.T) {
 		Owner:    "owner",
 		TenantID: "tenant2",
 	}
-	_, err = srv.Client().Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
+	_, err = c.Database("test").Collection("namespaces").InsertOne(context.TODO(), namespace)
 	assert.NoError(t, err)
 
 	device := models.Device{
@@ -51,7 +50,7 @@ func TestMigration23(t *testing.T) {
 		TenantID: "tenant",
 		LastSeen: clock.Now(),
 	}
-	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = c.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	device = models.Device{
@@ -61,12 +60,12 @@ func TestMigration23(t *testing.T) {
 		TenantID: "tenant2",
 		LastSeen: clock.Now(),
 	}
-	_, err = srv.Client().Database("test").Collection("devices").InsertOne(context.TODO(), device)
+	_, err = c.Database("test").Collection("devices").InsertOne(context.TODO(), device)
 	assert.NoError(t, err)
 
 	migration := GenerateMigrations()[22]
 
-	migrates = migrate.NewMigrate(srv.Client().Database("test"), migration)
+	migrates = migrate.NewMigrate(c.Database("test"), migration)
 	err = migrates.Up(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
@@ -75,23 +74,23 @@ func TestMigration23(t *testing.T) {
 	assert.Equal(t, uint64(23), version)
 
 	var migratedNamespace *models.Namespace
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedNamespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 	assert.Equal(t, "namespace-test", migratedNamespace.Name)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&migratedNamespace)
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&migratedNamespace)
 	assert.NoError(t, err)
 	assert.Equal(t, "namespacetest", migratedNamespace.Name)
 
 	var migratedDevice *models.Device
-	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedDevice)
+	err = c.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant"}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 	assert.Equal(t, "device-test", migratedDevice.Name)
 
-	err = srv.Client().Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&migratedDevice)
+	err = c.Database("test").Collection("devices").FindOne(context.TODO(), bson.M{"tenant_id": "tenant2"}).Decode(&migratedDevice)
 	assert.NoError(t, err)
 	assert.Equal(t, "devicetest", migratedDevice.Name)
 
-	err = srv.Client().Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "name.test"}).Decode(&models.Namespace{})
+	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.M{"name": "name.test"}).Decode(&models.Namespace{})
 	assert.EqualError(t, mongo.ErrNoDocuments, err.Error())
 }
