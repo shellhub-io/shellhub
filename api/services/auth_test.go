@@ -64,6 +64,8 @@ func TestAuthDevice(t *testing.T) {
 	clockMock.On("Now").Return(now).Twice()
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
+	mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
+		Return(device, nil).Once()
 	mock.On("DeviceCreate", ctx, *device, "").
 		Return(nil).Once()
 	mock.On("SessionSetLastSeen", ctx, models.UID(authReq.Sessions[0])).

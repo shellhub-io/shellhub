@@ -52,13 +52,21 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}
 
 	uid := sha256.Sum256(structhash.Dump(auth, 1))
-
 	key := hex.EncodeToString(uid[:])
+
+	// We initialize the status as "pending" since its value only matters when equal to "accepted".
+	// This placeholder is used because the device may not exist at this point.
+	status := models.DeviceStatusPending
+	if d, _ := s.store.DeviceGetByUID(ctx, models.UID(key), req.TenantID); d != nil {
+		status = d.Status
+	}
 
 	token, err := jwttoken.New().
 		WithMethod(jwt.SigningMethodRS256).
 		WithClaims(&models.DeviceAuthClaims{
-			UID: key,
+			UID:    key,
+			Tenant: req.TenantID,
+			Status: string(status),
 			AuthClaims: models.AuthClaims{
 				Claims: "device",
 			},
