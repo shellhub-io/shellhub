@@ -215,7 +215,7 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 			logrus.Error(err)
 		}
 
-		collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions"}
+		collections := []string{"devices", "sessions", "connected_devices", "firewall_rules", "public_keys", "recorded_sessions", "api_keys"}
 		for _, collection := range collections {
 			if _, err := s.db.Collection(collection).DeleteMany(sessCtx, bson.M{"tenant_id": tenantID}); err != nil {
 				return nil, FromMongoError(err)
