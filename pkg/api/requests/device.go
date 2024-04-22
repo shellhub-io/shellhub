@@ -1,5 +1,7 @@
 package requests
 
+import "time"
+
 // DeviceParam is a structure to represent and validate a device UID as path param.
 type DeviceParam struct {
 	UID string `param:"uid" validate:"required"`
@@ -98,4 +100,11 @@ type DeviceUpdate struct {
 
 type DevicePublicURLAddress struct {
 	PublicURLAddress string `param:"address" validate:"required"`
+}
+
+type DeviceUpdateConnectionStats struct {
+	UID            string    `param:"uid" validate:"required"`
+	TenantID       string    `header:"X-Tenant-ID" validate:"required"`
+	ConnectedAt    time.Time `json:"connected_at"`
+	DisconnectedAt time.Time `json:"disconnected_at"`
 }

@@ -12,19 +12,20 @@ import (
 )
 
 const (
-	GetDeviceListURL            = "/devices"
-	GetDeviceURL                = "/devices/:uid"
-	GetDeviceByPublicURLAddress = "/devices/public/:address"
-	DeleteDeviceURL             = "/devices/:uid"
-	RenameDeviceURL             = "/devices/:uid"
-	OfflineDeviceURL            = "/devices/:uid/offline"
-	HeartbeatDeviceURL          = "/devices/:uid/heartbeat"
-	LookupDeviceURL             = "/lookup"
-	UpdateDeviceStatusURL       = "/devices/:uid/:status"
-	CreateTagURL                = "/devices/:uid/tags"      // Add a tag to a device.
-	UpdateTagURL                = "/devices/:uid/tags"      // Update device's tags with a new set.
-	RemoveTagURL                = "/devices/:uid/tags/:tag" // Delete a tag from a device.
-	UpdateDevice                = "/devices/:uid"
+	GetDeviceListURL               = "/devices"
+	GetDeviceURL                   = "/devices/:uid"
+	GetDeviceByPublicURLAddress    = "/devices/public/:address"
+	DeleteDeviceURL                = "/devices/:uid"
+	RenameDeviceURL                = "/devices/:uid"
+	OfflineDeviceURL               = "/devices/:uid/offline"
+	HeartbeatDeviceURL             = "/devices/:uid/heartbeat"
+	LookupDeviceURL                = "/lookup"
+	UpdateDeviceStatusURL          = "/devices/:uid/:status"
+	CreateTagURL                   = "/devices/:uid/tags"      // Add a tag to a device.
+	UpdateTagURL                   = "/devices/:uid/tags"      // Update device's tags with a new set.
+	RemoveTagURL                   = "/devices/:uid/tags/:tag" // Delete a tag from a device.
+	UpdateDevice                   = "/devices/:uid"
+	URLUpdateDeviceConnectionStats = "/devices/:uid/connection-stats"
 )
 
 const (
@@ -325,6 +326,24 @@ func (h *Handler) UpdateDevice(c gateway.Context) error {
 	if err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.Update, func() error {
 		return h.service.UpdateDevice(c.Ctx(), tenant, models.UID(req.UID), req.Name, req.PublicURL)
 	}); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) UpdateDeviceConnectionStats(c gateway.Context) error {
+	req := new(requests.DeviceUpdateConnectionStats)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if err := h.service.UpdateDeviceConnectionStats(c.Ctx(), req); err != nil {
 		return err
 	}
 

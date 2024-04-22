@@ -10,7 +10,10 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -3638,4 +3641,73 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 	}
 
 	mock.AssertExpectations(t)
+}
+
+func TestUpdateDeviceConnectionStats(t *testing.T) {
+	clockMock := new(clockmock.Clock)
+	storeMock := new(mocks.Store)
+
+	clock.DefaultBackend = clockMock
+	clockMock.On("Now").Return(now)
+
+	cases := []struct {
+		description string
+		tenant      string
+		uid         string
+		req         *requests.DeviceUpdateConnectionStats
+		mocks       func(context.Context)
+		expected    error
+	}{
+		{
+			description: "fails when tenant_id is not associated with a namespace",
+			req: &requests.DeviceUpdateConnectionStats{
+				UID:         "0000000000000000000000000000000000000000000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				ConnectedAt: clock.Now(),
+			},
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil),
+		},
+		{
+			description: "fails when update operation fails",
+			req: &requests.DeviceUpdateConnectionStats{
+				UID:         "0000000000000000000000000000000000000000000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				ConnectedAt: clock.Now(),
+			},
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("DeviceEdit", ctx, "00000000-0000-4000-0000-000000000000", "0000000000000000000000000000000000000000000000000000000000000000", &models.DeviceChanges{
+						ConnectedAt: clock.Now(),
+					}).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+			tc.mocks(ctx)
+
+			err := s.UpdateDeviceConnectionStats(ctx, tc.req)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	clockMock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }

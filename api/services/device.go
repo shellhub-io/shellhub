@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -28,6 +29,9 @@ type DeviceService interface {
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
 	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
+
+	// UpdateDeviceConnectionStats updates the specified device's connection attributes.
+	UpdateDeviceConnectionStats(ctx context.Context, req *requests.DeviceUpdateConnectionStats) (err error)
 }
 
 func (s *service) ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
@@ -127,21 +131,23 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	}
 
 	updatedDevice := &models.Device{
-		UID:        device.UID,
-		Name:       strings.ToLower(name),
-		Identity:   device.Identity,
-		Info:       device.Info,
-		PublicKey:  device.PublicKey,
-		TenantID:   device.TenantID,
-		LastSeen:   device.LastSeen,
-		Online:     device.Online,
-		Namespace:  device.Namespace,
-		Status:     device.Status,
-		CreatedAt:  time.Time{},
-		RemoteAddr: "",
-		Position:   &models.DevicePosition{},
-		Tags:       []string{},
-		PublicURL:  false,
+		UID:            device.UID,
+		Name:           strings.ToLower(name),
+		Identity:       device.Identity,
+		Info:           device.Info,
+		PublicKey:      device.PublicKey,
+		TenantID:       device.TenantID,
+		LastSeen:       device.LastSeen,
+		ConnectedAt:    device.ConnectedAt,
+		DisconnectedAt: device.DisconnectedAt,
+		Online:         device.Online,
+		Namespace:      device.Namespace,
+		Status:         device.Status,
+		CreatedAt:      time.Time{},
+		RemoteAddr:     "",
+		Position:       &models.DevicePosition{},
+		Tags:           []string{},
+		PublicURL:      false,
 	}
 
 	if ok, err := s.validator.Struct(updatedDevice); !ok || err != nil {
@@ -340,4 +346,17 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 	}
 
 	return s.store.DeviceUpdate(ctx, tenant, uid, name, publicURL)
+}
+
+func (s *service) UpdateDeviceConnectionStats(ctx context.Context, req *requests.DeviceUpdateConnectionStats) error {
+	if _, err := s.store.NamespaceGet(ctx, req.TenantID, false); err != nil {
+		return NewErrNamespaceNotFound(req.TenantID, nil)
+	}
+
+	changes := &models.DeviceChanges{
+		ConnectedAt:    req.ConnectedAt,
+		DisconnectedAt: req.DisconnectedAt,
+	}
+
+	return s.store.DeviceEdit(ctx, req.TenantID, req.UID, changes)
 }

@@ -34,6 +34,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	internalAPI.POST(OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
 	internalAPI.POST(HeartbeatDeviceURL, gateway.Handler(handler.HeartbeatDevice))
 	internalAPI.GET(LookupDeviceURL, gateway.Handler(handler.LookupDevice))
+	internalAPI.PATCH(URLUpdateDeviceConnectionStats, gateway.Handler(handler.UpdateDeviceConnectionStats))
 
 	internalAPI.PATCH(SetSessionAuthenticatedURL, gateway.Handler(handler.SetSessionAuthenticated))
 	internalAPI.POST(CreateSessionURL, gateway.Handler(handler.CreateSession))

@@ -8,8 +8,10 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	log "github.com/sirupsen/logrus"
 )
@@ -26,8 +28,31 @@ func NewTunnel(connection, dial string) *Tunnel {
 		API:    internalclient.NewClient(),
 	}
 
-	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
-		return request.Header.Get(internalclient.DeviceUIDHeader), nil
+	tunnel.Tunnel.ConnectionHandler = func(req *http.Request) (string, error) {
+		// TODO: explain
+
+		uid := req.Header.Get("X-Device-UID")
+		tenant := req.Header.Get("X-Tenant-ID")
+
+		r, err := resty.
+			New().
+			R().
+			SetHeader("X-Tenant-ID", tenant).
+			SetBody(map[string]interface{}{
+				"connected_at": clock.Now(),
+			}).
+			Patch(fmt.Sprintf("http://api:8080/internal/devices/%s/connection-stats", uid))
+		if err != nil || r.StatusCode() != 200 {
+			log.
+				WithFields(log.Fields{
+					"uid":    uid,
+					"tenant": tenant,
+				}).
+				WithError(err).
+				Error("failed to updated device's connected_at")
+		}
+
+		return uid, nil
 	}
 	tunnel.Tunnel.CloseHandler = func(id string) {
 		if err := internalclient.NewClient().DevicesOffline(id); err != nil {

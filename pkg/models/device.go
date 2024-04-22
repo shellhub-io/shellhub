@@ -19,13 +19,23 @@ const (
 
 type Device struct {
 	// UID is the unique identifier for a device.
-	UID              string          `json:"uid"`
+	UID string `json:"uid"`
+
+	// ConnectedAt represents the timestamp (in UTC) of the device's most recent connection initiation with the server.
+	// It does not determine the online status, of the device, use [Device.LastSeen] for this.
+	ConnectedAt time.Time `json:"connected_at" bson:"connected_at"`
+
+	// DisconnectedAt represents the timestamp (in UTC) of the device's most recent connection termination with the server.
+	// It does not determine the online status of the device; use [Device.LastSeen] for this purpose.
+	DisconnectedAt time.Time `json:"disconnected_at" bson:"disconnected_at"`
+
+	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+
 	Name             string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
 	Identity         *DeviceIdentity `json:"identity"`
 	Info             *DeviceInfo     `json:"info"`
 	PublicKey        string          `json:"public_key" bson:"public_key"`
 	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen         time.Time       `json:"last_seen" bson:"last_seen"`
 	Online           bool            `json:"online" bson:",omitempty"`
 	Namespace        string          `json:"namespace" bson:",omitempty"`
 	Status           DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
@@ -40,6 +50,8 @@ type Device struct {
 }
 
 type DeviceChanges struct {
+	ConnectedAt    time.Time `bson:"connected_at,omitempty"`
+	DisconnectedAt time.Time `bson:"disconnected_at,omitempty"`
 }
 
 type DeviceAuthClaims struct {

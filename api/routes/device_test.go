@@ -8,13 +8,15 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	svc "github.com/shellhub-io/shellhub/api/services"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
@@ -1002,4 +1004,112 @@ func TestUpdateDevice(t *testing.T) {
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
+}
+
+func TestUpdateDeviceConnectionStats(t *testing.T) {
+	serviceMock := new(mocks.Service)
+	clockMock := new(clockmock.Clock)
+
+	now := time.Now()
+	clock.DefaultBackend = clockMock
+	clockMock.On("Now").Return(now)
+
+	type Actual struct {
+		err    error
+		status int
+	}
+
+	cases := []struct {
+		description string
+		method      string
+		request     *requests.DeviceUpdateConnectionStats
+		mocks       func()
+		expected    Actual
+	}{
+		{
+			description: "fails when method is other than PATCH",
+			method:      http.MethodGet,
+			request:     &requests.DeviceUpdateConnectionStats{},
+			mocks:       func() {},
+			expected: Actual{
+				status: http.StatusMethodNotAllowed,
+			},
+		},
+		{
+			description: "fails when namespace does not exists",
+			method:      http.MethodPatch,
+			request: &requests.DeviceUpdateConnectionStats{
+				UID:            "0000000000000000000000000000000000000000000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				ConnectedAt:    clock.Now(),
+				DisconnectedAt: clock.Now(),
+			},
+			mocks: func() {
+				serviceMock.
+					On("UpdateDeviceConnectionStats", gomock.Anything, gomock.MatchedBy(func(req *requests.DeviceUpdateConnectionStats) bool {
+						return req.TenantID == "00000000-0000-4000-0000-000000000000" &&
+							req.UID == "0000000000000000000000000000000000000000000000000000000000000000" &&
+							req.ConnectedAt.Sub(now) == 0 &&
+							req.DisconnectedAt.Sub(now) == 0
+
+					})).
+					Return(svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
+					Once()
+			},
+			expected: Actual{
+				status: http.StatusNotFound,
+			},
+		},
+		{
+			description: "succeeds",
+			method:      http.MethodPatch,
+			request: &requests.DeviceUpdateConnectionStats{
+				UID:            "0000000000000000000000000000000000000000000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				ConnectedAt:    clock.Now(),
+				DisconnectedAt: clock.Now(),
+			},
+			mocks: func() {
+				serviceMock.
+					On("UpdateDeviceConnectionStats", gomock.Anything, gomock.MatchedBy(func(req *requests.DeviceUpdateConnectionStats) bool {
+						return req.TenantID == "00000000-0000-4000-0000-000000000000" &&
+							req.UID == "0000000000000000000000000000000000000000000000000000000000000000" &&
+							req.ConnectedAt.Sub(now) == 0 &&
+							req.DisconnectedAt.Sub(now) == 0
+
+					})).
+					Return(nil).
+					Once()
+			},
+			expected: Actual{
+				status: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.mocks()
+
+			jsonData, err := json.Marshal(map[string]interface{}{
+				"connected_at":    tc.request.ConnectedAt,
+				"disconnected_at": tc.request.DisconnectedAt,
+			})
+			if err != nil {
+				assert.NoError(t, err)
+			}
+
+			req := httptest.NewRequest(tc.method, fmt.Sprintf("/internal/devices/%s/connection-stats", tc.request.UID), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Tenant-ID", tc.request.TenantID)
+			rec := httptest.NewRecorder()
+
+			e := NewRouter(serviceMock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
+		})
+	}
+
+	serviceMock.AssertExpectations(t)
 }
