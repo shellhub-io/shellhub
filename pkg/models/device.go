@@ -39,8 +39,13 @@ type Device struct {
 	Acceptable       bool            `json:"acceptable" bson:"acceptable,omitempty"`
 }
 
+type DeviceChanges struct {
+}
+
 type DeviceAuthClaims struct {
-	UID string `json:"uid"`
+	UID    string `json:"uid"`
+	Tenant string `json:"tenant"`
+	Status string `json:"status"`
 
 	AuthClaims           `mapstruct:",squash"`
 	jwt.RegisteredClaims `mapstruct:",squash"`

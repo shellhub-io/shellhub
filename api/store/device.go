@@ -23,7 +23,13 @@ const (
 type DeviceStore interface {
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
+
+	// DeviceEdit updates a device identified by the specified tenant and ID with the provided changes.
+	// TODO: remove all update methods and unify here; rename to DeviceUpdate
+	DeviceEdit(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) (err error)
+
 	DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
+
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error

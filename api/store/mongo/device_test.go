@@ -1371,3 +1371,44 @@ func TestDeviceDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestDeviceEdit(t *testing.T) {
+	cases := []struct {
+		description string
+		tenant      string
+		uid         string
+		changes     *models.DeviceChanges
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "fails when the device is not found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			uid:         "nonexistent",
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when the device is found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			ctx := context.Background()
+			err := s.DeviceEdit(ctx, tc.tenant, tc.uid, tc.changes)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}

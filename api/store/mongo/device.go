@@ -298,6 +298,21 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 	return FromMongoError(err)
 }
 
+func (s *Store) DeviceEdit(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error {
+	res, err := s.db.
+		Collection("devices").
+		UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if res.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
 	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": hostname}})
 	if err != nil {
