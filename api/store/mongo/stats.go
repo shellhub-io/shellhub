@@ -29,11 +29,6 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		},
 	}}, query...)
 
-	onlineDevices, err := AggregateCount(ctx, s.db.Collection("connected_devices"), query)
-	if err != nil {
-		return nil, err
-	}
-
 	query = []bson.M{
 		{"$count": "count"},
 	}
@@ -124,6 +119,8 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	onlineDevices := 0 // TODO: new online implementation
 
 	return &models.Stats{
 		RegisteredDevices: registeredDevices,

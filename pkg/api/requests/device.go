@@ -23,11 +23,6 @@ type DeviceRename struct {
 	Name string `json:"name" validate:"required"`
 }
 
-// DeviceOffline is the structure to represent the request data for offline device endpoint.
-type DeviceOffline struct {
-	DeviceParam
-}
-
 // DeviceLookup is the structure to represent the request data for lookup device endpoint.
 type DeviceLookup struct {
 	Domain    string `query:"domain" validate:"required"`
@@ -40,11 +35,6 @@ type DeviceLookup struct {
 type DeviceUpdateStatus struct {
 	DeviceParam
 	Status string `param:"status" validate:"required,oneof=accept reject pending unused"`
-}
-
-// DeviceHeartbeat is the structure to represent the request data for device heartbeat endpoint.
-type DeviceHeartbeat struct {
-	DeviceParam
 }
 
 // DeviceCreateTag is the structure to represent the request data for device create tag endpoint.

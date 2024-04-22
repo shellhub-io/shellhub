@@ -20,7 +20,6 @@ var s store.Store
 
 const (
 	fixtureAnnouncements    = "announcements"     // Check "fixtures.data.announcements" for fixture info
-	fixtureConnectedDevices = "connected_devices" // Check "fixtures.data.connected_devices" for fixture info
 	fixtureDevices          = "devices"           // Check "fixtures.data.devices" for fixture info
 	fixtureSessions         = "sessions"          // Check "fixtures.data.sessions" for fixture info
 	fixtureActiveSessions   = "active_sessions"   // Check "fixtures.data.active_sessions" for fixture info
@@ -65,7 +64,6 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertTime("devices", "created_at"),
 		mongotest.SimpleConvertTime("devices", "last_seen"),
 		mongotest.SimpleConvertTime("devices", "status_updated_at"),
-		mongotest.SimpleConvertTime("connected_devices", "last_seen"),
 		mongotest.SimpleConvertObjID("firewall_rules", "_id"),
 		mongotest.SimpleConvertObjID("sessions", "_id"),
 		mongotest.SimpleConvertTime("sessions", "started_at"),

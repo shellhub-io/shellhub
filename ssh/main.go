@@ -38,7 +38,7 @@ func main() {
 	}
 
 	tun := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
-	tun.API = internalclient.NewClientWithAsynq(env.RedisURI)
+	tun.API = internalclient.New()
 	if tun.API == nil {
 		log.Fatal("failed to create internal client")
 	}

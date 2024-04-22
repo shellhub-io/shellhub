@@ -2,9 +2,7 @@ package workers
 
 import (
 	"context"
-	"fmt"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -54,17 +52,6 @@ func New(store store.Store) (*Workers, error) {
 				"api":            1,
 				"session_record": 1,
 			},
-			GroupAggregator: asynq.GroupAggregatorFunc(
-				func(group string, tasks []*asynq.Task) *asynq.Task {
-					var b strings.Builder
-
-					for _, task := range tasks {
-						b.WriteString(fmt.Sprintf("%s:%d\n", task.Payload(), time.Now().Unix()))
-					}
-
-					return asynq.NewTask(TaskHeartbeat, []byte(b.String()))
-				},
-			),
 			GroupMaxDelay:    time.Duration(env.AsynqGroupMaxDelay) * time.Second,
 			GroupGracePeriod: time.Duration(env.AsynqGroupGracePeriod) * time.Second,
 			GroupMaxSize:     env.AsynqGroupMaxSize,
@@ -123,5 +110,4 @@ func (w *Workers) Start(ctx context.Context) {
 // to be called before any initialization.
 func (w *Workers) setupHandlers() {
 	w.registerSessionCleanup()
-	w.registerHeartbeat()
 }

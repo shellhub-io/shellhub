@@ -155,7 +155,7 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	log.Info("Starting API server")
 
-	requestClient := requests.NewClient()
+	requestClient := requests.New()
 
 	var locator geoip.Locator
 	if cfg.GeoIP {

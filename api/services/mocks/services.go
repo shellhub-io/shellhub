@@ -666,24 +666,6 @@ func (_m *Service) DeleteTag(ctx context.Context, tenant string, tag string) err
 	return r0
 }
 
-// DeviceHeartbeat provides a mock function with given fields: ctx, uid
-func (_m *Service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceHeartbeat")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // EditAPIKey provides a mock function with given fields: ctx, tenantID, changes
 func (_m *Service) EditAPIKey(ctx context.Context, tenantID string, changes *requests.APIKeyChanges) (*models.APIKey, error) {
 	ret := _m.Called(ctx, tenantID, changes)
@@ -1342,24 +1324,6 @@ func (_m *Service) LookupDevice(ctx context.Context, namespace string, name stri
 	}
 
 	return r0, r1
-}
-
-// OffineDevice provides a mock function with given fields: ctx, uid, online
-func (_m *Service) OffineDevice(ctx context.Context, uid models.UID, online bool) error {
-	ret := _m.Called(ctx, uid, online)
-
-	if len(ret) == 0 {
-		panic("no return value specified for OffineDevice")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
-		r0 = rf(ctx, uid, online)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // PublicKey provides a mock function with given fields:

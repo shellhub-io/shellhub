@@ -10,7 +10,6 @@ import (
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -25,9 +24,7 @@ type DeviceService interface {
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
-	OffineDevice(ctx context.Context, uid models.UID, online bool) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
-	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 
 	// UpdateDeviceConnectionStats updates the specified device's connection attributes.
@@ -183,15 +180,6 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 	return device, nil
 }
 
-func (s *service) OffineDevice(ctx context.Context, uid models.UID, online bool) error {
-	err := s.store.DeviceSetOnline(ctx, uid, clock.Now(), online)
-	if err == store.ErrNoDocuments {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	return err
-}
-
 // UpdateDeviceStatus updates the device status.
 func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
 	namespace, err := s.store.NamespaceGet(ctx, tenant, true)
@@ -300,14 +288,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
-}
-
-func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
-	if err := s.store.DeviceSetOnline(ctx, uid, clock.Now(), true); err != nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	return nil
 }
 
 func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {

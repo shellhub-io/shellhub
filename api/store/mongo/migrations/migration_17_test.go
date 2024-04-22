@@ -64,7 +64,14 @@ func TestMigration17(t *testing.T) {
 		DeviceUID: "1",
 	}
 
-	connectedDevice := models.ConnectedDevice{
+	type ConnectedDevice struct {
+		UID      string    `json:"uid"`
+		TenantID string    `json:"tenant_id" bson:"tenant_id"`
+		LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+		Status   string    `json:"status" bson:"status"`
+	}
+
+	connectedDevice := ConnectedDevice{
 		UID: "1",
 	}
 

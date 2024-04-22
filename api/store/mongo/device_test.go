@@ -29,7 +29,7 @@ func TestDeviceList(t *testing.T) {
 	}{
 		{
 			description: "succeeds when no devices are found",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderAsc},
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
@@ -42,17 +42,19 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderAsc},
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
 						CreatedAt:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						UID:              "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
 						Name:             "device-1",
 						Identity:         &models.DeviceIdentity{MAC: "mac-1"},
@@ -73,6 +75,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						UID:              "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
 						Name:             "device-2",
 						Identity:         &models.DeviceIdentity{MAC: "mac-2"},
@@ -93,13 +97,15 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 						Name:             "device-3",
 						Identity:         &models.DeviceIdentity{MAC: "mac-3"},
 						Info:             nil,
 						PublicKey:        "",
 						TenantID:         "00000000-0000-4000-0000-000000000000",
-						Online:           true,
+						Online:           false,
 						Namespace:        "namespace-1",
 						Status:           "accepted",
 						RemoteAddr:       "",
@@ -113,6 +119,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						UID:              "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
 						Name:             "device-4",
 						Identity:         &models.DeviceIdentity{MAC: "mac-4"},
@@ -136,24 +144,26 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with limited page and page size",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderAsc},
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
 						CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 						Name:             "device-3",
 						Identity:         &models.DeviceIdentity{MAC: "mac-3"},
 						Info:             nil,
 						PublicKey:        "",
 						TenantID:         "00000000-0000-4000-0000-000000000000",
-						Online:           true,
+						Online:           false,
 						Namespace:        "namespace-1",
 						Status:           "accepted",
 						RemoteAddr:       "",
@@ -167,6 +177,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						UID:              "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
 						Name:             "device-4",
 						Identity:         &models.DeviceIdentity{MAC: "mac-4"},
@@ -190,17 +202,19 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with sort created_at",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderAsc},
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
 						CreatedAt:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						UID:              "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
 						Name:             "device-1",
 						Identity:         &models.DeviceIdentity{MAC: "mac-1"},
@@ -221,6 +235,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						UID:              "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
 						Name:             "device-2",
 						Identity:         &models.DeviceIdentity{MAC: "mac-2"},
@@ -241,13 +257,15 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 						Name:             "device-3",
 						Identity:         &models.DeviceIdentity{MAC: "mac-3"},
 						Info:             nil,
 						PublicKey:        "",
 						TenantID:         "00000000-0000-4000-0000-000000000000",
-						Online:           true,
+						Online:           false,
 						Namespace:        "namespace-1",
 						Status:           "accepted",
 						RemoteAddr:       "",
@@ -261,6 +279,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						UID:              "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
 						Name:             "device-4",
 						Identity:         &models.DeviceIdentity{MAC: "mac-4"},
@@ -284,17 +304,19 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with order asc",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderAsc},
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
 						CreatedAt:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						UID:              "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
 						Name:             "device-1",
 						Identity:         &models.DeviceIdentity{MAC: "mac-1"},
@@ -315,6 +337,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						UID:              "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
 						Name:             "device-2",
 						Identity:         &models.DeviceIdentity{MAC: "mac-2"},
@@ -335,13 +359,15 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 						Name:             "device-3",
 						Identity:         &models.DeviceIdentity{MAC: "mac-3"},
 						Info:             nil,
 						PublicKey:        "",
 						TenantID:         "00000000-0000-4000-0000-000000000000",
-						Online:           true,
+						Online:           false,
 						Namespace:        "namespace-1",
 						Status:           "accepted",
 						RemoteAddr:       "",
@@ -355,6 +381,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						UID:              "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
 						Name:             "device-4",
 						Identity:         &models.DeviceIdentity{MAC: "mac-4"},
@@ -378,17 +406,19 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with order desc",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderDesc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderDesc},
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
 						CreatedAt:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						UID:              "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
 						Name:             "device-4",
 						Identity:         &models.DeviceIdentity{MAC: "mac-4"},
@@ -409,13 +439,15 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 						Name:             "device-3",
 						Identity:         &models.DeviceIdentity{MAC: "mac-3"},
 						Info:             nil,
 						PublicKey:        "",
 						TenantID:         "00000000-0000-4000-0000-000000000000",
-						Online:           true,
+						Online:           false,
 						Namespace:        "namespace-1",
 						Status:           "accepted",
 						RemoteAddr:       "",
@@ -429,6 +461,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
 						UID:              "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
 						Name:             "device-2",
 						Identity:         &models.DeviceIdentity{MAC: "mac-2"},
@@ -449,6 +483,8 @@ func TestDeviceList(t *testing.T) {
 						CreatedAt:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						UID:              "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
 						Name:             "device-1",
 						Identity:         &models.DeviceIdentity{MAC: "mac-1"},
@@ -472,17 +508,19 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found filtering status",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			sorter:      query.Sorter{By: "connected_at", Order: query.OrderAsc},
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatusPending,
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
 						CreatedAt:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt:  time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						LastSeen:         time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						ConnectedAt:      time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						DisconnectedAt:   time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
 						UID:              "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
 						Name:             "device-4",
 						Identity:         &models.DeviceIdentity{MAC: "mac-4"},
@@ -591,7 +629,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when namespace is not found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -600,7 +638,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found",
 			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -609,7 +647,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("5600560h6ed5h960969e7f358g4568491247198ge8537e9g448609fff1b231f"),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -618,19 +656,21 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
 					Info:             nil,
 					PublicKey:        "",
 					TenantID:         "00000000-0000-4000-0000-000000000000",
-					Online:           true,
+					Online:           false,
 					Namespace:        "namespace-1",
 					Status:           "accepted",
 					RemoteAddr:       "",
@@ -706,6 +746,8 @@ func TestDeviceGetByMac(t *testing.T) {
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -735,6 +777,8 @@ func TestDeviceGetByMac(t *testing.T) {
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -816,6 +860,8 @@ func TestDeviceGetByName(t *testing.T) {
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -893,6 +939,8 @@ func TestDeviceGetByUID(t *testing.T) {
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -990,6 +1038,8 @@ func TestDeviceLookup(t *testing.T) {
 					CreatedAt:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					StatusUpdatedAt:  time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					LastSeen:         time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					ConnectedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					DisconnectedAt:   time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 					UID:              "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					Name:             "device-3",
 					Identity:         &models.DeviceIdentity{MAC: "mac-3"},
@@ -1137,123 +1187,6 @@ func TestDeviceUpdateStatus(t *testing.T) {
 			})
 
 			err := s.DeviceUpdateStatus(ctx, tc.uid, models.DeviceStatus(tc.status))
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestDeviceUpdateOnline(t *testing.T) {
-	cases := []struct {
-		description string
-		uid         models.UID
-		online      bool
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
-			online:      true,
-			fixtures:    []string{fixtureDevices},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when the device is found",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			online:      true,
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.DeviceUpdateOnline(ctx, tc.uid, tc.online)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestDeviceUpdateLastSeen(t *testing.T) {
-	cases := []struct {
-		description string
-		uid         models.UID
-		now         time.Time
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
-			now:         time.Now(),
-			fixtures:    []string{fixtureDevices},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when the device is found",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			now:         time.Now(),
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.DeviceUpdateLastSeen(ctx, tc.uid, tc.now)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestDeviceSetOnline(t *testing.T) {
-	cases := []struct {
-		description string
-		uid         models.UID
-		online      bool
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "succeeds when UID is valid and online is true",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			online:      true,
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
-		},
-		{
-			description: "succeeds when UID is valid and online is false",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			online:      false,
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.DeviceSetOnline(ctx, tc.uid, time.Now(), tc.online)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

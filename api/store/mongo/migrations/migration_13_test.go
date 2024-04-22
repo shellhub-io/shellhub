@@ -3,6 +3,7 @@ package migrations
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -37,11 +38,18 @@ func TestMigration13(t *testing.T) {
 
 	logrus.Info("Test if the uid in the connected_devices collection is not unique")
 
-	connectedDevice1 := models.ConnectedDevice{
+	type ConnectedDevice struct {
+		UID      string    `json:"uid"`
+		TenantID string    `json:"tenant_id" bson:"tenant_id"`
+		LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+		Status   string    `json:"status" bson:"status"`
+	}
+
+	connectedDevice1 := ConnectedDevice{
 		UID: "1",
 	}
 
-	connectedDevice2 := models.ConnectedDevice{
+	connectedDevice2 := ConnectedDevice{
 		UID: "1",
 	}
 

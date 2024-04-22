@@ -999,24 +999,6 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceSetOnline provides a mock function with given fields: ctx, uid, timestamp, online
-func (_m *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error {
-	ret := _m.Called(ctx, uid, timestamp, online)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceSetOnline")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, time.Time, bool) error); ok {
-		r0 = rf(ctx, uid, timestamp, online)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeviceSetPosition provides a mock function with given fields: ctx, uid, position
 func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
 	ret := _m.Called(ctx, uid, position)
@@ -1081,42 +1063,6 @@ func (_m *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *string, *bool) error); ok {
 		r0 = rf(ctx, tenant, uid, name, publicURL)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceUpdateLastSeen provides a mock function with given fields: ctx, uid, ts
-func (_m *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error {
-	ret := _m.Called(ctx, uid, ts)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceUpdateLastSeen")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, time.Time) error); ok {
-		r0 = rf(ctx, uid, ts)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceUpdateOnline provides a mock function with given fields: ctx, uid, online
-func (_m *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
-	ret := _m.Called(ctx, uid, online)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceUpdateOnline")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
-		r0 = rf(ctx, uid, online)
 	} else {
 		r0 = ret.Error(0)
 	}

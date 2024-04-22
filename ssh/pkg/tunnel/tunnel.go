@@ -25,7 +25,7 @@ type Tunnel struct {
 func NewTunnel(connection, dial string) *Tunnel {
 	tunnel := &Tunnel{
 		Tunnel: httptunnel.NewTunnel(connection, dial),
-		API:    internalclient.NewClient(),
+		API:    internalclient.New(),
 	}
 
 	tunnel.Tunnel.ConnectionHandler = func(req *http.Request) (string, error) {
@@ -55,14 +55,10 @@ func NewTunnel(connection, dial string) *Tunnel {
 		return uid, nil
 	}
 	tunnel.Tunnel.CloseHandler = func(id string) {
-		if err := internalclient.NewClient().DevicesOffline(id); err != nil {
-			log.Error(err)
-		}
+		// TODO: new heartbeat implementation
 	}
 	tunnel.Tunnel.KeepAliveHandler = func(id string) {
-		if err := tunnel.API.DevicesHeartbeat(id); err != nil {
-			log.Error(err)
-		}
+		// TODO: new heartbeat implementation
 	}
 
 	tunnel.router = tunnel.Tunnel.Router().(*echo.Echo)

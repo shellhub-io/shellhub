@@ -100,7 +100,6 @@ var (
 	ErrDeviceStatusInvalid          = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceStatusAccepted         = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
 	ErrDeviceCreate                 = errors.New("device create", ErrLayer, ErrCodeStore)
-	ErrDeviceSetOnline              = errors.New("device set online", ErrLayer, ErrCodeStore)
 	ErrMaxDeviceCountReached        = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicatedDeviceName         = errors.New("device name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyDuplicated          = errors.New("public key duplicated", ErrLayer, ErrCodeDuplicated)
@@ -398,11 +397,6 @@ func NewErrUserUpdate(user *models.User, err error) error {
 // NewErrDeviceCreate returns a error to be used when the device create fails.
 func NewErrDeviceCreate(device models.Device, err error) error {
 	return NewErrStore(ErrDeviceCreate, device, err)
-}
-
-// NewErrDeviceSetOnline returns a error to be used when the device set online fails.
-func NewErrDeviceSetOnline(id models.UID, err error) error {
-	return NewErrStore(ErrDeviceSetOnline, id, err)
 }
 
 // NewErrAuthUnathorized returns a error to be used when the auth is unauthorized.

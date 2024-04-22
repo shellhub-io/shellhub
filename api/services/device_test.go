@@ -1615,55 +1615,6 @@ func TestLookupDevice(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestOffineDevice(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
-	cases := []struct {
-		name          string
-		uid           models.UID
-		online        bool
-		requiredMocks func()
-		expected      error
-	}{
-		{
-			name: "fails when store device online fails",
-			uid:  models.UID("uid"),
-			requiredMocks: func() {
-				clockMock.On("Now").Return(now).Once()
-				mock.On("DeviceSetOnline", ctx, models.UID("uid"), now, false).
-					Return(errors.New("error", "", 0)).Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-		{
-			name:   "succeeds",
-			uid:    models.UID("uid"),
-			online: true,
-			requiredMocks: func() {
-				online := true
-				clockMock.On("Now").Return(now).Once()
-				mock.On("DeviceSetOnline", ctx, models.UID("uid"), now, online).
-					Return(errors.New("error", "", 0)).Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.OffineDevice(ctx, tc.uid, tc.online)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
 func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 	mock := new(mocks.Store)
 
@@ -3213,24 +3164,6 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			assert.Equal(t, tc.expected, err)
 		})
 	}
-
-	mock.AssertExpectations(t)
-}
-
-func TestDeviceHeartbeat(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
-	uid := models.UID("uid")
-
-	clockMock.On("Now").Return(now).Once()
-
-	mock.On("DeviceSetOnline", ctx, uid, now, true).Return(nil).Once()
-
-	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-	err := service.DeviceHeartbeat(ctx, uid)
-	assert.NoError(t, err)
 
 	mock.AssertExpectations(t)
 }
