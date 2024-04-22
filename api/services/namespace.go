@@ -7,7 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
-	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -157,7 +156,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	}
 
 	if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
-		if err := s.BillingReport(s.client.(req.Client), tenantID, ReportNamespaceDelete); err != nil {
+		if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	}

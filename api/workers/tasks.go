@@ -1,5 +1,7 @@
 package workers
 
 const (
-	TaskSessionCleanup = "session_record:cleanup"
+	TaskConnectedDevicesIncrease = "connected_devices:increase"
+	TaskConnectedDevicesDecrease = "connected_devices:decrease"
+	TaskSessionCleanup           = "session_record:cleanup"
 )

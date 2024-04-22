@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -20,7 +21,7 @@ type service struct {
 	privKey   *rsa.PrivateKey
 	pubKey    *rsa.PublicKey
 	cache     cache.Cache
-	client    interface{}
+	client    internalclient.Client
 	locator   geoip.Locator
 	validator *validator.Validator
 }
@@ -43,7 +44,7 @@ type Service interface {
 	APIKeyService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) *APIService {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, client internalclient.Client, l geoip.Locator) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -52,5 +53,7 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &APIService{service: &service{store, privKey, pubKey, cache, c, l, validator.New()}}
+	return &APIService{
+		service: &service{store, privKey, pubKey, cache, client, l, validator.New()},
+	}
 }

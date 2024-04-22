@@ -16,6 +16,8 @@ The ShellHub is a lightweight software component that runs the device and provid
 
 - **Session Management:** The agent manages SSH sessions initiated by users, providing secure remote access to registered devices through the ShellHub web interface.
 
+- **Health Checks:** The agent communicates with ShellHub server to indicate its health and online status.
+
 # Getting Started
 
 TODO

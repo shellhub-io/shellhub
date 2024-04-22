@@ -9,35 +9,20 @@ import (
 )
 
 func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
+	tenant := ""
+	if t := gateway.TenantFromContext(ctx); t != nil {
+		tenant = t.ID
+	}
+
 	query := []bson.M{
-		{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-		{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-	}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		}}, query...)
-	}
-
-	query = append([]bson.M{{
-		"$match": bson.M{
-			"status": "accepted",
-		},
-	}}, query...)
-
-	query = []bson.M{
 		{"$count": "count"},
 	}
 
 	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+	if tenant != "" {
 		query = append([]bson.M{{
 			"$match": bson.M{
-				"tenant_id": tenant.ID,
+				"tenant_id": tenant,
 			},
 		}}, query...)
 	}
@@ -56,11 +41,10 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		{"$count": "count"},
 	}
 
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+	if tenant != "" {
 		query = append([]bson.M{{
 			"$match": bson.M{
-				"tenant_id": tenant.ID,
+				"tenant_id": tenant,
 			},
 		}}, query...)
 	}
@@ -80,11 +64,10 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		{"$count": "count"},
 	}
 
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+	if tenant != "" {
 		query = append([]bson.M{{
 			"$match": bson.M{
-				"tenant_id": tenant.ID,
+				"tenant_id": tenant,
 			},
 		}}, query...)
 	}
@@ -102,11 +85,10 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	query = []bson.M{}
 
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+	if tenant != "" {
 		query = append(query, bson.M{
 			"$match": bson.M{
-				"tenant_id": tenant.ID,
+				"tenant_id": tenant,
 			},
 		})
 	}
@@ -120,11 +102,21 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		return nil, err
 	}
 
-	onlineDevices := 0 // TODO: new online implementation
+	var onlineDevices int64
+	if tenant != "" {
+		if onlineDevices, err = s.cache.CountConnectedDevices(ctx, tenant, models.DeviceStatusAccepted); err != nil {
+			return nil, err
+		}
+	} else {
+		// TODO:
+		if onlineDevices, err = s.cache.CountConnectedDevices(ctx, tenant, models.DeviceStatus("*")); err != nil {
+			return nil, err
+		}
+	}
 
 	return &models.Stats{
 		RegisteredDevices: registeredDevices,
-		OnlineDevices:     onlineDevices,
+		OnlineDevices:     int(onlineDevices), // TODO: convert the return type to int64
 		PendingDevices:    pendingDevices,
 		RejectedDevices:   rejectedDevices,
 		ActiveSessions:    activeSessions,

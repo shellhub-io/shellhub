@@ -913,7 +913,6 @@ func TestUpdateDeviceConnectionStats(t *testing.T) {
 	clockMock.On("Now").Return(now)
 
 	type Actual struct {
-		err    error
 		status int
 	}
 
@@ -949,7 +948,6 @@ func TestUpdateDeviceConnectionStats(t *testing.T) {
 							req.UID == "0000000000000000000000000000000000000000000000000000000000000000" &&
 							req.ConnectedAt.Sub(now) == 0 &&
 							req.DisconnectedAt.Sub(now) == 0
-
 					})).
 					Return(svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
 					Once()
@@ -974,7 +972,6 @@ func TestUpdateDeviceConnectionStats(t *testing.T) {
 							req.UID == "0000000000000000000000000000000000000000000000000000000000000000" &&
 							req.ConnectedAt.Sub(now) == 0 &&
 							req.DisconnectedAt.Sub(now) == 0
-
 					})).
 					Return(nil).
 					Once()

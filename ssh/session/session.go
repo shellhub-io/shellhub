@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/connman"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -290,18 +291,16 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.UID)
+	defer ctx.Unlock()
+
+	s.AgentConn, err = s.tunnel.Dial(ctx, connman.NewInfoID(s.Device.TenantID, s.Device.UID))
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(s.AgentConn); err != nil {
-		return err
-	}
-	ctx.Unlock()
 
-	return nil
+	return req.Write(s.AgentConn)
 }
 
 func (s *Session) Evaluate(ctx gliderssh.Context) error {

@@ -3,15 +3,16 @@ package workers
 import (
 	"context"
 	"runtime"
-	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	log "github.com/sirupsen/logrus"
 )
 
 type Workers struct {
 	store store.Store
+	cache cache.Cache
 
 	addr      asynq.RedisConnOpt
 	srv       *asynq.Server
@@ -22,7 +23,7 @@ type Workers struct {
 
 // New creates a new Workers instance with the provided store. It initializes
 // the worker's components, such as server, scheduler, and environment settings.
-func New(store store.Store) (*Workers, error) {
+func New(store store.Store, cache cache.Cache) (*Workers, error) {
 	env, err := getEnvs()
 	if err != nil {
 		log.WithFields(log.Fields{"component": "worker"}).
@@ -49,13 +50,10 @@ func New(store store.Store) (*Workers, error) {
 			// To include any new task binding to a new queue (e.g., "queue:group" where 'queue' is the new queue),
 			// ensure that the created queue is added here. Failure to do so will result in the server not executing the task handler.
 			Queues: map[string]int{
-				"api":            1,
+				"device":         1,
 				"session_record": 1,
 			},
-			GroupMaxDelay:    time.Duration(env.AsynqGroupMaxDelay) * time.Second,
-			GroupGracePeriod: time.Duration(env.AsynqGroupGracePeriod) * time.Second,
-			GroupMaxSize:     env.AsynqGroupMaxSize,
-			Concurrency:      runtime.NumCPU(),
+			Concurrency: runtime.NumCPU(),
 		},
 	)
 	scheduler := asynq.NewScheduler(addr, nil)
@@ -67,7 +65,14 @@ func New(store store.Store) (*Workers, error) {
 		mux:       mux,
 		scheduler: scheduler,
 		store:     store,
+		cache:     cache,
 	}
+
+	// w.mux.HandleFunc(TaskDeviceStatus, handleDeviceStatus(w))
+
+	d := &DeviceTask{}
+	w.mux.HandleFunc(TaskConnectedDevicesIncrease, d.IncreaseConnectedDevices(w))
+	w.mux.HandleFunc(TaskConnectedDevicesDecrease, d.DecreaseConnectedDevices(w))
 
 	return w, nil
 }

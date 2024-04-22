@@ -28,39 +28,59 @@ const (
 	DefaultRevdialURL    = "/revdial"
 )
 
+type ConnectionHandler func(*http.Request) (*connman.Info, error)
+type KeepAliveHandler func(context.Context, *connman.Info)
+type CloseHandler func(context.Context, *connman.Info)
+
 type Tunnel struct {
-	ConnectionPath    string
-	DialerPath        string
-	ConnectionHandler func(*http.Request) (string, error)
-	CloseHandler      func(string)
-	KeepAliveHandler  func(string)
-	connman           *connman.ConnectionManager
-	id                chan string
-	online            chan bool
+	id             chan string
+	connman        *connman.ConnectionManager
+	online         chan bool
+	ConnectionPath string
+	DialerPath     string
+
+	// ConnectionHandler is a callback function called when an agent initiates a new connection through the ShellHub server.
+	// It receives a request from the agent and should return a string containing sufficient information to identify
+	// the connection in subsequent callbacks, or an error if any.
+	//
+	// TODO: Consider returning a struct containing the information instead of a formatted string.
+	ConnectionHandler ConnectionHandler
+
+	// CloseHandler is a callback function called when an agent requests to end a connection.
+	CloseHandler CloseHandler
+
+	// KeepAliveHandler is a callback function called to handle keep-alive pings from agents to maintain connection
+	// stability. This function may perform any necessary actions to ensure the connection remains active.
+	//
+	// TODO: Currently, it receives the formatted string returned from [Tunnel.ConnectionHandler]. Consider receive
+	// a struct instead.
+	KeepAliveHandler KeepAliveHandler
 }
 
 func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 	tunnel := &Tunnel{
+		id:             make(chan string),
+		connman:        connman.New(),
+		online:         make(chan bool),
 		ConnectionPath: connectionPath,
 		DialerPath:     dialerPath,
-		ConnectionHandler: func(r *http.Request) (string, error) {
-			panic("ConnectionHandler not implemented")
+		ConnectionHandler: func(r *http.Request) (*connman.Info, error) {
+			panic("ConnectionHandler not yet implemented.")
 		},
-		CloseHandler: func(string) {
+		CloseHandler: func(_ context.Context, _ *connman.Info) {
+			panic("CloseHandler not yet implemented.")
 		},
-		KeepAliveHandler: func(string) {
+		KeepAliveHandler: func(_ context.Context, _ *connman.Info) {
+			panic("KeepAliveHandler not yet implemented.")
 		},
-		connman: connman.New(),
-		id:      make(chan string),
-		online:  make(chan bool),
 	}
 
-	tunnel.connman.DialerDoneCallback = func(id string, _ *revdial.Dialer) {
-		tunnel.CloseHandler(id)
+	tunnel.connman.DialerDoneCallback = func(ctx context.Context, info *connman.Info, _ *revdial.Dialer) {
+		tunnel.CloseHandler(ctx, info)
 	}
 
-	tunnel.connman.DialerKeepAliveCallback = func(id string, _ *revdial.Dialer) {
-		tunnel.KeepAliveHandler(id)
+	tunnel.connman.DialerKeepAliveCallback = func(ctx context.Context, info *connman.Info, _ *revdial.Dialer) {
+		tunnel.KeepAliveHandler(ctx, info)
 	}
 
 	return tunnel
@@ -75,14 +95,15 @@ func (t *Tunnel) Router() http.Handler {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		id, err := t.ConnectionHandler(c.Request())
+		info, err := t.ConnectionHandler(c.Request())
 		if err != nil {
 			conn.Close()
 
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		t.connman.Set(id, wsconnadapter.New(conn))
+		ctx := context.Background()
+		t.connman.Set(ctx, info, wsconnadapter.New(conn))
 
 		return nil
 	})

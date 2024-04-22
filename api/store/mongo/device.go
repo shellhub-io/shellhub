@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// setLastSeen sets up the [Device.LastSeen] value based on the provided cache. If there's no
+// registered last_seen, the value will be set to [Device.DisconnectedAt]. It also defines
+// the [Device.Online] status.
+//
+// NOTE: This function cannot be a method of [models.Device] since it would require the agent to install the
+// redis package, leading to compatibility issues with older versions.
+func setLastSeen(ctx context.Context, d *models.Device, cache cache.Cache) {
+	if ls, ok, _ := cache.GetLastSeen(ctx, d.TenantID, d.UID); ok {
+		d.LastSeen = ls
+		d.Online = true
+	} else {
+		d.LastSeen = d.DisconnectedAt
+		d.Online = false
+	}
+}
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
 func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
@@ -29,7 +46,6 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 				},
 			},
 		},
-		// TODO: new online implementation
 	}
 
 	// Only match for the respective tenant if requested
@@ -156,6 +172,8 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 			return devices, count, err
 		}
 
+		setLastSeen(ctx, device, s.cache)
+
 		devices = append(devices, *device)
 	}
 
@@ -167,7 +185,6 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 		{
 			"$match": bson.M{"uid": uid},
 		},
-		// TODO: new online implementation
 		{
 			"$lookup": bson.M{
 				"from":         "namespaces",
@@ -208,6 +225,8 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
+
+	setLastSeen(ctx, device, s.cache)
 
 	return device, nil
 }
@@ -310,6 +329,8 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 		return nil, FromMongoError(err)
 	}
 
+	setLastSeen(ctx, device, s.cache)
+
 	return device, nil
 }
 
@@ -391,6 +412,8 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string,
 		}
 	}
 
+	setLastSeen(ctx, device, s.cache)
+
 	return device, nil
 }
 
@@ -400,6 +423,8 @@ func (s *Store) DeviceGetByName(ctx context.Context, name string, tenantID strin
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name, "status": string(status)}).Decode(&device); err != nil {
 		return nil, FromMongoError(err)
 	}
+
+	setLastSeen(ctx, device, s.cache)
 
 	return device, nil
 }
@@ -417,6 +442,8 @@ func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID str
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "uid": uid}).Decode(&device); err != nil {
 		return nil, FromMongoError(err)
 	}
+
+	setLastSeen(ctx, device, s.cache)
 
 	if err := s.cache.Set(ctx, strings.Join([]string{"device", string(uid)}, "/"), device, time.Minute); err != nil {
 		logrus.Error(err)
@@ -588,6 +615,8 @@ func (s *Store) DeviceGetByPublicURLAddress(ctx context.Context, address string)
 	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"public_url_address": address}).Decode(&device); err != nil {
 		return nil, FromMongoError(err)
 	}
+
+	setLastSeen(ctx, device, s.cache)
 
 	return device, nil
 }

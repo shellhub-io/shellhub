@@ -111,6 +111,7 @@ services:
     environment:
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
+      - REDIS_CACHE_POOL_SIZE=${SHELLHUB_REDIS_CACHE_POOL_SIZE}
     networks:
       - shellhub
   mongo:

@@ -27,9 +27,18 @@ type Device struct {
 
 	// DisconnectedAt represents the timestamp (in UTC) of the device's most recent connection termination with the server.
 	// It does not determine the online status of the device; use [Device.LastSeen] for this purpose.
-	DisconnectedAt time.Time `json:"disconnected_at" bson:"disconnected_at"`
+	//
+	// DisconnectedAt serves as a placeholder for [Device.LastSeen] (as it is not saved in the database). The last seen
+	// should be set to this when it is not present in the cache.
+	DisconnectedAt time.Time `json:"-" bson:"disconnected_at"`
 
-	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	// LastSeen represents the timestamp (in UTC) of the device's latest ping to the server. It is utilized to determine
+	// whether the device is currently online or offline.
+	//
+	// LastSeen data is not persisted in the database. Instead, it is exclusively stored in the cache and is merged
+	// with the model during retrieval operations at the code level. When a device is offline, the value is not present in
+	// the cache. In such cases, the value must be set to [Device.DisconnectedAt].
+	LastSeen time.Time `json:"last_seen" bson:"-"`
 
 	Name             string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
 	Identity         *DeviceIdentity `json:"identity"`
@@ -117,4 +126,11 @@ func NewDeviceTag(tag string) DeviceTag {
 	return DeviceTag{
 		Tag: tag,
 	}
+}
+
+// TODO:
+type ConnectedDevice struct {
+	UID      string `json:"uid"`
+	TenantID string `json:"tenant_id" bson:"tenant_id"`
+	Status   string `json:"status" bson:"status"`
 }

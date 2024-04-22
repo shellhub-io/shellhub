@@ -114,7 +114,6 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		Info:       info,
 		PublicKey:  req.PublicKey,
 		TenantID:   req.TenantID,
-		LastSeen:   clock.Now(),
 		RemoteAddr: remoteAddr,
 		Position: &models.DevicePosition{
 			Longitude: position.Longitude,

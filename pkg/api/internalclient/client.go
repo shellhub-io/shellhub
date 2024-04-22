@@ -11,19 +11,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type client struct {
-	http   *resty.Client
-	logger *logrus.Logger
-	asynq  *asynq.Client
-}
-
 type Client interface {
+	Close()
+
 	deviceAPI
 	namespaceAPI
 	billingAPI
 	sessionAPI
 	sshkeyAPI
 	firewallAPI
+}
+
+type Option func(c *client) error
+
+type client struct {
+	http   *resty.Client
+	logger *logrus.Logger
+	asynq  *asynq.Client
 }
 
 // Ensures the client implements Client.
@@ -39,11 +43,29 @@ var (
 	ErrUnknown          = errors.New("unknown error")
 )
 
-func New() Client {
-	httpClient := resty.New()
-	httpClient.SetBaseURL("http://api:8080")
-	httpClient.SetRetryCount(math.MaxInt32)
-	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
+func WithAsynq(redisURI string) Option {
+	return func(c *client) error {
+		uri, err := asynq.ParseRedisURI(redisURI)
+		if err != nil {
+			return err
+		}
+
+		if c.asynq = asynq.NewClient(uri); c.asynq == nil {
+			return errors.New("failed to create Asynq client")
+		}
+
+		return nil
+	}
+}
+
+func New(opts ...Option) Client {
+	client := &client{
+		http: resty.New(),
+	}
+
+	client.http.SetBaseURL("http://api:8080")
+	client.http.SetRetryCount(math.MaxInt32)
+	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
 			return true
 		}
@@ -51,11 +73,23 @@ func New() Client {
 		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
 	})
 
-	c := &client{http: httpClient}
-
-	if c.logger != nil {
-		httpClient.SetLogger(&LeveledLogger{c.logger})
+	for _, opt := range opts {
+		if err := opt(client); err != nil {
+			return nil //   TODO: return err
+		}
 	}
 
-	return c
+	if client.logger != nil {
+		client.http.SetLogger(&LeveledLogger{client.logger})
+	}
+
+	return client
+}
+
+func (c *client) Close() {
+	if c.asynq != nil {
+		if err := c.asynq.Close(); err != nil {
+			logrus.WithError(err).Error("failed to close internalclient asynq")
+		}
+	}
 }

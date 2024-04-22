@@ -18,7 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
 	"github.com/shellhub-io/shellhub/api/workers"
-	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
@@ -66,7 +66,7 @@ var serverCmd = &cobra.Command{
 
 		log.Info("Connected to MongoDB")
 
-		worker, err := workers.New(store)
+		worker, err := workers.New(store, cache)
 		if err != nil {
 			log.WithError(err).Warn("Failed to create workers.")
 		}
@@ -155,8 +155,6 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	log.Info("Starting API server")
 
-	requestClient := requests.New()
-
 	var locator geoip.Locator
 	if cfg.GeoIP {
 		log.Info("GeoIP feature is enable")
@@ -169,7 +167,7 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 		locator = geoip.NewNullGeoLite()
 	}
 
-	service := services.NewService(store, nil, nil, cache, requestClient, locator)
+	service := services.NewService(store, nil, nil, cache, internalclient.New(internalclient.WithAsynq(cfg.RedisURI)), locator)
 
 	e := routes.NewRouter(service)
 	e.Use(middleware.Log)

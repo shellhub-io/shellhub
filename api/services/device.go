@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	log "github.com/sirupsen/logrus"
 )
 
 const StatusAccepted = "accepted"
@@ -196,10 +196,26 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
+	updateConnectedDevices := func() {
+		if err := s.client.NotifyConnectedDevicesDecrease(tenant, string(device.Status)); err != nil {
+			log.WithError(err).Error("failed to send a notification to update a connected_device status")
+		}
+
+		if err := s.client.NotifyConnectedDevicesIncrease(tenant, string(status)); err != nil {
+			log.WithError(err).Error("failed to send a notification to update a connected_device status")
+		}
+	}
+
 	// NOTICE: when the device is intended to be rejected or in pending status, we don't check for duplications as it
 	// is not going to be considered for connections.
 	if status == models.DeviceStatusPending || status == models.DeviceStatusRejected {
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+			return err
+		}
+
+		updateConnectedDevices()
+
+		return nil
 	}
 
 	// NOTICE: when the intended status is not accepted, we return an error because these status are not allowed
@@ -233,7 +249,13 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 			return err
 		}
 
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+			return err
+		}
+
+		updateConnectedDevices()
+
+		return nil
 	}
 
 	if sameName, err := s.store.DeviceGetByName(ctx, device.Name, device.TenantID, models.DeviceStatusAccepted); sameName != nil {
@@ -241,7 +263,13 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	if status != models.DeviceStatusAccepted {
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+			return err
+		}
+
+		updateConnectedDevices()
+
+		return nil
 	}
 
 	switch {
@@ -251,7 +279,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		}
 	case envs.IsCloud():
 		if namespace.Billing.IsActive() {
-			if err := s.BillingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
+			if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
 				return NewErrBillingReportNamespaceDelete(err)
 			}
 		} else {
@@ -276,7 +304,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 				}
 			}
 
-			ok, err := s.BillingEvaluate(s.client.(req.Client), namespace.TenantID)
+			ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
 			if err != nil {
 				return NewErrBillingEvaluate(err)
 			}
@@ -287,7 +315,13 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		}
 	}
 
-	return s.store.DeviceUpdateStatus(ctx, uid, status)
+	if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+		return err
+	}
+
+	updateConnectedDevices()
+
+	return nil
 }
 
 func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {

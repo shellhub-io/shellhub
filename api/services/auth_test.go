@@ -53,7 +53,6 @@ func TestAuthDevice(t *testing.T) {
 			MAC: authReq.Identity.MAC,
 		},
 		TenantID:   authReq.TenantID,
-		LastSeen:   now,
 		RemoteAddr: "127.0.0.1",
 		Position: &models.DevicePosition{
 			Latitude:  0,

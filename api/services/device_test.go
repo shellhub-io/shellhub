@@ -1965,6 +1965,14 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "accepted").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2239,6 +2247,13 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "accepted").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2497,6 +2512,13 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "accepted").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2915,6 +2937,13 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "accepted").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -3150,6 +3179,13 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "accepted").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -3414,6 +3450,13 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("pending")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -3466,6 +3509,13 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 
 				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("rejected")).
 					Return(nil).Once()
+
+				clientMock.On("NotifyConnectedDevicesDecrease", "00000000-0000-0000-0000-000000000000", "pending").
+					Return(nil).
+					Once()
+				clientMock.On("NotifyConnectedDevicesIncrease", "00000000-0000-0000-0000-000000000000", "rejected").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
