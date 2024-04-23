@@ -429,7 +429,7 @@ func TestOfflineDevice(t *testing.T) {
 			title: "fails when try to setting a non-existing device as offline",
 			uid:   "1234",
 			requiredMocks: func() {
-				mock.On("OffineDevice", gomock.Anything, models.UID("1234"), false).Return(svc.ErrNotFound)
+				mock.On("OfflineDevice", gomock.Anything, models.UID("1234"), false).Return(svc.ErrNotFound)
 			},
 			expectedStatus: http.StatusNotFound,
 		},
@@ -437,7 +437,7 @@ func TestOfflineDevice(t *testing.T) {
 			title: "success when try to setting an existing device as offline",
 			uid:   "123",
 			requiredMocks: func() {
-				mock.On("OffineDevice", gomock.Anything, models.UID("123"), false).Return(nil)
+				mock.On("OfflineDevice", gomock.Anything, models.UID("123"), false).Return(nil)
 			},
 			expectedStatus: http.StatusOK,
 		},
