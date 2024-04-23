@@ -17,7 +17,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
@@ -332,10 +331,9 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp t
 		return FromMongoError(err)
 	}
 
-	collOptions := writeconcern.W1()
 	updateOptions := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.Before)
 
-	result := s.db.Collection("devices", options.Collection().SetWriteConcern(collOptions)).
+	result := s.db.Collection("devices").
 		FindOneAndUpdate(ctx, bson.M{"uid": uid},
 			mongo.Pipeline{
 				bson.D{
@@ -361,7 +359,7 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp t
 	updated := cd.LastSeen.Before(timestamp)
 	if updated {
 		replaceOptions := options.Replace().SetUpsert(true)
-		_, err := s.db.Collection("connected_devices", options.Collection().SetWriteConcern(collOptions)).
+		_, err := s.db.Collection("connected_devices").
 			ReplaceOne(ctx, bson.M{"uid": uid}, &cd, replaceOptions)
 		if err != nil {
 			return FromMongoError(err)
