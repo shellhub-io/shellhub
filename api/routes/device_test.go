@@ -549,57 +549,6 @@ func TestLookupDevice(t *testing.T) {
 	}
 }
 
-func TestHeartbeatDevice(t *testing.T) {
-	mock := new(mocks.Service)
-
-	cases := []struct {
-		title          string
-		uid            string
-		requiredMocks  func()
-		expectedStatus int
-	}{
-		{
-			title:          "fails when bind fails to validate uid",
-			uid:            "",
-			requiredMocks:  func() {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when try to heartbeat non-existing device",
-			uid:   "1234",
-			requiredMocks: func() {
-				mock.On("DeviceHeartbeat", gomock.Anything, models.UID("1234")).Return(svc.ErrNotFound).Once()
-			},
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			title: "success when try to heartbeat of a existing device",
-			uid:   "123",
-			requiredMocks: func() {
-				mock.On("DeviceHeartbeat", gomock.Anything, models.UID("123")).Return(nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
-
-			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/devices/%s/heartbeat", tc.uid), nil)
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
-			req.Header.Set("X-Tenant-ID", "tenant-id")
-			rec := httptest.NewRecorder()
-
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
-		})
-	}
-}
-
 func TestRemoveDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 

@@ -40,11 +40,6 @@ type DeviceUpdateStatus struct {
 	Status string `param:"status" validate:"required,oneof=accept reject pending unused"`
 }
 
-// DeviceHeartbeat is the structure to represent the request data for device heartbeat endpoint.
-type DeviceHeartbeat struct {
-	DeviceParam
-}
-
 // DeviceCreateTag is the structure to represent the request data for device create tag endpoint.
 type DeviceCreateTag struct {
 	DeviceParam

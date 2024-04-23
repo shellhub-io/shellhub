@@ -18,7 +18,6 @@ const (
 	DeleteDeviceURL             = "/devices/:uid"
 	RenameDeviceURL             = "/devices/:uid"
 	OfflineDeviceURL            = "/devices/:uid/offline"
-	HeartbeatDeviceURL          = "/devices/:uid/heartbeat"
 	LookupDeviceURL             = "/lookup"
 	UpdateDeviceStatusURL       = "/devices/:uid/:status"
 	CreateTagURL                = "/devices/:uid/tags"      // Add a tag to a device.
@@ -232,19 +231,6 @@ func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) HeartbeatDevice(c gateway.Context) error {
-	var req requests.DeviceHeartbeat
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	return h.service.DeviceHeartbeat(c.Ctx(), models.UID(req.UID))
 }
 
 func (h *Handler) CreateDeviceTag(c gateway.Context) error {

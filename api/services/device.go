@@ -26,7 +26,6 @@ type DeviceService interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OffineDevice(ctx context.Context, uid models.UID, online bool) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
-	DeviceHeartbeat(ctx context.Context, uid models.UID) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
 
@@ -294,14 +293,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
-}
-
-func (s *service) DeviceHeartbeat(ctx context.Context, uid models.UID) error {
-	if err := s.store.DeviceSetOnline(ctx, uid, clock.Now(), true); err != nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	return nil
 }
 
 func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
