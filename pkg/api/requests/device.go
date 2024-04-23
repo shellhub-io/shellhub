@@ -79,7 +79,7 @@ type DeviceInfo struct {
 type DeviceAuth struct {
 	Info      *DeviceInfo     `json:"info" validate:"required"`
 	Sessions  []string        `json:"sessions,omitempty"`
-	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,hostname_rfc1123" hash:"-"`
+	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key" validate:"required"`
 	TenantID  string          `json:"tenant_id" validate:"required"`
