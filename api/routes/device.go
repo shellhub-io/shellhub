@@ -175,7 +175,7 @@ func (h *Handler) OfflineDevice(c gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.OffineDevice(c.Ctx(), models.UID(req.UID), false); err != nil {
+	if err := h.service.OfflineDevice(c.Ctx(), models.UID(req.UID), false); err != nil {
 		return err
 	}
 

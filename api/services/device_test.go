@@ -1612,7 +1612,7 @@ func TestLookupDevice(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestOffineDevice(t *testing.T) {
+func TestOfflineDevice(t *testing.T) {
 	mock := new(mocks.Store)
 
 	ctx := context.TODO()
@@ -1653,7 +1653,7 @@ func TestOffineDevice(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.OffineDevice(ctx, tc.uid, tc.online)
+			err := service.OfflineDevice(ctx, tc.uid, tc.online)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
