@@ -23,11 +23,26 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 		}}, query...)
 	}
 
-	query = append([]bson.M{{
-		"$match": bson.M{
-			"status": "accepted",
+	query = append([]bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "devices",
+				"localField":   "uid",
+				"foreignField": "uid",
+				"as":           "device",
+			},
 		},
-	}}, query...)
+		{
+			"$addFields": bson.M{
+				"status": "$device.status",
+			},
+		},
+		{
+			"$match": bson.M{
+				"status": "accepted",
+			},
+		},
+	}, query...)
 
 	onlineDevices, err := AggregateCount(ctx, s.db.Collection("connected_devices"), query)
 	if err != nil {
