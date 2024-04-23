@@ -353,7 +353,6 @@ func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp t
 		UID:      device.UID,
 		TenantID: device.TenantID,
 		LastSeen: device.LastSeen,
-		Status:   string(device.Status),
 	}
 
 	updated := cd.LastSeen.Before(timestamp)

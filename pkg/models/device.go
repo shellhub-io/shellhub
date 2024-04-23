@@ -86,7 +86,7 @@ type ConnectedDevice struct {
 	UID      string    `json:"uid"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
-	Status   string    `json:"status" bson:"status"`
+	Status   string    `json:"status" bson:",omitempty"`
 }
 
 type DevicePosition struct {
