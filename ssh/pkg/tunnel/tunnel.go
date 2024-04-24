@@ -31,6 +31,23 @@ func NewTunnel(connection, dial string) *Tunnel {
 		tenant := request.Header.Get("X-Tenant-ID")
 		uid := request.Header.Get("X-Device-UID")
 
+		// WARN:
+		// In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID" header.
+		// This can cause issues with establishing sessions and tracking online devices. To solve this,
+		// we retrieve the tenant ID by querying the API. Maybe this can be removed in a future release.
+		if tenant == "" {
+			device, err := tunnel.API.GetDevice(uid)
+			if err != nil {
+				log.WithError(err).
+					WithField("uid", uid).
+					Error("unable to retrieve device's tenant id")
+
+				return "", err
+			}
+
+			tenant = device.TenantID
+		}
+
 		return tenant + ":" + uid, nil
 	}
 	tunnel.Tunnel.CloseHandler = func(key string) {
