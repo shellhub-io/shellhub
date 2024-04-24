@@ -62,6 +62,21 @@ func getPasswd(ctx context.Context, cli dockerclient.APIClient, container string
 	return passwd, nil
 }
 
+// getShadow return a [io.Reader] for the container's shadow file.
+func getShadow(ctx context.Context, cli dockerclient.APIClient, container string) (io.Reader, error) {
+	shadowTar, _, err := cli.CopyFromContainer(ctx, container, "/etc/shadow")
+	if err != nil {
+		return nil, err
+	}
+
+	shadow := tar.NewReader(shadowTar)
+	if _, err := shadow.Next(); err != nil {
+		return nil, err
+	}
+
+	return shadow, nil
+}
+
 // Password handles the server's SSH password authentication when server is running in connector mode.
 func (a *Authenticator) Password(ctx gliderssh.Context, username string, password string) bool {
 	passwd, err := getPasswd(ctx, a.docker, *a.container)
@@ -100,26 +115,14 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	shadowTar, _, err := a.docker.CopyFromContainer(ctx, *a.container, "/etc/shadow")
+	shadow, err := getShadow(ctx, a.docker, *a.container)
 	if err != nil {
 		log.WithFields(
 			log.Fields{
 				"container": *a.container,
 				"username":  username,
 			},
-		).WithError(err).Error("failed to get the shadow file from the container")
-
-		return false
-	}
-
-	shadow := tar.NewReader(shadowTar)
-	if _, err := shadow.Next(); err != nil {
-		log.WithFields(
-			log.Fields{
-				"container": *a.container,
-				"username":  username,
-			},
-		).WithError(err).Error("failed to get the shadow file from the tar")
+		).WithError(err).Error("failed to get the shadow file from container")
 
 		return false
 	}

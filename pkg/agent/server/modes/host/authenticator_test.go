@@ -8,30 +8,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"os"
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/go-playground/assert/v2"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	osauthMocks "github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth/mocks"
 	clientMocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/mock"
 	gossh "golang.org/x/crypto/ssh"
 )
-
-func TestMain(m *testing.M) {
-	passwd, _ := os.CreateTemp("", "*")
-	shadow, _ := os.CreateTemp("", "*")
-
-	passwd.Write([]byte("test:x:1000:1000::/home/test:/bin/sh"))                                                              //nolint:errcheck
-	shadow.Write([]byte("test:$y$j9T$cdqnOKy/5agfmSoO2gFoV1$jRsQwIK6q.0xOjQA9.BIoeSwkBt6N10RG5Q5dMaX3QD:19822:0:99999:7:::")) //nolint:errcheck
-
-	osauth.DefaultPasswdFilename = passwd.Name()
-	osauth.DefaultShadowFilename = shadow.Name()
-
-	m.Run()
-}
 
 func TestPublicKey(t *testing.T) {
 	// stringToRef is a helper function to convert a string to a pointer to a string.
@@ -223,12 +210,16 @@ func TestPublicKey(t *testing.T) {
 }
 
 func TestPassword(t *testing.T) {
+	mock := &osauthMocks.Backend{}
+	osauth.DefaultBackend = mock
+
 	tests := []struct {
 		ctx           gliderssh.Context
 		authenticator *Authenticator
 		name          string
 		user          string
 		password      string
+		requiredMocks func()
 		expected      bool
 	}{
 		{
@@ -237,7 +228,10 @@ func TestPassword(t *testing.T) {
 			name:          "return false when user or password are invalid",
 			user:          "",
 			password:      "password",
-			expected:      false,
+			requiredMocks: func() {
+				mock.On("AuthUser", "test", "password").Return(false).Once()
+			},
+			expected: false,
 		},
 		{
 			ctx:           &testSSHContext{user: "test"},
@@ -245,32 +239,39 @@ func TestPassword(t *testing.T) {
 			name:          "return true when user and password are valid",
 			user:          "",
 			password:      "test",
-			expected:      true,
+			requiredMocks: func() {
+				mock.On("AuthUser", "test", "test").Return(true).Once()
+			},
+			expected: true,
 		},
 		{
 			ctx: &testSSHContext{user: "test"},
 			authenticator: &Authenticator{
 				singleUserPassword: "test",
 			},
-			name:     "return false when single user is enabled and password is invalid",
-			user:     "",
-			password: "password",
-			expected: false,
+			name:          "return false when single user is enabled and password is invalid",
+			user:          "",
+			password:      "password",
+			requiredMocks: func() {},
+			expected:      false,
 		},
 		{
 			ctx: &testSSHContext{user: "test"},
 			authenticator: &Authenticator{
 				singleUserPassword: "$6$Ntq5PynhGPFJuhxn$emiTnyA.GTsvK6JjjrecwDSB3jywkoHky9ZuJAYwSGFlZU2npTFOEMVPYG7CsDLRyvUE7OzbqFidYuKO274DC.",
 			},
-			name:     "return true when single user is enabled and password is valid",
-			user:     "",
-			password: "test",
-			expected: true,
+			name:          "return true when single user is enabled and password is valid",
+			user:          "",
+			password:      "test",
+			requiredMocks: func() {},
+			expected:      true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.requiredMocks()
+
 			got := tt.authenticator.Password(tt.ctx, tt.user, tt.password)
 			assert.Equal(t, tt.expected, got)
 		})
