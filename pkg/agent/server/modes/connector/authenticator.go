@@ -35,8 +35,6 @@ type Authenticator struct {
 	container *string
 	// docker is a client to communicate with the Docker's API.
 	docker dockerclient.APIClient
-	// osauth is an instance of the OSAuth interface to authenticate the user on the Operating System.
-	osauth osauth.OSAuther
 }
 
 // NewAuthenticator creates a new instance of Authenticator for the connector mode.
@@ -46,7 +44,6 @@ func NewAuthenticator(api client.Client, docker dockerclient.APIClient, authData
 		authData:  authData,
 		container: container,
 		docker:    docker,
-		osauth:    new(osauth.OSAuth),
 	}
 }
 
@@ -79,7 +76,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	user, err := a.osauth.LookupUserFromPasswd(username, passwd)
+	user, err := osauth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
 		log.WithFields(
 			log.Fields{
@@ -127,7 +124,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	if !a.osauth.AuthUserFromShadow(username, password, shadow) {
+	if !osauth.AuthUserFromShadow(username, password, shadow) {
 		log.WithFields(
 			log.Fields{
 				"container": *a.container,
@@ -165,7 +162,7 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 		return false
 	}
 
-	user, err := a.osauth.LookupUserFromPasswd(username, passwd)
+	user, err := osauth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
 		log.WithFields(
 			log.Fields{
