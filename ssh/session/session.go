@@ -400,7 +400,7 @@ func (s *Session) KeepAlive() error {
 // Returns the announcement or an error, if any. If no announcement is set, it returns an empty string.
 func (s *Session) Announce(client gossh.Channel) error {
 	if _, err := client.Write([]byte(
-		"Connected to " + s.SSHID + " via ShellHub.",
+		"Connected to " + s.SSHID + " via ShellHub.\n\r",
 	)); err != nil {
 		return err
 	}
@@ -419,7 +419,7 @@ func (s *Session) Announce(client gossh.Channel) error {
 		return nil
 	}
 
-	if _, err := client.Write([]byte("Announcement:\n")); err != nil {
+	if _, err := client.Write([]byte("Announcement:\n\r")); err != nil {
 		return err
 	}
 
@@ -428,7 +428,7 @@ func (s *Session) Announce(client gossh.Channel) error {
 		return r == ' ' || r == '\n' || r == '\t'
 	})
 
-	if _, err := client.Write([]byte("    " + strings.ReplaceAll(announcement, "\n", "\n    ") + "\n")); err != nil {
+	if _, err := client.Write([]byte("    " + strings.ReplaceAll(announcement, "\n", "\n\r    ") + "\n\r")); err != nil {
 		return err
 	}
 
