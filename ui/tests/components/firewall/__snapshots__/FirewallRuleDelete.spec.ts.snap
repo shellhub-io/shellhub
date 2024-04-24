@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Firewall Rule Delete > Renders the component 1`] = `
+"<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\" data-test=\\"firewall-delete-dialog-btn\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <!---->
+  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+    <!---->
+    <!---->
+    <div class=\\"d-flex align-center\\">
+      <div class=\\"mr-2\\"><i class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"remove-icon\\"></i></div>
+      <div class=\\"v-list-item-title\\" data-test=\\"remove-title\\"> Remove </div>
+    </div>
+  </div>
+  <!---->
+</div>"
+`;

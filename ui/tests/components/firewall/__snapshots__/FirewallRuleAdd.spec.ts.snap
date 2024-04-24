@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Firewall Rule Add > Renders the component 1`] = `
+"<div>
+  <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"firewall-add-rule-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Rule </span>
+      <!---->
+      <!---->
+    </button></div>
+  <!--teleport start-->
+  <!--teleport end-->
+  <!---->
+  <!---->
+</div>"
+`;

@@ -3,6 +3,7 @@
     @click="showDialog = true"
     v-bind="$attrs"
     :disabled="notHasAuthorization"
+    data-test="firewall-delete-dialog-btn"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -50,8 +51,8 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -59,46 +60,37 @@ import {
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-    notHasAuthorization: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const showDialog = ref(false);
-    const store = useStore();
-
-    const remove = async () => {
-      try {
-        await store.dispatch("firewallRules/remove", props.id);
-
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.firewallRuleDeleting,
-        );
-        ctx.emit("update");
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.firewallRuleDeleting,
-        );
-        handleError(error);
-      } finally {
-        showDialog.value = false;
-      }
-    };
-
-    return {
-      showDialog,
-      remove,
-    };
+  notHasAuthorization: {
+    type: Boolean,
+    default: false,
   },
 });
+const emit = defineEmits(["update"]);
+const showDialog = ref(false);
+const store = useStore();
+
+const remove = async () => {
+  try {
+    await store.dispatch("firewallRules/remove", props.id);
+
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.firewallRuleDeleting,
+    );
+    emit("update");
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.firewallRuleDeleting,
+    );
+    handleError(error);
+  } finally {
+    showDialog.value = false;
+  }
+};
 </script>
