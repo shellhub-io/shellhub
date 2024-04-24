@@ -6,7 +6,6 @@ package main
 import (
 	"os"
 
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
 )
 
@@ -19,6 +18,5 @@ func init() {
 		AgentPlatform = "docker"
 	}
 
-	osauth.DefaultShadowFilename = "/host/etc/shadow"
 	sysinfo.DefaultOSReleaseFilename = "/host/etc/os-release"
 }
