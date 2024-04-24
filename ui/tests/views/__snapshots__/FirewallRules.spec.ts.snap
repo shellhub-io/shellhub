@@ -8,7 +8,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
     <div class=\\"v-spacer\\"></div>
   </div>
   <div>
-    <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"device-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"firewall-add-rule-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
         <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Rule </span>
         <!---->
         <!---->
@@ -40,15 +40,15 @@ exports[`Firewall Rules > Renders the component 1`] = `
             </thead>
             <tbody data-v-046d4556=\\"\\">
               <tr>
-                <td class=\\"text-center\\"><i class=\\"mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\"></i></td>
-                <td class=\\"text-center\\">1</td>
-                <td class=\\"text-center\\">Allow</td>
-                <td class=\\"text-center\\">Any IP</td>
-                <td class=\\"text-center\\">All users</td>
-                <td class=\\"text-center\\">
+                <td class=\\"text-center\\"><i class=\\"mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" data-test=\\"firewall-rules-active\\"></i></td>
+                <td class=\\"text-center\\" data-test=\\"firewall-rules-priority\\">1</td>
+                <td class=\\"text-center\\" data-test=\\"firewall-rules-action\\">Allow</td>
+                <td class=\\"text-center\\" data-test=\\"firewall-rules-source-ip\\">Any IP</td>
+                <td class=\\"text-center\\" data-test=\\"firewall-rules-username\\">All users</td>
+                <td class=\\"text-center\\" data-test=\\"firewall-rules-filter\\">
                   <div>All devices</div>
                 </td>
-                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>

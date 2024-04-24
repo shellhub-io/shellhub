@@ -12,8 +12,7 @@
             aria-label="Dialog Add device"
             :disabled="!hasAuthorization"
             @keypress.enter="dialog = !dialog"
-            :size="size"
-            data-test="device-add-btn"
+            data-test="firewall-add-rule-btn"
           >
             Add Rule
           </v-btn>
@@ -24,7 +23,7 @@
 
     <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary">
+        <v-card-title class="text-h5 pa-3 bg-primary" data-test="firewall-rule-title">
           New Firewall Rule
         </v-card-title>
         <form @submit.prevent="create" class="mt-3">
@@ -38,6 +37,7 @@
                   item-value="type"
                   label="Rule status"
                   variant="underlined"
+                  data-test="firewall-rule-status"
                 />
               </v-col>
 
@@ -48,6 +48,7 @@
                   type="number"
                   variant="underlined"
                   :rules="[rules.required]"
+                  data-test="firewall-rule-priority"
                 />
               </v-col>
 
@@ -59,6 +60,7 @@
                   item-value="id"
                   label="Rule policy"
                   variant="underlined"
+                  data-test="firewall-rule-policy"
                 />
               </v-col>
             </v-row>
@@ -71,7 +73,7 @@
                 item-title="filterText"
                 item-value="filterName"
                 variant="underlined"
-                data-test="source_ip-field"
+                data-test="firewall-rule-source-ip"
               />
             </v-row>
 
@@ -81,6 +83,7 @@
               label="Rule source IP"
               variant="underlined"
               :error-messages="sourceIpError"
+              data-test="firewall-rule-source-ip-details"
             />
 
             <v-row class="mt-1 mb-1 px-3">
@@ -102,6 +105,7 @@
               placeholder="Username used during the connection"
               variant="underlined"
               :error-messages="usernameError"
+              data-test="firewall-rule-username-restriction"
             />
 
             <v-row class="mt-2 mb-1 px-3">
@@ -123,7 +127,7 @@
               placeholder="Device hostname used during the connection"
               :error-messages="filterFieldError"
               variant="underlined"
-              data-test="hostname-field"
+              data-test="firewall-rule-hostname-restriction"
             />
 
             <v-row v-if="choiceFilter === 'tags'" class="px-3 mt-2">
@@ -147,14 +151,14 @@
             <v-btn
               color="primary"
               @click="close"
-              data-test="device-add-cancel-btn"
+              data-test="firewall-rule-cancel"
             >
               Cancel
             </v-btn>
             <v-btn
               color="primary"
               type="submit"
-              data-test="device-add-save-btn"
+              data-test="firewall-rule-save-btn"
             >
               Save
             </v-btn>
@@ -165,8 +169,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, nextTick, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, nextTick, ref, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { actions, authorizer } from "../../authorizer";
@@ -190,290 +194,267 @@ export interface FirewallRuleType {
   filter?: filterType;
 }
 
-export default defineComponent({
-  props: {
-    size: {
-      type: String,
-      default: "default",
-      required: false,
-    },
+const emit = defineEmits(["update"]);
+const dialog = ref(false);
+const action = ref("create");
+const choiceUsername = ref("all");
+const choiceIP = ref("all");
+const choiceFilter = ref("all");
+const validateLength = ref(true);
+
+const ruleFirewall = ref<FirewallRuleType>({
+  policy: "allow",
+  priority: 0,
+  status: "active",
+  source_ip: "",
+  username: "",
+});
+
+const {
+  value: sourceIp,
+  errorMessage: sourceIpError,
+  setErrors: setSourceIpError,
+  resetField: resetSourceIp,
+} = useField<string | undefined>("sourceIp", yup.string().required(), {
+  initialValue: ruleFirewall.value.source_ip,
+});
+
+const {
+  value: username,
+  errorMessage: usernameError,
+  setErrors: setUsernameError,
+  resetField: resetUsername,
+} = useField<string | undefined>("username", yup.string().required(), {
+  initialValue: ruleFirewall.value.username,
+});
+
+const {
+  value: filterField,
+  errorMessage: filterFieldError,
+  setErrors: setFilterFieldError,
+  resetField: resetFilterField,
+} = useField<string | undefined>("filterField", yup.string().required(), {
+  initialValue: "",
+});
+
+watch(sourceIp, () => {
+  ruleFirewall.value.source_ip = sourceIp.value;
+});
+
+watch(username, () => {
+  ruleFirewall.value.username = username.value;
+});
+
+const errMsg = ref("");
+
+const ruleStatus = ref([
+  {
+    type: "active",
+    text: "Active",
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const dialog = ref(false);
-    const action = ref("create");
-    const choiceUsername = ref("all");
-    const choiceIP = ref("all");
-    const choiceFilter = ref("all");
-    const validateLength = ref(true);
+  {
+    type: "inactive",
+    text: "Inactive",
+  },
+]);
 
-    const ruleFirewall = ref<FirewallRuleType>({
-      policy: "allow",
-      priority: 0,
-      status: "active",
-      source_ip: "",
-      username: "",
-    });
+const tagChoices = ref([]);
 
-    const {
-      value: sourceIp,
-      errorMessage: sourceIpError,
-      setErrors: setSourceIpError,
-      resetField: resetSourceIp,
-    } = useField<string | undefined>("sourceIp", yup.string().required(), {
-      initialValue: ruleFirewall.value.source_ip,
-    });
+const sourceIPFieldChoices = ref([
+  {
+    filterName: "all",
+    filterText: "Define source IP to all devices",
+  },
+  {
+    filterName: "ipDetails",
+    filterText: "Restrict source IP through a regexp",
+  },
+]);
 
-    const {
-      value: username,
-      errorMessage: usernameError,
-      setErrors: setUsernameError,
-      resetField: resetUsername,
-    } = useField<string | undefined>("username", yup.string().required(), {
-      initialValue: ruleFirewall.value.username,
-    });
+const filterFieldChoices = ref([
+  {
+    filterName: "all",
+    filterText: "Define rule to all devices",
+  },
+  {
+    filterName: "hostname",
+    filterText: "Restrict rule with a regexp for hostname",
+  },
+  {
+    filterName: "tags",
+    filterText: "Restrict rule by device tags",
+  },
+]);
 
-    const {
-      value: filterField,
-      errorMessage: filterFieldError,
-      setErrors: setFilterFieldError,
-      resetField: resetFilterField,
-    } = useField<string | undefined>("filterField", yup.string().required(), {
-      initialValue: "",
-    });
+const usernameFieldChoices = ref([
+  {
+    filterName: "all",
+    filterText: "Define rule to all users",
+  },
+  {
+    filterName: "username",
+    filterText: "Restrict access using a regexp for username",
+  },
+]);
 
-    watch(sourceIp, () => {
-      ruleFirewall.value.source_ip = sourceIp.value;
-    });
+const state = ref([
+  {
+    id: "allow",
+    name: "Allow",
+  },
+  {
+    id: "deny",
+    name: "Deny",
+  },
+]);
 
-    watch(username, () => {
-      ruleFirewall.value.username = username.value;
-    });
+const rules = ref({
+  required: (value: string) => !!value || "Required.",
+});
 
-    const errMsg = ref("");
-    const ruleStatus = ref([
-      {
-        type: "active",
-        text: "Active",
-      },
-      {
-        type: "inactive",
-        text: "Inactive",
-      },
-    ]);
-    const tagChoices = ref([]);
-    const sourceIPFieldChoices = ref([
-      {
-        filterName: "all",
-        filterText: "Define source IP to all devices",
-      },
-      {
-        filterName: "ipDetails",
-        filterText: "Restrict source IP through a regexp",
-      },
-    ]);
-    const filterFieldChoices = ref([
-      {
-        filterName: "all",
-        filterText: "Define rule to all devices",
-      },
-      {
-        filterName: "hostname",
-        filterText: "Restrict rule with a regexp for hostname",
-      },
-      {
-        filterName: "tags",
-        filterText: "Restrict rule by device tags",
-      },
-    ]);
-    const usernameFieldChoices = ref([
-      {
-        filterName: "all",
-        filterText: "Define rule to all users",
-      },
-      {
-        filterName: "username",
-        filterText: "Restrict access using a regexp for username",
-      },
-    ]);
+const store = useStore();
 
-    const state = ref([
-      {
-        id: "allow",
-        name: "Allow",
-      },
-      {
-        id: "deny",
-        name: "Deny",
-      },
-    ]);
+const tagNames = computed(() => store.getters["tags/list"]);
 
-    const rules = ref({
-      required: (value: string) => !!value || "Required.",
-    });
+const hasAuthorization = computed(() => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.firewall[action.value],
+    );
+  }
 
-    const store = useStore();
+  return false;
+});
 
-    const tagNames = computed(() => store.getters["tags/list"]);
-
-    const hasAuthorization = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.firewall[action.value],
-        );
-      }
-
-      return false;
-    });
-
-    watch(tagChoices, (list) => {
-      if (list.length > 3) {
-        validateLength.value = false;
-        nextTick(() => tagChoices.value.pop());
-        errMsg.value = "The maximum capacity has reached";
-      } else if (list.length === 0) {
-        validateLength.value = false;
-        errMsg.value = "You must choose at least one tag";
-      } else if (list.length <= 2) {
-        validateLength.value = true;
-        errMsg.value = "";
-      }
-    });
-
-    const resetRuleFirewall = () => {
-      ruleFirewall.value = {
-        policy: "allow",
-        priority: 0,
-        status: "active",
-        source_ip: "",
-        username: "",
-      };
-      choiceFilter.value = "all";
-      choiceIP.value = "all";
-      choiceUsername.value = "all";
-      tagChoices.value = [];
+watch(tagChoices, (list) => {
+  switch (true) {
+    case list.length > 3:
+      validateLength.value = false;
+      nextTick(() => tagChoices.value.pop());
+      errMsg.value = "The maximum capacity has reached";
+      break;
+    case list.length === 0:
+      validateLength.value = false;
+      errMsg.value = "You must choose at least one tag";
+      break;
+    default:
       validateLength.value = true;
       errMsg.value = "";
-      resetSourceIp();
-      resetUsername();
-      resetFilterField();
-    };
-
-    const constructFilterObject = () => {
-      let filterObj = {};
-
-      if (choiceFilter.value === "hostname") {
-        filterObj = { hostname: filterField };
-      } else if (choiceFilter.value === "tags") {
-        filterObj = { tags: tagChoices };
-      } else if (choiceFilter.value === "all") {
-        filterObj = { hostname: ".*" };
-      }
-
-      if (choiceUsername.value === "all") {
-        ruleFirewall.value.username = ".*";
-      }
-
-      if (choiceIP.value === "all") {
-        ruleFirewall.value.source_ip = ".*";
-      }
-
-      ruleFirewall.value = {
-        ...ruleFirewall.value,
-        filter: filterObj,
-      };
-    };
-
-    const close = () => {
-      dialog.value = false;
-      resetRuleFirewall();
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const hasErros = () => {
-      if (
-        choiceIP.value === "ipDetails"
-        && ruleFirewall.value.source_ip === ""
-      ) {
-        setSourceIpError("This Field is required !");
-        return true;
-      }
-
-      if (
-        choiceUsername.value === "username"
-        && ruleFirewall.value.username === ""
-      ) {
-        setUsernameError("This Field is required !");
-        return true;
-      }
-
-      if (choiceFilter.value === "hostname" && filterField.value === "") {
-        setFilterFieldError("This Field is required !");
-        return true;
-      }
-
-      if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
-        errMsg.value = "You must choose at least one tag";
-        return true;
-      }
-
-      return false;
-    };
-
-    const create = async () => {
-      if (!hasErros()) {
-        constructFilterObject();
-        try {
-          await store.dispatch("firewallRules/post", ruleFirewall.value);
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.firewallRuleCreating,
-          );
-          update();
-        } catch (error: unknown) {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.firewallRuleCreating,
-          );
-          handleError(error);
-        }
-      }
-    };
-
-    return {
-      dialog,
-      action,
-      choiceUsername,
-      choiceIP,
-      choiceFilter,
-      validateLength,
-      filterField,
-      filterFieldError,
-      sourceIp,
-      sourceIpError,
-      username,
-      usernameError,
-      errMsg,
-      ruleStatus,
-      tagChoices,
-      sourceIPFieldChoices,
-      filterFieldChoices,
-      usernameFieldChoices,
-      ruleFirewall,
-      state,
-      tagNames,
-      hasAuthorization,
-      rules,
-      create,
-      close,
-      constructFilterObject,
-    };
-  },
+      break;
+  }
 });
+
+const resetRuleFirewall = () => {
+  ruleFirewall.value = {
+    policy: "allow",
+    priority: 0,
+    status: "active",
+    source_ip: "",
+    username: "",
+  };
+  choiceFilter.value = "all";
+  choiceIP.value = "all";
+  choiceUsername.value = "all";
+  tagChoices.value = [];
+  validateLength.value = true;
+  errMsg.value = "";
+  resetSourceIp();
+  resetUsername();
+  resetFilterField();
+};
+
+const constructFilterObject = () => {
+  let filterObj = {};
+
+  switch (choiceFilter.value) {
+    case "hostname":
+      filterObj = { hostname: filterField };
+      break;
+    case "tags":
+      filterObj = { tags: tagChoices };
+      break;
+    case "all":
+      filterObj = { hostname: ".*" };
+      break;
+    default:
+      break;
+  }
+
+  if (choiceUsername.value === "all") {
+    ruleFirewall.value.username = ".*";
+  }
+
+  if (choiceIP.value === "all") {
+    ruleFirewall.value.source_ip = ".*";
+  }
+
+  ruleFirewall.value = {
+    ...ruleFirewall.value,
+    filter: filterObj,
+  };
+};
+
+const close = () => {
+  dialog.value = false;
+  resetRuleFirewall();
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
+
+const hasErrors = () => {
+  if (
+    choiceIP.value === "ipDetails"
+        && ruleFirewall.value.source_ip === ""
+  ) {
+    setSourceIpError("This Field is required !");
+    return true;
+  }
+
+  if (
+    choiceUsername.value === "username"
+        && ruleFirewall.value.username === ""
+  ) {
+    setUsernameError("This Field is required !");
+    return true;
+  }
+
+  if (choiceFilter.value === "hostname" && filterField.value === "") {
+    setFilterFieldError("This Field is required !");
+    return true;
+  }
+
+  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
+    errMsg.value = "You must choose at least one tag";
+    return true;
+  }
+
+  return false;
+};
+
+const create = async () => {
+  if (!hasErrors()) {
+    constructFilterObject();
+    try {
+      await store.dispatch("firewallRules/post", ruleFirewall.value);
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.firewallRuleCreating,
+      );
+      update();
+    } catch (error: unknown) {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.firewallRuleCreating,
+      );
+      handleError(error);
+    }
+  }
+};
+
+defineExpose({ choiceIP, choiceFilter, choiceUsername });
 </script>
