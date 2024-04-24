@@ -17,18 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name=OSAuther --filename=osauther.go
-type OSAuther interface {
-	AuthUser(username, password string) bool
-	AuthUserFromShadow(username, password string, shadow io.Reader) bool
-	VerifyPasswordHash(hash, password string) bool
-	LookupUser(username string) *User
-	LookupUserFromPasswd(username string, passwd io.Reader) (*User, error)
-}
-
-type OSAuth struct{}
-
-func (l *OSAuth) AuthUser(username, password string) bool {
+func AuthUser(username, password string) bool {
 	shadow, err := os.Open(DefaultShadowFilename)
 	if err != nil {
 		logrus.WithError(err).Error("Could not open /etc/shadow")
@@ -37,7 +26,7 @@ func (l *OSAuth) AuthUser(username, password string) bool {
 	}
 	defer shadow.Close()
 
-	if ok := l.AuthUserFromShadow(username, password, shadow); !ok {
+	if ok := AuthUserFromShadow(username, password, shadow); !ok {
 		logrus.WithFields(logrus.Fields{
 			"username": username,
 		}).Debug("Failed to authenticate user from shadow file")
@@ -49,7 +38,7 @@ func (l *OSAuth) AuthUser(username, password string) bool {
 }
 
 // AuthUserFromShadow checks if the given username and password are valid for the given shadow file.
-func (l *OSAuth) AuthUserFromShadow(username string, password string, shadow io.Reader) bool {
+func AuthUserFromShadow(username string, password string, shadow io.Reader) bool {
 	entries, err := parseShadowReader(shadow)
 	if err != nil {
 		logrus.WithError(err).Debug("Error parsing shadow file")
@@ -66,10 +55,10 @@ func (l *OSAuth) AuthUserFromShadow(username string, password string, shadow io.
 		return false
 	}
 
-	return l.VerifyPasswordHash(entry.Password, password)
+	return VerifyPasswordHash(entry.Password, password)
 }
 
-func (l *OSAuth) VerifyPasswordHash(hash, password string) bool {
+func VerifyPasswordHash(hash, password string) bool {
 	if hash == "" {
 		logrus.Error("Password entry is empty")
 
@@ -108,7 +97,7 @@ var ErrUserNotFound = errors.New("user not found")
 
 // LookupUserFromPasswd reads the passwd file from the given reader and returns the user, if found.
 // TODO: Use this function inside the LookupUser.
-func (l *OSAuth) LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
+func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 	entries, err := parsePasswdReader(passwd)
 	if err != nil {
 		logrus.WithError(err).Error("Error parsing passwd file")
@@ -128,7 +117,7 @@ func (l *OSAuth) LookupUserFromPasswd(username string, passwd io.Reader) (*User,
 	return &user, nil
 }
 
-func (l *OSAuth) LookupUser(username string) *User {
+func LookupUser(username string) *User {
 	if os.Geteuid() != 0 {
 		return singleUser()
 	}
@@ -141,7 +130,7 @@ func (l *OSAuth) LookupUser(username string) *User {
 	}
 	defer passwd.Close()
 
-	user, err := l.LookupUserFromPasswd(username, passwd)
+	user, err := LookupUserFromPasswd(username, passwd)
 	if err != nil {
 		return nil
 	}

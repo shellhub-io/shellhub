@@ -32,8 +32,6 @@ type Authenticator struct {
 	//
 	// NOTICE: Uses a pointer for later assignment.
 	deviceName *string
-	// osauth is an instance of the OSAuth interface to authenticate the user on the Operating System.
-	osauth osauth.OSAuther
 }
 
 // NewAuthenticator creates a new instance of Authenticator for the host mode.
@@ -49,7 +47,6 @@ func NewAuthenticator(api client.Client, authData *models.DeviceAuthResponse, si
 		authData:           authData,
 		singleUserPassword: singleUserPassword,
 		deviceName:         deviceName,
-		osauth:             new(osauth.OSAuth),
 	}
 }
 
@@ -61,9 +58,9 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 	var ok bool
 
 	if a.singleUserPassword == "" {
-		ok = a.osauth.AuthUser(ctx.User(), pass)
+		ok = osauth.AuthUser(ctx.User(), pass)
 	} else {
-		ok = a.osauth.VerifyPasswordHash(a.singleUserPassword, pass)
+		ok = osauth.VerifyPasswordHash(a.singleUserPassword, pass)
 	}
 
 	if ok {
@@ -77,7 +74,11 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 
 // PublicKey handles the server's SSH public key authentication when server is running in host mode.
 func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh.PublicKey) bool {
-	if a.osauth.LookupUser(ctx.User()) == nil {
+	if osauth.LookupUser(ctx.User()) == nil {
+		return false
+	}
+
+	if key == nil {
 		return false
 	}
 
