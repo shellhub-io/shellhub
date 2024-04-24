@@ -59,7 +59,7 @@ func New(store store.Store) (*Workers, error) {
 					var b strings.Builder
 
 					for _, task := range tasks {
-						b.WriteString(fmt.Sprintf("%s:%d\n", task.Payload(), time.Now().Unix()))
+						b.WriteString(fmt.Sprintf("%s\n", task.Payload()))
 					}
 
 					return asynq.NewTask(TaskHeartbeat, []byte(b.String()))

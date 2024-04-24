@@ -1326,17 +1326,17 @@ func (_m *Service) LookupDevice(ctx context.Context, namespace string, name stri
 	return r0, r1
 }
 
-// OfflineDevice provides a mock function with given fields: ctx, uid, online
-func (_m *Service) OfflineDevice(ctx context.Context, uid models.UID, online bool) error {
-	ret := _m.Called(ctx, uid, online)
+// OfflineDevice provides a mock function with given fields: ctx, uid
+func (_m *Service) OfflineDevice(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for OfflineDevice")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
-		r0 = rf(ctx, uid, online)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -28,7 +28,6 @@ type DeviceStore interface {
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
-	DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error
 	DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error
 	DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
@@ -45,4 +44,11 @@ type DeviceStore interface {
 	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error)
 	DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error
 	DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
+
+	// DeviceSetOnline receives a list of devices to mark as online. For each device in the array, it will upsert
+	// a connected device entry; each UID must exists in the "devices" collection.
+	DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error
+
+	// DeviceSetOffline sets a device's status to offline using its UID.
+	DeviceSetOffline(ctx context.Context, uid string) error
 }

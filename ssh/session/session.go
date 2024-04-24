@@ -290,7 +290,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.UID)
+	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
