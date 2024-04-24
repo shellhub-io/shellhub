@@ -22,7 +22,10 @@ import (
 func newShellCmd(deviceName string, username string, term string, envs []string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
-	user := osauth.LookupUser(username)
+	user, err := osauth.LookupUser(username)
+	if err != nil {
+		return nil
+	}
 
 	if shell == "" {
 		shell = user.Shell
@@ -75,7 +78,10 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		log.Warn(err)
 	}
 
-	u := osauth.LookupUser(session.User())
+	u, err := osauth.LookupUser(session.User())
+	if err != nil {
+		return err
+	}
 
 	err = os.Chown(pts.Name(), int(u.UID), -1)
 	if err != nil {
@@ -200,7 +206,11 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return nil
 	}
 
-	user := osauth.LookupUser(session.User())
+	user, err := osauth.LookupUser(session.User())
+	if err != nil {
+		return err
+	}
+
 	sPty, sWinCh, sIsPty := session.Pty()
 
 	shell := os.Getenv("SHELL")
