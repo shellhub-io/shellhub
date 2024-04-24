@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/hibiken/asynq"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -20,10 +21,10 @@ type deviceAPI interface {
 	GetDeviceByPublicURLAddress(address string) (*models.Device, error)
 
 	// DevicesOffline updates a device's status to offline.
-	DevicesOffline(id string) error
+	DevicesOffline(uid string) error
 
 	// DevicesHeartbeat enqueues a task to send a heartbeat for the device.
-	DevicesHeartbeat(id string) error
+	DevicesHeartbeat(tenant, uid string) error
 
 	// Lookup performs a lookup operation based on the provided parameters.
 	Lookup(lookup map[string]string) (string, []error)
@@ -43,10 +44,9 @@ func (c *client) DevicesOffline(uid string) error {
 	return nil
 }
 
-func (c *client) DevicesHeartbeat(id string) error {
-	_, err := c.
-		asynq.
-		Enqueue(asynq.NewTask("api:heartbeat", []byte(id)), asynq.Queue("api"), asynq.Group("heartbeats"))
+func (c *client) DevicesHeartbeat(tenant, uid string) error {
+	payload := []byte(fmt.Sprintf("%s:%s=%d", tenant, uid, clock.Now().Unix()))
+	_, err := c.asynq.Enqueue(asynq.NewTask("api:heartbeat", payload), asynq.Queue("api"), asynq.Group("heartbeats"))
 
 	return err
 }

@@ -19,8 +19,8 @@ import (
 // Another triggering mechanism involves a timeout defined in the `SHELLHUB_ASYNQ_GROUP_MAX_DELAY` environment variable.
 func (w *Workers) registerHeartbeat() {
 	w.mux.HandleFunc(TaskHeartbeat, func(ctx context.Context, task *asynq.Task) error {
-		log.WithFields(
-			log.Fields{
+		log.
+			WithFields(log.Fields{
 				"component": "worker",
 				"task":      TaskHeartbeat,
 			}).
@@ -29,27 +29,64 @@ func (w *Workers) registerHeartbeat() {
 		scanner := bufio.NewScanner(bytes.NewReader(task.Payload()))
 		scanner.Split(bufio.ScanLines)
 
+		devices := make([]models.ConnectedDevice, 0)
 		for scanner.Scan() {
-			parts := strings.SplitN(scanner.Text(), ":", 2)
-			uid := parts[0]
+			parts := strings.Split(scanner.Text(), "=")
+			if len(parts) != 2 {
+				log.WithFields(
+					log.Fields{
+						"component": "worker",
+						"task":      TaskHeartbeat,
+					}).
+					Warn("failed to parse queue payload due to lack of '='.")
 
-			i, err := strconv.ParseInt(parts[1], 10, 64)
+				continue
+			}
+
+			lastSeen, err := strconv.ParseInt(parts[1], 10, 64)
 			if err != nil {
 				log.WithFields(
 					log.Fields{
 						"component": "worker",
 						"task":      TaskHeartbeat,
-						"index":     rune(i),
 					}).
 					WithError(err).
-					Warn("Failed to parse timestamp to integer.")
+					Warn("failed to parse timestamp to integer.")
 
 				continue
 			}
 
-			timestamp := time.Unix(i, 0)
+			parts = strings.Split(parts[0], ":")
+			if len(parts) != 2 {
+				log.WithFields(
+					log.Fields{
+						"component": "worker",
+						"task":      TaskHeartbeat,
+					}).
+					Warn("failed to parse queue payload due to lack of ':'.")
 
-			w.store.DeviceSetOnline(ctx, models.UID(uid), timestamp, true) //nolint:errcheck
+				continue
+			}
+
+			device := models.ConnectedDevice{
+				UID:      parts[1],
+				TenantID: parts[0],
+				LastSeen: time.Unix(lastSeen, 0),
+			}
+
+			devices = append(devices, device)
+		}
+
+		if err := w.store.DeviceSetOnline(ctx, devices); err != nil {
+			log.
+				WithError(err).
+				WithFields(log.Fields{
+					"component": "worker",
+					"task":      TaskHeartbeat,
+				}).
+				Error("failed to set devices as online")
+
+			return err
 		}
 
 		return nil

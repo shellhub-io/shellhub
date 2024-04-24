@@ -58,7 +58,8 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	token, err := jwttoken.New().
 		WithMethod(jwt.SigningMethodRS256).
 		WithClaims(&models.DeviceAuthClaims{
-			UID: key,
+			UID:    key,
+			Tenant: req.TenantID,
 			AuthClaims: models.AuthClaims{
 				Claims: "device",
 			},

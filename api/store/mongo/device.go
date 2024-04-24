@@ -324,45 +324,37 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 	return device, nil
 }
 
-func (s *Store) DeviceSetOnline(ctx context.Context, uid models.UID, timestamp time.Time, online bool) error {
-	if !online {
-		_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+func (s *Store) DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error {
+	var updateModels []mongo.WriteModel
+	var replaceModels []mongo.WriteModel
 
+	for _, d := range connectedDevices {
+		filter := bson.M{"uid": d.UID}
+
+		update := bson.M{"$set": bson.M{"last_seen": d.LastSeen}}
+		updateModels = append(updateModels, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
+		replaceModels = append(replaceModels, mongo.NewReplaceOneModel().SetFilter(filter).SetReplacement(d).SetUpsert(true))
+	}
+
+	if _, err := s.db.Collection("devices").BulkWrite(ctx, updateModels); err != nil {
 		return FromMongoError(err)
 	}
 
-	updateOptions := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.Before)
-
-	result := s.db.Collection("devices").
-		FindOneAndUpdate(ctx, bson.M{"uid": uid},
-			mongo.Pipeline{
-				bson.D{
-					bson.E{Key: "$set", Value: bson.M{"last_seen": bson.M{"$cond": bson.A{bson.M{"$lt": bson.A{"$last_seen", timestamp}}, timestamp, "$last_seen"}}}},
-				},
-			}, updateOptions)
-	if result.Err() != nil {
-		return FromMongoError(result.Err())
-	}
-
-	device := new(models.Device)
-	if err := result.Decode(&device); err != nil {
+	if _, err := s.db.Collection("connected_devices").BulkWrite(ctx, replaceModels); err != nil {
 		return FromMongoError(err)
 	}
 
-	cd := &models.ConnectedDevice{
-		UID:      device.UID,
-		TenantID: device.TenantID,
-		LastSeen: device.LastSeen,
+	return nil
+}
+
+func (s *Store) DeviceSetOffline(ctx context.Context, uid string) error {
+	d, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+	if err != nil {
+		return FromMongoError(err)
 	}
 
-	updated := cd.LastSeen.Before(timestamp)
-	if updated {
-		replaceOptions := options.Replace().SetUpsert(true)
-		_, err := s.db.Collection("connected_devices").
-			ReplaceOne(ctx, bson.M{"uid": uid}, &cd, replaceOptions)
-		if err != nil {
-			return FromMongoError(err)
-		}
+	if d.DeletedCount == 0 {
+		return store.ErrNoDocuments
 	}
 
 	return nil

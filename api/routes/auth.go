@@ -168,6 +168,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 
 		// Extract device UID from JWT and set it into the header.
 		setHeader(c, client.DeviceUIDHeader, claims.UID)
+		setHeader(c, "X-Tenant-ID", claims.Tenant)
 
 		return c.NoContent(http.StatusOK)
 	default:

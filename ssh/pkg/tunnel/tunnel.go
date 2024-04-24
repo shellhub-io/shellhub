@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -27,16 +28,49 @@ func NewTunnel(connection, dial string) *Tunnel {
 	}
 
 	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
-		return request.Header.Get(internalclient.DeviceUIDHeader), nil
+		tenant := request.Header.Get("X-Tenant-ID")
+		uid := request.Header.Get("X-Device-UID")
+
+		return tenant + ":" + uid, nil
 	}
-	tunnel.Tunnel.CloseHandler = func(id string) {
-		if err := internalclient.NewClient().DevicesOffline(id); err != nil {
-			log.Error(err)
+	tunnel.Tunnel.CloseHandler = func(key string) {
+		parts := strings.Split(key, ":")
+		if len(parts) != 2 {
+			log.Error("failed to parse key at close handler")
+
+			return
+		}
+
+		tenant := parts[0]
+		uid := parts[1]
+
+		if err := tunnel.API.DevicesOffline(uid); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{
+					"uid":       uid,
+					"tenant_id": tenant,
+				}).
+				Error("failed to set device offline")
 		}
 	}
-	tunnel.Tunnel.KeepAliveHandler = func(id string) {
-		if err := tunnel.API.DevicesHeartbeat(id); err != nil {
-			log.Error(err)
+	tunnel.Tunnel.KeepAliveHandler = func(key string) {
+		parts := strings.Split(key, ":")
+		if len(parts) != 2 {
+			log.Error("failed to parse key at keep alive handler")
+
+			return
+		}
+
+		tenant := parts[0]
+		uid := parts[1]
+
+		if err := tunnel.API.DevicesHeartbeat(tenant, uid); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{
+					"uid":       uid,
+					"tenant_id": tenant,
+				}).
+				Error("failed to send heartbeat signal")
 		}
 	}
 

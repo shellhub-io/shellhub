@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceList(t *testing.T) {
@@ -1223,23 +1224,55 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 func TestDeviceSetOnline(t *testing.T) {
 	cases := []struct {
 		description string
-		uid         models.UID
-		online      bool
+		devices     []models.ConnectedDevice
 		fixtures    []string
 		expected    error
 	}{
 		{
-			description: "succeeds when UID is valid and online is true",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			online:      true,
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
+			description: "succeeds",
+			devices: []models.ConnectedDevice{
+				{
+					UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					LastSeen: clock.Now(),
+				},
+			},
+			fixtures: []string{fixtureDevices},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			require.Equal(t, tc.expected, s.DeviceSetOnline(ctx, tc.devices))
+		})
+	}
+}
+
+func TestDeviceSetOffline(t *testing.T) {
+	cases := []struct {
+		description string
+		uid         string
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "fails when connected_device is not found",
+			uid:         "0000000000000000000000000000000000000000000000000000000000000000",
+			fixtures:    []string{fixtureConnectedDevices},
+			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when UID is valid and online is false",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			online:      false,
-			fixtures:    []string{fixtureDevices},
+			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			fixtures:    []string{fixtureConnectedDevices},
 			expected:    nil,
 		},
 	}
@@ -1253,8 +1286,7 @@ func TestDeviceSetOnline(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.DeviceSetOnline(ctx, tc.uid, time.Now(), tc.online)
-			assert.Equal(t, tc.expected, err)
+			require.Equal(t, tc.expected, s.DeviceSetOffline(ctx, tc.uid))
 		})
 	}
 }

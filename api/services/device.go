@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -24,7 +24,7 @@ type DeviceService interface {
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
-	OfflineDevice(ctx context.Context, uid models.UID, online bool) error
+	OfflineDevice(ctx context.Context, uid models.UID) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
@@ -176,13 +176,16 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 	return device, nil
 }
 
-func (s *service) OfflineDevice(ctx context.Context, uid models.UID, online bool) error {
-	err := s.store.DeviceSetOnline(ctx, uid, clock.Now(), online)
-	if err == store.ErrNoDocuments {
-		return NewErrDeviceNotFound(uid, err)
+func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
+	if err := s.store.DeviceSetOffline(ctx, string(uid)); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrDeviceNotFound(uid, err)
+		}
+
+		return err
 	}
 
-	return err
+	return nil
 }
 
 // UpdateDeviceStatus updates the device status.

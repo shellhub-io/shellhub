@@ -40,7 +40,8 @@ type Device struct {
 }
 
 type DeviceAuthClaims struct {
-	UID string `json:"uid"`
+	UID    string `json:"uid"`
+	Tenant string `json:"tenant"`
 
 	AuthClaims           `mapstruct:",squash"`
 	jwt.RegisteredClaims `mapstruct:",squash"`
@@ -86,7 +87,6 @@ type ConnectedDevice struct {
 	UID      string    `json:"uid"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
-	Status   string    `json:"status" bson:",omitempty"`
 }
 
 type DevicePosition struct {

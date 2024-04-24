@@ -1613,52 +1613,60 @@ func TestLookupDevice(t *testing.T) {
 }
 
 func TestOfflineDevice(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
+	storeMock := new(mocks.Store)
 
 	cases := []struct {
-		name          string
-		uid           models.UID
-		online        bool
-		requiredMocks func()
-		expected      error
+		name     string
+		uid      models.UID
+		mocks    func(context.Context)
+		expected error
 	}{
 		{
-			name: "fails when store device online fails",
+			name: "fails when operation does not succeeds",
 			uid:  models.UID("uid"),
-			requiredMocks: func() {
-				clockMock.On("Now").Return(now).Once()
-				mock.On("DeviceSetOnline", ctx, models.UID("uid"), now, false).
-					Return(errors.New("error", "", 0)).Once()
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceSetOffline", ctx, "uid").
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
 		{
-			name:   "succeeds",
-			uid:    models.UID("uid"),
-			online: true,
-			requiredMocks: func() {
-				online := true
-				clockMock.On("Now").Return(now).Once()
-				mock.On("DeviceSetOnline", ctx, models.UID("uid"), now, online).
-					Return(errors.New("error", "", 0)).Once()
+			name: "fails when connected_device does not exist",
+			uid:  models.UID("uid"),
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceSetOffline", ctx, "uid").
+					Return(store.ErrNoDocuments).
+					Once()
 			},
-			expected: errors.New("error", "", 0),
+			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
+		},
+		{
+			name: "succeeds",
+			uid:  models.UID("uid"),
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceSetOffline", ctx, "uid").
+					Return(nil).
+					Once()
+			},
+			expected: nil,
 		},
 	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.OfflineDevice(ctx, tc.uid, tc.online)
-			assert.Equal(t, tc.expected, err)
+			ctx := context.Background()
+			tc.mocks(ctx)
+			assert.Equal(t, tc.expected, s.OfflineDevice(ctx, tc.uid))
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestUpdateDeviceStatus_same_mac(t *testing.T) {
