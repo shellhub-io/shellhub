@@ -114,7 +114,7 @@ services:
     networks:
       - shellhub
   mongo:
-    image: mongo:4.4.8
+    image: mongo:4.4.29
     restart: unless-stopped
     healthcheck:
       test: 'test $$(echo "rs.initiate({ _id: ''rs'', members: [ { _id: 0, host: ''mongo:27017'' } ] }).ok || rs.status().ok" | mongo --quiet) -eq 1'
