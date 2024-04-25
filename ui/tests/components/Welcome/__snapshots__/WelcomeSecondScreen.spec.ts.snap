@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Welcome Second Screen > Renders the component 1`] = `
+"<p class=\\"ml-4 pt-4 text-subtitle-2\\" data-test=\\"welcome-second-title\\"> In order to register a device on ShellHub, you need to install ShellHub agent onto it. </p>
+<p class=\\"ml-4 pt-4 text-subtitle-2\\" data-test=\\"welcome-second-text\\"> The easiest way to install ShellHub agent is with our automatic one-line installation script, which works with all Linux distributions that have Docker installed and properly set up. </p>
+<div class=\\"mt-4 ml-4 mr-4\\">
+  <p class=\\"ml-2 pt-4 text-subtitle-2 text-bold\\" data-test=\\"welcome-second-run-title\\"> Run the following command on your device: </p>
+  <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-locale--is-ltr v-input--readonly v-text-field code mt-1\\" data-test=\\"command-field\\">
+    <!---->
+    <div class=\\"v-input__control\\">
+      <div class=\\"v-field v-field--active v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
+            <!---->
+            <!---->
+          </label>
+          <!----><input readonly=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" class=\\"v-field__input\\">
+          <!---->
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <div class=\\"v-field__outline__start\\"></div>
+          <!---->
+          <div class=\\"v-field__outline__end\\"></div>
+          <!---->
+        </div>
+      </div>
+    </div>
+    <div class=\\"v-input__append\\"><i class=\\"mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\" appended action\\"></i>
+      <!---->
+    </div>
+    <div class=\\"v-input__details\\">
+      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-0-messages\\">
+        <!---->
+      </transition-group-stub>
+      <!---->
+    </div>
+  </div>
+  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+  <p class=\\"text-caption mb-0 mt-1\\" data-test=\\"welcome-second-link-docs\\"> Check the <a href=\\"https://docs.shellhub.io/user-guides/devices/adding\\" target=\\"_blank\\" rel=\\"noopener noreferrer\\">documentation</a> for more information and alternative install methods. </p>
+</div>"
+`;

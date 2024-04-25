@@ -1,15 +1,15 @@
 <template>
-  <p class="ml-4 pt-4 text-subtitle-2">
+  <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-second-title">
     In order to register a device on ShellHub, you need to install ShellHub
     agent onto it.
   </p>
-  <p class="ml-4 pt-4 text-subtitle-2">
+  <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-second-text">
     The easiest way to install ShellHub agent is with our automatic one-line
     installation script, which works with all Linux distributions that have
     Docker installed and properly set up.
   </p>
   <div class="mt-4 ml-4 mr-4">
-    <p class="ml-2 pt-4 text-subtitle-2 text-bold">
+    <p class="ml-2 pt-4 text-subtitle-2 text-bold" data-test="welcome-second-run-title">
       Run the following command on your device:
     </p>
 
@@ -27,7 +27,7 @@
 
     <v-divider />
 
-    <p class="text-caption mb-0 mt-1">
+    <p class="text-caption mb-0 mt-1" data-test="welcome-second-link-docs">
       Check the
       <a
         :href="'https://docs.shellhub.io/user-guides/devices/adding'"
@@ -40,29 +40,24 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { useClipboard } from "@vueuse/core";
 import { INotificationsCopy } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
 
-export default defineComponent({
-  props: {
-    command: {
-      type: String,
-      required: true,
-    },
-  },
-
-  setup(props) {
-    const store = useStore();
-    const copyCommand = () => {
-      navigator.clipboard.writeText(props.command);
-      store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.tenantId);
-    };
-
-    return {
-      copyCommand,
-    };
+const props = defineProps({
+  command: {
+    type: String,
+    required: true,
   },
 });
+const store = useStore();
+
+const { copy } = useClipboard();
+const copyCommand = () => {
+  copy(props.command);
+  store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.tenantId);
+};
+
+defineExpose({ copyCommand });
 </script>

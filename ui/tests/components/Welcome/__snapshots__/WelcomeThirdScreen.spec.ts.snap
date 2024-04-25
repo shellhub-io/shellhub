@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Welcome Third Screen > Renders the component 1`] = `
+"<div class=\\"pa-4\\">
+  <p class=\\"ml-4 pt-4 text-subtitle-2\\" data-test=\\"welcome-third-screen-name\\"> A device connection has been detected. </p>
+  <p class=\\"ml-4 pt-4 text-subtitle-2\\" data-test=\\"welcome-third-screen-text\\"> Please confirm that this device is yours to enroll into your account. After confirmation, you will go to the last step of introducing <strong>ShellHub</strong>. </p>
+  <div class=\\"v-row v-row--no-gutters mt-4\\">
+    <div class=\\"v-col\\">
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"welcome-third-screen-hostname\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!----><strong>Hostname</strong>
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+      <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"device-field\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!---->39-5e-2a
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+    </div>
+    <div class=\\"v-col\\">
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"welcome-third-screen-os\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!----><strong>Operation System</strong>
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+      <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+      <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"device-pretty-name-field\\">
+        <!---->
+        <div class=\\"v-card__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <!---->
+        <div><i data-test=\\"type-icon\\" class=\\"fl-linuxmint mr-1\\" style=\\"font-size: 20px;\\"></i> Linux Mint 19.3</div>
+        <!---->
+        <!----><span class=\\"v-card__underlay\\"></span>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
