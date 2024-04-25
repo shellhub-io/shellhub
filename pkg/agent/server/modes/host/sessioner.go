@@ -19,27 +19,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func newShellCmd(deviceName string, username string, term string, envs []string) *exec.Cmd {
-	shell := os.Getenv("SHELL")
-
-	user, err := osauth.LookupUser(username)
-	if err != nil {
-		return nil
-	}
-
-	if shell == "" {
-		shell = user.Shell
-	}
-
-	if term == "" {
-		term = "xterm"
-	}
-
-	cmd := command.NewCmd(user, shell, term, deviceName, envs, shell, "--login")
-
-	return cmd
-}
-
 // NOTICE: Ensures the Sessioner interface is implemented.
 var _ modes.Sessioner = (*Sessioner)(nil)
 

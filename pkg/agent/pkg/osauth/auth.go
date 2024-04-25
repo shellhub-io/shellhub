@@ -1,3 +1,6 @@
+//go:build !freebsd
+// +build !freebsd
+
 package osauth
 
 import (
@@ -17,24 +20,38 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name=Backend --filename=backend.go
-type Backend interface {
-	AuthUser(username, password string) bool
-	LookupUser(username string) (*User, error)
-}
-
-var DefaultBackend Backend
-
-func init() {
-	DefaultBackend = &backend{}
-}
-
 var (
 	// Default file path for shadow file.
 	DefaultShadowFilename = "/etc/shadow"
 	// Default file path for passwd file.
 	DefaultPasswdFilename = "/etc/passwd"
 )
+
+var DefaultBackend Backend
+
+type backend struct{}
+
+func (b *backend) AuthUser(username, password string) bool {
+	file, err := os.Open(DefaultShadowFilename)
+	if err != nil {
+		return false
+	}
+
+	return AuthUserFromShadow(username, password, file)
+}
+
+func (b *backend) LookupUser(username string) (*User, error) {
+	file, err := os.Open(DefaultPasswdFilename)
+	if err != nil {
+		return nil, err
+	}
+
+	return LookupUserFromPasswd(username, file)
+}
+
+func init() {
+	DefaultBackend = &backend{}
+}
 
 // This struct represents an entry from the `/etc/shadow` file.
 type shadowEntry struct {

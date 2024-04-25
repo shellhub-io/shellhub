@@ -1,7 +1,9 @@
+//go:build !freebsd
+// +build !freebsd
+
 package sysinfo
 
 import (
-	"errors"
 	"math"
 	"net"
 	"os"
@@ -10,8 +12,6 @@ import (
 	"strings"
 	"syscall"
 )
-
-var ErrNoInterfaceFound = errors.New("no interface found")
 
 func PrimaryInterface() (*net.Interface, error) {
 	interfaces, err := net.Interfaces()
