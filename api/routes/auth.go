@@ -207,7 +207,13 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthUser(c.Ctx(), req)
+	res, timeout, err := h.service.AuthUser(c.Ctx(), req, c.RealIP())
+	c.Response().Header().Set("X-Account-Lockout", strconv.FormatInt(timeout, 10))
+
+	if timeout > 0 {
+		return c.NoContent(http.StatusTooManyRequests)
+	}
+
 	if err != nil {
 		switch {
 		case errors.Is(err, svc.ErrUserNotFound):

@@ -28,7 +28,11 @@ type AuthService interface {
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
-	AuthUser(ctx context.Context, req *requests.UserAuth) (*models.UserAuthResponse, error)
+
+	// AuthUser is responsible for authenticating a user and returning its credentials. It can block a sourceIP
+	// from logging in a user for up to M minutes when exceeding the attempts limit.
+	AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, error)
+
 	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
@@ -149,7 +153,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models.UserAuthResponse, error) {
+func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, error) {
 	var err error
 	var user *models.User
 
@@ -160,20 +164,50 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models
 	}
 
 	if err != nil {
-		return nil, NewErrAuthUnathorized(nil)
+		return nil, 0, NewErrAuthUnathorized(nil)
 	}
 
 	if !user.Confirmed {
-		return nil, NewErrUserNotConfirmed(nil)
+		return nil, 0, NewErrUserNotConfirmed(nil)
+	}
+
+	// Checks whether the user is currently blocked from new login attempts
+	if lockout, attempt, _ := s.cache.HasAccountLockout(ctx, sourceIP, user.ID); lockout > 0 {
+		log.
+			WithFields(log.Fields{
+				"lockout":   lockout,
+				"attempt":   attempt,
+				"source_ip": sourceIP,
+				"user_id":   user.ID,
+			}).
+			Warn("attempt to login blocked")
+
+		return nil, lockout, NewErrAuthUnathorized(nil)
 	}
 
 	if !user.Password.Compare(req.Password) {
-		return nil, NewErrAuthUnathorized(nil)
+		lockout, _, err := s.cache.StoreLoginAttempt(ctx, sourceIP, user.ID)
+		if err != nil {
+			log.WithError(err).
+				WithField("source_ip", sourceIP).
+				WithField("user_id", user.ID).
+				Warn("unable to store login attempt")
+		}
+
+		return nil, lockout, NewErrAuthUnathorized(nil)
+	}
+
+	// Reset the attempt and timeout values when succeeds
+	if err := s.cache.ResetLoginAttempts(ctx, sourceIP, user.ID); err != nil {
+		log.WithError(err).
+			WithField("source_ip", sourceIP).
+			WithField("user_id", user.ID).
+			Warn("unable to reset authentication attempts")
 	}
 
 	hasMFA, err := s.AuthMFA(ctx, user.ID)
 	if err != nil {
-		return nil, err // TODO: handle this error
+		return nil, 0, err // TODO: handle this error
 	}
 
 	claims := &models.UserAuthClaims{
@@ -205,12 +239,12 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models
 		WithPrivateKey(s.privKey).
 		Sign()
 	if err != nil {
-		return nil, NewErrTokenSigned(err)
+		return nil, 0, NewErrTokenSigned(err)
 	}
 
 	user.LastLogin = clock.Now()
 	if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
-		return nil, NewErrUserUpdate(user, err)
+		return nil, 0, NewErrUserUpdate(user, err)
 	}
 
 	if err := s.AuthCacheToken(ctx, claims.Tenant, user.ID, token.String()); err != nil {
@@ -238,7 +272,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth) (*models
 			Enable:   hasMFA,
 			Validate: false,
 		},
-	}, nil
+	}, 0, nil
 }
 
 func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error) {

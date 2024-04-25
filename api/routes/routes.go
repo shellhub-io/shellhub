@@ -13,6 +13,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
 	e.HTTPErrorHandler = handlers.NewErrors(nil)
+	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
