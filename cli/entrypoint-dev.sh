@@ -1,5 +1,3 @@
 #!/bin/sh
 
-go build
-
-exec "$@"
+exec air
