@@ -19,16 +19,27 @@
       <v-alert
         v-model="invalidCredentials"
         type="error"
+        :title="invalid.title + (invalid.timeout ? countdownTimer : '')"
+        :text="invalid.msg"
+        @click:close="!invalidCredentials"
         closable
         variant="tonal"
         class="mb-4"
         data-test="invalid-login-alert"
-      >
-        <strong>Invalid login credentials:</strong>
-        Your password is incorrect or this account doesn't exists.
-      </v-alert>
+      />
     </v-slide-y-reverse-transition>
-
+    <v-slide-y-reverse-transition>
+      <v-alert
+        v-model="isCountdownFinished"
+        type="success"
+        title="Your timeout has finished"
+        text="Please try to log back in."
+        closable
+        variant="tonal"
+        class="mb-4"
+        data-test="invalid-login-alert"
+      />
+    </v-slide-y-reverse-transition>
     <v-form
       v-model="validForm"
       @submit.prevent="login"
@@ -105,13 +116,14 @@
   </v-container>
 </template>
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, reactive, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
 import isCloudEnvironment from "../utils/cloudUtils";
 import handleError from "../utils/handleError";
 import useSnackbar from "../helpers/snackbar";
+import useCountdown from "@/utils/countdownTimeout";
 
 const store = useStore();
 const route = useRoute();
@@ -120,19 +132,35 @@ const snackbar = useSnackbar();
 
 const showPassword = ref(false);
 const loginToken = ref(false);
+const invalid = reactive({ title: "", msg: "", timeout: false });
 const username = ref("");
 const password = ref("");
 const rules = [(v: string) => v ? true : "This is a required field"];
 const validForm = ref(false);
 const cloudEnvironment = isCloudEnvironment();
 const invalidCredentials = ref(false);
+const isCountdownFinished = ref(false);
 const isMfa = computed(() => store.getters["auth/isMfa"]);
+const loginTimeout = computed(() => store.getters["auth/getLoginTimeout"]);
+
+const { startCountdown, countdown } = useCountdown();
+
+const countdownTimer = ref("");
+
+watch(countdown, (newValue) => {
+  countdownTimer.value = newValue;
+  if (countdownTimer.value === "0 seconds") {
+    invalidCredentials.value = false;
+    isCountdownFinished.value = true;
+  }
+});
 
 onMounted(async () => {
   if (!route.query.token) {
     return;
   }
   loginToken.value = true;
+
   await store.dispatch("stats/clear");
   await store.dispatch("namespaces/clearNamespaceList");
   await store.dispatch("auth/logout");
@@ -148,15 +176,31 @@ const login = async () => {
       router.push(route.query.redirect ? route.query.redirect.toString() : "/");
     }
   } catch (error: unknown) {
+    isCountdownFinished.value = false;
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       switch (axiosError.response?.status) {
         case 401:
           invalidCredentials.value = true;
+          Object.assign(invalid, {
+            title: "Invalid login credentials",
+            msg: "Your password is incorrect or this account doesn't exist.",
+            timeout: false,
+          });
           break;
         case 403:
           router.push({ name: "ConfirmAccount", query: { username: username.value } });
           break;
+        case 429:
+          startCountdown(loginTimeout.value);
+          invalidCredentials.value = true;
+          Object.assign(invalid, {
+            title: "Your account is blocked for ",
+            msg: "There was too many failed login attempts. Please wait to try again.",
+            timeout: true,
+          });
+          break;
+
         default:
           snackbar.showError("Something went wrong in our server. Please try again later.");
           handleError(error);
