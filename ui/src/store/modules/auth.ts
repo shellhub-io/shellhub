@@ -1,4 +1,5 @@
 import { Module } from "vuex";
+import { AxiosError } from "axios";
 import * as apiAuth from "../api/auth";
 import { IUserLogin, ApiKey } from "@/interfaces/IUserLogin";
 import { State } from "..";
@@ -28,6 +29,7 @@ export interface AuthState {
   keyList: Array<ApiKey>,
   keyResponse: string,
   numberApiKeys: number,
+  loginTimeout: number,
 }
 export const auth: Module<AuthState, State> = {
   namespaced: true,
@@ -56,7 +58,7 @@ export const auth: Module<AuthState, State> = {
     keyList: [],
     keyResponse: "",
     numberApiKeys: 0,
-
+    loginTimeout: 0,
   },
 
   getters: {
@@ -82,6 +84,7 @@ export const auth: Module<AuthState, State> = {
     apiKey: (state) => state.keyResponse,
     apiKeyList: (state) => state.keyList,
     getNumberApiKeys: (state) => state.numberApiKeys,
+    getLoginTimeout: (state) => state.loginTimeout,
   },
 
   mutations: {
@@ -188,12 +191,15 @@ export const auth: Module<AuthState, State> = {
       state.sortStatusString = data.sortStatusString;
       state.sortStatusField = data.sortStatusField;
     },
+
+    setLoginTimeout: (state, data) => {
+      state.loginTimeout = data;
+    },
   },
 
   actions: {
     async login(context, user: IUserLogin) {
       context.commit("authRequest");
-
       try {
         const resp = await apiAuth.login(user);
 
@@ -207,7 +213,9 @@ export const auth: Module<AuthState, State> = {
         localStorage.setItem("role", resp.data.role || "");
         localStorage.setItem("mfa", resp.data.mfa?.enable ? "true" : "false");
         context.commit("authSuccess", resp.data);
-      } catch (error) {
+      } catch (error: unknown) {
+        const typedErr = error as AxiosError;
+        context.commit("setLoginTimeout", typedErr.response?.headers["x-account-lockout"]);
         context.commit("authError");
         throw error;
       }

@@ -6865,7 +6865,7 @@ export const ExternalApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -6920,7 +6920,7 @@ export const ExternalApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -6951,7 +6951,7 @@ export const ExternalApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.authUser(loginRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -6983,7 +6983,7 @@ export class ExternalApi extends BaseAPI {
     }
 
     /**
-     * Authenticate a user, returning the session\'s JWT token and data about the user.
+     * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
      * @summary Login
      * @param {LoginRequest} [loginRequest] 
      * @param {*} [options] Override http request option.
@@ -11280,7 +11280,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -11642,7 +11642,7 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -11793,7 +11793,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.getValidateAccount(email, token, options).then((request) => request(axios, basePath));
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and data about the user.
+         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -11946,7 +11946,7 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * Authenticate a user, returning the session\'s JWT token and data about the user.
+     * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts. 
      * @summary Login
      * @param {LoginRequest} [loginRequest] 
      * @param {*} [options] Override http request option.

@@ -1,6 +1,6 @@
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import Login from "../../src/views/Login.vue";
 import { usersApi } from "@/api/http";
@@ -177,5 +177,36 @@ describe("Login", () => {
       name: "ConfirmAccount",
       query: { username: "testuser" },
     });
+  });
+
+  it("locks account after 10 failed login attempts", async () => {
+    const username = "testuser";
+    const maxAttempts = 10;
+    const lockoutDuration = 7 * 24 * 60 * 60; // 7 days in seconds
+    let attempts = 0;
+
+    mock.onPost("http://localhost:3000/api/login").reply((config) => {
+      const { username: reqUsername, password } = JSON.parse(config.data);
+      if (reqUsername === username && password === "wrongpassword") {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          return [429, {}, { "x-account-lockout": lockoutDuration.toString() }];
+        }
+        return [401];
+      }
+      return [200, { token: "fake-token" }];
+    });
+
+    // Simulate 10 failed login attempts
+    for (let i = 0; i < maxAttempts; i++) {
+      wrapper.findComponent('[data-test="username-text"]').setValue(username);
+      wrapper.findComponent('[data-test="password-text"]').setValue("wrongpassword");
+      wrapper.findComponent('[data-test="form"]').trigger("submit");
+      // eslint-disable-next-line no-await-in-loop
+      await flushPromises();
+    }
+
+    // Ensure the account is locked out
+    expect(wrapper.findComponent('[data-test="invalid-login-alert"]').exists()).toBeTruthy();
   });
 });
