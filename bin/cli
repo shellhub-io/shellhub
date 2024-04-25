@@ -3,8 +3,19 @@
 # CLI script is a inferface to executes commands on the CLI service.
 # The CLI service contains a set of commands to manage users, namesapces and members.
 
+exit_with_error() {
+    echo "ERROR: ShellHub is not running. Exiting."
+    exit 1
+}
+
 . "$(dirname "$0")/utils"
 
-DOCKER_COMPOSE=$(evaluate_docker_compose)
+cd $(dirname $(readlink_f $0))/../
 
-exec $DOCKER_COMPOSE run cli ./cli $@
+DOCKER_COMPOSE=$(evaluate_docker_compose)
+SERVICES=$($DOCKER_COMPOSE ps --format '{{.Service}}' | tr '\n' ' ')
+
+[ -z "$SERVICES" ] && exit_with_error
+echo -n "$SERVICES" | awk '!(/mongo/ && /redis/ && /api/) { exit 1; }' || exit_with_error
+
+exec $DOCKER_COMPOSE exec cli ./cli $@
