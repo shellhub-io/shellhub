@@ -50,7 +50,7 @@ require (
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/xakep666/mongo-migrate v0.2.1 // indirect
+	github.com/xakep666/mongo-migrate v0.3.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -68,5 +68,3 @@ require (
 replace github.com/shellhub-io/shellhub => ../
 
 replace github.com/shellhub-io/shellhub/api => ../api
-
-replace github.com/xakep666/mongo-migrate => github.com/shellhub-io/mongo-migrate v0.0.0-20240401174913-79928e115679

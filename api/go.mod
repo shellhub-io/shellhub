@@ -20,7 +20,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.30.0
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.30.0
 	github.com/undefinedlabs/go-mpatch v1.0.7
-	github.com/xakep666/mongo-migrate v0.2.1
+	github.com/xakep666/mongo-migrate v0.3.2
 	go.mongodb.org/mongo-driver v1.15.0
 	golang.org/x/crypto v0.22.0
 )
@@ -126,5 +126,3 @@ require (
 )
 
 replace github.com/shellhub-io/shellhub => ../
-
-replace github.com/xakep666/mongo-migrate => github.com/shellhub-io/mongo-migrate v0.0.0-20240401174913-79928e115679
