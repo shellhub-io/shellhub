@@ -4,48 +4,9 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
-
-func (s *Store) AnnouncementList(ctx context.Context, paginator query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
-	query := []bson.M{}
-
-	queryCount := append(query, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("announcements"), queryCount)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	sorter.By = "date"
-	query = append(query, queries.FromSorter(&sorter)...)
-	query = append(query, queries.FromPaginator(&paginator)...)
-
-	cursor, err := s.db.Collection("announcements").Aggregate(ctx, query)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	var announcements []models.AnnouncementShort
-	if err := cursor.All(ctx, &announcements); err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	return announcements, count, nil
-}
-
-func (s *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Announcement, error) {
-	ann := new(models.Announcement)
-
-	err := s.db.Collection("announcements").FindOne(ctx, bson.M{"uuid": uuid}).Decode(&ann)
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return ann, nil
-}
 
 func (s *Store) AnnouncementCreate(ctx context.Context, announcement *models.Announcement) error {
 	if _, err := s.db.Collection("announcements").InsertOne(ctx, announcement); err != nil {

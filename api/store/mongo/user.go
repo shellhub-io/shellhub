@@ -215,25 +215,6 @@ func (s *Store) UserUpdatePassword(ctx context.Context, newPassword string, id s
 	return nil
 }
 
-// UserUpdateAccountStatus sets the 'confirmed' attribute of a user to true.
-func (s *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"confirmed": true}})
-	if err != nil {
-		return err
-	}
-
-	if user.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 func (s *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, id string) error {
 	updatedFields := bson.M{}
 
@@ -264,36 +245,6 @@ func (s *Store) UserUpdateFromAdmin(ctx context.Context, name string, username s
 		if user.ModifiedCount < 1 {
 			return store.ErrNoDocuments
 		}
-	}
-
-	return nil
-}
-
-func (s *Store) UserCreateToken(ctx context.Context, token *models.UserTokenRecover) error {
-	if _, err := primitive.ObjectIDFromHex(token.User); err != nil {
-		return err
-	}
-
-	if _, err := s.db.Collection("recovery_tokens").InsertOne(ctx, token); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenRecover, error) {
-	token := new(models.UserTokenRecover)
-
-	if err := s.db.Collection("recovery_tokens").FindOne(ctx, bson.M{"user": id}).Decode(&token); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return token, nil
-}
-
-func (s *Store) UserDeleteTokens(ctx context.Context, id string) error {
-	if _, err := s.db.Collection("recovery_tokens").DeleteMany(ctx, bson.M{"user": id}); err != nil {
-		return FromMongoError(err)
 	}
 
 	return nil
