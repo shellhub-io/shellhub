@@ -248,33 +248,6 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	return err
 }
 
-func (s *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
-	mongoSession, err := s.db.Client().StartSession()
-	if err != nil {
-		return FromMongoError(err)
-	}
-	defer mongoSession.EndSession(ctx)
-
-	_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
-		session, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": true}})
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if session.MatchedCount < 1 {
-			return nil, store.ErrNoDocuments
-		}
-
-		if _, err := s.db.Collection("recorded_sessions").InsertOne(ctx, &recordSession); err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		return nil, err
-	})
-
-	return err
-}
-
 func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	session, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
 	if err != nil {
@@ -282,19 +255,6 @@ func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, n
 	}
 
 	if session.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-func (s *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
-	session, err := s.db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{"uid": uid})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if session.DeletedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
@@ -357,58 +317,4 @@ func (s *Store) SessionDeleteRecordFrameByDate(ctx context.Context, lte time.Tim
 	})
 
 	return deletedCount, updatedCount, FromMongoError(err)
-}
-
-func (s *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
-	sessionRecord := make([]models.RecordedSession, 0)
-
-	query := []bson.M{
-		{
-			"$match": bson.M{"uid": uid},
-		},
-	}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
-	cursor, err := s.db.Collection("recorded_sessions").Aggregate(ctx, query)
-	if err != nil {
-		return sessionRecord, 0, err
-	}
-
-	defer cursor.Close(ctx)
-
-	for cursor.Next(ctx) {
-		record := new(models.RecordedSession)
-		err = cursor.Decode(&record)
-		if err != nil {
-			return sessionRecord, 0, err
-		}
-
-		sessionRecord = append(sessionRecord, *record)
-	}
-
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
-
-	query = append(query, bson.M{
-		"$count": "count",
-	})
-
-	count, err := AggregateCount(ctx, s.db.Collection("recorded_sessions"), query)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return sessionRecord, count, nil
 }

@@ -24,7 +24,6 @@ const (
 	fixtureDevices          = "devices"           // Check "fixtures.data.devices" for fixture info
 	fixtureSessions         = "sessions"          // Check "fixtures.data.sessions" for fixture info
 	fixtureActiveSessions   = "active_sessions"   // Check "fixtures.data.active_sessions" for fixture info
-	fixtureRecordedSessions = "recorded_sessions" // Check "fixtures.data.recorded_sessions" for fixture info
 	fixtureFirewallRules    = "firewall_rules"    // Check "fixtures.data.firewall_rules" for fixture info
 	fixturePublicKeys       = "public_keys"       // Check "fixtures.data.public_keys" for fixture info
 	fixturePrivateKeys      = "private_keys"      // Check "fixtures.data.private_keys" for fixture info
@@ -46,8 +45,6 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertObjID("users", "_id"),
 		mongotest.SimpleConvertTime("users", "created_at"),
 		mongotest.SimpleConvertTime("users", "last_login"),
-		mongotest.SimpleConvertObjID("recovery_tokens", "_id"),
-		mongotest.SimpleConvertTime("recovery_tokens", "created_at"),
 		mongotest.SimpleConvertObjID("announcements", "_id"),
 		mongotest.SimpleConvertTime("announcements", "date"),
 		mongotest.SimpleConvertObjID("public_keys", "_id"),
@@ -72,8 +69,6 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertTime("sessions", "last_seen"),
 		mongotest.SimpleConvertObjID("active_sessions", "_id"),
 		mongotest.SimpleConvertTime("active_sessions", "last_seen"),
-		mongotest.SimpleConvertObjID("recorded_sessions", "_id"),
-		mongotest.SimpleConvertTime("recorded_sessions", "time"),
 	}
 
 	if err := srv.Up(ctx); err != nil {

@@ -33,6 +33,10 @@ type ActiveSession struct {
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
 }
 
+// NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;
+// however, it is also utilized by migrations. For this reason, we must maintain the struct
+// here ensure everything continues to function as expected.
+// TODO: Remove this struct when it is no longer needed for migrations.
 type RecordedSession struct {
 	UID      UID       `json:"uid"`
 	Message  string    `json:"message" bson:"message"`

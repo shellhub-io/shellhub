@@ -8,8 +8,6 @@ type Store interface {
 	DeviceTagsStore
 	SessionStore
 	UserStore
-	FirewallStore
-	FirewallTagsStore
 	NamespaceStore
 	PublicKeyStore
 	PublicKeyTagsStore

@@ -3,8 +3,20 @@ package mongo
 import (
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson"
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
 )
+
+func (s *Store) FirewallRuleGetTags(ctx context.Context, tenant string) ([]string, int, error) {
+	list, err := s.db.Collection("firewall_rules").Distinct(ctx, "filter.tags", bson.M{"tenant_id": tenant})
+
+	tags := make([]string, len(list))
+	for i, item := range list {
+		tags[i] = item.(string) //nolint:forcetypeassert
+	}
+
+	return tags, len(tags), FromMongoError(err)
+}
 
 func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, error) {
 	session, err := s.db.Client().StartSession()
@@ -43,6 +55,12 @@ func (s *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, erro
 	return tags.([]string), len(tags.([]string)), nil
 }
 
+func (s *Store) FirewallRuleBulkRenameTag(ctx context.Context, tenant, currentTag, newTag string) (int64, error) {
+	res, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant, "filter.tags": currentTag}, bson.M{"$set": bson.M{"filter.tags.$": newTag}})
+
+	return res.ModifiedCount, FromMongoError(err)
+}
+
 func (s *Store) TagsRename(ctx context.Context, tenantID string, oldTag string, newTag string) (int64, error) {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
@@ -73,6 +91,12 @@ func (s *Store) TagsRename(ctx context.Context, tenantID string, oldTag string, 
 	}
 
 	return count.(int64), nil
+}
+
+func (s *Store) FirewallRuleBulkDeleteTag(ctx context.Context, tenant, tag string) (int64, error) {
+	res, err := s.db.Collection("firewall_rules").UpdateMany(ctx, bson.M{"tenant_id": tenant}, bson.M{"$pull": bson.M{"filter.tags": tag}})
+
+	return res.ModifiedCount, FromMongoError(err)
 }
 
 func (s *Store) TagsDelete(ctx context.Context, tenantID string, tag string) (int64, error) {

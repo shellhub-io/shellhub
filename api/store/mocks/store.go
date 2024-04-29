@@ -173,60 +173,6 @@ func (_m *Store) APIKeyList(ctx context.Context, tenantID string, paginator quer
 	return r0, r1, r2
 }
 
-// AddCodes provides a mock function with given fields: ctx, username, codes
-func (_m *Store) AddCodes(ctx context.Context, username string, codes []string) error {
-	ret := _m.Called(ctx, username, codes)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddCodes")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, username, codes)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// AddSecret provides a mock function with given fields: ctx, username, secret
-func (_m *Store) AddSecret(ctx context.Context, username string, secret string) error {
-	ret := _m.Called(ctx, username, secret)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddSecret")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, username, secret)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// AddStatusMFA provides a mock function with given fields: ctx, username, statusMFA
-func (_m *Store) AddStatusMFA(ctx context.Context, username string, statusMFA bool) error {
-	ret := _m.Called(ctx, username, statusMFA)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddStatusMFA")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) error); ok {
-		r0 = rf(ctx, username, statusMFA)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // AnnouncementCreate provides a mock function with given fields: ctx, announcement
 func (_m *Store) AnnouncementCreate(ctx context.Context, announcement *models.Announcement) error {
 	ret := _m.Called(ctx, announcement)
@@ -263,73 +209,6 @@ func (_m *Store) AnnouncementDelete(ctx context.Context, uuid string) error {
 	return r0
 }
 
-// AnnouncementGet provides a mock function with given fields: ctx, uuid
-func (_m *Store) AnnouncementGet(ctx context.Context, uuid string) (*models.Announcement, error) {
-	ret := _m.Called(ctx, uuid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AnnouncementGet")
-	}
-
-	var r0 *models.Announcement
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Announcement, error)); ok {
-		return rf(ctx, uuid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Announcement); ok {
-		r0 = rf(ctx, uuid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Announcement)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, uuid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// AnnouncementList provides a mock function with given fields: ctx, paginator, sorter
-func (_m *Store) AnnouncementList(ctx context.Context, paginator query.Paginator, sorter query.Sorter) ([]models.AnnouncementShort, int, error) {
-	ret := _m.Called(ctx, paginator, sorter)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AnnouncementList")
-	}
-
-	var r0 []models.AnnouncementShort
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Sorter) ([]models.AnnouncementShort, int, error)); ok {
-		return rf(ctx, paginator, sorter)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Sorter) []models.AnnouncementShort); ok {
-		r0 = rf(ctx, paginator, sorter)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.AnnouncementShort)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Sorter) int); ok {
-		r1 = rf(ctx, paginator, sorter)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Sorter) error); ok {
-		r2 = rf(ctx, paginator, sorter)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // AnnouncementUpdate provides a mock function with given fields: ctx, announcement
 func (_m *Store) AnnouncementUpdate(ctx context.Context, announcement *models.Announcement) error {
 	ret := _m.Called(ctx, announcement)
@@ -341,42 +220,6 @@ func (_m *Store) AnnouncementUpdate(ctx context.Context, announcement *models.An
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.Announcement) error); ok {
 		r0 = rf(ctx, announcement)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeleteCodes provides a mock function with given fields: ctx, username
-func (_m *Store) DeleteCodes(ctx context.Context, username string) error {
-	ret := _m.Called(ctx, username)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteCodes")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, username)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeleteSecret provides a mock function with given fields: ctx, username
-func (_m *Store) DeleteSecret(ctx context.Context, username string) error {
-	ret := _m.Called(ctx, username)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteSecret")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, username)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1140,344 +983,6 @@ func (_m *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status 
 	}
 
 	return r0
-}
-
-// FirewallRuleBulkDeleteTag provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) FirewallRuleBulkDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleBulkDeleteTag")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// FirewallRuleBulkRenameTag provides a mock function with given fields: ctx, tenant, currentTag, newTag
-func (_m *Store) FirewallRuleBulkRenameTag(ctx context.Context, tenant string, currentTag string, newTag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, currentTag, newTag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleBulkRenameTag")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, currentTag, newTag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, currentTag, newTag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, currentTag, newTag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// FirewallRuleCreate provides a mock function with given fields: ctx, rule
-func (_m *Store) FirewallRuleCreate(ctx context.Context, rule *models.FirewallRule) error {
-	ret := _m.Called(ctx, rule)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleCreate")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.FirewallRule) error); ok {
-		r0 = rf(ctx, rule)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FirewallRuleDelete provides a mock function with given fields: ctx, id
-func (_m *Store) FirewallRuleDelete(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleDelete")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FirewallRuleGet provides a mock function with given fields: ctx, id
-func (_m *Store) FirewallRuleGet(ctx context.Context, id string) (*models.FirewallRule, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleGet")
-	}
-
-	var r0 *models.FirewallRule
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.FirewallRule, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.FirewallRule); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.FirewallRule)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// FirewallRuleGetTags provides a mock function with given fields: ctx, tenant
-func (_m *Store) FirewallRuleGetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	ret := _m.Called(ctx, tenant)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleGetTags")
-	}
-
-	var r0 []string
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, int, error)); ok {
-		return rf(ctx, tenant)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, tenant)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
-		r1 = rf(ctx, tenant)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = rf(ctx, tenant)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// FirewallRuleList provides a mock function with given fields: ctx, paginator
-func (_m *Store) FirewallRuleList(ctx context.Context, paginator query.Paginator) ([]models.FirewallRule, int, error) {
-	ret := _m.Called(ctx, paginator)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleList")
-	}
-
-	var r0 []models.FirewallRule
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.FirewallRule, int, error)); ok {
-		return rf(ctx, paginator)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.FirewallRule); ok {
-		r0 = rf(ctx, paginator)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.FirewallRule)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, paginator)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, paginator)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// FirewallRulePullTag provides a mock function with given fields: ctx, id, tag
-func (_m *Store) FirewallRulePullTag(ctx context.Context, id string, tag string) error {
-	ret := _m.Called(ctx, id, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRulePullTag")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, id, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FirewallRulePushTag provides a mock function with given fields: ctx, id, tag
-func (_m *Store) FirewallRulePushTag(ctx context.Context, id string, tag string) error {
-	ret := _m.Called(ctx, id, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRulePushTag")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, id, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FirewallRuleSetTags provides a mock function with given fields: ctx, id, tags
-func (_m *Store) FirewallRuleSetTags(ctx context.Context, id string, tags []string) error {
-	ret := _m.Called(ctx, id, tags)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleSetTags")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, id, tags)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FirewallRuleUpdate provides a mock function with given fields: ctx, id, rule
-func (_m *Store) FirewallRuleUpdate(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error) {
-	ret := _m.Called(ctx, id, rule)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FirewallRuleUpdate")
-	}
-
-	var r0 *models.FirewallRule
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.FirewallRuleUpdate) (*models.FirewallRule, error)); ok {
-		return rf(ctx, id, rule)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.FirewallRuleUpdate) *models.FirewallRule); ok {
-		r0 = rf(ctx, id, rule)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.FirewallRule)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, models.FirewallRuleUpdate) error); ok {
-		r1 = rf(ctx, id, rule)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetCodes provides a mock function with given fields: ctx, id
-func (_m *Store) GetCodes(ctx context.Context, id string) ([]string, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCodes")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetSecret provides a mock function with given fields: ctx, id
-func (_m *Store) GetSecret(ctx context.Context, id string) (string, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetSecret")
-	}
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // GetStats provides a mock function with given fields: ctx
@@ -2296,48 +1801,12 @@ func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*mo
 	return r0, r1
 }
 
-// SessionCreateRecordFrame provides a mock function with given fields: ctx, uid, recordSession
-func (_m *Store) SessionCreateRecordFrame(ctx context.Context, uid models.UID, recordSession *models.RecordedSession) error {
-	ret := _m.Called(ctx, uid, recordSession)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionCreateRecordFrame")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.RecordedSession) error); ok {
-		r0 = rf(ctx, uid, recordSession)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // SessionDeleteActives provides a mock function with given fields: ctx, uid
 func (_m *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error {
 	ret := _m.Called(ctx, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionDeleteActives")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SessionDeleteRecordFrame provides a mock function with given fields: ctx, uid
-func (_m *Store) SessionDeleteRecordFrame(ctx context.Context, uid models.UID) error {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionDeleteRecordFrame")
 	}
 
 	var r0 error
@@ -2413,43 +1882,6 @@ func (_m *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Sessio
 	}
 
 	return r0, r1
-}
-
-// SessionGetRecordFrame provides a mock function with given fields: ctx, uid
-func (_m *Store) SessionGetRecordFrame(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionGetRecordFrame")
-	}
-
-	var r0 []models.RecordedSession
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) ([]models.RecordedSession, int, error)); ok {
-		return rf(ctx, uid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) []models.RecordedSession); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.RecordedSession)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) int); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, models.UID) error); ok {
-		r2 = rf(ctx, uid)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
 }
 
 // SessionList provides a mock function with given fields: ctx, paginator
@@ -2654,24 +2086,6 @@ func (_m *Store) TagsRename(ctx context.Context, tenant string, oldTag string, n
 	return r0, r1
 }
 
-// UpdateCodes provides a mock function with given fields: ctx, id, codes
-func (_m *Store) UpdateCodes(ctx context.Context, id string, codes []string) error {
-	ret := _m.Called(ctx, id, codes)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateCodes")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, id, codes)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UserCreate provides a mock function with given fields: ctx, user
 func (_m *Store) UserCreate(ctx context.Context, user *models.User) error {
 	ret := _m.Called(ctx, user)
@@ -2690,48 +2104,12 @@ func (_m *Store) UserCreate(ctx context.Context, user *models.User) error {
 	return r0
 }
 
-// UserCreateToken provides a mock function with given fields: ctx, token
-func (_m *Store) UserCreateToken(ctx context.Context, token *models.UserTokenRecover) error {
-	ret := _m.Called(ctx, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserCreateToken")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.UserTokenRecover) error); ok {
-		r0 = rf(ctx, token)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UserDelete provides a mock function with given fields: ctx, id
 func (_m *Store) UserDelete(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserDelete")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UserDeleteTokens provides a mock function with given fields: ctx, id
-func (_m *Store) UserDeleteTokens(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserDeleteTokens")
 	}
 
 	var r0 error
@@ -2871,36 +2249,6 @@ func (_m *Store) UserGetByUsername(ctx context.Context, username string) (*model
 	return r0, r1
 }
 
-// UserGetToken provides a mock function with given fields: ctx, id
-func (_m *Store) UserGetToken(ctx context.Context, id string) (*models.UserTokenRecover, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserGetToken")
-	}
-
-	var r0 *models.UserTokenRecover
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.UserTokenRecover, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserTokenRecover); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.UserTokenRecover)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UserList provides a mock function with given fields: ctx, paginator, filters
 func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
 	ret := _m.Called(ctx, paginator, filters)
@@ -2936,24 +2284,6 @@ func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filter
 	}
 
 	return r0, r1, r2
-}
-
-// UserUpdateAccountStatus provides a mock function with given fields: ctx, id
-func (_m *Store) UserUpdateAccountStatus(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserUpdateAccountStatus")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // UserUpdateData provides a mock function with given fields: ctx, id, user
