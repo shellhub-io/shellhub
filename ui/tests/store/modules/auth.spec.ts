@@ -109,7 +109,7 @@ describe("Auth", () => {
 
     expect(reqSpy).toHaveBeenCalledWith("auth/validateMfa", { code: "000000" });
     // Check if the state has been updated correctly
-    expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse);
+    expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse.token);
   });
 
   it("Test recoveryMfa action", async () => {
