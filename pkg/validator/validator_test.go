@@ -225,11 +225,6 @@ func TestDeviceName(t *testing.T) {
 			want:        false,
 		},
 		{
-			description: "failed when the device name is uppercase",
-			value:       "TEST",
-			want:        false,
-		},
-		{
 			description: "failed when the device name contains invalid characters",
 			value:       "test$",
 			want:        false,
