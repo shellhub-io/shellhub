@@ -105,6 +105,50 @@ func TestAuthDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
+			title: "success when device has a preferred hostname and it is uppercase",
+			requestBody: &requests.DeviceAuth{
+				Info: &requests.DeviceInfo{
+					ID:         "device_id",
+					PrettyName: "Device Name",
+					Version:    "1.0",
+					Arch:       "amd64",
+					Platform:   "Linux",
+				},
+				Hostname:  "TEST",
+				PublicKey: "your_public_key",
+				TenantID:  "your_tenant_id",
+			},
+			requiredMocks: func() {
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "").Return(&models.DeviceAuthResponse{}, nil).Once()
+			},
+			expected: Expected{
+				expectedResponse: &models.DeviceAuthResponse{},
+				expectedStatus:   http.StatusOK,
+			},
+		},
+		{
+			title: "success when device has a preferred hostname and it is lowercase",
+			requestBody: &requests.DeviceAuth{
+				Info: &requests.DeviceInfo{
+					ID:         "device_id",
+					PrettyName: "Device Name",
+					Version:    "1.0",
+					Arch:       "amd64",
+					Platform:   "Linux",
+				},
+				Hostname:  "test",
+				PublicKey: "your_public_key",
+				TenantID:  "your_tenant_id",
+			},
+			requiredMocks: func() {
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "").Return(&models.DeviceAuthResponse{}, nil).Once()
+			},
+			expected: Expected{
+				expectedResponse: &models.DeviceAuthResponse{},
+				expectedStatus:   http.StatusOK,
+			},
+		},
+		{
 			title: "success when try auth a device",
 			requestBody: &requests.DeviceAuth{
 				Info: &requests.DeviceInfo{
