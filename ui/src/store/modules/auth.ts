@@ -279,7 +279,7 @@ export const auth: Module<AuthState, State> = {
 
         if (resp.status === 200) {
           localStorage.setItem("token", resp.data.token || "");
-          context.commit("mfaToken", resp.data);
+          context.commit("mfaToken", resp.data.token);
         }
       } catch (error) {
         context.commit("authError");
