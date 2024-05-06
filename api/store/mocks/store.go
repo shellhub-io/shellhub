@@ -2286,53 +2286,17 @@ func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filter
 	return r0, r1, r2
 }
 
-// UserUpdateData provides a mock function with given fields: ctx, id, user
-func (_m *Store) UserUpdateData(ctx context.Context, id string, user models.User) error {
-	ret := _m.Called(ctx, id, user)
+// UserUpdate provides a mock function with given fields: ctx, id, changes
+func (_m *Store) UserUpdate(ctx context.Context, id string, changes *models.UserChanges) error {
+	ret := _m.Called(ctx, id, changes)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UserUpdateData")
+		panic("no return value specified for UserUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.User) error); ok {
-		r0 = rf(ctx, id, user)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UserUpdateFromAdmin provides a mock function with given fields: ctx, name, username, email, password, id
-func (_m *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, id string) error {
-	ret := _m.Called(ctx, name, username, email, password, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserUpdateFromAdmin")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
-		r0 = rf(ctx, name, username, email, password, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UserUpdatePassword provides a mock function with given fields: ctx, newPassword, id
-func (_m *Store) UserUpdatePassword(ctx context.Context, newPassword string, id string) error {
-	ret := _m.Called(ctx, newPassword, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserUpdatePassword")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, newPassword, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.UserChanges) error); ok {
+		r0 = rf(ctx, id, changes)
 	} else {
 		r0 = ret.Error(0)
 	}

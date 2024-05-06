@@ -13,9 +13,11 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	log "github.com/sirupsen/logrus"
+	mongodb "go.mongodb.org/mongo-driver/mongo"
 )
 
 var srv = &dbtest.Server{}
+var db *mongodb.Database
 var s store.Store
 
 const (
@@ -78,7 +80,8 @@ func TestMain(m *testing.M) {
 
 	log.Info("Connecting to ", srv.Container.ConnectionString)
 
-	_, db, err := mongo.Connect(ctx, srv.Container.ConnectionString+"/"+srv.Container.Database)
+	var err error
+	_, db, err = mongo.Connect(ctx, srv.Container.ConnectionString+"/"+srv.Container.Database)
 	if err != nil {
 		log.WithError(err).Error("Failed to connect to mongodb")
 		os.Exit(1)

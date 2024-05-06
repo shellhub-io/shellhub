@@ -41,13 +41,13 @@ func (s *service) UpdateDataUser(ctx context.Context, id string, userData models
 		return conflictFields, NewErrUserDuplicated(conflictFields, nil)
 	}
 
-	return nil, s.store.UserUpdateData(ctx, id, models.User{
-		UserData: models.UserData{
-			Name:     userData.Name,
-			Username: userData.Username,
-			Email:    userData.Email,
-		},
-	})
+	changes := &models.UserChanges{
+		Name:     userData.Name,
+		Username: userData.Username,
+		Email:    userData.Email,
+	}
+
+	return nil, s.store.UserUpdate(ctx, id, changes)
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
@@ -65,7 +65,7 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 		return NewErrUserPasswordInvalid(err)
 	}
 
-	if err := s.store.UserUpdatePassword(ctx, neo.Hash, id); err != nil {
+	if err := s.store.UserUpdate(ctx, id, &models.UserChanges{Password: neo.Hash}); err != nil {
 		return NewErrUserUpdate(user, err)
 	}
 

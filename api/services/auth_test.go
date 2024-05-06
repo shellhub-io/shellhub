@@ -370,7 +370,7 @@ func TestAuthUser(t *testing.T) {
 				clockMock.On("Now").Return(now)
 
 				mock.
-					On("UserUpdateData", ctx, user.ID, *user).
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -442,7 +442,7 @@ func TestAuthUser(t *testing.T) {
 				clockMock.On("Now").Return(now)
 
 				mock.
-					On("UserUpdateData", ctx, user.ID, *user).
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -520,7 +520,7 @@ func TestAuthUser(t *testing.T) {
 				clockMock.On("Now").Return(now)
 
 				mock.
-					On("UserUpdateData", ctx, user.ID, *user).
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -609,7 +609,7 @@ func TestAuthUser(t *testing.T) {
 				clockMock.On("Now").Return(now)
 
 				mock.
-					On("UserUpdateData", ctx, user.ID, *user).
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -687,11 +687,6 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
-					On("UserUpdateData", ctx, user.ID, *user).
-					Return(nil).
-					Once()
-
 				cacheMock.
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
@@ -700,9 +695,8 @@ func TestAuthUser(t *testing.T) {
 					On("Hash", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
-
 				mock.
-					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", "65fdd16b5f62f93184ec8a39").
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
 					Return(nil).
 					Once()
 				cacheMock.

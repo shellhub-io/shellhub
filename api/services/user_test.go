@@ -169,18 +169,16 @@ func TestUpdateDataUser(t *testing.T) {
 					},
 				}
 
-				data := models.User{
-					UserData: models.UserData{
-						Name:     "test",
-						Username: "new",
-						Email:    "new@test.com",
-					},
+				changes := &models.UserChanges{
+					Name:     "test",
+					Username: "new",
+					Email:    "new@test.com",
 				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
 				mock.On("UserGetByUsername", ctx, "new").Return(nil, nil).Once()
 				mock.On("UserGetByEmail", ctx, "new@test.com").Return(nil, nil).Once()
-				mock.On("UserUpdateData", ctx, "1", data).Return(errors.New("error", "", 0)).Once()
+				mock.On("UserUpdate", ctx, "1", changes).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
 				fields: nil,
@@ -204,18 +202,16 @@ func TestUpdateDataUser(t *testing.T) {
 					},
 				}
 
-				data := models.User{
-					UserData: models.UserData{
-						Name:     "test",
-						Username: "new",
-						Email:    "new@test.com",
-					},
+				changes := &models.UserChanges{
+					Name:     "test",
+					Username: "new",
+					Email:    "new@test.com",
 				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
 				mock.On("UserGetByUsername", ctx, "new").Return(nil, nil).Once()
 				mock.On("UserGetByEmail", ctx, "new@test.com").Return(nil, nil).Once()
-				mock.On("UserUpdateData", ctx, "1", data).Return(nil).Once()
+				mock.On("UserUpdate", ctx, "1", changes).Return(nil).Once()
 			},
 			expected: Expected{
 				fields: nil,
@@ -338,7 +334,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 				mock.
-					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", "65fde3a72c4c7507c7f53c43").
+					On("UserUpdate", ctx, "65fde3a72c4c7507c7f53c43", &models.UserChanges{Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi"}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -378,7 +374,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 				mock.
-					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", "65fde3a72c4c7507c7f53c43").
+					On("UserUpdate", ctx, "65fde3a72c4c7507c7f53c43", &models.UserChanges{Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi"}).
 					Return(nil).
 					Once()
 			},

@@ -491,7 +491,7 @@ func TestUserResetPassword(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", "507f191e810c19729de860ea").
+					On("UserUpdate", ctx, "507f191e810c19729de860ea", &models.UserChanges{Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -512,7 +512,7 @@ func TestUserResetPassword(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdatePassword", ctx, "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", "507f191e810c19729de860ea").
+					On("UserUpdate", ctx, "507f191e810c19729de860ea", &models.UserChanges{Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
 					Return(nil).
 					Once()
 			},

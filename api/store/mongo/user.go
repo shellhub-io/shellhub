@@ -179,72 +179,19 @@ func (s *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.Us
 	return user, nss.NamespacesOwned, nil
 }
 
-func (s *Store) UserUpdateData(ctx context.Context, id string, data models.User) error {
+func (s *Store) UserUpdate(ctx context.Context, id string, changes *models.UserChanges) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"name": data.Name, "username": data.Username, "email": data.Email, "last_login": data.LastLogin}})
+	r, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": changes})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	if user.MatchedCount == 0 {
+	if r.MatchedCount < 1 {
 		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-func (s *Store) UserUpdatePassword(ctx context.Context, newPassword string, id string) error {
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"password": newPassword}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if user.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-func (s *Store) UserUpdateFromAdmin(ctx context.Context, name string, username string, email string, password string, id string) error {
-	updatedFields := bson.M{}
-
-	if name != "" {
-		updatedFields["name"] = name
-	}
-	if username != "" {
-		updatedFields["username"] = username
-	}
-	if email != "" {
-		updatedFields["email"] = email
-	}
-	if password != "" {
-		updatedFields["password"] = password
-	}
-
-	if len(updatedFields) > 0 {
-		objID, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return FromMongoError(err)
-		}
-
-		user, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": updatedFields})
-		if err != nil {
-			return FromMongoError(err)
-		}
-
-		if user.ModifiedCount < 1 {
-			return store.ErrNoDocuments
-		}
 	}
 
 	return nil
