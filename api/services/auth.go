@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -59,17 +58,15 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 
 	key := hex.EncodeToString(uid[:])
 
-	token, err := jwttoken.New().
-		WithMethod(jwt.SigningMethodRS256).
-		WithClaims(&models.DeviceAuthClaims{
-			UID:    key,
-			Tenant: req.TenantID,
-			AuthClaims: models.AuthClaims{
-				Claims: "device",
-			},
-		}).
-		WithPrivateKey(s.privKey).
-		Sign()
+	claims := &models.DeviceAuthClaims{
+		UID:    key,
+		Tenant: req.TenantID,
+		AuthClaims: models.AuthClaims{
+			Claims: "device",
+		},
+	}
+
+	token, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -84,7 +81,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
 		return &models.DeviceAuthResponse{
 			UID:       key,
-			Token:     token.String(),
+			Token:     token,
 			Name:      value.Name,
 			Namespace: value.Namespace,
 		}, nil
@@ -147,7 +144,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 
 	return &models.DeviceAuthResponse{
 		UID:       key,
-		Token:     token.String(),
+		Token:     token,
 		Name:      dev.Name,
 		Namespace: namespace.Name,
 	}, nil
@@ -212,8 +209,6 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 
 	claims := &models.UserAuthClaims{
 		ID:       user.ID,
-		Tenant:   "",
-		Role:     "",
 		Username: user.Username,
 		MFA: models.MFA{
 			Enable:   hasMFA,
@@ -232,12 +227,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		claims.Role = info.Role
 	}
 
-	token, err := jwttoken.New().
-		WithMethod(jwt.SigningMethodRS256).
-		WithExpire(clock.Now().Add(time.Hour * 72)).
-		WithClaims(claims).
-		WithPrivateKey(s.privKey).
-		Sign()
+	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
 	if err != nil {
 		return nil, 0, NewErrTokenSigned(err)
 	}
@@ -247,7 +237,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, NewErrUserUpdate(user, err)
 	}
 
-	if err := s.AuthCacheToken(ctx, claims.Tenant, user.ID, token.String()); err != nil {
+	if err := s.AuthCacheToken(ctx, claims.Tenant, user.ID, jwtToken); err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"id": user.ID}).
 			Warn("unable to cache the authentication token")
@@ -261,7 +251,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	return &models.UserAuthResponse{
-		Token:  token.String(),
+		Token:  jwtToken,
 		Name:   user.Name,
 		ID:     user.ID,
 		User:   user.Username,
@@ -297,33 +287,34 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 		return nil, NewErrUserNotFound(id, err)
 	}
 
-	token, err := jwttoken.New().
-		WithMethod(jwt.SigningMethodRS256).
-		WithExpire(clock.Now().Add(time.Hour * 72)).
-		WithClaims(&models.UserAuthClaims{
-			ID:       user.ID,
-			Tenant:   tenant,
-			Role:     role,
-			Admin:    true,
-			Username: user.Username,
-			MFA: models.MFA{
-				Enable:   status,
-				Validate: mfa,
-			},
-			AuthClaims: models.AuthClaims{
-				Claims: "user",
-			},
-		}).
-		WithPrivateKey(s.privKey).
-		Sign()
+	claims := &models.UserAuthClaims{
+		ID:       user.ID,
+		Tenant:   tenant,
+		Role:     role,
+		Admin:    true,
+		Username: user.Username,
+		MFA: models.MFA{
+			Enable:   status,
+			Validate: mfa,
+		},
+		AuthClaims: models.AuthClaims{
+			Claims: "user",
+		},
+	}
+
+	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
 
-	s.AuthCacheToken(ctx, tenant, user.ID, token.String()) // nolint: errcheck
+	if err != nil {
+		return nil, NewErrTokenSigned(err)
+	}
+
+	s.AuthCacheToken(ctx, tenant, user.ID, jwtToken) // nolint: errcheck
 
 	return &models.UserAuthResponse{
-		Token:  token.String(),
+		Token:  jwtToken,
 		Name:   user.Name,
 		ID:     user.ID,
 		User:   user.Username,
@@ -377,29 +368,30 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 
 	for _, member := range namespace.Members {
 		if user.ID == member.ID {
-			token, err := jwttoken.New().
-				WithMethod(jwt.SigningMethodRS256).
-				WithExpire(clock.Now().Add(time.Hour * 72)).
-				WithClaims(&models.UserAuthClaims{
-					ID:       user.ID,
-					Tenant:   tenant,
-					Role:     member.Role,
-					Admin:    true,
-					Username: user.Username,
-					AuthClaims: models.AuthClaims{
-						Claims: "user",
-					},
-				}).
-				WithPrivateKey(s.privKey).
-				Sign()
+			claims := &models.UserAuthClaims{
+				ID:       user.ID,
+				Tenant:   tenant,
+				Role:     member.Role,
+				Admin:    true,
+				Username: user.Username,
+				AuthClaims: models.AuthClaims{
+					Claims: "user",
+				},
+			}
+
+			jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
 			if err != nil {
 				return nil, NewErrTokenSigned(err)
 			}
 
-			s.AuthCacheToken(ctx, tenant, user.ID, token.String()) // nolint: errcheck
+			if err != nil {
+				return nil, NewErrTokenSigned(err)
+			}
+
+			s.AuthCacheToken(ctx, tenant, user.ID, jwtToken) // nolint: errcheck
 
 			return &models.UserAuthResponse{
-				Token:  token.String(),
+				Token:  jwtToken,
 				Name:   user.Name,
 				ID:     user.ID,
 				User:   user.Username,

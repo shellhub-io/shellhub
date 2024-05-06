@@ -4,7 +4,9 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/password"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
@@ -92,8 +94,17 @@ type UserAuthClaims struct {
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
-func (u *UserAuthClaims) SetRegisteredClaims(claims jwt.RegisteredClaims) {
-	u.RegisteredClaims = claims
+// WithDefaults fill itself with default JWT attributes. Returns itself.
+func (u *UserAuthClaims) WithDefaults() *UserAuthClaims {
+	now := clock.Now()
+
+	u.RegisteredClaims.ID = uuid.Generate()
+	// u.RegisteredClaims.Issuer = "" // TODO: how can we get the correct issuer?
+	u.RegisteredClaims.IssuedAt = jwt.NewNumericDate(now)
+	u.RegisteredClaims.NotBefore = jwt.NewNumericDate(now)
+	u.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(now.Add(time.Hour * 72))
+
+	return u
 }
 
 type UserTokenRecover struct {
