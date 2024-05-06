@@ -2,7 +2,7 @@
 
 exports[`Private Key Edit > Renders the component 1`] = `
 "<div>
-  <div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default v-list-item--variant-text\\" tabindex=\\"0\\" show=\\"false\\" keyobject=\\"[object Object]\\" data-test=\\"privatekey-edit-btn\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text\\" tabindex=\\"0\\" show=\\"false\\" keyobject=\\"[object Object]\\" data-test=\\"privatekey-edit-btn\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
     <!---->
     <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
       <!---->

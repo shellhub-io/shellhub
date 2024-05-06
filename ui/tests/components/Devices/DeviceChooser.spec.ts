@@ -184,10 +184,10 @@ describe("Device Chooser", () => {
   });
 
   it("Render V-Tabs", async () => {
-    const wrapper = new DOMWrapper(document.body);
-    expect(wrapper.find('[data-test="v-tabs"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="Suggested-tab"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="All-tab"]').exists()).toBe(true);
+    await flushPromises();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.find('[data-test="Suggested-tab"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="All-tab"]').exists()).toBe(true);
   });
 
   it("Accepts the devices listed (Suggested Devices)", async () => {

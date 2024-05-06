@@ -4,9 +4,10 @@ exports[`Device > Renders correctly 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
-      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <div class=\\"v-progress-linear__background\\"></div>
+      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
         <div class=\\"v-progress-linear__indeterminate\\">
           <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -18,10 +19,10 @@ exports[`Device > Renders correctly 1`] = `
   </div>
   <!---->
   <!---->
-  <div class=\\"v-slide-group v-slide-group--mobile v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
+  <div class=\\"v-slide-group v-slide-group--mobile v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\">
     <!---->
     <div class=\\"v-slide-group__container\\">
-      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <div class=\\"v-slide-group__content\\"><a class=\\"v-btn v-tab-item--selected v-tab--selected v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Device List <div class=\\"v-tab__slider\\"></div></span>
           <!---->
           <!---->
@@ -37,6 +38,7 @@ exports[`Device > Renders correctly 1`] = `
     </div>
     <!---->
   </div>
+  <!---->
   <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
   <!---->
   <!----><span class=\\"v-card__underlay\\"></span>
@@ -44,9 +46,10 @@ exports[`Device > Renders correctly 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
-      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <div class=\\"v-progress-linear__background\\"></div>
+      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
         <div class=\\"v-progress-linear__indeterminate\\">
           <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -68,9 +71,10 @@ exports[`Device > Renders the component 1`] = `
 "<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
-      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <div class=\\"v-progress-linear__background\\"></div>
+      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
         <div class=\\"v-progress-linear__indeterminate\\">
           <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -82,10 +86,10 @@ exports[`Device > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div class=\\"v-slide-group v-slide-group--mobile v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\" background-color=\\"secondary\\">
+  <div class=\\"v-slide-group v-slide-group--mobile v-tabs v-tabs--horizontal v-tabs--align-tabs-start v-tabs--stacked v-tabs--density-default\\" tabindex=\\"-1\\" role=\\"tablist\\">
     <!---->
     <div class=\\"v-slide-group__container\\">
-      <div class=\\"v-slide-group__content\\" style=\\"transform: translateX(0px);\\"><a class=\\"v-btn v-slide-group-item--active v-tab--selected v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+      <div class=\\"v-slide-group__content\\"><a class=\\"v-btn v-tab-item--selected v-tab--selected v-btn--stacked v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text v-tab\\" href=\\"/devices\\" tabindex=\\"0\\" role=\\"tab\\" aria-selected=\\"true\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Device List <div class=\\"v-tab__slider\\"></div></span>
           <!---->
           <!---->
@@ -101,6 +105,7 @@ exports[`Device > Renders the component 1`] = `
     </div>
     <!---->
   </div>
+  <!---->
   <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
   <!---->
   <!----><span class=\\"v-card__underlay\\"></span>
@@ -108,9 +113,10 @@ exports[`Device > Renders the component 1`] = `
 <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated\\">
   <!---->
   <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
       <!---->
-      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <div class=\\"v-progress-linear__background\\"></div>
+      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
         <div class=\\"v-progress-linear__indeterminate\\">
           <div class=\\"v-progress-linear__indeterminate long\\"></div>

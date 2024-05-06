@@ -23,7 +23,7 @@ exports[`Device Rejected List > Renders the component 1`] = `
               <td data-v-dede1877=\\"\\" class=\\"text-center\\"><span data-v-dede1877=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-1\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
@@ -37,7 +37,7 @@ exports[`Device Rejected List > Renders the component 1`] = `
               <td data-v-dede1877=\\"\\" class=\\"text-center\\"><span data-v-dede1877=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-7\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
@@ -50,9 +50,10 @@ exports[`Device Rejected List > Renders the component 1`] = `
       <!---->
     </div>
     <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-    <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
+    <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px;\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
       <!---->
-      <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+      <div class=\\"v-progress-linear__background\\"></div>
+      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
       <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
         <div class=\\"v-progress-linear__indeterminate\\">
           <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -63,15 +64,16 @@ exports[`Device Rejected List > Renders the component 1`] = `
     </div>
     <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
       <div data-v-046d4556=\\"\\">
-        <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
+        <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
           <!---->
           <div class=\\"v-input__control\\">
             <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-15\\">
               <div class=\\"v-field__overlay\\"></div>
               <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                   <!---->
-                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <div class=\\"v-progress-linear__background\\"></div>
+                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                     <div class=\\"v-progress-linear__indeterminate\\">
                       <div class=\\"v-progress-linear__indeterminate long\\"></div>

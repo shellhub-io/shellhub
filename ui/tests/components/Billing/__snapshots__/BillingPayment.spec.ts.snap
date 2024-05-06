@@ -3,15 +3,16 @@
 exports[`Billing Payment > Renders the component 1`] = `
 "<div data-v-ec12e293=\\"\\" class=\\"v-row\\">
   <div data-v-ec12e293=\\"\\" class=\\"v-col\\">
-    <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-name\\">
+    <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-name\\">
       <!---->
       <div class=\\"v-input__control\\">
         <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\">
           <div class=\\"v-field__overlay\\"></div>
           <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <div class=\\"v-progress-linear__background\\"></div>
+              <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                 <div class=\\"v-progress-linear__indeterminate\\">
                   <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -48,15 +49,16 @@ exports[`Billing Payment > Renders the component 1`] = `
     </div>
   </div>
   <div data-v-ec12e293=\\"\\" class=\\"v-col\\">
-    <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-email\\">
+    <div data-v-ec12e293=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field\\" data-test=\\"customer-email\\">
       <!---->
       <div class=\\"v-input__control\\">
         <div class=\\"v-field v-field--center-affix v-field--disabled v-field--variant-filled v-theme--light v-locale--is-ltr\\">
           <div class=\\"v-field__overlay\\"></div>
           <div class=\\"v-field__loader\\">
-            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
               <!---->
-              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+              <div class=\\"v-progress-linear__background\\"></div>
+              <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                 <div class=\\"v-progress-linear__indeterminate\\">
                   <div class=\\"v-progress-linear__indeterminate long\\"></div>
