@@ -242,8 +242,15 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, NewErrTokenSigned(err)
 	}
 
-	user.LastLogin = clock.Now()
-	if err := s.store.UserUpdateData(ctx, user.ID, *user); err != nil {
+	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
+	changes := &models.UserChanges{LastLogin: clock.Now()}
+	if !strings.HasPrefix(user.Password.Hash, "$") {
+		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
+			changes.Password = neo.Hash
+		}
+	}
+
+	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
 		return nil, 0, NewErrUserUpdate(user, err)
 	}
 
@@ -251,13 +258,6 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		log.WithError(err).
 			WithFields(log.Fields{"id": user.ID}).
 			Warn("unable to cache the authentication token")
-	}
-
-	// Updates the hash algorithm to bcrypt if still using SHA256
-	if !strings.HasPrefix(user.Password.Hash, "$") {
-		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			s.store.UserUpdatePassword(ctx, neo.Hash, user.ID) // nolint: errcheck
-		}
 	}
 
 	return &models.UserAuthResponse{
