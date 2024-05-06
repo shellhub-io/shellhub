@@ -4,6 +4,8 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
 type DeviceStatus string
@@ -47,8 +49,15 @@ type DeviceAuthClaims struct {
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 
-func (d *DeviceAuthClaims) SetRegisteredClaims(claims jwt.RegisteredClaims) {
-	d.RegisteredClaims = claims
+// WithDefaults fill itself with default JWT attributes. Returns itself.
+func (d *DeviceAuthClaims) WithDefaults() *DeviceAuthClaims {
+	now := clock.Now()
+
+	d.RegisteredClaims.ID = uuid.Generate()
+	// u.RegisteredClaims.Issuer = "" // TODO: how can we get the correct issuer?
+	d.RegisteredClaims.IssuedAt = jwt.NewNumericDate(now)
+
+	return d
 }
 
 type DeviceAuthRequest struct {
