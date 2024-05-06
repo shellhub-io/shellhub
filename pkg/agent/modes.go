@@ -7,8 +7,8 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
 	"github.com/shellhub-io/shellhub/pkg/agent/server"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/classic"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/connector"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
 )
 
 type Info struct {
@@ -49,9 +49,9 @@ func (m *HostMode) Serve(agent *Agent) {
 		agent.config.PrivateKey,
 		agent.config.KeepAliveInterval,
 		agent.config.SingleUserPassword,
-		&host.Mode{
-			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
-			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
+		&classic.Mode{
+			Authenticator: *classic.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
+			Sessioner:     *classic.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
 		},
 	)
 

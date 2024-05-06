@@ -1,4 +1,4 @@
-package host
+package classic
 
 import (
 	"crypto"
@@ -19,7 +19,7 @@ import (
 // NOTICE: Ensures the Authenticator interface is implemented.
 var _ modes.Authenticator = (*Authenticator)(nil)
 
-// Authenticator implements the Authenticator interface when the server is running in host mode.
+// Authenticator implements the Authenticator interface when the server is running in classic mode.
 type Authenticator struct {
 	// api is a client to communicate with the ShellHub's API.
 	api client.Client
@@ -34,7 +34,7 @@ type Authenticator struct {
 	deviceName *string
 }
 
-// NewAuthenticator creates a new instance of Authenticator for the host mode.
+// NewAuthenticator creates a new instance of Authenticator for the classic mode.
 // It receives the api client to perform requests to the ShellHub's API, the authentication data received by the agent
 // when started the communication between it and the agent, the singleUserPassword, what indicates is is running at
 // this mode and the deviceName.
@@ -50,7 +50,7 @@ func NewAuthenticator(api client.Client, authData *models.DeviceAuthResponse, si
 	}
 }
 
-// Password handles the server's SSH password authentication when server is running in host mode.
+// Password handles the server's SSH password authentication when server is running in classic mode.
 func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) bool {
 	log := log.WithFields(log.Fields{
 		"user": ctx.User(),
@@ -72,7 +72,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 	return ok
 }
 
-// PublicKey handles the server's SSH public key authentication when server is running in host mode.
+// PublicKey handles the server's SSH public key authentication when server is running in classic mode.
 func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh.PublicKey) bool {
 	if _, err := osauth.LookupUser(ctx.User()); err != nil {
 		return false

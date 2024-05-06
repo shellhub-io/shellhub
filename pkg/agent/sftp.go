@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/pkg/sftp"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/classic/command"
 )
 
 type pipe struct {

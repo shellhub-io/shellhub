@@ -1,6 +1,7 @@
-package host
+package classic
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -8,6 +9,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"net"
+	"sync"
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -19,6 +22,51 @@ import (
 	"github.com/stretchr/testify/mock"
 	gossh "golang.org/x/crypto/ssh"
 )
+
+type testSSHContext struct {
+	context.Context
+	*sync.Mutex
+
+	user          string
+	sessionID     string
+	clientVersion string
+	serverVersion string
+	remoteAddr    net.Addr
+	localAddr     net.Addr
+	permissions   *gliderssh.Permissions
+}
+
+func (ctx *testSSHContext) SetValue(key, value interface{}) {
+	ctx.Context = context.WithValue(ctx.Context, key, value)
+}
+
+func (ctx *testSSHContext) User() string {
+	return ctx.user
+}
+
+func (ctx *testSSHContext) SessionID() string {
+	return ctx.sessionID
+}
+
+func (ctx *testSSHContext) ClientVersion() string {
+	return ctx.clientVersion
+}
+
+func (ctx *testSSHContext) ServerVersion() string {
+	return ctx.serverVersion
+}
+
+func (ctx *testSSHContext) RemoteAddr() net.Addr {
+	return ctx.remoteAddr
+}
+
+func (ctx *testSSHContext) LocalAddr() net.Addr {
+	return ctx.localAddr
+}
+
+func (ctx *testSSHContext) Permissions() *gliderssh.Permissions {
+	return ctx.permissions
+}
 
 func TestPublicKey(t *testing.T) {
 	// stringToRef is a helper function to convert a string to a pointer to a string.

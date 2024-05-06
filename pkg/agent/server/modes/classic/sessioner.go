@@ -1,4 +1,4 @@
-package host
+package classic
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/classic/command"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/utmp"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -22,7 +22,7 @@ import (
 // NOTICE: Ensures the Sessioner interface is implemented.
 var _ modes.Sessioner = (*Sessioner)(nil)
 
-// Sessioner implements the Sessioner interface when the server is running in host mode.
+// Sessioner implements the Sessioner interface when the server is running in classic mode.
 type Sessioner struct {
 	mu   sync.Mutex
 	cmds map[string]*exec.Cmd
@@ -36,7 +36,7 @@ func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {
 	s.cmds = cmds
 }
 
-// NewSessioner creates a new instance of Sessioner for the host mode.
+// NewSessioner creates a new instance of Sessioner for the classic mode.
 // The device name is a pointer to a string because when the server is created, we don't know the device name yet, that
 // is set later.
 func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd) *Sessioner {
@@ -46,7 +46,7 @@ func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd) *Sessioner {
 	}
 }
 
-// Shell manages the SSH shell session of the server when operating in host mode.
+// Shell manages the SSH shell session of the server when operating in classic mode.
 func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, winCh, isPty := session.Pty()
 
@@ -103,7 +103,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	return nil
 }
 
-// Heredoc handles the server's SSH heredoc session when server is running in host mode.
+// Heredoc handles the server's SSH heredoc session when server is running in classic mode.
 //
 // heredoc is special block of code that contains multi-line strings that will be redirected to a stdin of a shell. It
 // request a shell, but doesn't allocate a pty.
@@ -171,7 +171,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	return nil
 }
 
-// Exec handles the SSH's server exec session when server is running in host mode.
+// Exec handles the SSH's server exec session when server is running in classic mode.
 func (s *Sessioner) Exec(session gliderssh.Session) error {
 	if len(session.Command()) == 0 {
 		log.WithFields(log.Fields{
@@ -289,7 +289,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	return nil
 }
 
-// SFTP handles the SSH's server sftp session when server is running in host mode.
+// SFTP handles the SSH's server sftp session when server is running in classic mode.
 //
 // sftp is a subsystem of SSH that allows file operations over SSH.
 func (s *Sessioner) SFTP(session gliderssh.Session) error {

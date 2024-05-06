@@ -8,7 +8,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/classic"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
@@ -91,7 +91,7 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		Sessions:           sync.Map{},
 	}
 
-	if m, ok := mode.(*host.Mode); ok {
+	if m, ok := mode.(*classic.Mode); ok {
 		m.Sessioner.SetCmds(server.cmds)
 	}
 
