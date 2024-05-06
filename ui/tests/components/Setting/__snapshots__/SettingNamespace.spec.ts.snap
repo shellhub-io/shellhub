@@ -13,9 +13,10 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <div data-v-80a16399=\\"\\" class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated bg-v-theme-surface\\">
             <!---->
             <div class=\\"v-card__loader\\">
-              <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                 <!---->
-                <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                <div class=\\"v-progress-linear__background\\"></div>
+                <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                 <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                   <div class=\\"v-progress-linear__indeterminate\\">
                     <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -29,7 +30,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <!----><span data-v-80a16399=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
             <!---->
             <!---->
-            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-80a16399=\\"\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-1\\" class=\\"hover-text\\" data-test=\\"tenant-id\\">fake-tenant <i data-v-80a16399=\\"\\" class=\\"mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-80a16399=\\"\\" aria-describedby=\\"v-tooltip-1\\" class=\\"hover-text\\" data-test=\\"tenant-id\\">fake-tenant <i data-v-80a16399=\\"\\" class=\\"mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
               <!--teleport start-->
               <!--teleport end-->
             </div>
@@ -49,7 +50,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
           </div>
           <div class=\\"v-spacer\\"></div>
           <div class=\\"v-col-md-auto v-col ml-auto\\">
-            <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-2\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"edit-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <div aria-describedby=\\"v-tooltip-2\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"edit-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                 <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Edit Namespace </span>
                 <!---->
                 <!---->
@@ -59,15 +60,16 @@ exports[`Setting Namespace > Renders the component 1`] = `
           </div>
         </div>
         <div class=\\"mt-4 mb-2\\">
-          <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined ml-3\\" data-test=\\"name-text\\">
+          <div class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined ml-3\\" data-test=\\"name-text\\">
             <!---->
             <div class=\\"v-input__control\\">
               <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
-                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                     <!---->
-                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <div class=\\"v-progress-linear__background\\"></div>
+                    <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                     <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                       <div class=\\"v-progress-linear__indeterminate\\">
                         <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -104,15 +106,16 @@ exports[`Setting Namespace > Renders the component 1`] = `
           </div>
         </div>
         <div class=\\"mb-2\\">
-          <div class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--disabled v-textarea v-text-field v-input--plain-underlined\\" data-test=\\"connectionAnnouncement-text\\">
+          <div class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-textarea v-text-field v-input--plain-underlined\\" data-test=\\"connectionAnnouncement-text\\">
             <!---->
             <div class=\\"v-input__control\\">
               <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
-                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                     <!---->
-                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <div class=\\"v-progress-linear__background\\"></div>
+                    <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                     <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                       <div class=\\"v-progress-linear__indeterminate\\">
                         <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -162,7 +165,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
             <div data-v-80a16399=\\"\\">
-              <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-8\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <div aria-describedby=\\"v-tooltip-8\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                   <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Member </span>
                   <!---->
                   <!---->
@@ -208,7 +211,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
           </div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
             <div data-v-80a16399=\\"\\" data-test=\\"api-key-generate\\">
-              <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-10\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <div aria-describedby=\\"v-tooltip-10\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                   <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Generate key </span>
                   <!---->
                   <!---->
@@ -243,7 +246,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                         <tr>
                           <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\" data-test=\\"key-icon\\"></i> my api key</td>
                           <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Feb 15 2024.</td>
-                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-14\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                             <!---->
                             <!---->
                             <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
@@ -256,7 +259,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                         <tr>
                           <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\" data-test=\\"key-icon\\"></i> my api key</td>
                           <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Feb 15 2024.</td>
-                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-20\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                          <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-20\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                             <!---->
                             <!---->
                             <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
@@ -272,9 +275,10 @@ exports[`Setting Namespace > Renders the component 1`] = `
                   <!---->
                 </div>
                 <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-                <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
+                <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px;\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
                   <!---->
-                  <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                  <div class=\\"v-progress-linear__background\\"></div>
+                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                   <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                     <div class=\\"v-progress-linear__indeterminate\\">
                       <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -285,15 +289,16 @@ exports[`Setting Namespace > Renders the component 1`] = `
                 </div>
                 <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
                   <div data-v-046d4556=\\"\\">
-                    <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
+                    <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
                       <!---->
                       <div class=\\"v-input__control\\">
                         <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-28\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
-                            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                            <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                               <!---->
-                              <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                              <div class=\\"v-progress-linear__background\\"></div>
+                              <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                               <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                                 <div class=\\"v-progress-linear__indeterminate\\">
                                   <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -353,7 +358,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <div class=\\"v-col mb-3\\">
               <h3 class=\\"mb-3\\" data-test=\\"security-title\\">Security</h3>
               <div class=\\"ml-3\\">
-                <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-locale--is-ltr v-input--dirty v-checkbox\\" data-test=\\"security-checkbox\\">
+                <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-checkbox\\" data-test=\\"security-checkbox\\">
                   <!---->
                   <div class=\\"v-input__control\\">
                     <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
@@ -387,7 +392,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto mb-4\\">
-            <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-34\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <div aria-describedby=\\"v-tooltip-34\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                 <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete namespace </span>
                 <!---->
                 <!---->

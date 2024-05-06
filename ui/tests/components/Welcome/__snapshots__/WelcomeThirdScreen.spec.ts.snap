@@ -9,9 +9,10 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"welcome-third-screen-hostname\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -30,9 +31,10 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"device-field\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -52,9 +54,10 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"welcome-third-screen-os\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -73,9 +76,10 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface\\" align=\\"center\\" data-test=\\"device-pretty-name-field\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>

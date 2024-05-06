@@ -8,7 +8,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
     <div class=\\"v-spacer\\"></div>
   </div>
   <div>
-    <div targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"firewall-add-rule-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <div aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"firewall-add-rule-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
         <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Rule </span>
         <!---->
         <!---->
@@ -48,7 +48,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
                 <td class=\\"text-center\\" data-test=\\"firewall-rules-filter\\">
                   <div>All devices</div>
                 </td>
-                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-2\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
@@ -67,15 +67,16 @@ exports[`Firewall Rules > Renders the component 1`] = `
       <!--v-if-->
       <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
         <div data-v-046d4556=\\"\\">
-          <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
+          <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
             <!---->
             <div class=\\"v-input__control\\">
               <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-9\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
-                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
                     <!---->
-                    <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+                    <div class=\\"v-progress-linear__background\\"></div>
+                    <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
                     <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                       <div class=\\"v-progress-linear__indeterminate\\">
                         <div class=\\"v-progress-linear__indeterminate long\\"></div>

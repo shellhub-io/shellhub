@@ -7,9 +7,10 @@ exports[`Dashboard > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -21,7 +22,7 @@ exports[`Dashboard > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"registeredDevices-btn\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" data-test=\\"registeredDevices-btn\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -57,9 +58,10 @@ exports[`Dashboard > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -71,7 +73,7 @@ exports[`Dashboard > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewOnlineDevices-btn\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" data-test=\\"viewOnlineDevices-btn\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -104,9 +106,10 @@ exports[`Dashboard > Renders the component 1`] = `
       <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-card__loader\\">
-          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px; left: 50%; transform: translateX(-50%);\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
             <!---->
-            <div class=\\"v-progress-linear__background\\" style=\\"width: 100%;\\"></div>
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
             <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
               <div class=\\"v-progress-linear__indeterminate\\">
                 <div class=\\"v-progress-linear__indeterminate long\\"></div>
@@ -118,7 +121,7 @@ exports[`Dashboard > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line v-list-item--variant-text\\" data-test=\\"viewActiveSession-btn\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" data-test=\\"viewActiveSession-btn\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">

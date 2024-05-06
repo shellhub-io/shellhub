@@ -3,7 +3,7 @@
 exports[`App Layout Component > Renders the component 1`] = `
 "<div data-v-e7291ef4=\\"\\" class=\\"v-application v-theme--dark v-layout v-layout--full-height v-locale--is-ltr\\">
   <div class=\\"v-application__wrap\\">
-    <nav class=\\"v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface\\" style=\\"left: 0px; z-index: 1006; transform: translateX(-110%); position: absolute; transition: none; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;\\" data-v-e7291ef4=\\"\\" app=\\"\\" data-test=\\"navigation-drawer\\">
+    <nav class=\\"v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface\\" style=\\"left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px; transition: none;\\" data-v-e7291ef4=\\"\\" app=\\"\\" data-test=\\"navigation-drawer\\">
       <!---->
       <!---->
       <div class=\\"v-navigation-drawer__content\\">
@@ -34,7 +34,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           </transition-stub>
           <hr data-v-e7291ef4=\\"\\" class=\\"v-divider v-theme--dark ma-2\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
         </div>
-        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-default v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/\\" tabindex=\\"-2\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-default v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/\\" tabindex=\\"-2\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
             <!---->
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
@@ -45,7 +45,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/devices\\" data-test=\\"list-item\\">
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/devices\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -57,7 +57,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/sessions\\" data-test=\\"list-item\\">
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sessions\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -69,7 +69,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/sshkeys/public-keys\\" data-test=\\"list-item\\">
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sshkeys/public-keys\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -81,7 +81,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line v-list-item--variant-text mb-2\\" href=\\"/settings\\" data-test=\\"list-item\\">
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/settings\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
             <!---->
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -114,7 +114,7 @@ exports[`App Layout Component > Renders the component 1`] = `
       <!---->
     </transition-stub>
     <snackbarcomponent data-v-e7291ef4=\\"\\"></snackbarcomponent>
-    <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background\\" style=\\"top: 0px; z-index: 1004; transform: translateY(0%); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);\\" data-test=\\"app-bar\\">
+    <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background\\" style=\\"top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; left: 0px; width: calc(100% - 0px - 0px); transition: none;\\" data-test=\\"app-bar\\">
       <!---->
       <div class=\\"v-toolbar__content\\" style=\\"height: 64px;\\">
         <!---->
@@ -123,14 +123,14 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </button>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"height: 24px; width: 24px;\\" targetref=\\"[object Object]\\" aria-describedby=\\"v-tooltip-9\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"height: 24px; width: 24px;\\" aria-describedby=\\"v-tooltip-3\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-11\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" targetref=\\"[object Object]\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-12\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-5\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-6\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" left=\\"\\"></i><div>USER</div><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark ml-1 mr-1\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
           <!---->
           <!---->
