@@ -29,17 +29,6 @@ type UserData struct {
 	Username string `json:"username" bson:",omitempty" validate:"required,username"`
 }
 
-// UserChanges specifies the attributes that can be updated for a user. Any zero values in this
-// struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
-type UserChanges struct {
-	LastLogin time.Time `bson:"last_login,omitempty"`
-	Name      string    `bson:"name,omitempty"`
-	Email     string    `bson:"email,omitempty"`
-	Username  string    `bson:"username,omitempty"`
-	Password  string    `bson:"password,omitempty"`
-	Confirmed *bool     `bson:"confirmed,omitempty"`
-}
-
 type UserPassword struct {
 	// Plain contains the plain text password.
 	Plain string `json:"password" bson:"-" validate:"required,password"`
@@ -115,4 +104,22 @@ type UserTokenRecover struct {
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+}
+
+// UserChanges specifies the attributes that can be updated for a user. Any zero values in this
+// struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
+type UserChanges struct {
+	LastLogin time.Time `bson:"last_login,omitempty"`
+	Name      string    `bson:"name,omitempty"`
+	Email     string    `bson:"email,omitempty"`
+	Username  string    `bson:"username,omitempty"`
+	Password  string    `bson:"password,omitempty"`
+	Confirmed *bool     `bson:"confirmed,omitempty"`
+}
+
+// UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
+// to identify conflicts.
+type UserConflicts struct {
+	Email    string
+	Username string
 }

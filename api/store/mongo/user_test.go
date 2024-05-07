@@ -429,6 +429,76 @@ func TestUserGetByID(t *testing.T) {
 	}
 }
 
+func TestUserConflicts(t *testing.T) {
+	type Expected struct {
+		conflicts []string
+		ok        bool
+		err       error
+	}
+
+	cases := []struct {
+		description string
+		target      *models.UserConflicts
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "no conflicts when target is empty",
+			target:      &models.UserConflicts{},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "no conflicts with non existing email",
+			target:      &models.UserConflicts{Email: "other@test.com"},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "no conflicts with non existing username",
+			target:      &models.UserConflicts{Username: "other"},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "no conflicts with non existing username and email",
+			target:      &models.UserConflicts{Email: "other@test.com", Username: "other"},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "conflict detected with existing email",
+			target:      &models.UserConflicts{Email: "john.doe@test.com"},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{"email"}, true, nil},
+		},
+		{
+			description: "conflict detected with existing username",
+			target:      &models.UserConflicts{Username: "john_doe"},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{"username"}, true, nil},
+		},
+		{
+			description: "conflict detected with existing username and email",
+			target:      &models.UserConflicts{Email: "john.doe@test.com", Username: "john_doe"},
+			fixtures:    []string{fixtureUsers},
+			expected:    Expected{[]string{"username", "email"}, true, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			require.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
+
+			conflicts, ok, err := s.UserConflicts(ctx, tc.target)
+			require.Equal(t, tc.expected, Expected{conflicts, ok, err})
+		})
+	}
+}
+
 func TestUserUpdate(t *testing.T) {
 	type Expected struct {
 		changes *models.UserChanges

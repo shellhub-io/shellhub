@@ -18,6 +18,7 @@ type UserService interface {
 //
 // It returns a slice of strings with the fields that contains data duplicated in the database, and an error.
 func (s *service) UpdateDataUser(ctx context.Context, id string, userData models.UserData) ([]string, error) {
+	// TODO: The route layer already validate this, remove it.
 	if ok, err := s.validator.Struct(userData); !ok || err != nil {
 		return nil, NewErrUserInvalid(nil, err)
 	}
@@ -26,21 +27,11 @@ func (s *service) UpdateDataUser(ctx context.Context, id string, userData models
 		return nil, NewErrUserNotFound(id, nil)
 	}
 
-	conflictFields := make([]string, 0)
-	existentUser, _ := s.store.UserGetByUsername(ctx, userData.Username)
-	if existentUser != nil && existentUser.ID != id {
-		conflictFields = append(conflictFields, "username")
+	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
+		return conflicts, NewErrUserDuplicated(conflicts, nil)
 	}
 
-	existentUser, _ = s.store.UserGetByEmail(ctx, userData.Email)
-	if existentUser != nil && existentUser.ID != id {
-		conflictFields = append(conflictFields, "email")
-	}
-
-	if len(conflictFields) > 0 {
-		return conflictFields, NewErrUserDuplicated(conflictFields, nil)
-	}
-
+	// TODO: convert username and email to lower case.
 	changes := &models.UserChanges{
 		Name:     userData.Name,
 		Username: userData.Username,

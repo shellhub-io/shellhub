@@ -14,6 +14,15 @@ type UserStore interface {
 	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
 	UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error)
 
+	// UserConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
+	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
+	//
+	//  ctx := context.Background()
+	//  conflicts, has, err := store.UserConflicts(ctx, &models.UserConflicts{Email: "john.doe@test.com", Username: ""})
+	//
+	// It returns an array of conflicting attribute fields and an error, if any.
+	UserConflicts(ctx context.Context, target *models.UserConflicts) (conflicts []string, has bool, err error)
+
 	// UserUpdate updates a user with the specified ID using the given changes. Any zero values in the changes
 	// (e.g. empty strings) will be ignored during the update. For instance, the following call updates
 	// only the LastLogin attribute:

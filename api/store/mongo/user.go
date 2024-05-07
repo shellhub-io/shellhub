@@ -179,6 +179,43 @@ func (s *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.Us
 	return user, nss.NamespacesOwned, nil
 }
 
+func (s *Store) UserConflicts(ctx context.Context, target *models.UserConflicts) ([]string, bool, error) {
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"$or": []bson.M{
+					{"email": target.Email},
+					{"username": target.Username},
+				},
+			},
+		},
+	}
+
+	cursor, err := s.db.Collection("users").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, false, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	user := new(models.UserConflicts)
+	conflicts := make([]string, 0)
+	for cursor.Next(ctx) {
+		if err := cursor.Decode(&user); err != nil {
+			return nil, false, FromMongoError(err)
+		}
+
+		if user.Username == target.Username {
+			conflicts = append(conflicts, "username")
+		}
+
+		if user.Email == target.Email {
+			conflicts = append(conflicts, "email")
+		}
+	}
+
+	return conflicts, len(conflicts) > 0, nil
+}
+
 func (s *Store) UserUpdate(ctx context.Context, id string, changes *models.UserChanges) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
