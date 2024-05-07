@@ -72,16 +72,12 @@ func TestUpdateDataUser(t *testing.T) {
 						Email:    "test@test.com",
 					},
 				}
-				exist := &models.User{
-					ID: "2",
-					UserData: models.UserData{
-						Username: "new",
-					},
-				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserGetByUsername", ctx, "new").Return(exist, nil).Once()
-				mock.On("UserGetByEmail", ctx, "test@test.com").Return(nil, nil).Once()
+				mock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "test@test.com"}).
+					Return([]string{"username"}, true, nil).
+					Once()
 			},
 			expected: Expected{
 				fields: []string{"username"},
@@ -103,16 +99,12 @@ func TestUpdateDataUser(t *testing.T) {
 						Email: "test@test.com",
 					},
 				}
-				exist := &models.User{
-					ID: "2",
-					UserData: models.UserData{
-						Email: "new@test.com",
-					},
-				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserGetByUsername", ctx, "test").Return(nil, nil).Once()
-				mock.On("UserGetByEmail", ctx, "new@test.com").Return(exist, nil).Once()
+				mock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "test", Email: "new@test.com"}).
+					Return([]string{"email"}, true, nil).
+					Once()
 			},
 			expected: Expected{
 				fields: []string{"email"},
@@ -135,17 +127,12 @@ func TestUpdateDataUser(t *testing.T) {
 						Email:    "test@test.com",
 					},
 				}
-				exist := &models.User{
-					ID: "2",
-					UserData: models.UserData{
-						Username: "new",
-						Email:    "new@test.com",
-					},
-				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserGetByUsername", ctx, "new").Return(exist, nil).Once()
-				mock.On("UserGetByEmail", ctx, "new@test.com").Return(exist, nil).Once()
+				mock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "new@test.com"}).
+					Return([]string{"username", "email"}, true, nil).
+					Once()
 			},
 			expected: Expected{
 				fields: []string{"username", "email"},
@@ -176,8 +163,10 @@ func TestUpdateDataUser(t *testing.T) {
 				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserGetByUsername", ctx, "new").Return(nil, nil).Once()
-				mock.On("UserGetByEmail", ctx, "new@test.com").Return(nil, nil).Once()
+				mock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "new@test.com"}).
+					Return([]string{}, false, nil).
+					Once()
 				mock.On("UserUpdate", ctx, "1", changes).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
@@ -209,8 +198,10 @@ func TestUpdateDataUser(t *testing.T) {
 				}
 
 				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.On("UserGetByUsername", ctx, "new").Return(nil, nil).Once()
-				mock.On("UserGetByEmail", ctx, "new@test.com").Return(nil, nil).Once()
+				mock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "new@test.com"}).
+					Return([]string{}, false, nil).
+					Once()
 				mock.On("UserUpdate", ctx, "1", changes).Return(nil).Once()
 			},
 			expected: Expected{

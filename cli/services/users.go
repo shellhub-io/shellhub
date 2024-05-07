@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
+	"slices"
 
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -12,14 +12,32 @@ import (
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
+	// TODO: convert username and email to lower case.
 	userData := models.UserData{
 		Name:     input.Username,
 		Email:    input.Email,
 		Username: input.Username,
 	}
 
+	// TODO: validate this at cmd layer
 	if ok, err := s.validator.Struct(userData); !ok || err != nil {
 		return nil, ErrUserDataInvalid
+	}
+
+	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
+		containsEmail := slices.Contains(conflicts, "email")
+		containsUsername := slices.Contains(conflicts, "username")
+
+		switch {
+		case containsUsername && containsEmail:
+			return nil, ErrUserNameAndEmailExists
+		case containsUsername:
+			return nil, ErrUserNameExists
+		case containsEmail:
+			return nil, ErrUserEmailExists
+		default:
+			return nil, ErrUserUnhandledDuplicate
+		}
 	}
 
 	password, err := models.HashUserPassword(input.Password)
@@ -41,28 +59,6 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 	}
 
 	if err := s.store.UserCreate(ctx, user); err != nil {
-		// searches for conflicts in database
-		if err == store.ErrDuplicate {
-			var usernameExists, emailExists bool
-			if u, _ := s.store.UserGetByUsername(ctx, user.Username); u != nil {
-				usernameExists = true
-			}
-			if u, _ := s.store.UserGetByEmail(ctx, user.Email); u != nil {
-				emailExists = true
-			}
-
-			switch {
-			case usernameExists && emailExists:
-				return nil, ErrUserNameAndEmailExists
-			case usernameExists:
-				return nil, ErrUserNameExists
-			case emailExists:
-				return nil, ErrUserEmailExists
-			default:
-				return nil, ErrUserUnhandledDuplicate
-			}
-		}
-
 		return nil, ErrCreateNewUser
 	}
 
