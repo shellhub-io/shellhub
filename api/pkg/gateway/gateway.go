@@ -10,6 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+type Handler func(Context) error
+
 func TenantFromContext(ctx context.Context) *models.Tenant {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
 		tenant := c.Tenant()
