@@ -11,6 +11,8 @@ import (
 	"github.com/docker/docker/api/types/events"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,6 +32,44 @@ type DockerConnector struct {
 	// cancels is a map that contains the cancel functions for each container.
 	// This is used to stop the agent for a container, marking as done its context and closing the agent.
 	cancels map[string]context.CancelFunc
+}
+
+// Config provides the configuration for the agent connector service.
+type Config struct {
+	// Set the ShellHub server address the agent will use to connect.
+	// This is required.
+	ServerAddress string `env:"SERVER_ADDRESS,required"`
+
+	// Specify the path to store the devices/containers private keys.
+	// If not provided, the agent will generate a new one.
+	// This is required.
+	PrivateKeys string `env:"PRIVATE_KEYS,required"`
+
+	// Sets the account tenant id used during communication to associate the
+	// devices to a specific tenant.
+	// This is required.
+	TenantID string `env:"TENANT_ID,required"`
+
+	// Determine the interval to send the keep alive message to the server. This
+	// has a direct impact of the bandwidth used by the device when in idle
+	// state. Default is 30 seconds.
+	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,default=30"`
+}
+
+func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
+	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// TODO: test the envinromental variables validation on integration tests.
+	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
+
+		return nil, fields, err
+	}
+
+	return cfg, nil, nil
 }
 
 // NewDockerConnector creates a new [Connector] that uses Docker as the container runtime.

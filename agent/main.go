@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"runtime"
 	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/shellhub-io/shellhub/pkg/agent"
+	"github.com/shellhub-io/shellhub/pkg/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -203,6 +205,44 @@ func main() {
 			}).Info("Stopped listening for connections")
 		},
 	}
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "connector",
+		Short: "Starts the ShellHub Agent in Connector mode",
+		Run: func(cmd *cobra.Command, args []string) {
+			cfg, fields, err := connector.LoadConfigFromEnv()
+			if err != nil {
+				log.WithError(err).
+					WithFields(fields).
+					Fatal("Failed to load de configuration from the environmental variables")
+			}
+
+			logger := log.WithFields(
+				log.Fields{
+					"address":      cfg.ServerAddress,
+					"tenant_id":    cfg.TenantID,
+					"private_keys": cfg.PrivateKeys,
+					"version":      AgentVersion,
+				},
+			)
+
+			cfg.PrivateKeys = path.Dir(cfg.PrivateKeys)
+
+			logger.Info("Starting ShellHub Agent Connector")
+
+			connector.ConnectorVersion = AgentVersion
+			connector, err := connector.NewDockerConnector(cfg.ServerAddress, cfg.TenantID, cfg.PrivateKeys)
+			if err != nil {
+				logger.Fatal("Failed to create ShellHub Agent Connector")
+			}
+
+			if err := connector.Listen(cmd.Context()); err != nil {
+				logger.Fatal("Failed to listen for connections")
+			}
+
+			logger.Info("ShellHub Agent Connector stopped")
+		},
+	})
 
 	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
 		Use:   "info",
