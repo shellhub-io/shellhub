@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, ssh, gateway, ui, cli, connector]
+        project: [api, ssh, gateway, ui, cli]
 
     runs-on: ubuntu-20.04
 

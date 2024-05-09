@@ -26,7 +26,6 @@ directories=(
     "ssh"
     "agent"
     "tests"
-    "connector"
 )
 
 for dir in "${directories[@]}"; do
