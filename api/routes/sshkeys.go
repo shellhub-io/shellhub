@@ -27,6 +27,8 @@ func (h *Handler) createPublicKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyCreate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -60,13 +62,15 @@ func (h *Handler) createPublicKey() *Route {
 
 func (h *Handler) evaluatePublicKey() *Route {
 	return &Route{
-		endpoint:              "/public-keys/evaluate/:fingerprint/:username",
+		endpoint:              "/sshkeys/public-keys/evaluate/:fingerprint/:username",
 		method:                MethodPost,
 		group:                 GroupInternal,
 		requiresAuthorization: false,
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var device models.Device
 			if err := c.Bind(&device); err != nil {
 				return c.JSON(http.StatusForbidden, err)
@@ -101,6 +105,8 @@ func (h *Handler) getPublicKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyGet
 			err := c.Bind(&req)
 			if err != nil {
@@ -135,6 +141,8 @@ func (h *Handler) listPublicKeys() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			paginator := query.NewPaginator()
 			if err := c.Bind(paginator); err != nil {
 				return err
@@ -164,6 +172,8 @@ func (h *Handler) updatePublicKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyUpdate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -203,6 +213,8 @@ func (h *Handler) deletePublicKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyDelete
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -240,6 +252,8 @@ func (h *Handler) addPublicKeyTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyTagAdd
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -275,6 +289,8 @@ func (h *Handler) updatePublicKeyTags() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyTagsUpdate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -310,6 +326,8 @@ func (h *Handler) removePublicKeyTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.PublicKeyTagRemove
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -345,6 +363,8 @@ func (h *Handler) createPrivateKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			privKey, err := h.service.CreatePrivateKey(c.Ctx())
 			if err != nil {
 				return err

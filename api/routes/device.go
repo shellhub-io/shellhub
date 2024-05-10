@@ -27,6 +27,8 @@ func (h *Handler) getDevice() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceGet
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -55,6 +57,8 @@ func (h *Handler) getDeviceByPublicAddress() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DevicePublicURLAddress
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -83,6 +87,8 @@ func (h *Handler) lookupDevice() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceLookup
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -111,6 +117,8 @@ func (h *Handler) listDevice() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			type Query struct {
 				Status models.DeviceStatus `query:"status"`
 				query.Paginator
@@ -164,6 +172,8 @@ func (h *Handler) updateDevice() *Route {
 		requiresAuthorization: false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceUpdate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -198,6 +208,8 @@ func (h *Handler) renameDevice() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceRename
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -235,6 +247,8 @@ func (h *Handler) offlineDevice() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceOffline
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -262,6 +276,8 @@ func (h *Handler) updateDeviceStatus() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceUpdateStatus
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -305,6 +321,8 @@ func (h *Handler) deleteDevice() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceDelete
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -342,6 +360,8 @@ func (h *Handler) createDeviceTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceCreateTag
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -372,6 +392,8 @@ func (h *Handler) updateDeviceTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceUpdateTag
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -402,6 +424,8 @@ func (h *Handler) removeDeviceTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.DeviceRemoveTag
 			if err := c.Bind(&req); err != nil {
 				return err

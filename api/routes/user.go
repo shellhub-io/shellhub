@@ -12,11 +12,6 @@ import (
 )
 
 const (
-	UpdateUserDataURL     = "/users/:id/data"
-	UpdateUserPasswordURL = "/users/:id/password" //nolint:gosec
-)
-
-const (
 	// ParamUserName User's username.
 	ParamUserName = "username"
 )
@@ -30,6 +25,8 @@ func (h *Handler) updateUser() *Route {
 		blockAPIKey:           true,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.UserDataUpdate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -76,6 +73,8 @@ func (h *Handler) updateUserPassword() *Route {
 		blockAPIKey:           true,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.UserPasswordUpdate
 			if err := c.Bind(&req); err != nil {
 				return err

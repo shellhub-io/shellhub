@@ -20,6 +20,8 @@ func (h *Handler) createAPIKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.CreateAPIKey
 
 			if err := c.Bind(&req); err != nil {
@@ -64,6 +66,8 @@ func (h *Handler) listAPIKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.APIKeyList
 
 			if err := c.Bind(&req); err != nil {
@@ -105,6 +109,8 @@ func (h *Handler) updateAPIKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.APIKeyChanges
 
 			if err := c.Bind(&req); err != nil {
@@ -143,6 +149,8 @@ func (h *Handler) deleteAPIKey() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.APIKeyID
 
 			if err := c.Bind(&req); err != nil {

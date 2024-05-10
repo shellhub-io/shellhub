@@ -19,6 +19,8 @@ func (h *Handler) listTags() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var tenant string
 			if t := c.Tenant(); t != nil {
 				tenant = t.ID
@@ -45,6 +47,8 @@ func (h *Handler) updateTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.TagRename
 
 			var tenant string
@@ -81,6 +85,8 @@ func (h *Handler) deleteTag() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.TagDelete
 			if err := c.Bind(&req); err != nil {
 				return err

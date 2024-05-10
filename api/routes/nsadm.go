@@ -26,6 +26,8 @@ func (h *Handler) createNamespace() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.NamespaceCreate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -55,6 +57,8 @@ func (h *Handler) getNamespace() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.NamespaceGet
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -94,6 +98,8 @@ func (h *Handler) listNamespaces() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			type Query struct {
 				query.Paginator
 				query.Filters
@@ -132,6 +138,8 @@ func (h *Handler) updateNamespace() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			req := new(requests.NamespaceEdit)
 
 			if err := c.Bind(req); err != nil {
@@ -176,6 +184,8 @@ func (h *Handler) deleteNamespace() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.NamespaceDelete
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -211,13 +221,15 @@ func (h *Handler) deleteNamespace() *Route {
 
 func (h *Handler) addNamespaceMember() *Route {
 	return &Route{
-		endpoint:              "/namespace/:tenant/members",
+		endpoint:              "/namespaces/:tenant/members",
 		method:                MethodPost,
 		group:                 GroupPublic,
 		requiresAuthorization: false,
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.NamespaceAddUser
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -262,6 +274,8 @@ func (h *Handler) updateNamespaceMember() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.NamespaceEditUser
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -304,6 +318,8 @@ func (h *Handler) removeNamespaceMember() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.NamespaceRemoveUser
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -348,6 +364,8 @@ func (h *Handler) getSessionRecord() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var tenant string
 			if v := c.Tenant(); v != nil {
 				tenant = v.ID
@@ -372,6 +390,8 @@ func (h *Handler) updateSessionRecordStatus() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SessionEditRecordStatus
 			if err := c.Bind(&req); err != nil {
 				return err

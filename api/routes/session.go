@@ -24,6 +24,8 @@ func (h *Handler) createSession() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SessionCreate
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -52,6 +54,8 @@ func (h *Handler) getSession() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SessionGet
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -80,6 +84,8 @@ func (h *Handler) listSessions() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			paginator := query.NewPaginator()
 			if err := c.Bind(paginator); err != nil {
 				return err
@@ -112,6 +118,8 @@ func (h *Handler) authenticateSession() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SessionAuthenticatedSet
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -134,6 +142,8 @@ func (h *Handler) finishSession() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SessionFinish
 			if err := c.Bind(&req); err != nil {
 				return err
@@ -151,12 +161,14 @@ func (h *Handler) finishSession() *Route {
 func (h *Handler) keepAliveSession() *Route {
 	return &Route{
 		endpoint:              "/sessions/:uid/keepalive",
-		method:                MethodPatch,
+		method:                MethodPost,
 		group:                 GroupInternal,
 		requiresAuthorization: false,
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SessionKeepAlive
 			if err := c.Bind(&req); err != nil {
 				return err

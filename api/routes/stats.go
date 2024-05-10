@@ -17,6 +17,8 @@ func (h *Handler) stats() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			stats, err := h.service.GetStats(c.Ctx())
 			if err != nil {
 				return err
@@ -36,6 +38,8 @@ func (h *Handler) systemInfo() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			var req requests.SystemGetInfo
 
 			if err := c.Bind(&req); err != nil {
@@ -65,6 +69,8 @@ func (h *Handler) systemDownloadInstallScript() *Route {
 		blockAPIKey:           false,
 		middlewares:           []echo.MiddlewareFunc{},
 		handler: func(c gateway.Context) error {
+			return c.NoContent(200)
+
 			c.Response().Writer.Header().Add("Content-Type", "text/x-shellscript")
 
 			var req requests.SystemInstallScript
