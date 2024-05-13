@@ -2,42 +2,11 @@ package dbtest
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/shellhub-io/mongotest"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 )
-
-// WARN: copy of https://github.com/testcontainers/testcontainers-go/pull/2469. should be removed
-// if merged.
-func withReplicaSet() testcontainers.CustomizeRequestOption {
-	return func(req *testcontainers.GenericContainerRequest) {
-		req.Cmd = append(req.Cmd, "--replSet", "rs")
-		req.LifecycleHooks = append(req.LifecycleHooks, testcontainers.ContainerLifecycleHooks{
-			PostReadies: []testcontainers.ContainerHook{
-				func(ctx context.Context, c testcontainers.Container) error {
-					cIP, err := c.ContainerIP(ctx)
-					if err != nil {
-						return err
-					}
-
-					cmd := []string{
-						"/bin/mongo",
-						"--eval",
-						fmt.Sprintf("rs.initiate({ _id: 'rs', members: [ { _id: 0, host: '%s:27017' } ] })", cIP),
-					}
-
-					if exitCode, _, err := c.Exec(ctx, cmd); err != nil || exitCode != 0 {
-						return fmt.Errorf("fails to initiate replica set with status %d: %s", exitCode, err)
-					}
-
-					return nil
-				},
-			},
-		})
-	}
-}
 
 // Server represents a MongoDB test server instance.
 type Server struct {
@@ -81,7 +50,7 @@ func (srv *Server) configure(ctx context.Context) error {
 func (srv *Server) Up(ctx context.Context) error {
 	var err error
 
-	srv.tContainer, err = mongodb.RunContainer(ctx, testcontainers.WithImage("mongo:4.4.8"), withReplicaSet())
+	srv.tContainer, err = mongodb.RunContainer(ctx, testcontainers.WithImage("mongo:4.4.8"), mongodb.WithReplicaSet())
 	if err != nil {
 		return err
 	}
