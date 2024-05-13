@@ -17,8 +17,8 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/square/mongo-lock v0.0.0-20230808145049-cfcf499f6bf0
 	github.com/stretchr/testify v1.9.0
-	github.com/testcontainers/testcontainers-go v0.30.0
-	github.com/testcontainers/testcontainers-go/modules/mongodb v0.30.0
+	github.com/testcontainers/testcontainers-go v0.31.0
+	github.com/testcontainers/testcontainers-go/modules/mongodb v0.31.0
 	github.com/undefinedlabs/go-mpatch v1.0.7
 	github.com/xakep666/mongo-migrate v0.3.2
 	go.mongodb.org/mongo-driver v1.15.0
@@ -110,7 +110,6 @@ require (
 	go.opentelemetry.io/otel v1.25.0 // indirect
 	go.opentelemetry.io/otel/metric v1.25.0 // indirect
 	go.opentelemetry.io/otel/trace v1.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
