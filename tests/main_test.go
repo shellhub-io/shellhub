@@ -80,6 +80,11 @@ func keygen() error {
 }
 
 func TestMain(m *testing.M) {
+	// FIXME: Due to issue related on testcontainers-go, we are disabling Ryuk it as a temporary solution.
+	//
+	// https://github.com/testcontainers/testcontainers-go/issues/2445
+	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+
 	if err := keygen(); err != nil {
 		log.WithError(err).Error("failed to generate the ShellHub keys")
 
