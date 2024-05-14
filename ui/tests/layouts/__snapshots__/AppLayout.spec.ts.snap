@@ -129,8 +129,8 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-5\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-6\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-5\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-6\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" left=\\"\\"></i><div>USER</div><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark ml-1 mr-1\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
           <!---->
           <!---->

@@ -48,7 +48,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
                 <td class=\\"text-center\\" data-test=\\"firewall-rules-filter\\">
                   <div>All devices</div>
                 </td>
-                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-2\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>

@@ -44,7 +44,7 @@ exports[`Sessions View > Renders the component 1`] = `
                 </td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\"></span></td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\"></span></td>
-                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-459ab1b4=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
