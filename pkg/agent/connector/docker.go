@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent"
@@ -53,7 +54,7 @@ func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-
 }
 
 func (d *DockerConnector) List(ctx context.Context) ([]Container, error) {
-	containers, err := d.cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := d.cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
