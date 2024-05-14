@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -93,7 +94,20 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 
 	go func() {
 		defer wg.Done()
-		defer agent.CloseWrite() //nolint:errcheck
+		defer func() {
+			// NOTE: When request is [ExecRequestType] and agent's version is less than v0.9.2, we should close the agent
+			// connection to avoid it be hanged after data flow ends.
+			if ver, err := semver.NewVersion(sess.Device.Info.Version); ver != nil && err == nil {
+				// NOTE: We indicate here v0.9.3, but it is not included due the assertion `less than`.
+				if ver.LessThan(semver.MustParse("v0.9.3")) && req == ExecRequestType {
+					agent.Close()
+				} else {
+					agent.CloseWrite() //nolint:errcheck
+				}
+			} else {
+				agent.CloseWrite() //nolint:errcheck
+			}
+		}()
 
 		if _, err := io.Copy(agent, c); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
