@@ -23,7 +23,7 @@ exports[`Device Rejected List > Renders the component 1`] = `
               <td data-v-dede1877=\\"\\" class=\\"text-center\\"><span data-v-dede1877=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-1\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
@@ -37,7 +37,7 @@ exports[`Device Rejected List > Renders the component 1`] = `
               <td data-v-dede1877=\\"\\" class=\\"text-center\\"><span data-v-dede1877=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"null\\" aria-owns=\\"v-menu-7\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-dede1877=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
