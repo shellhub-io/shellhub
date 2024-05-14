@@ -178,7 +178,7 @@ func (d *dockerUpdater) stopContainer(container *dockerContainer) error {
 		return err
 	}
 
-	opts := types.ContainerRemoveOptions{Force: true, RemoveVolumes: true}
+	opts := containertypes.RemoveOptions{Force: true, RemoveVolumes: true}
 	err := d.api.ContainerRemove(ctx, container.info.ID, opts)
 
 	return err
@@ -216,7 +216,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 		return nil, err
 	}
 
-	if err := d.api.ContainerStart(ctx, clone.ID, types.ContainerStartOptions{}); err != nil {
+	if err := d.api.ContainerStart(ctx, clone.ID, containertypes.StartOptions{}); err != nil {
 		return nil, err
 	}
 
