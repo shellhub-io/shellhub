@@ -11,9 +11,9 @@ import (
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/password"
-	passwordmock "github.com/shellhub-io/shellhub/pkg/password/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,8 +24,8 @@ func TestUserCreate(t *testing.T) {
 	}
 
 	mock := new(mocks.Store)
-	passwordMock := &passwordmock.Password{}
-	password.Backend = passwordMock
+	hashMock := &hashmock.Hasher{}
+	hash.Backend = hashMock
 	ctx := context.TODO()
 	now := clock.Now()
 
@@ -108,8 +108,8 @@ func TestUserCreate(t *testing.T) {
 					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
 					Return([]string{}, false, nil).
 					Once()
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("", errors.New("error")).
 					Once()
 			},
@@ -125,8 +125,8 @@ func TestUserCreate(t *testing.T) {
 					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
 					Return([]string{}, false, nil).
 					Once()
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
@@ -158,8 +158,8 @@ func TestUserCreate(t *testing.T) {
 					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
 					Return([]string{}, false, nil).
 					Once()
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
@@ -343,8 +343,8 @@ func TestUserDelete(t *testing.T) {
 
 func TestUserResetPassword(t *testing.T) {
 	mock := new(mocks.Store)
-	passwordMock := &passwordmock.Password{}
-	password.Backend = passwordMock
+	hashMock := &hashmock.Hasher{}
+	hash.Backend = hashMock
 
 	ctx := context.TODO()
 
@@ -373,8 +373,8 @@ func TestUserResetPassword(t *testing.T) {
 
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
@@ -394,8 +394,8 @@ func TestUserResetPassword(t *testing.T) {
 
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 

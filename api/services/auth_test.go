@@ -256,8 +256,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "wrong_password", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "wrong_password", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(false).
 					Once()
 				cacheMock.
@@ -300,8 +300,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
 				cacheMock.
@@ -348,8 +348,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
 				cacheMock.
@@ -420,8 +420,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
 				cacheMock.
@@ -498,8 +498,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
 				cacheMock.
@@ -576,8 +576,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
 				cacheMock.
@@ -665,8 +665,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b").
+				hashMock.
+					On("CompareWith", "secret", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b").
 					Return(true).
 					Once()
 				cacheMock.
@@ -691,8 +691,8 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 				mock.

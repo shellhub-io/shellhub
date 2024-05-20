@@ -264,8 +264,8 @@ func TestUpdatePasswordUser(t *testing.T) {
 					On("UserGetByID", ctx, "1", false).
 					Return(user, 1, nil).
 					Once()
-				passwordMock.
-					On("Compare", "wrong_password", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "wrong_password", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(false).
 					Once()
 			},
@@ -288,12 +288,12 @@ func TestUpdatePasswordUser(t *testing.T) {
 					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
 					Return(user, 1, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				passwordMock.
-					On("Hash", "newSecret").
+				hashMock.
+					On("Do", "newSecret").
 					Return("", errors.New("error", "", 0)).
 					Once()
 			},
@@ -316,12 +316,12 @@ func TestUpdatePasswordUser(t *testing.T) {
 					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
 					Return(user, 1, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				passwordMock.
-					On("Hash", "newSecret").
+				hashMock.
+					On("Do", "newSecret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 				mock.
@@ -356,12 +356,12 @@ func TestUpdatePasswordUser(t *testing.T) {
 					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
 					Return(user, 1, nil).
 					Once()
-				passwordMock.
-					On("Compare", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
 					Return(true).
 					Once()
-				passwordMock.
-					On("Hash", "newSecret").
+				hashMock.
+					On("Do", "newSecret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 				mock.
