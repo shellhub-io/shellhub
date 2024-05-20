@@ -1,12 +1,57 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
+	"github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
+	log "github.com/sirupsen/logrus"
 )
+
+// Group specifies the visibility level of a given route.
+type Group int
+
+func (g Group) String() string {
+	switch g {
+	case GroupPublic:
+		return "public"
+	case GroupInternal:
+		return "internal"
+	default:
+		return "disabled"
+	}
+}
+
+const (
+	GroupPublic   Group = iota // GroupPublic indicates that a route is accessible to everyone.
+	GroupInternal              // GroupPrivate indicates that a route is restricted and can only be accessed by other services within the local container network.
+	GroupDisable               // GroupDisable indicates that the route is disabled.
+)
+
+// HTTPMethod is a type that represents an HTTP method, similar to http.Method[method].
+type HTTPMethod string
+
+const (
+	MethodGet    HTTPMethod = http.MethodGet    // MethodGet is the equivalent of http.MethodGet
+	MethodPost   HTTPMethod = http.MethodPost   // MethodPost is the equivalent of http.MethodPost
+	MethodPatch  HTTPMethod = http.MethodPatch  // MethodPatch is the equivalent of http.MethodPatch
+	MethodPut    HTTPMethod = http.MethodPut    // MethodPut is the equivalent of http.MethodPut
+	MethodDelete HTTPMethod = http.MethodDelete // MethodDelete is the equivalent of http.MethodDelete
+)
+
+type Route struct {
+	endpoint              string                // endpoint specifies the URL path where the handler is attached.
+	deprecatedEndpoints   []string              // deprecatedEndpoints is a list of deprecated endpoints that use the same method and handler as [Route.endpoint].
+	method                HTTPMethod            // method defines the HTTP method for which the handler is associated.
+	group                 Group                 // group specifies the visibility level of the route for external requests.
+	blockAPIKey           bool                  // blockAPIKey specifies whether the route allows or not authentication via api key.
+	requiresAuthorization bool                  // requiresAuthorization specifies whether the handler should be called within middleware.Authorize
+	middlewares           []echo.MiddlewareFunc // middlewares is a list of middleware functions to be applied to the route.
+	handler               gateway.Handler       // handler is the callback that is invoked when the route is accessed.
+}
 
 func NewRouter(service services.Service) *echo.Echo {
 	e := echo.New()
@@ -25,89 +70,46 @@ func NewRouter(service services.Service) *echo.Echo {
 
 	handler := NewHandler(service)
 
-	// Internal routes only accessible by other services in the local container network
-	internalAPI := e.Group("/internal")
+	internalGroup := e.Group("/internal") // Internal routes are restricted and can only be accessed by other services within the local container network.
+	publicGroup := e.Group("/api")        // Public routes are accessible externally through API gateway
+	publicGroup.GET("/healthcheck", gateway.Handle(func(c gateway.Context) error {
+		return c.NoContent(200)
+	}))
 
-	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest), gateway.Middleware(AuthMiddleware))
-	internalAPI.GET(AuthUserTokenInternalURL, gateway.Handler(handler.AuthGetToken))
+	for _, h := range handler.all() {
+		middlewares := make([]echo.MiddlewareFunc, 0)
+		if h.blockAPIKey {
+			middlewares = append(middlewares, middleware.BlockAPIKey)
+		}
+		for _, m := range h.middlewares {
+			middlewares = append(middlewares, gateway.Middleware(m))
+		}
 
-	internalAPI.GET(GetDeviceByPublicURLAddress, gateway.Handler(handler.GetDeviceByPublicURLAddress))
-	internalAPI.POST(OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
-	internalAPI.GET(LookupDeviceURL, gateway.Handler(handler.LookupDevice))
+		handler := gateway.Handle(h.handler)
+		if h.requiresAuthorization {
+			handler = middleware.Authorize(gateway.Handle(h.handler))
+		}
 
-	internalAPI.PATCH(SetSessionAuthenticatedURL, gateway.Handler(handler.SetSessionAuthenticated))
-	internalAPI.POST(CreateSessionURL, gateway.Handler(handler.CreateSession))
-	internalAPI.POST(FinishSessionURL, gateway.Handler(handler.FinishSession))
-	internalAPI.POST(KeepAliveSessionURL, gateway.Handler(handler.KeepAliveSession))
-	internalAPI.POST(RecordSessionURL, gateway.Handler(handler.RecordSession))
+		log.WithField("endpoint", h.endpoint).
+			WithField("method", h.method).
+			WithField("group", h.group.String()).
+			Trace("registering route.")
 
-	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
-	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
-	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
+		switch h.group {
+		case GroupPublic:
+			for _, e := range append(h.deprecatedEndpoints, h.endpoint) {
+				publicGroup.Add(string(h.method), e, handler, middlewares...)
+			}
+		case GroupInternal:
+			for _, e := range append(h.deprecatedEndpoints, h.endpoint) {
+				internalGroup.Add(string(h.method), e, handler, middlewares...)
+			}
+		default:
+			log.WithField("endpoint", h.endpoint).Trace("route is disabled.")
 
-	// Public routes for external access through API gateway
-	publicAPI := e.Group("/api")
-
-	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(AuthUserURL, gateway.Handler(handler.AuthUser))
-	publicAPI.POST(AuthUserURLV2, gateway.Handler(handler.AuthUser))
-	publicAPI.GET(AuthUserURLV2, gateway.Handler(handler.AuthUserInfo))
-	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
-	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.AuthSwapToken), apiMiddleware.BlockAPIKey)
-
-	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey))
-	publicAPI.PATCH(EditAPIKeyURL, gateway.Handler(handler.EditAPIKey))
-	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys))
-	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey))
-
-	publicAPI.PATCH(UpdateUserDataURL, gateway.Handler(handler.UpdateUserData), apiMiddleware.BlockAPIKey)
-	publicAPI.PATCH(UpdateUserPasswordURL, gateway.Handler(handler.UpdateUserPassword), apiMiddleware.BlockAPIKey)
-	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus))
-	publicAPI.GET(GetSessionRecordURL, gateway.Handler(handler.GetSessionRecord))
-
-	publicAPI.GET(GetDeviceListURL, apiMiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(GetDeviceURL, apiMiddleware.Authorize(gateway.Handler(handler.GetDevice)))
-	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice))
-	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice))
-	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice))
-	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus))
-
-	publicAPI.POST(CreateTagURL, gateway.Handler(handler.CreateDeviceTag))
-	publicAPI.DELETE(RemoveTagURL, gateway.Handler(handler.RemoveDeviceTag))
-	publicAPI.PUT(UpdateTagURL, gateway.Handler(handler.UpdateDeviceTag))
-
-	publicAPI.GET(GetTagsURL, gateway.Handler(handler.GetTags))
-	publicAPI.PUT(RenameTagURL, gateway.Handler(handler.RenameTag))
-	publicAPI.DELETE(DeleteTagsURL, gateway.Handler(handler.DeleteTag))
-
-	publicAPI.GET(GetSessionsURL, apiMiddleware.Authorize(gateway.Handler(handler.GetSessionList)))
-	publicAPI.GET(GetSessionURL, apiMiddleware.Authorize(gateway.Handler(handler.GetSession)))
-	publicAPI.GET(PlaySessionURL, gateway.Handler(handler.PlaySession))
-	publicAPI.DELETE(RecordSessionURL, gateway.Handler(handler.DeleteRecordedSession))
-
-	publicAPI.GET(GetStatsURL, apiMiddleware.Authorize(gateway.Handler(handler.GetStats)))
-	publicAPI.GET(GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
-	publicAPI.GET(GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript))
-
-	publicAPI.GET(GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
-	publicAPI.POST(CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey))
-	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey))
-	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey))
-
-	publicAPI.POST(AddPublicKeyTagURL, gateway.Handler(handler.AddPublicKeyTag))
-	publicAPI.DELETE(RemovePublicKeyTagURL, gateway.Handler(handler.RemovePublicKeyTag))
-	publicAPI.PUT(UpdatePublicKeyTagsURL, gateway.Handler(handler.UpdatePublicKeyTags))
-
-	publicAPI.GET(ListNamespaceURL, gateway.Handler(handler.GetNamespaceList))
-	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace))
-	publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace))
-	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace))
-	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace))
-	publicAPI.POST(AddNamespaceUserURL, gateway.Handler(handler.AddNamespaceUser))
-	publicAPI.DELETE(RemoveNamespaceUserURL, gateway.Handler(handler.RemoveNamespaceUser))
-	publicAPI.PATCH(EditNamespaceUserURL, gateway.Handler(handler.EditNamespaceUser))
-	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
+			continue
+		}
+	}
 
 	return e
 }
