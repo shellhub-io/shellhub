@@ -1,4 +1,4 @@
-package password
+package hash
 
 import (
 	"testing"
@@ -19,7 +19,7 @@ func TestHash(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			hash, err := Hash(tc.password)
+			hash, err := Do(tc.password)
 			assert.NoError(t, err)
 			assert.NotEqual(t, hash, "")
 		})
@@ -61,7 +61,7 @@ func TestCompare(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.Equal(t, tc.expected, Compare(tc.password, tc.hash))
+			assert.Equal(t, tc.expected, CompareWith(tc.password, tc.hash))
 		})
 	}
 }

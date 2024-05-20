@@ -12,18 +12,18 @@ import (
 	clockmocks "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
-	"github.com/shellhub-io/shellhub/pkg/password"
-	passwordmock "github.com/shellhub-io/shellhub/pkg/password/mocks"
+	"github.com/shellhub-io/shellhub/pkg/hash"
+	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 )
 
 var (
-	privateKey   *rsa.PrivateKey
-	publicKey    *rsa.PublicKey
-	clientMock   *mocks.Client
-	envMock      *env_mocks.Backend
-	clockMock    *clockmocks.Clock
-	passwordMock *passwordmock.Password
-	now          time.Time
+	privateKey *rsa.PrivateKey
+	publicKey  *rsa.PublicKey
+	clientMock *mocks.Client
+	envMock    *env_mocks.Backend
+	clockMock  *clockmocks.Clock
+	hashMock   *hashmock.Hasher
+	now        time.Time
 )
 
 func TestMain(m *testing.M) {
@@ -34,8 +34,8 @@ func TestMain(m *testing.M) {
 	envMock = &env_mocks.Backend{}
 	clock.DefaultBackend = clockMock
 	envs.DefaultBackend = envMock
-	passwordMock = &passwordmock.Password{}
-	password.Backend = passwordMock
+	hashMock = &hashmock.Hasher{}
+	hash.Backend = hashMock
 	now = time.Now()
 	code := m.Run()
 	os.Exit(code)

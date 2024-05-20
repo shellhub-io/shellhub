@@ -1,4 +1,4 @@
-package password
+package hash
 
 import (
 	"crypto/sha256"
@@ -10,13 +10,10 @@ import (
 
 type backend struct{}
 
-// Ensures that backend implements Password
-var _ Password = (*backend)(nil)
-
-func (p *backend) Hash(pwd string) (string, error) {
+func (p *backend) Do(plain string) (string, error) {
 	minCost := 10
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), minCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(plain), minCost)
 	if err != nil {
 		return "", err
 	}
@@ -24,7 +21,7 @@ func (p *backend) Hash(pwd string) (string, error) {
 	return string(hash), nil
 }
 
-func (p *backend) Compare(plain string, hash string) bool {
+func (p *backend) CompareWith(plain string, hash string) bool {
 	if !strings.HasPrefix(hash, "$") {
 		sha := sha256.Sum256([]byte(plain))
 

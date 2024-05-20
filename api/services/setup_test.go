@@ -36,8 +36,8 @@ func TestSetup(t *testing.T) {
 				Namespace: "teste-space",
 			},
 			requiredMocks: func() {
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("", errors.New("error", "", 0)).
 					Once()
 			},
@@ -55,8 +55,8 @@ func TestSetup(t *testing.T) {
 			requiredMocks: func() {
 				clockMock.On("Now").Return(now).Once()
 
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
@@ -92,8 +92,8 @@ func TestSetup(t *testing.T) {
 				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
 
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
@@ -145,8 +145,8 @@ func TestSetup(t *testing.T) {
 				uuidMock := &uuid_mocks.Uuid{}
 				uuidMock.On("Generate").Return("random_uuid").Once()
 
-				passwordMock.
-					On("Hash", "secret").
+				hashMock.
+					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 

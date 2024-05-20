@@ -5,7 +5,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/password"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
@@ -46,7 +46,7 @@ func HashUserPassword(plain string) (UserPassword, error) {
 	}
 
 	var err error
-	p.Hash, err = password.Hash(p.Plain)
+	p.Hash, err = hash.Do(p.Plain)
 
 	return p, err
 }
@@ -57,7 +57,7 @@ func HashUserPassword(plain string) (UserPassword, error) {
 // Hashes starting with "$" are assumed to be a bcrypt hash; otherwise, they are treated as
 // SHA256 hashes.
 func (p *UserPassword) Compare(plain string) bool {
-	return password.Compare(plain, p.Hash)
+	return hash.CompareWith(plain, p.Hash)
 }
 
 // UserAuthIdentifier is an username or email used to authenticate.
