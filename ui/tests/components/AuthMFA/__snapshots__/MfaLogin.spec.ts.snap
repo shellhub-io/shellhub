@@ -200,7 +200,7 @@ exports[`MfaLogin > Renders the component 1`] = `
           <!---->
           <!---->
         </div>
-      </div><input class=\\"v-otp-input-input\\" type=\\"hidden\\" required=\\"\\">
+      </div><input class=\\"v-otp-input-input\\" type=\\"hidden\\" required=\\"\\" value=\\"\\">
       <!---->
       <!---->
       <!---->
