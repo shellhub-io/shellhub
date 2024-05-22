@@ -107,6 +107,9 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.APIKeyCreate,
 				authorizer.APIKeyUpdate,
 				authorizer.APIKeyDelete,
+				authorizer.ConnectorDelete,
+				authorizer.ConnectorUpdate,
+				authorizer.ConnectorSet,
 			},
 		},
 		{
@@ -149,6 +152,9 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.APIKeyCreate,
 				authorizer.APIKeyUpdate,
 				authorizer.APIKeyDelete,
+				authorizer.ConnectorDelete,
+				authorizer.ConnectorUpdate,
+				authorizer.ConnectorSet,
 			},
 		},
 		{
