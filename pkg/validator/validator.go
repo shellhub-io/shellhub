@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"reflect"
@@ -37,6 +39,9 @@ const (
 	UserPasswordTag = "password"
 	// DeviceNameTag contains the rule to validate the device's name.
 	DeviceNameTag = "device_name"
+	// PrivateKeyPEMTag contains the rule to validate a private key.
+	PrivateKeyPEMTag = "privateKeyPEM"
+	CertPEMTag       = "certPEM"
 )
 
 // Rules is a slice that contains all validation rules.
@@ -120,6 +125,34 @@ var Rules = []Rule{
 			return authorizer.RoleFromString(field.Field().String()) != authorizer.RoleInvalid
 		},
 		Error: fmt.Errorf("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
+	},
+	{
+		Tag: PrivateKeyPEMTag,
+		Handler: func(field validator.FieldLevel) bool {
+			block, _ := pem.Decode([]byte(field.Field().String()))
+			if block == nil {
+				return false
+			}
+
+			key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+
+			return err == nil && key != nil
+		},
+		Error: fmt.Errorf("the private key is invalid"),
+	},
+	{
+		Tag: CertPEMTag,
+		Handler: func(field validator.FieldLevel) bool {
+			block, _ := pem.Decode([]byte(field.Field().String()))
+			if block == nil {
+				return false
+			}
+
+			cert, err := x509.ParseCertificate(block.Bytes)
+
+			return err == nil && cert != nil
+		},
+		Error: fmt.Errorf("the cert is invalid"),
 	},
 }
 

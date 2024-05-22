@@ -55,6 +55,10 @@ const (
 	APIKeyCreate
 	APIKeyUpdate
 	APIKeyDelete
+
+	ConnectorDelete
+	ConnectorUpdate
+	ConnectorSet
 )
 
 var observerPermissions = []Permission{
@@ -122,6 +126,10 @@ var adminPermissions = []Permission{
 	APIKeyCreate,
 	APIKeyUpdate,
 	APIKeyDelete,
+
+	ConnectorDelete,
+	ConnectorUpdate,
+	ConnectorSet,
 }
 
 var ownerPermissions = []Permission{
@@ -176,4 +184,8 @@ var ownerPermissions = []Permission{
 	APIKeyCreate,
 	APIKeyUpdate,
 	APIKeyDelete,
+
+	ConnectorDelete,
+	ConnectorUpdate,
+	ConnectorSet,
 }
