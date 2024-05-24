@@ -6,222 +6,289 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateDataUser(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.Background()
-
 	type Expected struct {
-		fields []string
-		err    error
+		conflicts []string
+		err       error
 	}
+
+	storeMock := new(mocks.Store)
 
 	cases := []struct {
 		description   string
-		id            string
-		data          models.UserData
-		requiredMocks func()
+		userID        string
+		req           *requests.UserDataUpdate
+		requiredMocks func(context.Context)
 		expected      Expected
 	}{
 		{
-			description:   "Fail when user data is invalid",
-			id:            "1",
-			requiredMocks: func() {},
+			description: "Fail when user is not found",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(nil, 0, NewErrUserNotFound("000000000000000000000000", nil)).
+					Once()
+			},
 			expected: Expected{
-				fields: nil,
-				err:    NewErrUserInvalid(nil, validator.ErrStructureInvalid),
+				conflicts: nil,
+				err:       NewErrUserNotFound("000000000000000000000000", nil),
 			},
 		},
 		{
-			description: "Fail when user is not found",
-			id:          "1",
-			data: models.UserData{
-				Name:     "test",
-				Username: "test",
-				Email:    "test@shellhub.io",
+			description: "Fail when recovery email is same as req's email",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "john.doe@test.com",
 			},
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, "1", false).Return(nil, 0, NewErrUserNotFound("1", nil)).Once()
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@test.com",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
 			},
 			expected: Expected{
-				fields: nil,
-				err:    NewErrUserNotFound("1", nil),
+				conflicts: []string{"email", "recovery_email"},
+				err:       NewErrBadRequest(nil),
+			},
+		},
+		{
+			description: "Fail when recovery email is same as user's email",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "james.smith@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@test.com",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{"email", "recovery_email"},
+				err:       NewErrBadRequest(nil),
 			},
 		},
 		{
 			description: "Fail when username already exists",
-			id:          "1",
-			data: models.UserData{
-				Name:     "test",
-				Username: "new",
-				Email:    "test@test.com",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "james_smith",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
 			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "1",
-					UserData: models.UserData{
-						Name:     "test",
-						Username: "test",
-						Email:    "test@test.com",
-					},
-				}
-
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "test@test.com"}).
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@test.com",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "james_smith", Email: "john.doe@test.com"}).
 					Return([]string{"username"}, true, nil).
 					Once()
 			},
 			expected: Expected{
-				fields: []string{"username"},
-				err:    NewErrUserDuplicated([]string{"username"}, nil),
+				conflicts: []string{"username"},
+				err:       NewErrUserDuplicated([]string{"username"}, nil),
 			},
 		},
 		{
 			description: "Fail when email already exists",
-			id:          "1",
-			data: models.UserData{
-				Name:     "test",
-				Username: "test",
-				Email:    "new@test.com",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "james.smith@test.com",
+				RecoveryEmail: "recovery@test.com",
 			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "1",
-					UserData: models.UserData{
-						Email: "test@test.com",
-					},
-				}
-
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "test", Email: "new@test.com"}).
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@test.com",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "james.smith@test.com"}).
 					Return([]string{"email"}, true, nil).
 					Once()
 			},
 			expected: Expected{
-				fields: []string{"email"},
-				err:    NewErrUserDuplicated([]string{"email"}, nil),
-			},
-		},
-		{
-			description: "Fail when username and email already exists",
-			id:          "1",
-			data: models.UserData{
-				Name:     "test",
-				Username: "new",
-				Email:    "new@test.com",
-			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "1",
-					UserData: models.UserData{
-						Username: "test",
-						Email:    "test@test.com",
-					},
-				}
-
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "new@test.com"}).
-					Return([]string{"username", "email"}, true, nil).
-					Once()
-			},
-			expected: Expected{
-				fields: []string{"username", "email"},
-				err:    NewErrUserDuplicated([]string{"username", "email"}, nil),
+				conflicts: []string{"email"},
+				err:       NewErrUserDuplicated([]string{"email"}, nil),
 			},
 		},
 		{
 			description: "Fail when could not update user",
-			id:          "1",
-			data: models.UserData{
-				Name:     "test",
-				Username: "new",
-				Email:    "new@test.com",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
 			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "1",
-					UserData: models.UserData{
-						Username: "test",
-						Email:    "test@test.com",
-					},
-				}
-
-				changes := &models.UserChanges{
-					Name:     "test",
-					Username: "new",
-					Email:    "new@test.com",
-				}
-
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "new@test.com"}).
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@shellhub.io",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
 					Return([]string{}, false, nil).
 					Once()
-				mock.On("UserUpdate", ctx, "1", changes).Return(errors.New("error", "", 0)).Once()
+				storeMock.
+					On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{
+						Name:          "John Doe",
+						Username:      "john_doe",
+						Email:         "john.doe@test.com",
+						RecoveryEmail: "recovery@test.com",
+					}).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{
-				fields: nil,
-				err:    errors.New("error", "", 0),
+				conflicts: nil,
+				err:       errors.New("error", "", 0),
 			},
 		},
 		{
 			description: "Success to update user",
-			id:          "1",
-			data: models.UserData{
-				Name:     "test",
-				Username: "new",
-				Email:    "new@test.com",
+			userID:      "000000000000000000000000",
+			req: &requests.UserDataUpdate{
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
 			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "1",
-					UserData: models.UserData{
-						Username: "test",
-						Email:    "test@test.com",
-					},
-				}
-
-				changes := &models.UserChanges{
-					Name:     "test",
-					Username: "new",
-					Email:    "new@test.com",
-				}
-
-				mock.On("UserGetByID", ctx, "1", false).Return(user, 1, nil).Once()
-				mock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "new", Email: "new@test.com"}).
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@shellhub.io",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
 					Return([]string{}, false, nil).
 					Once()
-				mock.On("UserUpdate", ctx, "1", changes).Return(nil).Once()
+				storeMock.
+					On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{
+						Name:          "John Doe",
+						Username:      "john_doe",
+						Email:         "john.doe@test.com",
+						RecoveryEmail: "recovery@test.com",
+					}).
+					Return(nil).
+					Once()
 			},
 			expected: Expected{
-				fields: nil,
-				err:    nil,
+				conflicts: nil,
+				err:       nil,
 			},
 		},
 	}
 
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+			ctx := context.Background()
+			tc.requiredMocks(ctx)
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			fields, err := services.UpdateDataUser(ctx, tc.id, tc.data)
-			assert.Equal(t, tc.expected, Expected{fields, err})
+			conflicts, err := service.UpdateDataUser(ctx, tc.userID, tc.req)
+			assert.Equal(t, tc.expected, Expected{conflicts, err})
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestUpdatePasswordUser(t *testing.T) {

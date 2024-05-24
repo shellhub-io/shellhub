@@ -9,10 +9,10 @@ type UserParam struct {
 
 // UserDataUpdate is the structure to represent the request body of the update user data endpoint.
 type UserDataUpdate struct {
-	UserParam
-	Name     string `json:"name" validate:"required,name"`
-	Username string `json:"username" validate:"required,username"`
-	Email    string `json:"email" validate:"required,email"`
+	Name          string `json:"name" validate:"omitempty,name"`
+	Username      string `json:"username" validate:"omitempty,username"`
+	Email         string `json:"email" validate:"omitempty,email"`
+	RecoveryEmail string `json:"recovery_email" validate:"omitempty,email"`
 }
 
 // UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.

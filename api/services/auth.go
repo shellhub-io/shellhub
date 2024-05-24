@@ -251,13 +251,14 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	return &models.UserAuthResponse{
-		Token:  jwtToken,
-		Name:   user.Name,
-		ID:     user.ID,
-		User:   user.Username,
-		Tenant: claims.Tenant,
-		Role:   claims.Role,
-		Email:  user.Email,
+		Token:         jwtToken,
+		Name:          user.Name,
+		ID:            user.ID,
+		User:          user.Username,
+		Tenant:        claims.Tenant,
+		Role:          claims.Role,
+		Email:         user.Email,
+		RecoveryEmail: user.RecoveryEmail,
 		MFA: models.MFA{
 			Enable:   hasMFA,
 			Validate: false,
@@ -314,13 +315,14 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 	s.AuthCacheToken(ctx, tenant, user.ID, jwtToken) // nolint: errcheck
 
 	return &models.UserAuthResponse{
-		Token:  jwtToken,
-		Name:   user.Name,
-		ID:     user.ID,
-		User:   user.Username,
-		Tenant: tenant,
-		Role:   role,
-		Email:  user.Email,
+		Token:         jwtToken,
+		Name:          user.Name,
+		ID:            user.ID,
+		User:          user.Username,
+		Tenant:        tenant,
+		Role:          role,
+		Email:         user.Email,
+		RecoveryEmail: user.RecoveryEmail,
 		MFA: models.MFA{
 			Enable:   status,
 			Validate: mfa,
@@ -391,13 +393,14 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 			s.AuthCacheToken(ctx, tenant, user.ID, jwtToken) // nolint: errcheck
 
 			return &models.UserAuthResponse{
-				Token:  jwtToken,
-				Name:   user.Name,
-				ID:     user.ID,
-				User:   user.Username,
-				Role:   member.Role,
-				Tenant: namespace.TenantID,
-				Email:  user.Email,
+				Token:         jwtToken,
+				Name:          user.Name,
+				ID:            user.ID,
+				User:          user.Username,
+				Role:          member.Role,
+				Tenant:        namespace.TenantID,
+				Email:         user.Email,
+				RecoveryEmail: user.RecoveryEmail,
 			}, nil
 		}
 	}
@@ -428,13 +431,14 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 	}
 
 	return &models.UserAuthResponse{
-		Token:  token,
-		Name:   user.Name,
-		User:   user.Username,
-		Tenant: tenant,
-		Role:   role,
-		ID:     user.ID,
-		Email:  user.Email,
+		Token:         token,
+		Name:          user.Name,
+		User:          user.Username,
+		Tenant:        tenant,
+		Role:          role,
+		ID:            user.ID,
+		Email:         user.Email,
+		RecoveryEmail: user.RecoveryEmail,
 		MFA: models.MFA{
 			Enable: status,
 		},

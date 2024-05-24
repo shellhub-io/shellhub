@@ -2,43 +2,51 @@ package services
 
 import (
 	"context"
+	"strings"
 
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type UserService interface {
-	UpdateDataUser(ctx context.Context, id string, userData models.UserData) ([]string, error)
+	// UpdateDataUser updates the user's data, such as email and username. Since some attributes must be unique per user,
+	// it returns a list of duplicated unique values and an error if any.
+	//
+	// FIX:
+	// When `req.RecoveryEmail` is equal to `user.Email` or `req.Email`, return a bad request status
+	// with an error object like `{"error": "recovery_email must be different from email"}` instead of setting
+	// conflicts to `["email", "recovery_email"]`.
+	//
+	// TODO:
+	// rename this function to UpdateUserData.
+	UpdateDataUser(ctx context.Context, userID string, req *requests.UserDataUpdate) (conflicts []string, err error)
+
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
-// UpdateDataUser update user data.
-//
-// It receives a context, used to "control" the request flow, the user's ID, and a requests.UserDataUpdate struct with
-// fields to update in the models.User.
-//
-// It returns a slice of strings with the fields that contains data duplicated in the database, and an error.
-func (s *service) UpdateDataUser(ctx context.Context, id string, userData models.UserData) ([]string, error) {
-	// TODO: The route layer already validate this, remove it.
-	if ok, err := s.validator.Struct(userData); !ok || err != nil {
-		return nil, NewErrUserInvalid(nil, err)
+func (s *service) UpdateDataUser(ctx context.Context, userID string, req *requests.UserDataUpdate) ([]string, error) {
+	user, _, err := s.store.UserGetByID(ctx, userID, false)
+	if err != nil {
+		return nil, NewErrUserNotFound(userID, nil)
 	}
 
-	if _, _, err := s.store.UserGetByID(ctx, id, false); err != nil {
-		return nil, NewErrUserNotFound(id, nil)
+	if req.RecoveryEmail == user.Email || req.RecoveryEmail == req.Email {
+		return []string{"email", "recovery_email"}, NewErrBadRequest(nil)
 	}
 
-	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
+	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: req.Email, Username: req.Username}); has {
 		return conflicts, NewErrUserDuplicated(conflicts, nil)
 	}
 
 	// TODO: convert username and email to lower case.
 	changes := &models.UserChanges{
-		Name:     userData.Name,
-		Username: userData.Username,
-		Email:    userData.Email,
+		Name:          req.Name,
+		Username:      req.Username,
+		Email:         req.Email,
+		RecoveryEmail: strings.ToLower(req.RecoveryEmail),
 	}
 
-	return nil, s.store.UserUpdate(ctx, id, changes)
+	return nil, s.store.UserUpdate(ctx, userID, changes)
 }
 
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {

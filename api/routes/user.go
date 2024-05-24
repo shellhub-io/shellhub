@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/errors"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
@@ -21,20 +20,22 @@ const (
 )
 
 func (h *Handler) UpdateUserData(c gateway.Context) error {
-	var req requests.UserDataUpdate
-	if err := c.Bind(&req); err != nil {
+	req := new(requests.UserDataUpdate)
+
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
-	if fields, err := h.service.UpdateDataUser(c.Ctx(), req.ID, models.UserData{
-		Name:     req.Name,
-		Username: req.Username,
-		Email:    req.Email,
-	}); err != nil {
+	// TODO: remove the user id from the params and use only the authenticated header.
+	if c.Param("id") != c.ID().ID {
+		return services.NewErrForbidden(nil, nil)
+	}
+
+	if fields, err := h.service.UpdateDataUser(c.Ctx(), c.ID().ID, req); err != nil {
 		// FIXME: API compatibility.
 		//
 		// The UI uses the fields with error messages to identify if it is invalid or duplicated.
