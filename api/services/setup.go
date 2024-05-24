@@ -15,9 +15,10 @@ type SetupService interface {
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	data := models.UserData{
-		Name:     req.Name,
-		Email:    req.Email,
-		Username: req.Username,
+		Name:          req.Name,
+		Email:         req.Email,
+		Username:      req.Username,
+		RecoveryEmail: "",
 	}
 
 	if ok, err := s.validator.Struct(data); !ok || err != nil {

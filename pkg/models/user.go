@@ -27,8 +27,12 @@ type User struct {
 
 type UserData struct {
 	Name     string `json:"name" validate:"required,name"`
-	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
 	Username string `json:"username" bson:",omitempty" validate:"required,username"`
+	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
+
+	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
+	// when they lose access to all other methods. It must never be equal to [UserData.Email].
+	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
 }
 
 type UserPassword struct {
@@ -73,14 +77,15 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 }
 
 type UserAuthResponse struct {
-	Token  string `json:"token"`
-	User   string `json:"user"`
-	Name   string `json:"name"`
-	ID     string `json:"id"`
-	Tenant string `json:"tenant"`
-	Role   string `json:"role"`
-	Email  string `json:"email"`
-	MFA    MFA    `json:"mfa" bson:"mfa"`
+	Token         string `json:"token"`
+	User          string `json:"user"`
+	Name          string `json:"name"`
+	ID            string `json:"id"`
+	Tenant        string `json:"tenant"`
+	Role          string `json:"role"`
+	Email         string `json:"email"`
+	RecoveryEmail string `json:"recovery_email"`
+	MFA           MFA    `json:"mfa" bson:"mfa"`
 }
 
 type UserAuthClaims struct {
@@ -120,12 +125,13 @@ type UserTokenRecover struct {
 // UserChanges specifies the attributes that can be updated for a user. Any zero values in this
 // struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
 type UserChanges struct {
-	LastLogin time.Time `bson:"last_login,omitempty"`
-	Name      string    `bson:"name,omitempty"`
-	Email     string    `bson:"email,omitempty"`
-	Username  string    `bson:"username,omitempty"`
-	Password  string    `bson:"password,omitempty"`
-	Confirmed *bool     `bson:"confirmed,omitempty"`
+	LastLogin     time.Time `bson:"last_login,omitempty"`
+	Name          string    `bson:"name,omitempty"`
+	Username      string    `bson:"username,omitempty"`
+	Email         string    `bson:"email,omitempty"`
+	RecoveryEmail string    `bson:"recovery_email,omitempty"`
+	Password      string    `bson:"password,omitempty"`
+	Confirmed     *bool     `bson:"confirmed,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
