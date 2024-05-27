@@ -123,7 +123,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </button>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"height: 24px; width: 24px;\\" aria-describedby=\\"v-tooltip-3\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-3\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
