@@ -4,15 +4,15 @@ import { flushPromises } from "@vue/test-utils";
 import { store } from "@/store";
 import { mfaApi, usersApi, apiKeysApi } from "@/api/http";
 
-describe("Auth", () => {
-  let mock: MockAdapter;
+describe("Auth Store Actions", () => {
+  let mockMfa: MockAdapter;
   let mockUser: MockAdapter;
   let mockApiKeys: MockAdapter;
 
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
-    mock = new MockAdapter(mfaApi.getAxios());
+    mockMfa = new MockAdapter(mfaApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
     mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
   });
@@ -20,279 +20,190 @@ describe("Auth", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
-    mock.reset();
+    mockMfa.reset();
+    mockUser.reset();
+    mockApiKeys.reset();
   });
 
-  it("Return authentication default variables", () => {
-    expect(store.getters["auth/link_mfa"]).toEqual("");
-    expect(store.getters["auth/mfaStatus"]).toEqual({ enable: false, validate: false });
-    expect(store.getters["auth/recoveryCodes"]).toEqual([]);
-    expect(store.getters["auth/secret"]).toEqual("");
-    expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
-    expect(store.getters["auth/getSortStatusField"]).toEqual(undefined);
-    expect(store.getters["auth/getSortStatusString"]).toEqual("asc");
-    expect(store.getters["auth/apiKey"]).toEqual("");
-    expect(store.getters["auth/apiKeyList"]).toEqual([]);
-    expect(store.getters["auth/getNumberApiKeys"]).toEqual(0);
-  });
-
-  it("Test disableMfa action", async () => {
-    const reqSpy = vi.spyOn(store, "dispatch");
-
-    // Mock the API call for disabling MFA
-    mock.onPost("http://localhost:3000/api/mfa/disable").reply(200);
-
-    // Trigger the disableMfa action
-    await store.dispatch("auth/disableMfa");
-
-    // Check if the state has been updated correctly
-    expect(reqSpy).toHaveBeenCalled();
-    // Check other related state values as needed
-    expect(store.getters["auth/isMfa"]).toEqual(false);
-  });
-
-  it("Test enableMfa action", async () => {
-    // Mock the API call for enabling MFA
-    const enableMfaResponse = {
-      token: "token",
-    };
-
-    const enableMfaData = {
-      token_mfa: "000000",
-      secret: "OYDXN4MO2S2JTASNBG5AD54FVT7A5GVH",
-      codes: [
-        "HW2wlxV40B",
-        "2xsmMUHHHb",
-        "DTQgVsaVac",
-        "KXPBoXvuWD",
-        "QQYTPfotBi",
-        "XWiKBEPyb4",
-      ],
-    };
-
-    const reqSpy = vi.spyOn(store, "dispatch");
-
-    mock.onPost("http://localhost:3000/api/mfa/enable").reply(200, enableMfaResponse);
-
-    // Trigger the enableMfa action
-    await store.dispatch("auth/enableMfa", enableMfaData);
-    await flushPromises();
-    // Check if the state has been updated correctly
-    expect(reqSpy).toHaveBeenCalledWith("auth/enableMfa", {
-      token_mfa: "000000",
-      secret: "OYDXN4MO2S2JTASNBG5AD54FVT7A5GVH",
-      codes: [
-        "HW2wlxV40B",
-        "2xsmMUHHHb",
-        "DTQgVsaVac",
-        "KXPBoXvuWD",
-        "QQYTPfotBi",
-        "XWiKBEPyb4",
-      ],
+  describe("Default Values", () => {
+    it("should return the default authentication variables", () => {
+      expect(store.getters["auth/currentUser"]).toEqual("");
+      expect(store.getters["auth/currentName"]).toEqual("");
+      expect(store.getters["auth/tenant"]).toEqual("");
+      expect(store.getters["auth/email"]).toEqual("");
+      expect(store.getters["auth/recoveryEmail"]).toEqual("");
+      expect(store.getters["auth/getLoginTimeout"]).toEqual(0);
+      expect(store.getters["auth/stateToken"]).toEqual("");
+      expect(store.getters["auth/authStatus"]).toEqual("");
+      expect(store.getters["auth/link_mfa"]).toEqual("");
+      expect(store.getters["auth/mfaStatus"]).toEqual({ enable: false, validate: false });
+      expect(store.getters["auth/recoveryCodes"]).toEqual([]);
+      expect(store.getters["auth/secret"]).toEqual("");
+      expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
+      expect(store.getters["auth/getSortStatusField"]).toEqual(undefined);
+      expect(store.getters["auth/getSortStatusString"]).toEqual("asc");
+      expect(store.getters["auth/apiKey"]).toEqual("");
+      expect(store.getters["auth/apiKeyList"]).toEqual([]);
+      expect(store.getters["auth/getNumberApiKeys"]).toEqual(0);
     });
   });
 
-  it("Test validateMfa action", async () => {
-    // Mock the API call for validating MFA
-    const validateMfaResponse = {
-      token: "token",
-    };
-    const validateMfaData = { code: "000000" };
+  describe("MFA Actions", () => {
+    it("should disable MFA", async () => {
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
-    const reqSpy = vi.spyOn(store, "dispatch");
+      mockMfa.onPost("http://localhost:3000/api/mfa/disable").reply(200);
 
-    mock.onPost("http://localhost:3000/api/mfa/auth").reply(200, validateMfaResponse);
+      await store.dispatch("auth/disableMfa");
 
-    // Trigger the validateMfa action
-    await store.dispatch("auth/validateMfa", validateMfaData);
-    await flushPromises();
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/disableMfa");
+      expect(store.getters["auth/isMfa"]).toEqual(false);
+    });
 
-    expect(reqSpy).toHaveBeenCalledWith("auth/validateMfa", { code: "000000" });
-    // Check if the state has been updated correctly
-    expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse.token);
+    it("should enable MFA", async () => {
+      const enableMfaResponse = { token: "token" };
+      const enableMfaData = {
+        token_mfa: "000000",
+        secret: "OYDXN4MO2S2JTASNBG5AD54FVT7A5GVH",
+        codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
+      };
+
+      const dispatchSpy = vi.spyOn(store, "dispatch");
+
+      mockMfa.onPost("http://localhost:3000/api/mfa/enable").reply(200, enableMfaResponse);
+
+      await store.dispatch("auth/enableMfa", enableMfaData);
+      await flushPromises();
+
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/enableMfa", enableMfaData);
+      expect(store.getters["auth/stateToken"]).toEqual(enableMfaResponse.token);
+    });
+
+    it("should validate MFA", async () => {
+      const validateMfaResponse = { token: "token" };
+      const validateMfaData = { code: "000000" };
+
+      const dispatchSpy = vi.spyOn(store, "dispatch");
+
+      mockMfa.onPost("http://localhost:3000/api/mfa/auth").reply(200, validateMfaResponse);
+
+      await store.dispatch("auth/validateMfa", validateMfaData);
+      await flushPromises();
+
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/validateMfa", validateMfaData);
+      expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse.token);
+    });
+
+    it("should recover MFA", async () => {
+      const recoveryMfaResponse = { token: "token" };
+      const recoveryMfaData = { code: "000000" };
+
+      const dispatchSpy = vi.spyOn(store, "dispatch");
+
+      mockMfa.onPost("http://localhost:3000/api/mfa/recovery").reply(200, recoveryMfaResponse);
+
+      await store.dispatch("auth/recoverLoginMfa", recoveryMfaData);
+      await flushPromises();
+
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", recoveryMfaData);
+      expect(store.getters["auth/stateToken"]).toEqual(recoveryMfaResponse.token);
+      expect(store.getters["auth/showRecoveryModal"]).toEqual(true);
+    });
+
+    it("should generate MFA", async () => {
+      const generateMfaResponse = {
+        secret: "secret-mfa",
+        link: "link-mfa",
+        codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
+      };
+
+      const dispatchSpy = vi.spyOn(store, "dispatch");
+
+      mockMfa.onGet("http://localhost:3000/api/mfa/generate").reply(200, generateMfaResponse);
+
+      await store.dispatch("auth/generateMfa");
+
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/generateMfa");
+      expect(store.getters["auth/link_mfa"]).toEqual(generateMfaResponse.link);
+      expect(store.getters["auth/secret"]).toEqual(generateMfaResponse.secret);
+      expect(store.getters["auth/recoveryCodes"]).toEqual(generateMfaResponse.codes);
+    });
   });
 
-  it("Test recoveryMfa action", async () => {
-    // Mock the API call for recovering MFA
-    const recoveryMfaResponse = {
-      token: "token",
-    };
-    const recoveryMfaData = { code: "000000" };
+  describe("User Actions", () => {
+    it("should get user status", async () => {
+      const getUserStatusResponse = {
+        mfa: true,
+        token: "token",
+        id: "userId",
+        user: "username",
+        name: "testname",
+        email: "test@test.com",
+        tenant: "fake-tenant",
+        role: "administrator",
+      };
 
-    const reqSpy = vi.spyOn(store, "dispatch");
+      mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, getUserStatusResponse);
 
-    mock.onPost("http://localhost:3000/api/mfa/recovery").reply(200, recoveryMfaResponse);
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
-    // Trigger the recoveryMfa action
-    await store.dispatch("auth/recoverLoginMfa", recoveryMfaData);
-    await flushPromises();
+      await store.dispatch("auth/getUserInfo");
 
-    expect(reqSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", { code: "000000" });
-
-    // Check if the state has been updated correctly
-    expect(store.getters["auth/stateToken"]).toEqual(recoveryMfaResponse.token);
-    expect(store.getters["auth/showRecoveryModal"]).toEqual(true);
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/getUserInfo");
+      expect(store.getters["auth/stateToken"]).toEqual(getUserStatusResponse.token);
+      expect(store.getters["auth/currentUser"]).toEqual(getUserStatusResponse.user);
+      expect(store.getters["auth/currentName"]).toEqual(getUserStatusResponse.name);
+      expect(store.getters["auth/tenant"]).toEqual(getUserStatusResponse.tenant);
+      expect(store.getters["auth/email"]).toEqual(getUserStatusResponse.email);
+      expect(store.getters["auth/id"]).toEqual(getUserStatusResponse.id);
+      expect(store.getters["auth/role"]).toEqual(getUserStatusResponse.role);
+      expect(store.getters["auth/mfaStatus"]).toEqual(getUserStatusResponse.mfa);
+    });
   });
 
-  it("Test generateMfa action", async () => {
-    // Mock the API call for generating MFA
-    const generateMfaResponse = {
-      secret: "secret-mfa",
-      link: "link-mfa",
-      codes: [
-        "HW2wlxV40B",
-        "2xsmMUHHHb",
-        "DTQgVsaVac",
-        "KXPBoXvuWD",
-        "QQYTPfotBi",
-        "XWiKBEPyb4",
-      ],
-    };
-
-    const reqSpy = vi.spyOn(store, "dispatch");
-
-    mock.onGet("http://localhost:3000/api/mfa/generate").reply(200, generateMfaResponse);
-
-    // Trigger the generateMfa action
-    await store.dispatch("auth/generateMfa");
-
-    expect(reqSpy).toHaveBeenCalledWith("auth/generateMfa");
-
-    // Check if the state has been updated correctly
-    expect(store.getters["auth/link_mfa"]).toEqual(generateMfaResponse.link);
-    expect(store.getters["auth/secret"]).toEqual(generateMfaResponse.secret);
-    expect(store.getters["auth/recoveryCodes"]).toEqual(generateMfaResponse.codes);
-  });
-
-  it("Test getUserStatus action", async () => {
-    // Mock the API call for getting MFA status
-    const getUserStatusResponse = {
-      mfa: true,
-      token: "token",
-      id: "userId",
-      user: "username",
-      name: "testname",
-      email: "test@test.com",
-      tenant: "fake-tenant",
-      role: "administrator",
-    };
-
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, getUserStatusResponse);
-
-    const reqSpy = vi.spyOn(store, "dispatch");
-
-    // Trigger the getMfaStatus action
-    await store.dispatch("auth/getUserInfo");
-
-    expect(reqSpy).toHaveBeenCalledWith("auth/getUserInfo");
-
-    // Check if the state has been updated correctly
-    expect(store.getters["auth/stateToken"]).toEqual(getUserStatusResponse.token);
-    expect(store.getters["auth/currentUser"]).toEqual(getUserStatusResponse.user);
-    expect(store.getters["auth/currentName"]).toEqual(getUserStatusResponse.name);
-    expect(store.getters["auth/tenant"]).toEqual(getUserStatusResponse.tenant);
-    expect(store.getters["auth/email"]).toEqual(getUserStatusResponse.email);
-    expect(store.getters["auth/id"]).toEqual(getUserStatusResponse.id);
-    expect(store.getters["auth/role"]).toEqual(getUserStatusResponse.role);
-    expect(store.getters["auth/mfaStatus"]).toEqual(getUserStatusResponse.mfa);
-  });
-
-  it("Test GenerateApiKey action", async () => {
-    // Mock the API call for GenerateApiKey
-    const generateApiResponse = {
-      key: "fake-api-key",
-    };
-    const generateApiData = {
-      tenant: "fake-tenant",
-      name: "my api key",
-      expires_at: 30,
-    };
-
-    const reqSpy = vi.spyOn(store, "dispatch");
-
-    mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, generateApiResponse);
-
-    // Trigger the GenerateApiKey action
-    await store.dispatch("auth/generateApiKey", generateApiData);
-    await flushPromises();
-
-    expect(reqSpy).toHaveBeenCalledWith("auth/generateApiKey", generateApiData);
-    // Check if the state has been updated correctly
-    expect(store.getters["auth/apiKey"]).toEqual(generateApiResponse);
-  });
-
-  it("Test Get Api Keys action", async () => {
-    // Mock the API call for getApiKey
-    const getApiResponse = [
-      {
-        id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
-        tenant_id: "fake-tenant",
-        user_id: "507f1f77bcf86cd799439011",
+  describe("API Key Actions", () => {
+    it("should generate API key", async () => {
+      const generateApiResponse = { key: "fake-api-key" };
+      const generateApiData = {
+        tenant: "fake-tenant",
         name: "my api key",
-        expires_in: 1707958989,
-      },
-    ];
+        expires_at: 30,
+      };
 
-    const getApiData = {
-      tenant: "fake-tenant",
-    };
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
-    const reqSpy = vi.spyOn(store, "dispatch");
+      mockApiKeys.onPost("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, generateApiResponse);
 
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getApiResponse, { "x-total-count": 1 });
+      await store.dispatch("auth/generateApiKey", generateApiData);
+      await flushPromises();
 
-    // Trigger the getApiKey action
-    await store.dispatch("auth/getApiKey", getApiData);
-    await flushPromises();
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/generateApiKey", generateApiData);
+      expect(store.getters["auth/apiKey"]).toEqual(generateApiResponse);
+    });
 
-    expect(reqSpy).toHaveBeenCalledWith("auth/getApiKey", getApiData);
-    // Check if the state has been updated correctly
-    expect(store.getters["auth/apiKeyList"]).toEqual(getApiResponse);
-    expect(store.getters["auth/getNumberApiKeys"]).toEqual(1);
-  });
+    it("should get API keys", async () => {
+      const getApiResponse = [
+        {
+          id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
+          tenant_id: "fake-tenant",
+          user_id: "507f1f77bcf86cd799439011",
+          name: "my api key",
+          expires_in: 1707958989,
+        },
+      ];
 
-  it("Test editApiKey action", async () => {
-    // Mock the API call for editApiKey
-    const editApiResponse = {
-      id: "fake-api-key",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key 2",
-      expires_in: 1707958989,
-    };
+      const getApiData = { tenant: "fake-tenant" };
 
-    const editApiData = {
-      tenant: "fake-tenant",
-      id: "fake-api-key",
-      name: "my api key 2",
-    };
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
-    const reqSpy = vi.spyOn(store, "dispatch");
+      mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getApiResponse, { "x-total-count": 1 });
 
-    mockApiKeys.onPatch("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-api-key").reply(200, editApiResponse);
+      await store.dispatch("auth/getApiKey", getApiData);
+      await flushPromises();
 
-    // Trigger the editApiKey action
-    await store.dispatch("auth/editApiKey", editApiData);
-    await flushPromises();
-
-    expect(reqSpy).toHaveBeenCalledWith("auth/editApiKey", editApiData);
-  });
-
-  it("Test removeApiKey action", async () => {
-    // Mock the API call for removeApiKey
-    const removeApiData = {
-      tenant: "fake-tenant",
-      id: "fake-api-key",
-    };
-
-    const reqSpy = vi.spyOn(store, "dispatch");
-
-    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/fake-tenant/api-key/fake-api-key").reply(200);
-
-    // Trigger the editApiKey action
-    await store.dispatch("auth/removeApiKey", removeApiData);
-    await flushPromises();
-
-    expect(reqSpy).toHaveBeenCalledWith("auth/removeApiKey", removeApiData);
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/getApiKey", getApiData);
+      expect(store.getters["auth/apiKeyList"]).toEqual(getApiResponse);
+      expect(store.getters["auth/getNumberApiKeys"]).toEqual(1);
+    });
   });
 });

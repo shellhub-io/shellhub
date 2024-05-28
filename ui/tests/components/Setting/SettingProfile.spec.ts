@@ -49,6 +49,7 @@ describe("Settings Namespace", () => {
     name: "test",
     tenant: "fake-tenant-data",
     email: "test@test.com",
+    recovery_email: "test2@test.com",
     id: "xxxxxxxx",
     role: "owner",
     mfa: {
@@ -106,6 +107,7 @@ describe("Settings Namespace", () => {
     expect(wrapper.find('[data-test="name-text"]').exists());
     expect(wrapper.find('[data-test="username-text"]').exists());
     expect(wrapper.find('[data-test="email-text"]').exists());
+    expect(wrapper.find('[data-test="recovery-email-text"]').exists());
     expect(wrapper.find('[data-test="password-header"]').exists());
     expect(wrapper.find('[data-test="change-password-btn"]').exists());
     expect(wrapper.find('[data-test="cancel-password-btn"]').exists());
@@ -117,6 +119,7 @@ describe("Settings Namespace", () => {
 
   it("Successfully changes user data", async () => {
     const changeUserData = {
+      recovery_email: "test2@test.com",
       email: "test@test.com",
       name: "test",
       username: "test",
@@ -129,6 +132,7 @@ describe("Settings Namespace", () => {
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
     await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
+    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test2@test.com");
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="update-user-btn"]').trigger("click");
@@ -167,6 +171,7 @@ describe("Settings Namespace", () => {
 
   it("Fails changes user data", async () => {
     const changeUserData = {
+      recovery_email: "test2@test.com",
       email: "test@test.com",
       name: "test",
       username: "test",
@@ -180,6 +185,9 @@ describe("Settings Namespace", () => {
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
     await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
+    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test2@test.com");
+    await flushPromises();
+
     await wrapper.findComponent('[data-test="update-user-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
