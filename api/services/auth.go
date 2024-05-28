@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,15 +29,16 @@ type AuthService interface {
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
 
-	// AuthUser is responsible for authenticating a user and returning its credentials. It can block a sourceIP
-	// from logging in a user for up to M minutes when exceeding the attempts limit.
-	AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, error)
+	// AuthUser attempts to authenticate a user using the provided credentials. If a user makes N mistakes, they
+	// may be blocked from future attempts. In such cases, it returns the timestamp when the block ends. Users
+	// with MFA enabled are also blocked from authenticating because this is a cloud-only feature. In these cases,
+	// it returns an MFA token string that must be used with the OTP code to authenticate the user.
+	AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 
-	AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error)
+	AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
 	AuthUserInfo(ctx context.Context, username, tenant, token string) (*models.UserAuthResponse, error)
-	AuthMFA(ctx context.Context, id string) (bool, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -150,7 +152,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, error) {
+func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
 	var err error
 	var user *models.User
 
@@ -161,11 +163,11 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	if err != nil {
-		return nil, 0, NewErrAuthUnathorized(nil)
+		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
 	if !user.Confirmed {
-		return nil, 0, NewErrUserNotConfirmed(nil)
+		return nil, 0, "", NewErrUserNotConfirmed(nil)
 	}
 
 	// Checks whether the user is currently blocked from new login attempts
@@ -179,7 +181,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 			}).
 			Warn("attempt to login blocked")
 
-		return nil, lockout, NewErrAuthUnathorized(nil)
+		return nil, lockout, "", NewErrAuthUnathorized(nil)
 	}
 
 	if !user.Password.Compare(req.Password) {
@@ -191,7 +193,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 				Warn("unable to store login attempt")
 		}
 
-		return nil, lockout, NewErrAuthUnathorized(nil)
+		return nil, lockout, "", NewErrAuthUnathorized(nil)
 	}
 
 	// Reset the attempt and timeout values when succeeds
@@ -202,18 +204,23 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 			Warn("unable to reset authentication attempts")
 	}
 
-	hasMFA, err := s.AuthMFA(ctx, user.ID)
-	if err != nil {
-		return nil, 0, err // TODO: handle this error
+	// Users with MFA enabled must authenticate to the cloud instead of community.
+	if user.MFA.Enabled {
+		mfaToken := uuid.Generate()
+		if err := s.cache.Set(ctx, "mfa-token={"+mfaToken+"}", user.ID, 30*time.Minute); err != nil {
+			log.WithError(err).
+				WithField("source_ip", sourceIP).
+				WithField("user_id", user.ID).
+				Warn("unable to store mfa-token")
+		}
+
+		return nil, 0, mfaToken, nil
 	}
 
 	claims := &models.UserAuthClaims{
 		ID:       user.ID,
 		Username: user.Username,
-		MFA: models.MFA{
-			Enable:   hasMFA,
-			Validate: false,
-		},
+		MFA:      user.MFA.Enabled,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
@@ -229,7 +236,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 
 	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
 	if err != nil {
-		return nil, 0, NewErrTokenSigned(err)
+		return nil, 0, "", NewErrTokenSigned(err)
 	}
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
@@ -241,7 +248,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
-		return nil, 0, NewErrUserUpdate(user, err)
+		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
 	if err := s.AuthCacheToken(ctx, claims.Tenant, user.ID, jwtToken); err != nil {
@@ -250,23 +257,22 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 			Warn("unable to cache the authentication token")
 	}
 
-	return &models.UserAuthResponse{
-		Token:         jwtToken,
-		Name:          user.Name,
+	res := &models.UserAuthResponse{
 		ID:            user.ID,
 		User:          user.Username,
-		Tenant:        claims.Tenant,
-		Role:          claims.Role,
+		Name:          user.Name,
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
-		MFA: models.MFA{
-			Enable:   hasMFA,
-			Validate: false,
-		},
-	}, 0, nil
+		MFA:           user.MFA.Enabled,
+		Tenant:        claims.Tenant,
+		Role:          claims.Role,
+		Token:         jwtToken,
+	}
+
+	return res, 0, "", nil
 }
 
-func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error) {
+func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if err != nil {
 		return nil, NewErrUserNotFound(id, err)
@@ -283,21 +289,13 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 		}
 	}
 
-	status, err := s.AuthMFA(ctx, user.ID)
-	if err != nil {
-		return nil, NewErrUserNotFound(id, err)
-	}
-
 	claims := &models.UserAuthClaims{
 		ID:       user.ID,
 		Tenant:   tenant,
 		Role:     role,
 		Admin:    true,
 		Username: user.Username,
-		MFA: models.MFA{
-			Enable:   status,
-			Validate: mfa,
-		},
+		MFA:      user.MFA.Enabled,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
@@ -315,18 +313,15 @@ func (s *service) AuthGetToken(ctx context.Context, id string, mfa bool) (*model
 	s.AuthCacheToken(ctx, tenant, user.ID, jwtToken) // nolint: errcheck
 
 	return &models.UserAuthResponse{
-		Token:         jwtToken,
-		Name:          user.Name,
 		ID:            user.ID,
 		User:          user.Username,
-		Tenant:        tenant,
-		Role:          role,
+		Name:          user.Name,
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
-		MFA: models.MFA{
-			Enable:   status,
-			Validate: mfa,
-		},
+		MFA:           user.MFA.Enabled,
+		Tenant:        tenant,
+		Role:          role,
+		Token:         jwtToken,
 	}, nil
 }
 
@@ -376,6 +371,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				Role:     member.Role,
 				Admin:    true,
 				Username: user.Username,
+				MFA:      user.MFA.Enabled,
 				AuthClaims: models.AuthClaims{
 					Claims: "user",
 				},
@@ -393,14 +389,15 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 			s.AuthCacheToken(ctx, tenant, user.ID, jwtToken) // nolint: errcheck
 
 			return &models.UserAuthResponse{
-				Token:         jwtToken,
-				Name:          user.Name,
 				ID:            user.ID,
 				User:          user.Username,
-				Role:          member.Role,
-				Tenant:        namespace.TenantID,
+				Name:          user.Name,
 				Email:         user.Email,
 				RecoveryEmail: user.RecoveryEmail,
+				MFA:           user.MFA.Enabled,
+				Tenant:        tenant,
+				Role:          member.Role,
+				Token:         jwtToken,
 			}, nil
 		}
 	}
@@ -425,23 +422,16 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 
 	token = strings.Replace(token, "Bearer ", "", 1)
 
-	status, err := s.AuthMFA(ctx, user.ID)
-	if err != nil {
-		return nil, NewErrUserNotFound(user.ID, err)
-	}
-
 	return &models.UserAuthResponse{
-		Token:         token,
-		Name:          user.Name,
-		User:          user.Username,
-		Tenant:        tenant,
-		Role:          role,
 		ID:            user.ID,
+		User:          user.Username,
+		Name:          user.Name,
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
-		MFA: models.MFA{
-			Enable: status,
-		},
+		MFA:           user.MFA.Enabled,
+		Tenant:        tenant,
+		Role:          role,
+		Token:         token,
 	}, nil
 }
 
@@ -482,8 +472,4 @@ func (s *service) AuthIsCacheToken(ctx context.Context, tenant, id string) (bool
 // AuthUncacheToken returns an erro when it could not uncache the token.
 func (s *service) AuthUncacheToken(ctx context.Context, tenant, id string) error {
 	return s.cache.Delete(ctx, "token_"+tenant+id)
-}
-
-func (s *service) AuthMFA(ctx context.Context, id string) (bool, error) {
-	return s.store.GetStatusMFA(ctx, id)
 }
