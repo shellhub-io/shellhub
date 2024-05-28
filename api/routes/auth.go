@@ -65,16 +65,9 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			return svc.ErrTypeAssertion
 		}
 
-		MFA, err := h.service.AuthMFA(c.Ctx(), token.UserID)
-		if err != nil {
-			return err
-		}
-
 		c.Response().Header().Set("X-Tenant-ID", token.TenantID)
 		c.Response().Header().Set("X-ID", token.UserID)
 		c.Response().Header().Set("X-Role", token.Role)
-		c.Response().Header().Set("X-MFA", strconv.FormatBool(MFA))
-		c.Response().Header().Set("X-Validate-MFA", strconv.FormatBool(MFA))
 		c.Response().Header().Set("X-API-KEY", apiKey)
 
 		return c.NoContent(http.StatusOK)
@@ -131,32 +124,11 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			}
 		}
 
-		MFA, err := h.service.AuthMFA(c.Ctx(), claims.ID)
-		if err != nil {
-			return err
-		}
-
-		if MFA {
-			if claims.MFA.Enable != MFA {
-				return svc.NewErrAuthUnathorized(errors.New("this token doesn't match the user MFA status"))
-			}
-
-			// NOTICE: when [args] is "skip", it means that route may be accessed by a unvalidated token, even when MFA
-			// on user is enable. It is used by the route that validate the OTP from the user's OTP APP, avoiding extra
-			// logic in a middleware apart. When that is true, only the user's ID and username are send to the next
-			// route; other values are set for its default value.
-			if args != "skip" && !claims.MFA.Validate {
-				return svc.NewErrAuthUnathorized(errors.New("this token isn't validated"))
-			}
-		}
-
 		// Extract datas of user from JWT
 		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
 		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-ID", claims.ID)
 		c.Response().Header().Set("X-Role", claims.Role)
-		c.Response().Header().Set("X-MFA", strconv.FormatBool(claims.MFA.Enable))
-		c.Response().Header().Set("X-Validate-MFA", strconv.FormatBool(claims.MFA.Validate))
 
 		return c.NoContent(http.StatusOK)
 	case AuthRequestDeviceToken:
@@ -207,11 +179,16 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 		return err
 	}
 
-	res, timeout, err := h.service.AuthUser(c.Ctx(), req, c.RealIP())
-	c.Response().Header().Set("X-Account-Lockout", strconv.FormatInt(timeout, 10))
+	res, lockout, mfaToken, err := h.service.AuthUser(c.Ctx(), req, c.RealIP())
+	c.Response().Header().Set("X-Account-Lockout", strconv.FormatInt(lockout, 10))
+	c.Response().Header().Set("X-MFA-Token", mfaToken)
 
-	if timeout > 0 {
+	if lockout > 0 {
 		return c.NoContent(http.StatusTooManyRequests)
+	}
+
+	if mfaToken != "" {
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	if err != nil {
@@ -250,7 +227,7 @@ func (h *Handler) AuthGetToken(c gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthGetToken(c.Ctx(), req.ID, req.MFA)
+	res, err := h.service.AuthGetToken(c.Ctx(), req.ID)
 	if err != nil {
 		return err
 	}

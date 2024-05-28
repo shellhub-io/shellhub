@@ -22,6 +22,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
 	testifymock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -112,9 +114,10 @@ func TestAuthUser(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
-		res     *models.UserAuthResponse
-		lockout int64
-		err     error
+		res      *models.UserAuthResponse
+		lockout  int64
+		mfaToken string
+		err      error
 	}
 
 	tests := []struct {
@@ -138,9 +141,10 @@ func TestAuthUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				res:     nil,
-				lockout: 0,
-				err:     NewErrAuthUnathorized(nil),
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -157,9 +161,10 @@ func TestAuthUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				res:     nil,
-				lockout: 0,
-				err:     NewErrAuthUnathorized(nil),
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -174,6 +179,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: false,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -186,9 +194,10 @@ func TestAuthUser(t *testing.T) {
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 			},
 			expected: Expected{
-				res:     nil,
-				lockout: 0,
-				err:     NewErrUserNotConfirmed(nil),
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrUserNotConfirmed(nil),
 			},
 		},
 		{
@@ -203,6 +212,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -222,9 +234,10 @@ func TestAuthUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				res:     nil,
-				lockout: 1711510689,
-				err:     NewErrAuthUnathorized(nil),
+				res:      nil,
+				lockout:  1711510689,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
 			},
 		},
 		{
@@ -239,6 +252,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -266,13 +282,14 @@ func TestAuthUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				res:     nil,
-				lockout: 1711510689,
-				err:     NewErrAuthUnathorized(nil),
+				res:      nil,
+				lockout:  1711510689,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
 			},
 		},
 		{
-			description: "fails when can not retrieve MFA status",
+			description: "fails when user has MFA enable",
 			sourceIP:    "127.0.0.1",
 			req: &requests.UserAuth{
 				Identifier: "john_doe",
@@ -283,6 +300,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: true,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -308,15 +328,21 @@ func TestAuthUser(t *testing.T) {
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
 					Once()
-				mock.
-					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(false, errors.New("error", "", 0)).
+				uuidMock := &uuidmock.Uuid{}
+				uuid.DefaultBackend = uuidMock
+				uuidMock.
+					On("Generate").
+					Return("00000000-0000-4000-0000-000000000000")
+				cacheMock.
+					On("Set", ctx, "mfa-token={00000000-0000-4000-0000-000000000000}", "65fdd16b5f62f93184ec8a39", 30*time.Minute).
+					Return(nil).
 					Once()
 			},
 			expected: Expected{
-				res:     nil,
-				lockout: 0,
-				err:     errors.New("error", "", 0),
+				res:      nil,
+				lockout:  0,
+				mfaToken: "00000000-0000-4000-0000-000000000000",
+				err:      nil,
 			},
 		},
 		{
@@ -331,6 +357,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -355,10 +384,6 @@ func TestAuthUser(t *testing.T) {
 				cacheMock.
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
-					Once()
-				mock.
-					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(true, nil).
 					Once()
 				mock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
@@ -375,7 +400,9 @@ func TestAuthUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				res: nil,
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
 				err: NewErrUserUpdate(&models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
@@ -391,84 +418,6 @@ func TestAuthUser(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds to authenticate with MFA",
-			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
-				Identifier: "john_doe",
-				Password:   "secret",
-			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
-					LastLogin: now,
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-				}
-
-				mock.
-					On("UserGetByUsername", ctx, "john_doe").
-					Return(user, nil).
-					Once()
-				cacheMock.
-					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
-					Return(int64(0), 0, nil).
-					Once()
-				hashMock.
-					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
-					Return(true).
-					Once()
-				cacheMock.
-					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
-					Return(nil).
-					Once()
-				mock.
-					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(true, nil).
-					Once()
-				mock.
-					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(nil, nil).
-					Once()
-
-				clockMock := new(clockmock.Clock)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
-
-				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
-					Return(nil).
-					Once()
-				cacheMock.
-					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
-					Return(nil).
-					Once()
-			},
-			expected: Expected{
-				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Role:   "",
-					Token:  "must ignore",
-					MFA: models.MFA{
-						Enable:   true,
-						Validate: false,
-					},
-				},
-				lockout: 0,
-				err:     nil,
-			},
-		},
-		{
 			description: "succeeds to authenticate without a namespace",
 			sourceIP:    "127.0.0.1",
 			req: &requests.UserAuth{
@@ -480,6 +429,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -505,10 +457,6 @@ func TestAuthUser(t *testing.T) {
 				cacheMock.
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
-					Once()
-				mock.
-					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(false, nil).
 					Once()
 				mock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
@@ -537,13 +485,10 @@ func TestAuthUser(t *testing.T) {
 					Tenant: "",
 					Role:   "",
 					Token:  "must ignore",
-					MFA: models.MFA{
-						Enable:   false,
-						Validate: false,
-					},
 				},
-				lockout: 0,
-				err:     nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      nil,
 			},
 		},
 		{
@@ -558,6 +503,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -583,10 +531,6 @@ func TestAuthUser(t *testing.T) {
 				cacheMock.
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
-					Once()
-				mock.
-					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(false, nil).
 					Once()
 
 				ns := &models.Namespace{
@@ -626,13 +570,10 @@ func TestAuthUser(t *testing.T) {
 					Tenant: "00000000-0000-4000-0000-000000000000",
 					Role:   "owner",
 					Token:  "must ignore",
-					MFA: models.MFA{
-						Enable:   false,
-						Validate: false,
-					},
 				},
-				lockout: 0,
-				err:     nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      nil,
 			},
 		},
 		{
@@ -647,6 +588,9 @@ func TestAuthUser(t *testing.T) {
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Confirmed: true,
 					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
 					UserData: models.UserData{
 						Username: "john_doe",
 						Email:    "john.doe@test.com",
@@ -673,11 +617,6 @@ func TestAuthUser(t *testing.T) {
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
 					Once()
-				mock.
-					On("GetStatusMFA", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(false, nil).
-					Once()
-
 				mock.
 					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, nil).
@@ -713,13 +652,10 @@ func TestAuthUser(t *testing.T) {
 					Tenant: "",
 					Role:   "",
 					Token:  "must ignore",
-					MFA: models.MFA{
-						Enable:   false,
-						Validate: false,
-					},
 				},
-				lockout: 0,
-				err:     nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      nil,
 			},
 		},
 	}
@@ -733,14 +669,14 @@ func TestAuthUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			res, lockout, err := service.AuthUser(ctx, tc.req, tc.sourceIP)
+			res, lockout, mfaToken, err := service.AuthUser(ctx, tc.req, tc.sourceIP)
 			// Since the resulting token is not crucial for the assertion and
 			// difficult to mock, it is safe to ignore this field.
 			if res != nil {
 				res.Token = "must ignore"
 			}
 
-			assert.Equal(t, tc.expected, Expected{res, lockout, err})
+			assert.Equal(t, tc.expected, Expected{res, lockout, mfaToken, err})
 		})
 	}
 
@@ -800,7 +736,6 @@ func TestAuthUserInfo(t *testing.T) {
 					ID: "id",
 				}, nil).Once()
 				mock.On("NamespaceGet", ctx, "xxxxxx", false).Return(namespace, nil).Once()
-				mock.On("GetStatusMFA", ctx, "id").Return(false, nil).Once()
 			},
 			expected: Expected{
 				userAuthResponse: &models.UserAuthResponse{
@@ -877,7 +812,6 @@ func TestAuthGetToken(t *testing.T) {
 					ID: "id",
 				}, 1, nil).Once()
 				mock.On("NamespaceGetFirst", ctx, "id").Return(namespace, nil).Once()
-				mock.On("GetStatusMFA", ctx, "id").Return(false, nil).Once()
 
 				clockMock.On("Now").Return(now).Twice()
 			},
@@ -898,7 +832,7 @@ func TestAuthGetToken(t *testing.T) {
 
 			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
 
-			authRes, err := service.AuthGetToken(ctx, tc.userID, false)
+			authRes, err := service.AuthGetToken(ctx, tc.userID)
 			assert.NotNil(t, authRes)
 			assert.Equal(t, tc.expected.err, err)
 

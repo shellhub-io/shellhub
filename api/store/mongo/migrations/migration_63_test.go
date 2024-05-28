@@ -37,16 +37,16 @@ func TestMigration63(t *testing.T) {
 	var migratedUser *models.User
 	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
 	assert.NoError(t, err)
-	assert.False(t, migratedUser.MFA)
-	assert.Equal(t, "", migratedUser.Secret)
-	assert.Empty(t, migratedUser.Codes)
+	assert.False(t, migratedUser.MFA.Enabled)
+	assert.Equal(t, "", migratedUser.MFA.Secret)
+	assert.Empty(t, migratedUser.MFA.RecoveryCodes)
 
 	err = migrates.Down(context.Background(), migrate.AllAvailable)
 	assert.NoError(t, err)
 
 	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": user.Name}).Decode(&migratedUser)
 	assert.NoError(t, err)
-	assert.False(t, migratedUser.MFA)
-	assert.Equal(t, "", migratedUser.Secret)
-	assert.Empty(t, migratedUser.Codes)
+	assert.False(t, migratedUser.MFA.Enabled)
+	assert.Equal(t, "", migratedUser.MFA.Secret)
+	assert.Empty(t, migratedUser.MFA.RecoveryCodes)
 }

@@ -48,9 +48,9 @@ func TestAuthGetToken(t *testing.T) {
 		},
 		{
 			title: "success when trying to get a token",
-			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}, MFA: false},
+			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}},
 			requiredMocks: func() {
-				mock.On("AuthGetToken", gomock.Anything, "id", false).Return(&models.UserAuthResponse{}, nil).Once()
+				mock.On("AuthGetToken", gomock.Anything, "id").Return(&models.UserAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedSession: &models.UserAuthResponse{},
@@ -217,8 +217,9 @@ func TestAuthUser(t *testing.T) {
 	mock := new(mocks.Service)
 
 	type Expected struct {
-		body   *models.UserAuthResponse
-		status int
+		body    *models.UserAuthResponse
+		headers map[string]string
+		status  int
 	}
 
 	cases := []struct {
@@ -235,8 +236,9 @@ func TestAuthUser(t *testing.T) {
 			},
 			mocks: func() {},
 			expected: Expected{
-				body:   nil,
-				status: http.StatusBadRequest,
+				body:    nil,
+				headers: map[string]string{},
+				status:  http.StatusBadRequest,
 			},
 		},
 		{
@@ -247,8 +249,9 @@ func TestAuthUser(t *testing.T) {
 			},
 			mocks: func() {},
 			expected: Expected{
-				body:   nil,
-				status: http.StatusBadRequest,
+				body:    nil,
+				headers: map[string]string{},
+				status:  http.StatusBadRequest,
 			},
 		},
 		{
@@ -263,12 +266,13 @@ func TestAuthUser(t *testing.T) {
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
-					Return(nil, int64(0), svc.ErrUserNotFound).
+					Return(nil, int64(0), "", svc.ErrUserNotFound).
 					Once()
 			},
 			expected: Expected{
-				body:   nil,
-				status: http.StatusUnauthorized,
+				body:    nil,
+				headers: map[string]string{},
+				status:  http.StatusUnauthorized,
 			},
 		},
 		{
@@ -283,11 +287,15 @@ func TestAuthUser(t *testing.T) {
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
-					Return(nil, int64(0), svc.ErrAuthUnathorized).
+					Return(nil, int64(0), "", svc.ErrAuthUnathorized).
 					Once()
 			},
 			expected: Expected{
-				body:   nil,
+				body: nil,
+				headers: map[string]string{
+					"X-Account-Lockout": "0",
+					"X-MFA-Token":       "",
+				},
 				status: http.StatusUnauthorized,
 			},
 		},
@@ -303,12 +311,40 @@ func TestAuthUser(t *testing.T) {
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
-					Return(nil, int64(1711176851), svc.ErrAuthUnathorized).
+					Return(nil, int64(1711176851), "", svc.ErrAuthUnathorized).
 					Once()
 			},
 			expected: Expected{
-				body:   nil,
+				body: nil,
+				headers: map[string]string{
+					"X-Account-Lockout": "1711176851",
+					"X-MFA-Token":       "",
+				},
 				status: http.StatusTooManyRequests,
+			},
+		},
+		{
+			description: "fails when mfa is enable",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			mocks: func() {
+				mock.
+					On("AuthUser", gomock.Anything, &requests.UserAuth{
+						Identifier: "john_doe",
+						Password:   "wrong_password",
+					}, gomock.Anything).
+					Return(nil, int64(0), "00000000-0000-4000-0000-000000000000", svc.ErrAuthUnathorized).
+					Once()
+			},
+			expected: Expected{
+				body: nil,
+				headers: map[string]string{
+					"X-Account-Lockout": "0",
+					"X-MFA-Token":       "00000000-0000-4000-0000-000000000000",
+				},
+				status: http.StatusUnauthorized,
 			},
 		},
 		{
@@ -331,11 +367,7 @@ func TestAuthUser(t *testing.T) {
 						Tenant: "00000000-0000-4000-0000-000000000000",
 						Role:   "owner",
 						Token:  "not-empty",
-						MFA: models.MFA{
-							Enable:   false,
-							Validate: false,
-						},
-					}, int64(0), nil).
+					}, int64(0), "", nil).
 					Once()
 			},
 			expected: Expected{
@@ -347,10 +379,10 @@ func TestAuthUser(t *testing.T) {
 					Tenant: "00000000-0000-4000-0000-000000000000",
 					Role:   "owner",
 					Token:  "not-empty",
-					MFA: models.MFA{
-						Enable:   false,
-						Validate: false,
-					},
+				},
+				headers: map[string]string{
+					"X-Account-Lockout": "0",
+					"X-MFA-Token":       "",
 				},
 				status: http.StatusOK,
 			},
@@ -373,7 +405,6 @@ func TestAuthUser(t *testing.T) {
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			status := rec.Result().StatusCode
 			var body *models.UserAuthResponse
 
 			if tc.expected.body != nil {
@@ -382,7 +413,11 @@ func TestAuthUser(t *testing.T) {
 				}
 			}
 
-			assert.Equal(t, tc.expected, Expected{body, status})
+			assert.Equal(t, tc.expected.body, body)
+			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
+			for k, v := range tc.expected.headers {
+				assert.Equal(t, v, rec.Result().Header.Get(k))
+			}
 		})
 	}
 }

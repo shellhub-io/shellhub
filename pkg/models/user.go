@@ -18,21 +18,34 @@ type User struct {
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
-	MFA            bool      `json:"status_mfa" bson:"status_mfa"`
-	Secret         string    `json:"secret" bson:"secret"`
-	Codes          []string  `json:"codes" bson:"codes"`
 	UserData       `bson:",inline"`
-	Password       UserPassword `bson:",inline"`
+	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
+	// check if MFA is active for the user.
+	//
+	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
+	MFA      UserMFA      `json:"mfa" bson:"mfa"`
+	Password UserPassword `bson:",inline"`
 }
 
 type UserData struct {
 	Name     string `json:"name" validate:"required,name"`
 	Username string `json:"username" bson:",omitempty" validate:"required,username"`
 	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
-
 	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
 	// when they lose access to all other methods. It must never be equal to [UserData.Email].
+	//
+	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
 	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
+}
+
+// UserMFA represents the attributes related to MFA for a user.
+type UserMFA struct {
+	// Enabled reports whether MFA is enabled for the user.
+	Enabled bool `json:"enabled" bson:"enabled"`
+	// Secret is the key used for authenticating with the OTP server.
+	Secret string `json:"-" bson:"secret"`
+	// RecoveryCodes are recovery tokens that the user can use to regain account access if they lose their MFA device.
+	RecoveryCodes []string `json:"-" bson:"recovery_codes"`
 }
 
 type UserPassword struct {
@@ -85,17 +98,17 @@ type UserAuthResponse struct {
 	Role          string `json:"role"`
 	Email         string `json:"email"`
 	RecoveryEmail string `json:"recovery_email"`
-	MFA           MFA    `json:"mfa" bson:"mfa"`
+	MFA           bool   `json:"mfa"`
 }
 
 type UserAuthClaims struct {
-	Username             string `json:"name"`
-	Admin                bool   `json:"admin"`
-	Tenant               string `json:"tenant"`
 	ID                   string `json:"id"`
+	Admin                bool   `json:"admin"` // FIXME: deprecated, remove it.
+	Tenant               string `json:"tenant"`
 	Role                 string `json:"role"`
+	Username             string `json:"name"`
+	MFA                  bool   `json:"mfa"`
 	AuthClaims           `mapstruct:",squash"`
-	MFA                  MFA `json:"mfa"`
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }
 

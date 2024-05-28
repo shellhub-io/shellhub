@@ -14,6 +14,5 @@ type Store interface {
 	PrivateKeyStore
 	LicenseStore
 	StatsStore
-	MFAStore
 	APIKeyStore
 }

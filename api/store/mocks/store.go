@@ -1015,34 +1015,6 @@ func (_m *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	return r0, r1
 }
 
-// GetStatusMFA provides a mock function with given fields: ctx, id
-func (_m *Store) GetStatusMFA(ctx context.Context, id string) (bool, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetStatusMFA")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // LicenseLoad provides a mock function with given fields: ctx
 func (_m *Store) LicenseLoad(ctx context.Context) (*models.License, error) {
 	ret := _m.Called(ctx)

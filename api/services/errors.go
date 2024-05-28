@@ -126,6 +126,7 @@ var (
 	ErrSameTags                     = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
 	ErrAPIKeyNotFound               = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated             = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrAuthForbidden                = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 )
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
@@ -454,4 +455,8 @@ func NewErrBillingEvaluate(next error) error {
 
 func NewErrDeviceMaxDevicesReached(count int) error {
 	return NewErrLimit(ErrMaxDeviceCountReached, count, nil)
+}
+
+func NewErrAuthForbidden() error {
+	return NewErrForbidden(ErrAuthForbidden, nil)
 }

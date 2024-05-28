@@ -122,9 +122,9 @@ func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remo
 	return r0, r1
 }
 
-// AuthGetToken provides a mock function with given fields: ctx, id, mfa
-func (_m *Service) AuthGetToken(ctx context.Context, id string, mfa bool) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, id, mfa)
+// AuthGetToken provides a mock function with given fields: ctx, id
+func (_m *Service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthGetToken")
@@ -132,19 +132,19 @@ func (_m *Service) AuthGetToken(ctx context.Context, id string, mfa bool) (*mode
 
 	var r0 *models.UserAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, id, mfa)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, id, mfa)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
-		r1 = rf(ctx, id, mfa)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -173,34 +173,6 @@ func (_m *Service) AuthIsCacheToken(ctx context.Context, tenant string, id strin
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, tenant, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// AuthMFA provides a mock function with given fields: ctx, id
-func (_m *Service) AuthMFA(ctx context.Context, id string) (bool, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AuthMFA")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -287,7 +259,7 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 }
 
 // AuthUser provides a mock function with given fields: ctx, req, sourceIP
-func (_m *Service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, error) {
+func (_m *Service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
 	ret := _m.Called(ctx, req, sourceIP)
 
 	if len(ret) == 0 {
@@ -296,8 +268,9 @@ func (_m *Service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceI
 
 	var r0 *models.UserAuthResponse
 	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.UserAuth, string) (*models.UserAuthResponse, int64, error)); ok {
+	var r2 string
+	var r3 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.UserAuth, string) (*models.UserAuthResponse, int64, string, error)); ok {
 		return rf(ctx, req, sourceIP)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, *requests.UserAuth, string) *models.UserAuthResponse); ok {
@@ -314,13 +287,19 @@ func (_m *Service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceI
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *requests.UserAuth, string) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.UserAuth, string) string); ok {
 		r2 = rf(ctx, req, sourceIP)
 	} else {
-		r2 = ret.Error(2)
+		r2 = ret.Get(2).(string)
 	}
 
-	return r0, r1, r2
+	if rf, ok := ret.Get(3).(func(context.Context, *requests.UserAuth, string) error); ok {
+		r3 = rf(ctx, req, sourceIP)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
 }
 
 // AuthUserInfo provides a mock function with given fields: ctx, username, tenant, token
