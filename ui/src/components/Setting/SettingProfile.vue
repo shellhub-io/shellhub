@@ -59,6 +59,16 @@
             variant="underlined"
             data-test="email-text"
           />
+
+          <v-text-field
+            v-model="recoveryEmail"
+            label="Recovery Email"
+            :error-messages="recoveryEmailError"
+            :disabled="!editDataStatus"
+            required
+            variant="underlined"
+            data-test="recovery-email-text"
+          />
         </div>
 
         <v-divider class="mt-6" />
@@ -234,6 +244,7 @@ const dialog = ref(false);
 const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
 const isEnterprise = computed(() => envVariables.isEnterprise);
 const showCongratulations = computed(() => store.getters["auth/showCongratulationsModal"]);
+
 watch(mfaEnabled, () => {
   if (showCongratulations.value === true) {
     dialog.value = true;
@@ -285,6 +296,26 @@ const {
 });
 
 const {
+  value: recoveryEmail,
+  errorMessage: recoveryEmailError,
+  setErrors: setRecoveryEmailError,
+} = useField<string>(
+  "recoveryEmail",
+  yup
+    .string()
+    .email()
+    .required()
+    .test(
+      "not-same-as-email",
+      "Recovery email must not be the same as email",
+      (value) => value !== email.value,
+    ),
+  {
+    initialValue: "",
+  },
+);
+
+const {
   value: currentPassword,
   errorMessage: currentPasswordError,
   resetField: resetCurrentPassword,
@@ -333,6 +364,7 @@ const setUserData = () => {
   name.value = store.getters["auth/currentName"];
   username.value = store.getters["auth/currentUser"];
   email.value = store.getters["auth/email"];
+  recoveryEmail.value = store.getters["auth/recoveryEmail"];
 };
 
 onMounted(async () => {
@@ -357,6 +389,7 @@ const updateUserData = async () => {
       name: name.value,
       username: username.value,
       email: email.value,
+      recovery_email: recoveryEmail.value,
     };
 
     try {
@@ -376,6 +409,7 @@ const updateUserData = async () => {
             if (field === "username") setUsernameError("This username already exists");
             else if (field === "name") setNameError("This name already exists");
             else if (field === "email") setEmailError("This email already exists");
+            else if (field === "recovery_email") setRecoveryEmailError("This recovery email already exists");
           });
           break;
         case axiosError.response?.status === 400:
@@ -384,6 +418,7 @@ const updateUserData = async () => {
             if (field === "username") setUsernameError("This username is invalid !");
             else if (field === "name") setNameError("This name is invalid !");
             else if (field === "email") setEmailError("This email is invalid !");
+            else if (field === "recovery_email") setRecoveryEmailError("This recovery email is invalid !");
           });
           break;
         default:

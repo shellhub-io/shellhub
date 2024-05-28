@@ -150,6 +150,50 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
         </div>
+        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined\\" data-test=\\"recovery-email-text\\">
+          <!---->
+          <div class=\\"v-input__control\\">
+            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
+              <div class=\\"v-field__overlay\\"></div>
+              <div class=\\"v-field__loader\\">
+                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                  <!---->
+                  <div class=\\"v-progress-linear__background\\"></div>
+                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class=\\"v-progress-linear__indeterminate\\">
+                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-7\\">
+                  <!---->Recovery Email
+                </label>
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-7\\" aria-describedby=\\"input-7-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!---->
+              </div>
+              <!---->
+              <!---->
+              <div class=\\"v-field__outline\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-7\\">
+                  <!---->Recovery Email
+                </label>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <div class=\\"v-input__details\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-7-messages\\">
+              <!---->
+            </transition-group-stub>
+            <!---->
+          </div>
+        </div>
       </div>
       <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
       <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
@@ -188,16 +232,16 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-10\\">
                   <!---->Current password
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-10\\" aria-describedby=\\"input-10-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
               <!---->
               <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-8\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-10\\">
                   <!---->Current password
                 </label>
               </div>
@@ -207,7 +251,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-8-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-10-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -234,16 +278,16 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-10\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-12\\">
                   <!---->New password
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-10\\" aria-describedby=\\"input-10-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-12\\" aria-describedby=\\"input-12-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
               <!---->
               <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-10\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-12\\">
                   <!---->New password
                 </label>
               </div>
@@ -253,7 +297,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-10-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-12-messages\\">
               <!---->
             </transition-group-stub>
             <!---->
@@ -280,16 +324,16 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
               <!---->
               <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-12\\">
+                <!----><label class=\\"v-label v-field-label\\" for=\\"input-14\\">
                   <!---->Confirm new password
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-12\\" aria-describedby=\\"input-12-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-14\\" aria-describedby=\\"input-14-messages\\" required=\\"\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
               <!---->
               <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-12\\">
+                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-14\\">
                   <!---->Confirm new password
                 </label>
               </div>
@@ -299,7 +343,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
           <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-12-messages\\">
+            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-14-messages\\">
               <!---->
             </transition-group-stub>
             <!---->

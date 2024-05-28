@@ -7,6 +7,7 @@ export interface IUser {
   token: string;
   user: string;
   username: string;
+  recovery_email: string;
 }
 
 export interface IUserSignUp {

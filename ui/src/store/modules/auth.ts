@@ -13,6 +13,7 @@ export interface AuthState {
   email: string;
   id: string;
   role: string;
+  recovery_email: string,
   secret: string;
   link_mfa: string;
   mfa: {
@@ -42,6 +43,7 @@ export const auth: Module<AuthState, State> = {
     email: localStorage.getItem("email") || "",
     id: localStorage.getItem("id") || "",
     role: localStorage.getItem("role") || "",
+    recovery_email: "",
     secret: "",
     link_mfa: "",
     mfa: {
@@ -72,6 +74,7 @@ export const auth: Module<AuthState, State> = {
     id: (state) => state.id,
     role: (state) => state.role,
     secret: (state) => state.secret,
+    recoveryEmail: (state) => state.recovery_email,
     link_mfa: (state) => state.link_mfa,
     mfaStatus: (state) => state.mfa,
     isMfa: (state) => state.mfa.enable,
@@ -139,6 +142,7 @@ export const auth: Module<AuthState, State> = {
       state.name = data.name;
       state.user = data.username;
       state.email = data.email;
+      state.recovery_email = data.recovery_email;
     },
 
     mfaGenerateInfo(state, data) {
@@ -160,6 +164,7 @@ export const auth: Module<AuthState, State> = {
       state.id = data.id;
       state.role = data.role;
       state.mfa = data.mfa;
+      state.recovery_email = data.recovery_email;
     },
 
     accountRecoveryHelper(state) {
@@ -396,6 +401,7 @@ export const auth: Module<AuthState, State> = {
       localStorage.setItem("name", data.name);
       localStorage.setItem("user", data.username);
       localStorage.setItem("email", data.email);
+      localStorage.setItem("recovery_email", data.recoveryEmail);
       context.commit("changeData", data);
     },
 
