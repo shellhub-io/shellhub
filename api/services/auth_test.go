@@ -69,6 +69,14 @@ func TestAuthDevice(t *testing.T) {
 	clockMock.On("Now").Return(now).Twice()
 	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
 
+	// [DeviceAuthClaims.WithDefaults]
+	uuidMock := &uuidmock.Uuid{}
+	uuid.DefaultBackend = uuidMock
+	uuidMock.
+		On("Generate").
+		Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
+		Once()
+
 	mock.On("DeviceCreate", ctx, *device, "").
 		Return(nil).Once()
 	mock.On("SessionSetLastSeen", ctx, models.UID(authReq.Sessions[0])).
@@ -681,6 +689,118 @@ func TestAuthUser(t *testing.T) {
 	}
 
 	mock.AssertExpectations(t)
+}
+
+func TestAuthAPIKey(t *testing.T) {
+	type Expected struct {
+		apiKey *models.APIKey
+		err    error
+	}
+
+	storeMock := new(mocks.Store)
+	cacheMock := new(mockcache.Cache)
+
+	tests := []struct {
+		description   string
+		key           string
+		requiredMocks func(context.Context)
+		expected      Expected
+	}{
+		{
+			description: "fails when could not get the api key from store",
+			key:         "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.
+					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					Return(nil).
+					Once()
+				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
+				hashedKey := hex.EncodeToString(keySum[:])
+				storeMock.
+					On("APIKeyGet", ctx, hashedKey).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				apiKey: nil,
+				err:    NewErrAPIKeyNotFound("", errors.New("error", "", 0)),
+			},
+		},
+		{
+			description: "fails when the api key is not valid",
+			key:         "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.
+					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					Return(nil).
+					Once()
+				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
+				hashedKey := hex.EncodeToString(keySum[:])
+				storeMock.
+					On("APIKeyGet", ctx, hashedKey).
+					Return(
+						&models.APIKey{
+							Name:      "dev",
+							ExpiresIn: time.Date(2000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				apiKey: nil,
+				err:    NewErrAPIKeyInvalid("dev"),
+			},
+		},
+		{
+			description: "succeeds",
+			key:         "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.
+					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					Return(nil).
+					Once()
+				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
+				hashedKey := hex.EncodeToString(keySum[:])
+				storeMock.
+					On("APIKeyGet", ctx, hashedKey).
+					Return(
+						&models.APIKey{
+							Name:      "dev",
+							ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+						},
+						nil,
+					).
+					Once()
+				cacheMock.
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix()}, 2*time.Minute).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				apiKey: &models.APIKey{
+					Name:      "dev",
+					ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+				},
+				err: nil,
+			},
+		},
+	}
+
+	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, clientMock, nil)
+
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+			tc.requiredMocks(ctx)
+			apiKey, err := service.AuthAPIKey(ctx, tc.key)
+			require.Equal(t, tc.expected, Expected{apiKey, err})
+		})
+	}
+
+	storeMock.AssertExpectations(t)
 }
 
 func TestAuthUserInfo(t *testing.T) {

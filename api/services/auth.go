@@ -34,6 +34,13 @@ type AuthService interface {
 	// with MFA enabled are also blocked from authenticating because this is a cloud-only feature. In these cases,
 	// it returns an MFA token string that must be used with the OTP code to authenticate the user.
 	AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
+	// AuthAPIKey authenticates the given key, returning its API key document. An API key can be used
+	// in place of a JWT token to authenticate requests. The key is only related to a namespace and not to a user,
+	// which means that some routes are blocked from authentication within this method. An API key can be expired,
+	// rendering it invalid. It returns the API key and an error if any.
+	//
+	// The key is cached for 2 minutes after use, so requests made within this period will treat the key as valid.
+	AuthAPIKey(ctx context.Context, key string) (apiKey *models.APIKey, err error)
 
 	AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
@@ -270,6 +277,33 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	return res, 0, "", nil
+}
+
+func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error) {
+	apiKey := new(models.APIKey)
+	if err := s.cache.Get(ctx, "api-key={"+key+"}", apiKey); err != nil {
+		return nil, err
+	}
+
+	if apiKey.ID == "" {
+		keySum := sha256.Sum256([]byte(key))
+		hashedKey := hex.EncodeToString(keySum[:])
+
+		var err error
+		if apiKey, err = s.store.APIKeyGet(ctx, hashedKey); err != nil {
+			return nil, NewErrAPIKeyNotFound("", err)
+		}
+	}
+
+	if !apiKey.IsValid() {
+		return nil, NewErrAPIKeyInvalid(apiKey.Name)
+	}
+
+	if err := s.cache.Set(ctx, "api-key={"+key+"}", apiKey, 2*time.Minute); err != nil {
+		log.WithError(err).Info("Unable to set the api-key in cache")
+	}
+
+	return apiKey, nil
 }
 
 func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
 
 	jwt "github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -45,30 +44,15 @@ const (
 // authentication. It gets the JWT token sent, unwraps it and sets the information, like tenant, user, etc., as headers
 // of the response to be got in the subsequent through the [gateway.Context].
 func (h *Handler) AuthRequest(c gateway.Context) error {
-	apiKey := c.Request().Header.Get("X-API-KEY")
-
-	if apiKey != "" {
-		token, err := h.service.GetAPIKeyByUID(c.Ctx(), apiKey)
+	if key := c.Request().Header.Get("X-API-Key"); key != "" {
+		apiKey, err := h.service.AuthAPIKey(c.Ctx(), key)
 		if err != nil {
 			return err
 		}
 
-		if token.ExpiresIn != -1 {
-			timeKey := time.Unix(token.ExpiresIn, 0)
-			if timeKey.Before(time.Unix(time.Now().Unix(), 0)) {
-				return svc.NewErrAuthUnathorized(errors.New("this APIkey is expired"))
-			}
-		}
-
-		namespace, err := h.service.GetNamespace(c.Ctx(), token.TenantID)
-		if err != nil || namespace == nil {
-			return svc.ErrTypeAssertion
-		}
-
-		c.Response().Header().Set("X-Tenant-ID", token.TenantID)
-		c.Response().Header().Set("X-ID", token.UserID)
-		c.Response().Header().Set("X-Role", token.Role)
-		c.Response().Header().Set("X-API-KEY", apiKey)
+		c.Response().Header().Set("X-Tenant-ID", apiKey.TenantID)
+		c.Response().Header().Set("X-Role", apiKey.Role)
+		c.Response().Header().Set("X-API-KEY", key)
 
 		return c.NoContent(http.StatusOK)
 	}

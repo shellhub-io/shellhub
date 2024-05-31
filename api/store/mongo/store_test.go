@@ -21,18 +21,19 @@ var db *mongodb.Database
 var s store.Store
 
 const (
-	fixtureAnnouncements    = "announcements"     // Check "fixtures.data.announcements" for fixture info
-	fixtureConnectedDevices = "connected_devices" // Check "fixtures.data.connected_devices" for fixture info
-	fixtureDevices          = "devices"           // Check "fixtures.data.devices" for fixture info
-	fixtureSessions         = "sessions"          // Check "fixtures.data.sessions" for fixture info
-	fixtureActiveSessions   = "active_sessions"   // Check "fixtures.data.active_sessions" for fixture info
-	fixtureFirewallRules    = "firewall_rules"    // Check "fixtures.data.firewall_rules" for fixture info
-	fixturePublicKeys       = "public_keys"       // Check "fixtures.data.public_keys" for fixture info
-	fixturePrivateKeys      = "private_keys"      // Check "fixtures.data.private_keys" for fixture info
-	fixtureLicenses         = "licenses"          // Check "fixtures.data.licenses" for fixture info
-	fixtureUsers            = "users"             // Check "fixtures.data.users" for fixture iefo
-	fixtureNamespaces       = "namespaces"        // Check "fixtures.data.namespaces" for fixture info
-	fixtureRecoveryTokens   = "recovery_tokens"   // Check "fixtures.data.recovery_tokens" for fixture info
+	fixtureAnnouncements    = "announcements"     // Check "store.mongo.fixtures.announcements" for fixture info
+	fixtureAPIKeys          = "api-key"           // Check "store.mongo.fixtures.api-keys" for fixture info
+	fixtureConnectedDevices = "connected_devices" // Check "store.mongo.fixtures.connected_devices" for fixture info
+	fixtureDevices          = "devices"           // Check "store.mongo.fixtures.devices" for fixture info
+	fixtureSessions         = "sessions"          // Check "store.mongo.fixtures.sessions" for fixture info
+	fixtureActiveSessions   = "active_sessions"   // Check "store.mongo.fixtures.active_sessions" for fixture info
+	fixtureFirewallRules    = "firewall_rules"    // Check "store.mongo.fixtures.firewall_rules" for fixture info
+	fixturePublicKeys       = "public_keys"       // Check "store.mongo.fixtures.public_keys" for fixture info
+	fixturePrivateKeys      = "private_keys"      // Check "store.mongo.fixtures.private_keys" for fixture info
+	fixtureLicenses         = "licenses"          // Check "store.mongo.fixtures.licenses" for fixture info
+	fixtureUsers            = "users"             // Check "store.mongo.fixtures.users" for fixture iefo
+	fixtureNamespaces       = "namespaces"        // Check "store.mongo.fixtures.namespaces" for fixture info
+	fixtureRecoveryTokens   = "recovery_tokens"   // Check "store.mongo.fixtures.recovery_tokens" for fixture info
 )
 
 func TestMain(m *testing.M) {

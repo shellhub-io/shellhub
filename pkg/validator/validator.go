@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"unicode"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -75,6 +76,61 @@ var Rules = []Rule{
 			return regexp.MustCompile(`^([a-zA-Z0-9_-]){1,64}$`).MatchString(field.Field().String())
 		},
 		Error: fmt.Errorf("the device name can only contain `_`, `-` and alpha numeric characters"),
+	},
+	// api-key_name reports whether a given string is a valid name for an api key or not. A valid
+	// value must be more than 3 characters, less than 20 and does not contains any whitespace.
+	{
+		Tag: "api-key_name",
+		Handler: func(field validator.FieldLevel) bool {
+			name := field.Field().String()
+
+			if len(name) < 3 || len(name) > 20 {
+				return false
+			}
+
+			for _, c := range field.Field().String() {
+				if unicode.IsSpace(c) {
+					return false
+				}
+			}
+
+			return true
+		},
+		Error: fmt.Errorf("name must contain at least 3 characters, at most 20 characters, and no whitespaces"),
+	},
+	// api-key_expires-at reports whether a given int is in [ 30 60 90 365 -1 ].
+	{
+		Tag: "api-key_expires-at",
+		Handler: func(field validator.FieldLevel) bool {
+			if !field.Field().CanInt() {
+				return false
+			}
+
+			expiresAt := field.Field().Int()
+
+			return expiresAt == -1 || expiresAt == 30 || expiresAt == 60 || expiresAt == 90 || expiresAt == 365
+		},
+		Error: fmt.Errorf("expires_at must be in [ -1 30 60 90 365 ]"),
+	},
+	// namespace_role reports whether a given string is a guard.Role or not
+	{
+		Tag: "namespace_role",
+		Handler: func(field validator.FieldLevel) bool {
+			// TODO: put guard in shellhub/pkg and use it here
+			switch field.Field().String() {
+			case "owner":
+				fallthrough
+			case "administrator":
+				fallthrough
+			case "operator":
+				fallthrough
+			case "observer":
+				return true
+			default:
+				return false
+			}
+		},
+		Error: fmt.Errorf("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
 	},
 }
 

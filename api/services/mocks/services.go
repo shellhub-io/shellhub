@@ -74,6 +74,36 @@ func (_m *Service) AddPublicKeyTag(ctx context.Context, tenant string, fingerpri
 	return r0
 }
 
+// AuthAPIKey provides a mock function with given fields: ctx, key
+func (_m *Service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error) {
+	ret := _m.Called(ctx, key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthAPIKey")
+	}
+
+	var r0 *models.APIKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.APIKey, error)); ok {
+		return rf(ctx, key)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.APIKey); ok {
+		r0 = rf(ctx, key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.APIKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AuthCacheToken provides a mock function with given fields: ctx, tenant, id, token
 func (_m *Service) AuthCacheToken(ctx context.Context, tenant string, id string, token string) error {
 	ret := _m.Called(ctx, tenant, id, token)
@@ -378,27 +408,29 @@ func (_m *Service) BillingReport(_a0 internalclient.Client, _a1 string, _a2 stri
 	return r0
 }
 
-// CreateAPIKey provides a mock function with given fields: ctx, userID, tenant, key, role, req
-func (_m *Service) CreateAPIKey(ctx context.Context, userID string, tenant string, key string, role string, req *requests.CreateAPIKey) (string, error) {
-	ret := _m.Called(ctx, userID, tenant, key, role, req)
+// CreateAPIKey provides a mock function with given fields: ctx, req
+func (_m *Service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateAPIKey")
 	}
 
-	var r0 string
+	var r0 *responses.CreateAPIKey
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, *requests.CreateAPIKey) (string, error)); ok {
-		return rf(ctx, userID, tenant, key, role, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.CreateAPIKey) (*responses.CreateAPIKey, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, *requests.CreateAPIKey) string); ok {
-		r0 = rf(ctx, userID, tenant, key, role, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.CreateAPIKey) *responses.CreateAPIKey); ok {
+		r0 = rf(ctx, req)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses.CreateAPIKey)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, *requests.CreateAPIKey) error); ok {
-		r1 = rf(ctx, userID, tenant, key, role, req)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.CreateAPIKey) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -562,17 +594,17 @@ func (_m *Service) DeactivateSession(ctx context.Context, uid models.UID) error 
 	return r0
 }
 
-// DeleteAPIKey provides a mock function with given fields: ctx, id, tenantID
-func (_m *Service) DeleteAPIKey(ctx context.Context, id string, tenantID string) error {
-	ret := _m.Called(ctx, id, tenantID)
+// DeleteAPIKey provides a mock function with given fields: ctx, req
+func (_m *Service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteAPIKey")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, id, tenantID)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeleteAPIKey) error); ok {
+		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -650,36 +682,6 @@ func (_m *Service) DeleteTag(ctx context.Context, tenant string, tag string) err
 	}
 
 	return r0
-}
-
-// EditAPIKey provides a mock function with given fields: ctx, tenantID, changes
-func (_m *Service) EditAPIKey(ctx context.Context, tenantID string, changes *requests.APIKeyChanges) (*models.APIKey, error) {
-	ret := _m.Called(ctx, tenantID, changes)
-
-	if len(ret) == 0 {
-		panic("no return value specified for EditAPIKey")
-	}
-
-	var r0 *models.APIKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.APIKeyChanges) (*models.APIKey, error)); ok {
-		return rf(ctx, tenantID, changes)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.APIKeyChanges) *models.APIKey); ok {
-		r0 = rf(ctx, tenantID, changes)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.APIKey)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.APIKeyChanges) error); ok {
-		r1 = rf(ctx, tenantID, changes)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // EditNamespace provides a mock function with given fields: ctx, req
@@ -797,36 +799,6 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 
 	if rf, ok := ret.Get(1).(func(context.Context, *models.PublicKey, string) error); ok {
 		r1 = rf(ctx, key, username)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAPIKeyByUID provides a mock function with given fields: ctx, id
-func (_m *Service) GetAPIKeyByUID(ctx context.Context, id string) (*models.APIKey, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAPIKeyByUID")
-	}
-
-	var r0 *models.APIKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.APIKey, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.APIKey); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.APIKey)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1098,7 +1070,7 @@ func (_m *Service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 }
 
 // ListAPIKeys provides a mock function with given fields: ctx, req
-func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([]models.APIKey, int, error) {
+func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -1108,10 +1080,10 @@ func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([
 	var r0 []models.APIKey
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.APIKeyList) ([]models.APIKey, int, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ListAPIKey) ([]models.APIKey, int, error)); ok {
 		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.APIKeyList) []models.APIKey); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ListAPIKey) []models.APIKey); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
@@ -1119,13 +1091,13 @@ func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.APIKeyList) ([
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *requests.APIKeyList) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ListAPIKey) int); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *requests.APIKeyList) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.ListAPIKey) error); ok {
 		r2 = rf(ctx, req)
 	} else {
 		r2 = ret.Error(2)
@@ -1555,6 +1527,24 @@ func (_m *Service) SystemGetInfo(ctx context.Context, req requests.SystemGetInfo
 	}
 
 	return r0, r1
+}
+
+// UpdateAPIKey provides a mock function with given fields: ctx, req
+func (_m *Service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAPIKey")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.UpdateAPIKey) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // UpdateDataUser provides a mock function with given fields: ctx, userID, req
