@@ -1,0 +1,22 @@
+{
+    "api_keys": {
+        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a": {
+            "name": "dev",
+            "created_by": "507f1f77bcf86cd799439011",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "role": "admin",
+            "created_at": "2023-01-01T12:00:00.000Z",
+            "updated_at": "2023-01-01T12:00:00.000Z",
+            "expires_in": 0
+        },
+        "a1b2c73ea41f70870c035283336d72228118213ed03ec78043ffee48d827af11": {
+            "name": "prod",
+            "created_by": "507f1f77bcf86cd799439011",
+            "tenant_id": "00000000-0000-4000-0000-000000000000",
+            "role": "operator",
+            "created_at": "2023-01-02T12:00:00.000Z",
+            "updated_at": "2023-01-02T12:00:00.000Z",
+            "expires_in": 10
+        }
+    }
+}

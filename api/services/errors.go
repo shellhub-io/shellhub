@@ -183,13 +183,17 @@ func NewErrNamespaceNotFound(id string, next error) error {
 }
 
 // NewErrAPIKeyNotFound returns an error when the APIKey is not found.
-func NewErrAPIKeyNotFound(id string, next error) error {
-	return NewErrNotFound(ErrAPIKeyNotFound, id, next)
+func NewErrAPIKeyNotFound(name string, next error) error {
+	return NewErrNotFound(ErrAPIKeyNotFound, name, next)
+}
+
+func NewErrAPIKeyInvalid(name string) error {
+	return NewErrAuthInvalid(map[string]interface{}{"api-key": name}, nil)
 }
 
 // NewErrAPIKeyDuplicated returns an error when the APIKey name is duplicated.
-func NewErrAPIKeyDuplicated(next error) error {
-	return NewErrDuplicated(ErrAPIKeyDuplicated, nil, next)
+func NewErrAPIKeyDuplicated(conflicts []string) error {
+	return NewErrDuplicated(ErrAPIKeyDuplicated, conflicts, nil)
 }
 
 // NewErrTagInvalid returns an error when the tag is invalid.
