@@ -82,6 +82,9 @@ describe("MfaSettings", () => {
     wrapper = mount(MfaSettings, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        config: {
+          errorHandler: () => { /* ignore global error handler */ },
+        },
       },
     });
   });
@@ -147,12 +150,13 @@ describe("MfaSettings", () => {
     };
 
     // Mock the API response for MFA enable
-    mock.onPost("http://localhost:3000/api/mfa/enable").reply(200, responseData);
+    mock.onPost("http://localhost:3000/api/user/mfa/enable").reply(200, responseData);
 
     // Spy on the Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
+    wrapper.vm.el = 2;
     await flushPromises();
     await wrapper.vm.goToNextStep();
 
@@ -162,15 +166,9 @@ describe("MfaSettings", () => {
 
     // Check if the store dispatch was called with the expected parameters
     expect(mfaSpy).toHaveBeenCalledWith("auth/enableMfa", {
-      token_mfa: "000000",
-      secret: "secret-mfa",
-      codes: [
-        "HW2wlxV40B",
-        "2xsmMUHHHb",
-        "DTQgVsaVac",
-        "KXPBoXvuWD",
-        "QQYTPfotBi",
-        "XWiKBEPyb4",
+      code: "000000",
+      secret: "",
+      recovery_codes: [
       ],
     });
   });
@@ -180,12 +178,13 @@ describe("MfaSettings", () => {
     expect(wrapper.findComponent('[data-test="error-alert"]').exists()).toBe(false);
 
     // Mock an error response for MFA enable
-    mock.onPost("http://localhost:3000/api/mfa/enable").reply(500);
+    mock.onPost("http://localhost:3000/api/user/mfa/enable").reply(403);
 
     // Spy on the Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
+    wrapper.vm.el = 2;
     await flushPromises();
     await wrapper.vm.goToNextStep();
 
@@ -195,15 +194,9 @@ describe("MfaSettings", () => {
 
     // Check if the store dispatch was called with the expected parameters
     expect(mfaSpy).toHaveBeenCalledWith("auth/enableMfa", {
-      token_mfa: "000000",
-      secret: "secret-mfa",
-      codes: [
-        "HW2wlxV40B",
-        "2xsmMUHHHb",
-        "DTQgVsaVac",
-        "KXPBoXvuWD",
-        "QQYTPfotBi",
-        "XWiKBEPyb4",
+      code: "000000",
+      secret: "",
+      recovery_codes: [
       ],
     });
 

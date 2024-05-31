@@ -8,6 +8,7 @@
         closable
         variant="tonal"
         class="mb-4"
+        data-test="alert-message"
       />
     </v-slide-y-reverse-transition>
     <v-row>
@@ -39,23 +40,25 @@
         Verify
       </v-btn>
     </v-card-actions>
-    <v-card-subtitle
-      class="d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"
-      data-test="redirect-recover"
-    >
+    <v-col class="text-caption d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0">
       Did you
-      <router-link
-        class="ml-1"
-        :to="{ name: 'RecoverMfa' }"
+      <v-btn
+        class="pl-1 text-caption"
+        @click="goToRecoveryCodes"
+        variant="plain"
+        color="primary"
+        density="compact"
+        data-test="redirect-recover"
       >
+
         Lost your TOPT password?
-      </router-link>
-    </v-card-subtitle>
+      </v-btn>
+    </v-col>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
@@ -66,10 +69,11 @@ const router = useRouter();
 const verificationCode = ref("");
 const showAlert = ref(false);
 const alertMessage = ref("");
+const mfaValue = computed(() => store.getters["auth/mfaToken"]);
 
 const loginMfa = async () => {
   try {
-    await store.dispatch("auth/validateMfa", { code: verificationCode.value });
+    await store.dispatch("auth/validateMfa", { token: mfaValue.value, code: verificationCode.value });
     router.push("/");
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -87,6 +91,10 @@ const loginMfa = async () => {
     }
     handleError(error);
   }
+};
+
+const goToRecoveryCodes = () => {
+  router.push({ name: "RecoverMfa" });
 };
 
 defineExpose({

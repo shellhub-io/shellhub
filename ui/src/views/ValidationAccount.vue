@@ -47,7 +47,7 @@
         class="ml-1"
         :to="{ name: 'login' }"
         data-test="login-btn"
-      >zz
+      >
         Login
       </router-link>
     </v-card-subtitle>

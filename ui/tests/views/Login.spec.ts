@@ -69,10 +69,7 @@ describe("Login", () => {
       tenant: "fake-tenant",
       role: "administrator",
       email: "test@test.com",
-      mfa: {
-        enable: false,
-        validate: false,
-      },
+      mfa: false,
     };
 
     // mock error below
@@ -105,10 +102,7 @@ describe("Login", () => {
       tenant: "fake-tenant",
       role: "administrator",
       email: "test@test.com",
-      mfa: {
-        enable: true,
-        validate: false,
-      },
+      mfa: true,
     };
 
     // mock error below

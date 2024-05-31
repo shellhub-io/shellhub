@@ -1,0 +1,117 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Validate Recovery Mail > Renders the component 1`] = `
+"<div class=\\"v-container v-locale--is-ltr\\">
+  <div class=\\"v-card-title d-flex justify-center\\" data-test=\\"verification-title\\"> MFA Disabling </div>
+  <div class=\\"v-row\\">
+    <div class=\\"v-col\\" data-test=\\"verification-subtitle\\">
+      <h4>Please, paste the codes we've sent on your primary and recovery email</h4>
+    </div>
+  </div>
+  <div class=\\"v-row mb-3\\">
+    <div class=\\"v-col\\">
+      <!--v-if-->
+      <!--v-if-->
+    </div>
+  </div>
+  <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mt-1\\" data-test=\\"email-text\\">
+    <!---->
+    <div class=\\"v-input__control\\">
+      <div class=\\"v-field v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
+            <!---->Primary Email Code
+          </label>
+          <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-0\\" aria-describedby=\\"input-0-messages\\" required=\\"\\" class=\\"v-field__input\\">
+          <!---->
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <div class=\\"v-field__outline__start\\"></div>
+          <div class=\\"v-field__outline__notch\\"><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-0\\">
+              <!---->Primary Email Code
+            </label></div>
+          <div class=\\"v-field__outline__end\\"></div>
+          <!---->
+        </div>
+      </div>
+    </div>
+    <!---->
+    <div class=\\"v-input__details\\">
+      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-0-messages\\">
+        <!---->
+      </transition-group-stub>
+      <!---->
+    </div>
+  </div>
+  <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mt-1\\" data-test=\\"recovery-email-text\\">
+    <!---->
+    <div class=\\"v-input__control\\">
+      <div class=\\"v-field v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
+        <div class=\\"v-field__overlay\\"></div>
+        <div class=\\"v-field__loader\\">
+          <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <!---->
+            <div class=\\"v-progress-linear__background\\"></div>
+            <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+            <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+              <div class=\\"v-progress-linear__indeterminate\\">
+                <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                <div class=\\"v-progress-linear__indeterminate short\\"></div>
+              </div>
+            </transition-stub>
+            <!---->
+          </div>
+        </div>
+        <!---->
+        <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+          <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
+            <!---->Recovery Email Code
+          </label>
+          <!----><input size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
+          <!---->
+        </div>
+        <!---->
+        <!---->
+        <div class=\\"v-field__outline\\">
+          <div class=\\"v-field__outline__start\\"></div>
+          <div class=\\"v-field__outline__notch\\"><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-2\\">
+              <!---->Recovery Email Code
+            </label></div>
+          <div class=\\"v-field__outline__end\\"></div>
+          <!---->
+        </div>
+      </div>
+    </div>
+    <!---->
+    <div class=\\"v-input__details\\">
+      <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-2-messages\\">
+        <!---->
+      </transition-group-stub>
+      <!---->
+    </div>
+  </div><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated d-flex align-center justify-center pa-4 mx-auto mb-2\\" disabled=\\"\\" data-test=\\"save-mail-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Disable MFA </span>
+    <!---->
+    <!---->
+  </button>
+  <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-2\\" data-test=\\"back-to-login\\"> Back to <a href=\\"/login\\" class=\\"ml-1\\" data-test=\\"login-btn\\"> Login </a></div>
+</div>"
+`;

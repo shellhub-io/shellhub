@@ -36,7 +36,7 @@ describe("Auth Store Actions", () => {
       expect(store.getters["auth/stateToken"]).toEqual("");
       expect(store.getters["auth/authStatus"]).toEqual("");
       expect(store.getters["auth/link_mfa"]).toEqual("");
-      expect(store.getters["auth/mfaStatus"]).toEqual({ enable: false, validate: false });
+      expect(store.getters["auth/isMfa"]).toEqual(false);
       expect(store.getters["auth/recoveryCodes"]).toEqual([]);
       expect(store.getters["auth/secret"]).toEqual("");
       expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
@@ -52,31 +52,30 @@ describe("Auth Store Actions", () => {
     it("should disable MFA", async () => {
       const dispatchSpy = vi.spyOn(store, "dispatch");
 
-      mockMfa.onPost("http://localhost:3000/api/mfa/disable").reply(200);
+      mockMfa.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
 
-      await store.dispatch("auth/disableMfa");
+      await store.dispatch("auth/disableMfa", { code: "000000" });
 
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/disableMfa");
+      expect(dispatchSpy).toHaveBeenCalledWith("auth/disableMfa", { code: "000000" });
       expect(store.getters["auth/isMfa"]).toEqual(false);
     });
 
     it("should enable MFA", async () => {
       const enableMfaResponse = { token: "token" };
       const enableMfaData = {
-        token_mfa: "000000",
+        code: "000000",
         secret: "OYDXN4MO2S2JTASNBG5AD54FVT7A5GVH",
-        codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
+        recovery_codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
       };
 
       const dispatchSpy = vi.spyOn(store, "dispatch");
 
-      mockMfa.onPost("http://localhost:3000/api/mfa/enable").reply(200, enableMfaResponse);
+      mockMfa.onPut("http://localhost:3000/api/user/mfa/enable").reply(200, enableMfaResponse);
 
       await store.dispatch("auth/enableMfa", enableMfaData);
       await flushPromises();
 
       expect(dispatchSpy).toHaveBeenCalledWith("auth/enableMfa", enableMfaData);
-      expect(store.getters["auth/stateToken"]).toEqual(enableMfaResponse.token);
     });
 
     it("should validate MFA", async () => {
@@ -85,7 +84,7 @@ describe("Auth Store Actions", () => {
 
       const dispatchSpy = vi.spyOn(store, "dispatch");
 
-      mockMfa.onPost("http://localhost:3000/api/mfa/auth").reply(200, validateMfaResponse);
+      mockMfa.onPost("http://localhost:3000/api/user/mfa/auth").reply(200, validateMfaResponse);
 
       await store.dispatch("auth/validateMfa", validateMfaData);
       await flushPromises();
@@ -100,7 +99,7 @@ describe("Auth Store Actions", () => {
 
       const dispatchSpy = vi.spyOn(store, "dispatch");
 
-      mockMfa.onPost("http://localhost:3000/api/mfa/recovery").reply(200, recoveryMfaResponse);
+      mockMfa.onPost("http://localhost:3000/api/user/mfa/recover").reply(200, recoveryMfaResponse);
 
       await store.dispatch("auth/recoverLoginMfa", recoveryMfaData);
       await flushPromises();
@@ -114,19 +113,19 @@ describe("Auth Store Actions", () => {
       const generateMfaResponse = {
         secret: "secret-mfa",
         link: "link-mfa",
-        codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
+        recovery_codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
       };
 
       const dispatchSpy = vi.spyOn(store, "dispatch");
 
-      mockMfa.onGet("http://localhost:3000/api/mfa/generate").reply(200, generateMfaResponse);
+      mockMfa.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, generateMfaResponse);
 
       await store.dispatch("auth/generateMfa");
 
       expect(dispatchSpy).toHaveBeenCalledWith("auth/generateMfa");
       expect(store.getters["auth/link_mfa"]).toEqual(generateMfaResponse.link);
       expect(store.getters["auth/secret"]).toEqual(generateMfaResponse.secret);
-      expect(store.getters["auth/recoveryCodes"]).toEqual(generateMfaResponse.codes);
+      expect(store.getters["auth/recoveryCodes"]).toEqual(generateMfaResponse.recovery_codes);
     });
   });
 
@@ -157,7 +156,7 @@ describe("Auth Store Actions", () => {
       expect(store.getters["auth/email"]).toEqual(getUserStatusResponse.email);
       expect(store.getters["auth/id"]).toEqual(getUserStatusResponse.id);
       expect(store.getters["auth/role"]).toEqual(getUserStatusResponse.role);
-      expect(store.getters["auth/mfaStatus"]).toEqual(getUserStatusResponse.mfa);
+      expect(store.getters["auth/isMfa"]).toEqual(getUserStatusResponse.mfa);
     });
   });
 

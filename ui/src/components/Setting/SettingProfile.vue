@@ -61,11 +61,11 @@
           />
 
           <v-text-field
+            v-if="envVariables.isCloud"
             v-model="recoveryEmail"
             label="Recovery Email"
             :error-messages="recoveryEmailError"
             :disabled="!editDataStatus"
-            required
             variant="underlined"
             data-test="recovery-email-text"
           />
@@ -156,7 +156,7 @@
           <v-row>
             <v-col>
               <h3>
-                Enable MFA
+                Multi-factor Authentication
               </h3>
             </v-col>
           </v-row>
@@ -164,11 +164,11 @@
           <div class="mt-4 pl-4 pr-4 pb-4 mb-4">
             <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
               using your favorite TOPT Provider in order to access your ShellHub account.</p>
-            <div v-if="mfaEnabled">
-              <mfa-disable />
+            <div v-if="mfaEnabled === 'true'">
+              <mfa-disable @success="() => mfaEnabled = 'false'" />
             </div>
             <div v-else>
-              <mfa-settings />
+              <mfa-settings @enabled="showCongratulationsModal" />
             </div>
           </div>
           <v-row justify="center">
@@ -223,7 +223,7 @@
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
@@ -241,15 +241,13 @@ const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const dialog = ref(false);
-const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
+const mfaEnabled = ref(computed(() => localStorage.getItem("mfa")).value);
 const isEnterprise = computed(() => envVariables.isEnterprise);
-const showCongratulations = computed(() => store.getters["auth/showCongratulationsModal"]);
 
-watch(mfaEnabled, () => {
-  if (showCongratulations.value === true) {
-    dialog.value = true;
-  }
-});
+const showCongratulationsModal = () => {
+  mfaEnabled.value = "true";
+  dialog.value = true;
+};
 
 const {
   value: name,
@@ -304,7 +302,6 @@ const {
   yup
     .string()
     .email()
-    .required()
     .test(
       "not-same-as-email",
       "Recovery email must not be the same as email",
@@ -488,7 +485,6 @@ const cancel = (type: string) => {
 
 const close = () => {
   dialog.value = false;
-  store.commit("auth/showCongratulationsModal");
 };
 </script>
 

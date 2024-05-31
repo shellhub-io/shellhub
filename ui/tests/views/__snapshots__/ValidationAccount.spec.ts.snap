@@ -7,6 +7,6 @@ exports[`Validation Account > Renders the component 1`] = `
   <!--v-if-->
   <!--v-if-->
   <!--v-if-->
-  <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-2\\" data-test=\\"isCloud-card\\"> Back to <a href=\\"/login\\" class=\\"ml-1\\" data-test=\\"login-btn\\">zz Login </a></div>
+  <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-2\\" data-test=\\"isCloud-card\\"> Back to <a href=\\"/login\\" class=\\"ml-1\\" data-test=\\"login-btn\\"> Login </a></div>
 </div>"
 `;

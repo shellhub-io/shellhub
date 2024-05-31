@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Mfa Mail Recover  > Renders the component 1`] = `
+"<div class=\\"v-container v-locale--is-ltr\\">
+  <div class=\\"v-row\\">
+    <div class=\\"v-col\\" align=\\"center\\">
+      <h3 data-test=\\"title\\">Multi-factor Authentication</h3>
+    </div>
+  </div>
+  <div class=\\"v-row mb-2\\">
+    <div class=\\"v-col\\" align=\\"center\\">
+      <h4 data-test=\\"sub-title\\">An email has been sent to the primary and recovery mail. Please check your inbox and click the link we've provided to disable the MFA.</h4>
+    </div>
+  </div>
+  <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-2\\" data-test=\\"back-to-login\\"> Back to <a href=\\"/login\\" class=\\"ml-1\\" data-test=\\"login-btn\\"> Login </a></div>
+</div>"
+`;

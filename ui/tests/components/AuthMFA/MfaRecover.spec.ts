@@ -16,6 +16,7 @@ describe("RecoverMFA", () => {
   let mock: MockAdapter;
 
   beforeEach(() => {
+    localStorage.setItem("name", "test");
     // Create a mock adapter for the usersApi instance
     mock = new MockAdapter(mfaApi.getAxios());
 
@@ -67,7 +68,7 @@ describe("RecoverMFA", () => {
     };
 
     // Mock the API response for MFA recovery
-    mock.onPost("http://localhost:3000/api/mfa/recovery").reply(200, responseData);
+    mock.onPost("http://localhost:3000/api/user/mfa/recover").reply(200, responseData);
 
     // Spy on Vuex store dispatch and router push methods
     const mfaSpy = vi.spyOn(store, "dispatch");
@@ -78,7 +79,7 @@ describe("RecoverMFA", () => {
     await flushPromises();
 
     // Assert that the MFA recovery action was dispatched and router push was called
-    expect(mfaSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", { code: "000000" });
+    expect(mfaSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", { identifier: "test", recovery_code: "000000" });
     expect(routerPushSpy).toHaveBeenCalled();
   });
 
@@ -89,7 +90,7 @@ describe("RecoverMFA", () => {
     };
 
     // Mock an error response for MFA recovery
-    mock.onPost("http://localhost:3000/api/mfa/recovery").reply(500, responseData);
+    mock.onPost("http://localhost:3000/api/user/mfa/recover").reply(403, responseData);
 
     // Spy on Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
@@ -99,7 +100,7 @@ describe("RecoverMFA", () => {
     await flushPromises();
 
     // Assert that the MFA recovery action was dispatched and the showAlert property is true
-    expect(mfaSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", { code: "000000" });
+    expect(mfaSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", { identifier: "test", recovery_code: "000000" });
     expect(wrapper.vm.showAlert).toBe(true);
   });
 });

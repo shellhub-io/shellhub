@@ -16,13 +16,10 @@ export interface AuthState {
   recovery_email: string,
   secret: string;
   link_mfa: string;
-  mfa: {
-    enable: boolean,
-    validate: boolean,
-  },
-  recoveryCodes: Array<number>,
-  showCongratulations: boolean,
-  showRecoveryModal: boolean,
+  mfa: boolean;
+  recoveryCode: string,
+  recoveryCodes: Array<number>;
+  showRecoveryModal: boolean;
   page: number;
   perPage: number;
   sortStatusField: undefined | string;
@@ -31,6 +28,8 @@ export interface AuthState {
   keyResponse: string,
   numberApiKeys: number,
   loginTimeout: number,
+  disableTimeout: number,
+  mfaToken: string,
 }
 export const auth: Module<AuthState, State> = {
   namespaced: true,
@@ -46,12 +45,9 @@ export const auth: Module<AuthState, State> = {
     recovery_email: "",
     secret: "",
     link_mfa: "",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
+    mfa: false,
+    recoveryCode: "",
     recoveryCodes: [],
-    showCongratulations: false,
     showRecoveryModal: false,
     page: 1,
     perPage: 10,
@@ -61,6 +57,8 @@ export const auth: Module<AuthState, State> = {
     keyResponse: "",
     numberApiKeys: 0,
     loginTimeout: 0,
+    disableTimeout: 0,
+    mfaToken: "",
   },
 
   getters: {
@@ -76,11 +74,10 @@ export const auth: Module<AuthState, State> = {
     secret: (state) => state.secret,
     recoveryEmail: (state) => state.recovery_email,
     link_mfa: (state) => state.link_mfa,
-    mfaStatus: (state) => state.mfa,
-    isMfa: (state) => state.mfa.enable,
-    isValidatedMfa: (state) => state.mfa.validate,
+    isMfa: (state) => state.mfa,
+    mfaToken: (state) => state.mfaToken,
+    stateRecoveryCode: (state) => state.recoveryCode,
     recoveryCodes: (state) => state.recoveryCodes,
-    showCongratulationsModal: (state) => state.showCongratulations,
     showRecoveryModal: (state) => state.showRecoveryModal,
     getSortStatusField: (state) => state.sortStatusField,
     getSortStatusString: (state) => state.sortStatusString,
@@ -88,6 +85,8 @@ export const auth: Module<AuthState, State> = {
     apiKeyList: (state) => state.keyList,
     getNumberApiKeys: (state) => state.numberApiKeys,
     getLoginTimeout: (state) => state.loginTimeout,
+    getDisableTokenTimeout: (state) => state.disableTimeout,
+    showForceRecoveryMail: (state) => !state.recovery_email && state.mfa,
   },
 
   mutations: {
@@ -95,16 +94,15 @@ export const auth: Module<AuthState, State> = {
       state.status = "loading";
     },
 
-    showCongratulationsModal(state) {
-      state.showCongratulations = !state.showCongratulations;
-    },
-
     mfaEnabled(state, data) {
-      state.mfa.enable = data;
+      state.mfa = true;
+      localStorage.setItem("mfa", "true");
+      state.mfaToken = data;
     },
 
-    mfaStatus(state, data) {
-      state.mfa = data;
+    mfaDisable(state) {
+      state.mfa = false;
+      localStorage.setItem("mfa", "false");
     },
 
     mfaToken(state, data) {
@@ -121,6 +119,8 @@ export const auth: Module<AuthState, State> = {
       state.id = data.id;
       state.role = data.role;
       state.mfa = data.mfa;
+      state.recovery_email = data.recovery_email;
+      localStorage.setItem("recovery_email", data.recovery_email);
     },
 
     authError(state) {
@@ -135,7 +135,7 @@ export const auth: Module<AuthState, State> = {
       state.tenant = "";
       state.email = "";
       state.role = "";
-      state.mfa.enable = false;
+      state.mfa = false;
     },
 
     changeData(state, data) {
@@ -148,7 +148,7 @@ export const auth: Module<AuthState, State> = {
     mfaGenerateInfo(state, data) {
       state.link_mfa = data.link;
       state.secret = data.secret;
-      state.recoveryCodes = data.codes;
+      state.recoveryCodes = data.recovery_codes;
     },
 
     userInfo(state, data) {
@@ -165,6 +165,7 @@ export const auth: Module<AuthState, State> = {
       state.role = data.role;
       state.mfa = data.mfa;
       state.recovery_email = data.recovery_email;
+      localStorage.setItem("recovery_email", data.recovery_email);
     },
 
     accountRecoveryHelper(state) {
@@ -200,6 +201,14 @@ export const auth: Module<AuthState, State> = {
     setLoginTimeout: (state, data) => {
       state.loginTimeout = data;
     },
+
+    setDisableTimeout: (state, data) => {
+      state.disableTimeout = data;
+    },
+
+    setRecoveryCode: (state, data) => {
+      state.recoveryCode = data;
+    },
   },
 
   actions: {
@@ -216,10 +225,15 @@ export const auth: Module<AuthState, State> = {
         localStorage.setItem("id", resp.data.id || "");
         localStorage.setItem("namespacesWelcome", JSON.stringify({}));
         localStorage.setItem("role", resp.data.role || "");
-        localStorage.setItem("mfa", resp.data.mfa?.enable ? "true" : "false");
+        localStorage.setItem("mfa", "false");
         context.commit("authSuccess", resp.data);
       } catch (error: unknown) {
         const typedErr = error as AxiosError;
+        if (typedErr.response?.headers["x-mfa-token"]) {
+          localStorage.setItem("mfa", "true");
+          context.commit("mfaEnabled", typedErr.response?.headers["x-mfa-token"]);
+          return;
+        }
         context.commit("setLoginTimeout", typedErr.response?.headers["x-account-lockout"]);
         context.commit("authError");
         throw error;
@@ -242,65 +256,46 @@ export const auth: Module<AuthState, State> = {
         localStorage.setItem("email", resp.data.email ?? "");
         localStorage.setItem("namespacesWelcome", JSON.stringify({}));
         localStorage.setItem("role", resp.data.role ?? "");
-        localStorage.setItem("mfa", resp.data.mfa?.enable ? "true" : "false");
         context.commit("authSuccess", resp.data);
       } catch (error) {
         context.commit("authError");
-        throw error;
       }
     },
 
-    async disableMfa(context) {
-      try {
-        await apiAuth.disableMfa();
-        context.commit("mfaEnabled", false);
-        localStorage.setItem("mfa", "false");
-      } catch (error) {
-        context.commit("authError");
-        throw error;
-      }
+    async disableMfa(context, data) {
+      await apiAuth.disableMfa(data);
+      context.commit("mfaDisable");
     },
 
     async enableMfa(context, data) {
-      try {
-        const resp = await apiAuth.enableMFA(data);
+      const resp = await apiAuth.enableMFA(data);
 
-        if (resp.status === 200) {
-          context.commit("mfaToken", resp.data.token);
-          localStorage.setItem("token", resp.data.token || "");
-          localStorage.setItem("mfa", "true");
-          context.commit("mfaEnabled", true);
-          context.commit("showCongratulationsModal");
-        }
-      } catch (error) {
-        context.commit("authError");
-        throw error;
+      if (resp.status === 200) {
+        context.commit("mfaEnabled");
       }
     },
 
     async validateMfa(context, data) {
-      try {
-        const resp = await apiAuth.validateMFA(data);
+      const resp = await apiAuth.validateMFA(data);
 
-        if (resp.status === 200) {
-          localStorage.setItem("token", resp.data.token || "");
-          context.commit("mfaToken", resp.data.token);
-        }
-      } catch (error) {
-        context.commit("authError");
-        throw error;
+      if (resp.status === 200) {
+        localStorage.setItem("user", resp.data.user || "");
+        localStorage.setItem("name", resp.data.name || "");
+        localStorage.setItem("tenant", resp.data.tenant || "");
+        localStorage.setItem("email", resp.data.email || "");
+        localStorage.setItem("id", resp.data.id || "");
+        localStorage.setItem("namespacesWelcome", JSON.stringify({}));
+        localStorage.setItem("role", resp.data.role || "");
+        localStorage.setItem("token", resp.data.token || "");
+        localStorage.setItem("mfa", "true");
+        context.commit("authSuccess", resp.data);
       }
     },
 
     async generateMfa(context) {
-      try {
-        const resp = await apiAuth.generateMfa();
-        if (resp.status === 200) {
-          context.commit("mfaGenerateInfo", resp.data);
-        }
-      } catch (error) {
-        context.commit("authError");
-        throw error;
+      const resp = await apiAuth.generateMfa();
+      if (resp.status === 200) {
+        context.commit("mfaGenerateInfo", resp.data);
       }
     },
 
@@ -312,22 +307,44 @@ export const auth: Module<AuthState, State> = {
         }
       } catch (error) {
         context.commit("authError");
-        throw error;
       }
     },
 
     async recoverLoginMfa(context, data) {
-      try {
-        const resp = await apiAuth.validateRecoveryCodes(data);
-        if (resp.status === 200) {
-          localStorage.setItem("token", resp.data.token || "");
-          context.commit("mfaToken", resp.data.token);
-          context.commit("accountRecoveryHelper");
-        }
-      } catch (error) {
-        context.commit("authError");
-        throw error;
+      const resp = await apiAuth.validateRecoveryCodes(data);
+      if (resp.status === 200) {
+        localStorage.setItem("user", resp.data.user || "");
+        localStorage.setItem("name", resp.data.name || "");
+        localStorage.setItem("tenant", resp.data.tenant || "");
+        localStorage.setItem("email", resp.data.email || "");
+        localStorage.setItem("id", resp.data.id || "");
+        localStorage.setItem("namespacesWelcome", JSON.stringify({}));
+        localStorage.setItem("role", resp.data.role || "");
+        localStorage.setItem("token", resp.data.token || "");
+        localStorage.setItem("mfa", "true");
+        context.commit("authSuccess", resp.data);
+        context.commit("mfaToken", resp.data.token);
+        context.commit("accountRecoveryHelper");
+        context.commit("setDisableTimeout", resp.headers["x-expires-at"]);
       }
+    },
+
+    async reqResetMfa(context, data) {
+      await apiAuth.reqResetMfa(data);
+    },
+
+    async resetMfa(context, data) {
+      const resp = await apiAuth.resetMfa(data);
+      localStorage.setItem("token", resp.data.token || "");
+      localStorage.setItem("user", resp.data.user || "");
+      localStorage.setItem("name", resp.data.name || "");
+      localStorage.setItem("tenant", resp.data.tenant || "");
+      localStorage.setItem("email", resp.data.email || "");
+      localStorage.setItem("id", resp.data.id || "");
+      localStorage.setItem("namespacesWelcome", JSON.stringify({}));
+      localStorage.setItem("role", resp.data.role || "");
+      localStorage.setItem("mfa", "false");
+      context.commit("authSuccess", resp.data);
     },
 
     async generateApiKey(context, data) {
@@ -395,6 +412,7 @@ export const auth: Module<AuthState, State> = {
       localStorage.removeItem("name");
       localStorage.removeItem("role");
       localStorage.removeItem("mfa");
+      localStorage.removeItem("recovery_email");
     },
 
     changeUserData(context, data) {

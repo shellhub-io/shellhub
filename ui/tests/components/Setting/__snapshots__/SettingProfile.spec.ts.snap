@@ -174,7 +174,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                 <!----><label class=\\"v-label v-field-label\\" for=\\"input-7\\">
                   <!---->Recovery Email
                 </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-7\\" aria-describedby=\\"input-7-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-7\\" aria-describedby=\\"input-7-messages\\" class=\\"v-field__input\\">
                 <!---->
               </div>
               <!---->
