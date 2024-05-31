@@ -2,7 +2,7 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import MfaLogin from "@/components/AuthMFA/MfaLogin.vue";
+import MfaLogin from "@/views/MfaLogin.vue";
 import { mfaApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
@@ -18,7 +18,6 @@ describe("MfaLogin", () => {
   beforeEach(() => {
     // Use fake timers and set a token in local storage
     vi.useFakeTimers();
-    localStorage.setItem("token", "token");
 
     // Create a mock adapter for the usersApi instance
     mock = new MockAdapter(mfaApi.getAxios());
@@ -72,7 +71,7 @@ describe("MfaLogin", () => {
     };
 
     // Mock the API response for MFA authentication
-    mock.onPost("http://localhost:3000/api/mfa/auth").reply(200, responseData);
+    mock.onPost("http://localhost:3000/api/user/mfa/auth").reply(200, responseData);
 
     // Spy on Vuex store dispatch
     const mfaSpy = vi.spyOn(store, "dispatch");
@@ -82,7 +81,7 @@ describe("MfaLogin", () => {
     await flushPromises();
 
     // Assert that the MFA authentication action was dispatched, and showAlert is false
-    expect(mfaSpy).toHaveBeenCalledWith("auth/validateMfa", { code: "000000" });
+    expect(mfaSpy).toHaveBeenCalledWith("auth/validateMfa", { token: "", code: "000000" });
     expect(wrapper.vm.showAlert).toBe(false);
   });
 
@@ -93,7 +92,7 @@ describe("MfaLogin", () => {
     };
 
     // Mock an error response for MFA authentication
-    mock.onPost("http://localhost:3000/api/mfa/auth").reply(500, responseData);
+    mock.onPost("http://localhost:3000/api/user/mfa/auth").reply(500, responseData);
 
     // Spy on Vuex store dispatch
     const mfaSpy = vi.spyOn(store, "dispatch");
@@ -103,7 +102,7 @@ describe("MfaLogin", () => {
     await flushPromises();
 
     // Assert that the MFA authentication action was dispatched, and showAlert is true
-    expect(mfaSpy).toHaveBeenCalledWith("auth/validateMfa", { code: "000000" });
+    expect(mfaSpy).toHaveBeenCalledWith("auth/validateMfa", { token: "", code: "000000" });
     expect(wrapper.vm.showAlert).toBe(true);
   });
 });

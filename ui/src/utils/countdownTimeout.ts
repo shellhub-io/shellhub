@@ -15,9 +15,11 @@ export default function useCountdown() {
         clearInterval(countdownInterval);
         countdown.value = "0 seconds";
       } else if (diff.asMinutes() < 1) {
-        countdown.value = `${Math.floor(diff.asSeconds())} seconds`;
+        const seconds = Math.floor(diff.asSeconds());
+        countdown.value = `${seconds} ${seconds === 1 ? "second" : "seconds"}`;
       } else {
-        countdown.value = `${Math.floor(diff.asMinutes())} minutes`;
+        const minutes = Math.floor(diff.asMinutes());
+        countdown.value = `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
       }
     }, 1000);
   }

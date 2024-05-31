@@ -18,7 +18,7 @@
     </v-row>
     <v-row class="mb-2">
       <v-col align="center">
-        <h4 data-test="sub-title">If you lost your access to your mfa TOTP provider, please paste one of your recovery codes below</h4>
+        <h4 data-test="sub-title">If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below</h4>
       </v-col>
     </v-row>
     <v-text-field
@@ -42,11 +42,25 @@
         Recover Account
       </v-btn>
     </v-card-actions>
+    <v-row>
+      <v-col class="text-caption pa-4 mx-auto pt-4 pb-0">
+        If you lost your recovery codes, we'll send you an e-mail to disable this account MFA,
+        <v-btn
+          class="text-caption pl-0 pb-1"
+          @click="requestMail()"
+          variant="plain"
+          color="primary"
+          density="compact"
+        >
+          click here
+        </v-btn>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import { useStore } from "@/store";
@@ -57,17 +71,19 @@ const router = useRouter();
 const recoveryCode = ref("");
 const showAlert = ref(false);
 const alertMessage = ref("");
+const userMail = computed(() => localStorage.getItem("name"));
 
 const loginMfa = async () => {
   try {
-    await store.dispatch("auth/recoverLoginMfa", { code: recoveryCode.value });
+    await store.dispatch("auth/recoverLoginMfa", { identifier: userMail.value, recovery_code: recoveryCode.value });
+    store.commit("auth/setRecoveryCode", recoveryCode.value);
     router.push("/");
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       showAlert.value = true;
       switch (axiosError.response?.status) {
-        case 500:
+        case 403:
           alertMessage.value = "The verification code sent in your MFA verification is invalid, please try again.";
           break;
         default:
@@ -75,6 +91,27 @@ const loginMfa = async () => {
           handleError(error);
       }
       return;
+    }
+    handleError(error);
+  }
+};
+
+const requestMail = async () => {
+  try {
+    await store.dispatch("auth/reqResetMfa", userMail.value);
+    router.push("/recover-mfa/mail-sucessful");
+  } catch (error) {
+    showAlert.value = true;
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (axiosError.response?.status) {
+        case 403:
+          alertMessage.value = "An error occurred sending your recovery mail, please try again later.";
+          break;
+        default:
+          alertMessage.value = "An error occurred sending your recovery mail, please try again later.";
+          handleError(error);
+      }
     }
     handleError(error);
   }

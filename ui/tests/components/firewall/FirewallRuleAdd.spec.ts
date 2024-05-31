@@ -158,7 +158,7 @@ describe("Firewall Rule Add", () => {
   it("Fails on adding firewall rules", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
 
-    mockFirewall.onPost("http://localhost:3000/api/firewall/rules").reply(401);
+    mockFirewall.onPost("http://localhost:3000/api/firewall/rules").reply(400);
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 

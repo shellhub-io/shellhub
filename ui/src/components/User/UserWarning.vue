@@ -38,9 +38,12 @@
   <RecoveryHelper
     v-model="showRecoverHelper"
     data-test="RecoveryHelper-component"
-
   />
 
+  <MfaForceRecoveryMail
+    v-model="showForceRecoveryMail"
+    data-test="MfaForceRecoveryMail-component"
+  />
 </template>
 
 <script setup lang="ts">
@@ -57,6 +60,7 @@ import AnnouncementsModal from "../Announcements/AnnouncementsModal.vue";
 import handleError from "@/utils/handleError";
 import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
+import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 
 const store = useStore();
 const router = useRouter();
@@ -65,6 +69,7 @@ const show = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
 const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
+const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );

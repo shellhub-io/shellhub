@@ -12,7 +12,7 @@ exports[`RecoverMFA > Renders the component 1`] = `
   </div>
   <div class=\\"v-row mb-2\\">
     <div class=\\"v-col\\" align=\\"center\\">
-      <h4 data-test=\\"sub-title\\">If you lost your access to your mfa TOTP provider, please paste one of your recovery codes below</h4>
+      <h4 data-test=\\"sub-title\\">If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below</h4>
     </div>
   </div>
   <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field\\" data-test=\\"recovery-code\\">
@@ -67,5 +67,12 @@ exports[`RecoverMFA > Renders the component 1`] = `
       <!---->
       <!---->
     </button></div>
+  <div class=\\"v-row\\">
+    <div class=\\"v-col text-caption pa-4 mx-auto pt-4 pb-0\\"> If you lost your recovery codes, we'll send you an e-mail to disable this account MFA, <button type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-compact v-btn--size-default v-btn--variant-plain text-caption pl-0 pb-1\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> click here </span>
+        <!---->
+        <!---->
+      </button></div>
+  </div>
 </div>"
 `;

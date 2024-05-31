@@ -35,7 +35,7 @@ export enum INotificationsSuccess {
   subscription = "subscription",
   updateSubscription = "updating subscription",
   cancelSubscription = "cancelling subscription",
-  cancelMfa = "cancelling mfa",
+  cancelMfa = "disabling mfa",
   deleteKey = "deleting key",
   editKey = "editing key"
 }
@@ -100,6 +100,7 @@ export enum INotificationsError {
   deleteKey = "deleting key",
   generateKey = "generating key",
   editKey = "editing key",
+  cancelMfa = "disabling mfa"
 }
 
 export enum INotificationsCopy {

@@ -4,13 +4,30 @@ export interface IUserLogin {
 }
 
 export interface MfaValidation {
-  token_mfa: string,
+  code: string,
   secret: string,
-  codes: Array<string>
+  recovery_codes: Array<string>
 }
 
-export interface MfaCode {
+export interface MfaAuth {
+  token: string,
   code: string
+}
+
+export interface MfaDisable {
+  code: string,
+  recovery_code: string
+}
+
+export interface MfaRecover {
+  identifier: string,
+  recovery_code: string
+}
+
+export interface MfaReset {
+  id: string,
+  main_email_code: string,
+  recovery_email_code: string,
 }
 
 enum ApiKeyExpireList {

@@ -172,6 +172,7 @@ const login = async () => {
     await store.dispatch("auth/login", { username: username.value, password: password.value });
     if (isMfa.value === true) {
       router.push({ name: "MfaLogin" });
+      localStorage.setItem("name", username.value);
     } else {
       router.push(route.query.redirect ? route.query.redirect.toString() : "/");
     }

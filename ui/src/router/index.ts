@@ -46,18 +46,15 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    component: () => import("../components/AuthMFA/MfaLogin.vue"),
+    component: () => import("../views/MfaLogin.vue"),
   },
   {
     path: "/recover-mfa",
     name: "RecoverMfa",
     beforeEnter: (to, from, next) => {
-      // Check if the user is coming from the login route
       if (from.name === "MfaLogin") {
-        // Allow access to MFA login if the user is coming from the login route
         next();
       } else {
-        // Redirect to login if the user is not coming from the login route
         next({ name: "login" });
       }
     },
@@ -66,6 +63,22 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     component: () => import("../components/AuthMFA/MfaRecover.vue"),
+  },
+  {
+    path: "/recover-mfa/mail-sucessful",
+    name: "RecoverMfaMsg",
+    beforeEnter: (to, from, next) => {
+      if (from.name === "RecoverMfa") {
+        next();
+      } else {
+        next({ name: "login" });
+      }
+    },
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+    component: () => import("../components/AuthMFA/MfaMailRecover.vue"),
   },
   {
     path: "/forgot-pass",
@@ -84,6 +97,15 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     component: () => import("../views/ValidationAccount.vue"),
+  },
+  {
+    path: "/reset-mfa",
+    name: "MfaResetValidation",
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+    component: () => import("../views/MfaResetValidation.vue"),
   },
   {
     path: "/update-password",
