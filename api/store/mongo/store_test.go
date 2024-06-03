@@ -21,7 +21,6 @@ var db *mongodb.Database
 var s store.Store
 
 const (
-	fixtureAnnouncements    = "announcements"     // Check "store.mongo.fixtures.announcements" for fixture info
 	fixtureAPIKeys          = "api-key"           // Check "store.mongo.fixtures.api-keys" for fixture info
 	fixtureConnectedDevices = "connected_devices" // Check "store.mongo.fixtures.connected_devices" for fixture info
 	fixtureDevices          = "devices"           // Check "store.mongo.fixtures.devices" for fixture info
@@ -30,7 +29,6 @@ const (
 	fixtureFirewallRules    = "firewall_rules"    // Check "store.mongo.fixtures.firewall_rules" for fixture info
 	fixturePublicKeys       = "public_keys"       // Check "store.mongo.fixtures.public_keys" for fixture info
 	fixturePrivateKeys      = "private_keys"      // Check "store.mongo.fixtures.private_keys" for fixture info
-	fixtureLicenses         = "licenses"          // Check "store.mongo.fixtures.licenses" for fixture info
 	fixtureUsers            = "users"             // Check "store.mongo.fixtures.users" for fixture iefo
 	fixtureNamespaces       = "namespaces"        // Check "store.mongo.fixtures.namespaces" for fixture info
 	fixtureRecoveryTokens   = "recovery_tokens"   // Check "store.mongo.fixtures.recovery_tokens" for fixture info
@@ -48,17 +46,12 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertObjID("users", "_id"),
 		mongotest.SimpleConvertTime("users", "created_at"),
 		mongotest.SimpleConvertTime("users", "last_login"),
-		mongotest.SimpleConvertObjID("announcements", "_id"),
-		mongotest.SimpleConvertTime("announcements", "date"),
 		mongotest.SimpleConvertObjID("public_keys", "_id"),
 		mongotest.SimpleConvertBytes("public_keys", "data"),
 		mongotest.SimpleConvertTime("public_keys", "created_at"),
 		mongotest.SimpleConvertObjID("private_keys", "_id"),
 		mongotest.SimpleConvertBytes("private_keys", "data"),
 		mongotest.SimpleConvertTime("private_keys", "created_at"),
-		mongotest.SimpleConvertObjID("licenses", "_id"),
-		mongotest.SimpleConvertBytes("licenses", "rawdata"),
-		mongotest.SimpleConvertTime("licenses", "created_at"),
 		mongotest.SimpleConvertObjID("namespaces", "_id"),
 		mongotest.SimpleConvertTime("namespaces", "created_at"),
 		mongotest.SimpleConvertObjID("devices", "_id"),

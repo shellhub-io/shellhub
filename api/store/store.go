@@ -2,7 +2,6 @@ package store
 
 //go:generate mockery --name Store --filename store.go
 type Store interface {
-	AnnouncementsStore
 	TagsStore
 	DeviceStore
 	DeviceTagsStore
@@ -12,7 +11,6 @@ type Store interface {
 	PublicKeyStore
 	PublicKeyTagsStore
 	PrivateKeyStore
-	LicenseStore
 	StatsStore
 	APIKeyStore
 }
