@@ -168,7 +168,7 @@
               <mfa-disable @success="() => mfaEnabled = 'false'" />
             </div>
             <div v-else>
-              <mfa-settings @enabled="showCongratulationsModal" />
+              <mfa-settings @enabled="showCongratulationsModal" @reset-form="setRecoveryEmail()" />
             </div>
           </div>
           <v-row justify="center">
@@ -361,6 +361,10 @@ const setUserData = () => {
   name.value = store.getters["auth/currentName"];
   username.value = store.getters["auth/currentUser"];
   email.value = store.getters["auth/email"];
+  recoveryEmail.value = store.getters["auth/recoveryEmail"];
+};
+
+const setRecoveryEmail = async () => {
   recoveryEmail.value = store.getters["auth/recoveryEmail"];
 };
 

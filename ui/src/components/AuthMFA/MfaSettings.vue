@@ -231,7 +231,7 @@ import { INotificationsCopy, INotificationsSuccess } from "@/interfaces/INotific
 
 const store = useStore();
 const el = ref<number>(1);
-const emit = defineEmits(["enabled"]);
+const emit = defineEmits(["enabled", "resetForm"]);
 const dialog = ref(false);
 const value = computed(() => store.getters["auth/link_mfa"]);
 const secret = computed(() => store.getters["auth/secret"]);
@@ -272,11 +272,12 @@ const updateUserData = async () => {
 
   try {
     await store.dispatch("users/patchData", data);
-    store.dispatch("auth/changeUserData", data);
+    store.dispatch("auth/changeRecoveryEmail", data.recovery_email);
     store.dispatch(
       "snackbar/showSnackbarSuccessAction",
       INotificationsSuccess.profileData,
     );
+    emit("resetForm");
     await store.dispatch("auth/generateMfa").then(() => {
       el.value = 2;
       dialog.value = true;
