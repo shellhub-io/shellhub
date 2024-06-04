@@ -13,9 +13,9 @@ export interface AuthState {
   email: string;
   id: string;
   role: string;
-  recovery_email: string,
+  recoveryEmail: string,
   secret: string;
-  link_mfa: string;
+  linkMfa: string;
   mfa: boolean;
   recoveryCode: string,
   recoveryCodes: Array<number>;
@@ -42,9 +42,9 @@ export const auth: Module<AuthState, State> = {
     email: localStorage.getItem("email") || "",
     id: localStorage.getItem("id") || "",
     role: localStorage.getItem("role") || "",
-    recovery_email: "",
+    recoveryEmail: "",
     secret: "",
-    link_mfa: "",
+    linkMfa: "",
     mfa: false,
     recoveryCode: "",
     recoveryCodes: [],
@@ -72,8 +72,8 @@ export const auth: Module<AuthState, State> = {
     id: (state) => state.id,
     role: (state) => state.role,
     secret: (state) => state.secret,
-    recoveryEmail: (state) => state.recovery_email,
-    link_mfa: (state) => state.link_mfa,
+    recoveryEmail: (state) => state.recoveryEmail,
+    link_mfa: (state) => state.linkMfa,
     isMfa: (state) => state.mfa,
     mfaToken: (state) => state.mfaToken,
     stateRecoveryCode: (state) => state.recoveryCode,
@@ -86,7 +86,7 @@ export const auth: Module<AuthState, State> = {
     getNumberApiKeys: (state) => state.numberApiKeys,
     getLoginTimeout: (state) => state.loginTimeout,
     getDisableTokenTimeout: (state) => state.disableTimeout,
-    showForceRecoveryMail: (state) => !state.recovery_email && state.mfa,
+    showForceRecoveryMail: (state) => !state.recoveryEmail && state.mfa,
   },
 
   mutations: {
@@ -119,7 +119,7 @@ export const auth: Module<AuthState, State> = {
       state.id = data.id;
       state.role = data.role;
       state.mfa = data.mfa;
-      state.recovery_email = data.recovery_email;
+      state.recoveryEmail = data.recovery_email;
       localStorage.setItem("recovery_email", data.recovery_email);
     },
 
@@ -142,17 +142,21 @@ export const auth: Module<AuthState, State> = {
       state.name = data.name;
       state.user = data.username;
       state.email = data.email;
-      state.recovery_email = data.recovery_email;
+      state.recoveryEmail = data.recovery_email;
+    },
+
+    changeRecoveryEmail(state, data) {
+      state.recoveryEmail = data;
     },
 
     mfaGenerateInfo(state, data) {
-      state.link_mfa = data.link;
+      state.linkMfa = data.link;
       state.secret = data.secret;
       state.recoveryCodes = data.recovery_codes;
     },
 
     userInfo(state, data) {
-      state.link_mfa = data.link;
+      state.linkMfa = data.link;
       state.secret = data.secret;
       state.recoveryCodes = data.codes;
       state.mfa = data.mfa;
@@ -164,7 +168,7 @@ export const auth: Module<AuthState, State> = {
       state.id = data.id;
       state.role = data.role;
       state.mfa = data.mfa;
-      state.recovery_email = data.recovery_email;
+      state.recoveryEmail = data.recovery_email;
       localStorage.setItem("recovery_email", data.recovery_email);
     },
 
@@ -421,6 +425,11 @@ export const auth: Module<AuthState, State> = {
       localStorage.setItem("email", data.email);
       localStorage.setItem("recovery_email", data.recoveryEmail);
       context.commit("changeData", data);
+    },
+
+    changeRecoveryEmail(context, data) {
+      localStorage.setItem("recovery_email", data);
+      context.commit("changeRecoveryEmail", data);
     },
 
     setShowWelcomeScreen(context, tenantID: string) {
