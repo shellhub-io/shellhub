@@ -114,7 +114,7 @@ const {
   "Connection Announcement",
   yup
     .string()
-    .max(127, "Your message should be 1-127 characters long"),
+    .max(4096, "Your message should be 1-4096 characters long"),
   {
     initialValue: "",
   },
