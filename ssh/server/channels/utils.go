@@ -30,6 +30,10 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")
 
+	if err := sess.Type(req); err != nil {
+		log.WithError(err).Warn("failed to set the session type")
+	}
+
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 

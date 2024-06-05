@@ -36,3 +36,9 @@ type SessionFinish struct {
 type SessionKeepAlive struct {
 	SessionIDParam
 }
+
+type SessionUpdate struct {
+	SessionIDParam
+	Authenticated *bool   `json:"authenticated"`
+	Type          *string `json:"type"`
+}

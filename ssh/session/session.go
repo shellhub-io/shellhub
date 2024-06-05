@@ -217,11 +217,11 @@ func (s *Session) register() error {
 //
 // It returns an error if authentication fails.
 func (s *Session) authenticate() error {
-	if errs := s.api.SessionAsAuthenticated(s.UID); len(errs) > 0 {
-		return errs[0]
-	}
+	value := true
 
-	return nil
+	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
+		Authenticated: &value,
+	})
 }
 
 // connect connects the session's client to the session's agent.
@@ -466,4 +466,11 @@ func (s *Session) Finish() (err error) {
 	})
 
 	return nil
+}
+
+// Type updates the session's type on the database.
+func (s *Session) Type(kind string) error {
+	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
+		Type: &kind,
+	})
 }

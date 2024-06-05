@@ -1,6 +1,7 @@
 package internalclient
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -27,6 +28,9 @@ type sessionAPI interface {
 
 	// RecordSession records a session with the provided session information and record URL.
 	RecordSession(session *models.SessionRecorded, recordURL string) error
+
+	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
+	UpdateSession(uid string, model *models.SessionUpdate) error
 }
 
 func (c *client) SessionCreate(session requests.SessionCreate) error {
@@ -87,4 +91,23 @@ func (c *client) RecordSession(session *models.SessionRecorded, recordURL string
 		Post(fmt.Sprintf("http://"+recordURL+"/internal/sessions/%s/record", session.UID))
 
 	return err
+}
+
+func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
+	res, err := c.http.
+		R().
+		SetPathParams(map[string]string{
+			"tenant": uid,
+		}).
+		SetBody(model).
+		Patch("/internal/sessions/{tenant}")
+	if err != nil {
+		return errors.Join(errors.New("failed to update the session due error"), err)
+	}
+
+	if res.StatusCode() != 200 {
+		return errors.New("failed to update the session")
+	}
+
+	return nil
 }

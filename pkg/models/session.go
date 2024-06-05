@@ -12,13 +12,13 @@ type SessionPosition struct {
 type Session struct {
 	UID           string          `json:"uid"`
 	DeviceUID     UID             `json:"device_uid,omitempty" bson:"device_uid"`
-	Device        *Device         `json:"device" bson:"device,omitempty"`
+	Device        *Device         `json:"device" bson:"-"`
 	TenantID      string          `json:"tenant_id" bson:"tenant_id"`
 	Username      string          `json:"username"`
 	IPAddress     string          `json:"ip_address" bson:"ip_address"`
 	StartedAt     time.Time       `json:"started_at" bson:"started_at"`
 	LastSeen      time.Time       `json:"last_seen" bson:"last_seen"`
-	Active        bool            `json:"active" bson:",omitempty"`
+	Active        bool            `json:"active" bson:"-"`
 	Closed        bool            `json:"-" bson:"closed"`
 	Authenticated bool            `json:"authenticated" bson:"authenticated"`
 	Recorded      bool            `json:"recorded" bson:"recorded"`
@@ -56,4 +56,9 @@ type SessionRecorded struct {
 	Message   string `json:"message" bson:"message"`
 	Width     int    `json:"width" bson:"width,omitempty"`
 	Height    int    `json:"height" bson:"height,omitempty"`
+}
+
+type SessionUpdate struct {
+	Authenticated *bool   `json:"authenticated"`
+	Type          *string `json:"type"`
 }

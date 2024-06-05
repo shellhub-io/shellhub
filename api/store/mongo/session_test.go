@@ -65,7 +65,6 @@ func TestSessionList(t *testing.T) {
 							PublicURLAddress: "",
 							Acceptable:       false,
 						},
-						Active:        true,
 						Closed:        true,
 						Authenticated: true,
 						Recorded:      false,
@@ -281,7 +280,6 @@ func TestSessionGet(t *testing.T) {
 						PublicURLAddress: "",
 						Acceptable:       false,
 					},
-					Active:        true,
 					Closed:        true,
 					Authenticated: true,
 					Recorded:      false,
@@ -386,7 +384,7 @@ func TestSessionUpdateDeviceUID(t *testing.T) {
 	}
 }
 
-func TestSessionSetAuthenticated(t *testing.T) {
+func TestSessionUpdate(t *testing.T) {
 	cases := []struct {
 		description  string
 		UID          models.UID
@@ -419,7 +417,7 @@ func TestSessionSetAuthenticated(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.SessionSetAuthenticated(ctx, tc.UID, tc.authenticate)
+			err := s.SessionUpdate(ctx, tc.UID, &models.Session{})
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -427,38 +425,35 @@ func TestSessionSetAuthenticated(t *testing.T) {
 
 func TestSessionSetRecorded(t *testing.T) {
 	cases := []struct {
-		description  string
-		UID          models.UID
-		authenticate bool
-		fixtures     []string
-		expected     error
+		description string
+		UID         models.UID
+		recorded    bool
+		fixtures    []string
+		expected    error
 	}{
 		{
-			description:  "fails when session is not found",
-			UID:          models.UID("nonexistent"),
-			authenticate: false,
-			fixtures:     []string{fixtureSessions},
-			expected:     store.ErrNoDocuments,
+			description: "fails when session is not found",
+			UID:         models.UID("nonexistent"),
+			recorded:    false,
+			fixtures:    []string{fixtureSessions},
+			expected:    store.ErrNoDocuments,
 		},
 		{
-			description:  "succeeds when session is found",
-			UID:          models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			authenticate: false,
-			fixtures:     []string{fixtureSessions},
-			expected:     nil,
+			description: "succeeds when session is found",
+			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			recorded:    false,
+			fixtures:    []string{fixtureSessions},
+			expected:    nil,
 		},
 	}
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
-
 			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() {
 				assert.NoError(t, srv.Reset())
 			})
-
-			err := s.SessionSetAuthenticated(ctx, tc.UID, tc.authenticate)
+			err := s.SessionSetRecorded(ctx, tc.UID, tc.recorded)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -551,7 +546,7 @@ func TestSessionDeleteRecordFrameByDate(t *testing.T) {
 	}{
 		{
 			description: "succeeds when there are no sessions to update or delete",
-			lte:         time.Date(2023, time.January, 30, 12, 00, 0, 0, time.UTC),
+			lte:         time.Date(2023, time.January, 30, 12, 0, 0, 0, time.UTC),
 			fixtures:    []string{},
 			expected: Expected{
 				deletedCount: 0,
