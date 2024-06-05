@@ -144,23 +144,17 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 	return session, nil
 }
 
-func (s *Store) SessionSetAuthenticated(ctx context.Context, uid models.UID, authenticated bool) error {
-	session := new(models.Session)
-	if err := s.db.Collection("sessions").FindOne(ctx, bson.M{"uid": uid}).Decode(&session); err != nil {
+func (s *Store) SessionUpdate(ctx context.Context, uid models.UID, model *models.Session) error {
+	result, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": model})
+	if err != nil {
 		return FromMongoError(err)
 	}
 
-	if _, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"authenticated": authenticated}}); err != nil {
-		return FromMongoError(err)
+	if result.MatchedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
-	_, err := s.db.Collection("active_sessions").InsertOne(ctx, &models.ActiveSession{
-		UID:      uid,
-		LastSeen: session.StartedAt,
-		TenantID: session.TenantID,
-	})
-
-	return FromMongoError(err)
+	return nil
 }
 
 func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
@@ -317,4 +311,17 @@ func (s *Store) SessionDeleteRecordFrameByDate(ctx context.Context, lte time.Tim
 	})
 
 	return deletedCount, updatedCount, FromMongoError(err)
+}
+
+func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error {
+	_, err := s.db.Collection("active_sessions").InsertOne(ctx, &models.ActiveSession{
+		UID:      uid,
+		LastSeen: session.StartedAt,
+		TenantID: session.TenantID,
+	})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
 }

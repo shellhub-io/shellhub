@@ -269,32 +269,82 @@ func TestDeactivateSession(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestSetSessionAuthenticated(t *testing.T) {
+func TestUpdateSession(t *testing.T) {
 	mock := new(mocks.Store)
 
 	ctx := context.TODO()
 
+	theTrue := true
+
 	cases := []struct {
 		name          string
 		uid           models.UID
+		model         models.SessionUpdate
 		requiredMocks func()
 		expected      error
 	}{
 		{
-			name: "fails",
-			uid:  models.UID("_uid"),
+			name:  "fails whne cannot get the sessioni",
+			uid:   models.UID("_uid"),
+			model: models.SessionUpdate{},
 			requiredMocks: func() {
-				mock.On("SessionSetAuthenticated", ctx, models.UID("_uid"), true).
-					Return(goerrors.New("error")).Once()
+				mock.On("SessionGet", ctx, models.UID("_uid")).Return(nil, goerrors.New("error")).Once()
+			},
+			expected: NewErrSessionNotFound(models.UID("_uid"), goerrors.New("error")),
+		},
+		{
+			name:  "fails to update the session",
+			uid:   models.UID("_uid"),
+			model: models.SessionUpdate{},
+			requiredMocks: func() {
+				sess := &models.Session{}
+
+				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
+
+				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(goerrors.New("error")).Once()
 			},
 			expected: goerrors.New("error"),
 		},
 		{
-			name: "succeeds",
-			uid:  models.UID("uid"),
+			name:  "success to update the session",
+			uid:   models.UID("_uid"),
+			model: models.SessionUpdate{},
 			requiredMocks: func() {
-				mock.On("SessionSetAuthenticated", ctx, models.UID("uid"), true).
-					Return(nil).Once()
+				sess := &models.Session{}
+
+				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
+
+				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			name: "fails to update the session when authenticated field is updated",
+			uid:  models.UID("_uid"),
+			model: models.SessionUpdate{
+				Authenticated: &theTrue,
+			},
+			requiredMocks: func() {
+				sess := &models.Session{}
+
+				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
+				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(nil).Once()
+				mock.On("SessionActiveCreate", ctx, models.UID("_uid"), sess).Return(goerrors.New("error")).Once()
+			},
+			expected: goerrors.New("error"),
+		},
+		{
+			name: "success to update the session when authenticated field is updated",
+			uid:  models.UID("_uid"),
+			model: models.SessionUpdate{
+				Authenticated: &theTrue,
+			},
+			requiredMocks: func() {
+				sess := &models.Session{}
+
+				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
+				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(nil).Once()
+				mock.On("SessionActiveCreate", ctx, models.UID("_uid"), sess).Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -305,7 +355,7 @@ func TestSetSessionAuthenticated(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.SetSessionAuthenticated(ctx, tc.uid, true)
+			err := service.UpdateSession(ctx, tc.uid, tc.model)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
