@@ -46,57 +46,31 @@
         </div>
       </v-card-actions>
     </v-card>
-
-    <NamespaceAdd
-      v-if="!openVersion"
-      :show="dialogAdd"
-      :firstNamespace="autoSwitch"
-      data-test="namespaceAdd-component"
-    />
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { envVariables } from "../../envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
 
-export default defineComponent({
-  props: {
-    show: {
-      type: Boolean,
-      required: true,
-    },
+const props = defineProps({
+  show: {
+    type: Boolean,
+    required: true,
   },
-  setup(props, ctx) {
-    const dialogAdd = ref(false);
-
-    const showNoNamespace = computed({
-      get() {
-        return props.show;
-      },
-      set(value: boolean) {
-        ctx.emit("update", value);
-      },
-    });
-
-    const openVersion = computed(() => !envVariables.isEnterprise);
-
-    const autoSwitch = computed(() => localStorage.getItem("tenant") === "");
-
-    const close = () => {
-      showNoNamespace.value = false;
-      ctx.emit("update", false);
-    };
-
-    return {
-      dialogAdd,
-      openVersion,
-      showNoNamespace,
-      autoSwitch,
-      close,
-    };
-  },
-  components: { NamespaceAdd },
 });
+
+const emit = defineEmits(["update"]);
+
+const showNoNamespace = computed({
+  get() {
+    return props.show;
+  },
+  set(value: boolean) {
+    emit("update", value);
+  },
+});
+
+const openVersion = computed(() => !envVariables.isCloud || !envVariables.isEnterprise);
 </script>
