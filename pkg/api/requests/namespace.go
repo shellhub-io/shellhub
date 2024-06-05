@@ -37,7 +37,7 @@ type NamespaceEdit struct {
 	Name     string `json:"name" validate:"omitempty,hostname_rfc1123,excludes=."`
 	Settings struct {
 		SessionRecord          *bool   `json:"session_record" validate:"omitempty"`
-		ConnectionAnnouncement *string `json:"connection_announcement" validate:"omitempty,min=0,max=127"`
+		ConnectionAnnouncement *string `json:"connection_announcement" validate:"omitempty,min=0,max=4096"`
 	} `json:"settings"`
 }
 
