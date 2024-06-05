@@ -107,17 +107,25 @@ func NewTunnel(connection, dial string) *Tunnel {
 
 		ctx := c.Request().Context()
 
-		conn, err := tunnel.Dial(ctx, data.Device)
+		tenant := c.Request().Header.Get("X-Tenant-ID")
+
+		conn, err := tunnel.Dial(ctx, fmt.Sprintf("%s:%s", tenant, data.Device))
 		if err != nil {
+			log.WithError(err).Error("could not found the connection to this device")
+
 			return err
 		}
 
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/close/%s", data.UID), nil)
 		if err != nil {
+			log.WithError(err).Error("failed to create a the request for the device")
+
 			return err
 		}
 
 		if err := req.Write(conn); err != nil {
+			log.WithError(err).Error("failed to perform the HTTP request to the device to close the session")
+
 			return err
 		}
 
@@ -170,6 +178,7 @@ func (t *Tunnel) GetRouter() *echo.Echo {
 	return t.router
 }
 
-func (t *Tunnel) Dial(ctx context.Context, id string) (net.Conn, error) {
-	return t.Tunnel.Dial(ctx, id)
+// Dial trys to get a connetion to a device specifying a key, what is a combination of tenant and device's UID.
+func (t *Tunnel) Dial(ctx context.Context, key string) (net.Conn, error) {
+	return t.Tunnel.Dial(ctx, key)
 }
