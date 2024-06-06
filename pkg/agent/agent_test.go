@@ -70,6 +70,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 					cfg.ServerAddress = "http://localhost"
 					cfg.TenantID = ""
 					cfg.PrivateKey = ""
+					cfg.MaxRetryConnectionTimeout = 30
 				})
 			},
 			expected: expected{
@@ -92,6 +93,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 					cfg.ServerAddress = ""
 					cfg.TenantID = ""
 					cfg.PrivateKey = ""
+					cfg.MaxRetryConnectionTimeout = 30
 				})
 			},
 			expected: expected{
@@ -115,13 +117,15 @@ func TestLoadConfigFromEnv(t *testing.T) {
 					cfg.ServerAddress = "http://localhost"
 					cfg.TenantID = "1c462afa-e4b6-41a5-ba54-7236a1770466"
 					cfg.PrivateKey = "/tmp/shellhub.key"
+					cfg.MaxRetryConnectionTimeout = 30
 				})
 			},
 			expected: expected{
 				cfg: &Config{
-					ServerAddress: "http://localhost",
-					TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
-					PrivateKey:    "/tmp/shellhub.key",
+					ServerAddress:             "http://localhost",
+					TenantID:                  "1c462afa-e4b6-41a5-ba54-7236a1770466",
+					PrivateKey:                "/tmp/shellhub.key",
+					MaxRetryConnectionTimeout: 30,
 				},
 				fields: nil,
 				err:    nil,
