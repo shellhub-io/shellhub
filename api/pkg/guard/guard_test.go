@@ -8,45 +8,52 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestEvaluateRole(t *testing.T) {
+func TestHasAuthority(t *testing.T) {
 	cases := []struct {
-		name string
-		exec func(t *testing.T)
+		description string
+		active      string
+		passive     string
+		expected    bool
 	}{
 		{
-			name: "Fail when the first role is not great than the second one",
-			exec: func(t *testing.T) {
-				t.Helper()
-				assert.False(t, CheckRole(RoleAdministrator, RoleOwner))
-			},
+			description: "fails when the first role is not great than the second one",
+			active:      RoleAdministrator,
+			passive:     RoleOwner,
+			expected:    false,
 		},
 		{
-			name: "Fail when a role is not valid",
-			exec: func(t *testing.T) {
-				t.Helper()
-				assert.False(t, CheckRole("invalidRole", RoleOperator))
-			},
+			description: "fails when a role is not valid",
+			active:      "invalidRole",
+			passive:     RoleOperator,
+			expected:    false,
 		},
 		{
-			name: "Fail when both roles are equals",
-			exec: func(t *testing.T) {
-				t.Helper()
-				assert.False(t, CheckRole(RoleOperator, RoleOperator))
-			},
+			description: "fails when passive role is owner",
+			active:      RoleOwner,
+			passive:     RoleOwner,
+			expected:    false,
 		},
 		{
-			name: "Success when the first role is great than the second one",
-			exec: func(t *testing.T) {
-				t.Helper()
-				assert.True(t, CheckRole(RoleAdministrator, RoleOperator))
-			},
+			description: "succeeds when both roles are equals",
+			active:      RoleOperator,
+			passive:     RoleOperator,
+			expected:    true,
+		},
+		{
+			description: "succeeds when the first role is great than the second one",
+			active:      RoleAdministrator,
+			passive:     RoleOperator,
+			expected:    true,
 		},
 	}
 
-	for _, test := range cases {
-		t.Run(test.name, test.exec)
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			require.Equal(tt, tc.expected, HasAuthority(tc.active, tc.passive))
+		})
 	}
 }
 
@@ -82,116 +89,6 @@ func TestEvaluatePermission(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, test.exec)
 	}
-}
-
-func TestEvaluateSubject(t *testing.T) {
-	mock := &mocks.Store{}
-
-	memberOperator := models.Member{
-		ID:       "memberOperatorID",
-		Username: "memberOperatorUsername",
-		Role:     RoleOperator,
-	}
-
-	memberAdministrator := models.Member{
-		ID:       "memberAdministratorID",
-		Username: "memberAdministratorUsername",
-		Role:     RoleAdministrator,
-	}
-
-	memberOwner := models.Member{
-		ID:       "memberOwnerID",
-		Username: "memberOwnerUsername",
-		Role:     RoleOwner,
-	}
-
-	passiveRoleOperator := RoleOperator
-	passiveRoleObserver := RoleObserver
-	passiveRoleAdministrator := RoleAdministrator
-	passiveRoleOwner := RoleOwner
-
-	cases := []struct {
-		description  string
-		memberActive models.Member
-		rolePassive  string
-		expected     bool
-	}{
-		{
-			description:  "CheckRole successes when active user is a operator and passive role is observer",
-			memberActive: memberOperator,
-			rolePassive:  passiveRoleObserver,
-			expected:     true,
-		},
-		{
-			description:  "CheckRole fails when active user is a operator and passive role is operator",
-			memberActive: memberOperator,
-			rolePassive:  passiveRoleOperator,
-			expected:     false,
-		},
-		{
-			description:  "CheckRole fails when active user is a operator and passive role is administrator",
-			memberActive: memberOperator,
-			rolePassive:  passiveRoleAdministrator,
-			expected:     false,
-		},
-		{
-			description:  "CheckRole successes when active user is a administrator and passive role is observer",
-			memberActive: memberAdministrator,
-			rolePassive:  passiveRoleObserver,
-			expected:     true,
-		},
-		{
-			description:  "CheckRole success when active user is a administrator and passive role is operator",
-			memberActive: memberAdministrator,
-			rolePassive:  passiveRoleOperator,
-			expected:     true,
-		},
-		{
-			description:  "CheckRole fails when active user is a administrator and passive role is administrator",
-			memberActive: memberAdministrator,
-			rolePassive:  passiveRoleAdministrator,
-			expected:     false,
-		},
-		{
-			description:  "CheckRole fails when active user is a administrator and passive role is owner",
-			memberActive: memberAdministrator,
-			rolePassive:  passiveRoleOwner,
-			expected:     false,
-		},
-		{
-			description:  "CheckRole fails when active user is a owner and passive role is observer",
-			memberActive: memberOwner,
-			rolePassive:  passiveRoleObserver,
-			expected:     true,
-		},
-		{
-			description:  "CheckRole fails when active user is a owner and passive role is operator",
-			memberActive: memberOwner,
-			rolePassive:  passiveRoleObserver,
-			expected:     true,
-		},
-		{
-			description:  "CheckRole fails when active user is a owner and passive role is administrator",
-			memberActive: memberOwner,
-			rolePassive:  passiveRoleAdministrator,
-			expected:     true,
-		},
-		{
-			description:  "CheckRole fails when active user is a owner and passive role is owner",
-			memberActive: memberOwner,
-			rolePassive:  passiveRoleOwner,
-			expected:     false,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ok := CheckRole(tc.memberActive.Role, tc.rolePassive)
-			assert.Equal(t, tc.expected, ok)
-		})
-	}
-
-	mock.AssertExpectations(t)
 }
 
 func TestEvaluateNamespace(t *testing.T) {
@@ -450,27 +347,27 @@ func TestCheckPermission(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func ExampleCheckRole_observer_and_observer() {
+func ExampleHasAuthority_observer_and_observer() {
 	// If members have the same role, they cannot act over each other.
 	active := RoleObserver
 	passive := RoleObserver
-	fmt.Println(CheckRole(active, passive))
-	// Output: false
-}
-
-func ExampleCheckRole_operator_and_observer() {
-	// If active member has a great roles, it can act over passive one.
-	active := RoleOperator
-	passive := RoleObserver
-	fmt.Println(CheckRole(active, passive))
+	fmt.Println(HasAuthority(active, passive))
 	// Output: true
 }
 
-func ExampleCheckRole_owner_and_observer() {
+func ExampleHasAuthority_operator_and_observer() {
+	// If active member has a great roles, it can act over passive one.
+	active := RoleOperator
+	passive := RoleObserver
+	fmt.Println(HasAuthority(active, passive))
+	// Output: true
+}
+
+func ExampleHasAuthority_owner_and_observer() {
 	// If active member is owner, it can act over everyone.
 	active := RoleOwner
 	passive := RoleObserver
-	fmt.Println(CheckRole(active, passive))
+	fmt.Println(HasAuthority(active, passive))
 	// Output: true
 }
 
