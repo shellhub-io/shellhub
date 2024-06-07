@@ -2,33 +2,81 @@
 
 set -e
 
-# Print the usage when none arguments are provided.
-if [ "$#" -eq 0 ]; then
+usage() {
     cat <<EOF
-Runs a native agent with the provided git tag. Optionally, it can receive [tenant_id] and [server_address] parameters, which are used during agent initialization. Leave these parameters blank for default values.
+Runs a native agent with the provided git tag. Optionally, it can receive -t <tenant_id>, -s <server_address>, and -o "<KEY=VALUE>" parameters, which are used during agent initialization. Leave these parameters blank for default values.
+
+When <tag> is '.', the agent will be built in the current Git state and named 'latest'.
 
 Usage:
-    $0 <tag> [tenant_id] [server_address]
+    $0 <tag> [-t <tenant_id>] [-s <server_address>] [-o <KEY=VALUE>]
 Examples:
+    $0 .
     $0 v0.15.0
-    $0 v0.14.2 00000000-0000-4000-0000-000000000000 http://127.0.0.1
+    $0 v0.15.0 -t 00000000-0000-4000-0000-000000000000 -s http://127.0.0.1 -o "KEEPALIVE_INTERVAL=30 PREFERRED_HOSTNAME=127.0.0.2"
 EOF
     exit 0
+}
+
+if [ "$#" -eq 0 ]; then
+    usage
 fi
 
 . "$(dirname "$0")/utils"
 
-tag=$1
+tag="$1"
+shift
 
-if [ ! -d ./bin/agent ]; then
-    mkdir ./bin/agent
+tenant_id="00000000-0000-4000-0000-000000000000"
+server_address="http://127.0.0.1"
+additional_env=""
+
+# Processa as flags usando getopts
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -t)
+            tenant_id="$2"
+            shift 2
+            ;;
+        -s)
+            server_address="$2"
+            shift 2
+            ;;
+        -o)
+            additional_env="$2"
+            shift 2
+            ;;
+        --help)
+            usage
+            ;;
+        *)
+            echo "Invalid option: $1"
+            usage
+            ;;
+    esac
+done
+
+if [ "$tag" = "." ]; then
+    tag="latest"
 fi
 
-# If the tag binary does not exist, we need to build one.
-if [ ! -f ./bin/agent/$tag ]; then
+echo "Tenant ID: $tenant_id"
+echo "Server Address: $server_address"
+echo "Additional Environment Variables: $additional_env"
+
+if [ ! -d ./bin/agent ]; then
+    mkdir -p ./bin/agent
+fi
+
+if [ "$tag" = "latest" ]; then
+    cd ./agent
+    go build -ldflags "-X main.AgentVersion=$tag" -o "./../bin/agent/$tag"
+    cd ./..
+elif [ ! -f ./bin/agent/$tag ]; then
+    check_bin "git"
+
     echo "No '$tag' agent found. Building one."
 
-    check_bin "git"
     branch=$(git symbolic-ref --short HEAD)
 
     (
@@ -42,7 +90,4 @@ if [ ! -f ./bin/agent/$tag ]; then
     )
 fi
 
-tenant_id=${2:-00000000-0000-4000-0000-000000000000}
-server_address=${3:-http://127.0.0.1}
-
-TENANT_ID=$tenant_id SERVER_ADDRESS=$server_address PRIVATE_KEY=/tmp/test.pk sudo -E ./bin/agent/$tag
+sudo -E TENANT_ID=$tenant_id SERVER_ADDRESS=$server_address $additional_env PRIVATE_KEY=/tmp/test.pk ./bin/agent/$tag
