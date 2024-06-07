@@ -1391,7 +1391,7 @@ func TestRemoveNamespaceUser(t *testing.T) {
 							ID: "hash2", Role: guard.RoleAdministrator,
 						},
 						{
-							ID: "hash3", Role: guard.RoleAdministrator,
+							ID: "hash3", Role: guard.RoleOwner,
 						},
 					},
 				}

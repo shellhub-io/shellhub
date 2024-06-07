@@ -53,27 +53,21 @@ func GetRoleCode(role string) int {
 	return code
 }
 
-// CheckRole checks if a models.Member's role from a models.Namespace can act over the other. Active is the member's role
-// from who is acting, and passive is the member who is receiving. Active and passive roles must be members of the
-// same models.Namespace.
-//
-// If active or passive is an invalid member, a member with a role no mapped, it returns false. If active and passive are
-// equal, it returns false too.
-//
-// The valid roles are: RoleObserver, RoleOperator, RoleAdmin or RoleOwner.
-func CheckRole(active, passive string) bool {
-	first := GetRoleCode(active)
-	second := GetRoleCode(passive)
-
-	if first == RoleInvalidCode || second == RoleInvalidCode {
+// HasAuthority reports whether the active role has greater or equal authority compared to the passive role.
+// It returns false if either role is invalid or if the passive role is [RoleOwner].
+func HasAuthority(active, passive string) bool {
+	if passive == RoleOwner {
 		return false
 	}
 
-	if first == second {
+	activeCode := GetRoleCode(active)
+	passiveCode := GetRoleCode(passive)
+
+	if activeCode == RoleInvalidCode || passiveCode == RoleInvalidCode {
 		return false
 	}
 
-	return first > second
+	return activeCode >= passiveCode
 }
 
 // EvaluatePermission checks if a models.Namespace's member has the role that allows an action. Each role has a list of

@@ -248,7 +248,7 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 		return nil, NewErrNamespaceMemberDuplicated(passive.ID, nil)
 	}
 
-	if !guard.CheckRole(active.Role, memberRole) {
+	if !guard.HasAuthority(active.Role, memberRole) {
 		return nil, guard.ErrForbidden
 	}
 
@@ -297,7 +297,7 @@ func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, u
 	}
 
 	// checks if the active member can act over the passive member.
-	if !guard.CheckRole(active.Role, passive.Role) {
+	if !guard.HasAuthority(active.Role, passive.Role) {
 		return nil, guard.ErrForbidden
 	}
 
@@ -354,7 +354,7 @@ func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, membe
 	}
 
 	// checks if the active member can act over the passive member.
-	if !guard.CheckRole(active.Role, memberNewRole) {
+	if !guard.HasAuthority(active.Role, memberNewRole) {
 		return guard.ErrForbidden
 	}
 
