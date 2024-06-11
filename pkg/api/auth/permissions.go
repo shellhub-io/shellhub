@@ -1,16 +1,15 @@
-package guard
+package auth
 
-type Permissions []int
+type Permission int
 
 const (
-	DeviceAccept = iota + 1
+	DeviceAccept Permission = iota
 	DeviceReject
 	DeviceUpdate
 	DeviceRemove
 	DeviceConnect
 	DeviceRename
 	DeviceDetails
-
 	DeviceCreateTag
 	DeviceUpdateTag
 	DeviceRemoveTag
@@ -25,7 +24,6 @@ const (
 	FirewallCreate
 	FirewallEdit
 	FirewallRemove
-
 	FirewallAddTag
 	FirewallRemoveTag
 	FirewallUpdateTag
@@ -33,7 +31,6 @@ const (
 	PublicKeyCreate
 	PublicKeyEdit
 	PublicKeyRemove
-
 	PublicKeyAddTag
 	PublicKeyRemoveTag
 	PublicKeyUpdateTag
@@ -56,24 +53,24 @@ const (
 	BillingGetSubscription
 
 	APIKeyCreate
-	APIKeyEdit
+	APIKeyUpdate
 	APIKeyDelete
 )
 
-var observerPermissions = Permissions{
+var observerPermissions = []Permission{
 	DeviceConnect,
 	DeviceDetails,
+
 	SessionDetails,
 }
 
-var operatorPermissions = Permissions{
+var operatorPermissions = []Permission{
 	DeviceAccept,
 	DeviceReject,
 	DeviceConnect,
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
-
 	DeviceCreateTag,
 	DeviceUpdateTag,
 	DeviceRemoveTag,
@@ -83,7 +80,7 @@ var operatorPermissions = Permissions{
 	SessionDetails,
 }
 
-var adminPermissions = Permissions{
+var adminPermissions = []Permission{
 	DeviceAccept,
 	DeviceReject,
 	DeviceRemove,
@@ -91,14 +88,11 @@ var adminPermissions = Permissions{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
-
 	DeviceCreateTag,
 	DeviceUpdateTag,
 	DeviceRemoveTag,
 	DeviceRenameTag,
 	DeviceDeleteTag,
-
-	DeviceUpdate,
 
 	SessionPlay,
 	SessionClose,
@@ -126,11 +120,11 @@ var adminPermissions = Permissions{
 	NamespaceEnableSessionRecord,
 
 	APIKeyCreate,
-	APIKeyEdit,
+	APIKeyUpdate,
 	APIKeyDelete,
 }
 
-var ownerPermissions = Permissions{
+var ownerPermissions = []Permission{
 	DeviceAccept,
 	DeviceReject,
 	DeviceRemove,
@@ -138,14 +132,11 @@ var ownerPermissions = Permissions{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
-
 	DeviceCreateTag,
 	DeviceUpdateTag,
 	DeviceRemoveTag,
 	DeviceRenameTag,
 	DeviceDeleteTag,
-
-	DeviceUpdate,
 
 	SessionPlay,
 	SessionClose,
@@ -183,6 +174,6 @@ var ownerPermissions = Permissions{
 	BillingGetSubscription,
 
 	APIKeyCreate,
-	APIKeyEdit,
+	APIKeyUpdate,
 	APIKeyDelete,
 }

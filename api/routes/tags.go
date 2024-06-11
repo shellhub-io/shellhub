@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 )
 
@@ -49,10 +48,7 @@ func (h *Handler) RenameTag(c gateway.Context) error {
 		return err
 	}
 
-	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.RenameTag, func() error {
-		return h.service.RenameTag(c.Ctx(), tenant, req.Tag, req.NewTag)
-	})
-	if err != nil {
+	if err := h.service.RenameTag(c.Ctx(), tenant, req.Tag, req.NewTag); err != nil {
 		return err
 	}
 
@@ -74,10 +70,7 @@ func (h *Handler) DeleteTag(c gateway.Context) error {
 		tenant = t.ID
 	}
 
-	err := guard.EvaluatePermission(c.Role(), guard.Actions.Device.DeleteTag, func() error {
-		return h.service.DeleteTag(c.Ctx(), tenant, req.Tag)
-	})
-	if err != nil {
+	if err := h.service.DeleteTag(c.Ctx(), tenant, req.Tag); err != nil {
 		return err
 	}
 

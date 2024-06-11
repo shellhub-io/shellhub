@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 )
 
 type Namespace struct {
@@ -55,9 +57,9 @@ type NamespaceSettings struct {
 }
 
 type Member struct {
-	ID       string `json:"id,omitempty" bson:"id,omitempty"`
-	Username string `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
-	Role     string `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
+	ID       string    `json:"id,omitempty" bson:"id,omitempty"`
+	Username string    `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
+	Role     auth.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
 }
 
 type NamespaceChanges struct {
