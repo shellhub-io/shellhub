@@ -176,13 +176,10 @@ type Agent struct {
 	mode       Mode
 }
 
-// NewAgent creates a new agent instance.
+// NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
+// where device own and the path to the private key on the file system.
 //
-// address is the ShellHub Server address the agent will use to connect, tenantID is the namespace where the device
-// will be registered and privateKey is the path to the device private key. If privateKey is empty, a new key will be
-// generated.
-//
-// To add a full customisation configuration, use [NewAgentWithConfig] instead.
+// To create a new [Agent] instance with all configurations, you can use [NewAgentWithConfig].
 func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*Agent, error) {
 	return NewAgentWithConfig(&Config{
 		ServerAddress: address,
@@ -199,7 +196,7 @@ var (
 	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
 )
 
-// NewAgentWithConfig creates a new agent instance with a custom configuration.
+// NewAgentWithConfig creates a new agent instance with all configurations.
 //
 // Check [Config] for more information.
 func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
@@ -229,8 +226,8 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 	}, nil
 }
 
-// Initialize initializes agent, generating device identity, loading device information, generating private key,
-// reading public key, probing server information and authorizing device on ShellHub server.
+// Initialize initializes the ShellHub Agent, generating device identity, loading device information, generating private
+// key, reading public key, probing server information and authorizing device on ShellHub server.
 //
 // When any of the steps fails, the agent will return an error, and the agent will not be able to start.
 func (a *Agent) Initialize() error {
@@ -290,10 +287,10 @@ func (a *Agent) readPublicKey() error {
 	return err
 }
 
-// generateDeviceIdentity generates device identity.
+// generateDeviceIdentity generates a device identity.
 //
-// When preferred identity on Agent is set, it will be used instead of the network interface MAC address, what is the
-// default value for this property.
+// The default value for Agent Identity is a network interface MAC address, but if the `SHELLHUB_PREFERRED_IDENTITY` is
+// defined and set on [Config] structure, the device identity is set to this value.
 func (a *Agent) generateDeviceIdentity() error {
 	if id := a.config.PreferredIdentity; id != "" {
 		a.Identity = &models.DeviceIdentity{
@@ -334,7 +331,7 @@ func (a *Agent) loadDeviceInfo() error {
 	return nil
 }
 
-// probeServerInfo probe server information.
+// probeServerInfo gets information about the ShellHub server.
 func (a *Agent) probeServerInfo() error {
 	info, err := a.cli.GetInfo(AgentVersion)
 	a.serverInfo = info
@@ -342,7 +339,7 @@ func (a *Agent) probeServerInfo() error {
 	return err
 }
 
-// authorize send auth request to the server.
+// authorize send auth request to the server with device information in order to register it in the namespace.
 func (a *Agent) authorize() error {
 	data, err := a.cli.AuthDevice(&models.DeviceAuthRequest{
 		Info: a.Info,
@@ -359,6 +356,7 @@ func (a *Agent) authorize() error {
 	return err
 }
 
+// NewReverseListener creates a authenticated connection to the ShellHub server.
 func (a *Agent) NewReverseListener(ctx context.Context) (*revdial.Listener, error) {
 	return a.cli.NewReverseListener(ctx, a.authData.Token)
 }
@@ -370,6 +368,7 @@ func (a *Agent) isClosed() bool {
 	return a.closed
 }
 
+// Close closes the ShellHub Agent's listening, stoping it from receive new connection requests.
 func (a *Agent) Close() error {
 	a.mux.Lock()
 	a.closed = true
@@ -466,7 +465,7 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 	}
 }
 
-// Listen creates a new SSH server, through a reverse connection between the Agent and the ShellHub server.
+// Listen creates the SSH server and listening for connections.
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
