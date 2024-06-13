@@ -112,9 +112,9 @@ var Rules = []Rule{
 		},
 		Error: fmt.Errorf("expires_at must be in [ -1 30 60 90 365 ]"),
 	},
-	// namespace_role reports whether a given string is a guard.Role or not
+	// member_role reports whether a given string is a guard.Role or not
 	{
-		Tag: "namespace_role",
+		Tag: "member_role",
 		Handler: func(field validator.FieldLevel) bool {
 			// TODO: put guard in shellhub/pkg and use it here
 			switch field.Field().String() {

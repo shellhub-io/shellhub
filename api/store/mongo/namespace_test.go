@@ -12,6 +12,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestNamespaceList(t *testing.T) {
@@ -547,72 +549,36 @@ func TestNamespaceDelete(t *testing.T) {
 
 func TestNamespaceAddMember(t *testing.T) {
 	type Expected struct {
-		ns  *models.Namespace
 		err error
 	}
 
 	cases := []struct {
 		description string
-		tenant      string
-		member      string
-		role        string
+		tenantID    string
+		member      *models.Member
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			member:      "6509de884238881ac1b2b289",
-			role:        guard.RoleObserver,
+			tenantID:    "nonexistent",
+			member:      &models.Member{ID: "6509de884238881ac1b2b289", Role: guard.RoleObserver},
 			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns:  nil,
-				err: store.ErrNoDocuments,
-			},
+			expected:    Expected{err: store.ErrNoDocuments},
 		},
 		{
 			description: "fails when member has already been added",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			member:      "6509e169ae6144b2f56bf288",
-			role:        guard.RoleObserver,
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			member:      &models.Member{ID: "6509e169ae6144b2f56bf288", Role: guard.RoleObserver},
 			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns:  nil,
-				err: mongo.ErrNamespaceDuplicatedMember,
-			},
+			expected:    Expected{err: mongo.ErrNamespaceDuplicatedMember},
 		},
 		{
 			description: "succeeds when tenant is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			member:      "6509de884238881ac1b2b289",
-			role:        guard.RoleObserver,
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			member:      &models.Member{ID: "6509de884238881ac1b2b289", Role: guard.RoleObserver},
 			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns: &models.Namespace{
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: guard.RoleOwner,
-						},
-						{
-							ID:   "6509e169ae6144b2f56bf288",
-							Role: guard.RoleObserver,
-						},
-						{
-							ID:   "6509de884238881ac1b2b289",
-							Role: guard.RoleObserver,
-						},
-					},
-					MaxDevices:   -1,
-					Settings:     &models.NamespaceSettings{SessionRecord: true},
-					DevicesCount: 0,
-				},
-				err: nil,
-			},
+			expected:    Expected{err: nil},
 		},
 	}
 
@@ -625,36 +591,45 @@ func TestNamespaceAddMember(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, err := s.NamespaceAddMember(ctx, tc.tenant, tc.member, tc.role)
-			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
+			if err := s.NamespaceAddMember(ctx, tc.tenantID, tc.member); tc.expected.err != nil {
+				require.Equal(t, tc.expected.err, err)
+
+				return
+			}
+
+			require.NoError(t, db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tc.tenantID, "members.id": tc.member.ID}).Err())
 		})
 	}
 }
 
-func TestNamespaceEditMember(t *testing.T) {
+func TestNamespaceUpdateMember(t *testing.T) {
+	type Expected struct {
+		err error
+	}
+
 	cases := []struct {
 		description string
-		tenant      string
-		member      string
-		role        string
+		tenantID    string
+		memberID    string
+		changes     *models.MemberChanges
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
-			tenant:      "nonexistent",
-			member:      "000000000000000000000000",
-			role:        guard.RoleObserver,
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			memberID:    "000000000000000000000000",
+			changes:     &models.MemberChanges{Role: guard.RoleObserver},
 			fixtures:    []string{fixtureNamespaces},
-			expected:    mongo.ErrUserNotFound,
+			expected:    Expected{err: mongo.ErrUserNotFound},
 		},
 		{
 			description: "succeeds when tenant and user is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			member:      "6509e169ae6144b2f56bf288",
-			role:        guard.RoleOperator,
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			memberID:    "6509e169ae6144b2f56bf288",
+			changes:     &models.MemberChanges{Role: guard.RoleAdministrator},
 			fixtures:    []string{fixtureNamespaces},
-			expected:    nil,
+			expected:    Expected{err: nil},
 		},
 	}
 
@@ -667,68 +642,53 @@ func TestNamespaceEditMember(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.NamespaceEditMember(ctx, tc.tenant, tc.member, tc.role)
-			assert.Equal(t, tc.expected, err)
+			if err := s.NamespaceUpdateMember(ctx, tc.tenantID, tc.memberID, tc.changes); tc.expected.err != nil {
+				require.Equal(t, tc.expected.err, err)
+
+				return
+			}
+
+			namespace := new(models.Namespace)
+			require.NoError(t, db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tc.tenantID, "members.id": tc.memberID}).Decode(namespace))
+			require.Equal(t, 2, len(namespace.Members))
+			require.Equal(t, tc.memberID, namespace.Members[1].ID)
+			require.Equal(t, tc.changes.Role, namespace.Members[1].Role)
 		})
 	}
 }
 
 func TestNamespaceRemoveMember(t *testing.T) {
 	type Expected struct {
-		ns  *models.Namespace
 		err error
 	}
 
 	cases := []struct {
 		description string
-		tenant      string
-		member      string
+		tenantID    string
+		memberID    string
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			member:      "6509de884238881ac1b2b289",
+			tenantID:    "nonexistent",
+			memberID:    "6509de884238881ac1b2b289",
 			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns:  nil,
-				err: store.ErrNoDocuments,
-			},
+			expected:    Expected{err: store.ErrNoDocuments},
 		},
 		{
 			description: "fails when member is not found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			member:      "nonexistent",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			memberID:    "nonexistent",
 			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns:  nil,
-				err: mongo.ErrUserNotFound,
-			},
+			expected:    Expected{err: mongo.ErrUserNotFound},
 		},
 		{
 			description: "succeeds when tenant and user is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			member:      "6509e169ae6144b2f56bf288",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			memberID:    "6509e169ae6144b2f56bf288",
 			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns: &models.Namespace{
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: guard.RoleOwner,
-						},
-					},
-					MaxDevices:   -1,
-					Settings:     &models.NamespaceSettings{SessionRecord: true},
-					DevicesCount: 0,
-				},
-				err: nil,
-			},
+			expected:    Expected{err: nil},
 		},
 	}
 
@@ -741,8 +701,15 @@ func TestNamespaceRemoveMember(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, err := s.NamespaceRemoveMember(ctx, tc.tenant, tc.member)
-			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
+			if err := s.NamespaceRemoveMember(ctx, tc.tenantID, tc.memberID); tc.expected.err != nil {
+				require.Equal(t, tc.expected.err, err)
+
+				return
+			}
+
+			namespace := new(models.Namespace)
+			require.NoError(t, db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tc.tenantID}).Decode(namespace))
+			require.Equal(t, 1, len(namespace.Members))
 		})
 	}
 }

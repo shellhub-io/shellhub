@@ -41,24 +41,24 @@ type NamespaceEdit struct {
 	} `json:"settings"`
 }
 
-// NamespaceAddUser is the structure to represent the request data for add member to namespace endpoint.
-type NamespaceAddUser struct {
-	TenantParam
-	Username string `json:"username" validate:"required"`
-	RoleBody
+type NamespaceAddMember struct {
+	UserID         string `header:"X-ID" validate:"required"`
+	TenantID       string `param:"tenant" validate:"required,uuid"`
+	MemberUsername string `json:"username" validate:"required,username"`
+	MemberRole     string `json:"role" validate:"required,member_role"`
 }
 
-// NamespaceRemoveUser is the structure to represent the request data for remove member from namespace endpoint.
-type NamespaceRemoveUser struct {
-	TenantParam
-	MemberParam
+type NamespaceUpdateMember struct {
+	UserID     string `header:"X-ID" validate:"required"`
+	TenantID   string `param:"tenant" validate:"required,uuid"`
+	MemberID   string `param:"uid" validate:"required"`
+	MemberRole string `json:"role" validate:"omitempty,member_role"`
 }
 
-// NamespaceEditUser is the structure to represent the request data for edit member from namespace endpoint.
-type NamespaceEditUser struct {
-	TenantParam
-	MemberParam
-	RoleBody
+type NamespaceRemoveMember struct {
+	UserID   string `header:"X-ID" validate:"required"`
+	TenantID string `param:"tenant" validate:"required,uuid"`
+	MemberID string `param:"uid" validate:"required"`
 }
 
 // SessionEditRecordStatus is the structure to represent the request data for edit session record status endpoint.

@@ -90,7 +90,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 
 	// Remove user from all namespaces what it is a member.
 	for _, ns := range detach["member"] {
-		if _, err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
+		if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
 			return err
 		}
 	}

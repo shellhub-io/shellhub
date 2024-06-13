@@ -104,9 +104,9 @@ func NewRouter(service services.Service) *echo.Echo {
 	publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace))
 	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace))
 	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace))
-	publicAPI.POST(AddNamespaceUserURL, gateway.Handler(handler.AddNamespaceUser))
-	publicAPI.DELETE(RemoveNamespaceUserURL, gateway.Handler(handler.RemoveNamespaceUser))
-	publicAPI.PATCH(EditNamespaceUserURL, gateway.Handler(handler.EditNamespaceUser))
+	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember))
+	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember))
+	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember))
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
 	return e

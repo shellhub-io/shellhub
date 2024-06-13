@@ -965,946 +965,947 @@ func TestDeleteNamespace(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestAddNamespaceUser(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
+func TestAddNamespaceMember(t *testing.T) {
 	type Expected struct {
 		namespace *models.Namespace
 		err       error
 	}
 
+	storeMock := new(mocks.Store)
+
 	cases := []struct {
 		description   string
-		TenantID      string
-		Username      string
-		Role          string
-		ID            string
-		RequiredMocks func()
-		Expected      Expected
+		req           *requests.NamespaceAddMember
+		requiredMocks func(context.Context)
+		expected      Expected
 	}{
 		{
-			description: "fails when MemberID is not valid",
-			Username:    "",
-			Role:        guard.RoleObserver,
-			ID:          "ID1",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
-			RequiredMocks: func() {
-			},
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberInvalid(validator.ErrStructureInvalid),
-			},
-		},
-		{
-			description: "fails when Role is not valid",
-			Username:    "user2",
-			Role:        "invalid",
-			ID:          "ID1",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
-			RequiredMocks: func() {
-			},
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberInvalid(validator.ErrStructureInvalid),
-			},
-		},
-		{
 			description: "fails when the namespace was not found",
-			Username:    "user2",
-			Role:        guard.RoleObserver,
-			ID:          "ID1",
-			TenantID:    "tenantIDNotFound",
-			RequiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenantIDNotFound", true).Return(nil, ErrNamespaceNotFound).Once()
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleObserver,
 			},
-			Expected: Expected{
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(nil, ErrNamespaceNotFound).
+					Once()
+			},
+			expected: Expected{
 				namespace: nil,
-				err:       NewErrNamespaceNotFound("tenantIDNotFound", ErrNamespaceNotFound),
+				err:       NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound),
 			},
 		},
 		{
 			description: "fails when the active member was not found",
-			Username:    "user1",
-			Role:        guard.RoleObserver,
-			ID:          "userIDNotFound",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "ID1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "ID1", Role: guard.RoleOwner},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-
-				mock.On("UserGetByID", ctx, "userIDNotFound", false).Return(nil, 0, ErrUserNotFound).Once()
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleObserver,
 			},
-			Expected: Expected{
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(nil, 0, ErrUserNotFound).
+					Once()
+			},
+			expected: Expected{
 				namespace: nil,
-				err:       NewErrUserNotFound("userIDNotFound", ErrUserNotFound),
+				err:       NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
 			},
 		},
 		{
 			description: "fails when the active member is not on the namespace",
-			Username:    "user1",
-			Role:        guard.RoleObserver,
-			ID:          "ID2",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "ID1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "ID1", Role: guard.RoleOwner},
-					},
-				}
-
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "user2",
-						Email:    "user2@email.com",
-					},
-					ID: "ID2",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleObserver,
 			},
-			Expected: Expected{
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: Expected{
 				namespace: nil,
-				err:       NewErrNamespaceMemberNotFound("ID2", nil),
+				err:       NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
 			},
 		},
 		{
-			description: "addNamespaceUser fails when passive member was not found",
-			Username:    "usernamespacenotfound",
-			Role:        guard.RoleObserver,
-			ID:          "ID1",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "ID1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "ID1", Role: guard.RoleOwner},
-					},
-				}
-
-				user1 := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "user1",
-						Email:    "user1@email.com",
-					},
-					ID: "ID1",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, "usernamespacenotfound").Return(nil, ErrBadRequest).Once()
+			description: "fails when the passive role's is owner",
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleOwner,
 			},
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("usernamespacenotfound", ErrBadRequest),
-			},
-		},
-		{
-			description: "fails when the passive member is on the namespace",
-			Username:    "user2",
-			Role:        guard.RoleObserver,
-			ID:          "ID1",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484714",
-			RequiredMocks: func() {
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "user2",
-						Email:    "user2@email.com",
-					},
-					ID: "ID2",
-				}
-
-				user1 := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "user1",
-						Email:    "user1@email.com",
-					},
-					ID: "ID1",
-				}
-
-				namespaceTwoMembers := &models.Namespace{
-					Name:     "group1",
-					Owner:    "ID1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-					Members: []models.Member{
-						{ID: "ID1", Role: guard.RoleOwner},
-						{ID: "ID2", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceTwoMembers.TenantID, true).Return(namespaceTwoMembers, nil).Once()
-
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
-			},
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberDuplicated("ID2", nil),
-			},
-		},
-		{
-			description: "succeeds",
-			Username:    "user2",
-			Role:        guard.RoleObserver,
-			ID:          "ID1",
-			TenantID:    "a736a52b-5777-4f92-b0b8-e359bf484713",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "ID1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "ID1", Role: guard.RoleOwner},
-					},
-				}
-
-				user1 := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "user1",
-						Email:    "user1@email.com",
-					},
-					ID: "ID1",
-				}
-
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "user2",
-						Email:    "user2@email.com",
-					},
-					ID: "ID2",
-				}
-
-				namespaceTwoMembers := &models.Namespace{
-					Name:     "group1",
-					Owner:    "ID1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-					Members: []models.Member{
-						{ID: "ID1", Role: guard.RoleOwner},
-						{ID: "ID2", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-
-				mock.On("UserGetByID", ctx, user1.ID, false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByUsername", ctx, user2.Username).Return(user2, nil).Once()
-
-				mock.On("NamespaceAddMember", ctx, namespace.TenantID, user2.ID, guard.RoleObserver).Return(namespaceTwoMembers, nil).Once()
-			},
-			Expected: Expected{
-				namespace: &models.Namespace{Name: "group1", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714", Members: []models.Member{{ID: "ID1", Role: guard.RoleOwner}, {ID: "ID2", Role: guard.RoleObserver}}},
-				err:       nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.RequiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			ns, err := service.AddNamespaceUser(ctx, tc.Username, tc.Role, tc.TenantID, tc.ID)
-			assert.Equal(t, tc.Expected, Expected{ns, err})
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
-func TestRemoveNamespaceUser(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
-	type Expected struct {
-		namespace *models.Namespace
-		err       error
-	}
-
-	cases := []struct {
-		description   string
-		RequiredMocks func()
-		TenantID      string
-		UserID        string
-		MemberID      string
-		Expected      Expected
-	}{
-		{
-			description: "fails when namespace was not found",
-			RequiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenantIDNotFound", true).Return(nil, errors.New("error")).Once()
-			},
-			TenantID: "tenantIDNotFound",
-			MemberID: "hash1",
-			UserID:   "hash1",
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceNotFound("tenantIDNotFound", errors.New("error")),
-			},
-		},
-		{
-			description: "fails when active user was not found",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, "invalidUserID", false).Return(nil, 0, ErrUserNotFound).Once()
-			},
-			TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-			MemberID: "hash2",
-			UserID:   "invalidUserID",
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("invalidUserID", ErrUserNotFound),
-			},
-		},
-		{
-			description: "fails when passive user was not found",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-				}
-
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "username1",
-					},
-					ID: "hash1",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "invalidPassiveMemberID", false).Return(nil, 0, ErrUserNotFound).Once()
-			},
-			TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-			MemberID: "invalidPassiveMemberID",
-			UserID:   "hash1",
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("invalidPassiveMemberID", ErrUserNotFound),
-			},
-		},
-		{
-			description: "fails when user is not a namespace's member",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-				}
-
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "username1",
-					},
-					ID: "hash1",
-				}
-
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "username2",
-					},
-					ID: "hash2",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-			},
-			TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-			MemberID: "hash2",
-			UserID:   "hash1",
-			Expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberNotFound("hash2", nil),
-			},
-		},
-		{
-			description: "fails when user can not act over the role",
-			RequiredMocks: func() {
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "username2",
-					},
-					ID: "hash2",
-				}
-
-				user3 := &models.User{
-					UserData: models.UserData{
-						Name:     "user3",
-						Username: "username3",
-					},
-					ID: "hash3",
-				}
-
-				namespaceThreeMembers := &models.Namespace{
-					Name:     "group2",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-					Members: []models.Member{
-						{
-							ID: "hash1", Role: guard.RoleOwner,
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOperator,
+							},
 						},
-						{
-							ID: "hash2", Role: guard.RoleAdministrator,
-						},
-						{
-							ID: "hash3", Role: guard.RoleOwner,
-						},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceThreeMembers.TenantID, true).Return(namespaceThreeMembers, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-				mock.On("UserGetByID", ctx, user3.ID, false).Return(user3, 0, nil).Once()
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
 			},
-			TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-			MemberID: "hash3",
-			UserID:   "hash2",
-			Expected: Expected{
+			expected: Expected{
 				namespace: nil,
 				err:       guard.ErrForbidden,
 			},
 		},
 		{
-			description: "when NamespaceRemoveMember store's function fails",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-				}
-
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "username1",
-					},
-					ID: "hash1",
-				}
-
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "username2",
-					},
-					ID: "hash2",
-				}
-
-				namespaceTwoMembers := &models.Namespace{
-					Name:     "group2",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-						{ID: "hash2", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceTwoMembers.TenantID, true).Return(namespaceTwoMembers, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-
-				mock.On("NamespaceRemoveMember", ctx, namespaceTwoMembers.TenantID, user2.ID).Return(nil, errors.New("error")).Once()
+			description: "fails when the active member's role cannot act over passive member's role",
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleAdministrator,
 			},
-			TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-			MemberID: "hash2",
-			UserID:   "hash1",
-			Expected: Expected{
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOperator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       guard.ErrForbidden,
+			},
+		},
+		{
+			description: "fails when passive member was not found",
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(nil, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrUserNotFound("john_doe", errors.New("error")),
+			},
+		},
+		{
+			description: "fails when cannot add the member",
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(&models.User{
+						ID:       "000000000000000000000001",
+						UserData: models.UserData{Username: "john_doe"},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: guard.RoleObserver}).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: Expected{
 				namespace: nil,
 				err:       errors.New("error"),
 			},
 		},
 		{
 			description: "succeeds",
-			RequiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-					},
-				}
-
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "username1",
-					},
-					ID: "hash1",
-				}
-
-				user2 := &models.User{
-					UserData: models.UserData{
-						Name:     "user2",
-						Username: "username2",
-					},
-					ID: "hash2",
-				}
-
-				namespaceTwoMembers := &models.Namespace{
-					Name:     "group2",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-					Members: []models.Member{
-						{ID: "hash1", Role: guard.RoleOwner},
-						{ID: "hash2", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceTwoMembers.TenantID, true).Return(namespaceTwoMembers, nil).Once()
-				mock.On("UserGetByID", ctx, namespace.Owner, false).Return(user, 0, nil).Once()
-				mock.On("UserGetByID", ctx, user2.ID, false).Return(user2, 0, nil).Once()
-
-				mock.On("NamespaceRemoveMember", ctx, namespaceTwoMembers.TenantID, user2.ID).Return(namespace, nil).Once()
+			req: &requests.NamespaceAddMember{
+				UserID:         "000000000000000000000000",
+				TenantID:       "00000000-0000-4000-0000-000000000000",
+				MemberUsername: "john_doe",
+				MemberRole:     guard.RoleObserver,
 			},
-			TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-			MemberID: "hash2",
-			UserID:   "hash1",
-			Expected: Expected{
-				namespace: &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "hash1", Role: guard.RoleOwner}}},
-				err:       nil,
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(&models.User{
+						ID:       "000000000000000000000001",
+						UserData: models.UserData{Username: "john_doe"},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: guard.RoleObserver}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleObserver,
+							},
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
+					Members: []models.Member{
+						{
+							ID:   "000000000000000000000000",
+							Role: guard.RoleOwner,
+						},
+						{
+							ID:   "000000000000000000000000",
+							Role: guard.RoleObserver,
+						},
+					},
+				},
+				err: nil,
 			},
 		},
 	}
 
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.RequiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			ns, err := service.RemoveNamespaceUser(ctx, tc.TenantID, tc.MemberID, tc.UserID)
-			assert.Equal(t, tc.Expected, Expected{ns, err})
+			ctx := context.TODO()
+			tc.requiredMocks(ctx)
+			ns, err := s.AddNamespaceMember(ctx, tc.req)
+			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
-func TestEditNamespaceUser(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
+func TestUpdateNamespaceMember(t *testing.T) {
+	storeMock := new(mocks.Store)
 
 	cases := []struct {
 		description   string
-		TenantID      string
-		UserID        string
-		MemberID      string
-		MemberNewRole string
-		RequiredMocks func()
-		Expected      error
+		req           *requests.NamespaceUpdateMember
+		requiredMocks func(context.Context)
+		expected      error
 	}{
 		{
-			description:   "fails when namespace was not found",
-			TenantID:      "tenantIDNotFound",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleObserver,
-			RequiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "tenantIDNotFound", true).Return(nil, errors.New("error")).Once()
+			description: "fails when the namespace was not found",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleObserver,
 			},
-			Expected: NewErrNamespaceNotFound("tenantIDNotFound", errors.New("error")),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(nil, ErrNamespaceNotFound).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound),
 		},
 		{
-			description:   "fails when active member was not found",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484717",
-			UserID:        "invalidMemberActiveID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleObserver,
-			RequiredMocks: func() {
-				namespaceActivePassive := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484717",
-					Members: []models.Member{
-						{ID: "ownerID", Role: guard.RoleOwner},
-						{ID: "activeMemberID", Role: guard.RoleAdministrator},
-						{ID: "passiveMemberID", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActivePassive.TenantID, true).Return(namespaceActivePassive, nil).Once()
-
-				mock.On("UserGetByID", ctx, "invalidMemberActiveID", false).Return(nil, 0, errors.New("error")).Once()
+			description: "fails when the active member was not found",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleObserver,
 			},
-			Expected: NewErrUserNotFound("invalidMemberActiveID", errors.New("error")),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(nil, 0, ErrUserNotFound).
+					Once()
+			},
+			expected: NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
 		},
 		{
-			description:   "fails when passive member was not found",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484713",
-			UserID:        "activeMemberID",
-			MemberID:      "invalidMemberPassiveID",
-			MemberNewRole: guard.RoleObserver,
-			RequiredMocks: func() {
-				namespaceActiveOwner := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "activeMemberID", Role: guard.RoleOwner},
-					},
-				}
-
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActiveOwner.TenantID, true).Return(namespaceActiveOwner, nil).Once()
-
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "invalidMemberPassiveID", false).Return(nil, 0, errors.New("error")).Once()
+			description: "fails when the active member is not on the namespace",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleObserver,
 			},
-			Expected: NewErrUserNotFound("invalidMemberPassiveID", errors.New("error")),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
 		},
 		{
-			description:   "fails when could not find passive member inside namespace",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484713",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleObserver,
-			RequiredMocks: func() {
-				namespaceActiveOwner := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "activeMemberID", Role: guard.RoleOwner},
-					},
-				}
-
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActiveOwner.TenantID, true).Return(namespaceActiveOwner, nil).Once()
-
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
+			description: "fails when the passive member is not on the namespace",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleObserver,
 			},
-			Expected: NewErrNamespaceMemberNotFound("passiveMemberID", nil),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("000000000000000000000001", nil),
 		},
 		{
-			description:   "fails when could not find passive member inside namespace",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484713",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleObserver,
-			RequiredMocks: func() {
-				namespaceActiveOwner := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{ID: "activeMemberID", Role: guard.RoleOwner},
-					},
-				}
-
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActiveOwner.TenantID, true).Return(namespaceActiveOwner, nil).Once()
-
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
+			description: "fails when the passive role's is owner",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleOwner,
 			},
-			Expected: NewErrNamespaceMemberNotFound("passiveMemberID", nil),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: guard.ErrForbidden,
 		},
 		{
-			description:   "fails when could not find active member inside namespace",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484714",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleOperator,
-			RequiredMocks: func() {
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				namespacePassiveObserver := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484714",
-					Members: []models.Member{
-						{ID: "memberID", Role: guard.RoleOwner},
-						{ID: "passiveMemberID", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespacePassiveObserver.TenantID, true).Return(namespacePassiveObserver, nil).Once()
-
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
+			description: "fails when the active member's role cannot act over passive member's role",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleAdministrator,
 			},
-			Expected: NewErrNamespaceMemberNotFound("activeMemberID", nil),
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOperator,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: guard.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: guard.ErrForbidden,
 		},
 		{
-			description:   "fails when active and passive roles are the same",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484715",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleOperator,
-			RequiredMocks: func() {
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				namespaceActivePassiveSame := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484715",
-					Members: []models.Member{
-						{ID: "ownerID", Role: guard.RoleOwner},
-						{ID: "activeMemberID", Role: guard.RoleAdministrator},
-						{ID: "passiveMemberID", Role: guard.RoleAdministrator},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActivePassiveSame.TenantID, true).Return(namespaceActivePassiveSame, nil).Once()
-
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
+			description: "fails when cannot update the member",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: guard.RoleAdministrator,
 			},
-			Expected: guard.ErrForbidden,
-		},
-		{
-			description:   "fails when user can not act over the role",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484716",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleAdministrator,
-			RequiredMocks: func() {
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				namespaceActiveHasNoPermission := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484716",
-					Members: []models.Member{
-						{ID: "ownerID", Role: guard.RoleOwner},
-						{ID: "activeMemberID", Role: guard.RoleOperator},
-						{ID: "passiveMemberID", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActiveHasNoPermission.TenantID, true).Return(namespaceActiveHasNoPermission, nil).Once()
-
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: guard.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", &models.MemberChanges{Role: guard.RoleAdministrator}).
+					Return(nil).
+					Once()
 			},
-			Expected: guard.ErrForbidden,
-		},
-		{
-			description:   "fails when user store function fails",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484717",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleOperator,
-			RequiredMocks: func() {
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				namespaceActivePassive := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484717",
-					Members: []models.Member{
-						{ID: "ownerID", Role: guard.RoleOwner},
-						{ID: "activeMemberID", Role: guard.RoleAdministrator},
-						{ID: "passiveMemberID", Role: guard.RoleObserver},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActivePassive.TenantID, true).Return(namespaceActivePassive, nil).Once()
-
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-
-				mock.On("NamespaceEditMember", ctx, namespaceActivePassive.TenantID, passiveMember.ID, guard.RoleOperator).Return(errors.New("error")).Once()
-			},
-			Expected: errors.New("error"),
-		},
-		{
-			description:   "Success",
-			TenantID:      "a736a52b-5777-4f92-b0b8-e359bf484717",
-			UserID:        "activeMemberID",
-			MemberID:      "passiveMemberID",
-			MemberNewRole: guard.RoleOperator,
-			RequiredMocks: func() {
-				namespaceActivePassive := &models.Namespace{
-					Name:     "group1",
-					Owner:    "activeMemberID",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484717",
-					Members: []models.Member{
-						{ID: "ownerID", Role: guard.RoleOwner},
-						{ID: "activeMemberID", Role: guard.RoleAdministrator},
-						{ID: "passiveMemberID", Role: guard.RoleObserver},
-					},
-				}
-
-				activeMember := &models.User{
-					UserData: models.UserData{
-						Name:     "activeMemberName",
-						Username: "activeMemberUsername",
-					},
-					ID: "activeMemberID",
-				}
-
-				passiveMember := &models.User{
-					UserData: models.UserData{
-						Name:     "passiveMemberName",
-						Username: "passiveMemberUsername",
-					},
-					ID: "passiveMemberID",
-				}
-
-				mock.On("NamespaceGet", ctx, namespaceActivePassive.TenantID, true).Return(namespaceActivePassive, nil).Once()
-
-				mock.On("UserGetByID", ctx, passiveMember.ID, false).Return(passiveMember, 0, nil).Once()
-				mock.On("UserGetByID", ctx, activeMember.ID, false).Return(activeMember, 0, nil).Once()
-
-				mock.On("NamespaceEditMember", ctx, namespaceActivePassive.TenantID, passiveMember.ID, guard.RoleOperator).Return(nil).Once()
-			},
-			Expected: nil,
+			expected: nil,
 		},
 	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.RequiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
-			err := service.EditNamespaceUser(ctx, tc.TenantID, tc.UserID, tc.MemberID, tc.MemberNewRole)
-			assert.Equal(t, tc.Expected, err)
+			ctx := context.TODO()
+			tc.requiredMocks(ctx)
+			err := s.UpdateNamespaceMember(ctx, tc.req)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
+}
+
+func TestRemoveNamespaceMember(t *testing.T) {
+	type Expected struct {
+		namespace *models.Namespace
+		err       error
+	}
+
+	storeMock := new(mocks.Store)
+
+	cases := []struct {
+		description   string
+		req           *requests.NamespaceRemoveMember
+		requiredMocks func(context.Context)
+		expected      Expected
+	}{
+		{
+			description: "fails when the namespace was not found",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(nil, ErrNamespaceNotFound).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound),
+			},
+		},
+		{
+			description: "fails when the active member was not found",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(nil, 0, ErrUserNotFound).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
+			},
+		},
+		{
+			description: "fails when the active member is not on the namespace",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
+			},
+		},
+		{
+			description: "fails when the passive member was not found",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000001", false).
+					Return(nil, 0, ErrUserNotFound).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrUserNotFound("000000000000000000000001", ErrUserNotFound),
+			},
+		},
+		{
+			description: "fails when the passive member is not on the namespace",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000001", false).
+					Return(&models.User{
+						ID:       "000000000000000000000001",
+						UserData: models.UserData{Username: "john_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrNamespaceMemberNotFound("000000000000000000000001", nil),
+			},
+		},
+		{
+			description: "fails when the active member's role cannot act over passive member's role",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOperator,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: guard.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000001", false).
+					Return(&models.User{
+						ID:       "000000000000000000000001",
+						UserData: models.UserData{Username: "john_doe"},
+					}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       guard.ErrForbidden,
+			},
+		},
+		{
+			description: "fails when cannot remove the member",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: guard.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000001", false).
+					Return(&models.User{
+						ID:       "000000000000000000000001",
+						UserData: models.UserData{Username: "john_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       errors.New("error"),
+			},
+		},
+		{
+			description: "succeeds",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: guard.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000001", false).
+					Return(&models.User{
+						ID:       "000000000000000000000001",
+						UserData: models.UserData{Username: "john_doe"},
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: guard.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
+					Members: []models.Member{
+						{
+							ID:   "000000000000000000000000",
+							Role: guard.RoleOwner,
+						},
+					},
+				},
+				err: nil,
+			},
+		},
+	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.TODO()
+			tc.requiredMocks(ctx)
+			ns, err := s.RemoveNamespaceMember(ctx, tc.req)
+			assert.Equal(t, tc.expected, Expected{ns, err})
+		})
+	}
+
+	storeMock.AssertExpectations(t)
 }
 
 func TestGetSessionRecord(t *testing.T) {

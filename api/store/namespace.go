@@ -26,9 +26,17 @@ type NamespaceStore interface {
 
 	NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error
 	NamespaceDelete(ctx context.Context, tenantID string) error
-	NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberRole string) (*models.Namespace, error)
-	NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) (*models.Namespace, error)
-	NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error
+
+	// NamespaceAddMember adds a new member to the namespace with the specified tenantID.
+	// It returns an error if any.
+	NamespaceAddMember(ctx context.Context, tenantID string, member *models.Member) error
+	// NamespaceUpdateMember updates a member with the specified memberID in the namespace with the specified tenantID with
+	// the changes. It returns an error if any.
+	NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error
+	// NamespaceRemoveMember removes a member with the specified memberID in the namespace with the specified tenantID.
+	// It returns an error if any.
+	NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error
+
 	NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error)
 	NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error
 	NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error)
