@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/mongo"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -24,10 +25,17 @@ type NamespaceService interface {
 	// EditNamespace updates a namespace for the specified requests.NamespaceEdit#Tenant.
 	// It returns the namespace with the updated fields and an error, if any.
 	EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error)
+	// AddNamespaceMember adds a member to a namespace. The member's role cannot have more authority than the user who is
+	// adding the member; owners cannot be created. It returns the namespace and an error, if any.
+	AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)
+	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
+	// have more authority than the user who is updating the member; owners cannot be created. It returns an error, if any.
+	UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error
+	// RemoveNamespaceMember removes a member with the specified ID in the specified namespace. The member's role cannot
+	// have more authority than the user who is removing the member; owners cannot be removed. It returns the namespace
+	// and an error, if any.
+	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
 
-	AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error)
-	RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error)
-	EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
 }
@@ -207,29 +215,15 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 	return s.store.NamespaceGet(ctx, req.Tenant, true)
 }
 
-// AddNamespaceUser adds a member to a namespace.
-//
-// It receives a context, used to "control" the request flow, the member's name, the member's role, the tenant ID from
-// models.Namespace what receive the member and the user ID from models.User who is adding the new member.
-//
-// If user from user's ID has a role what does not allow to add a new member or the member's role is the same as the user
-// one, AddNamespaceUser will return error.
-//
-// AddNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
-func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRole, tenantID, userID string) (*models.Namespace, error) {
-	if ok, err := s.validator.Struct(models.Member{Username: memberUsername, Role: memberRole}); !ok || err != nil {
-		return nil, NewErrNamespaceMemberInvalid(err)
-	}
-
-	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
+func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantID, true)
 	if err != nil || namespace == nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	// user is the user who is adding the new member.
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
+	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
 	if err != nil || user == nil {
-		return nil, NewErrUserNotFound(userID, err)
+		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
 	// checks if the active member is in the namespace. user is the active member.
@@ -238,133 +232,108 @@ func (s *service) AddNamespaceUser(ctx context.Context, memberUsername, memberRo
 		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	passive, err := s.store.UserGetByUsername(ctx, memberUsername)
-	if err != nil {
-		return nil, NewErrUserNotFound(memberUsername, err)
-	}
-
-	// checks if the passive member is in the namespace.
-	if _, ok = namespace.FindMember(passive.ID); ok {
-		return nil, NewErrNamespaceMemberDuplicated(passive.ID, nil)
-	}
-
-	if !guard.HasAuthority(active.Role, memberRole) {
+	if !guard.HasAuthority(active.Role, req.MemberRole) {
 		return nil, guard.ErrForbidden
 	}
 
-	return s.store.NamespaceAddMember(ctx, tenantID, passive.ID, memberRole)
+	passive, err := s.store.UserGetByUsername(ctx, req.MemberUsername)
+	if err != nil {
+		return nil, NewErrUserNotFound(req.MemberUsername, err)
+	}
+
+	if err := s.store.NamespaceAddMember(ctx, req.TenantID, &models.Member{ID: passive.ID, Role: req.MemberRole}); err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
+			return nil, NewErrNamespaceMemberDuplicated(passive.ID, err)
+		default:
+			return nil, err
+		}
+	}
+
+	return s.store.NamespaceGet(ctx, req.TenantID, true)
 }
 
-// RemoveNamespaceUser removes member from a namespace.
-//
-// It receives a context, used to "control" the request flow, the tenant ID from models.Namespace, member ID to remove
-// and the user ID from models.User who is removing the member.
-//
-// If user from user's ID has a role what does not allow to remove a member or the member's role is the same as the user
-// one, RemoveNamespaceUser will return error.
-//
-// RemoveNamespaceUser returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
-func (s *service) RemoveNamespaceUser(ctx context.Context, tenantID, memberID, userID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
+func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantID, true)
 	if err != nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
+		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	// checks if the user exist.
-	// user is the user who is removing the member.
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
+	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
 	if err != nil {
-		return nil, NewErrUserNotFound(userID, err)
+		return NewErrUserNotFound(req.UserID, err)
 	}
 
-	// checks if the member exist.
-	// member is the member who will be removed.
-	member, _, err := s.store.UserGetByID(ctx, memberID, false)
-	if err != nil {
-		return nil, NewErrUserNotFound(memberID, err)
-	}
-
-	// checks if the active member is in the namespace. user is the active member.
-	active, ok := namespace.FindMember(user.ID)
-	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
-	}
-
-	// checks if the passive member is in the namespace. member is the passive member.
-	passive, ok := namespace.FindMember(member.ID)
-	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(member.ID, err)
-	}
-
-	// checks if the active member can act over the passive member.
-	if !guard.HasAuthority(active.Role, passive.Role) {
-		return nil, guard.ErrForbidden
-	}
-
-	removed, err := s.store.NamespaceRemoveMember(ctx, tenantID, member.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	s.AuthUncacheToken(ctx, namespace.TenantID, member.ID) // nolint: errcheck
-
-	return removed, nil
-}
-
-// EditNamespaceUser edits a member's role.
-//
-// It receives a context, used to "control" the request flow, the tenant ID from models.Namespace, user ID from
-// models.User who is editing the member and the member's new role.
-//
-// If user from user's ID has a role what does not allow to edit a member or the member's role is the same as the user
-// one, EditNamespaceUser will return error.
-func (s *service) EditNamespaceUser(ctx context.Context, tenantID, userID, memberID, memberNewRole string) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID, true)
-	if err != nil {
-		return NewErrNamespaceNotFound(tenantID, err)
-	}
-
-	// user is the user who is editing the member.
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
-	if err != nil {
-		return NewErrUserNotFound(userID, err)
-	}
-
-	// member is the member who will be edited.
-	member, _, err := s.store.UserGetByID(ctx, memberID, false)
-	if err != nil {
-		return NewErrUserNotFound(memberID, err)
-	}
-
-	// checks if the active member is in the namespace. user is the active member.
 	active, ok := namespace.FindMember(user.ID)
 	if !ok {
 		return NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	// checks if the passive member is in the namespace. member is the passive member.
+	if _, ok := namespace.FindMember(req.MemberID); !ok {
+		return NewErrNamespaceMemberNotFound(req.MemberID, err)
+	}
+
+	changes := &models.MemberChanges{Role: req.MemberRole}
+
+	if changes.Role != "" {
+		if !guard.HasAuthority(active.Role, req.MemberRole) {
+			return guard.ErrForbidden
+		}
+	}
+
+	if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, req.MemberID, changes); err != nil {
+		return err
+	}
+
+	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) // nolint: errcheck
+
+	return nil
+}
+
+func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantID, true)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	if err != nil {
+		return nil, NewErrUserNotFound(req.UserID, err)
+	}
+
+	active, ok := namespace.FindMember(user.ID)
+	if !ok {
+		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
+	}
+
+	member, _, err := s.store.UserGetByID(ctx, req.MemberID, false)
+	if err != nil {
+		return nil, NewErrUserNotFound(req.MemberID, err)
+	}
+
 	passive, ok := namespace.FindMember(member.ID)
 	if !ok {
-		return NewErrNamespaceMemberNotFound(member.ID, err)
+		return nil, NewErrNamespaceMemberNotFound(member.ID, err)
 	}
 
-	// Blocks if the active member's role is equal to the passive one.
-	if passive.Role == active.Role {
-		return guard.ErrForbidden
+	if !guard.HasAuthority(active.Role, passive.Role) {
+		return nil, guard.ErrForbidden
 	}
 
-	// checks if the active member can act over the passive member.
-	if !guard.HasAuthority(active.Role, memberNewRole) {
-		return guard.ErrForbidden
-	}
-
-	if err := s.store.NamespaceEditMember(ctx, tenantID, member.ID, memberNewRole); err != nil {
-		return err
+	if err := s.store.NamespaceRemoveMember(ctx, req.TenantID, req.MemberID); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return nil, NewErrNamespaceNotFound(req.TenantID, err)
+		case errors.Is(err, mongo.ErrUserNotFound):
+			return nil, NewErrNamespaceMemberNotFound(req.MemberID, err)
+		default:
+			return nil, err
+		}
 	}
 
 	s.AuthUncacheToken(ctx, namespace.TenantID, member.ID) // nolint: errcheck
 
-	return nil
+	return s.store.NamespaceGet(ctx, req.TenantID, true)
 }
 
 // EditSessionRecordStatus defines if the sessions will be recorded.

@@ -329,7 +329,7 @@ func TestNamespaceAddMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea", guard.RoleObserver).Return(namespace, nil).Once()
+				mock.On("NamespaceAddMember", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: guard.RoleObserver}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
@@ -427,7 +427,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(nil, errors.New("error")).Once()
+				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
 		},
@@ -456,7 +456,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(namespace, nil).Once()
+				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",

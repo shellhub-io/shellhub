@@ -287,53 +287,69 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace 
 	return nil
 }
 
-func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, memberID string, memberRole string) (*models.Namespace, error) {
-	result := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID, "members": bson.M{"$elemMatch": bson.M{"id": memberID}}})
-	if result.Err() == nil {
-		return nil, ErrNamespaceDuplicatedMember
+func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, member *models.Member) error {
+	err := s.db.
+		Collection("namespaces").
+		FindOne(ctx, bson.M{"tenant_id": tenantID, "members": bson.M{"$elemMatch": bson.M{"id": member.ID}}}).
+		Err()
+	if err == nil {
+		return ErrNamespaceDuplicatedMember
 	}
 
-	_, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": memberID, "role": memberRole}}})
+	res, err := s.db.
+		Collection("namespaces").
+		UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": member.ID, "role": member.Role}}})
 	if err != nil {
-		return nil, FromMongoError(err)
+		return FromMongoError(err)
+	}
+
+	if res.MatchedCount < 1 {
+		return store.ErrNoDocuments
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
 		logrus.Error(err)
 	}
 
-	return s.NamespaceGet(ctx, tenantID, true)
+	return nil
 }
 
-func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) (*models.Namespace, error) {
-	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})
-	if err != nil {
-		return nil, FromMongoError(err)
+func (s *Store) NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error {
+	filter := bson.M{"tenant_id": tenantID, "members": bson.M{"$elemMatch": bson.M{"id": memberID}}}
+	update := bson.M{}
+
+	if changes.Role != "" {
+		update["members.$.role"] = changes.Role
 	}
 
-	switch {
-	// tenant not found
-	case ns.MatchedCount < 1:
-		return nil, store.ErrNoDocuments
-	// member not found
-	case ns.ModifiedCount < 1:
-		return nil, ErrUserNotFound
-	}
-
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-		logrus.Error(err)
-	}
-
-	return s.NamespaceGet(ctx, tenantID, true)
-}
-
-func (s *Store) NamespaceEditMember(ctx context.Context, tenantID string, memberID string, memberNewRole string) error {
-	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID, "members.id": memberID}, bson.M{"$set": bson.M{"members.$.role": memberNewRole}})
+	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, filter, bson.M{"$set": update})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
 	if ns.MatchedCount < 1 {
+		return ErrUserNotFound
+	}
+
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
+		logrus.Error(err)
+	}
+
+	return nil
+}
+
+func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error {
+	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	switch {
+	// tenant not found
+	case ns.MatchedCount < 1:
+		return store.ErrNoDocuments
+	// member not found
+	case ns.ModifiedCount < 1:
 		return ErrUserNotFound
 	}
 

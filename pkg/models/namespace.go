@@ -65,3 +65,7 @@ type NamespaceChanges struct {
 	SessionRecord          *bool   `bson:"settings.session_record,omitempty"`
 	ConnectionAnnouncement *string `bson:"settings.connection_announcement,omitempty"`
 }
+
+type MemberChanges struct {
+	Role string `bson:"role,omitempty"`
+}
