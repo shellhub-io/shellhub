@@ -13,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
@@ -322,110 +321,160 @@ func TestGetSessionRecord(t *testing.T) {
 }
 
 func TestEditNamespace(t *testing.T) {
-	mock := new(mocks.Service)
+	svcMock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
-		uid            string
-		req            string
-		requiredMocks  func()
-		expectedStatus int
+		description   string
+		headers       map[string]string
+		body          map[string]interface{}
+		requiredMocks func()
+		expected      int
 	}{
 		{
-			title:          "fails when bind fails to validate uid",
-			uid:            "123",
-			req:            `{"session_record": true, "tenant": ""}`,
-			expectedStatus: http.StatusNotFound,
-			requiredMocks:  func() {},
-		},
-		{
-			title:          "fails when validate because the tenant does not have a min of 3 characters",
-			uid:            "123",
-			req:            `{"session_record": true, "tenant": "id"}`,
-			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func() {},
-		},
-		{
-			title:          "fails when validate because the tenant does not have a max of 255 characters",
-			uid:            "123",
-			req:            `{"session_record": true, "tenant": "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"}`,
-			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func() {},
-		},
-		{
-			title: "fails when try to editing an non-existing namespace",
-			uid:   "123",
-			req:   `{"session_record": true, "tenant": "00000000-0000-4000-0000-000000000000"}`,
-			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
-					Name:     "namespace-name",
-					Owner:    "owner-name",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{ID: "123", Username: "userexemple", Role: "owner"},
-					},
-					Settings:     &models.NamespaceSettings{},
-					Devices:      10,
-					Sessions:     5,
-					MaxDevices:   100,
-					DevicesCount: 50,
-					CreatedAt:    time.Now(),
-					Billing:      &models.Billing{},
-				}, nil).Once()
-
-				mock.On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").Return(svc.ErrNotFound).Once()
+			description: "fails when role is observer",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "observer",
+				"X-ID":         "000000000000000000000000",
 			},
-			expectedStatus: http.StatusNotFound,
+			body: map[string]interface{}{
+				"session_record": true,
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:       "000000000000000000000000",
+								Username: "john_doe",
+								Role:     "observer",
+							},
+						},
+					}, nil).
+					Once()
+			},
+			expected: http.StatusForbidden,
 		},
 		{
-			title: "success when try to editing an existing namespace",
-			uid:   "123",
-			req:   `{"session_record": true, "tenant": "00000000-0000-4000-0000-000000000000"}`,
-			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
-					Name:     "namespace-name",
-					Owner:    "owner-name",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{ID: "123", Username: "userexemple", Role: "owner"},
-					},
-					Settings:     &models.NamespaceSettings{},
-					Devices:      10,
-					Sessions:     5,
-					MaxDevices:   100,
-					DevicesCount: 50,
-					CreatedAt:    time.Now(),
-					Billing:      &models.Billing{},
-				}, nil).Once()
-
-				mock.On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").Return(nil).Once()
+			description: "fails when role is operator",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "operator",
+				"X-ID":         "000000000000000000000000",
 			},
-			expectedStatus: http.StatusOK,
+			body: map[string]interface{}{
+				"session_record": true,
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:       "000000000000000000000000",
+								Username: "john_doe",
+								Role:     "operator",
+							},
+						},
+					}, nil).
+					Once()
+			},
+			expected: http.StatusForbidden,
+		},
+		{
+			description: "fails when try to editing an non-existing namespace",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+				"X-ID":         "000000000000000000000000",
+			},
+			body: map[string]interface{}{
+				"session_record": true,
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:       "000000000000000000000000",
+								Username: "john_doe",
+								Role:     "owner",
+							},
+						},
+					}, nil).
+					Once()
+				svcMock.
+					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
+					Return(svc.ErrNotFound).
+					Once()
+			},
+			expected: http.StatusNotFound,
+		},
+		{
+			description: "success when try to editing an existing namespace",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+				"X-ID":         "000000000000000000000000",
+			},
+			body: map[string]interface{}{
+				"session_record": true,
+				"tenant":         "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{
+								ID:       "000000000000000000000000",
+								Username: "john_doe",
+								Role:     "owner",
+							},
+						},
+					}, nil).
+					Once()
+				svcMock.
+					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+			},
+			expected: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
+		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			var data requests.SessionEditRecordStatus
-			err := json.Unmarshal([]byte(tc.req), &data)
+			jsonData, err := json.Marshal(tc.body)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/users/security/%s", data.Tenant), strings.NewReader(tc.req))
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
-			req.Header.Set("X-ID", tc.uid)
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/users/security/%s", tc.headers["X-Tenant-ID"]), strings.NewReader(string(jsonData)))
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(svcMock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	svcMock.AssertExpectations(t)
 }
