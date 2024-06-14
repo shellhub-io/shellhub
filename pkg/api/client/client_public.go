@@ -102,14 +102,8 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 	return res, nil
 }
 
-// NewReverseListener creates a new reverse listener connection for the Agent from ShellHub's SSH server.
-//
-// Every time the ShellHub's SSH server receives a new connection to the Agent, the server sends that connection
-// through this listener to the device, but only if it is accepted by the server.
-//
-// To obtain this listener from the server, the Agent needs to authenticates it using the token provided, and getting a
-// reverse authenticated connection, after that, it dials the server again for a new reverse connection on ShellHub's
-// SSH tunnel list.
+// NewReverseListener creates a new reverse listener connection to ShellHub's server. This listener receives the SSH
+// requests coming from the ShellHub server. Only authenticated devices can obtain a listener connection.
 func (c *client) NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error) {
 	if token == "" {
 		return nil, errors.New("token is empty")

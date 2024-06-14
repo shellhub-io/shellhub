@@ -250,7 +250,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 	}
 
 	go func() {
-		if err := ag.Ping(ctx, 0); err != nil {
+		if err := ag.Ping(ctx, agent.AgentPingDefaultInterval); err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"id":             container.ID,
 				"identity":       cfg.PreferredIdentity,
