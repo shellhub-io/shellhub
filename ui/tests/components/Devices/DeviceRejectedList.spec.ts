@@ -164,11 +164,6 @@ describe("Device Rejected List", () => {
   });
 
   it("Renders the component data table", async () => {
-    expect(wrapper.findComponent('[data-test="devices-list"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="a582b47a42d-field"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="device-icon"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="sshid-chip"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="DeviceActionButtonAccept-component"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="deviceActionButtonRemove-component"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="device-table"]').exists()).toBe(true);
   });
 });

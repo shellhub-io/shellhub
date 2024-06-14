@@ -48,3 +48,20 @@ export interface IDevicePostTag {
   uid: string;
   name: CreateDeviceTagRequest;
 }
+
+export interface FetchDevicesParams {
+  perPage?: number;
+  page?: number;
+  filter?: string;
+  status?: "accepted" | "pending" | "rejected";
+  sortStatusField: string;
+  sortStatusString: string;
+}
+export interface IDeviceMethods {
+    fetchDevices: (params: FetchDevicesParams) => Promise<void>;
+    getFilter: () => string;
+    getDevicesList: () => IDevice[];
+    getSortStatusField: () => string;
+    getSortStatusString: () => string;
+    getNumberDevices: () => number;
+}

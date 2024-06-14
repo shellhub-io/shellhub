@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Device List > Renders the component 1`] = `
-"<div data-v-06dd64af=\\"\\">
-  <div data-v-046d4556=\\"\\" data-v-06dd64af=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"devices-list\\">
+"<div>
+  <div data-v-046d4556=\\"\\" data-v-787abe29=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"device-table\\">
     <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
       <!---->
       <div class=\\"v-table__wrapper\\">
@@ -18,9 +18,9 @@ exports[`Device List > Renders the component 1`] = `
             </tr>
           </thead>
           <tbody data-v-046d4556=\\"\\">
-            <tr data-v-06dd64af=\\"\\">
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\" data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <tr data-v-787abe29=\\"\\">
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\">
+                <div data-v-787abe29=\\"\\" data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                     <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Offline</span>
                     <!---->
                     <!---->
@@ -29,20 +29,20 @@ exports[`Device List > Renders the component 1`] = `
                   <!---->
                 </div>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\">39-5e-2a</td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><i data-v-06dd64af=\\"\\" data-test=\\"deviceIcon-component\\" class=\\"fl-linuxmint mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span data-v-06dd64af=\\"\\">Linux Mint 19.3</span></td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\">39-5e-2a</td>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><i data-v-787abe29=\\"\\" data-test=\\"deviceIcon-component\\" class=\\"fl-linuxmint mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span data-v-787abe29=\\"\\">Linux Mint 19.3</span></td>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-06dd64af=\\"\\" aria-describedby=\\"v-tooltip-4\\" class=\\"hover-text\\">user.39-5e-2a@localhost</span>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-787abe29=\\"\\" aria-describedby=\\"v-tooltip-4\\" class=\\"hover-text\\">user.39-5e-2a@localhost</span>
                   <!--teleport start-->
                   <!--teleport end-->
                 </div>
                 <!---->
                 <!----></span>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-5\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\">
+                <div data-v-787abe29=\\"\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-5\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\">test</div>
@@ -52,19 +52,19 @@ exports[`Device List > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-787abe29=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
             </tr>
-            <tr data-v-06dd64af=\\"\\">
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\" data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <tr data-v-787abe29=\\"\\">
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\">
+                <div data-v-787abe29=\\"\\" data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                     <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
                     <!---->
                     <!---->
@@ -73,20 +73,20 @@ exports[`Device List > Renders the component 1`] = `
                   <!---->
                 </div>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\">39-5e-2b</td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><i data-v-06dd64af=\\"\\" data-test=\\"deviceIcon-component\\" class=\\"fl-linuxmint mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span data-v-06dd64af=\\"\\">Linux Mint 19.3</span></td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\">39-5e-2b</td>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><i data-v-787abe29=\\"\\" data-test=\\"deviceIcon-component\\" class=\\"fl-linuxmint mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span data-v-787abe29=\\"\\">Linux Mint 19.3</span></td>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-06dd64af=\\"\\" aria-describedby=\\"v-tooltip-16\\" class=\\"hover-text\\">user.39-5e-2b@localhost</span>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-787abe29=\\"\\" aria-describedby=\\"v-tooltip-16\\" class=\\"hover-text\\">user.39-5e-2b@localhost</span>
                   <!--teleport start-->
                   <!--teleport end-->
                 </div>
                 <!---->
                 <!----></span>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\">
-                <div data-v-06dd64af=\\"\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-17\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\">
+                <div data-v-787abe29=\\"\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-17\\" data-test=\\"tag-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\">test</div>
@@ -96,10 +96,10 @@ exports[`Device List > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td data-v-06dd64af=\\"\\" class=\\"text-center\\"><span data-v-06dd64af=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-06dd64af=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-787abe29=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
                 <!---->
                 <!----></span>
                 <!--teleport start-->

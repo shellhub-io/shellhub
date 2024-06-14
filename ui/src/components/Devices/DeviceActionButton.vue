@@ -12,11 +12,11 @@
         Accept
       </v-btn>
     </v-list-item>
-    <v-list-item @click="dialog = !dialog" v-else data-test="list-item">
+    <v-list-item v-else @click="dialog = !dialog" data-test="list-item">
       <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
         <template v-slot:activator="{ props }">
           <span v-bind="props">
-            <v-list-item-title data-test="action-item" v-on="props">
+            <v-list-item-title data-test="action-item">
               <v-icon>{{ icon }}</v-icon>
               {{ capitalizeText(action) }}
             </v-list-item-title>
@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import { authorizer, actions } from "../../authorizer";
@@ -76,9 +76,9 @@ const props = defineProps({
     default: false,
   },
   action: {
-    type: String,
+    type: String as PropType<"accept" | "reject" | "remove">,
+    required: true,
     default: "accept",
-    validator: (value: string) => ["accept", "reject", "remove"].includes(value),
   },
   show: {
     type: Boolean,

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Device Table > Renders the component 1`] = `"<data-table-stub data-v-787abe29=\\"\\" itemsperpage=\\"10\\" headers=\\"[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]\\" items=\\"\\" itemselectordisable=\\"false\\" comboboxoptions=\\"10,20,50,100\\" loading=\\"false\\" actualpage=\\"1\\" nextpage=\\"[Function]\\" previouspage=\\"[Function]\\" data-test=\\"items-list\\"></data-table-stub>"`;

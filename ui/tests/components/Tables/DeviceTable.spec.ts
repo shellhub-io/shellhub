@@ -1,25 +1,24 @@
-import { mount, VueWrapper } from "@vue/test-utils";
+import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
-import DeviceList from "@/components/Devices/DeviceList.vue";
+import { createStore } from "vuex";
+import { key } from "@/store";
+import DeviceTable from "@/components/Tables/DeviceTable.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type DeviceListWrapper = VueWrapper<InstanceType<typeof DeviceList>>;
+type DeviceTableWrapper = VueWrapper<InstanceType<typeof DeviceTable>>;
 
-describe("Device List", () => {
-  let wrapper: DeviceListWrapper;
+describe("Device Table", () => {
+  let wrapper: DeviceTableWrapper;
 
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
-
   let mockDevices: MockAdapter;
-
   let mockBilling: MockAdapter;
 
   const devices = [
@@ -130,6 +129,30 @@ describe("Device List", () => {
     rejected_devices: 0,
   };
 
+  const mockStoreMethods = {
+    fetchDevices: vi.fn(),
+    getFilter: vi.fn(),
+    getDevicesList: vi.fn(),
+    getSortStatusField: vi.fn(),
+    getSortStatusString: vi.fn(),
+    getNumberDevices: vi.fn(),
+  };
+
+  const store = createStore({
+    state: {
+      totalCount: 3, // Mock total count
+      devices: [
+        { name: "Device1", operating_system: "OS1", sshid: "ssh1", tags: "tag1" },
+        { name: "Device2", operating_system: "OS2", sshid: "ssh2", tags: "tag2" },
+        { name: "Device3", operating_system: "OS3", sshid: "ssh3", tags: "tag3" },
+      ],
+    },
+    getters: {
+      totalCount: (state) => state.totalCount,
+      devices: (state) => state.devices,
+    },
+  });
+
   beforeEach(async () => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
@@ -151,14 +174,19 @@ describe("Device List", () => {
     store.commit("billing/setSubscription", billingData);
     store.commit("customer/setCustomer", customerData);
 
-    wrapper = mount(DeviceList, {
+    wrapper = shallowMount(DeviceTable, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
+      },
+      props: {
+        storeMethods: mockStoreMethods,
+        status: "accepted",
+        header: "primary",
       },
     });
   });
 
-  it("Is a Vue instance", () => {
+  it("Is a Vue instance", async () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
@@ -171,6 +199,6 @@ describe("Device List", () => {
   });
 
   it("Renders the component HTML", async () => {
-    expect(wrapper.findComponent('[data-test="device-table"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="items-list"]').exists()).toBe(true);
   });
 });
