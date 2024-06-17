@@ -1,13 +1,13 @@
 //go:build !freebsd
 
-package host
+package classic
 
 import (
 	"os"
 	"os/exec"
 
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/classic/command"
 )
 
 func newShellCmd(deviceName string, username string, term string, envs []string) *exec.Cmd {

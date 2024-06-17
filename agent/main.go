@@ -12,7 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/classic/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
