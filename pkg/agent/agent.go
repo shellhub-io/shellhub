@@ -117,7 +117,7 @@ type Config struct {
 	SingleUserPassword string `env:"SIMPLE_USER_PASSWORD"`
 
 	// MaxRetryConnectionTimeout specifies the maximum time, in seconds, that an agent will wait
-	// before attempting to reconnect to the ShellHub server. Default is 30 seconds.
+	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
 	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
 }
 
