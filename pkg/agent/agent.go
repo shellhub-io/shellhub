@@ -518,35 +518,22 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 			a.listening <- true
 
-			if err := a.tunnel.Listen(listener); err != nil {
-				// NOTICE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
+			{
+				// NOTE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
 				// "keep-alive" connection fails. As a result, it will take this interval to reconnect to its server.
-				//
-				// It can be observed in the logs, that prints something like:
-				//  0000/00/00 00:00:00 revdial.Listener: error writing message to server: write tcp [::1]:00000->[::1]:80: write: broken pipe
+				err := a.tunnel.Listen(listener)
+
 				log.WithError(err).WithFields(log.Fields{
 					"namespace":      namespace,
 					"hostname":       tenantName,
 					"server_address": a.config.ServerAddress,
 					"ssh_server":     sshEndpoint,
 					"sshid":          sshid,
-				}).Error("Tunnel listener closed")
+				}).Info("Tunnel listener closed")
 
 				listener.Close() // nolint:errcheck
-				a.listening <- false
-
-				continue
 			}
 
-			log.WithError(err).WithFields(log.Fields{
-				"namespace":      namespace,
-				"hostname":       tenantName,
-				"server_address": a.config.ServerAddress,
-				"ssh_server":     sshEndpoint,
-				"sshid":          sshid,
-			}).Info("Tunnel listener closed")
-
-			listener.Close() // nolint:errcheck
 			a.listening <- false
 		}
 	}()
@@ -596,7 +583,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
-				}).Info("Starting the ping interval to server")
+				}).Debug("Starting the ping interval to server")
 
 				ticker.Reset(interval)
 			} else {
@@ -605,7 +592,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
-				}).Info("Stopped pinging server due listener status")
+				}).Debug("Stopped pinging server due listener status")
 
 				ticker.Stop()
 			}
