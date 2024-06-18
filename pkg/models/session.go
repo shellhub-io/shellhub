@@ -18,7 +18,7 @@ type Session struct {
 	IPAddress     string          `json:"ip_address" bson:"ip_address"`
 	StartedAt     time.Time       `json:"started_at" bson:"started_at"`
 	LastSeen      time.Time       `json:"last_seen" bson:"last_seen"`
-	Active        bool            `json:"active" bson:"-"`
+	Active        bool            `json:"active" bson:"active"`
 	Closed        bool            `json:"-" bson:"closed"`
 	Authenticated bool            `json:"authenticated" bson:"authenticated"`
 	Recorded      bool            `json:"recorded" bson:"recorded"`
