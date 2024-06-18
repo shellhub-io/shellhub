@@ -62,7 +62,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 )
@@ -353,11 +352,6 @@ func (a *Agent) authorize() error {
 	return err
 }
 
-// NewReverseListener creates a authenticated connection to the ShellHub server.
-func (a *Agent) NewReverseListener(ctx context.Context) (*revdial.Listener, error) {
-	return a.cli.NewReverseListener(ctx, a.authData.Token)
-}
-
 func (a *Agent) isClosed() bool {
 	return a.closed.Load()
 }
@@ -494,7 +488,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			listener, err := a.NewReverseListener(ctx)
+			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
