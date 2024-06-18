@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -53,7 +53,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Role: guard.RoleOwner,
+				Role: auth.RoleOwner,
 			},
 		},
 		CreatedAt: clock.Now(),

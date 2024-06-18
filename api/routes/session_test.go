@@ -13,8 +13,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -77,7 +77,7 @@ func TestGetSessionList(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/api/sessions", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -148,7 +148,7 @@ func TestGetSession(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/sessions/%s", tc.uid), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -248,7 +248,7 @@ func TestCreateSession(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/internal/sessions", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -300,7 +300,7 @@ func TestFinishSession(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/sessions/%s/finish", tc.uid), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)

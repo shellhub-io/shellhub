@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/spf13/cobra"
 )
 
@@ -104,7 +105,7 @@ func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
 				input := &inputs.MemberAdd{
 					Username:  args[0],
 					Namespace: args[1],
-					Role:      args[2],
+					Role:      auth.RoleFromString(args[2]),
 				}
 				ns, err := service.NamespaceAddMember(cmd.Context(), input)
 				if err != nil {

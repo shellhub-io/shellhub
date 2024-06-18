@@ -240,9 +240,9 @@ func (_m *Service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth
 	return r0, r1
 }
 
-// AuthSwapToken provides a mock function with given fields: ctx, ID, tenant
-func (_m *Service) AuthSwapToken(ctx context.Context, ID string, tenant string) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, ID, tenant)
+// AuthSwapToken provides a mock function with given fields: ctx, id, tenant
+func (_m *Service) AuthSwapToken(ctx context.Context, id string, tenant string) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, id, tenant)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthSwapToken")
@@ -251,10 +251,10 @@ func (_m *Service) AuthSwapToken(ctx context.Context, ID string, tenant string) 
 	var r0 *models.UserAuthResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, ID, tenant)
+		return rf(ctx, id, tenant)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, ID, tenant)
+		r0 = rf(ctx, id, tenant)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
@@ -262,7 +262,7 @@ func (_m *Service) AuthSwapToken(ctx context.Context, ID string, tenant string) 
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, ID, tenant)
+		r1 = rf(ctx, id, tenant)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -786,6 +786,24 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 	}
 
 	return r0, r1
+}
+
+// FillClaimsRole provides a mock function with given fields: ctx, claims
+func (_m *Service) FillClaimsRole(ctx context.Context, claims *models.UserAuthClaims) error {
+	ret := _m.Called(ctx, claims)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FillClaimsRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthClaims) error); ok {
+		r0 = rf(ctx, claims)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // GetDevice provides a mock function with given fields: ctx, uid

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -57,13 +57,13 @@ func TestMigration37(t *testing.T) {
 	migratedNamespace := &models.Namespace{}
 	err = c.Database("test").Collection("namespaces").FindOne(context.TODO(), bson.D{{"tenant_id", "tenant"}}).Decode(migratedNamespace)
 	assert.NoError(t, err)
-	assert.Equal(t, []models.Member{{ID: user.ID, Role: guard.RoleOwner}}, migratedNamespace.Members)
+	assert.Equal(t, []models.Member{{ID: user.ID, Role: auth.RoleOwner}}, migratedNamespace.Members)
 
 	namespace := models.Namespace{
 		Name:     "userspace",
 		Owner:    user.ID,
 		TenantID: "tenant",
-		Members:  []models.Member{{ID: user.ID, Role: guard.RoleOwner}},
+		Members:  []models.Member{{ID: user.ID, Role: auth.RoleOwner}},
 		Devices:  -1,
 	}
 

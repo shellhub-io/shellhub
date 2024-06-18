@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -117,7 +117,7 @@ func TestSetup(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   user.ID,
-							Role: guard.RoleOwner,
+							Role: auth.RoleOwner,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -170,7 +170,7 @@ func TestSetup(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   user.ID,
-							Role: guard.RoleOwner,
+							Role: auth.RoleOwner,
 						},
 					},
 					Settings: &models.NamespaceSettings{

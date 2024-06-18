@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -53,8 +52,8 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	}
 
 	if req.OptRole != "" {
-		if !guard.HasAuthority(req.Role, req.OptRole) {
-			return nil, guard.ErrForbidden
+		if !req.Role.HasAuthority(req.OptRole) {
+			return nil, NewErrRoleInvalid()
 		}
 
 		req.Role = req.OptRole
@@ -105,8 +104,8 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 
 	// If req.Role is not empty, it must be lower than the user's role.
 	if req.Role != "" {
-		if m, ok := ns.FindMember(req.UserID); !ok || !guard.HasAuthority(m.Role, req.Role) {
-			return guard.ErrForbidden
+		if m, ok := ns.FindMember(req.UserID); !ok || !m.Role.HasAuthority(req.Role) {
+			return NewErrRoleInvalid()
 		}
 	}
 

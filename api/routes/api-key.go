@@ -5,9 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/api/responses"
 )
 
 const (
@@ -28,13 +26,8 @@ func (h *Handler) CreateAPIKey(c gateway.Context) error {
 		return err
 	}
 
-	res := new(responses.CreateAPIKey)
-	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Create, func() error {
-		var err error
-		res, err = h.service.CreateAPIKey(c.Ctx(), req)
-
-		return err
-	}); err != nil {
+	res, err := h.service.CreateAPIKey(c.Ctx(), req)
+	if err != nil {
 		return err
 	}
 
@@ -83,9 +76,7 @@ func (h *Handler) UpdateAPIKey(c gateway.Context) error {
 		return err
 	}
 
-	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Edit, func() error {
-		return h.service.UpdateAPIKey(c.Ctx(), req) // TODO: name
-	}); err != nil {
+	if err := h.service.UpdateAPIKey(c.Ctx(), req); err != nil {
 		return err
 	}
 
@@ -103,9 +94,7 @@ func (h *Handler) DeleteAPIKey(c gateway.Context) error {
 		return err
 	}
 
-	if err := guard.EvaluatePermission(c.Role(), guard.Actions.APIKey.Delete, func() error {
-		return h.service.DeleteAPIKey(c.Ctx(), req)
-	}); err != nil {
+	if err := h.service.DeleteAPIKey(c.Ctx(), req); err != nil {
 		return err
 	}
 

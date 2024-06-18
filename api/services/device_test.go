@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -1261,11 +1261,11 @@ func TestDeleteDevice(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   "id",
-							Role: guard.RoleOwner,
+							Role: auth.RoleOwner,
 						},
 						{
 							ID:   "id2",
-							Role: guard.RoleObserver,
+							Role: auth.RoleObserver,
 						},
 					},
 					MaxDevices: 3,
@@ -1300,11 +1300,11 @@ func TestDeleteDevice(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   "id",
-							Role: guard.RoleOwner,
+							Role: auth.RoleOwner,
 						},
 						{
 							ID:   "id2",
-							Role: guard.RoleObserver,
+							Role: auth.RoleObserver,
 						},
 					},
 					MaxDevices: 3,
@@ -1393,7 +1393,7 @@ func TestDeleteDevice(t *testing.T) {
 
 				namespaceBilling := &models.Namespace{
 					Name:    "namespace1",
-					Members: []models.Member{{ID: "id", Role: guard.RoleOwner}, {ID: "id2", Role: guard.RoleObserver}},
+					Members: []models.Member{{ID: "id", Role: auth.RoleOwner}, {ID: "id2", Role: auth.RoleObserver}},
 					Billing: &models.Billing{
 						Active: true,
 					},
