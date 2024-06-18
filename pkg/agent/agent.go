@@ -49,7 +49,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Masterminds/semver"
@@ -170,9 +170,8 @@ type Agent struct {
 	sessions   []string
 	server     *server.Server
 	tunnel     *tunnel.Tunnel
-	mux        sync.RWMutex
 	listening  chan bool
-	closed     bool
+	closed     atomic.Bool
 	mode       Mode
 }
 
@@ -262,9 +261,7 @@ func (a *Agent) Initialize() error {
 		return errors.Wrap(err, "failed to authorize device")
 	}
 
-	a.mux.Lock()
-	a.closed = false
-	a.mux.Unlock()
+	a.closed.Store(false)
 
 	return nil
 }
@@ -362,17 +359,12 @@ func (a *Agent) NewReverseListener(ctx context.Context) (*revdial.Listener, erro
 }
 
 func (a *Agent) isClosed() bool {
-	a.mux.RLock()
-	defer a.mux.RUnlock()
-
-	return a.closed
+	return a.closed.Load()
 }
 
 // Close closes the ShellHub Agent's listening, stoping it from receive new connection requests.
 func (a *Agent) Close() error {
-	a.mux.Lock()
-	a.closed = true
-	a.mux.Unlock()
+	a.closed.Store(true)
 
 	return a.tunnel.Close()
 }
