@@ -251,30 +251,6 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		}).Fatal("Failed to initialize agent")
 	}
 
-	go func() {
-		if err := ag.Ping(ctx, agent.AgentPingDefaultInterval); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"id":             container.ID,
-				"identity":       cfg.PreferredIdentity,
-				"hostname":       cfg.PreferredHostname,
-				"tenant_id":      cfg.TenantID,
-				"server_address": cfg.ServerAddress,
-				"timestamp":      time.Now(),
-				"version":        agent.AgentVersion,
-			}).Fatal("Failed to ping server")
-		}
-
-		log.WithFields(log.Fields{
-			"id":             container.ID,
-			"identity":       cfg.PreferredIdentity,
-			"hostname":       cfg.PreferredHostname,
-			"tenant_id":      cfg.TenantID,
-			"server_address": cfg.ServerAddress,
-			"timestamp":      time.Now(),
-			"version":        agent.AgentVersion,
-		}).Info("Stopped pinging server")
-	}()
-
 	log.WithFields(log.Fields{
 		"id":             container.ID,
 		"identity":       cfg.PreferredIdentity,

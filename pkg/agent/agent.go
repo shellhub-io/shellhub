@@ -475,6 +475,8 @@ func (a *Agent) Listen(ctx context.Context) error {
 		WithHTTPHandler(httpHandler()).
 		Build()
 
+	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
+
 	done := make(chan bool)
 	go func() {
 		for {
@@ -572,13 +574,13 @@ func (a *Agent) Listen(ctx context.Context) error {
 // AgentPingDefaultInterval is the default time interval between ping on agent.
 const AgentPingDefaultInterval = 10 * time.Minute
 
-// Ping sends an authorization request to the ShellHub server at each interval.
+// ping sends an authorization request to the ShellHub server at each interval.
 // A random value between 10 and [config.MaxRetryConnectionTimeout] seconds is added to the interval
 // each time the ticker is executed.
 //
 // Ping only sends requests to the server if the agent is listening for connections. If the agent is not
 // listening, the ping process will be stopped. When the interval is 0, the default value is 10 minutes.
-func (a *Agent) Ping(ctx context.Context, interval time.Duration) error {
+func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 	a.listening = make(chan bool)
 
 	if interval == 0 {
