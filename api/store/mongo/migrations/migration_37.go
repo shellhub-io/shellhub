@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -59,14 +59,14 @@ var migration37 = migrate.Migration{
 				if owner != member {
 					m := models.Member{
 						ID:   member.(string),
-						Role: guard.RoleObserver,
+						Role: auth.RoleObserver,
 					}
 
 					memberList = append(memberList, m)
 				} else if owner == member {
 					m := models.Member{
 						ID:   member.(string),
-						Role: guard.RoleOwner,
+						Role: auth.RoleOwner,
 					}
 
 					memberList = append(memberList, m)

@@ -8,11 +8,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
@@ -64,7 +63,7 @@ func TestCreateNamespace(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			req.Header.Set("X-ID", "123")
 			rec := httptest.NewRecorder()
 
@@ -144,7 +143,7 @@ func TestGetNamespace(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -206,22 +205,6 @@ func TestDeleteNamespace(t *testing.T) {
 			uid:   "123",
 			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
-					Name:     "namespace-name",
-					Owner:    "owner-name",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{ID: "123", Username: "userexemple", Role: "owner"},
-					},
-					Settings:     &models.NamespaceSettings{},
-					Devices:      10,
-					Sessions:     5,
-					MaxDevices:   100,
-					DevicesCount: 50,
-					CreatedAt:    time.Now(),
-					Billing:      &models.Billing{},
-				}, nil).Once()
-
 				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(svc.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
@@ -231,22 +214,6 @@ func TestDeleteNamespace(t *testing.T) {
 			uid:   "123",
 			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{
-					Name:     "namespace-name",
-					Owner:    "owner-name",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{ID: "123", Username: "userexemple", Role: "owner"},
-					},
-					Settings:     &models.NamespaceSettings{},
-					Devices:      10,
-					Sessions:     5,
-					MaxDevices:   100,
-					DevicesCount: 50,
-					CreatedAt:    time.Now(),
-					Billing:      &models.Billing{},
-				}, nil).Once()
-
 				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -259,7 +226,7 @@ func TestDeleteNamespace(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			req.Header.Set("X-ID", tc.uid)
 			rec := httptest.NewRecorder()
 
@@ -306,7 +273,7 @@ func TestGetSessionRecord(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/api/users/security", nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 
@@ -342,19 +309,6 @@ func TestEditNamespace(t *testing.T) {
 				"session_record": true,
 			},
 			requiredMocks: func() {
-				svcMock.
-					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members: []models.Member{
-							{
-								ID:       "000000000000000000000000",
-								Username: "john_doe",
-								Role:     "observer",
-							},
-						},
-					}, nil).
-					Once()
 			},
 			expected: http.StatusForbidden,
 		},
@@ -370,19 +324,6 @@ func TestEditNamespace(t *testing.T) {
 				"session_record": true,
 			},
 			requiredMocks: func() {
-				svcMock.
-					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members: []models.Member{
-							{
-								ID:       "000000000000000000000000",
-								Username: "john_doe",
-								Role:     "operator",
-							},
-						},
-					}, nil).
-					Once()
 			},
 			expected: http.StatusForbidden,
 		},
@@ -398,19 +339,6 @@ func TestEditNamespace(t *testing.T) {
 				"session_record": true,
 			},
 			requiredMocks: func() {
-				svcMock.
-					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members: []models.Member{
-							{
-								ID:       "000000000000000000000000",
-								Username: "john_doe",
-								Role:     "owner",
-							},
-						},
-					}, nil).
-					Once()
 				svcMock.
 					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
 					Return(svc.ErrNotFound).
@@ -431,19 +359,6 @@ func TestEditNamespace(t *testing.T) {
 				"tenant":         "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				svcMock.
-					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members: []models.Member{
-							{
-								ID:       "000000000000000000000000",
-								Username: "john_doe",
-								Role:     "owner",
-							},
-						},
-					}, nil).
-					Once()
 				svcMock.
 					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
 					Return(nil).

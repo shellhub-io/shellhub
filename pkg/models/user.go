@@ -4,6 +4,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -95,19 +96,18 @@ type UserAuthResponse struct {
 	Name          string `json:"name"`
 	ID            string `json:"id"`
 	Tenant        string `json:"tenant"`
-	Role          string `json:"role"`
 	Email         string `json:"email"`
 	RecoveryEmail string `json:"recovery_email"`
 	MFA           bool   `json:"mfa"`
 }
 
 type UserAuthClaims struct {
-	ID                   string `json:"id"`
-	Admin                bool   `json:"admin"` // FIXME: deprecated, remove it.
-	Tenant               string `json:"tenant"`
-	Role                 string `json:"role"`
-	Username             string `json:"name"`
-	MFA                  bool   `json:"mfa"`
+	ID                   string    `json:"id"`
+	Admin                bool      `json:"admin"` // FIXME: deprecated, remove it.
+	Tenant               string    `json:"tenant"`
+	Role                 auth.Role `json:"role"`
+	Username             string    `json:"name"`
+	MFA                  bool      `json:"mfa"`
 	AuthClaims           `mapstruct:",squash"`
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }

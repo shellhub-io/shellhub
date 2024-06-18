@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -84,7 +84,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Role: guard.RoleOwner,
+				Role: auth.RoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{
@@ -232,8 +232,8 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	if !guard.HasAuthority(active.Role, req.MemberRole) {
-		return nil, guard.ErrForbidden
+	if !active.Role.HasAuthority(req.MemberRole) {
+		return nil, NewErrRoleInvalid()
 	}
 
 	passive, err := s.store.UserGetByUsername(ctx, req.MemberUsername)
@@ -275,9 +275,9 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 
 	changes := &models.MemberChanges{Role: req.MemberRole}
 
-	if changes.Role != "" {
-		if !guard.HasAuthority(active.Role, req.MemberRole) {
-			return guard.ErrForbidden
+	if changes.Role != auth.RoleInvalid {
+		if !active.Role.HasAuthority(req.MemberRole) {
+			return NewErrRoleInvalid()
 		}
 	}
 
@@ -316,8 +316,8 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrNamespaceMemberNotFound(member.ID, err)
 	}
 
-	if !guard.HasAuthority(active.Role, passive.Role) {
-		return nil, guard.ErrForbidden
+	if !active.Role.HasAuthority(passive.Role) {
+		return nil, NewErrRoleInvalid()
 	}
 
 	if err := s.store.NamespaceRemoveMember(ctx, req.TenantID, req.MemberID); err != nil {

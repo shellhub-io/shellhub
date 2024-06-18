@@ -87,7 +87,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]interface{}{
 				"name":       "de",
@@ -103,7 +103,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]interface{}{
 				"name":       "devdevdevdevdevdevdev",
@@ -119,7 +119,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]interface{}{
 				"name":       "dev dev",
@@ -135,7 +135,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]interface{}{
 				"name":       "dev",
@@ -151,7 +151,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]interface{}{
 				"name":       "dev",
@@ -168,7 +168,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]interface{}{
 				"name":       "dev",
@@ -609,7 +609,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]string{
 				"name": "pr",
@@ -624,7 +624,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]string{
 				"name": "prodprodprodprodprodprod",
@@ -639,7 +639,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]string{
 				"name": "prod prod",
@@ -654,7 +654,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+				"X-Role":       "owner",
 			},
 			body: map[string]string{
 				"role": "invalid",

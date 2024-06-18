@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -43,7 +43,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Role: guard.RoleOwner,
+				Role: auth.RoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{

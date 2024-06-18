@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -71,7 +71,7 @@ func TestGetDevice(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/devices/%s", tc.uid), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -93,85 +93,48 @@ func TestDeleteDevice(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		headers       map[string]string
-		uid           string
-		requiredMocks func()
-		expected      int
+		title          string
+		uid            string
+		requiredMocks  func()
+		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       "observer",
-			},
-			uid: "1234",
-			requiredMocks: func() {
-			},
-			expected: http.StatusForbidden,
+			title:          "fails when bind fails to validate uid",
+			uid:            "",
+			requiredMocks:  func() {},
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "fails when role is operator",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       "operator",
-			},
-			uid: "1234",
-			requiredMocks: func() {
-			},
-			expected: http.StatusForbidden,
-		},
-		{
-			description: "fails when bind fails to validate uid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       "administrator",
-			},
-			uid:           "",
-			requiredMocks: func() {},
-			expected:      http.StatusNotFound,
-		},
-		{
-			description: "fails when try to deleting a non-existing device",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       "administrator",
-			},
-			uid: "1234",
+			title: "fails when try to deleting a non-existing device",
+			uid:   "1234",
 			requiredMocks: func() {
 				mock.On("DeleteDevice", gomock.Anything, models.UID("1234"), "").Return(svc.ErrDeviceNotFound)
 			},
-			expected: http.StatusNotFound,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "success when try to deleting an existing device",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       "administrator",
-			},
-			uid: "123",
+			title: "success when try to deleting an existing device",
+			uid:   "123",
 			requiredMocks: func() {
 				mock.On("DeleteDevice", gomock.Anything, models.UID("123"), "").Return(nil)
 			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
 			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/devices/%s", tc.uid), nil)
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 }
@@ -180,100 +143,66 @@ func TestRenameDevice(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		headers       map[string]string
-		payload       requests.DeviceRename
-		requiredMocks func()
-		expected      int
+		title          string
+		renamePayload  requests.DeviceRename
+		tenant         string
+		requiredMocks  func(req requests.DeviceRename)
+		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
-			},
-			payload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: "000000000000000000000000"},
-				Name:        "name",
-			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusForbidden,
-		},
-		{
-			description: "fails when bind fails to validate uid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
-			payload: requests.DeviceRename{
+			title: "fails when bind fails to validate uid",
+			renamePayload: requests.DeviceRename{
 				DeviceParam: requests.DeviceParam{UID: ""},
 			},
-			requiredMocks: func() {},
-			expected:      http.StatusNotFound,
+			tenant:         "tenant-id",
+			requiredMocks:  func(req requests.DeviceRename) {},
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "fails when try to rename a non-existing device",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
-			payload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: "000000000000000000000000"},
+			title: "fails when try to rename a non-existing device",
+			renamePayload: requests.DeviceRename{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Name:        "name",
 			},
-			requiredMocks: func() {
-				mock.
-					On("RenameDevice", gomock.Anything, models.UID("000000000000000000000000"), "name", "00000000-0000-4000-0000-000000000000").
-					Return(svc.ErrNotFound).
-					Once()
+			tenant: "tenant-id",
+			requiredMocks: func(req requests.DeviceRename) {
+				mock.On("RenameDevice", gomock.Anything, models.UID("1234"), req.Name, "tenant-id").Return(svc.ErrNotFound)
 			},
-			expected: http.StatusNotFound,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "success when try to rename an existing device",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
-			payload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: "000000000000000000000000"},
+			title: "success when try to rename an existing device",
+			renamePayload: requests.DeviceRename{
+				DeviceParam: requests.DeviceParam{UID: "123"},
 				Name:        "name",
 			},
-			requiredMocks: func() {
-				mock.
-					On("RenameDevice", gomock.Anything, models.UID("000000000000000000000000"), "name", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
+			tenant: "tenant-id",
+			requiredMocks: func(req requests.DeviceRename) {
+				mock.On("RenameDevice", gomock.Anything, models.UID("123"), req.Name, "tenant-id").Return(nil)
 			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks(tc.renamePayload)
 
-			jsonData, err := json.Marshal(tc.payload)
+			jsonData, err := json.Marshal(tc.renamePayload)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/devices/%s", tc.payload.UID), strings.NewReader(string(jsonData)))
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
+			req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/devices/%s", tc.renamePayload.UID), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 }
@@ -330,7 +259,7 @@ func TestGetDeviceByPublicURLAddress(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/internal/devices/public/%s", tc.address), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -461,7 +390,7 @@ func TestGetDeviceList(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/api/devices", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 
@@ -519,7 +448,7 @@ func TestOfflineDevice(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/devices/%s/offline", tc.uid), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
@@ -601,7 +530,7 @@ func TestLookupDevice(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/internal/lookup", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", guard.RoleOwner)
+			req.Header.Set("X-Role", auth.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -623,158 +552,104 @@ func TestRemoveDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		uid           string
-		headers       map[string]string
-		body          map[string]interface{}
-		requiredMocks func()
-		expected      int
+		title          string
+		updatePayload  requests.DeviceRemoveTag
+		requiredMocks  func(req requests.DeviceRemoveTag)
+		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+			title: "fails when bind fails to validate uid",
+			updatePayload: requests.DeviceRemoveTag{
+				DeviceParam: requests.DeviceParam{UID: ""},
+				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag",
-			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusForbidden,
+			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because the tag does not have a min of 3 characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			updatePayload: requests.DeviceRemoveTag{
+				TagBody: requests.TagBody{Tag: "tg"},
 			},
-			body: map[string]interface{}{
-				"tag": "ta",
-			},
-			expected:      http.StatusBadRequest,
-			requiredMocks: func() {},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceRemoveTag) {},
 		},
 		{
-			description: "fails when validate because the tag does not have a max of 255 characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			updatePayload: requests.DeviceRemoveTag{
+				TagBody: requests.TagBody{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
-			body: map[string]interface{}{
-				"tag": "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9",
-			},
-			expected:      http.StatusBadRequest,
-			requiredMocks: func() {},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceRemoveTag) {},
 		},
 		{
-			description: "fails when validate because have a '/' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '/' with in your characters",
+			updatePayload: requests.DeviceRemoveTag{
+				TagBody: requests.TagBody{Tag: "test/"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag/",
-			},
-			expected:      http.StatusBadRequest,
-			requiredMocks: func() {},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceRemoveTag) {},
 		},
 		{
-			description: "fails when validate because have a '&' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '&' with in your characters",
+			updatePayload: requests.DeviceRemoveTag{
+				TagBody: requests.TagBody{Tag: "test&"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag&",
-			},
-			expected:      http.StatusBadRequest,
-			requiredMocks: func() {},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceRemoveTag) {},
 		},
 		{
-			description: "fails when validate because have a '@' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '@' with in your characters",
+			updatePayload: requests.DeviceRemoveTag{
+				TagBody: requests.TagBody{Tag: "test@"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag@",
-			},
-			expected:      http.StatusBadRequest,
-			requiredMocks: func() {},
+			expectedStatus: http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceRemoveTag) {},
 		},
 		{
-			description: "fails when try to remove a non-existing device tag",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when try to remove a non-existing device tag",
+			updatePayload: requests.DeviceRemoveTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag",
+			requiredMocks: func(req requests.DeviceRemoveTag) {
+				mock.On("RemoveDeviceTag", gomock.Anything, models.UID("1234"), req.Tag).Return(svc.ErrNotFound)
 			},
-			requiredMocks: func() {
-				mock.
-					On("RemoveDeviceTag", gomock.Anything, models.UID("000000000000000000000000"), "tag").
-					Return(svc.ErrNotFound).
-					Once()
-			},
-			expected: http.StatusNotFound,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "success when try to remove a existing device tag",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "success when try to remove a existing device tag",
+			updatePayload: requests.DeviceRemoveTag{
+				DeviceParam: requests.DeviceParam{UID: "123"},
+				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag",
+
+			requiredMocks: func(req requests.DeviceRemoveTag) {
+				mock.On("RemoveDeviceTag", gomock.Anything, models.UID("123"), req.Tag).Return(nil)
 			},
-			requiredMocks: func() {
-				mock.
-					On("RemoveDeviceTag", gomock.Anything, models.UID("000000000000000000000000"), "tag").
-					Return(nil).
-					Once()
-			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks(tc.updatePayload)
 
-			jsonData, err := json.Marshal(tc.body)
+			jsonData, err := json.Marshal(tc.updatePayload)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/devices/%s/tags/%s", tc.uid, tc.body["tag"]), strings.NewReader(string(jsonData)))
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/devices/%s/tags/%s", tc.updatePayload.UID, tc.updatePayload.Tag), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 }
@@ -783,164 +658,115 @@ func TestCreateDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		uid           string
-		headers       map[string]string
-		body          map[string]interface{}
-		requiredMocks func()
-		expected      int
+		title          string
+		updatePayload  requests.DeviceCreateTag
+		requiredMocks  func(req requests.DeviceCreateTag)
+		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+			title: "fails when bind fails to validate uid",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: ""},
+				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag",
+			requiredMocks: func(req requests.DeviceCreateTag) {
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusForbidden,
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because the tag does not have a min of 3 characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "tg"},
 			},
-			body: map[string]interface{}{
-				"tag": "ta",
+			requiredMocks: func(req requests.DeviceCreateTag) {
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because the tag does not have a max of 255 characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
-			body: map[string]interface{}{
-				"tag": "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9",
+			requiredMocks: func(req requests.DeviceCreateTag) {
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a '@' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '@' with in your characters",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "test@"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag@",
+			requiredMocks: func(req requests.DeviceCreateTag) {
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a '/' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '/' with in your characters",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "test/"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag/",
+			requiredMocks: func(req requests.DeviceCreateTag) {
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a '&' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '&' with in your characters",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "test&"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag&",
+			requiredMocks: func(req requests.DeviceCreateTag) {
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when try to create a non-existing device tag",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when try to create a non-existing device tag",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			body: map[string]interface{}{
-				"tag": "tag",
+			requiredMocks: func(req requests.DeviceCreateTag) {
+				mock.On("CreateDeviceTag", gomock.Anything, models.UID("1234"), req.Tag).Return(svc.ErrNotFound)
 			},
-			requiredMocks: func() {
-				mock.
-					On("CreateDeviceTag", gomock.Anything, models.UID("000000000000000000000000"), "tag").
-					Return(svc.ErrNotFound).
-					Once()
-			},
-			expected: http.StatusNotFound,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "succeeds",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
-			body: map[string]interface{}{
-				"tag": "tag",
+			title: "fails when try to create a existing device tag",
+			updatePayload: requests.DeviceCreateTag{
+				DeviceParam: requests.DeviceParam{UID: "123"},
+				TagBody:     requests.TagBody{Tag: "tag"},
 			},
 
-			requiredMocks: func() {
-				mock.
-					On("CreateDeviceTag", gomock.Anything, models.UID("000000000000000000000000"), "tag").
-					Return(nil).
-					Once()
+			requiredMocks: func(req requests.DeviceCreateTag) {
+				mock.On("CreateDeviceTag", gomock.Anything, models.UID("123"), req.Tag).Return(nil)
 			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks(tc.updatePayload)
 
-			jsonData, err := json.Marshal(tc.body)
+			jsonData, err := json.Marshal(tc.updatePayload)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/devices/%s/tags", tc.uid), strings.NewReader(string(jsonData)))
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/devices/%s/tags", tc.updatePayload.UID), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 }
@@ -949,267 +775,179 @@ func TestUpdateDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		uid           string
-		headers       map[string]string
-		body          map[string]interface{}
-		requiredMocks func()
-		expected      int
+		title          string
+		updatePayload  requests.DeviceUpdateTag
+		requiredMocks  func(req requests.DeviceUpdateTag)
+		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+			title: "fails when bind fails to validate uid",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: ""},
+				Tags:        []string{"tag1", "tag2"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"tag"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusForbidden,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a duplicate tag",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a duplicate tag",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"tagduplicated", "tagduplicated"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"tagduplicated", "tagduplicated"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a '@' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '@' with in your characters",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"test@"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"test@"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a '/' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '/' with in your characters",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"test/"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"test/"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because have a '&' with in your characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because have a '&' with in your characters",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"test&"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"test&"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because the tag does not have a min of 3 characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because the tag does not have a min of 3 characters",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"tg"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"tg"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when validate because the tag does not have a max of 255 characters",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when validate because the tag does not have a max of 255 characters",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
-			},
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
+			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "fails when try to update a non existent device",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "fails when try to update a existing device tag",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Tags:        []string{"tag1", "tag2"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"tag1", "tag2"},
+			requiredMocks: func(req requests.DeviceUpdateTag) {
+				mock.On("UpdateDeviceTag", gomock.Anything, models.UID("1234"), req.Tags).Return(svc.ErrNotFound)
 			},
-			requiredMocks: func() {
-				mock.
-					On("UpdateDeviceTag", gomock.Anything, models.UID("000000000000000000000000"), []string{"tag1", "tag2"}).
-					Return(svc.ErrNotFound).
-					Once()
-			},
-			expected: http.StatusNotFound,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "success when try to update a existing device tag",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "success when try to update a existing device tag",
+			updatePayload: requests.DeviceUpdateTag{
+				DeviceParam: requests.DeviceParam{UID: "123"},
+				Tags:        []string{"tag1", "tag2"},
 			},
-			body: map[string]interface{}{
-				"tags": []string{"tag1", "tag2"},
+
+			requiredMocks: func(req requests.DeviceUpdateTag) {
+				mock.On("UpdateDeviceTag", gomock.Anything, models.UID("123"), req.Tags).Return(nil)
 			},
-			requiredMocks: func() {
-				mock.
-					On("UpdateDeviceTag", gomock.Anything, models.UID("000000000000000000000000"), []string{"tag1", "tag2"}).
-					Return(nil).
-					Once()
-			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks(tc.updatePayload)
 
-			jsonData, err := json.Marshal(tc.body)
+			jsonData, err := json.Marshal(tc.updatePayload)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/devices/%s/tags", tc.uid), strings.NewReader(string(jsonData)))
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/devices/%s/tags", tc.updatePayload.UID), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 }
 
 func TestUpdateDevice(t *testing.T) {
-	svcMock := new(mocks.Service)
-
-	name := "name"
-	publicURL := true
+	mock := new(mocks.Service)
+	name := "new device name"
+	url := true
 
 	cases := []struct {
-		description   string
-		uid           string
-		headers       map[string]string
-		body          map[string]interface{}
-		requiredMocks func()
-		expected      int
+		title          string
+		updatePayload  requests.DeviceUpdate
+		requiredMocks  func(req requests.DeviceUpdate)
+		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
+			title: "fails when try to uodate a existing device",
+			updatePayload: requests.DeviceUpdate{
+				DeviceParam: requests.DeviceParam{UID: "1234"},
+				Name:        &name,
+				PublicURL:   &url,
 			},
-			body: map[string]interface{}{
-				"name":       "name",
-				"public_url": true,
+			requiredMocks: func(req requests.DeviceUpdate) {
+				mock.On("UpdateDevice", gomock.Anything, "tenant-id", models.UID("1234"), req.Name, req.PublicURL).Return(svc.ErrNotFound)
 			},
-			requiredMocks: func() {
-			},
-			expected: http.StatusForbidden,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "fails when try to update a non existent device",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
+			title: "success when try to update a existing device",
+			updatePayload: requests.DeviceUpdate{
+				DeviceParam: requests.DeviceParam{UID: "123"},
+				Name:        &name,
+				PublicURL:   &url,
 			},
-			body: map[string]interface{}{
-				"name":       "name",
-				"public_url": true,
+
+			requiredMocks: func(req requests.DeviceUpdate) {
+				mock.On("UpdateDevice", gomock.Anything, "tenant-id", models.UID("123"), req.Name, req.PublicURL).Return(nil)
 			},
-			requiredMocks: func() {
-				svcMock.
-					On("UpdateDevice", gomock.Anything, "00000000-0000-4000-0000-000000000000", models.UID("000000000000000000000000"), &name, &publicURL).
-					Return(svc.ErrNotFound).
-					Once()
-			},
-			expected: http.StatusNotFound,
-		},
-		{
-			description: "success when try to update a existing device",
-			uid:         "000000000000000000000000",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
-			body: map[string]interface{}{
-				"name":       "name",
-				"public_url": true,
-			},
-			requiredMocks: func() {
-				svcMock.
-					On("UpdateDevice", gomock.Anything, "00000000-0000-4000-0000-000000000000", models.UID("000000000000000000000000"), &name, &publicURL).
-					Return(nil).
-					Once()
-			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks(tc.updatePayload)
 
-			jsonData, err := json.Marshal(tc.body)
+			jsonData, err := json.Marshal(tc.updatePayload)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/devices/%s", tc.uid), strings.NewReader(string(jsonData)))
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/devices/%s", tc.updatePayload.UID), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
 }

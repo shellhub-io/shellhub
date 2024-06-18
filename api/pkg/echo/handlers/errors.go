@@ -7,7 +7,6 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers/pkg/converter"
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	routes "github.com/shellhub-io/shellhub/api/routes/errors"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -66,8 +65,6 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 
 		var status int
 		switch e.Layer {
-		case guard.ErrLayer:
-			status = http.StatusForbidden
 		case routes.ErrLayer:
 			status = converter.FromErrRouteToHTTPStatus(e.Code)
 		case services.ErrLayer:

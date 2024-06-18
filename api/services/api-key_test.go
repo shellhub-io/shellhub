@@ -9,7 +9,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/pkg/guard"
 	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -122,7 +121,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			expected: Expected{
 				res: nil,
-				err: guard.ErrForbidden,
+				err: NewErrRoleInvalid(),
 			},
 		},
 		{
@@ -525,7 +524,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
 					Once()
 			},
-			expected: guard.ErrForbidden,
+			expected: NewErrRoleInvalid(),
 		},
 		{
 			description: "fails when a conflict is found",

@@ -491,7 +491,6 @@ func TestAuthUser(t *testing.T) {
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
 					Tenant: "",
-					Role:   "",
 					Token:  "must ignore",
 				},
 				lockout:  0,
@@ -576,7 +575,6 @@ func TestAuthUser(t *testing.T) {
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
 					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
 					Token:  "must ignore",
 				},
 				lockout:  0,
@@ -658,7 +656,6 @@ func TestAuthUser(t *testing.T) {
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
 					Tenant: "",
-					Role:   "",
 					Token:  "must ignore",
 				},
 				lockout:  0,
@@ -835,18 +832,6 @@ func TestAuthUserInfo(t *testing.T) {
 			username:    "user",
 			tenantID:    "xxxxxx",
 			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "namespace",
-					Owner:    "id",
-					TenantID: "xxxxxx",
-					Members: []models.Member{
-						{
-							ID:   "id",
-							Role: "owner",
-						},
-					},
-				}
-
 				mock.On("UserGetByUsername", ctx, "user").Return(&models.User{
 					UserData: models.UserData{
 						Username: "user",
@@ -855,7 +840,6 @@ func TestAuthUserInfo(t *testing.T) {
 					},
 					ID: "id",
 				}, nil).Once()
-				mock.On("NamespaceGet", ctx, "xxxxxx", false).Return(namespace, nil).Once()
 			},
 			expected: Expected{
 				userAuthResponse: &models.UserAuthResponse{
@@ -864,7 +848,6 @@ func TestAuthUserInfo(t *testing.T) {
 					User:   "user",
 					Tenant: "xxxxxx",
 					ID:     "id",
-					Role:   "owner",
 					Email:  "email@email.com",
 				},
 				err: nil,

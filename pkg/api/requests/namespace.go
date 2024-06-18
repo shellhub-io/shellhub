@@ -1,5 +1,7 @@
 package requests
 
+import "github.com/shellhub-io/shellhub/pkg/api/auth"
+
 // TenantParam is a structure to represent and validate a namespace tenant as path param.
 type TenantParam struct {
 	Tenant string `param:"tenant" validate:"required,uuid"`
@@ -42,17 +44,17 @@ type NamespaceEdit struct {
 }
 
 type NamespaceAddMember struct {
-	UserID         string `header:"X-ID" validate:"required"`
-	TenantID       string `param:"tenant" validate:"required,uuid"`
-	MemberUsername string `json:"username" validate:"required,username"`
-	MemberRole     string `json:"role" validate:"required,member_role"`
+	UserID         string    `header:"X-ID" validate:"required"`
+	TenantID       string    `param:"tenant" validate:"required,uuid"`
+	MemberUsername string    `json:"username" validate:"required,username"`
+	MemberRole     auth.Role `json:"role" validate:"required,member_role"`
 }
 
 type NamespaceUpdateMember struct {
-	UserID     string `header:"X-ID" validate:"required"`
-	TenantID   string `param:"tenant" validate:"required,uuid"`
-	MemberID   string `param:"uid" validate:"required"`
-	MemberRole string `json:"role" validate:"omitempty,member_role"`
+	UserID     string    `header:"X-ID" validate:"required"`
+	TenantID   string    `param:"tenant" validate:"required,uuid"`
+	MemberID   string    `param:"uid" validate:"required"`
+	MemberRole auth.Role `json:"role" validate:"omitempty,member_role"`
 }
 
 type NamespaceRemoveMember struct {

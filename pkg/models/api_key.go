@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 )
 
 // APIKey is used to authenticate a request. It is similar to [UserAuthClaims] but only for
@@ -19,7 +21,7 @@ type APIKey struct {
 	// TenantID is the API key's namespace ID.
 	TenantID string `json:"tenant_id" bson:"tenant_id"`
 	// Role defines the permissions of the API key. It must be equal to or less than the creator's role.
-	Role string `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
+	Role auth.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
 	// CreatedBy is the ID of the user who created the API key.
 	CreatedBy string `json:"created_by" bson:"created_by"`
 	// CreatedAt is the creation date of the API key.
@@ -48,7 +50,7 @@ func (a *APIKey) IsValid() bool {
 type APIKeyChanges struct {
 	UpdatedAt time.Time `bson:"updated_at,omitempty"`
 	Name      string    `bson:"name,omitempty"`
-	Role      string    `bson:"role,omitempty"`
+	Role      auth.Role `bson:"role,omitempty"`
 }
 
 // APIKeyConflicts holds API keys attributes that must be unique for each item (per tenant ID) and can be utilized in queries

@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/shellhub-io/shellhub/pkg/api/auth"
 )
 
 var (
@@ -112,23 +113,11 @@ var Rules = []Rule{
 		},
 		Error: fmt.Errorf("expires_at must be in [ -1 30 60 90 365 ]"),
 	},
-	// member_role reports whether a given string is a guard.Role or not
+	// member_role reports whether a given string is a valid role or not
 	{
 		Tag: "member_role",
 		Handler: func(field validator.FieldLevel) bool {
-			// TODO: put guard in shellhub/pkg and use it here
-			switch field.Field().String() {
-			case "owner":
-				fallthrough
-			case "administrator":
-				fallthrough
-			case "operator":
-				fallthrough
-			case "observer":
-				return true
-			default:
-				return false
-			}
+			return auth.RoleFromString(field.Field().String()) != auth.RoleInvalid
 		},
 		Error: fmt.Errorf("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
 	},

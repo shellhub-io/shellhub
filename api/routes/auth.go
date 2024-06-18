@@ -51,7 +51,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		}
 
 		c.Response().Header().Set("X-Tenant-ID", apiKey.TenantID)
-		c.Response().Header().Set("X-Role", apiKey.Role)
+		c.Response().Header().Set("X-Role", apiKey.Role.String())
 		c.Response().Header().Set("X-API-KEY", key)
 
 		return c.NoContent(http.StatusOK)
@@ -88,16 +88,22 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		return decoder.Decode(input)
 	}
 
-	switch claims := (*rawClaims)["claims"]; claims {
+	switch (*rawClaims)["claims"] {
 	case AuthRequestUserToken:
-		// A [AuthRequestUserToken] is a token used to authenticate a user.
-		// This kind of token can have its "namespace" as a empty value, indicating that is a "user" token. Its a kind
-		// of sub-token, what allows the logged user to change its information, but does not allow to change the any
-		// other namespace information.
-
-		var claims models.UserAuthClaims
-		if err := decodeMap(rawClaims, &claims); err != nil {
+		claims := new(models.UserAuthClaims)
+		if err := decodeMap(rawClaims, claims); err != nil {
 			return err
+		}
+
+		// The TenantID is optional as the user may not be part of any namespace.
+		if claims.Tenant != "" {
+			// The rawClaims contain only the tenant ID of the namespace and not the user's role. This is because the role is a
+			// dynamic attribute, and a JWT token must be stateless (the role can change, but the token cannot). For this reason,
+			// we need to retrieve the role every time this middleware is invoked (generally from the cache; see the [method]
+			// signature for more info).
+			if err := h.service.FillClaimsRole(c.Ctx(), claims); err != nil {
+				return err
+			}
 		}
 
 		args := c.QueryParam("args")
@@ -108,11 +114,10 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 			}
 		}
 
-		// Extract datas of user from JWT
-		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
-		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-ID", claims.ID)
-		c.Response().Header().Set("X-Role", claims.Role)
+		c.Response().Header().Set("X-Username", claims.Username)
+		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+		c.Response().Header().Set("X-Role", claims.Role.String())
 
 		return c.NoContent(http.StatusOK)
 	case AuthRequestDeviceToken:
