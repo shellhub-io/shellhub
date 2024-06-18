@@ -18,11 +18,6 @@ type Info struct {
 
 // Mode is the Agent execution mode.
 //
-// The Agent can be executed in two different modes: `Host` and `Connector`.
-// The `Host` mode is the default one, where the agent will listen for incoming connections and use the host device as
-// source of any information needed to start itself. When running in `Connector` mode, it uses the Docker engine as this
-// source.
-//
 // Check [HostMode] and [ConnectorMode] for more information.
 type Mode interface {
 	// Serve prepares the Agent for listening, setting up the SSH server, its modes and values on Agent's.
@@ -45,13 +40,13 @@ var _ Mode = new(HostMode)
 func (m *HostMode) Serve(agent *Agent) {
 	agent.server = server.NewServer(
 		agent.cli,
-		agent.authData,
-		agent.config.PrivateKey,
-		agent.config.KeepAliveInterval,
-		agent.config.SingleUserPassword,
 		&host.Mode{
 			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
 			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
+		},
+		&server.Config{
+			PrivateKey:        agent.config.PrivateKey,
+			KeepAliveInterval: agent.config.KeepAliveInterval,
 		},
 	)
 
@@ -96,13 +91,13 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
 	agent.server = server.NewServer(
 		agent.cli,
-		agent.authData,
-		agent.config.PrivateKey,
-		agent.config.KeepAliveInterval,
-		agent.config.SingleUserPassword,
 		&connector.Mode{
 			Authenticator: *connector.NewAuthenticator(agent.cli, m.cli, agent.authData, &agent.Identity.MAC),
 			Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, m.cli),
+		},
+		&server.Config{
+			PrivateKey:        agent.config.PrivateKey,
+			KeepAliveInterval: agent.config.KeepAliveInterval,
 		},
 	)
 

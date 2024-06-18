@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
 	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -36,15 +35,13 @@ func (c *sshConn) Close() error {
 }
 
 type Server struct {
-	sshd               *gliderssh.Server
-	api                client.Client
-	authData           *models.DeviceAuthResponse
-	cmds               map[string]*exec.Cmd
-	deviceName         string
-	containerID        string
-	mu                 sync.Mutex
-	keepAliveInterval  uint
-	singleUserPassword string
+	sshd              *gliderssh.Server
+	api               client.Client
+	cmds              map[string]*exec.Cmd
+	deviceName        string
+	containerID       string
+	mu                sync.Mutex
+	keepAliveInterval uint
 
 	// mode is the mode of the server, identifing where and how the SSH's server is running.
 	//
@@ -79,16 +76,22 @@ const (
 	ChannelDirectTcpip string = "direct-tcpip"
 )
 
+// Config stores configuration needs for the SSH server.
+type Config struct {
+	// PrivateKey is the path for the SSH server private key.
+	PrivateKey string
+	// KeepAliveInterval stores the time between each SSH keep alive request.
+	KeepAliveInterval uint
+}
+
 // NewServer creates a new server SSH agent server.
-func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKey string, keepAliveInterval uint, singleUserPassword string, mode modes.Mode) *Server {
+func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 	server := &Server{
-		api:                api,
-		authData:           authData,
-		cmds:               make(map[string]*exec.Cmd),
-		keepAliveInterval:  keepAliveInterval,
-		singleUserPassword: singleUserPassword,
-		mode:               mode,
-		Sessions:           sync.Map{},
+		api:               api,
+		mode:              mode,
+		cmds:              make(map[string]*exec.Cmd),
+		keepAliveInterval: cfg.KeepAliveInterval,
+		Sessions:          sync.Map{},
 	}
 
 	if m, ok := mode.(*host.Mode); ok {
@@ -128,7 +131,7 @@ func NewServer(api client.Client, authData *models.DeviceAuthResponse, privateKe
 		},
 	}
 
-	err := server.sshd.SetOption(gliderssh.HostKeyFile(privateKey))
+	err := server.sshd.SetOption(gliderssh.HostKeyFile(cfg.PrivateKey))
 	if err != nil {
 		log.Warn(err)
 	}
