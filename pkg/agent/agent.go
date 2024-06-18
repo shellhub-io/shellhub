@@ -679,3 +679,18 @@ func (a *Agent) GetInfo() (*models.Info, error) {
 
 	return info, nil
 }
+
+// GetInfo gets information like the version and the enpoints for HTTP and SSH to ShellHub server.
+func GetInfo(cfg *Config) (*models.Info, error) {
+	cli, err := client.NewClient(cfg.ServerAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create the HTTP client")
+	}
+
+	info, err := cli.GetInfo(AgentVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}

@@ -231,15 +231,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostMode))
-			if err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":       AgentVersion,
-					"configuration": cfg,
-				}).Fatal("Failed to create agent")
-			}
-
-			info, err := ag.GetInfo()
+			info, err := agent.GetInfo(cfg)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
