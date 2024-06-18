@@ -102,30 +102,6 @@ func main() {
 
 			ctx := cmd.Context()
 
-			go func() {
-				// NOTICE: We only start to ping the server when the agent is ready to accept connections.
-				// It will make the agent ping to server after the ticker time set on ping function, what is 10 minutes
-				// by default.
-
-				if err := ag.Ping(ctx, agent.AgentPingDefaultInterval); err != nil {
-					log.WithError(err).WithFields(log.Fields{
-						"version":            AgentVersion,
-						"mode":               mode,
-						"tenant_id":          cfg.TenantID,
-						"server_address":     cfg.ServerAddress,
-						"preferred_hostname": cfg.PreferredHostname,
-					}).Fatal("Failed to ping server")
-				}
-
-				log.WithFields(log.Fields{
-					"version":            AgentVersion,
-					"mode":               mode,
-					"tenant_id":          cfg.TenantID,
-					"server_address":     cfg.ServerAddress,
-					"preferred_hostname": cfg.PreferredHostname,
-				}).Info("Stopped pinging server")
-			}()
-
 			log.WithFields(log.Fields{
 				"version":            AgentVersion,
 				"mode":               mode,
