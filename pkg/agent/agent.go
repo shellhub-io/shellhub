@@ -469,7 +469,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
-	done := make(chan bool)
+	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		for {
 			if a.isClosed() {
@@ -479,7 +479,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 					"server_address": a.config.ServerAddress,
 				}).Info("Stopped listening for connections")
 
-				done <- true
+				cancel()
 
 				return
 			}
@@ -551,16 +551,9 @@ func (a *Agent) Listen(ctx context.Context) error {
 		}
 	}()
 
-	select {
-	case <-ctx.Done():
-		if err := a.Close(); err != nil {
-			return err
-		}
+	<-ctx.Done()
 
-		return nil
-	case <-done:
-		return nil
-	}
+	return a.Close()
 }
 
 // AgentPingDefaultInterval is the default time interval between ping on agent.
