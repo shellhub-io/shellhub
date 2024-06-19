@@ -120,16 +120,12 @@ func downloadGeoLite2Db(maxmindDBLicense, maxmindDBType string) error {
 // NewGeoLite2 opens connections to GeoIp2 databases and return a geoLite2 structure with the databases connections.
 //
 // The connection uses the local database or try to download it from MaxMind's server (to download, it is required `MAXMIND_LICENSE` set).
-func NewGeoLite2() (Locator, error) {
+func NewGeoLite2(license string) (Locator, error) {
 	for _, info := range geoLite2Info {
 		if _, err := os.Stat(dbPath + info["file"]); os.IsNotExist(err) {
-			if license, ok := os.LookupEnv("MAXMIND_LICENSE"); ok {
-				err := downloadGeoLite2Db(license, info["type"])
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				return nil, errors.New("geoip feature is enable, but MAXMIND_LICENSE is not set")
+			err := downloadGeoLite2Db(license, info["type"])
+			if err != nil {
+				return nil, err
 			}
 		}
 	}

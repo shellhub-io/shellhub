@@ -101,7 +101,8 @@ type config struct {
 	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.
 	// The feature is disabled by default. To enable it, it is required to have a `MAXMIND` database license and feed it
 	// to `SHELLHUB_MAXMIND_LICENSE` with it, and `SHELLHUB_GEOIP=true`.
-	GeoIP bool `env:"GEOIP,default=false"`
+	GeoIP               bool   `env:"GEOIP,default=false"`
+	GeoIPMaxMindLicense string `env:"MAXMIND_LICENSE,default="`
 	// Session record cleanup worker schedule
 	SessionRecordCleanupSchedule string `env:"SESSION_RECORD_CLEANUP_SCHEDULE,default=@daily"`
 	// Sentry DSN.
@@ -160,7 +161,7 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 	var locator geoip.Locator
 	if cfg.GeoIP {
 		log.Info("GeoIP feature is enable")
-		locator, err = geoip.NewGeoLite2()
+		locator, err = geoip.NewGeoLite2(cfg.GeoIPMaxMindLicense)
 		if err != nil {
 			log.WithError(err).Fatal("Failed to init GeoIP")
 		}
