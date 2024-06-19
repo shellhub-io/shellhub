@@ -80,7 +80,7 @@ func TestGetSessionList(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -151,7 +151,7 @@ func TestGetSession(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -251,7 +251,7 @@ func TestCreateSession(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -303,7 +303,7 @@ func TestFinishSession(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)

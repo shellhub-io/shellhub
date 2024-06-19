@@ -62,7 +62,7 @@ func TestGetPublicKeys(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -159,7 +159,7 @@ func TestGetPublicKey(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -178,7 +178,7 @@ func TestDeletePublicKey(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	cases := []struct {
 		description   string
@@ -223,7 +223,7 @@ func TestDeletePublicKey(t *testing.T) {
 				"X-ID":         "000000000000000000000000",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("DeletePublicKey", gomock.Anything, "fingerprint", "00000000-0000-4000-0000-000000000000").
 					Return(svc.ErrNotFound).
 					Once()
@@ -240,7 +240,7 @@ func TestDeletePublicKey(t *testing.T) {
 				"X-ID":         "000000000000000000000000",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("DeletePublicKey", gomock.Anything, "fingerprint", "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
@@ -260,7 +260,7 @@ func TestDeletePublicKey(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -273,7 +273,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	cases := []struct {
 		description   string
@@ -385,7 +385,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 				"X-ID":         "000000000000000000000000",
 			},
 			requiredMocks: func() {
-				svcMock.On("RemovePublicKeyTag", gomock.Anything, "00000000-0000-4000-0000-000000000000", "fingerprint", "tag").Return(nil)
+				mock.On("RemovePublicKeyTag", gomock.Anything, "00000000-0000-4000-0000-000000000000", "fingerprint", "tag").Return(nil)
 			},
 			expected: Expected{
 				status: http.StatusOK,
@@ -404,7 +404,7 @@ func TestRemovePublicKeyTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -417,7 +417,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	cases := []struct {
 		description   string
@@ -543,7 +543,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 				"tag": "tag",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("AddPublicKeyTag", gomock.Anything, "00000000-0000-4000-0000-000000000000", "fingerprint", "tag").
 					Return(nil).
 					Once()
@@ -570,7 +570,7 @@ func TestAddPublicKeyTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -611,7 +611,7 @@ func TestCreatePrivateKey(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)

@@ -157,7 +157,11 @@ func TestAddPublicKeyTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			services := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := services.AddPublicKeyTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -282,7 +286,12 @@ func TestRemovePublicKeyTag(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+			services := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := services.RemovePublicKeyTag(ctx, tc.tenant, tc.fingerprint, tc.tag)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -437,7 +446,11 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			services := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := services.UpdatePublicKeyTags(ctx, tc.tenant, tc.fingerprint, tc.tags)
 			assert.Equal(t, tc.expected, err)
 		})

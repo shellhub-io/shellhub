@@ -260,7 +260,7 @@ func TestCreateAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := NewRouter(svcMock, nil)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -321,8 +321,8 @@ func TestListAPIKey(t *testing.T) {
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
-								CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-								UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+								UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 								ExpiresIn: 0,
 							},
 						},
@@ -338,8 +338,8 @@ func TestListAPIKey(t *testing.T) {
 						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
-						CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-						UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+						UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 						ExpiresIn: 0,
 					},
 				},
@@ -379,8 +379,8 @@ func TestListAPIKey(t *testing.T) {
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
-								CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-								UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+								UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 								ExpiresIn: 0,
 							},
 						},
@@ -396,8 +396,8 @@ func TestListAPIKey(t *testing.T) {
 						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
-						CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-						UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+						UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 						ExpiresIn: 0,
 					},
 				},
@@ -435,8 +435,8 @@ func TestListAPIKey(t *testing.T) {
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
-								CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-								UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+								UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 								ExpiresIn: 0,
 							},
 						},
@@ -452,8 +452,8 @@ func TestListAPIKey(t *testing.T) {
 						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
-						CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-						UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+						UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 						ExpiresIn: 0,
 					},
 				},
@@ -492,8 +492,8 @@ func TestListAPIKey(t *testing.T) {
 								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
-								CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-								UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+								UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 								ExpiresIn: 0,
 							},
 						},
@@ -509,8 +509,8 @@ func TestListAPIKey(t *testing.T) {
 						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
-						CreatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
-						UpdatedAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
+						UpdatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 						ExpiresIn: 0,
 					},
 				},
@@ -529,7 +529,7 @@ func TestListAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := NewRouter(svcMock, nil)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -705,7 +705,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := NewRouter(svcMock, nil)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -796,7 +796,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			e := NewRouter(svcMock)
+			e := NewRouter(svcMock, nil)
 			e.ServeHTTP(rec, req)
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)

@@ -68,7 +68,7 @@ func TestCreateNamespace(t *testing.T) {
 			req.Header.Set("X-ID", "123")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -147,7 +147,7 @@ func TestGetNamespace(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -263,7 +263,7 @@ func TestDeleteNamespace(t *testing.T) {
 			req.Header.Set("X-ID", tc.uid)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -310,7 +310,7 @@ func TestGetSessionRecord(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -321,7 +321,7 @@ func TestGetSessionRecord(t *testing.T) {
 }
 
 func TestEditNamespace(t *testing.T) {
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	cases := []struct {
 		description   string
@@ -342,7 +342,7 @@ func TestEditNamespace(t *testing.T) {
 				"session_record": true,
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -370,7 +370,7 @@ func TestEditNamespace(t *testing.T) {
 				"session_record": true,
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -398,7 +398,7 @@ func TestEditNamespace(t *testing.T) {
 				"session_record": true,
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -411,7 +411,7 @@ func TestEditNamespace(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				svcMock.
+				mock.
 					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
 					Return(svc.ErrNotFound).
 					Once()
@@ -431,7 +431,7 @@ func TestEditNamespace(t *testing.T) {
 				"tenant":         "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -444,7 +444,7 @@ func TestEditNamespace(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				svcMock.
+				mock.
 					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
@@ -469,12 +469,12 @@ func TestEditNamespace(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
 		})
 	}
 
-	svcMock.AssertExpectations(t)
+	mock.AssertExpectations(t)
 }

@@ -377,7 +377,11 @@ func TestListDevices_cloud(t *testing.T) {
 		t.Run(tc.description, func(*testing.T) {
 			tc.requiredMocks(tc.status, tc.pagination, tc.filter, tc.sorter)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			devices, count, err := service.ListDevices(ctx, tc.tenant, tc.status, tc.pagination, tc.filter, tc.sorter)
 
 			assert.Equal(t, tc.expected.devices, devices)
@@ -686,7 +690,11 @@ func TestListDevices_enterprise(t *testing.T) {
 		t.Run(tc.description, func(*testing.T) {
 			tc.requiredMocks(tc.status, tc.pagination, tc.filter, tc.sorter)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedDevices, count, err := service.ListDevices(ctx, tc.tenant, tc.status, tc.pagination, tc.filter, tc.sorter)
 			assert.Equal(t, tc.expected, Expected{returnedDevices, count, err})
 		})
@@ -1142,7 +1150,11 @@ func TestListDevices_community(t *testing.T) {
 		t.Run(tc.description, func(*testing.T) {
 			tc.requiredMocks(tc.status, tc.pagination, tc.filter, tc.sorter)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedDevices, count, err := service.ListDevices(ctx, tc.tenant, tc.status, tc.pagination, tc.filter, tc.sorter)
 			assert.Equal(t, tc.expected, Expected{returnedDevices, count, err})
 		})
@@ -1199,7 +1211,10 @@ func TestGetDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
 
 			returnedDevice, err := service.GetDevice(ctx, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
@@ -1422,7 +1437,11 @@ func TestDeleteDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.DeleteDevice(ctx, tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1534,7 +1553,11 @@ func TestRenameDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.device)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.RenameDevice(ctx, tc.uid, tc.deviceNewName, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1604,7 +1627,11 @@ func TestLookupDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.device, tc.namespace)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedDevice, err := service.LookupDevice(ctx, tc.namespace, tc.device.Name)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
 		})
@@ -1656,7 +1683,10 @@ func TestOfflineDevice(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(storeMock), storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -2028,7 +2058,11 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -2302,7 +2336,11 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -2560,7 +2598,11 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -3161,7 +3203,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			description: "success to update device status when device is on removed list",
 			uid:         models.UID("uid"),
 			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
+			tenant:      "00000000-1000-0000-0000-000000000000",
 			requiredMocks: func() {
 				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
 					Return(&models.Namespace{
@@ -3213,7 +3255,11 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -3224,7 +3270,11 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 
 func TestDeviceUpdate(t *testing.T) {
 	mock := new(mocks.Store)
-	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+
+	service := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(mock), storecache.NewNullCache())
 
 	toPointer := func(s string) *string {
 		return &s
@@ -3621,7 +3671,11 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})

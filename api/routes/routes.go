@@ -1,19 +1,47 @@
 package routes
 
 import (
+	"os"
+
+	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/pkg/middleware"
 )
 
-func NewRouter(service services.Service) *echo.Echo {
+type Config struct {
+	SentryDNS string
+}
+
+func NewRouter(service services.Service, config *Config) *echo.Echo {
 	e := echo.New()
+	e.Use(middleware.Log)
+	e.Use(echoMiddleware.RequestID())
+
+	var reporter *sentry.Client
+	if config != nil && config.SentryDNS != "" {
+		var err error
+		reporter, err = sentry.NewClient(sentry.ClientOptions{ //nolint:exhaustruct
+			Dsn:              config.SentryDNS,
+			Release:          os.Getenv("SHELLHUB_VERSION"),
+			EnableTracing:    true,
+			TracesSampleRate: 1,
+		})
+		if err != nil {
+			return nil
+		}
+
+		return nil
+	}
+
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
-	e.HTTPErrorHandler = handlers.NewErrors(nil)
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
+	e.HTTPErrorHandler = handlers.NewErrors(reporter)
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

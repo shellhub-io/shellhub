@@ -381,7 +381,10 @@ func TestCreateAPIKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, storeMock, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -469,7 +472,10 @@ func TestListAPIKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, storeMock, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -603,7 +609,10 @@ func TestUpdateAPIKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, storeMock, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -661,7 +670,10 @@ func TestDeleteAPIKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, storeMock, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

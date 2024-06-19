@@ -74,7 +74,7 @@ func TestAuthGetToken(t *testing.T) {
 			req.Header.Set("X-ID", string(jsonData))
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -196,7 +196,7 @@ func TestAuthDevice(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -402,7 +402,7 @@ func TestAuthUser(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			var body *models.UserAuthResponse
@@ -479,7 +479,7 @@ func TestAuthUserInfo(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -540,7 +540,7 @@ func TestAuthSwapToken(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			c := gateway.NewContext(mock, e.NewContext(req, rec))
 			c.Request().Header.Set("X-ID", "id")
 
@@ -616,7 +616,7 @@ func TestAuthPublicKey(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -702,7 +702,7 @@ func TestAuthRequest(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)

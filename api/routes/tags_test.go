@@ -40,7 +40,7 @@ func TestGetTags(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -51,7 +51,7 @@ func TestGetTags(t *testing.T) {
 }
 
 func TestRenameTag(t *testing.T) {
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	type Expected struct {
 		status int
@@ -181,7 +181,7 @@ func TestRenameTag(t *testing.T) {
 				"tag": "newTag",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("RenameTag", gomock.Anything, "00000000-0000-4000-0000-000000000000", "oldTag", "newTag").
 					Return(nil).
 					Once()
@@ -208,18 +208,18 @@ func TestRenameTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
 		})
 	}
 
-	svcMock.AssertExpectations(t)
+	mock.AssertExpectations(t)
 }
 
 func TestDeleteTag(t *testing.T) {
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	type Expected struct {
 		status int
@@ -327,7 +327,7 @@ func TestDeleteTag(t *testing.T) {
 				"X-ID":         "000000000000000000000000",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("DeleteTag", gomock.Anything, "00000000-0000-4000-0000-000000000000", "tag1").
 					Return(nil).
 					Once()
@@ -349,12 +349,12 @@ func TestDeleteTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
 		})
 	}
 
-	svcMock.AssertExpectations(t)
+	mock.AssertExpectations(t)
 }
