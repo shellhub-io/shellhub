@@ -16,6 +16,12 @@ type NamespaceStore interface {
 	//
 	// It returns the namespace or an error if any.
 	NamespaceGet(ctx context.Context, tenantID string, countDevices bool) (*models.Namespace, error)
+	// NamespaceGetPreferred retrieves a namespace identified by the given tenantID where the user is a member.
+	// If the tenantID is an empty string, it defaults to the first namespace found where the user is a member
+	// (usually the first one to it was added).
+	//
+	// It returns the namespace or an error if any.
+	NamespaceGetPreferred(ctx context.Context, tenantID, userID string) (*models.Namespace, error)
 
 	NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error)
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
@@ -34,10 +40,10 @@ type NamespaceStore interface {
 	// the changes. It returns an error if any.
 	NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error
 	// NamespaceRemoveMember removes a member with the specified memberID in the namespace with the specified tenantID.
+	// If the namespace's tenant ID is the member's preffered tenant ID, it will set the value to an empty string.
 	// It returns an error if any.
 	NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error
 
-	NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error)
 	NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error
 	NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error)
 }

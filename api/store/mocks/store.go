@@ -1150,29 +1150,29 @@ func (_m *Store) NamespaceGetByName(ctx context.Context, name string) (*models.N
 	return r0, r1
 }
 
-// NamespaceGetFirst provides a mock function with given fields: ctx, id
-func (_m *Store) NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error) {
-	ret := _m.Called(ctx, id)
+// NamespaceGetPreferred provides a mock function with given fields: ctx, tenantID, userID
+func (_m *Store) NamespaceGetPreferred(ctx context.Context, tenantID string, userID string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, tenantID, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for NamespaceGetFirst")
+		panic("no return value specified for NamespaceGetPreferred")
 	}
 
 	var r0 *models.Namespace
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Namespace, error)); ok {
-		return rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.Namespace, error)); ok {
+		return rf(ctx, tenantID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Namespace); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
+		r0 = rf(ctx, tenantID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenantID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

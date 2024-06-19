@@ -164,6 +164,20 @@ func (s *Store) NamespaceGetByName(ctx context.Context, name string) (*models.Na
 	return ns, nil
 }
 
+func (s *Store) NamespaceGetPreferred(ctx context.Context, tenantID, userID string) (*models.Namespace, error) {
+	filter := bson.M{"members.id": userID}
+	if tenantID != "" {
+		filter["tenant_id"] = tenantID
+	}
+
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, filter).Decode(ns); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return ns, nil
+}
+
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
@@ -228,6 +242,13 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 		}
 
 		if _, err := s.db.Collection("users").UpdateOne(sessCtx, bson.M{"_id": objID}, bson.M{"$inc": bson.M{"namespaces": -1}}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		_, err = s.db.
+			Collection("users").
+			UpdateMany(ctx, bson.M{"preferred_tenant_id": tenantID}, bson.M{"$set": bson.M{"preferred_tenant_id": ""}})
+		if err != nil {
 			return nil, FromMongoError(err)
 		}
 
@@ -339,18 +360,42 @@ func (s *Store) NamespaceUpdateMember(ctx context.Context, tenantID string, memb
 }
 
 func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error {
-	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})
+	session, err := s.db.Client().StartSession()
 	if err != nil {
-		return FromMongoError(err)
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	fn := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		res, err := s.db.
+			Collection("namespaces").
+			UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		switch {
+		case res.MatchedCount < 1: // tenant not found
+			return nil, store.ErrNoDocuments
+		case res.ModifiedCount < 1: // member not found
+			return nil, ErrUserNotFound
+		}
+
+		objID, err := primitive.ObjectIDFromHex(memberID)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = s.db.
+			Collection("users").
+			UpdateOne(ctx, bson.M{"_id": objID, "preferred_tenant_id": tenantID}, bson.M{"$set": bson.M{"preferred_tenant_id": ""}})
+
+		return nil, err
+
 	}
 
-	switch {
-	// tenant not found
-	case ns.MatchedCount < 1:
-		return store.ErrNoDocuments
-	// member not found
-	case ns.ModifiedCount < 1:
-		return ErrUserNotFound
+	if _, err := session.WithTransaction(ctx, fn); err != nil {
+		return FromMongoError(err)
 	}
 
 	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
@@ -358,15 +403,6 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 	}
 
 	return nil
-}
-
-func (s *Store) NamespaceGetFirst(ctx context.Context, id string) (*models.Namespace, error) {
-	ns := new(models.Namespace)
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"id": id}}}).Decode(&ns); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return ns, nil
 }
 
 func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
