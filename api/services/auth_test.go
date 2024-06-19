@@ -688,6 +688,289 @@ func TestAuthUser(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
+func TestCreateUserToken(t *testing.T) {
+	storeMock := new(mocks.Store)
+	cacheMock := new(mockcache.Cache)
+
+	type Expected struct {
+		res *models.UserAuthResponse
+		err error
+	}
+
+	tests := []struct {
+		description   string
+		req           *requests.CreateUserToken
+		requiredMocks func(context.Context)
+		expected      Expected
+	}{
+		{
+			description: "fails when ID is not found",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(nil, 0, store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrUserNotFound("000000000000000000000000", store.ErrNoDocuments),
+			},
+		},
+		{
+			description: "fails when tenant_id is empty and namespace is not found",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(user, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetFirst", ctx, "000000000000000000000000").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrNamespaceNotFound("", store.ErrNoDocuments),
+			},
+		},
+		{
+			description: "fails when tenant_id is not empty and namespace is not found",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(user, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", store.ErrNoDocuments),
+			},
+		},
+		{
+			description: "fails when user is not member of the namespace",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members:  []models.Member{},
+				}
+
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(user, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(ns, nil).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
+			},
+		},
+		{
+			description: "succeeds when tenant id is empty",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:   "000000000000000000000000",
+							Role: "owner",
+						},
+					},
+				}
+
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(user, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetFirst", ctx, "000000000000000000000000").
+					Return(ns, nil).
+					Once()
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+				cacheMock.
+					On("Set", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "000000000000000000000000",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000000",
+					Token:  "must ignore",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when tenant id is not empty",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:   "000000000000000000000000",
+							Role: "owner",
+						},
+					},
+				}
+
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(user, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(ns, nil).
+					Once()
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+				cacheMock.
+					On("Set", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "000000000000000000000000",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000000",
+					Token:  "must ignore",
+				},
+				err: nil,
+			},
+		},
+	}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock, nil)
+
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+			tc.requiredMocks(ctx)
+
+			res, err := s.CreateUserToken(ctx, tc.req)
+			// Since the resulting token is not crucial for the assertion and
+			// difficult to mock, it is safe to ignore this field.
+			if res != nil {
+				res.Token = "must ignore"
+			}
+
+			assert.Equal(t, tc.expected, Expected{res, err})
+		})
+	}
+
+	storeMock.AssertExpectations(t)
+}
+
 func TestAuthAPIKey(t *testing.T) {
 	type Expected struct {
 		apiKey *models.APIKey
@@ -798,148 +1081,4 @@ func TestAuthAPIKey(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
-}
-
-func TestAuthUserInfo(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
-	type Expected struct {
-		userAuthResponse *models.UserAuthResponse
-		err              error
-	}
-
-	tests := []struct {
-		description   string
-		username      string
-		tenantID      string
-		requiredMocks func()
-		expected      Expected
-		expectedErr   error
-	}{
-		{
-			description: "Fails to find the user",
-			username:    "notuser",
-			expectedErr: errors.New("error", "", 0),
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "notuser").Return(nil, errors.New("error", "", 0)).Once()
-			},
-			expected: Expected{nil, NewErrUserNotFound("notuser", errors.New("error", "", 0))},
-		},
-		{
-			description: "Successful auth login",
-			username:    "user",
-			tenantID:    "xxxxxx",
-			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "user").Return(&models.User{
-					UserData: models.UserData{
-						Username: "user",
-						Name:     "user",
-						Email:    "email@email.com",
-					},
-					ID: "id",
-				}, nil).Once()
-			},
-			expected: Expected{
-				userAuthResponse: &models.UserAuthResponse{
-					Name:   "user",
-					Token:  "---------------token----------------",
-					User:   "user",
-					Tenant: "xxxxxx",
-					ID:     "id",
-					Email:  "email@email.com",
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.description, func(t *testing.T) {
-			mock.ExpectedCalls = nil
-			tc.requiredMocks()
-
-			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-			assert.NoError(t, err)
-
-			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
-
-			authRes, err := service.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
-			assert.Equal(t, tc.expected.userAuthResponse, authRes)
-			assert.Equal(t, tc.expected.err, err)
-
-			mock.AssertExpectations(t)
-		})
-	}
-}
-
-func TestAuthGetToken(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
-	type Expected struct {
-		userAuthResponse *models.UserAuthResponse
-		err              error
-	}
-
-	tests := []struct {
-		description   string
-		userID        string
-		requiredMocks func()
-		expected      Expected
-	}{
-		{
-			description: "success when try to get a token",
-			userID:      "user",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "namespace",
-					Owner:    "id",
-					TenantID: "xxxxxx",
-					Members: []models.Member{
-						{
-							ID:   "memberID",
-							Role: "owner",
-						},
-					},
-				}
-
-				mock.On("UserGetByID", ctx, "user", false).Return(&models.User{
-					UserData: models.UserData{
-						Username: "user",
-						Name:     "user",
-						Email:    "email@email.com",
-					},
-					ID: "id",
-				}, 1, nil).Once()
-				mock.On("NamespaceGetFirst", ctx, "id").Return(namespace, nil).Once()
-
-				clockMock.On("Now").Return(now).Twice()
-			},
-			expected: Expected{
-				userAuthResponse: &models.UserAuthResponse{},
-				err:              nil,
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.description, func(t *testing.T) {
-			mock.ExpectedCalls = nil
-			tc.requiredMocks()
-
-			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-			assert.NoError(t, err)
-
-			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
-
-			authRes, err := service.AuthGetToken(ctx, tc.userID)
-			assert.NotNil(t, authRes)
-			assert.Equal(t, tc.expected.err, err)
-
-			mock.AssertExpectations(t)
-		})
-	}
 }
