@@ -2,14 +2,19 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	apiMiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/pkg/middleware"
 )
 
 func NewRouter(service services.Service) *echo.Echo {
 	e := echo.New()
+	e.Use(middleware.Log)
+	e.Use(echoMiddleware.RequestID())
+
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
 	e.HTTPErrorHandler = handlers.NewErrors(nil)
