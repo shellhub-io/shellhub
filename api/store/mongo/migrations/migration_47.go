@@ -25,7 +25,7 @@ var migration47 = migrate.Migration{
 
 		var locator geoip.Locator
 		if os.Getenv("GEOIP") == "true" {
-			locator, _ = geoip.NewGeoLite2()
+			locator, _ = geoip.NewGeoLite2(os.Getenv("MAXMIND_LICENSE"))
 		} else {
 			locator = geoip.NewNullGeoLite()
 		}
