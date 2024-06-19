@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/auth"
@@ -22,74 +20,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
-
-func TestAuthGetToken(t *testing.T) {
-	mock := new(mocks.Service)
-
-	type Expected struct {
-		expectedSession *models.UserAuthResponse
-		expectedStatus  int
-	}
-	cases := []struct {
-		title         string
-		id            requests.AuthTokenGet
-		requiredMocks func()
-		expected      Expected
-	}{
-		{
-			title:         "fails when validate fails",
-			id:            requests.AuthTokenGet{UserParam: requests.UserParam{ID: ""}},
-			requiredMocks: func() {},
-			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusBadRequest,
-			},
-		},
-		{
-			title: "success when trying to get a token",
-			id:    requests.AuthTokenGet{UserParam: requests.UserParam{ID: "id"}},
-			requiredMocks: func() {
-				mock.On("AuthGetToken", gomock.Anything, "id").Return(&models.UserAuthResponse{}, nil).Once()
-			},
-			expected: Expected{
-				expectedSession: &models.UserAuthResponse{},
-				expectedStatus:  http.StatusOK,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
-
-			jsonData, err := json.Marshal(tc.id)
-			if err != nil {
-				assert.NoError(t, err)
-			}
-
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/internal/auth/token/%s", jsonData), strings.NewReader(string(jsonData)))
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
-			req.Header.Set("X-ID", string(jsonData))
-			rec := httptest.NewRecorder()
-
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
-
-			var session *models.UserAuthResponse
-			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
-				assert.ErrorIs(t, io.EOF, err)
-			}
-
-			assert.Equal(t, tc.expected.expectedSession, session)
-
-			mock.AssertExpectations(t)
-		})
-	}
-}
 
 func TestAuthDevice(t *testing.T) {
 	mock := new(mocks.Service)
@@ -420,140 +352,115 @@ func TestAuthUser(t *testing.T) {
 	}
 }
 
-func TestAuthUserInfo(t *testing.T) {
-	mock := new(mocks.Service)
+func TestCreateUserToken(t *testing.T) {
+	svcMock := new(mocks.Service)
 
 	type Expected struct {
-		expectedResponse *models.UserAuthResponse
-		expectedStatus   int
+		body   *models.UserAuthResponse
+		status int
 	}
 
 	cases := []struct {
-		title          string
-		requestHeaders map[string]string
-		requiredMocks  func()
-		expected       Expected
+		description string
+		tenantID    string
+		headers     map[string]string
+		mocks       func()
+		expected    Expected
 	}{
 		{
-			title: "success when try to auth a user info",
-			requestHeaders: map[string]string{
-				"X-Username":  "user",
-				"X-Tenant-ID": "tenant",
-			},
-			requiredMocks: func() {
-				mock.On("AuthUserInfo", gomock.Anything, "user", "tenant", gomock.Anything).Return(&models.UserAuthResponse{}, nil).Once()
+			description: "success without tenant_id",
+			tenantID:    "",
+			headers:     map[string]string{"X-ID": "000000000000000000000000"},
+			mocks: func() {
+				svcMock.
+					On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{
+						UserID:   "000000000000000000000000",
+						TenantID: "",
+					}).
+					Return(&models.UserAuthResponse{
+						ID:     "000000000000000000000000",
+						Name:   "john doe",
+						User:   "john_doe",
+						Email:  "john.doe@test.com",
+						Tenant: "00000000-0000-4000-0000-000000000000",
+						Token:  "not-empty",
+					}, nil).
+					Once()
 			},
 			expected: Expected{
-				expectedResponse: &models.UserAuthResponse{},
-				expectedStatus:   http.StatusOK,
+				body: &models.UserAuthResponse{
+					ID:     "000000000000000000000000",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000000",
+					Token:  "not-empty",
+				},
+				status: http.StatusOK,
 			},
 		},
 		{
-			title: "fails when try to auth a user info",
-			requestHeaders: map[string]string{
-				"X-Username":  "user",
-				"X-Tenant-ID": "tenant",
-			},
-			requiredMocks: func() {
-				mock.On("AuthUserInfo", gomock.Anything, "user", "tenant", gomock.Anything).Return(nil, svc.ErrAuthUnathorized).Once()
+			description: "success with tenant_id",
+			tenantID:    "00000000-0000-4000-0000-000000000001",
+			headers:     map[string]string{"X-ID": "000000000000000000000000"},
+			mocks: func() {
+				svcMock.
+					On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{
+						UserID:   "000000000000000000000000",
+						TenantID: "00000000-0000-4000-0000-000000000001",
+					}).
+					Return(&models.UserAuthResponse{
+						ID:     "000000000000000000000000",
+						Name:   "john doe",
+						User:   "john_doe",
+						Email:  "john.doe@test.com",
+						Tenant: "00000000-0000-4000-0000-000000000001",
+						Token:  "not-empty",
+					}, nil).
+					Once()
 			},
 			expected: Expected{
-				expectedResponse: nil,
-				expectedStatus:   http.StatusUnauthorized,
+				body: &models.UserAuthResponse{
+					ID:     "000000000000000000000000",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000001",
+					Token:  "not-empty",
+				},
+				status: http.StatusOK,
 			},
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
+		t.Run(tc.description, func(t *testing.T) {
+			tc.mocks()
 
-			req := httptest.NewRequest(http.MethodGet, "/api/auth/user", nil)
-			req.Header.Set("Content-Type", "application/json")
+			req := new(http.Request)
+			if tc.tenantID == "" {
+				req = httptest.NewRequest(http.MethodGet, "/api/auth/user", nil)
+			} else {
+				req = httptest.NewRequest(http.MethodGet, "/api/auth/token/"+tc.tenantID, nil)
+			}
 
-			for key, value := range tc.requestHeaders {
-				req.Header.Set(key, value)
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
 			}
 
 			rec := httptest.NewRecorder()
-
-			e := NewRouter(mock)
+			e := NewRouter(svcMock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
-
-			if tc.expected.expectedResponse != nil {
-				var response models.UserAuthResponse
-				if err := json.NewDecoder(rec.Result().Body).Decode(&response); err != nil {
-					assert.ErrorIs(t, io.EOF, err)
+			body := new(models.UserAuthResponse)
+			if tc.expected.body != nil {
+				if err := json.NewDecoder(rec.Result().Body).Decode(&body); err != nil {
+					require.ErrorIs(t, io.EOF, err)
 				}
-
-				assert.Equal(t, tc.expected.expectedResponse, &response)
 			}
-		})
-	}
-}
 
-func TestAuthSwapToken(t *testing.T) {
-	mock := new(mocks.Service)
-
-	type Expected struct {
-		expectedResponse *models.UserAuthResponse
-		expectedStatus   int
-	}
-
-	cases := []struct {
-		title         string
-		requestBody   string
-		requiredMocks func()
-		expected      Expected
-	}{
-		{
-			title:       "success when try to swap token",
-			requestBody: "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("AuthSwapToken", gomock.Anything, "id", "00000000-0000-4000-0000-000000000000").Return(&models.UserAuthResponse{}, nil).Once()
-			},
-			expected: Expected{
-				expectedResponse: &models.UserAuthResponse{},
-				expectedStatus:   http.StatusOK,
-			},
-		},
-		{
-			title:         "fails when try to swap a token",
-			requestBody:   "",
-			requiredMocks: func() {},
-			expected: Expected{
-				expectedResponse: nil,
-				expectedStatus:   http.StatusNotFound,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
-
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/auth/token/%s", tc.requestBody), nil)
-			req.Header.Set("Content-Type", "application/json")
-			rec := httptest.NewRecorder()
-
-			e := NewRouter(mock)
-			c := gateway.NewContext(mock, e.NewContext(req, rec))
-			c.Request().Header.Set("X-ID", "id")
-
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
-
-			if tc.expected.expectedResponse != nil {
-				var response models.UserAuthResponse
-				if err := json.NewDecoder(rec.Result().Body).Decode(&response); err != nil {
-					assert.ErrorIs(t, io.EOF, err)
-				}
-
-				assert.Equal(t, tc.expected.expectedResponse, &response)
-			}
+			assert.Equal(t, tc.expected.body, body)
+			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
 		})
 	}
 }

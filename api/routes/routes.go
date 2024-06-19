@@ -30,7 +30,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	internalAPI := e.Group("/internal")
 
 	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest), gateway.Middleware(AuthMiddleware))
-	internalAPI.GET(AuthUserTokenInternalURL, gateway.Handler(handler.AuthGetToken))
+	internalAPI.GET(AuthUserTokenInternalURL, gateway.Handler(handler.CreateUserToken)) // TODO: same as defined in public API. remove it.
 
 	internalAPI.GET(GetDeviceByPublicURLAddress, gateway.Handler(handler.GetDeviceByPublicURLAddress))
 	internalAPI.POST(OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
@@ -50,13 +50,13 @@ func NewRouter(service services.Service) *echo.Echo {
 	publicAPI := e.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
+	publicAPI.GET(AuthUserURLV2, gateway.Handler(handler.CreateUserToken))                                  // TODO: method POST
+	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), middleware.BlockAPIKey) // TODO: method POST
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthUserURL, gateway.Handler(handler.AuthUser))
 	publicAPI.POST(AuthUserURLV2, gateway.Handler(handler.AuthUser))
-	publicAPI.GET(AuthUserURLV2, gateway.Handler(handler.AuthUserInfo))
 	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
-	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.AuthSwapToken), middleware.BlockAPIKey)
 
 	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(auth.APIKeyCreate))
 	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys))

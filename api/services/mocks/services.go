@@ -152,36 +152,6 @@ func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remo
 	return r0, r1
 }
 
-// AuthGetToken provides a mock function with given fields: ctx, id
-func (_m *Service) AuthGetToken(ctx context.Context, id string) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AuthGetToken")
-	}
-
-	var r0 *models.UserAuthResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.UserAuthResponse)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // AuthIsCacheToken provides a mock function with given fields: ctx, tenant, id
 func (_m *Service) AuthIsCacheToken(ctx context.Context, tenant string, id string) (bool, error) {
 	ret := _m.Called(ctx, tenant, id)
@@ -233,36 +203,6 @@ func (_m *Service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth
 
 	if rf, ok := ret.Get(1).(func(context.Context, requests.PublicKeyAuth) error); ok {
 		r1 = rf(ctx, req)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// AuthSwapToken provides a mock function with given fields: ctx, id, tenant
-func (_m *Service) AuthSwapToken(ctx context.Context, id string, tenant string) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, id, tenant)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AuthSwapToken")
-	}
-
-	var r0 *models.UserAuthResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, id, tenant)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, id, tenant)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.UserAuthResponse)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, id, tenant)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -330,36 +270,6 @@ func (_m *Service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceI
 	}
 
 	return r0, r1, r2, r3
-}
-
-// AuthUserInfo provides a mock function with given fields: ctx, username, tenant, token
-func (_m *Service) AuthUserInfo(ctx context.Context, username string, tenant string, token string) (*models.UserAuthResponse, error) {
-	ret := _m.Called(ctx, username, tenant, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AuthUserInfo")
-	}
-
-	var r0 *models.UserAuthResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (*models.UserAuthResponse, error)); ok {
-		return rf(ctx, username, tenant, token)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.UserAuthResponse); ok {
-		r0 = rf(ctx, username, tenant, token)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.UserAuthResponse)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, username, tenant, token)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // BillingEvaluate provides a mock function with given fields: _a0, _a1
@@ -569,6 +479,36 @@ func (_m *Service) CreateSession(ctx context.Context, session requests.SessionCr
 
 	if rf, ok := ret.Get(1).(func(context.Context, requests.SessionCreate) error); ok {
 		r1 = rf(ctx, session)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateUserToken provides a mock function with given fields: ctx, req
+func (_m *Service) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUserToken")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.CreateUserToken) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.CreateUserToken) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.CreateUserToken) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
