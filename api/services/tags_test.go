@@ -88,7 +88,11 @@ func TestGetTags(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+			service.WithLocator(locator)
 
 			tags, count, err := service.GetTags(ctx, tc.tenantID)
 			assert.Equal(t, tc.expected, Expected{tags, count, err})
@@ -230,7 +234,11 @@ func TestRenameTag(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+			service.WithLocator(locator)
 
 			err := service.RenameTag(ctx, tc.tenantID, tc.currentTag, tc.newTag)
 			assert.Equal(t, tc.expected, err)
@@ -347,7 +355,11 @@ func TestDeleteTag(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+			service.WithLocator(locator)
 
 			err := service.DeleteTag(ctx, tc.tenant, tc.tag)
 			assert.Equal(t, tc.expected, err)

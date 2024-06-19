@@ -74,7 +74,7 @@ func TestGetDevice(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -168,7 +168,7 @@ func TestDeleteDevice(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
@@ -270,7 +270,7 @@ func TestRenameDevice(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
@@ -333,7 +333,7 @@ func TestGetDeviceByPublicURLAddress(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -465,7 +465,7 @@ func TestGetDeviceList(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
@@ -523,7 +523,7 @@ func TestOfflineDevice(t *testing.T) {
 			req.Header.Set("X-Tenant-ID", "tenant-id")
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
@@ -604,7 +604,7 @@ func TestLookupDevice(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
@@ -771,7 +771,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
@@ -937,7 +937,7 @@ func TestCreateDeviceTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
@@ -1110,7 +1110,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
@@ -1119,7 +1119,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 }
 
 func TestUpdateDevice(t *testing.T) {
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	name := "name"
 	publicURL := true
@@ -1161,7 +1161,7 @@ func TestUpdateDevice(t *testing.T) {
 				"public_url": true,
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("UpdateDevice", gomock.Anything, "00000000-0000-4000-0000-000000000000", models.UID("000000000000000000000000"), &name, &publicURL).
 					Return(svc.ErrNotFound).
 					Once()
@@ -1181,7 +1181,7 @@ func TestUpdateDevice(t *testing.T) {
 				"public_url": true,
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On("UpdateDevice", gomock.Anything, "00000000-0000-4000-0000-000000000000", models.UID("000000000000000000000000"), &name, &publicURL).
 					Return(nil).
 					Once()
@@ -1206,7 +1206,7 @@ func TestUpdateDevice(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)

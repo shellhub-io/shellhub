@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -15,14 +16,18 @@ type APIService struct {
 
 var _ Service = (*APIService)(nil)
 
+type Keys struct {
+	PrivateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
+}
+
 type service struct {
+	keys      *Keys
 	store     store.Store
-	privKey   *rsa.PrivateKey
-	pubKey    *rsa.PublicKey
 	cache     cache.Cache
-	client    interface{}
-	locator   geoip.Locator
 	validator *validator.Validator
+	client    internalclient.Client
+	locator   geoip.Locator
 }
 
 //go:generate mockery --name Service --filename services.go
@@ -43,14 +48,17 @@ type Service interface {
 	APIKeyService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) *APIService {
-	if privKey == nil || pubKey == nil {
-		var err error
-		privKey, pubKey, err = LoadKeys()
-		if err != nil {
-			panic(err)
-		}
-	}
+func NewService(keys *Keys, store store.Store, cache cache.Cache) *APIService {
+	return &APIService{service: &service{
+		keys, store, cache, validator.New(), internalclient.NewClient(), geoip.NewNullGeoLite(),
+	}}
+}
 
-	return &APIService{service: &service{store, privKey, pubKey, cache, c, l, validator.New()}}
+// WithLocator sets the locator to the [APIService].
+func (s *APIService) WithLocator(locator geoip.Locator) {
+	s.locator = locator
+}
+
+func (s *APIService) WithClient(client internalclient.Client) {
+	s.client = client
 }

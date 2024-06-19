@@ -75,7 +75,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		},
 	}
 
-	token, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+	token, err := jwttoken.Encode(claims.WithDefaults(), s.keys.PrivateKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -241,7 +241,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		claims.Role = info.Role
 	}
 
-	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.keys.PrivateKey)
 	if err != nil {
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
@@ -335,7 +335,7 @@ func (s *service) AuthGetToken(ctx context.Context, id string) (*models.UserAuth
 		},
 	}
 
-	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.keys.PrivateKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -411,7 +411,7 @@ func (s *service) AuthSwapToken(ctx context.Context, id, tenant string) (*models
 				},
 			}
 
-			jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+			jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.keys.PrivateKey)
 			if err != nil {
 				return nil, NewErrTokenSigned(err)
 			}
@@ -470,7 +470,7 @@ func (s *service) AuthUserInfo(ctx context.Context, username, tenant, token stri
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {
-	return s.pubKey
+	return s.keys.PublicKey
 }
 
 // AuthCacheToken caches the user's namespace token.

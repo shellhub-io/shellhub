@@ -212,7 +212,11 @@ func TestListNamespaces(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			services := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			nss, count, err := services.ListNamespaces(tc.ctx, tc.paginator, tc.filters, false)
 			assert.Equal(t, tc.expected, Expected{nss, count, err})
 		})
@@ -334,7 +338,11 @@ func TestGetNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnNamespace, err := service.GetNamespace(ctx, tc.namespace.TenantID)
 			assert.Equal(t, tc.expected, Expected{returnNamespace, err})
 		})
@@ -404,7 +412,11 @@ func TestSetMemberData(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			services := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			members, err := services.fillMembersData(ctx, tc.members)
 			assert.Equal(t, tc.expected, Expected{members, err})
 		})
@@ -752,7 +764,11 @@ func TestCreateNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedNamespace, err := service.CreateNamespace(ctx, tc.namespace, tc.ownerID)
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
 		})
@@ -862,7 +878,10 @@ func TestEditNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
 
 			req := &requests.NamespaceEdit{
 				TenantParam: requests.TenantParam{Tenant: tc.tenantID},
@@ -956,7 +975,11 @@ func TestDeleteNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.namespace)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.DeleteNamespace(ctx, tc.namespace.TenantID)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1297,7 +1320,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(storeMock), storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1539,7 +1565,10 @@ func TestUpdateNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(storeMock), storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1894,7 +1923,10 @@ func TestRemoveNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(storeMock), storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1968,7 +2000,11 @@ func TestGetSessionRecord(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.namespace)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedUserSecurity, err := service.GetSessionRecord(ctx, tc.namespace.TenantID)
 			assert.Equal(t, tc.expected, Expected{returnedUserSecurity, err})
 		})
@@ -2070,7 +2106,11 @@ func TestEditSessionRecord(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.EditSessionRecordStatus(ctx, tc.sessionRecord, tc.tenantID)
 			assert.Equal(t, tc.expected, err)
 		})

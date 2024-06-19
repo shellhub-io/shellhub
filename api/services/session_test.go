@@ -80,7 +80,11 @@ func TestListSessions(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.paginator)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedSessions, count, err := service.ListSessions(ctx, tc.paginator)
 			assert.Equal(t, tc.expected, Expected{returnedSessions, count, err})
 		})
@@ -138,7 +142,11 @@ func TestGetSession(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedSession, err := service.GetSession(ctx, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
@@ -207,7 +215,11 @@ func TestCreateSession(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			returnedSession, err := service.CreateSession(ctx, tc.session)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
@@ -260,7 +272,11 @@ func TestDeactivateSession(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.DeactivateSession(ctx, tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -354,7 +370,11 @@ func TestUpdateSession(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
+
 			err := service.UpdateSession(ctx, tc.uid, tc.model)
 			assert.Equal(t, tc.expected, err)
 		})

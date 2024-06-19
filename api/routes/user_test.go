@@ -22,7 +22,7 @@ func TestUpdateUserData(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(mocks.Service)
+	mock := new(mocks.Service)
 
 	cases := []struct {
 		description   string
@@ -74,7 +74,7 @@ func TestUpdateUserData(t *testing.T) {
 				RecoveryEmail: "john.doe@test.com",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On(
 						"UpdateDataUser",
 						gomock.Anything,
@@ -104,7 +104,7 @@ func TestUpdateUserData(t *testing.T) {
 				"X-Role": "owner",
 			},
 			requiredMocks: func() {
-				svcMock.
+				mock.
 					On(
 						"UpdateDataUser",
 						gomock.Anything,
@@ -138,14 +138,14 @@ func TestUpdateUserData(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(svcMock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, Expected{rec.Result().StatusCode})
 		})
 	}
 
-	svcMock.AssertExpectations(t)
+	mock.AssertExpectations(t)
 }
 
 func TestUpdateUserPassword(t *testing.T) {
@@ -280,7 +280,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			req.Header.Set("X-Role", guard.RoleOwner)
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(mock, nil)
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)

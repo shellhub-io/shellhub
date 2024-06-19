@@ -47,7 +47,11 @@ func TestBillingEvaluate(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, cache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), cache.NewNullCache())
+
 			canAccept, err := service.BillingEvaluate(clientMock, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{canAccept: canAccept, err: err})
 		})
@@ -108,7 +112,11 @@ func TestBillingReport(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, cache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), cache.NewNullCache())
+
 			err := service.BillingReport(clientMock, tc.tenant, tc.action)
 			assert.Equal(t, tc.expected, err)
 		})

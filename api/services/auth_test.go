@@ -101,7 +101,10 @@ func TestAuthDevice(t *testing.T) {
 			Longitude: 0,
 		}, nil).Once()
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, locator)
+	service := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(mock), storecache.NewNullCache())
 
 	authRes, err := service.AuthDevice(ctx, authReq, "127.0.0.1")
 	assert.NoError(t, err)
@@ -671,7 +674,10 @@ func TestAuthUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, clientMock, nil)
+	service := NewService(&Keys{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, store.Store(mock), storecache.NewNullCache())
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -741,7 +747,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
-							ExpiresIn: time.Date(2000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+							ExpiresIn: time.Date(2000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
 						nil,
 					).
@@ -767,20 +773,20 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
-							ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
 						nil,
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix()}, 2*time.Minute).
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix()}, 2*time.Minute).
 					Return(nil).
 					Once()
 			},
 			expected: Expected{
 				apiKey: &models.APIKey{
 					Name:      "dev",
-					ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 				},
 				err: nil,
 			},
@@ -789,7 +795,11 @@ func TestAuthAPIKey(t *testing.T) {
 
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, clientMock, nil)
+
+	service := NewService(&Keys{
+		PrivateKey: privKey,
+		PublicKey:  &privKey.PublicKey,
+	}, storeMock, cacheMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -880,7 +890,10 @@ func TestAuthUserInfo(t *testing.T) {
 			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 			assert.NoError(t, err)
 
-			service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
 
 			authRes, err := service.AuthUserInfo(ctx, tc.username, tc.tenantID, "---------------token----------------")
 			assert.Equal(t, tc.expected.userAuthResponse, authRes)
@@ -950,7 +963,10 @@ func TestAuthGetToken(t *testing.T) {
 			privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 			assert.NoError(t, err)
 
-			service := NewService(mock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(&Keys{
+				PrivateKey: privateKey,
+				PublicKey:  &privateKey.PublicKey,
+			}, store.Store(mock), storecache.NewNullCache())
 
 			authRes, err := service.AuthGetToken(ctx, tc.userID)
 			assert.NotNil(t, authRes)
