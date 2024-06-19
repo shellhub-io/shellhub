@@ -18,17 +18,15 @@ import (
 )
 
 const (
-	AuthRequestURL  = "/auth"
-	AuthDeviceURL   = "/devices/auth"
-	AuthDeviceURLV2 = "/auth/device"
-	AuthUserURL     = "/login"
-	AuthUserURLV2   = "/auth/user"
-
+	AuthRequestURL           = "/auth"
+	AuthDeviceURL            = "/devices/auth"
+	AuthDeviceURLV2          = "/auth/device"
+	AuthUserURL              = "/login"
+	AuthUserURLV2            = "/auth/user"
 	AuthUserTokenInternalURL = "/auth/token/:id"     //nolint:gosec
 	AuthUserTokenPublicURL   = "/auth/token/:tenant" //nolint:gosec
-
-	AuthPublicKeyURL = "/auth/ssh"
-	AuthMFAURL       = "/auth/mfa"
+	AuthPublicKeyURL         = "/auth/ssh"
+	AuthMFAURL               = "/auth/mfa"
 )
 
 const (
@@ -192,53 +190,18 @@ func (h *Handler) AuthUser(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthUserInfo(c gateway.Context) error {
-	username := c.Request().Header.Get("X-Username")
-	tenant := c.Request().Header.Get("X-Tenant-ID")
-	token := c.Request().Header.Get(echo.HeaderAuthorization)
+func (h *Handler) CreateUserToken(c gateway.Context) error {
+	req := new(requests.CreateUserToken)
 
-	res, err := h.service.AuthUserInfo(c.Ctx(), username, tenant, token)
-	if err != nil {
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, res)
-}
-
-func (h *Handler) AuthGetToken(c gateway.Context) error {
-	var req requests.AuthTokenGet
-
-	if err := c.Bind(&req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	res, err := h.service.AuthGetToken(c.Ctx(), req.ID)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, res)
-}
-
-func (h *Handler) AuthSwapToken(c gateway.Context) error {
-	var req requests.AuthTokenSwap
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-	var id string
-	if v := c.ID(); v != nil {
-		id = v.ID
-	}
-
-	res, err := h.service.AuthSwapToken(c.Ctx(), id, req.Tenant)
+	res, err := h.service.CreateUserToken(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

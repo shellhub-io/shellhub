@@ -9,3 +9,8 @@ type AuthTokenGet struct {
 type AuthTokenSwap struct {
 	TenantParam
 }
+
+type CreateUserToken struct {
+	UserID   string `header:"X-ID" validate:"required"`
+	TenantID string `param:"tenant" validate:"omitempty,uuid"`
+}
