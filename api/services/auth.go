@@ -235,18 +235,23 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, mfaToken, nil
 	}
 
+	tenantID := ""
+	role := ""
+	// Populate the tenant and role when the user is associated with a namespace.
+	if ns, _ := s.store.NamespaceGetFirst(ctx, user.ID); ns != nil {
+		tenantID = ns.TenantID
+		member, _ := ns.FindMember(user.ID)
+		role = member.Role.String()
+	}
+
 	claims := &models.UserAuthClaims{
 		ID:       user.ID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
+		Tenant:   tenantID,
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
 		},
-	}
-
-	// Populate the tenant and role when the user is associated with a namespace.
-	if ns, _ := s.store.NamespaceGetFirst(ctx, user.ID); ns != nil {
-		claims.Tenant = ns.TenantID
 	}
 
 	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
@@ -266,7 +271,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
-	if err := s.AuthCacheToken(ctx, claims.Tenant, user.ID, jwtToken); err != nil {
+	if err := s.AuthCacheToken(ctx, tenantID, user.ID, jwtToken); err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"id": user.ID}).
 			Warn("unable to cache the authentication token")
@@ -279,7 +284,8 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
-		Tenant:        claims.Tenant,
+		Tenant:        tenantID,
+		Role:          role,
 		Token:         jwtToken,
 	}
 
@@ -304,7 +310,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if _, ok := namespace.FindMember(user.ID); !ok {
+	memberInfo, ok := namespace.FindMember(user.ID)
+	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 	}
 
@@ -336,6 +343,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		RecoveryEmail: user.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        namespace.TenantID,
+		Role:          memberInfo.Role.String(),
 		Token:         token,
 	}, nil
 }
