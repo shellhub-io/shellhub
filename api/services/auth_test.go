@@ -197,6 +197,9 @@ func TestAuthUser(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
 				}
 
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
@@ -229,6 +232,9 @@ func TestAuthUser(t *testing.T) {
 					},
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
 					},
 				}
 
@@ -269,6 +275,9 @@ func TestAuthUser(t *testing.T) {
 					},
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
 					},
 				}
 
@@ -317,6 +326,9 @@ func TestAuthUser(t *testing.T) {
 					},
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
 					},
 				}
 
@@ -375,6 +387,9 @@ func TestAuthUser(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
 				}
 
 				mock.
@@ -394,16 +409,22 @@ func TestAuthUser(t *testing.T) {
 					Return(nil).
 					Once()
 				mock.
-					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(nil, nil).
+					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
 				clockMock := new(clockmock.Clock)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+
+				preferredNamespace := ""
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -448,6 +469,9 @@ func TestAuthUser(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
 				}
 
 				mock.
@@ -467,20 +491,22 @@ func TestAuthUser(t *testing.T) {
 					Return(nil).
 					Once()
 				mock.
-					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(nil, nil).
+					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
 				clockMock := new(clockmock.Clock)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
-					Return(nil).
-					Once()
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+
+				preferredNamespace := ""
+				mock.
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
 					Return(nil).
 					Once()
 			},
@@ -521,6 +547,9 @@ func TestAuthUser(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+					},
 				}
 
 				mock.
@@ -551,7 +580,7 @@ func TestAuthUser(t *testing.T) {
 				}
 
 				mock.
-					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
 
@@ -559,12 +588,104 @@ func TestAuthUser(t *testing.T) {
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
-				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now}).
-					Return(nil).
-					Once()
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+
+				preferredNamespace := "00000000-0000-4000-0000-000000000000"
+				mock.
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "65fdd16b5f62f93184ec8a39",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "00000000-0000-4000-0000-000000000000",
+					Role:   "owner",
+					Token:  "must ignore",
+				},
+				lockout:  0,
+				mfaToken: "",
+				err:      nil,
+			},
+		},
+		{
+			description: "succeeds to authenticate with a namespace (and empty preferred namespace)",
+			sourceIP:    "127.0.0.1",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:   "65fdd16b5f62f93184ec8a39",
+							Role: "owner",
+						},
+					},
+				}
+
+				mock.
+					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					Return(ns, nil).
+					Once()
+
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				cacheMock.
+					On("Set", ctx, "token_00000000-0000-4000-0000-00000000000065fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+
+				preferredNamespace := "00000000-0000-4000-0000-000000000000"
+				mock.
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
 					Return(nil).
 					Once()
 			},
@@ -606,6 +727,9 @@ func TestAuthUser(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
 				}
 
 				mock.
@@ -625,8 +749,8 @@ func TestAuthUser(t *testing.T) {
 					Return(nil).
 					Once()
 				mock.
-					On("NamespaceGetFirst", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(nil, nil).
+					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
 				clockMock := new(clockmock.Clock)
@@ -637,16 +761,19 @@ func TestAuthUser(t *testing.T) {
 					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(int64(0), 0, nil).
 					Once()
+
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
 				hashMock.
 					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
+
+				preferredNamespace := ""
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
-					Return(nil).
-					Once()
-				cacheMock.
-					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace, Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
 					Return(nil).
 					Once()
 			},
@@ -737,6 +864,9 @@ func TestCreateUserToken(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+					},
 				}
 
 				storeMock.
@@ -744,7 +874,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(user, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceGetFirst", ctx, "000000000000000000000000").
+					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -847,6 +977,9 @@ func TestCreateUserToken(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+					},
 				}
 
 				ns := &models.Namespace{
@@ -864,8 +997,13 @@ func TestCreateUserToken(t *testing.T) {
 					Return(user, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceGetFirst", ctx, "000000000000000000000000").
+					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
 					Return(ns, nil).
+					Once()
+				preferredNamespace := "00000000-0000-4000-0000-000000000000"
+				storeMock.
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{PreferredNamespace: &preferredNamespace}).
+					Return(nil).
 					Once()
 				clockMock := new(clockmock.Clock)
 				clock.DefaultBackend = clockMock
@@ -926,6 +1064,11 @@ func TestCreateUserToken(t *testing.T) {
 				storeMock.
 					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
 					Return(ns, nil).
+					Once()
+				preferredNamespace := "00000000-0000-4000-0000-000000000000"
+				storeMock.
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{PreferredNamespace: &preferredNamespace}).
+					Return(nil).
 					Once()
 				clockMock := new(clockmock.Clock)
 				clock.DefaultBackend = clockMock

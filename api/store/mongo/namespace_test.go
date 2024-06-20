@@ -295,7 +295,7 @@ func TestNamespaceGetByName(t *testing.T) {
 	}
 }
 
-func TestNamespaceGetFirst(t *testing.T) {
+func TestNamespaceGetPreferred(t *testing.T) {
 	type Expected struct {
 		ns  *models.Namespace
 		err error
@@ -303,13 +303,15 @@ func TestNamespaceGetFirst(t *testing.T) {
 
 	cases := []struct {
 		description string
-		member      string
+		tenantID    string
+		memberID    string
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when member is not found",
-			member:      "000000000000000000000000",
+			tenantID:    "",
+			memberID:    "000000000000000000000000",
 			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns:  nil,
@@ -317,8 +319,46 @@ func TestNamespaceGetFirst(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when member is found",
-			member:      "507f1f77bcf86cd799439011",
+			description: "fauks when member is found but namespace not",
+			tenantID:    "00000000-0000-0000-0000-000000000000",
+			memberID:    "507f1f77bcf86cd799439011",
+			fixtures:    []string{fixtureNamespaces},
+			expected: Expected{
+				ns:  nil,
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds when member is found and tenantID is empty",
+			tenantID:    "",
+			memberID:    "507f1f77bcf86cd799439011",
+			fixtures:    []string{fixtureNamespaces},
+			expected: Expected{
+				ns: &models.Namespace{
+					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					Name:      "namespace-1",
+					Owner:     "507f1f77bcf86cd799439011",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:   "507f1f77bcf86cd799439011",
+							Role: authorizer.RoleOwner,
+						},
+						{
+							ID:   "6509e169ae6144b2f56bf288",
+							Role: authorizer.RoleObserver,
+						},
+					},
+					MaxDevices: -1,
+					Settings:   &models.NamespaceSettings{SessionRecord: true},
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when member is found and tenantID is not empty",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			memberID:    "507f1f77bcf86cd799439011",
 			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
@@ -353,7 +393,7 @@ func TestNamespaceGetFirst(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, err := s.NamespaceGetFirst(ctx, tc.member)
+			ns, err := s.NamespaceGetPreferred(ctx, tc.tenantID, tc.memberID)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}

@@ -33,16 +33,18 @@ type AuthService interface {
 	// authentications when they makes 3 password mistakes or when they have MFA enabled (which is a cloud-only
 	// feature).
 	//
-	// When a user is a member of a namespace, the [github.com/shellhub-io/shellhub/pkg/models.UserAuthResponse].TenantID
-	// is the tenant ID of the namespace. As the authentication key is a JWT, in these cases, the response does not contain
-	// the member role to avoid creating a stateful token. The role must be added in the auth middleware.
+	// It will try to use the user's preferred namespace or the first one to which the user was added. As the
+	// authentication key is a JWT, in these cases, the response does not contain the member role to avoid creating
+	// a stateful token. The role must be added in the auth middleware. The response's TenantID is empty if the user
+	// is not a member of any namespace.
 	//
 	// It returns a timestamp when the block ends if the user is locked out, a token to be used with the OTP code if the MFA
 	// is enabled and an error, if any
 	AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
-	// It accepts an optional tenant ID to associate the token with a namespace. If the tenant ID is empty, it uses the first
-	// namespace to which the user was added.
+	//
+	// It accepts an optional tenant ID to associate the token with a namespace. If the tenant ID is empty, it uses the user's
+	// preferred namespace or the first namespace to which the user was added.
 	//
 	// It returns the created token and an error if any.
 	CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (res *models.UserAuthResponse, err error)
@@ -238,7 +240,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	tenantID := ""
 	role := ""
 	// Populate the tenant and role when the user is associated with a namespace.
-	if ns, _ := s.store.NamespaceGetFirst(ctx, user.ID); ns != nil {
+	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID); ns != nil && ns.TenantID != "" {
 		tenantID = ns.TenantID
 		member, _ := ns.FindMember(user.ID)
 		role = member.Role.String()
@@ -260,13 +262,14 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now()}
+	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
 			changes.Password = neo.Hash
 		}
 	}
 
+	// TODO: evaluate make this update in a go routine.
 	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
@@ -301,7 +304,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	namespace := new(models.Namespace)
 	switch req.TenantID {
 	case "":
-		namespace, err = s.store.NamespaceGetFirst(ctx, req.UserID)
+		namespace, err = s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID)
 	default:
 		namespace, err = s.store.NamespaceGet(ctx, req.TenantID, false)
 	}
@@ -328,6 +331,11 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	token, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
+	}
+
+	// TODO: evaluate make this update in a go routine.
+	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &namespace.TenantID}); err != nil {
+		return nil, NewErrUserUpdate(user, err)
 	}
 
 	if err := s.AuthCacheToken(ctx, namespace.TenantID, user.ID, token); err != nil {
