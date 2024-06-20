@@ -318,7 +318,6 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	claims := &models.UserAuthClaims{
 		ID:       user.ID,
 		Tenant:   namespace.TenantID,
-		Admin:    true,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
 		AuthClaims: models.AuthClaims{

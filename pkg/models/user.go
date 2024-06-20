@@ -104,7 +104,6 @@ type UserAuthResponse struct {
 
 type UserAuthClaims struct {
 	ID                   string    `json:"id"`
-	Admin                bool      `json:"admin"` // FIXME: deprecated, remove it.
 	Tenant               string    `json:"tenant"`
 	Role                 auth.Role `json:"-"`
 	Username             string    `json:"name"`
