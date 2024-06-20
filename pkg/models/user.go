@@ -24,8 +24,9 @@ type User struct {
 	// check if MFA is active for the user.
 	//
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
-	MFA      UserMFA      `json:"mfa" bson:"mfa"`
-	Password UserPassword `bson:",inline"`
+	MFA         UserMFA         `json:"mfa" bson:"mfa"`
+	Preferences UserPreferences `json:"-" bson:"preferences"`
+	Password    UserPassword    `bson:",inline"`
 }
 
 type UserData struct {
@@ -47,6 +48,11 @@ type UserMFA struct {
 	Secret string `json:"-" bson:"secret"`
 	// RecoveryCodes are recovery tokens that the user can use to regain account access if they lose their MFA device.
 	RecoveryCodes []string `json:"-" bson:"recovery_codes"`
+}
+
+type UserPreferences struct {
+	// PreferredNamespace represents the namespace the user most recently authenticated with.
+	PreferredNamespace string `json:"-" bson:"preferred_namespace"`
 }
 
 type UserPassword struct {
@@ -138,13 +144,14 @@ type UserTokenRecover struct {
 // UserChanges specifies the attributes that can be updated for a user. Any zero values in this
 // struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
 type UserChanges struct {
-	LastLogin     time.Time `bson:"last_login,omitempty"`
-	Name          string    `bson:"name,omitempty"`
-	Username      string    `bson:"username,omitempty"`
-	Email         string    `bson:"email,omitempty"`
-	RecoveryEmail string    `bson:"recovery_email,omitempty"`
-	Password      string    `bson:"password,omitempty"`
-	Confirmed     *bool     `bson:"confirmed,omitempty"`
+	LastLogin          time.Time `bson:"last_login,omitempty"`
+	Name               string    `bson:"name,omitempty"`
+	Username           string    `bson:"username,omitempty"`
+	Email              string    `bson:"email,omitempty"`
+	RecoveryEmail      string    `bson:"recovery_email,omitempty"`
+	Password           string    `bson:"password,omitempty"`
+	Confirmed          *bool     `bson:"confirmed,omitempty"`
+	PreferredNamespace *string   `bson:"preferences.preferred_namespace,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
