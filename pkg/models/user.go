@@ -98,6 +98,7 @@ type UserAuthResponse struct {
 	Tenant        string `json:"tenant"`
 	Email         string `json:"email"`
 	RecoveryEmail string `json:"recovery_email"`
+	Role          string `json:"role"`
 	MFA           bool   `json:"mfa"`
 }
 
@@ -105,7 +106,7 @@ type UserAuthClaims struct {
 	ID                   string    `json:"id"`
 	Admin                bool      `json:"admin"` // FIXME: deprecated, remove it.
 	Tenant               string    `json:"tenant"`
-	Role                 auth.Role `json:"role"`
+	Role                 auth.Role `json:"-"`
 	Username             string    `json:"name"`
 	MFA                  bool      `json:"mfa"`
 	AuthClaims           `mapstruct:",squash"`
