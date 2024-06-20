@@ -547,7 +547,6 @@ func TestAuthRequest(t *testing.T) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: "username",
-		Admin:    true,
 		Tenant:   "tenant",
 		Role:     auth.RoleInvalid,
 		ID:       "id",
