@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/services/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +52,7 @@ func TestGetSystemInfo(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/api/info", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -97,7 +97,7 @@ func TestGetStats(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/api/stats", nil)
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)

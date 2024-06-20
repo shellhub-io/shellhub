@@ -9,7 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -270,7 +270,7 @@ func TestNamespaceAddMember(t *testing.T) {
 		description   string
 		username      string
 		namespace     string
-		role          auth.Role
+		role          authorizer.Role
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -278,7 +278,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			description: "fails when could not find a user",
 			username:    "john",
 			namespace:   "namespace",
-			role:        auth.RoleObserver,
+			role:        authorizer.RoleObserver,
 			requiredMocks: func() {
 				mock.On("UserGetByUsername", ctx, "john").Return(nil, errors.New("error")).Once()
 			},
@@ -288,7 +288,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			description: "fails when could not find a namespace",
 			username:    "john",
 			namespace:   "invalid_namespace",
-			role:        auth.RoleObserver,
+			role:        authorizer.RoleObserver,
 			requiredMocks: func() {
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
@@ -307,7 +307,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			description: "successfully add user to the Namespace",
 			username:    "john",
 			namespace:   "namespace",
-			role:        auth.RoleObserver,
+			role:        authorizer.RoleObserver,
 			requiredMocks: func() {
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
@@ -329,7 +329,7 @@ func TestNamespaceAddMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: auth.RoleObserver}).Return(nil).Once()
+				mock.On("NamespaceAddMember", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: authorizer.RoleObserver}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",

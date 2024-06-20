@@ -7,7 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -84,7 +84,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		Members: []models.Member{
 			{
 				ID:   user.ID,
-				Role: auth.RoleOwner,
+				Role: authorizer.RoleOwner,
 			},
 		},
 		Settings: &models.NamespaceSettings{
@@ -275,7 +275,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 
 	changes := &models.MemberChanges{Role: req.MemberRole}
 
-	if changes.Role != auth.RoleInvalid {
+	if changes.Role != authorizer.RoleInvalid {
 		if !active.Role.HasAuthority(req.MemberRole) {
 			return NewErrRoleInvalid()
 		}

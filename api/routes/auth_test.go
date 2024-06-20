@@ -14,7 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -548,7 +548,7 @@ func TestAuthRequest(t *testing.T) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
 		Username: "username",
 		Tenant:   "tenant",
-		Role:     auth.RoleInvalid,
+		Role:     authorizer.RoleInvalid,
 		ID:       "id",
 		AuthClaims: models.AuthClaims{
 			Claims: "user",
@@ -578,7 +578,7 @@ func TestAuthRequest(t *testing.T) {
 
 			req.Header.Add("Authorization", "Bearer "+tokenStr)
 
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 
 			rec := httptest.NewRecorder()
 

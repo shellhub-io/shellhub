@@ -8,7 +8,7 @@ import (
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
 
 var (
@@ -117,7 +117,7 @@ var Rules = []Rule{
 	{
 		Tag: "member_role",
 		Handler: func(field validator.FieldLevel) bool {
-			return auth.RoleFromString(field.Field().String()) != auth.RoleInvalid
+			return authorizer.RoleFromString(field.Field().String()) != authorizer.RoleInvalid
 		},
 		Error: fmt.Errorf("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
 	},

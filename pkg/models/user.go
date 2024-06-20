@@ -4,7 +4,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -103,11 +103,11 @@ type UserAuthResponse struct {
 }
 
 type UserAuthClaims struct {
-	ID                   string    `json:"id"`
-	Tenant               string    `json:"tenant"`
-	Role                 auth.Role `json:"-"`
-	Username             string    `json:"name"`
-	MFA                  bool      `json:"mfa"`
+	ID                   string          `json:"id"`
+	Tenant               string          `json:"tenant"`
+	Role                 authorizer.Role `json:"-"`
+	Username             string          `json:"name"`
+	MFA                  bool            `json:"mfa"`
 	AuthClaims           `mapstruct:",squash"`
 	jwt.RegisteredClaims `mapstruct:",squash"`
 }

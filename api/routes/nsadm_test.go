@@ -11,7 +11,7 @@ import (
 
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
@@ -63,7 +63,7 @@ func TestCreateNamespace(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", "123")
 			rec := httptest.NewRecorder()
 
@@ -143,7 +143,7 @@ func TestGetNamespace(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -226,7 +226,7 @@ func TestDeleteNamespace(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", tc.uid)
 			rec := httptest.NewRecorder()
 
@@ -273,7 +273,7 @@ func TestGetSessionRecord(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/api/users/security", nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", auth.RoleOwner.String())
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", tc.tenant)
 			rec := httptest.NewRecorder()
 

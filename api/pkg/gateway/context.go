@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -23,8 +23,8 @@ func (c *Context) Service() interface{} {
 
 // Role returns the user's namespace role got from JWT through gateway. It is
 // empty if the user has no namespaces.
-func (c *Context) Role() auth.Role {
-	return auth.RoleFromString(c.Request().Header.Get("X-Role"))
+func (c *Context) Role() authorizer.Role {
+	return authorizer.RoleFromString(c.Request().Header.Get("X-Role"))
 }
 
 // Tenant returns the namespace's tenant got from JWT through gateway.

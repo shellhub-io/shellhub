@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
 
 type Namespace struct {
@@ -57,9 +57,9 @@ type NamespaceSettings struct {
 }
 
 type Member struct {
-	ID       string    `json:"id,omitempty" bson:"id,omitempty"`
-	Username string    `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
-	Role     auth.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
+	ID       string          `json:"id,omitempty" bson:"id,omitempty"`
+	Username string          `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
+	Role     authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
 }
 
 type NamespaceChanges struct {
@@ -69,5 +69,5 @@ type NamespaceChanges struct {
 }
 
 type MemberChanges struct {
-	Role auth.Role `bson:"role,omitempty"`
+	Role authorizer.Role `bson:"role,omitempty"`
 }

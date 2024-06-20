@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
 
 func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
@@ -37,7 +37,7 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 // RequiresPermission reports whether the client has the specified permission.
 // If not, it returns an [http.StatusForbidden] response. Otherwise, it executes
 // the next handler.
-func RequiresPermission(permission auth.Permission) echo.MiddlewareFunc {
+func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if ctx, ok := c.(*gateway.Context); !ok || !ctx.Role().HasPermission(permission) {

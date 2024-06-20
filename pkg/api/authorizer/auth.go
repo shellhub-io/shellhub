@@ -1,4 +1,4 @@
-package auth
+package authorizer
 
 import "slices"
 

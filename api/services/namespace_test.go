@@ -9,7 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/auth"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
@@ -67,7 +67,7 @@ func TestListNamespaces(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "hash",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					},
@@ -78,11 +78,11 @@ func TestListNamespaces(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "hash",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "hash2",
-								Role: auth.RoleObserver,
+								Role: authorizer.RoleObserver,
 							},
 						},
 					},
@@ -111,7 +111,7 @@ func TestListNamespaces(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "hash",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					},
@@ -122,11 +122,11 @@ func TestListNamespaces(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "hash",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "hash2",
-								Role: auth.RoleObserver,
+								Role: authorizer.RoleObserver,
 							},
 						},
 					},
@@ -162,7 +162,7 @@ func TestListNamespaces(t *testing.T) {
 							{
 								ID:       "hash",
 								Username: "hash",
-								Role:     auth.RoleOwner,
+								Role:     authorizer.RoleOwner,
 							},
 						},
 					},
@@ -170,12 +170,12 @@ func TestListNamespaces(t *testing.T) {
 						{
 							ID:       "hash",
 							Username: "hash",
-							Role:     auth.RoleOwner,
+							Role:     authorizer.RoleOwner,
 						},
 						{
 							ID:       "hash2",
 							Username: "hash2",
-							Role:     auth.RoleObserver,
+							Role:     authorizer.RoleObserver,
 						},
 					}},
 				},
@@ -186,7 +186,7 @@ func TestListNamespaces(t *testing.T) {
 							{
 								ID:       "hash",
 								Username: "hash",
-								Role:     auth.RoleOwner,
+								Role:     authorizer.RoleOwner,
 							},
 						},
 					},
@@ -194,12 +194,12 @@ func TestListNamespaces(t *testing.T) {
 						{
 							ID:       "hash",
 							Username: "hash",
-							Role:     auth.RoleOwner,
+							Role:     authorizer.RoleOwner,
 						},
 						{
 							ID:       "hash2",
 							Username: "hash2",
-							Role:     auth.RoleObserver,
+							Role:     authorizer.RoleObserver,
 						},
 					}},
 				}),
@@ -251,7 +251,7 @@ func TestGetNamespace(t *testing.T) {
 					{
 						ID:       "hash1",
 						Username: "hash1",
-						Role:     auth.RoleOwner,
+						Role:     authorizer.RoleOwner,
 					},
 				},
 			},
@@ -264,7 +264,7 @@ func TestGetNamespace(t *testing.T) {
 						{
 							ID:       "hash1",
 							Username: "hash1",
-							Role:     auth.RoleOwner,
+							Role:     authorizer.RoleOwner,
 						},
 					},
 				}
@@ -287,7 +287,7 @@ func TestGetNamespace(t *testing.T) {
 					{
 						ID:       "hash1",
 						Username: "hash1",
-						Role:     auth.RoleOwner,
+						Role:     authorizer.RoleOwner,
 					},
 				},
 			},
@@ -307,7 +307,7 @@ func TestGetNamespace(t *testing.T) {
 						{
 							ID:       "hash1",
 							Username: "hash1",
-							Role:     auth.RoleOwner,
+							Role:     authorizer.RoleOwner,
 						},
 					},
 				}
@@ -324,7 +324,7 @@ func TestGetNamespace(t *testing.T) {
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 			},
 			expected: Expected{
-				namespace: &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "hash1", Username: "hash1", Role: auth.RoleOwner}}},
+				namespace: &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "hash1", Username: "hash1", Role: authorizer.RoleOwner}}},
 				err:       nil,
 			},
 		},
@@ -362,9 +362,9 @@ func TestSetMemberData(t *testing.T) {
 		{
 			description: "fails when user is not found",
 			members: []models.Member{
-				{ID: "hash1", Role: auth.RoleObserver},
-				{ID: "hash2", Role: auth.RoleObserver},
-				{ID: "hash3", Role: auth.RoleObserver},
+				{ID: "hash1", Role: authorizer.RoleObserver},
+				{ID: "hash2", Role: authorizer.RoleObserver},
+				{ID: "hash3", Role: authorizer.RoleObserver},
 			},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, "hash1", false).Return(nil, 0, errors.New("error")).Once()
@@ -377,10 +377,10 @@ func TestSetMemberData(t *testing.T) {
 		{
 			description: "success to fill member data",
 			members: []models.Member{
-				{ID: "hash1", Role: auth.RoleObserver},
-				{ID: "hash2", Role: auth.RoleObserver},
-				{ID: "hash3", Role: auth.RoleObserver},
-				{ID: "hash4", Role: auth.RoleOwner},
+				{ID: "hash1", Role: authorizer.RoleObserver},
+				{ID: "hash2", Role: authorizer.RoleObserver},
+				{ID: "hash3", Role: authorizer.RoleObserver},
+				{ID: "hash4", Role: authorizer.RoleOwner},
 			},
 			requiredMocks: func() {
 				mock.On("UserGetByID", ctx, "hash1", false).Return(&models.User{ID: "hash1", UserData: models.UserData{Username: "username1"}}, 0, nil).Once()
@@ -390,10 +390,10 @@ func TestSetMemberData(t *testing.T) {
 			},
 			expected: Expected{
 				members: []models.Member{
-					{ID: "hash1", Username: "username1", Role: auth.RoleObserver},
-					{ID: "hash2", Username: "username2", Role: auth.RoleObserver},
-					{ID: "hash3", Username: "username3", Role: auth.RoleObserver},
-					{ID: "hash4", Username: "username4", Role: auth.RoleOwner},
+					{ID: "hash1", Username: "username1", Role: authorizer.RoleObserver},
+					{ID: "hash2", Username: "username2", Role: authorizer.RoleObserver},
+					{ID: "hash3", Username: "username3", Role: authorizer.RoleObserver},
+					{ID: "hash4", Username: "username4", Role: authorizer.RoleOwner},
 				},
 				err: nil,
 			},
@@ -519,7 +519,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord: true,
@@ -557,7 +557,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord: true,
@@ -596,7 +596,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -631,7 +631,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "random_uuid",
@@ -648,7 +648,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "random_uuid",
@@ -677,7 +677,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -693,7 +693,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -722,7 +722,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -738,7 +738,7 @@ func TestCreateNamespace(t *testing.T) {
 					Name:  strings.ToLower("namespace"),
 					Owner: "hash1",
 					Members: []models.Member{
-						{ID: "hash1", Role: auth.RoleOwner},
+						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings:   &models.NamespaceSettings{SessionRecord: true},
 					TenantID:   "xxxxx",
@@ -890,7 +890,7 @@ func TestDeleteNamespace(t *testing.T) {
 	}{
 		{
 			description: "fails when namespace does not exist",
-			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: auth.RoleOwner}}},
+			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: authorizer.RoleOwner}}},
 			requiredMocks: func(namespace *models.Namespace) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(nil, errors.New("error")).Once()
 			},
@@ -898,7 +898,7 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when store delete fails",
-			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: auth.RoleOwner}}},
+			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: authorizer.RoleOwner}}},
 			requiredMocks: func(namespace *models.Namespace) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
@@ -909,7 +909,7 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds",
-			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: auth.RoleOwner}}},
+			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: authorizer.RoleOwner}}},
 			requiredMocks: func(namespace *models.Namespace) {
 				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
@@ -920,7 +920,7 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 		{
 			description: "reports delete",
-			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: auth.RoleOwner}}},
+			namespace:   &models.Namespace{Name: "oldname", Owner: "ID1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "user1", Role: authorizer.RoleOwner}}},
 			requiredMocks: func(namespace *models.Namespace) {
 				user1 := &models.User{
 					UserData: models.UserData{
@@ -935,7 +935,7 @@ func TestDeleteNamespace(t *testing.T) {
 					TenantID: namespace.TenantID,
 					Owner:    user1.ID,
 					Members: []models.Member{
-						{ID: user1.ID, Role: auth.RoleOwner},
+						{ID: user1.ID, Role: authorizer.RoleOwner},
 					},
 					Billing: &models.Billing{
 						Active: true,
@@ -985,7 +985,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleObserver,
+				MemberRole:     authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1004,7 +1004,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleObserver,
+				MemberRole:     authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1032,7 +1032,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleObserver,
+				MemberRole:     authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1063,7 +1063,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleOwner,
+				MemberRole:     authorizer.RoleOwner,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1075,7 +1075,7 @@ func TestAddNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOperator,
+								Role: authorizer.RoleOperator,
 							},
 						},
 					}, nil).
@@ -1099,7 +1099,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleAdministrator,
+				MemberRole:     authorizer.RoleAdministrator,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1111,7 +1111,7 @@ func TestAddNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOperator,
+								Role: authorizer.RoleOperator,
 							},
 						},
 					}, nil).
@@ -1135,7 +1135,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleObserver,
+				MemberRole:     authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1147,7 +1147,7 @@ func TestAddNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1175,7 +1175,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleObserver,
+				MemberRole:     authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1187,7 +1187,7 @@ func TestAddNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1207,7 +1207,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: auth.RoleObserver}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1222,7 +1222,7 @@ func TestAddNamespaceMember(t *testing.T) {
 				UserID:         "000000000000000000000000",
 				TenantID:       "00000000-0000-4000-0000-000000000000",
 				MemberUsername: "john_doe",
-				MemberRole:     auth.RoleObserver,
+				MemberRole:     authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1234,7 +1234,7 @@ func TestAddNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1254,7 +1254,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: auth.RoleObserver}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1266,11 +1266,11 @@ func TestAddNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleObserver,
+								Role: authorizer.RoleObserver,
 							},
 						},
 					}, nil).
@@ -1284,11 +1284,11 @@ func TestAddNamespaceMember(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   "000000000000000000000000",
-							Role: auth.RoleOwner,
+							Role: authorizer.RoleOwner,
 						},
 						{
 							ID:   "000000000000000000000000",
-							Role: auth.RoleObserver,
+							Role: authorizer.RoleObserver,
 						},
 					},
 				},
@@ -1326,7 +1326,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleObserver,
+				MemberRole: authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1342,7 +1342,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleObserver,
+				MemberRole: authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1367,7 +1367,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleObserver,
+				MemberRole: authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1395,7 +1395,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleObserver,
+				MemberRole: authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1407,7 +1407,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1428,7 +1428,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleOwner,
+				MemberRole: authorizer.RoleOwner,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1440,11 +1440,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1465,7 +1465,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleAdministrator,
+				MemberRole: authorizer.RoleAdministrator,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1477,11 +1477,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOperator,
+								Role: authorizer.RoleOperator,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: auth.RoleAdministrator,
+								Role: authorizer.RoleAdministrator,
 							},
 						},
 					}, nil).
@@ -1502,7 +1502,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: auth.RoleAdministrator,
+				MemberRole: authorizer.RoleAdministrator,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1514,11 +1514,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: auth.RoleAdministrator,
+								Role: authorizer.RoleAdministrator,
 							},
 						},
 					}, nil).
@@ -1531,7 +1531,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", &models.MemberChanges{Role: auth.RoleAdministrator}).
+					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", &models.MemberChanges{Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 			},
@@ -1658,7 +1658,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1697,7 +1697,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1739,11 +1739,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOperator,
+								Role: authorizer.RoleOperator,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: auth.RoleAdministrator,
+								Role: authorizer.RoleAdministrator,
 							},
 						},
 					}, nil).
@@ -1785,11 +1785,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: auth.RoleAdministrator,
+								Role: authorizer.RoleAdministrator,
 							},
 						},
 					}, nil).
@@ -1835,11 +1835,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: auth.RoleAdministrator,
+								Role: authorizer.RoleAdministrator,
 							},
 						},
 					}, nil).
@@ -1871,7 +1871,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: auth.RoleOwner,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).
@@ -1885,7 +1885,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   "000000000000000000000000",
-							Role: auth.RoleOwner,
+							Role: authorizer.RoleOwner,
 						},
 					},
 				},
@@ -2000,11 +2000,11 @@ func TestEditSessionRecord(t *testing.T) {
 				Members: []models.Member{
 					{
 						ID:   "hash1",
-						Role: auth.RoleOwner,
+						Role: authorizer.RoleOwner,
 					},
 					{
 						ID:   "hash2",
-						Role: auth.RoleObserver,
+						Role: authorizer.RoleObserver,
 					},
 				},
 			},
@@ -2017,11 +2017,11 @@ func TestEditSessionRecord(t *testing.T) {
 					Members: []models.Member{
 						{
 							ID:   "hash1",
-							Role: auth.RoleOwner,
+							Role: authorizer.RoleOwner,
 						},
 						{
 							ID:   "hash2",
-							Role: auth.RoleObserver,
+							Role: authorizer.RoleObserver,
 						},
 					},
 				}
@@ -2038,22 +2038,22 @@ func TestEditSessionRecord(t *testing.T) {
 			namespace: &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}, Members: []models.Member{
 				{
 					ID:   "hash1",
-					Role: auth.RoleOwner,
+					Role: authorizer.RoleOwner,
 				},
 				{
 					ID:   "hash2",
-					Role: auth.RoleObserver,
+					Role: authorizer.RoleObserver,
 				},
 			}},
 			requiredMocks: func() {
 				namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}, Members: []models.Member{
 					{
 						ID:   "hash1",
-						Role: auth.RoleOwner,
+						Role: authorizer.RoleOwner,
 					},
 					{
 						ID:   "hash2",
-						Role: auth.RoleObserver,
+						Role: authorizer.RoleObserver,
 					},
 				}}
 
