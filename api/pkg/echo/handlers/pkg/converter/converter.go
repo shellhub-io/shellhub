@@ -10,6 +10,8 @@ import (
 // FromErrServiceToHTTPStatus converts a service error code to http status.
 func FromErrServiceToHTTPStatus(code int) int {
 	switch code {
+	case services.ErrCodeCreated:
+		return http.StatusCreated
 	case services.ErrCodeNotFound:
 		return http.StatusNotFound
 	case services.ErrCodeInvalid:

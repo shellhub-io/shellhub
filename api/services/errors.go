@@ -32,6 +32,8 @@ const (
 	// ErrCodeNoContentChange is the error that occurs when the store function does not change any resource. Generally used in
 	// update methods.
 	ErrCodeNoContentChange
+	// ErrCodeCreated is the error code to be used when the resource was created, but the following operations failed.
+	ErrCodeCreated
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
