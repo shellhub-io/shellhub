@@ -47,6 +47,7 @@ func (m *HostMode) Serve(agent *Agent) {
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,
 			KeepAliveInterval: agent.config.KeepAliveInterval,
+			Features:          server.LocalPortForwardFeature,
 		},
 	)
 
@@ -98,6 +99,7 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,
 			KeepAliveInterval: agent.config.KeepAliveInterval,
+			Features:          server.NoFeature,
 		},
 	)
 

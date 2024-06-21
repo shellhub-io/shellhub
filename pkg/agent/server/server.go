@@ -76,12 +76,25 @@ const (
 	ChannelDirectTcpip string = "direct-tcpip"
 )
 
+type Feature uint
+
+const (
+	// NoFeature no features enable.
+	NoFeature Feature = 0
+	// LocalPortForwardFeature enable local port forward feature.
+	LocalPortForwardFeature Feature = iota << 1
+	// ReversePortForwardFeature enable reverse port forward feature.
+	ReversePortForwardFeature
+)
+
 // Config stores configuration needs for the SSH server.
 type Config struct {
 	// PrivateKey is the path for the SSH server private key.
 	PrivateKey string
 	// KeepAliveInterval stores the time between each SSH keep alive request.
 	KeepAliveInterval uint
+	// Features list of featues on SSH server.
+	Features Feature
 }
 
 // NewServer creates a new server SSH agent server.
@@ -120,10 +133,10 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 			return &sshConn{conn, closeCallback, ctx}
 		},
 		LocalPortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
-			return true
+			return cfg.Features&LocalPortForwardFeature > 0
 		},
 		ReversePortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
-			return false
+			return cfg.Features&ReversePortForwardFeature > 0
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			ChannelSession:     gliderssh.DefaultSessionHandler,
