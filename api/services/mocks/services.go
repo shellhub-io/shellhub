@@ -1046,9 +1046,9 @@ func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([
 	return r0, r1, r2
 }
 
-// ListDevices provides a mock function with given fields: ctx, tenant, status, paginator, filter, sorter
-func (_m *Service) ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, tenant, status, paginator, filter, sorter)
+// ListDevices provides a mock function with given fields: ctx, req
+func (_m *Service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListDevices")
@@ -1057,25 +1057,25 @@ func (_m *Service) ListDevices(ctx context.Context, tenant string, status models
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter) ([]models.Device, int, error)); ok {
-		return rf(ctx, tenant, status, paginator, filter, sorter)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceList) ([]models.Device, int, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter) []models.Device); ok {
-		r0 = rf(ctx, tenant, status, paginator, filter, sorter)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceList) []models.Device); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter) int); ok {
-		r1 = rf(ctx, tenant, status, paginator, filter, sorter)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.DeviceList) int); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter) error); ok {
-		r2 = rf(ctx, tenant, status, paginator, filter, sorter)
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.DeviceList) error); ok {
+		r2 = rf(ctx, req)
 	} else {
 		r2 = ret.Error(2)
 	}

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -32,46 +31,31 @@ const (
 )
 
 func (h *Handler) GetDeviceList(c gateway.Context) error {
-	type Query struct {
-		Status models.DeviceStatus `query:"status"`
-		query.Paginator
-		query.Sorter
-		query.Filters
-	}
+	req := new(requests.DeviceList)
 
-	query := Query{}
-
-	if err := c.Bind(&query); err != nil {
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	query.Paginator.Normalize()
-	query.Sorter.Normalize()
+	req.Paginator.Normalize()
+	req.Sorter.Normalize()
 
-	if err := query.Filters.Unmarshal(); err != nil {
+	if err := req.Filters.Unmarshal(); err != nil {
 		return err
 	}
 
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
+	if err := c.Validate(req); err != nil {
+		return err
 	}
 
-	devices, count, err := h.service.ListDevices(
-		c.Ctx(),
-		tenant,
-		query.Status,
-		query.Paginator,
-		query.Filters,
-		query.Sorter,
-	)
+	res, count, err := h.service.ListDevices(c.Ctx(), req)
+	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+
 	if err != nil {
 		return err
 	}
 
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, devices)
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *Handler) GetDevice(c gateway.Context) error {
