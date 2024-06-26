@@ -1,5 +1,5 @@
-const NodeRSA = require("node-rsa");
-const sshpk = require("sshpk");
+import NodeRSA from "node-rsa";
+import * as sshpk from "sshpk";
 
 const createSignatureOfPrivateKey = (
   privateKeyData,
@@ -38,9 +38,11 @@ const createSignerAndUpdate = (privateKey, username) => {
   return signer.sign().toString();
 };
 
-window.global.createSignatureOfPrivateKey = createSignatureOfPrivateKey;
-window.global.createKeyFingerprint = createKeyFingerprint;
-window.global.convertKeyToFingerprint = convertKeyToFingerprint;
-window.global.createSignerAndUpdate = createSignerAndUpdate;
-window.global.parsePrivateKey = parsePrivateKey;
-window.global.parseKey = parseKey;
+export default {
+  createSignatureOfPrivateKey,
+  createKeyFingerprint,
+  parsePrivateKey,
+  parseKey,
+  convertKeyToFingerprint,
+  createSignerAndUpdate,
+};

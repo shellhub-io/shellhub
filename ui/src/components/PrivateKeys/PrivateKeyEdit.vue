@@ -3,7 +3,7 @@
     <v-list-item @click="showDialog = true" v-bind="$props" data-test="privatekey-edit-btn">
       <div class="d-flex align-center">
         <div data-test="privatekey-icon" class="mr-2">
-          <v-icon> mdi-pencil </v-icon>
+          <v-icon>mdi-pencil</v-icon>
         </div>
 
         <v-list-item-title data-test="privatekey-title">
@@ -21,17 +21,17 @@
           <v-card-text>
             <v-text-field
               v-model="name"
+              :error-messages="nameError"
               label="Key name"
               placeholder="Name used to identify the private key"
-              :error-messages="nameError"
-              required
               variant="underlined"
               data-test="name-field"
             />
 
             <v-textarea
-              v-model="keyLocal.data"
+              v-model="keyLocal"
               label="Private key data"
+              required
               :messages="supportedKeys"
               :error-messages="keyLocalDataError"
               :update:modelValue="validatePrivateKeyData"
@@ -44,19 +44,10 @@
 
           <v-card-actions>
             <v-spacer />
-            <v-btn
-              color="primary"
-              @click="close"
-              data-test="pk-edit-cancel-btn"
-            >
+            <v-btn color="primary" @click="close" data-test="pk-edit-cancel-btn">
               Cancel
             </v-btn>
-            <v-btn
-              color="primary"
-              type="submit"
-              data-test="pk-edit-save-btn"
-              :disabled="!isValid"
-            >
+            <v-btn color="primary" type="submit" data-test="pk-edit-save-btn" :disabled="!!keyLocalDataError || !!nameError">
               Save
             </v-btn>
           </v-card-actions>
@@ -68,12 +59,7 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import {
-  ref,
-  watch,
-  onMounted,
-  toRefs,
-} from "vue";
+import { ref, PropType, onMounted } from "vue";
 import * as yup from "yup";
 import { useStore } from "../../store";
 import { IPublicKey } from "../../interfaces/IPublicKey";
@@ -90,9 +76,8 @@ const props = defineProps({
     required: false,
   },
   keyObject: {
-    type: Object,
+    type: Object as PropType<Partial<IPublicKey>>,
     required: true,
-    default: Object as unknown as IPublicKey,
   },
   style: {
     type: [String, Object],
@@ -106,24 +91,26 @@ const {
   value: keyLocal,
   errorMessage: keyLocalDataError,
   setErrors: setKeyLocalDataError,
-} = useField<Partial<IPublicKey>>("privateKeyData", yup.object({
-  name: yup.string().required(),
-  data: yup.string().required(),
-}).required(), {
-  initialValue: {
-    name: "",
-    data: "",
-  },
+} = useField<string>("privateKey", yup.string().required(), {
+  initialValue: props.keyObject.data,
+});
+
+const {
+  value: name,
+  errorMessage: nameError,
+} = useField<string>("name", yup.string().required(), {
+  initialValue: props.keyObject.name ?? "", // Ensure name is a string
 });
 
 const isValid = ref(true);
 
 const validatePrivateKeyData = () => {
   try {
-    parsePrivateKeySsh(keyLocal.value.data);
+    parsePrivateKeySsh(keyLocal.value);
     isValid.value = true;
+    keyLocalDataError.value = "";
   } catch (err: unknown) {
-    const typedErr = err as {name: string};
+    const typedErr = err as { name: string };
     if (typedErr.name === "KeyEncryptedError") {
       setKeyLocalDataError("Private key with passphrase is not supported");
     } else {
@@ -133,22 +120,12 @@ const validatePrivateKeyData = () => {
   }
 };
 
-const { keyObject } = toRefs(props);
-
 const supportedKeys = ref(
   "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
 );
 
-const { value: name, errorMessage: nameError } = useField<string | undefined>("name", yup.string().required(), {
-  initialValue: keyObject.value.name || "",
-});
-
-watch(name, () => {
-  keyLocal.value.name = name.value;
-});
-
 const setPrivateKey = () => {
-  keyLocal.value = { ...props.keyObject };
+  keyLocal.value = props.keyObject.data ?? "";
 };
 
 onMounted(() => {
@@ -169,7 +146,7 @@ const edit = async () => {
   if (!nameError.value && isValid.value) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const keySend = { ...keyLocal.value, data: keyLocal.value.data };
+    const keySend = { name: name.value, data: keyLocal.value };
 
     try {
       await store.dispatch("privateKey/edit", keySend);

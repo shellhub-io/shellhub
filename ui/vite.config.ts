@@ -1,40 +1,14 @@
 import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
 import VuetifyPlugin from "vite-plugin-vuetify";
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import Markdown from "unplugin-vue-markdown/vite";
 import * as path from "node:path";
-
-function polyfillNode() {
-  return {
-    name: "polyfill-node",
-    renderChunk(code) {
-      return code.replace(/require\(["']fs["']\)/g, "{ readFileSync() {} }");
-    },
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function NodeGlobalsPolyfillPlugin(options) {
-  return {
-    name: "node-globals-polyfill",
-    resolveId(id) {
-      if (id === "fs" || id === "crypto") {
-        return id;
-      }
-      return null;
-    },
-    load(id) {
-      if (id === "fs" || id === "crypto") {
-        return "export default {}";
-      }
-      return null;
-    },
-  };
-}
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    nodePolyfills(),
     Vue(),
     VuetifyPlugin({
       autoImport: true,
@@ -57,16 +31,5 @@ export default defineConfig({
   },
   define: {
     "process.env": process.env,
-  },
-  build: {
-    rollupOptions: {
-      plugins: [
-        polyfillNode(),
-        NodeGlobalsPolyfillPlugin({
-          process: true,
-          buffer: true,
-        }),
-      ],
-    },
   },
 });

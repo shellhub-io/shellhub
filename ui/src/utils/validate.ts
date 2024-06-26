@@ -1,13 +1,15 @@
 /* eslint-disable */
 declare const window: any;
 
+import crypto from "./crypto"
+
 export const validateKey = (typeKey: string, value: string) => {
   try {
     let x;
     if (typeKey === "private") {
-      x = window.global.parsePrivateKey(value);
+      x = crypto.parsePrivateKey(value);
     } else {
-      x = window.global.parseKey(value);
+      x = crypto.parseKey(value);
     }
     return true;
   } catch (err) {
@@ -17,7 +19,7 @@ export const validateKey = (typeKey: string, value: string) => {
 
 export const convertToFingerprint = (privateKey: string) => {
   try {
-    return window.global.convertKeyToFingerprint(privateKey);
+    return crypto.convertKeyToFingerprint(privateKey);
   } catch (err) {
     console.error("err", err);
     return false;
@@ -25,12 +27,12 @@ export const convertToFingerprint = (privateKey: string) => {
 };
 
 export const parsePrivateKeySsh = (privateKey: any) => {
-    return window.global.parsePrivateKey(privateKey);
+    return crypto.parsePrivateKey(privateKey);
 };
 
 export const createSignerPrivateKey = (privateKey: any, username: string) => {
   try {
-    return window.global.createSignerAndUpdate(privateKey, username);
+    return crypto.createSignerAndUpdate(privateKey, username);
   } catch (err) {
     console.error("err", err);
     return false;
@@ -41,11 +43,11 @@ export const createSignatureOfPrivateKey = async (
   privateKeyData: any,
   username: string,
 ) => {
-  const signature = await window.global.createSignatureOfPrivateKey(privateKeyData, username);
+  const signature = await crypto.createSignatureOfPrivateKey(privateKeyData, username);
   return signature;
 };
 
 export const createKeyFingerprint = async (privateKeyData: any) => {
-  const fingerprint = await window.global.createKeyFingerprint(privateKeyData);
+  const fingerprint = await crypto.createKeyFingerprint(privateKeyData);
   return fingerprint;
 };
