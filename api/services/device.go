@@ -9,7 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -18,7 +18,7 @@ import (
 const StatusAccepted = "accepted"
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 	GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
@@ -29,14 +29,10 @@ type DeviceService interface {
 	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 }
 
-func (s *service) ListDevices(ctx context.Context, tenant string, status models.DeviceStatus, paginator query.Paginator, filter query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenant, true)
-	if err != nil {
-		return nil, 0, NewErrNamespaceNotFound(tenant, err)
-	}
-
-	if status == models.DeviceStatusRemoved {
-		removed, count, err := s.store.DeviceRemovedList(ctx, tenant, paginator, filter, sorter)
+func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
+	if req.DeviceStatus == models.DeviceStatusRemoved {
+		// TODO: unique DeviceList
+		removed, count, err := s.store.DeviceRemovedList(ctx, req.TenantID, req.Paginator, req.Filters, req.Sorter)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -49,25 +45,34 @@ func (s *service) ListDevices(ctx context.Context, tenant string, status models.
 		return devices, count, nil
 	}
 
-	if ns.HasMaxDevices() {
-		switch {
-		case envs.IsCloud():
-			removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
-			if err != nil {
-				return nil, 0, NewErrDeviceRemovedCount(err)
-			}
+	if req.TenantID != "" {
+		ns, err := s.store.NamespaceGet(ctx, req.TenantID, true)
+		if err != nil {
+			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
+		}
 
-			if ns.HasLimitDevicesReached(removed) {
-				return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableFromRemoved)
-			}
-		case envs.IsCommunity(), envs.IsEnterprise():
-			if ns.HasMaxDevicesReached() {
-				return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableAsFalse)
+		if ns.HasMaxDevices() {
+			switch {
+			case envs.IsCloud():
+				removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
+				if err != nil {
+					return nil, 0, NewErrDeviceRemovedCount(err)
+				}
+
+				if ns.HasLimitDevicesReached(removed) {
+					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
+				}
+			case envs.IsEnterprise():
+				fallthrough
+			case envs.IsCommunity():
+				if ns.HasMaxDevicesReached() {
+					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableAsFalse)
+				}
 			}
 		}
 	}
 
-	return s.store.DeviceList(ctx, status, paginator, filter, sorter, store.DeviceAcceptableIfNotAccepted)
+	return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableIfNotAccepted)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {

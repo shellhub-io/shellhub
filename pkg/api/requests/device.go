@@ -1,5 +1,18 @@
 package requests
 
+import (
+	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/models"
+)
+
+type DeviceList struct {
+	TenantID     string              `header:"X-Tenant-ID"`
+	DeviceStatus models.DeviceStatus `query:"status"` //  TODO: validate
+	query.Paginator
+	query.Sorter
+	query.Filters
+}
+
 // DeviceParam is a structure to represent and validate a device UID as path param.
 type DeviceParam struct {
 	UID string `param:"uid" validate:"required"`

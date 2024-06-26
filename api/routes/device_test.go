@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -17,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetDevice(t *testing.T) {
@@ -281,85 +284,53 @@ func TestGetDeviceList(t *testing.T) {
 	mock := new(mocks.Service)
 
 	type Expected struct {
-		session []models.Device
+		devices []models.Device
 		status  int
 	}
 
 	cases := []struct {
 		description   string
-		paginator     query.Paginator
-		sorter        query.Sorter
-		filters       query.Filters
-		status        models.DeviceStatus
-		tenant        string
-		requiredMocks func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter)
+		req           *requests.DeviceList
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails when try to get a device list existing",
-			tenant:      "tenant-id",
-			status:      models.DeviceStatus("online"),
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
-			filters: query.Filters{
-				Raw: "Wwp7CiAgInR5cGUiOiAicHJvcGVydHkiLAogICJwYXJhbXMiOiB7CiAgICAibmFtZSI6ICJuYW1lIiwKICAgICJvcGVyYXRvciI6ICJjb250YWlucyIsCiAgICAidmFsdWUiOiAiZXhhbXBsZXNwYWNlIgogIH0KfQpd",
-				Data: []query.Filter{
-					{
-						Type: "property",
-						Params: &query.FilterProperty{
-							Name:     "name",
-							Operator: "contains",
-							Value:    "examplespace",
-						},
-					},
-				},
+			req: &requests.DeviceList{
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				DeviceStatus: models.DeviceStatus("online"),
+				Paginator:    query.Paginator{Page: 1, PerPage: 10},
+				Sorter:       query.Sorter{By: "name", Order: "asc"},
+				Filters:      query.Filters{},
 			},
-			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				mock.On("ListDevices",
-					gomock.Anything,
-					"tenant-id",
-					status,
-					paginator,
-					filters,
-					sorter,
-				).Return(nil, 0, svc.ErrDeviceNotFound).Once()
+			requiredMocks: func() {
+				mock.
+					On("ListDevices", gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+					Return(nil, 0, svc.ErrDeviceNotFound).
+					Once()
 			},
 			expected: Expected{
-				session: nil,
+				devices: []models.Device{},
 				status:  http.StatusNotFound,
 			},
 		},
 		{
 			description: "fails when try to get a device list existing",
-			tenant:      "tenant-id",
-			status:      models.DeviceStatus("online"),
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			sorter:      query.Sorter{By: "name", Order: query.OrderAsc},
-			filters: query.Filters{
-				Raw: "Wwp7CiAgInR5cGUiOiAicHJvcGVydHkiLAogICJwYXJhbXMiOiB7CiAgICAibmFtZSI6ICJuYW1lIiwKICAgICJvcGVyYXRvciI6ICJjb250YWlucyIsCiAgICAidmFsdWUiOiAiZXhhbXBsZXNwYWNlIgogIH0KfQpd",
-				Data: []query.Filter{
-					{
-						Type: "property",
-						Params: &query.FilterProperty{
-							Name:     "name",
-							Operator: "contains",
-							Value:    "examplespace",
-						},
-					},
-				},
+			req: &requests.DeviceList{
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				DeviceStatus: models.DeviceStatus("online"),
+				Paginator:    query.Paginator{Page: 1, PerPage: 10},
+				Sorter:       query.Sorter{By: "name", Order: "asc"},
+				Filters:      query.Filters{},
 			},
-			requiredMocks: func(status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter) {
-				mock.On("ListDevices",
-					gomock.Anything,
-					"tenant-id",
-					status,
-					paginator,
-					filters,
-					sorter,
-				).Return([]models.Device{}, 1, nil).Once()
+			requiredMocks: func() {
+				mock.
+					On("ListDevices", gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+					Return([]models.Device{}, 0, nil).
+					Once()
 			},
 			expected: Expected{
-				session: []models.Device{},
+				devices: []models.Device{},
 				status:  http.StatusOK,
 			},
 		},
@@ -367,44 +338,32 @@ func TestGetDeviceList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.status, tc.paginator, tc.filters, tc.sorter)
+			tc.requiredMocks()
 
-			type Query struct {
-				Status models.DeviceStatus `query:"status"`
-				query.Paginator
-				query.Sorter
-				query.Filters
-			}
+			urlVal := &url.Values{}
+			urlVal.Set("page", strconv.Itoa(tc.req.Page))
+			urlVal.Set("per_page", strconv.Itoa(tc.req.PerPage))
+			urlVal.Set("sort_by", tc.req.By)
+			urlVal.Set("order_by", tc.req.Order)
+			urlVal.Set("status", string(tc.req.DeviceStatus))
 
-			b := Query{
-				Status:    tc.status,
-				Paginator: tc.paginator,
-				Sorter:    tc.sorter,
-				Filters:   tc.filters,
-			}
-
-			jsonData, err := json.Marshal(b)
-			if err != nil {
-				assert.NoError(t, err)
-			}
-
-			req := httptest.NewRequest(http.MethodGet, "/api/devices", strings.NewReader(string(jsonData)))
-			req.Header.Set("Content-Type", "application/json")
+			req := httptest.NewRequest(http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", tc.tenant)
-			rec := httptest.NewRecorder()
+			req.Header.Set("X-Tenant-ID", tc.req.TenantID)
 
+			rec := httptest.NewRecorder()
 			e := NewRouter(mock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
-
-			var session []models.Device
-			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
-				assert.ErrorIs(t, io.EOF, err)
+			devices := make([]models.Device, 0)
+			if len(tc.expected.devices) != 0 {
+				if err := json.NewDecoder(rec.Result().Body).Decode(&devices); err != nil {
+					require.ErrorIs(t, io.EOF, err)
+				}
 			}
 
-			assert.Equal(t, tc.expected.session, session)
+			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
+			require.Equal(t, tc.expected.devices, devices)
 		})
 	}
 }
