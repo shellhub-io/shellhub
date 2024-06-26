@@ -160,3 +160,14 @@ type UserConflicts struct {
 	Email    string
 	Username string
 }
+
+// Distinct removes the c attributes whether it's equal to the user attribute.
+func (c *UserConflicts) Distinct(user *User) {
+	if c.Email == user.Email {
+		c.Email = ""
+	}
+
+	if c.Username == user.Username {
+		c.Username = ""
+	}
+}
