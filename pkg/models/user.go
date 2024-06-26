@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/sirupsen/logrus"
 )
 
 type User struct {
@@ -129,6 +130,15 @@ func (u *UserAuthClaims) WithDefaults() *UserAuthClaims {
 	u.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(now.Add(time.Hour * 72))
 
 	return u
+}
+
+func (u *UserAuthClaims) UnmarshalJSON(data []byte) error {
+	logrus.Info("NOVO UNMARSHAL!!!!!!!!")
+	logrus.Info("NOVO UNMARSHAL!!!!!!!!")
+	logrus.Info("NOVO UNMARSHAL!!!!!!!!")
+	logrus.Info("NOVO UNMARSHAL!!!!!!!!")
+
+	panic("do unmarshal")
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;
