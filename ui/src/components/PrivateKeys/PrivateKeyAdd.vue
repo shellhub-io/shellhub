@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+    <v-tooltip v-bind="$attrs" class="text-center" location="bottom">
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-btn
@@ -9,7 +9,6 @@
             tabindex="0"
             variant="elevated"
             aria-label="Dialog Add Private Key"
-            :disabled="!hasAuthorization"
             @keypress.enter="dialog = !dialog"
             data-test="private-key-dialog-btn"
           >
@@ -17,7 +16,6 @@
           </v-btn>
         </div>
       </template>
-      <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
     <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
@@ -30,7 +28,7 @@
             <v-text-field
               v-model="name"
               :error-messages="nameError"
-              label="Name"
+              label="Key name"
               placeholder="Name used to identify the private key"
               variant="underlined"
               data-test="name-field"
@@ -62,6 +60,7 @@
               color="primary"
               type="submit"
               data-test="private-key-save-btn"
+              :disabled="!!privateKeyDataError || !!nameError"
             >
               Save
             </v-btn>
@@ -74,11 +73,9 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import * as yup from "yup";
-import { actions, authorizer } from "../../authorizer";
 import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -196,17 +193,6 @@ const create = async () => {
     }
   }
 };
-
-const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.publicKey.create,
-    );
-  }
-  return false;
-});
 
 defineExpose({ privateKeyDataError, nameError });
 </script>

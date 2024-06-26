@@ -22,7 +22,6 @@ describe("Private Key Edit", () => {
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
-
   let mockUser: MockAdapter;
 
   const members = [
@@ -62,7 +61,7 @@ describe("Private Key Edit", () => {
     },
   };
 
-  const keyObject = {
+  const mockObject = {
     name: "test-name",
     data: "test-data",
   };
@@ -89,6 +88,9 @@ describe("Private Key Edit", () => {
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
+      },
+      props: {
+        keyObject: mockObject,
       },
     });
     store.commit("auth/authSuccess", authData);
@@ -123,15 +125,13 @@ describe("Private Key Edit", () => {
   });
 
   it("Checks if the private key data is valid", async () => {
-    await wrapper.setProps({ keyObject });
     await wrapper.vm.setPrivateKey();
-    const privateKeyData = wrapper.vm.keyLocal.data;
+    const privateKeyData = wrapper.vm.keyLocal;
     expect(privateKeyData).toBeDefined();
     expect(wrapper.vm.isValid).toBe(true);
   });
 
   it("Checks if the name field is valid", async () => {
-    await wrapper.setProps({ keyObject });
     await flushPromises();
     const nameField = wrapper.vm.name;
     expect(nameField).toBeDefined();
@@ -144,9 +144,8 @@ describe("Private Key Edit", () => {
 
   it("Checks if the edit function updates the store on success", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
-    await wrapper.setProps({ keyObject });
     await wrapper.vm.setPrivateKey();
-    const keySend = { name: wrapper.vm.keyLocal.name, data: wrapper.vm.keyLocal.data };
+    const keySend = { name: wrapper.vm.name, data: wrapper.vm.keyLocal };
     await wrapper.vm.edit();
     expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", keySend);
     expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarSuccessAction", INotificationsSuccess.privateKeyEditing);
@@ -154,7 +153,6 @@ describe("Private Key Edit", () => {
 
   it("Checks if the edit function handles error on failure", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
-    await wrapper.setProps({ keyObject });
     await wrapper.vm.setPrivateKey();
     await wrapper.vm.edit();
     await flushPromises();
