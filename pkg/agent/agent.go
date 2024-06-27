@@ -28,7 +28,7 @@
 //	        panic(err)
 //	    }
 //
-//	    if err := ag.Initialize(); err != nil {
+//	    if err := ag.Initialize(new(agent.HostMode)); err != nil {
 //	        panic(err)
 //	    }
 //
@@ -158,32 +158,40 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 	return cfg, nil, nil
 }
 
+type Data struct {
+	Identity *models.DeviceIdentity
+	Info     *models.DeviceInfo
+	Auth     *models.DeviceAuthResponse
+	// Instance contains data gotten from the ShellHub server.
+	Instance *models.Info
+}
+
 type Agent struct {
-	config     *Config
-	pubKey     *rsa.PublicKey
-	Identity   *models.DeviceIdentity
-	Info       *models.DeviceInfo
-	authData   *models.DeviceAuthResponse
-	cli        client.Client
-	serverInfo *models.Info
-	sessions   []string
-	server     *server.Server
-	tunnel     *tunnel.Tunnel
-	listening  chan bool
-	closed     atomic.Bool
-	mode       Mode
+	config *Config
+	// httpc is a HTTP client used to perform operation on the ShellHub server.
+	httpc client.Client
+	// sshd is the SSH server creted for the Agent to connect to the ShellHub server.
+	sshd *server.Server
+	// data stores information the Agent retrieved locally or from the ShellHub server.
+	data Data
+	// sessions stores a list of all sessions' ID running in a moment.
+	sessions  []string
+	tunnel    *tunnel.Tunnel
+	listening chan bool
+	pubKey    *rsa.PublicKey
+	closed    atomic.Bool
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
 // where device own and the path to the private key on the file system.
 //
 // To create a new [Agent] instance with all configurations, you can use [NewAgentWithConfig].
-func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*Agent, error) {
+func NewAgent(address string, tenantID string, privateKey string) (*Agent, error) {
 	return NewAgentWithConfig(&Config{
 		ServerAddress: address,
 		TenantID:      tenantID,
 		PrivateKey:    privateKey,
-	}, mode)
+	})
 }
 
 var (
@@ -191,13 +199,13 @@ var (
 	ErrNewAgentWithConfigInvalidServerAddress = errors.New("address is invalid")
 	ErrNewAgentWithConfigEmptyTenant          = errors.New("tenant is empty")
 	ErrNewAgentWithConfigEmptyPrivateKey      = errors.New("private key is empty")
-	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
+	ErrNewAgentModeNil                        = errors.New("agent's mode is nil")
 )
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
 //
 // Check [Config] for more information.
-func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
+func NewAgentWithConfig(config *Config) (*Agent, error) {
 	if config.ServerAddress == "" {
 		return nil, ErrNewAgentWithConfigEmptyServerAddress
 	}
@@ -214,13 +222,8 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 		return nil, ErrNewAgentWithConfigEmptyPrivateKey
 	}
 
-	if mode == nil {
-		return nil, ErrNewAgentWithConfigNilMode
-	}
-
 	return &Agent{
 		config: config,
-		mode:   mode,
 	}, nil
 }
 
@@ -228,10 +231,14 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 // key, reading public key, probing server information and authorizing device on ShellHub server.
 //
 // When any of the steps fails, the agent will return an error, and the agent will not be able to start.
-func (a *Agent) Initialize() error {
+func (a *Agent) Initialize(mode Mode) error {
+	if mode == nil {
+		return ErrNewAgentModeNil
+	}
+
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress)
+	a.httpc, err = client.NewClient(a.config.ServerAddress)
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
@@ -240,7 +247,7 @@ func (a *Agent) Initialize() error {
 		return errors.Wrap(err, "failed to generate device identity")
 	}
 
-	if err := a.loadDeviceInfo(); err != nil {
+	if err := a.loadDeviceInfo(mode); err != nil {
 		return errors.Wrap(err, "failed to load device info")
 	}
 
@@ -259,6 +266,8 @@ func (a *Agent) Initialize() error {
 	if err := a.authorize(); err != nil {
 		return errors.Wrap(err, "failed to authorize device")
 	}
+
+	mode.ConfigureSSHServer(a)
 
 	a.closed.Store(false)
 
@@ -289,7 +298,7 @@ func (a *Agent) readPublicKey() error {
 // defined and set on [Config] structure, the device identity is set to this value.
 func (a *Agent) generateDeviceIdentity() error {
 	if id := a.config.PreferredIdentity; id != "" {
-		a.Identity = &models.DeviceIdentity{
+		a.data.Identity = &models.DeviceIdentity{
 			MAC: id,
 		}
 
@@ -302,7 +311,7 @@ func (a *Agent) generateDeviceIdentity() error {
 		return err
 	}
 
-	a.Identity = &models.DeviceIdentity{
+	a.data.Identity = &models.DeviceIdentity{
 		MAC: iface.HardwareAddr.String(),
 	}
 
@@ -310,13 +319,13 @@ func (a *Agent) generateDeviceIdentity() error {
 }
 
 // loadDeviceInfo load some device informations like OS name, version, arch and platform.
-func (a *Agent) loadDeviceInfo() error {
-	info, err := a.mode.GetInfo()
+func (a *Agent) loadDeviceInfo(mode Mode) error {
+	info, err := mode.GetInfo()
 	if err != nil {
 		return err
 	}
 
-	a.Info = &models.DeviceInfo{
+	a.data.Info = &models.DeviceInfo{
 		ID:         info.ID,
 		PrettyName: info.Name,
 		Version:    AgentVersion,
@@ -329,25 +338,25 @@ func (a *Agent) loadDeviceInfo() error {
 
 // probeServerInfo gets information about the ShellHub server.
 func (a *Agent) probeServerInfo() error {
-	info, err := a.cli.GetInfo(AgentVersion)
-	a.serverInfo = info
+	info, err := a.httpc.GetInfo(AgentVersion)
+	a.data.Instance = info
 
 	return err
 }
 
 // authorize send auth request to the server with device information in order to register it in the namespace.
 func (a *Agent) authorize() error {
-	data, err := a.cli.AuthDevice(&models.DeviceAuthRequest{
-		Info: a.Info,
+	data, err := a.httpc.AuthDevice(&models.DeviceAuthRequest{
+		Info: a.data.Info,
 		DeviceAuth: &models.DeviceAuth{
 			Hostname:  a.config.PreferredHostname,
-			Identity:  a.Identity,
+			Identity:  a.data.Identity,
 			TenantID:  a.config.TenantID,
 			PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
 		},
 	})
 
-	a.authData = data
+	a.data.Auth = data
 
 	return err
 }
@@ -442,7 +451,7 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 			log.Fields{
 				"id":             id,
 				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
+				"tenant_id":      a.data.Auth.Namespace,
 				"server_address": a.config.ServerAddress,
 			},
 		).Info("A tunnel connection was closed")
@@ -451,13 +460,17 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 	}
 }
 
+var ErrSSHServerNil = errors.New("SSH server should be configured")
+
 // Listen creates the SSH server and listening for connections.
 func (a *Agent) Listen(ctx context.Context) error {
-	a.mode.Serve(a)
+	if a.sshd == nil {
+		return ErrSSHServerNil
+	}
 
 	a.tunnel = tunnel.NewBuilder().
-		WithConnHandler(connHandler(a.server)).
-		WithCloseHandler(closeHandler(a, a.server)).
+		WithConnHandler(connHandler(a.sshd)).
+		WithCloseHandler(closeHandler(a, a.sshd)).
 		WithHTTPHandler(httpHandler()).
 		Build()
 
@@ -469,7 +482,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 			if a.isClosed() {
 				log.WithFields(log.Fields{
 					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
+					"tenant_id":      a.data.Auth.Namespace,
 					"server_address": a.config.ServerAddress,
 				}).Info("Stopped listening for connections")
 
@@ -478,9 +491,9 @@ func (a *Agent) Listen(ctx context.Context) error {
 				return
 			}
 
-			namespace := a.authData.Namespace
-			tenantName := a.authData.Name
-			sshEndpoint := a.serverInfo.Endpoints.SSH
+			namespace := a.data.Auth.Namespace
+			tenantName := a.data.Auth.Name
+			sshEndpoint := a.data.Instance.Endpoints.SSH
 
 			sshid := strings.NewReplacer(
 				"{namespace}", namespace,
@@ -488,11 +501,11 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token)
+			listener, err := a.httpc.NewReverseListener(ctx, a.data.Auth.Token)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
+					"tenant_id":      a.data.Auth.Namespace,
 					"server_address": a.config.ServerAddress,
 					"ssh_server":     sshEndpoint,
 					"sshid":          sshid,
@@ -565,7 +578,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 		case <-ctx.Done():
 			log.WithFields(log.Fields{
 				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
+				"tenant_id":      a.data.Auth.Namespace,
 				"server_address": a.config.ServerAddress,
 			}).Debug("stopped pinging server due to context cancellation")
 
@@ -574,7 +587,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			if ok {
 				log.WithFields(log.Fields{
 					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
+					"tenant_id":      a.data.Auth.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
 				}).Debug("Starting the ping interval to server")
@@ -583,7 +596,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			} else {
 				log.WithFields(log.Fields{
 					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
+					"tenant_id":      a.data.Auth.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
 				}).Debug("Stopped pinging server due listener status")
@@ -592,7 +605,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			}
 		case <-ticker.C:
 			var sessions []string
-			a.server.Sessions.Range(func(k, _ interface{}) bool {
+			a.sshd.Sessions.Range(func(k, _ interface{}) bool {
 				sessions = append(sessions, k.(string))
 
 				return true
@@ -601,14 +614,14 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			a.sessions = sessions
 
 			if err := a.authorize(); err != nil {
-				a.server.SetDeviceName(a.authData.Name)
+				a.sshd.SetDeviceName(a.data.Auth.Name)
 			}
 
 			log.WithFields(log.Fields{
 				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
+				"tenant_id":      a.data.Auth.Namespace,
 				"server_address": a.config.ServerAddress,
-				"name":           a.authData.Name,
+				"name":           a.data.Auth.Name,
 				"hostname":       a.config.PreferredHostname,
 				"identity":       a.config.PreferredIdentity,
 				"timestamp":      time.Now(),
@@ -622,7 +635,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 
 // CheckUpdate gets the ShellHub's server version.
 func (a *Agent) CheckUpdate() (*semver.Version, error) {
-	info, err := a.cli.GetInfo(AgentVersion)
+	info, err := a.httpc.GetInfo(AgentVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -632,16 +645,16 @@ func (a *Agent) CheckUpdate() (*semver.Version, error) {
 
 // GetInfo gets the ShellHub's server information like version and endpoints, and updates the Agent's server's info.
 func (a *Agent) GetInfo() (*models.Info, error) {
-	if a.serverInfo != nil {
-		return a.serverInfo, nil
+	if a.data.Instance != nil {
+		return a.data.Instance, nil
 	}
 
-	info, err := a.cli.GetInfo(AgentVersion)
+	info, err := a.httpc.GetInfo(AgentVersion)
 	if err != nil {
 		return nil, err
 	}
 
-	a.serverInfo = info
+	a.data.Instance = info
 
 	return info, nil
 }

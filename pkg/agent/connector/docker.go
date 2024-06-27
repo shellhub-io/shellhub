@@ -8,15 +8,10 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/events"
-	dockerclient "github.com/docker/docker/client"
+	docker "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent"
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 )
-
-var _ Connector = new(DockerConnector)
 
 // DockerConnector is a struct that represents a connector that uses Docker as the container runtime.
 type DockerConnector struct {
@@ -26,7 +21,7 @@ type DockerConnector struct {
 	// tenant is the tenant ID of the namespace that the agent belongs to.
 	tenant string
 	// cli is the Docker client.
-	cli *dockerclient.Client
+	cli *docker.Client
 	// privateKeys is the path to the directory that contains the private keys for the containers.
 	privateKeys string
 	// cancels is a map that contains the cancel functions for each container.
@@ -34,47 +29,11 @@ type DockerConnector struct {
 	cancels map[string]context.CancelFunc
 }
 
-// Config provides the configuration for the agent connector service.
-type Config struct {
-	// Set the ShellHub server address the agent will use to connect.
-	// This is required.
-	ServerAddress string `env:"SERVER_ADDRESS,required"`
-
-	// Specify the path to store the devices/containers private keys.
-	// If not provided, the agent will generate a new one.
-	// This is required.
-	PrivateKeys string `env:"PRIVATE_KEYS,required"`
-
-	// Sets the account tenant id used during communication to associate the
-	// devices to a specific tenant.
-	// This is required.
-	TenantID string `env:"TENANT_ID,required"`
-
-	// Determine the interval to send the keep alive message to the server. This
-	// has a direct impact of the bandwidth used by the device when in idle
-	// state. Default is 30 seconds.
-	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,default=30"`
-}
-
-func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
-	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// TODO: test the envinromental variables validation on integration tests.
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
-		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
-
-		return nil, fields, err
-	}
-
-	return cfg, nil, nil
-}
+var _ Connector = new(DockerConnector)
 
 // NewDockerConnector creates a new [Connector] that uses Docker as the container runtime.
 func NewDockerConnector(server string, tenant string, privateKey string) (Connector, error) {
-	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
+	cli, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
@@ -88,11 +47,7 @@ func NewDockerConnector(server string, tenant string, privateKey string) (Connec
 	}, nil
 }
 
-// events returns the docker events.
-func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-chan error) {
-	return d.cli.Events(ctx, types.EventsOptions{})
-}
-
+// List lists the Docker Containers running.
 func (d *DockerConnector) List(ctx context.Context) ([]Container, error) {
 	containers, err := d.cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
@@ -168,7 +123,7 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 		d.Start(ctx, container.ID, container.Name)
 	}
 
-	events, errs := d.events(ctx)
+	events, errs := d.cli.Events(ctx, types.EventsOptions{})
 	for {
 		select {
 		case <-ctx.Done():
@@ -196,7 +151,7 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 }
 
 // initContainerAgent initializes the agent for a container.
-func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container Container) {
+func initContainerAgent(ctx context.Context, cli *docker.Client, container Container) {
 	agent.AgentPlatform = "connector"
 	agent.AgentVersion = ConnectorVersion
 
@@ -234,7 +189,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		}).Fatal("Failed to create connector mode")
 	}
 
-	ag, err := agent.NewAgentWithConfig(cfg, mode)
+	ag, err := agent.NewAgentWithConfig(cfg)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
@@ -243,7 +198,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		}).Fatal("Failed to create agent")
 	}
 
-	if err := ag.Initialize(); err != nil {
+	if err := ag.Initialize(mode); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
 			"configuration": cfg,

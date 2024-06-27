@@ -20,12 +20,9 @@ type Info struct {
 //
 // Check [HostMode] and [ConnectorMode] for more information.
 type Mode interface {
-	// Serve prepares the Agent for listening, setting up the SSH server, its modes and values on Agent's.
-	Serve(agent *Agent)
+	// ConfigureSSHServer prepares the Agent for listening, setting up the SSH server, its modes and values.
+	ConfigureSSHServer(agent *Agent)
 	// GetInfo gets information about Agent according to Agent's mode.
-	//
-	// When Agent is running on [HostMode], the info got is from the system where the Agent is running, but when running
-	// in [ConnectorMode], the data is retrieved from Docker Engine.
 	GetInfo() (*Info, error)
 }
 
@@ -37,12 +34,17 @@ type HostMode struct{}
 
 var _ Mode = new(HostMode)
 
-func (m *HostMode) Serve(agent *Agent) {
-	agent.server = server.NewServer(
-		agent.cli,
+func (m *HostMode) ConfigureSSHServer(agent *Agent) {
+	agent.sshd = server.NewServer(
+		agent.httpc,
 		&host.Mode{
-			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
-			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
+			Authenticator: *host.NewAuthenticator(
+				agent.httpc,
+				agent.data.Auth,
+				agent.config.SingleUserPassword,
+				&agent.data.Auth.Name,
+			),
+			Sessioner: *host.NewSessioner(&agent.data.Auth.Name, make(map[string]*exec.Cmd)),
 		},
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,
@@ -50,7 +52,7 @@ func (m *HostMode) Serve(agent *Agent) {
 		},
 	)
 
-	agent.server.SetDeviceName(agent.authData.Name)
+	agent.sshd.SetDeviceName(agent.data.Auth.Name)
 }
 
 func (m *HostMode) GetInfo() (*Info, error) {
@@ -84,16 +86,21 @@ func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 
 var _ Mode = new(ConnectorMode)
 
-func (m *ConnectorMode) Serve(agent *Agent) {
+func (m *ConnectorMode) ConfigureSSHServer(agent *Agent) {
 	// NOTICE: When the agent is running in `Connector` mode, we need to identify the container ID to maintain the
 	// communication between the server and the agent when the container name on the host changes.  This information is
 	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
 	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
-	agent.server = server.NewServer(
-		agent.cli,
+	agent.sshd = server.NewServer(
+		agent.httpc,
 		&connector.Mode{
-			Authenticator: *connector.NewAuthenticator(agent.cli, m.cli, agent.authData, &agent.Identity.MAC),
-			Sessioner:     *connector.NewSessioner(&agent.Identity.MAC, m.cli),
+			Authenticator: *connector.NewAuthenticator(
+				agent.httpc,
+				m.cli,
+				agent.data.Auth,
+				&agent.data.Identity.MAC,
+			),
+			Sessioner: *connector.NewSessioner(&agent.data.Identity.MAC, m.cli),
 		},
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,
@@ -101,8 +108,8 @@ func (m *ConnectorMode) Serve(agent *Agent) {
 		},
 	)
 
-	agent.server.SetContainerID(agent.Identity.MAC)
-	agent.server.SetDeviceName(agent.authData.Name)
+	agent.sshd.SetContainerID(agent.data.Identity.MAC)
+	agent.sshd.SetDeviceName(agent.data.Auth.Name)
 }
 
 func (m *ConnectorMode) GetInfo() (*Info, error) {
