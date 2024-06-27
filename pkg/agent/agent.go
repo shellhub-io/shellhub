@@ -171,7 +171,6 @@ type Agent struct {
 	authData   *models.DeviceAuthResponse
 	cli        client.Client
 	serverInfo *models.Info
-	sessions   []string
 	server     *server.Server
 	tunnel     *tunnel.Tunnel
 	listening  chan bool
@@ -596,15 +595,6 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 				ticker.Stop()
 			}
 		case <-ticker.C:
-			var sessions []string
-			a.server.Sessions.Range(func(k, _ interface{}) bool {
-				sessions = append(sessions, k.(string))
-
-				return true
-			})
-
-			a.sessions = sessions
-
 			if err := a.authorize(); err != nil {
 				a.server.SetDeviceName(a.authData.Name)
 			}
