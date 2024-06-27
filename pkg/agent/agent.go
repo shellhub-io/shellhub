@@ -28,7 +28,7 @@
 //	        panic(err)
 //	    }
 //
-//	    if err := ag.Initialize(); err != nil {
+//	    if err := ag.Initialize(new(agent.HostMode)); err != nil {
 //	        panic(err)
 //	    }
 //
@@ -171,19 +171,18 @@ type Agent struct {
 	tunnel     *tunnel.Tunnel
 	listening  chan bool
 	closed     atomic.Bool
-	mode       Mode
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
 // where device own and the path to the private key on the file system.
 //
 // To create a new [Agent] instance with all configurations, you can use [NewAgentWithConfig].
-func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*Agent, error) {
+func NewAgent(address string, tenantID string, privateKey string) (*Agent, error) {
 	return NewAgentWithConfig(&Config{
 		ServerAddress: address,
 		TenantID:      tenantID,
 		PrivateKey:    privateKey,
-	}, mode)
+	})
 }
 
 var (
@@ -191,13 +190,13 @@ var (
 	ErrNewAgentWithConfigInvalidServerAddress = errors.New("address is invalid")
 	ErrNewAgentWithConfigEmptyTenant          = errors.New("tenant is empty")
 	ErrNewAgentWithConfigEmptyPrivateKey      = errors.New("private key is empty")
-	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
+	ErrServerNil                              = errors.New("agent's mode is nil")
 )
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
 //
 // Check [Config] for more information.
-func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
+func NewAgentWithConfig(config *Config) (*Agent, error) {
 	if config.ServerAddress == "" {
 		return nil, ErrNewAgentWithConfigEmptyServerAddress
 	}
@@ -214,13 +213,8 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 		return nil, ErrNewAgentWithConfigEmptyPrivateKey
 	}
 
-	if mode == nil {
-		return nil, ErrNewAgentWithConfigNilMode
-	}
-
 	return &Agent{
 		config: config,
-		mode:   mode,
 	}, nil
 }
 
@@ -228,7 +222,7 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 // key, reading public key, probing server information and authorizing device on ShellHub server.
 //
 // When any of the steps fails, the agent will return an error, and the agent will not be able to start.
-func (a *Agent) Initialize() error {
+func (a *Agent) Initialize(mode Mode) error {
 	var err error
 
 	a.cli, err = client.NewClient(a.config.ServerAddress)
@@ -240,7 +234,7 @@ func (a *Agent) Initialize() error {
 		return errors.Wrap(err, "failed to generate device identity")
 	}
 
-	if err := a.loadDeviceInfo(); err != nil {
+	if err := a.loadDeviceInfo(mode); err != nil {
 		return errors.Wrap(err, "failed to load device info")
 	}
 
@@ -259,6 +253,8 @@ func (a *Agent) Initialize() error {
 	if err := a.authorize(); err != nil {
 		return errors.Wrap(err, "failed to authorize device")
 	}
+
+	mode.Serve(a)
 
 	a.closed.Store(false)
 
@@ -310,8 +306,8 @@ func (a *Agent) generateDeviceIdentity() error {
 }
 
 // loadDeviceInfo load some device informations like OS name, version, arch and platform.
-func (a *Agent) loadDeviceInfo() error {
-	info, err := a.mode.GetInfo()
+func (a *Agent) loadDeviceInfo(mode Mode) error {
+	info, err := mode.GetInfo()
 	if err != nil {
 		return err
 	}
@@ -453,7 +449,9 @@ func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 
 // Listen creates the SSH server and listening for connections.
 func (a *Agent) Listen(ctx context.Context) error {
-	a.mode.Serve(a)
+	if a.server == nil {
+		return ErrServerNil
+	}
 
 	a.tunnel = tunnel.NewBuilder().
 		WithConnHandler(connHandler(a.server)).

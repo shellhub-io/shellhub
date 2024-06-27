@@ -85,7 +85,7 @@ func main() {
 				"mode":    mode,
 			}).Info("Starting ShellHub")
 
-			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostMode))
+			ag, err := agent.NewAgentWithConfig(cfg)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
@@ -93,7 +93,7 @@ func main() {
 				}).Fatal("Failed to create agent")
 			}
 
-			if err := ag.Initialize(); err != nil {
+			if err := ag.Initialize(new(agent.HostMode)); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
 					"configuration": cfg,

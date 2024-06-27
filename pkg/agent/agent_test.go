@@ -18,14 +18,14 @@ func ExampleNewAgentWithConfig() {
 		ServerAddress: "http://localhost:80",
 		TenantID:      "00000000-0000-4000-0000-000000000000",
 		PrivateKey:    "./shellhub.key",
-	}, new(HostMode))
+	})
 	if err != nil {
 		panic(err)
 	}
 }
 
 func ExampleNewAgent() {
-	_, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key", new(HostMode))
+	_, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key")
 	if err != nil {
 		panic(err)
 	}
@@ -212,26 +212,12 @@ func TestNewAgentWithConfig(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when mode is nil",
-			config: &Config{
-				ServerAddress: "http://localhost",
-				TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
-				PrivateKey:    "/tmp/shellhub.key",
-			},
-			mode: nil,
-			expected: expected{
-				agent: nil,
-				err:   ErrNewAgentWithConfigNilMode,
-			},
-		},
-		{
 			description: "success to create agent with config",
 			config:      config,
 			mode:        new(HostMode),
 			expected: expected{
 				agent: &Agent{
 					config: config,
-					mode:   new(HostMode),
 				},
 				err: nil,
 			},
@@ -240,7 +226,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			agent, err := NewAgentWithConfig(test.config, test.mode)
+			agent, err := NewAgentWithConfig(test.config)
 
 			assert.Equal(t, test.expected.agent, agent)
 			assert.ErrorIs(t, err, test.expected.err)

@@ -234,7 +234,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		}).Fatal("Failed to create connector mode")
 	}
 
-	ag, err := agent.NewAgentWithConfig(cfg, mode)
+	ag, err := agent.NewAgentWithConfig(cfg)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
@@ -243,7 +243,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		}).Fatal("Failed to create agent")
 	}
 
-	if err := ag.Initialize(); err != nil {
+	if err := ag.Initialize(mode); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"id":            container.ID,
 			"configuration": cfg,
