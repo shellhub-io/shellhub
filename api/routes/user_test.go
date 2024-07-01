@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateUserData(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
 	type Expected struct {
 		status int
 	}
@@ -27,7 +27,7 @@ func TestUpdateUserData(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
-		body          requests.UserDataUpdate
+		body          requests.UpdateUser
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -37,7 +37,7 @@ func TestUpdateUserData(t *testing.T) {
 				"X-ID":   "000000000000000000000000",
 				"X-Role": "owner",
 			},
-			body: requests.UserDataUpdate{
+			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "invalid.com",
@@ -52,7 +52,7 @@ func TestUpdateUserData(t *testing.T) {
 				"X-ID":   "000000000000000000000000",
 				"X-Role": "owner",
 			},
-			body: requests.UserDataUpdate{
+			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "_",
 				Email:         "john.doe@test.com",
@@ -67,7 +67,7 @@ func TestUpdateUserData(t *testing.T) {
 				"X-ID":   "000000000000000000000000",
 				"X-Role": "owner",
 			},
-			body: requests.UserDataUpdate{
+			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -76,10 +76,10 @@ func TestUpdateUserData(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On(
-						"UpdateDataUser",
+						"UpdateUser",
 						gomock.Anything,
 						"000000000000000000000000",
-						&requests.UserDataUpdate{
+						&requests.UpdateUser{
 							Name:          "John Doe",
 							Username:      "john_doe",
 							Email:         "john.doe@test.com",
@@ -93,7 +93,7 @@ func TestUpdateUserData(t *testing.T) {
 		},
 		{
 			description: "success when try to updating an existing user",
-			body: requests.UserDataUpdate{
+			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -106,10 +106,10 @@ func TestUpdateUserData(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On(
-						"UpdateDataUser",
+						"UpdateUser",
 						gomock.Anything,
 						"000000000000000000000000",
-						&requests.UserDataUpdate{
+						&requests.UpdateUser{
 							Name:          "John Doe",
 							Username:      "john_doe",
 							Email:         "john.doe@test.com",

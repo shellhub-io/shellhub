@@ -63,7 +63,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.APIKeyUpdate))
 	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.APIKeyDelete))
 
-	publicAPI.PATCH(UpdateUserDataURL, gateway.Handler(handler.UpdateUserData), middleware.BlockAPIKey)
+	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), middleware.BlockAPIKey)
 	publicAPI.PATCH(UpdateUserPasswordURL, gateway.Handler(handler.UpdateUserPassword), middleware.BlockAPIKey)
 
 	publicAPI.GET(GetDeviceListURL, middleware.Authorize(gateway.Handler(handler.GetDeviceList)))

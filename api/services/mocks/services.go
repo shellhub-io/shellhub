@@ -1469,36 +1469,6 @@ func (_m *Service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey)
 	return r0
 }
 
-// UpdateDataUser provides a mock function with given fields: ctx, userID, req
-func (_m *Service) UpdateDataUser(ctx context.Context, userID string, req *requests.UserDataUpdate) ([]string, error) {
-	ret := _m.Called(ctx, userID, req)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateDataUser")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.UserDataUpdate) ([]string, error)); ok {
-		return rf(ctx, userID, req)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.UserDataUpdate) []string); ok {
-		r0 = rf(ctx, userID, req)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.UserDataUpdate) error); ok {
-		r1 = rf(ctx, userID, req)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdateDevice provides a mock function with given fields: ctx, tenant, uid, name, publicURL
 func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
 	ret := _m.Called(ctx, tenant, uid, name, publicURL)
@@ -1653,6 +1623,36 @@ func (_m *Service) UpdateSession(ctx context.Context, uid models.UID, model mode
 	}
 
 	return r0
+}
+
+// UpdateUser provides a mock function with given fields: ctx, userID, req
+func (_m *Service) UpdateUser(ctx context.Context, userID string, req *requests.UpdateUser) ([]string, error) {
+	ret := _m.Called(ctx, userID, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUser")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.UpdateUser) ([]string, error)); ok {
+		return rf(ctx, userID, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.UpdateUser) []string); ok {
+		r0 = rf(ctx, userID, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.UpdateUser) error); ok {
+		r1 = rf(ctx, userID, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewService creates a new instance of Service. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
