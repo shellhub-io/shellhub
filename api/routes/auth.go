@@ -49,20 +49,24 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	claims := jwttoken.ClaimsFromBearer(h.service.PublicKey(), c.Request().Header.Get("Authorization"))
+	claims, err := jwttoken.ClaimsFromBearer(h.service.PublicKey(), c.Request().Header.Get("Authorization"))
+	if err != nil {
+		return err
+	}
 
-	switch claims.Kind {
-	case jwttoken.KindDeviceClaims:
+	switch claims.(type) {
+	case jwttoken.DeviceClaims:
 		break
-	case jwttoken.KindUserClaims:
+	case jwttoken.UserClaims:
+		userClaims := claims.(*jwttoken.UserClaims)
 		// As the role is a dynamic attribute, and a JWT token must be stateless, we need to retrieve the role
 		// every time this middleware is invoked (generally from the cache).
-		if claims.UserClaims.TenantID != "" {
-			if err := h.service.FillClaimsRole(c.Ctx(), &claims.UserClaims); err != nil {
+		if userClaims.TenantID != "" {
+			if err := h.service.FillClaimsRole(c.Ctx(), userClaims); err != nil {
 				return err
 			}
 		}
-	case jwttoken.KindUnknownClaims:
+	default:
 		return c.NoContent(http.StatusUnauthorized)
 	}
 

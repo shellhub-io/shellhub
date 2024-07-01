@@ -2,18 +2,30 @@ package jwttoken
 
 import (
 	"crypto/rsa"
-	"encoding/json"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
 
+type ClaimsKind string
+
 const (
-	KindUserClaims    = "user"
-	KindDeviceClaims  = "device"
-	KindUnknownClaims = "unknown"
+	KindUserClaims    ClaimsKind = "user"
+	KindDeviceClaims  ClaimsKind = "device"
+	KindUnknownClaims ClaimsKind = "unknown"
 )
+
+func ClaimsKindFromString(str string) ClaimsKind {
+	switch str {
+	case "user":
+		return KindUserClaims
+	case "device":
+		return KindDeviceClaims
+	default:
+		return KindUnknownClaims
+	}
+}
 
 type UserClaims struct {
 	ID       string          `json:"id"`
@@ -21,79 +33,56 @@ type UserClaims struct {
 	Role     authorizer.Role `json:"-"`
 	Username string          `json:"name"`
 	MFA      bool            `json:"mfa"`
+	jwt.RegisteredClaims
 }
 
 type DeviceClaims struct {
 	UID    string `json:"uid"`
 	Tenant string `json:"tenant"`
-}
-
-type Claims struct {
-	Kind         string       `json:"kind"`
-	UserClaims   UserClaims   `json:"-"`
-	DeviceClaims DeviceClaims `json:"-"`
 	jwt.RegisteredClaims
 }
 
-func ClaimsFromBearer(publicKey *rsa.PublicKey, bearer string) *Claims {
-	raw := strings.ReplaceAll(bearer, "Bearer ", "")
+func ClaimsFromBearer(publicKey *rsa.PublicKey, bearerToken string) (interface{}, error) {
+	raw := strings.ReplaceAll(bearerToken, "Bearer ", "")
 
-	claims := new(Claims)
-	if err := Decode(publicKey, raw, claims); err != nil {
-		claims.Kind = KindUnknownClaims
+	kind, err := unmarshalKind(publicKey, raw)
+	if err != nil {
+		return nil, err
 	}
 
-	return claims
+	return unmarshalClaims(publicKey, kind, raw)
 }
 
-func (c *Claims) UnmarshalJSON(data []byte) error {
+func unmarshalKind(publicKey *rsa.PublicKey, raw string) (ClaimsKind, error) {
 	aux := struct {
 		Kind string `json:"claims"`
+		jwt.RegisteredClaims
 	}{}
 
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
+	if _, err := jwt.ParseWithClaims(raw, &aux, eval(publicKey), jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Alg()})); err != nil {
+		return "", err
 	}
 
-	switch aux.Kind {
-	case KindUserClaims:
-		userClaims := new(UserClaims)
-		if err := json.Unmarshal(data, userClaims); err != nil {
-			return err
-		}
-
-		c.Kind = KindUserClaims
-		c.UserClaims = *userClaims
-	case KindDeviceClaims:
-		deviceClaims := new(DeviceClaims)
-		if err := json.Unmarshal(data, &deviceClaims); err != nil {
-			return err
-		}
-
-		c.Kind = KindDeviceClaims
-		c.DeviceClaims = *deviceClaims
-	default:
-		c.Kind = KindUnknownClaims
-	}
-
-	return nil
+	return ClaimsKindFromString(aux.Kind), nil
 }
 
-func (c *Claims) Headers() map[string]string {
-	switch c.Kind {
+func unmarshalClaims(publicKey *rsa.PublicKey, kind ClaimsKind, raw string) (interface{}, error) {
+	switch kind {
 	case KindUserClaims:
-		return map[string]string{
-			"X-ID":        c.UserClaims.ID,
-			"X-Username":  c.UserClaims.Username,
-			"X-Tenant-ID": c.UserClaims.TenantID,
-			"X-Role":      c.UserClaims.Role.String(),
+		claims := new(UserClaims)
+		if err := Decode(publicKey, raw, claims); err != nil {
+			return nil, err
 		}
+
+		return claims, nil
 	case KindDeviceClaims:
-		return map[string]string{
-			"X-Device-UID": c.DeviceClaims.UID,
-			"X-Tenant-ID":  c.DeviceClaims.Tenant,
+		claims := new(DeviceClaims)
+		if err := Decode(publicKey, raw, claims); err != nil {
+			return nil, err
 		}
+
+		return claims, nil
 	default:
-		panic("invalid claim kind")
+		panic("foo")
 	}
 }
