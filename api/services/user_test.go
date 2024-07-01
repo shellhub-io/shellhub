@@ -43,7 +43,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: nil,
+				conflicts: []string{},
 				err:       NewErrUserNotFound("000000000000000000000000", nil),
 			},
 		},
@@ -224,7 +224,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: nil,
+				conflicts: []string{},
 				err:       NewErrUserPasswordNotMatch(nil),
 			},
 		},
@@ -269,7 +269,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: nil,
+				conflicts: []string{},
 				err: NewErrUserUpdate(
 					&models.User{
 						ID: "000000000000000000000000",
@@ -325,7 +325,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: nil,
+				conflicts: []string{},
 				err:       nil,
 			},
 		},

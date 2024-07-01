@@ -24,7 +24,7 @@ type UserService interface {
 func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
 	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
 	if err != nil {
-		return nil, NewErrUserNotFound(req.UserID, nil)
+		return []string{}, NewErrUserNotFound(req.UserID, nil)
 	}
 
 	if req.RecoveryEmail == user.Email || req.RecoveryEmail == req.Email {
@@ -45,7 +45,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 	if req.Password != "" {
 		// TODO: test
 		if !user.Password.Compare(req.CurrentPassword) {
-			return nil, NewErrUserPasswordNotMatch(nil)
+			return []string{}, NewErrUserPasswordNotMatch(nil)
 		}
 
 		neo, _ := models.HashUserPassword(req.Password)
@@ -53,10 +53,10 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 	}
 
 	if err := s.store.UserUpdate(ctx, req.UserID, changes); err != nil {
-		return nil, NewErrUserUpdate(user, err)
+		return []string{}, NewErrUserUpdate(user, err)
 	}
 
-	return nil, nil
+	return []string{}, nil
 }
 
 // UpdatePasswordUser updates a user's password.
