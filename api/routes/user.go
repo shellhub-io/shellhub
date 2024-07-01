@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	URLUpdateUser                   = "/users/:id/data"
+	URLUpdateUser                   = "/users"
+	URLDeprecatedUpdateUser         = "/users/:id/data"
 	URLDeprecatedUpdateUserPassword = "/users/:id/password" //nolint:gosec
 )
 
