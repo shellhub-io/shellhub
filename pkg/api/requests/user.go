@@ -9,6 +9,7 @@ type UserParam struct {
 
 // UpdateUser is the structure to represent the request body of the update user data endpoint.
 type UpdateUser struct {
+	UserID        string `header:"X-ID" validate:"required"`
 	Name          string `json:"name" validate:"omitempty,name"`
 	Username      string `json:"username" validate:"omitempty,username"`
 	Email         string `json:"email" validate:"omitempty,email"`

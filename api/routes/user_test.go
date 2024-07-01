@@ -78,8 +78,8 @@ func TestUpdateUser(t *testing.T) {
 					On(
 						"UpdateUser",
 						gomock.Anything,
-						"000000000000000000000000",
 						&requests.UpdateUser{
+							UserID:        "000000000000000000000000",
 							Name:          "John Doe",
 							Username:      "john_doe",
 							Email:         "john.doe@test.com",
@@ -108,8 +108,8 @@ func TestUpdateUser(t *testing.T) {
 					On(
 						"UpdateUser",
 						gomock.Anything,
-						"000000000000000000000000",
 						&requests.UpdateUser{
+							UserID:        "000000000000000000000000",
 							Name:          "John Doe",
 							Username:      "john_doe",
 							Email:         "john.doe@test.com",

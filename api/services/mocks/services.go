@@ -1625,9 +1625,9 @@ func (_m *Service) UpdateSession(ctx context.Context, uid models.UID, model mode
 	return r0
 }
 
-// UpdateUser provides a mock function with given fields: ctx, userID, req
-func (_m *Service) UpdateUser(ctx context.Context, userID string, req *requests.UpdateUser) ([]string, error) {
-	ret := _m.Called(ctx, userID, req)
+// UpdateUser provides a mock function with given fields: ctx, req
+func (_m *Service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateUser")
@@ -1635,19 +1635,19 @@ func (_m *Service) UpdateUser(ctx context.Context, userID string, req *requests.
 
 	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.UpdateUser) ([]string, error)); ok {
-		return rf(ctx, userID, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.UpdateUser) ([]string, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.UpdateUser) []string); ok {
-		r0 = rf(ctx, userID, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.UpdateUser) []string); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.UpdateUser) error); ok {
-		r1 = rf(ctx, userID, req)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.UpdateUser) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
