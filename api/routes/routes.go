@@ -64,7 +64,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.APIKeyDelete))
 
 	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), middleware.BlockAPIKey)
-	publicAPI.PATCH(UpdateUserPasswordURL, gateway.Handler(handler.UpdateUserPassword), middleware.BlockAPIKey)
+	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), middleware.BlockAPIKey) // WARN: DEPRECATED.
 
 	publicAPI.GET(GetDeviceListURL, middleware.Authorize(gateway.Handler(handler.GetDeviceList)))
 	publicAPI.GET(GetDeviceURL, middleware.Authorize(gateway.Handler(handler.GetDevice)))
