@@ -2250,6 +2250,24 @@ func (_m *Store) UserUpdate(ctx context.Context, id string, changes *models.User
 	return r0
 }
 
+// WithTransaction provides a mock function with given fields: ctx, cb
+func (_m *Store) WithTransaction(ctx context.Context, cb store.TransactionCb) error {
+	ret := _m.Called(ctx, cb)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithTransaction")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.TransactionCb) error); ok {
+		r0 = rf(ctx, cb)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewStore(t interface {

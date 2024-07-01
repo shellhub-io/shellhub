@@ -13,4 +13,5 @@ type Store interface {
 	PrivateKeyStore
 	StatsStore
 	APIKeyStore
+	TransactionStore
 }
