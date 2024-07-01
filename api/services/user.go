@@ -52,7 +52,11 @@ func (s *service) UpdateUser(ctx context.Context, userID string, req *requests.U
 		changes.Password = neo.Hash
 	}
 
-	return nil, s.store.UserUpdate(ctx, userID, changes)
+	if err := s.store.UserUpdate(ctx, userID, changes); err != nil {
+		return nil, NewErrUserUpdate(user, err)
+	}
+
+	return nil, nil
 }
 
 // UpdatePasswordUser updates a user's password.

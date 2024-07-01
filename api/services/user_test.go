@@ -271,7 +271,18 @@ func TestUpdateUser(t *testing.T) {
 			},
 			expected: Expected{
 				conflicts: nil,
-				err:       errors.New("error", "", 0),
+				err: NewErrUserUpdate(
+					&models.User{
+						ID: "000000000000000000000000",
+						UserData: models.UserData{
+							Name:          "James Smith",
+							Username:      "james_smith",
+							Email:         "james.smith@shellhub.io",
+							RecoveryEmail: "recover@test.com",
+						},
+					},
+					errors.New("error", "", 0),
+				),
 			},
 		},
 		{
