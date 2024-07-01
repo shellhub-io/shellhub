@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateDataUser(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
 	type Expected struct {
 		conflicts []string
 		err       error
@@ -24,14 +24,14 @@ func TestUpdateDataUser(t *testing.T) {
 	cases := []struct {
 		description   string
 		userID        string
-		req           *requests.UserDataUpdate
+		req           *requests.UpdateUser
 		requiredMocks func(context.Context)
 		expected      Expected
 	}{
 		{
 			description: "Fail when user is not found",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -51,7 +51,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when recovery email is same as req's email",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -83,7 +83,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when recovery email is same as user's email",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -115,7 +115,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when username already exists",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "james_smith",
 				Email:         "john.doe@test.com",
@@ -151,7 +151,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when email already exists",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "james.smith@test.com",
@@ -187,7 +187,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Fail when could not update user",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -232,7 +232,7 @@ func TestUpdateDataUser(t *testing.T) {
 		{
 			description: "Success to update user",
 			userID:      "000000000000000000000000",
-			req: &requests.UserDataUpdate{
+			req: &requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -283,7 +283,7 @@ func TestUpdateDataUser(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			conflicts, err := service.UpdateDataUser(ctx, tc.userID, tc.req)
+			conflicts, err := service.UpdateUser(ctx, tc.userID, tc.req)
 			assert.Equal(t, tc.expected, Expected{conflicts, err})
 		})
 	}

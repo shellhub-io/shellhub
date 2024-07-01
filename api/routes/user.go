@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	UpdateUserDataURL     = "/users/:id/data"
+	URLUpdateUser         = "/users/:id/data"
 	UpdateUserPasswordURL = "/users/:id/password" //nolint:gosec
 )
 
@@ -19,8 +19,8 @@ const (
 	ParamUserName = "username"
 )
 
-func (h *Handler) UpdateUserData(c gateway.Context) error {
-	req := new(requests.UserDataUpdate)
+func (h *Handler) UpdateUser(c gateway.Context) error {
+	req := new(requests.UpdateUser)
 
 	if err := c.Bind(req); err != nil {
 		return err
@@ -35,7 +35,7 @@ func (h *Handler) UpdateUserData(c gateway.Context) error {
 		return services.NewErrForbidden(nil, nil)
 	}
 
-	if fields, err := h.service.UpdateDataUser(c.Ctx(), c.ID().ID, req); err != nil {
+	if fields, err := h.service.UpdateUser(c.Ctx(), c.ID().ID, req); err != nil {
 		// FIXME: API compatibility.
 		//
 		// The UI uses the fields with error messages to identify if it is invalid or duplicated.
