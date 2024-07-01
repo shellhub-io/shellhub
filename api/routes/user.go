@@ -41,7 +41,11 @@ func (h *Handler) UpdateUser(c gateway.Context) error {
 
 		switch e.Code {
 		case services.ErrCodeInvalid:
-			return c.JSON(http.StatusBadRequest, fields)
+			if len(fields) > 1 {
+				return c.JSON(http.StatusBadRequest, fields)
+			}
+
+			return c.NoContent(http.StatusBadRequest)
 		case services.ErrCodeDuplicated:
 			return c.JSON(http.StatusConflict, fields)
 		default:
