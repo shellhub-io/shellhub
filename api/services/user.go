@@ -35,11 +35,10 @@ func (s *service) UpdateUser(ctx context.Context, userID string, req *requests.U
 		return conflicts, NewErrUserDuplicated(conflicts, nil)
 	}
 
-	// TODO: convert username and email to lower case.
 	changes := &models.UserChanges{
 		Name:          req.Name,
-		Username:      req.Username,
-		Email:         req.Email,
+		Username:      strings.ToLower(req.Username),
+		Email:         strings.ToLower(req.Email),
 		RecoveryEmail: strings.ToLower(req.RecoveryEmail),
 	}
 
