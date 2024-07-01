@@ -185,6 +185,51 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when the current password doesn't match with user's password",
+			userID:      "000000000000000000000000",
+			req: &requests.UpdateUser{
+				Name:            "John Doe",
+				Username:        "john_doe",
+				Email:           "john.doe@test.com",
+				RecoveryEmail:   "recovery@test.com",
+				Password:        "new-secret",
+				CurrentPassword: "secret",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@shellhub.io",
+								RecoveryEmail: "recover@test.com",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
+					Return([]string{}, false, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
+			},
+			expected: Expected{
+				conflicts: nil,
+				err:       NewErrUserPasswordNotMatch(nil),
+			},
+		},
+		{
 			description: "Fail when could not update user",
 			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{

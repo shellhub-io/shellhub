@@ -42,9 +42,22 @@ func (s *service) UpdateUser(ctx context.Context, userID string, req *requests.U
 		RecoveryEmail: strings.ToLower(req.RecoveryEmail),
 	}
 
+	if req.Password != "" {
+		// TODO: test
+		if !user.Password.Compare(req.CurrentPassword) {
+			return nil, NewErrUserPasswordNotMatch(nil)
+		}
+
+		neo, _ := models.HashUserPassword(req.Password)
+		changes.Password = neo.Hash
+	}
+
 	return nil, s.store.UserUpdate(ctx, userID, changes)
 }
 
+// UpdatePasswordUser updates a user's password.
+//
+// Deprecated, use [Service.UpdateUser] instead.
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
 	user, _, err := s.store.UserGetByID(ctx, id, false)
 	if user == nil {

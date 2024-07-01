@@ -13,6 +13,9 @@ type UpdateUser struct {
 	Username      string `json:"username" validate:"omitempty,username"`
 	Email         string `json:"email" validate:"omitempty,email"`
 	RecoveryEmail string `json:"recovery_email" validate:"omitempty,email"`
+	// Password is the new password. If not empty, [UserDataUpdate.CurrentPassword] must be the current user's password.
+	Password        string `json:"password" validate:"omitempty,password"`
+	CurrentPassword string `json:"current_password"`
 }
 
 // UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
