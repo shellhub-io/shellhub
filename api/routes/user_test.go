@@ -130,7 +130,7 @@ func TestUpdateUser(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/users/%s/data", tc.headers["X-ID"]), strings.NewReader(string(data)))
+			req := httptest.NewRequest(http.MethodPatch, "/api/users", strings.NewReader(string(data)))
 			req.Header.Set("Content-Type", "application/json")
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
