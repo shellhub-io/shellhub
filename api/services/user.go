@@ -31,7 +31,9 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 		return []string{"email", "recovery_email"}, NewErrBadRequest(nil)
 	}
 
-	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: req.Email, Username: req.Username}); has {
+	conflictsTarget := &models.UserConflicts{Email: req.Email, Username: req.Username}
+	conflictsTarget.Distinct(user)
+	if conflicts, has, _ := s.store.UserConflicts(ctx, conflictsTarget); has {
 		return conflicts, NewErrUserDuplicated(conflicts, nil)
 	}
 

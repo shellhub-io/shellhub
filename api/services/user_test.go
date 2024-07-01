@@ -112,11 +112,11 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
-			description: "Fail when username already exists",
+			description: "Fail when conflict fields exists",
 			req: &requests.UpdateUser{
 				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
-				Username:      "james_smith",
+				Username:      "john_doe",
 				Email:         "john.doe@test.com",
 				RecoveryEmail: "recovery@test.com",
 			},
@@ -138,43 +138,7 @@ func TestUpdateUser(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "james_smith", Email: "john.doe@test.com"}).
-					Return([]string{"username"}, true, nil).
-					Once()
-			},
-			expected: Expected{
-				conflicts: []string{"username"},
-				err:       NewErrUserDuplicated([]string{"username"}, nil),
-			},
-		},
-		{
-			description: "Fail when email already exists",
-			req: &requests.UpdateUser{
-				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "james.smith@test.com",
-				RecoveryEmail: "recovery@test.com",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(
-						&models.User{
-							ID: "000000000000000000000000",
-							UserData: models.UserData{
-								Name:          "James Smith",
-								Username:      "james_smith",
-								Email:         "james.smith@test.com",
-								RecoveryEmail: "recover@test.com",
-							},
-						},
-						0,
-						nil,
-					).
-					Once()
-				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "james.smith@test.com"}).
+					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
 					Return([]string{"email"}, true, nil).
 					Once()
 			},
