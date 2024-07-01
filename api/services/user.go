@@ -16,15 +16,15 @@ type UserService interface {
 	// When `req.RecoveryEmail` is equal to `user.Email` or `req.Email`, return a bad request status
 	// with an error object like `{"error": "recovery_email must be different from email"}` instead of setting
 	// conflicts to `["email", "recovery_email"]`.
-	UpdateUser(ctx context.Context, userID string, req *requests.UpdateUser) (conflicts []string, err error)
+	UpdateUser(ctx context.Context, req *requests.UpdateUser) (conflicts []string, err error)
 
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
-func (s *service) UpdateUser(ctx context.Context, userID string, req *requests.UpdateUser) ([]string, error) {
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
+func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
+	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
 	if err != nil {
-		return nil, NewErrUserNotFound(userID, nil)
+		return nil, NewErrUserNotFound(req.UserID, nil)
 	}
 
 	if req.RecoveryEmail == user.Email || req.RecoveryEmail == req.Email {
@@ -52,7 +52,7 @@ func (s *service) UpdateUser(ctx context.Context, userID string, req *requests.U
 		changes.Password = neo.Hash
 	}
 
-	if err := s.store.UserUpdate(ctx, userID, changes); err != nil {
+	if err := s.store.UserUpdate(ctx, req.UserID, changes); err != nil {
 		return nil, NewErrUserUpdate(user, err)
 	}
 

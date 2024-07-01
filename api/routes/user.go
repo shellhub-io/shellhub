@@ -30,12 +30,7 @@ func (h *Handler) UpdateUser(c gateway.Context) error {
 		return err
 	}
 
-	// TODO: remove the user id from the params and use only the authenticated header.
-	if c.Param("id") != c.ID().ID {
-		return services.NewErrForbidden(nil, nil)
-	}
-
-	if fields, err := h.service.UpdateUser(c.Ctx(), c.ID().ID, req); err != nil {
+	if fields, err := h.service.UpdateUser(c.Ctx(), req); err != nil {
 		// FIXME: API compatibility.
 		//
 		// The UI uses the fields with error messages to identify if it is invalid or duplicated.

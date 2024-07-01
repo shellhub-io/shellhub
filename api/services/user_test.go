@@ -23,15 +23,14 @@ func TestUpdateUser(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		userID        string
 		req           *requests.UpdateUser
 		requiredMocks func(context.Context)
 		expected      Expected
 	}{
 		{
 			description: "Fail when user is not found",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -50,8 +49,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "Fail when recovery email is same as req's email",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -82,8 +81,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "Fail when recovery email is same as user's email",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -114,8 +113,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "Fail when username already exists",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "james_smith",
 				Email:         "john.doe@test.com",
@@ -150,8 +149,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "Fail when email already exists",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "james.smith@test.com",
@@ -186,8 +185,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "fails when the current password doesn't match with user's password",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:          "000000000000000000000000",
 				Name:            "John Doe",
 				Username:        "john_doe",
 				Email:           "john.doe@test.com",
@@ -231,8 +230,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "Fail when could not update user",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -287,8 +286,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "Success to update user",
-			userID:      "000000000000000000000000",
 			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
 				Name:          "John Doe",
 				Username:      "john_doe",
 				Email:         "john.doe@test.com",
@@ -339,7 +338,7 @@ func TestUpdateUser(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			conflicts, err := service.UpdateUser(ctx, tc.userID, tc.req)
+			conflicts, err := service.UpdateUser(ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{conflicts, err})
 		})
 	}
