@@ -49,7 +49,7 @@ type AuthService interface {
 	// It returns the created token and an error if any.
 	CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (res *models.UserAuthResponse, err error)
 	// FillClaimsRole fills the claims.Role with the current user's role. It returns an error, if any.
-	FillClaimsRole(ctx context.Context, claims *models.UserAuthClaims) (err error)
+	FillClaimsRole(ctx context.Context, claims *jwttoken.UserClaims) (err error)
 	// AuthAPIKey authenticates the given key, returning its API key document. An API key can be used
 	// in place of a JWT token to authenticate requests. The key is only related to a namespace and not to a user,
 	// which means that some routes are blocked from authentication within this method. An API key can be expired,
@@ -409,7 +409,7 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 	}, nil
 }
 
-func (s *service) FillClaimsRole(ctx context.Context, claims *models.UserAuthClaims) error {
+func (s *service) FillClaimsRole(ctx context.Context, claims *jwttoken.UserClaims) error {
 	ns, err := s.store.NamespaceGet(ctx, claims.Tenant, false)
 	if err != nil {
 		return err

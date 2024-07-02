@@ -29,7 +29,7 @@ func NewRouter(service services.Service) *echo.Echo {
 	// Internal routes only accessible by other services in the local container network
 	internalAPI := e.Group("/internal")
 
-	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest), gateway.Middleware(AuthMiddleware))
+	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest))
 	internalAPI.GET(AuthUserTokenInternalURL, gateway.Handler(handler.CreateUserToken)) // TODO: same as defined in public API. remove it.
 
 	internalAPI.GET(GetDeviceByPublicURLAddress, gateway.Handler(handler.GetDeviceByPublicURLAddress))
