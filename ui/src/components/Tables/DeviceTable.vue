@@ -118,6 +118,7 @@
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <DeviceDelete
+                      :variant="props.variant === 'device' ? 'device' : 'container' "
                       :uid="item.uid"
                       :notHasAuthorization="!hasAuthorizationRemove()"
                       @update="refreshDevices"
@@ -160,6 +161,7 @@
               <DeviceActionButton
                 :uid="item.uid"
                 :name="item.name"
+                :variant="props.variant === 'device' ? 'device' : 'container' "
                 :notificationStatus="false"
                 action="accept"
                 :show="showDeviceAcceptButton"
@@ -168,6 +170,7 @@
               />
               <DeviceActionButton
                 :uid="item.uid"
+                :variant="props.variant === 'device' ? 'device' : 'container' "
                 :action="status === 'pending' ? 'reject' : 'remove'"
                 :notificationStatus="false"
                 :show="showDeviceRejectButton"
@@ -212,6 +215,10 @@ const props = defineProps({
   },
   header: {
     type: String as PropType<"primary" | "secondary">,
+    required: true,
+  },
+  variant: {
+    type: String as PropType<"device" | "container">,
     required: true,
   },
 });
@@ -286,7 +293,7 @@ onMounted(async () => {
     await fetchDevices({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: "",
+      filter: filter.value,
       status: status.value,
       sortStatusField: "",
       sortStatusString: "",

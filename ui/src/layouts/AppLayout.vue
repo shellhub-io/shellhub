@@ -123,6 +123,11 @@ const items = [
     path: "/devices",
   },
   {
+    icon: "mdi-server",
+    title: "Containers",
+    path: "/containers",
+  },
+  {
     icon: "mdi-history",
     title: "Sessions",
     path: "/sessions",

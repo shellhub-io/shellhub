@@ -30,6 +30,10 @@ export const parsePrivateKeySsh = (privateKey: any) => {
     return crypto.parsePrivateKey(privateKey);
 };
 
+export const parseCertificate = (data: any) => {
+  return crypto.parseCertificate(data);
+};
+
 export const createSignerPrivateKey = (privateKey: any, username: string) => {
   try {
     return crypto.createSignerAndUpdate(privateKey, username);
