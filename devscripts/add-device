@@ -24,7 +24,8 @@ JSON=$(cat <<EOF
   "info": {
     "id": "$ID",
     "pretty_name": "$PRETTY_NAME",
-    "version": "latest"
+    "version": "latest",
+    "platform": "native"
   },
   "identity": {
     "mac": "$MACADDR"

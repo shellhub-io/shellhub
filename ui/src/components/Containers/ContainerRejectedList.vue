@@ -1,12 +1,11 @@
 <template>
   <div>
     <DeviceTable
-      variant="device"
+      variant="container"
       header="secondary"
-      status="pending"
+      status="rejected"
       :storeMethods="storeMethods"
       data-test="device-table"
-
     />
   </div>
 </template>
@@ -25,21 +24,7 @@ const filter = ref(btoa(JSON.stringify([
     params: {
       name: "info.platform",
       operator: "eq",
-      value: "native",
-    },
-  },
-  {
-    type: "property",
-    params: {
-      name: "info.platform",
-      operator: "eq",
-      value: "docker",
-    },
-  },
-  {
-    type: "operator",
-    params: {
-      name: "or",
+      value: "connector",
     },
   },
 ])));
@@ -69,5 +54,4 @@ const storeMethods: IDeviceMethods = {
   getSortStatusString,
   getNumberDevices,
 };
-
 </script>

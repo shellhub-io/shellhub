@@ -3,10 +3,10 @@
     class="d-flex flex-column justify-space-between align-center flex-sm-row"
     data-test="device-title"
   >
-    <h1>Devices</h1>
+    <h1>Containers</h1>
     <v-col md="6" sm="12">
       <v-text-field
-        v-if="hasDevice"
+        v-if="hasContainer"
         label="Search by hostname"
         variant="underlined"
         color="primary"
@@ -21,12 +21,21 @@
     </v-col>
 
     <div class="d-flex mt-4" data-test="device-header-component-group">
-      <TagSelector v-if="isDeviceList" />
-      <DeviceAdd />
+      <TagSelector v-if="isContainerList" />
+      <v-btn
+        @click="router.push('/connectors')"
+        color="primary"
+        tabindex="0"
+        variant="elevated"
+        aria-label="Dialog Add device"
+        data-test="connector-add-btn"
+      >
+        Manage Connectors
+      </v-btn>
     </div>
   </div>
-  <v-card class="mt-2" v-if="hasDevice" data-test="device-table-component">
-    <Device />
+  <v-card class="mt-2" v-if="hasContainer" data-test="device-table-component">
+    <Containers />
   </v-card>
 
   <BoxMessage
@@ -42,8 +51,7 @@ import { onMounted, computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
-import Device from "../components/Devices/Device.vue";
-import DeviceAdd from "../components/Devices/DeviceAdd.vue";
+import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import handleError from "@/utils/handleError";
@@ -58,6 +66,14 @@ const searchDevices = () => {
 
   if (filter.value) {
     const filterToEncodeBase64 = [
+      {
+        type: "property",
+        params: {
+          name: "info.platform",
+          operator: "eq",
+          value: "connector",
+        },
+      },
       {
         type: "property",
         params: { name: "name", operator: "contains", value: filter.value },
@@ -78,15 +94,15 @@ const searchDevices = () => {
   }
 };
 
-const hasDevice = computed(() => (
+const hasContainer = computed(() => (
   store.getters["stats/stats"].registered_devices > 0
         || store.getters["stats/stats"].pending_devices > 0
         || store.getters["stats/stats"].rejected_devices > 0
 ));
 
-const isDeviceList = computed(() => router.currentRoute.value.name === "listDevices");
+const isContainerList = computed(() => router.currentRoute.value.name === "listContainers");
 
-const showMessageBox = computed(() => !hasDevice.value && show.value);
+const showMessageBox = computed(() => !hasContainer.value && show.value);
 
 onMounted(async () => {
   try {
@@ -106,4 +122,5 @@ onMounted(async () => {
 onUnmounted(async () => {
   await store.dispatch("devices/setFilter", "");
 });
+
 </script>

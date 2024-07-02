@@ -175,35 +175,31 @@ export default defineComponent({
     );
 
     const getSessions = async (perPagaeValue: number, pageValue: number) => {
-      if (!store.getters["box/getStatus"]) {
-        try {
-          loading.value = true;
-          const hasSessions = await store.dispatch("sessions/fetch", {
-            page: pageValue,
-            perPage: perPagaeValue,
-          });
+      try {
+        loading.value = true;
+        const hasSessions = await store.dispatch("sessions/fetch", {
+          page: pageValue,
+          perPage: perPagaeValue,
+        });
 
-          if (!hasSessions) {
-            page.value--;
-          }
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            if (axiosError.response?.status === 403) {
-              store.dispatch("snackbar/showSnackbarErrorAssociation");
-            }
-          } else {
-            store.dispatch(
-              "snackbar/showSnackbarErrorLoading",
-              INotificationsError.sessionList,
-            );
-            handleError(error);
-          }
-        } finally {
-          loading.value = false;
+        if (!hasSessions) {
+          page.value--;
         }
-      } else {
-        store.dispatch("box/setStatus", false);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+          }
+        } else {
+          store.dispatch(
+            "snackbar/showSnackbarErrorLoading",
+            INotificationsError.sessionList,
+          );
+          handleError(error);
+        }
+      } finally {
+        loading.value = false;
       }
     };
 

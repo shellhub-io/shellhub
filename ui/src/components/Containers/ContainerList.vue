@@ -1,12 +1,11 @@
 <template>
   <div>
     <DeviceTable
-      variant="device"
-      header="secondary"
-      status="pending"
+      variant="container"
+      header="primary"
+      status="accepted"
       :storeMethods="storeMethods"
       data-test="device-table"
-
     />
   </div>
 </template>
@@ -25,21 +24,7 @@ const filter = ref(btoa(JSON.stringify([
     params: {
       name: "info.platform",
       operator: "eq",
-      value: "native",
-    },
-  },
-  {
-    type: "property",
-    params: {
-      name: "info.platform",
-      operator: "eq",
-      value: "docker",
-    },
-  },
-  {
-    type: "operator",
-    params: {
-      name: "or",
+      value: "connector",
     },
   },
 ])));
