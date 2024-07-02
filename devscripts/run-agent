@@ -1,93 +1,129 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-set -e
+import argparse
+import signal
+import sys
+import subprocess
+import os
+import typing
 
-usage() {
-    cat <<EOF
-Runs a native agent with the provided git tag. Optionally, it can receive -t <tenant_id>, -s <server_address>, and -o "<KEY=VALUE>" parameters, which are used during agent initialization. Leave these parameters blank for default values.
+def wait_signals(identity_regex: str, *signals):
+    def handler(sig, frame):
+        cmd = f'./bin/docker-compose exec mongo mongo main --eval "db.devices.deleteMany({{ \\"identity.mac\\": {{ \\$regex: {identity_regex} }} }})"'
 
-When <tag> is '.', the agent will be built in the current Git state and named 'latest'.
+        proc = subprocess.Popen(cmd, cwd=SHELLHUB_PATH, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc.communicate()
+        if proc.returncode != 0:
+            print("Failed to delete agents")
+        else:
+            print("All agents was deleted")
 
-Usage:
-    $0 <tag> [-t <tenant_id>] [-s <server_address>] [-o <KEY=VALUE>]
-Examples:
-    $0 .
-    $0 v0.15.0
-    $0 v0.15.0 -t 00000000-0000-4000-0000-000000000000 -s http://127.0.0.1 -o "KEEPALIVE_INTERVAL=30 PREFERRED_HOSTNAME=127.0.0.2"
-EOF
-    exit 0
-}
+        print("\nExiting...")
+        sys.exit(0)
 
-if [ "$#" -eq 0 ]; then
-    usage
-fi
+    for sig in signals:
+        signal.signal(sig, handler)
 
-. "$(dirname "$0")/utils"
+    signal.pause()
 
-tag="$1"
-shift
 
-tenant_id="00000000-0000-4000-0000-000000000000"
-server_address="http://127.0.0.1"
-additional_env=""
+def parse_options(options: str) -> typing.Dict[str, str]:
+    dict = {}
+    if str:
+        for option in options.split():
+            key, val = option.split('=')
+            dict[key] = val
 
-# Processa as flags usando getopts
-while [ "$#" -gt 0 ]; do
-    case "$1" in
-        -t)
-            tenant_id="$2"
-            shift 2
-            ;;
-        -s)
-            server_address="$2"
-            shift 2
-            ;;
-        -o)
-            additional_env="$2"
-            shift 2
-            ;;
-        --help)
-            usage
-            ;;
-        *)
-            echo "Invalid option: $1"
-            usage
-            ;;
-    esac
-done
+    return dict
 
-if [ "$tag" = "." ]; then
-    tag="latest"
-fi
 
-echo "Tenant ID: $tenant_id"
-echo "Server Address: $server_address"
-echo "Additional Environment Variables: $additional_env"
+SHELLHUB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+AGENT_PATH = os.path.join(SHELLHUB_PATH, "agent")
+BIN_PATH = os.path.join(os.path.join(SHELLHUB_PATH, "bin"), "agent")
+if not os.path.exists(BIN_PATH): os.makedirs(BIN_PATH)
 
-if [ ! -d ./bin/agent ]; then
-    mkdir -p ./bin/agent
-fi
+def build_agent(version: str) -> int:
+    cmd = ""
+    match version:
+        case "latest":
+            cmd = f"go build -ldflags \"-X main.AgentVersion={version}\" -o \"{BIN_PATH}/{version}\""
+        case _:
+            cmd = f"git checkout {version} && go build -ldflags \"-X main.AgentVersion={version}\" -o \"{BIN_PATH}/{version}\"" 
 
-if [ "$tag" = "latest" ]; then
-    cd ./agent
-    go build -ldflags "-X main.AgentVersion=$tag" -o "./../bin/agent/$tag"
-    cd ./..
-elif [ ! -f ./bin/agent/$tag ]; then
-    check_bin "git"
+    proc = subprocess.Popen(cmd, cwd=AGENT_PATH, shell=True)
+    proc.communicate()
 
-    echo "No '$tag' agent found. Building one."
+    return proc.returncode
 
-    branch=$(git symbolic-ref --short HEAD)
 
-    (
-        git checkout $tag
+def has_agent_binary(version: str) -> bool:
+    BIN_PATH = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "bin"), "agent")
 
-        cd ./agent
-        go build -ldflags "-X main.AgentVersion=${tag:1}" -o "./../bin/agent/$tag" # Remove the 'v' from the beginning of the tag.
-        cd ./..
+    return os.path.exists(f"{BIN_PATH}/{version}")
 
-        git switch $branch
-    )
-fi
 
-sudo -E TENANT_ID=$tenant_id SERVER_ADDRESS=$server_address $additional_env PRIVATE_KEY=/tmp/test.pk ./bin/agent/$tag
+def run_agent(version: str, tenant_id: str, server_address: str, options: typing.Dict[str, str], private_key: str = "sh-device.pk", quiet: bool = False):
+    agent_bin = os.path.join(BIN_PATH, version)
+
+    if not os.path.exists(agent_bin):
+        print(f"Agent binary '{version}' not found in '{BIN_PATH}'.")
+        sys.exit(1)
+
+    cmd = f"TENANT_ID={tenant_id} SERVER_ADDRESS={server_address} PRIVATE_KEY={private_key}"
+    for key, value in options.items(): cmd += f" {key}={value}"
+    cmd += f" sudo -E {agent_bin}"
+
+    try:
+        if quiet:
+            subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
+            subprocess.run(cmd, shell=True, check=True)
+    except Exception as e:
+        print(f"Error running agent '{version}': {e}")
+        sys.exit(1)
+
+
+def accept_agent(identity_regex: str) -> int:
+    cmd = f'./bin/docker-compose exec mongo mongo main --eval "db.devices.updateMany({{ \\"identity.mac\\": {{ \\$regex: {identity_regex} }} }}, {{ \\"\\$set\\": {{ \\"status\\": \\"accepted\\" }} }})"'
+
+    proc = subprocess.Popen(cmd, cwd=SHELLHUB_PATH, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proc.communicate()
+
+    return proc.returncode
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Runs N instances of native agents with the version.")
+    parser.add_argument("version", type=str, help="Agent version (git tag) to use. Use '.' for the current agent's state.")
+    parser.add_argument("-i", "--instances", type=int, default=1, help="Number of agents to run, it creates a unique 'PREFERRED_IDENTITY' for each instance. Default to 1.")
+    parser.add_argument("-t", "--tenant-id", type=str, required=False, default="00000000-0000-4000-0000-000000000000")
+    parser.add_argument("-s", "--server-address", type=str, required=False, default="http://127.0.0.1")
+    parser.add_argument("-o", "--options", type=str, required=False, default="", help="Additional options in 'KEY=VAL KEY=VAL' format.")
+
+    args = parser.parse_args()
+
+    if args.version == ".":
+        if build_agent("latest") != 0:
+            print(f"Fail to compile the agent")
+            sys.exit(1)
+        args.version = "latest"
+    elif not has_agent_binary(args.version) and build_agent(args.version) != 0:
+        print(f"Fail to compile the agent")
+        sys.exit(1)
+
+    if args.instances == 1:
+        run_agent(args.version, args.tenant_id, args.server_address, parse_options(args.options), quiet=False)
+    else:
+        for i in range(1, args.instances + 1):
+            opts = parse_options(args.options)
+            opts["PREFERRED_IDENTITY"] = f"[run-agent]device.{i}"
+
+            run_agent(args.version, args.tenant_id, args.server_address, opts, private_key=f"/tmp/sh-device.{i}.pk", quiet=True)
+
+        match accept_agent("/^\\[run-agent]/"):
+            case 0:
+                print("All agents was accepted")
+            case _:
+                print("Failed to accept the agents")
+
+        wait_signals("/^\\[run-agent]/", signal.SIGINT, signal.SIGTERM)
