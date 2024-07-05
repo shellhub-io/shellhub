@@ -307,6 +307,10 @@ func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname strin
 		return store.ErrNoDocuments
 	}
 
+	if err := s.cache.Delete(ctx, "auth_device_data/"+string(uid)); err != nil {
+		logrus.Error(err)
+	}
+
 	return nil
 }
 

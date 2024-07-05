@@ -63,6 +63,20 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
+	// NOTE: If we receive the same auth request, with the same data, we return the already processed response, as the
+	// token doesn't expire.
+	var cached *models.DeviceAuthResponse
+	if err := s.cache.Get(ctx, "auth_device_data/"+req.Info.ID, &cached); err == nil && cached != nil {
+		log.WithFields(
+			log.Fields{
+				"device_id": req.Info.ID,
+				"tenant_id": req.TenantID,
+			},
+		).Info("returning cached auth response")
+
+		return cached, nil
+	}
+
 	var identity *models.DeviceIdentity
 	if req.Identity != nil {
 		identity = &models.DeviceIdentity{
@@ -164,12 +178,18 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		return nil, err
 	}
 
-	return &models.DeviceAuthResponse{
+	data := &models.DeviceAuthResponse{
 		UID:       key,
 		Token:     token,
 		Name:      dev.Name,
 		Namespace: namespace.Name,
-	}, nil
+	}
+
+	if err := s.cache.Set(ctx, "auth_device_data/"+req.Info.ID, data, 1*time.Hour); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, string, error) {

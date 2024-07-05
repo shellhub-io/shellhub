@@ -14,7 +14,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -25,6 +24,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
+	gomock "github.com/stretchr/testify/mock"
 	testifymock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/undefinedlabs/go-mpatch"
@@ -101,7 +101,11 @@ func TestAuthDevice(t *testing.T) {
 			Longitude: 0,
 		}, nil).Once()
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, locator)
+	cache := new(mockcache.Cache)
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cache, clientMock, locator)
+
+	cache.On("Get", ctx, gomock.Anything, gomock.Anything).Return(errors.New("", "", 0))
+	cache.On("Set", ctx, gomock.Anything, gomock.Anything, gomock.Anything).Return(nil)
 
 	authRes, err := service.AuthDevice(ctx, authReq, "127.0.0.1")
 	assert.NoError(t, err)
@@ -1167,7 +1171,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
-							ExpiresIn: time.Date(2000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+							ExpiresIn: time.Date(2000, 0o1, 0o1, 12, 0, 0, 0, time.UTC).Unix(),
 						},
 						nil,
 					).
@@ -1193,20 +1197,20 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
-							ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0, 0, 0, time.UTC).Unix(),
 						},
 						nil,
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix()}, 2*time.Minute).
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0, 0, 0, time.UTC).Unix()}, 2*time.Minute).
 					Return(nil).
 					Once()
 			},
 			expected: Expected{
 				apiKey: &models.APIKey{
 					Name:      "dev",
-					ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0, 0, 0, time.UTC).Unix(),
 				},
 				err: nil,
 			},
