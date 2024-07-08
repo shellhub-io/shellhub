@@ -13,6 +13,7 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
+	dockerimage "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -198,7 +199,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 
 	netConfig := &network.NetworkingConfig{EndpointsConfig: container.info.NetworkSettings.Networks}
 
-	rd, err := d.api.ImagePull(ctx, image, types.ImagePullOptions{})
+	rd, err := d.api.ImagePull(ctx, image, dockerimage.PullOptions{})
 	if err != nil {
 		return nil, err
 	}

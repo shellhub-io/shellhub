@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/mongotest"
-	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 )
 
@@ -50,7 +49,7 @@ func (srv *Server) configure(ctx context.Context) error {
 func (srv *Server) Up(ctx context.Context) error {
 	var err error
 
-	srv.tContainer, err = mongodb.RunContainer(ctx, testcontainers.WithImage("mongo:4.4.8"), mongodb.WithReplicaSet())
+	srv.tContainer, err = mongodb.Run(ctx, "mongo:4.4.8", mongodb.WithReplicaSet("rs"))
 	if err != nil {
 		return err
 	}

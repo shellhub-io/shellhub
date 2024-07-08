@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	dockerclient "github.com/docker/docker/client"
@@ -90,7 +89,7 @@ func NewDockerConnector(server string, tenant string, privateKey string) (Connec
 
 // events returns the docker events.
 func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-chan error) {
-	return d.cli.Events(ctx, types.EventsOptions{})
+	return d.cli.Events(ctx, events.ListOptions{})
 }
 
 func (d *DockerConnector) List(ctx context.Context) ([]Container, error) {
