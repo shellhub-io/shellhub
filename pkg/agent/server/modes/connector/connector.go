@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
+	dockercontainer "github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/process"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
@@ -35,7 +36,7 @@ func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestT
 		user.Shell = "/bin/sh"
 	}
 
-	id, err := cli.ContainerExecCreate(ctx, container, types.ExecConfig{
+	id, err := cli.ContainerExecCreate(ctx, container, dockercontainer.ExecOptions{
 		User:         user.Username,
 		Tty:          isPty,
 		ConsoleSize:  &size,
@@ -65,7 +66,7 @@ func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestT
 		return nil, "", err
 	}
 
-	res, err := cli.ContainerExecAttach(ctx, id.ID, types.ExecStartCheck{
+	res, err := cli.ContainerExecAttach(ctx, id.ID, dockercontainer.ExecStartOptions{
 		Tty:         isPty,
 		ConsoleSize: &size,
 	})

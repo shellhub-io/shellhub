@@ -217,8 +217,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/testcontainers/testcontainers-go v0.32.0 h1:ug1aK08L3gCHdhknlTTwWjPHPS+/alvLJU/DRxTD/ME=
 github.com/testcontainers/testcontainers-go v0.32.0/go.mod h1:CRHrzHLQhlXUsa5gXjTOfqIEJcrK5+xMDmBr/WMI88E=
-github.com/testcontainers/testcontainers-go/modules/mongodb v0.31.0 h1:0ZAEX50NNK/TVRqDls4aQUmokRcYzstKzmF3DCfFK+Y=
-github.com/testcontainers/testcontainers-go/modules/mongodb v0.31.0/go.mod h1:n5KbYAdzD8xJrNVGdPvSacJtwZ4D0Q/byTMI5vR/dk8=
+github.com/testcontainers/testcontainers-go/modules/mongodb v0.32.0 h1:DvmvHV1irfNIVBhixeTAcoaWCvmdkoNQxRmZisqic4E=
+github.com/testcontainers/testcontainers-go/modules/mongodb v0.32.0/go.mod h1:z0ZvM2V2iThZGrzEN6sddJpvnGhJd6O1O0FTFoZXmpk=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/tklauser/go-sysconf v0.3.13 h1:GBUpcahXSpR2xN01jhkNAbTLRk2Yzgggk8IM08lq3r4=
 github.com/tklauser/go-sysconf v0.3.13/go.mod h1:zwleP4Q4OehZHGn4CYZDipCgg9usW5IJePewFCGVEa0=
