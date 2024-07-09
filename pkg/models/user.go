@@ -171,3 +171,10 @@ func (c *UserConflicts) Distinct(user *User) {
 		c.Username = ""
 	}
 }
+
+type UserInfo struct {
+	// OwnedNamespaces are the namespaces where the user is the owner.
+	OwnedNamespaces []Namespace
+	// AssociatedNamespaces are the namespaces where the user is a member.
+	AssociatedNamespaces []Namespace
+}

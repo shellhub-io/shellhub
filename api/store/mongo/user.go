@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
@@ -252,34 +251,27 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error) {
-	findOptions := options.Find()
-
-	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"id": id}}}, findOptions)
+func (s *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, error) {
+	cursor, err := s.db.Collection("namespaces").Find(ctx, bson.M{"members": bson.M{"$elemMatch": bson.M{"id": id}}})
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
 	defer cursor.Close(ctx)
 
-	namespacesMap := make(map[string][]*models.Namespace, 2)
-	ownerNamespaceList := make([]*models.Namespace, 0)
-	membersNamespaceList := make([]*models.Namespace, 0)
+	userInfo := &models.UserInfo{}
 
 	for cursor.Next(ctx) {
-		namespace := new(models.Namespace)
-		if err := cursor.Decode(&namespace); err != nil {
+		ns := new(models.Namespace)
+		if err := cursor.Decode(ns); err != nil {
 			return nil, FromMongoError(err)
 		}
 
-		if namespace.Owner != id {
-			membersNamespaceList = append(membersNamespaceList, namespace)
+		if ns.Owner != id {
+			userInfo.OwnedNamespaces = append(userInfo.OwnedNamespaces, *ns)
 		} else {
-			ownerNamespaceList = append(ownerNamespaceList, namespace)
+			userInfo.AssociatedNamespaces = append(userInfo.AssociatedNamespaces, *ns)
 		}
 	}
 
-	namespacesMap["member"] = membersNamespaceList
-	namespacesMap["owner"] = ownerNamespaceList
-
-	return namespacesMap, nil
+	return userInfo, nil
 }

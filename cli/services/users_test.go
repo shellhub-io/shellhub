@@ -241,7 +241,7 @@ func TestUserDelete(t *testing.T) {
 					},
 				}
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
-				mock.On("UserDetachInfo", ctx, "507f191e810c19729de860ea").Return(nil, errors.New("error")).Once()
+				mock.On("UserGetInfo", ctx, "507f191e810c19729de860ea").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrNamespaceNotFound,
 		},
@@ -259,7 +259,7 @@ func TestUserDelete(t *testing.T) {
 				}
 				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
 
-				namespaceOwned := []*models.Namespace{
+				namespaceOwned := []models.Namespace{
 					{
 						Name:     "namespace1",
 						Owner:    "507f191e810c19729de860ea",
@@ -281,7 +281,7 @@ func TestUserDelete(t *testing.T) {
 						CreatedAt: clock.Now(),
 					},
 				}
-				namespaceMember := []*models.Namespace{
+				namespaceMember := []models.Namespace{
 					{
 						Name:     "namespace3",
 						Owner:    "507f191e810c19729de86000",
@@ -310,9 +310,9 @@ func TestUserDelete(t *testing.T) {
 					},
 				}
 
-				mock.On("UserDetachInfo", ctx, "507f191e810c19729de860ea").Return(map[string][]*models.Namespace{
-					"owner":  namespaceOwned,
-					"member": namespaceMember,
+				mock.On("UserGetInfo", ctx, "507f191e810c19729de860ea").Return(&models.UserInfo{
+					OwnedNamespaces:      namespaceOwned,
+					AssociatedNamespaces: namespaceMember,
 				}, nil)
 
 				for _, v := range namespaceOwned {

@@ -2068,36 +2068,6 @@ func (_m *Store) UserDelete(ctx context.Context, id string) error {
 	return r0
 }
 
-// UserDetachInfo provides a mock function with given fields: ctx, id
-func (_m *Store) UserDetachInfo(ctx context.Context, id string) (map[string][]*models.Namespace, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserDetachInfo")
-	}
-
-	var r0 map[string][]*models.Namespace
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (map[string][]*models.Namespace, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) map[string][]*models.Namespace); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]*models.Namespace)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UserGetByEmail provides a mock function with given fields: ctx, email
 func (_m *Store) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
 	ret := _m.Called(ctx, email)
@@ -2188,6 +2158,36 @@ func (_m *Store) UserGetByUsername(ctx context.Context, username string) (*model
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserGetInfo provides a mock function with given fields: ctx, id
+func (_m *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserGetInfo")
+	}
+
+	var r0 *models.UserInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.UserInfo, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserInfo); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
