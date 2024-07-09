@@ -60,7 +60,18 @@ exports[`Sessions View > Renders the component 1`] = `
         <!---->
       </div>
       <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-      <!--v-if-->
+      <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px;\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
+        <!---->
+        <div class=\\"v-progress-linear__background\\"></div>
+        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <div class=\\"v-progress-linear__indeterminate\\">
+            <div class=\\"v-progress-linear__indeterminate long\\"></div>
+            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+          </div>
+        </transition-stub>
+        <!---->
+      </div>
       <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
         <div data-v-046d4556=\\"\\">
           <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">

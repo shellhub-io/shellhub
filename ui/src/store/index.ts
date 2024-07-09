@@ -22,14 +22,16 @@ import { namespaces, NamespacesState } from "./modules/namespaces";
 import { billing } from "./modules/billing";
 import { customer, CustomerState } from "./modules/customer";
 import { announcement, AnnouncementState } from "./modules/announcement";
+import { connectors, ConnectorState } from "./modules/connectors";
 import apiPlugin from "./plugins/api";
 
 export interface State {
   auth: AuthState;
   apiKeys: ApiKeysState;
   billing: NamespacesState;
-  customer: CustomerState;
   box: BoxState;
+  customer: CustomerState;
+  connectors: ConnectorState;
   devices: DevicesState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
@@ -54,9 +56,10 @@ export const store = createStore<State>({
   modules: {
     auth,
     apiKeys,
-    customer,
     billing,
     box,
+    connectors,
+    customer,
     devices,
     firewallRules,
     layout,

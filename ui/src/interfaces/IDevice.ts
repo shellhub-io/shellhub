@@ -56,6 +56,7 @@ export interface FetchDevicesParams {
   status?: "accepted" | "pending" | "rejected";
   sortStatusField: string;
   sortStatusString: string;
+  committable: boolean;
 }
 export interface IDeviceMethods {
     fetchDevices: (params: FetchDevicesParams) => Promise<void>;

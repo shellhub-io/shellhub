@@ -7,10 +7,8 @@
     </v-tabs>
     <v-divider />
   </v-card>
+
   <v-card>
     <router-view />
   </v-card>
 </template>
-
-<script setup lang="ts">
-</script>

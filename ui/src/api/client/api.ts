@@ -422,6 +422,709 @@ export interface ClsoeSessionRequest {
 /**
  * 
  * @export
+ * @interface Connector
+ */
+export interface Connector {
+    /**
+     * Connector\'s UID
+     * @type {string}
+     * @memberof Connector
+     */
+    'uid'?: string;
+    /**
+     * Namespace\'s tenant ID
+     * @type {string}
+     * @memberof Connector
+     */
+    'tenant_id'?: string;
+    /**
+     * Connector\'s connection is enabled.
+     * @type {boolean}
+     * @memberof Connector
+     */
+    'enable'?: boolean;
+    /**
+     * Address to the Container Engine.
+     * @type {string}
+     * @memberof Connector
+     */
+    'address'?: string;
+    /**
+     * Port to the Container Engine.
+     * @type {number}
+     * @memberof Connector
+     */
+    'port'?: number;
+    /**
+     * onnector\'s connection is using HTTPS for authentication.
+     * @type {boolean}
+     * @memberof Connector
+     */
+    'secure'?: boolean;
+    /**
+     * 
+     * @type {ConnectorStatus}
+     * @memberof Connector
+     */
+    'status'?: ConnectorStatus;
+    /**
+     * 
+     * @type {ConnectorTLS}
+     * @memberof Connector
+     */
+    'tls'?: ConnectorTLS;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorData
+ */
+export interface ConnectorData {
+    /**
+     * Connector\'s connection is enabled.
+     * @type {boolean}
+     * @memberof ConnectorData
+     */
+    'enable'?: boolean;
+    /**
+     * Address to the Container Engine.
+     * @type {string}
+     * @memberof ConnectorData
+     */
+    'address'?: string;
+    /**
+     * Port to the Container Engine.
+     * @type {number}
+     * @memberof ConnectorData
+     */
+    'port'?: number;
+    /**
+     * onnector\'s connection is using HTTPS for authentication.
+     * @type {boolean}
+     * @memberof ConnectorData
+     */
+    'secure'?: boolean;
+    /**
+     * 
+     * @type {ConnectorTLS}
+     * @memberof ConnectorData
+     */
+    'tls'?: ConnectorTLS;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200Response
+ */
+export interface ConnectorInfo200Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'ID'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'Containers'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'ContainersRunning'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'ContainersPaused'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'ContainersStopped'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'Images'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'Driver'?: string;
+    /**
+     * 
+     * @type {Array<Array<string>>}
+     * @memberof ConnectorInfo200Response
+     */
+    'DriverStatus'?: Array<Array<string>>;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponsePlugins}
+     * @memberof ConnectorInfo200Response
+     */
+    'Plugins'?: ConnectorInfo200ResponsePlugins;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'MemoryLimit'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'SwapLimit'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'CpuCfsPeriod'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'CpuCfsQuota'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'CPUShares'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'CPUSet'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'PidsLimit'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'IPv4Forwarding'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'BridgeNfIptables'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'BridgeNfIp6tables'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'Debug'?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'NFd'?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'OomKillDisable'?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'NGoroutines'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'SystemTime'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'LoggingDriver'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'CgroupDriver'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'CgroupVersion'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'NEventsListener'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'KernelVersion'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'OperatingSystem'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'OSVersion'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'OSType'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'Architecture'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'IndexServerAddress'?: string;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseRegistryConfig}
+     * @memberof ConnectorInfo200Response
+     */
+    'RegistryConfig'?: ConnectorInfo200ResponseRegistryConfig;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'NCPU'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectorInfo200Response
+     */
+    'MemTotal'?: number;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200Response
+     */
+    'GenericResources'?: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'DockerRootDir'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'HttpProxy'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'HttpsProxy'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'NoProxy'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'Name'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200Response
+     */
+    'Labels'?: Array<string>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'ExperimentalBuild'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'ServerVersion'?: string;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseRuntimes}
+     * @memberof ConnectorInfo200Response
+     */
+    'Runtimes'?: ConnectorInfo200ResponseRuntimes;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'DefaultRuntime'?: string;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseSwarm}
+     * @memberof ConnectorInfo200Response
+     */
+    'Swarm'?: ConnectorInfo200ResponseSwarm;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200Response
+     */
+    'LiveRestoreEnabled'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'Isolation'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200Response
+     */
+    'InitBinary'?: string;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseContainerdCommit}
+     * @memberof ConnectorInfo200Response
+     */
+    'ContainerdCommit'?: ConnectorInfo200ResponseContainerdCommit;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseContainerdCommit}
+     * @memberof ConnectorInfo200Response
+     */
+    'RuncCommit'?: ConnectorInfo200ResponseContainerdCommit;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseContainerdCommit}
+     * @memberof ConnectorInfo200Response
+     */
+    'InitCommit'?: ConnectorInfo200ResponseContainerdCommit;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200Response
+     */
+    'SecurityOptions'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200Response
+     */
+    'CDISpecDirs'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200Response
+     */
+    'Warnings'?: Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseContainerdCommit
+ */
+export interface ConnectorInfo200ResponseContainerdCommit {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseContainerdCommit
+     */
+    'ID'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseContainerdCommit
+     */
+    'Expected'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponsePlugins
+ */
+export interface ConnectorInfo200ResponsePlugins {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponsePlugins
+     */
+    'Volume'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponsePlugins
+     */
+    'Network'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponsePlugins
+     */
+    'Authorization'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponsePlugins
+     */
+    'Log'?: Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseRegistryConfig
+ */
+export interface ConnectorInfo200ResponseRegistryConfig {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponseRegistryConfig
+     */
+    'AllowNondistributableArtifactsCIDRs'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponseRegistryConfig
+     */
+    'AllowNondistributableArtifactsHostnames'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponseRegistryConfig
+     */
+    'InsecureRegistryCIDRs'?: Array<string>;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseRegistryConfigIndexConfigs}
+     * @memberof ConnectorInfo200ResponseRegistryConfig
+     */
+    'IndexConfigs'?: ConnectorInfo200ResponseRegistryConfigIndexConfigs;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponseRegistryConfig
+     */
+    'Mirrors'?: Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseRegistryConfigIndexConfigs
+ */
+export interface ConnectorInfo200ResponseRegistryConfigIndexConfigs {
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo}
+     * @memberof ConnectorInfo200ResponseRegistryConfigIndexConfigs
+     */
+    'docker.io'?: ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo
+ */
+export interface ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo
+     */
+    'Name'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo
+     */
+    'Mirrors'?: Array<string>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo
+     */
+    'Secure'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo
+     */
+    'Official'?: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseRuntimes
+ */
+export interface ConnectorInfo200ResponseRuntimes {
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseRuntimesIoContainerdRuncV2}
+     * @memberof ConnectorInfo200ResponseRuntimes
+     */
+    'io.containerd.runc.v2'?: ConnectorInfo200ResponseRuntimesIoContainerdRuncV2;
+    /**
+     * 
+     * @type {ConnectorInfo200ResponseRuntimesIoContainerdRuncV2}
+     * @memberof ConnectorInfo200ResponseRuntimes
+     */
+    'runc'?: ConnectorInfo200ResponseRuntimesIoContainerdRuncV2;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseRuntimesIoContainerdRuncV2
+ */
+export interface ConnectorInfo200ResponseRuntimesIoContainerdRuncV2 {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseRuntimesIoContainerdRuncV2
+     */
+    'path'?: string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof ConnectorInfo200ResponseRuntimesIoContainerdRuncV2
+     */
+    'status'?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorInfo200ResponseSwarm
+ */
+export interface ConnectorInfo200ResponseSwarm {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseSwarm
+     */
+    'NodeID'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseSwarm
+     */
+    'NodeAddr'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseSwarm
+     */
+    'LocalNodeState'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectorInfo200ResponseSwarm
+     */
+    'ControlAvailable'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectorInfo200ResponseSwarm
+     */
+    'Error'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ConnectorInfo200ResponseSwarm
+     */
+    'RemoteManagers'?: Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorStatus
+ */
+export interface ConnectorStatus {
+    /**
+     * Connector\'s connetion state type.
+     * @type {boolean}
+     * @memberof ConnectorStatus
+     */
+    'State'?: boolean;
+    /**
+     * Connector\'s connetion status message.
+     * @type {string}
+     * @memberof ConnectorStatus
+     */
+    'Message'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ConnectorTLS
+ */
+export interface ConnectorTLS {
+    /**
+     * Certificate Authority used to generate the Cert for the server and the client.
+     * @type {string}
+     * @memberof ConnectorTLS
+     */
+    'ca': string;
+    /**
+     * Certificate generated from the CA certificate and used by the client to authorize the connection to the Docker Engine.
+     * @type {string}
+     * @memberof ConnectorTLS
+     */
+    'cert': string;
+    /**
+     * Private key for the certificate on the Cert field.
+     * @type {string}
+     * @memberof ConnectorTLS
+     */
+    'key': string;
+}
+/**
+ * 
+ * @export
  * @interface CreateDeviceTagRequest
  */
 export interface CreateDeviceTagRequest {
@@ -8332,6 +9035,253 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * Create a new connector.
+         * @summary Connector\'s create
+         * @param {ConnectorData} connectorData 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorCreate: async (connectorData: ConnectorData, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'connectorData' is not null or undefined
+            assertParamExists('connectorCreate', 'connectorData', connectorData)
+            const localVarPath = `/api/connector`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(connectorData, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes a connector.
+         * @summary Connector\'s delete
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorDelete: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('connectorDelete', 'uid', uid)
+            const localVarPath = `/api/connector/{uid}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Gets a connector.
+         * @summary Connector\'s get
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorGet: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('connectorGet', 'uid', uid)
+            const localVarPath = `/api/connector/{uid}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Gets the connector\'s connection docker info.
+         * @summary Connector\'s get Docker info
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorInfo: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('connectorInfo', 'uid', uid)
+            const localVarPath = `/api/connector/{uid}/info`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List connectors.
+         * @summary Connector\'s list
+         * @param {boolean} [enable] Enable status.
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorList: async (enable?: boolean, page?: number, perPage?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/connector`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (enable !== undefined) {
+                localVarQueryParameter['enable'] = enable;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Updates a connector settings.
+         * @summary Connector\'s setting update
+         * @param {string} uid Connector UID
+         * @param {ConnectorData} connectorData 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorUpdate: async (uid: string, connectorData: ConnectorData, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('connectorUpdate', 'uid', uid)
+            // verify required parameter 'connectorData' is not null or undefined
+            assertParamExists('connectorUpdate', 'connectorData', connectorData)
+            const localVarPath = `/api/connector/{uid}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(connectorData, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Create a namespace.
          * @summary Create namespace
          * @param {CreateNamespaceRequest} [createNamespaceRequest] 
@@ -8733,6 +9683,75 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Create a new connector.
+         * @summary Connector\'s create
+         * @param {ConnectorData} connectorData 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async connectorCreate(connectorData: ConnectorData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorCreate(connectorData, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Deletes a connector.
+         * @summary Connector\'s delete
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async connectorDelete(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorDelete(uid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Gets a connector.
+         * @summary Connector\'s get
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async connectorGet(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Connector>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorGet(uid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Gets the connector\'s connection docker info.
+         * @summary Connector\'s get Docker info
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async connectorInfo(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ConnectorInfo200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorInfo(uid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List connectors.
+         * @summary Connector\'s list
+         * @param {boolean} [enable] Enable status.
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async connectorList(enable?: boolean, page?: number, perPage?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Connector>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorList(enable, page, perPage, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Updates a connector settings.
+         * @summary Connector\'s setting update
+         * @param {string} uid Connector UID
+         * @param {ConnectorData} connectorData 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async connectorUpdate(uid: string, connectorData: ConnectorData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorUpdate(uid, connectorData, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Create a namespace.
          * @summary Create namespace
          * @param {CreateNamespaceRequest} [createNamespaceRequest] 
@@ -8890,6 +9909,69 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
          */
         apiKeyUpdate(key?: string, apiKeyUpdate?: ApiKeyUpdate, options?: any): AxiosPromise<void> {
             return localVarFp.apiKeyUpdate(key, apiKeyUpdate, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Create a new connector.
+         * @summary Connector\'s create
+         * @param {ConnectorData} connectorData 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorCreate(connectorData: ConnectorData, options?: any): AxiosPromise<void> {
+            return localVarFp.connectorCreate(connectorData, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes a connector.
+         * @summary Connector\'s delete
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorDelete(uid: string, options?: any): AxiosPromise<void> {
+            return localVarFp.connectorDelete(uid, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Gets a connector.
+         * @summary Connector\'s get
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorGet(uid: string, options?: any): AxiosPromise<Connector> {
+            return localVarFp.connectorGet(uid, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Gets the connector\'s connection docker info.
+         * @summary Connector\'s get Docker info
+         * @param {string} uid Connector UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorInfo(uid: string, options?: any): AxiosPromise<ConnectorInfo200Response> {
+            return localVarFp.connectorInfo(uid, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List connectors.
+         * @summary Connector\'s list
+         * @param {boolean} [enable] Enable status.
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorList(enable?: boolean, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Connector>> {
+            return localVarFp.connectorList(enable, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Updates a connector settings.
+         * @summary Connector\'s setting update
+         * @param {string} uid Connector UID
+         * @param {ConnectorData} connectorData 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        connectorUpdate(uid: string, connectorData: ConnectorData, options?: any): AxiosPromise<void> {
+            return localVarFp.connectorUpdate(uid, connectorData, options).then((request) => request(axios, basePath));
         },
         /**
          * Create a namespace.
@@ -9050,6 +10132,81 @@ export class NamespacesApi extends BaseAPI {
      */
     public apiKeyUpdate(key?: string, apiKeyUpdate?: ApiKeyUpdate, options?: AxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).apiKeyUpdate(key, apiKeyUpdate, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Create a new connector.
+     * @summary Connector\'s create
+     * @param {ConnectorData} connectorData 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public connectorCreate(connectorData: ConnectorData, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).connectorCreate(connectorData, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes a connector.
+     * @summary Connector\'s delete
+     * @param {string} uid Connector UID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public connectorDelete(uid: string, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).connectorDelete(uid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Gets a connector.
+     * @summary Connector\'s get
+     * @param {string} uid Connector UID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public connectorGet(uid: string, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).connectorGet(uid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Gets the connector\'s connection docker info.
+     * @summary Connector\'s get Docker info
+     * @param {string} uid Connector UID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public connectorInfo(uid: string, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).connectorInfo(uid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List connectors.
+     * @summary Connector\'s list
+     * @param {boolean} [enable] Enable status.
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public connectorList(enable?: boolean, page?: number, perPage?: number, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).connectorList(enable, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Updates a connector settings.
+     * @summary Connector\'s setting update
+     * @param {string} uid Connector UID
+     * @param {ConnectorData} connectorData 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public connectorUpdate(uid: string, connectorData: ConnectorData, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).connectorUpdate(uid, connectorData, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

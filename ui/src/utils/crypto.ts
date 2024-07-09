@@ -5,7 +5,7 @@ const createSignatureOfPrivateKey = (
   privateKeyData,
   username,
 ) => {
-  const key = NodeRSA(privateKeyData);
+  const key = new NodeRSA(privateKeyData);
   key.setOptions({ signingScheme: "pkcs1-sha1" });
   const signature = encodeURIComponent(key.sign(username, "base64"));
   return signature;
@@ -27,6 +27,12 @@ const parseKey = (key) => {
   return parsedKey;
 };
 
+const parseCertificate = (data) => {
+  const certBase64 = btoa(data);
+  const cert = sshpk.parseCertificate(Buffer.from(certBase64, "base64"), "pem");
+  return cert;
+};
+
 const convertKeyToFingerprint = (privateKey) => {
   const fingerprint = sshpk.parsePrivateKey(privateKey).fingerprint("md5");
   return fingerprint;
@@ -43,6 +49,7 @@ export default {
   createKeyFingerprint,
   parsePrivateKey,
   parseKey,
+  parseCertificate,
   convertKeyToFingerprint,
   createSignerAndUpdate,
 };

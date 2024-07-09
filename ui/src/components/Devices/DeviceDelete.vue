@@ -22,7 +22,7 @@
       <v-divider />
 
       <v-card-text class="mt-4 mb-0 pb-1" data-test="dialog-text">
-        <p class="text-body-2 mb-2">You are about to remove this device.</p>
+        <p class="text-body-2 mb-2">You are about to remove this {{ variant }}.</p>
 
         <p class="text-body-2 mb-2">
           After confirming this action cannot be redone.
@@ -71,6 +71,10 @@ const props = defineProps({
   notHasAuthorization: {
     type: Boolean,
     default: false,
+  },
+  variant: {
+    type: String,
+    required: true,
   },
 });
 const emit = defineEmits(["update"]);

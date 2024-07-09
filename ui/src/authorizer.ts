@@ -26,6 +26,10 @@ const {
   deviceRename,
   deviceChooser,
   deviceDetails,
+  //Connector,
+  connectorAdd,
+  connectorEdit,
+  connectorRemove,
   // Tag
   tagEdit,
   tagRemove,
@@ -71,6 +75,11 @@ export const actions: { [key: string]: any } = {
     rename: deviceRename,
     chooser: deviceChooser,
     details: deviceDetails,
+  },
+  connector: {
+   add: connectorAdd,
+   edit: connectorEdit,
+   remove: connectorRemove
   },
   tag: {
     edit: tagEdit,
@@ -128,6 +137,10 @@ export const authorizer : { [key: string]: any } = {
       actions.device.rename,
       actions.device.chooser,
       actions.device.details,
+      // Connectors
+      actions.connector.add,
+      actions.connector.remove,
+      actions.connector.edit,
       // Tag
       actions.tag.edit,
       actions.tag.remove,
@@ -171,6 +184,10 @@ export const authorizer : { [key: string]: any } = {
       actions.device.connect,
       actions.device.rename,
       actions.device.details,
+      // Connectors
+      actions.connector.add,
+      actions.connector.remove,
+      actions.connector.edit,
       // Tag
       actions.tag.edit,
       actions.tag.remove,

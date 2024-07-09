@@ -28,7 +28,7 @@
     <v-dialog max-width="450px" v-model="dialog" @click:outside="close" v-bind="$attrs" data-test="dialog">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-5 bg-primary">
-          Device {{ action }}
+          {{ capitalizeText(variant) }} {{ capitalizeText(action) }}
         </v-card-title>
         <v-divider />
         <v-container>
@@ -37,7 +37,7 @@
             type="warning"
             text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period." />
           <v-card-text class="mt-4 mb-0 pb-1">
-            <p class="mb-2"> Do you want to {{ action }} this device? </p>
+            <p class="mb-2"> Do you want to {{ action }} this {{ variant }}? </p>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
@@ -79,6 +79,10 @@ const props = defineProps({
     type: String as PropType<"accept" | "reject" | "remove">,
     required: true,
     default: "accept",
+  },
+  variant: {
+    type: String,
+    required: true,
   },
   show: {
     type: Boolean,

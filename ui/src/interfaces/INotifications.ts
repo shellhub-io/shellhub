@@ -37,7 +37,10 @@ export enum INotificationsSuccess {
   cancelSubscription = "cancelling subscription",
   cancelMfa = "disabling mfa",
   deleteKey = "deleting key",
-  editKey = "editing key"
+  editKey = "editing key",
+  connectorAdd = "adding a connector",
+  connectorDelete = "deleting a connector",
+  connectorEdit = "editing a connector",
 }
 
 export enum INotificationsError {
@@ -100,7 +103,12 @@ export enum INotificationsError {
   deleteKey = "deleting key",
   generateKey = "generating key",
   editKey = "editing key",
-  cancelMfa = "disabling mfa"
+  cancelMfa = "disabling mfa",
+  connectorAdd = "adding a connector",
+  connectorDelete = "deleting a connector",
+  connectorEdit = "editing a connector",
+  connectorLoad = "loading the connector list",
+  connectorDetail = "loading the connector details"
 }
 
 export enum INotificationsCopy {
@@ -108,5 +116,6 @@ export enum INotificationsCopy {
   deviceSSHID = "Device SSHID",
   recoveryCodes = "Recovery Codes",
   tenantId = "Tenant ID",
-  copyKey = "API Key"
+  copyKey = "API Key",
+  connector = "Connector host"
 }

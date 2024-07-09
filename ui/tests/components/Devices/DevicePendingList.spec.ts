@@ -114,6 +114,31 @@ const stats = {
   rejected_devices: 0,
 };
 
+const filter = btoa(JSON.stringify([
+  {
+    type: "property",
+    params: {
+      name: "info.platform",
+      operator: "eq",
+      value: "native",
+    },
+  },
+  {
+    type: "property",
+    params: {
+      name: "info.platform",
+      operator: "eq",
+      value: "docker",
+    },
+  },
+  {
+    type: "operator",
+    params: {
+      name: "or",
+    },
+  },
+]));
+
 describe("Device Pending List", () => {
   let wrapper: VueWrapper<InstanceType<typeof DevicePendingList>>;
 
@@ -135,7 +160,8 @@ describe("Device Pending List", () => {
     mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
     mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
     mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=pending").reply(200, devices);
+    // eslint-disable-next-line vue/max-len
+    mockDevices.onGet(`http://localhost:3000/api/devices?filter=${filter.slice(0, -1)}%3D&page=1&per_page=10&status=pending`).reply(200, devices);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
 
     store.commit("auth/authSuccess", authData);

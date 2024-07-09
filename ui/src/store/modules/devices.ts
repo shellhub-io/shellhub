@@ -64,8 +64,14 @@ export const devices: Module<DevicesState, State> = {
   },
 
   mutations: {
-    setDevices: (state, res) => {
-      state.devices = res.data;
+    setDevices: (state, res, committable = true) => {
+      if (committable) {
+        state.devices = res.data;
+      }
+      state.numberDevices = parseInt(res.headers["x-total-count"], 10);
+    },
+
+    setTotalCount: (state, res) => {
       state.numberDevices = parseInt(res.headers["x-total-count"], 10);
     },
 
@@ -156,7 +162,7 @@ export const devices: Module<DevicesState, State> = {
           data.sortStatusString,
         );
         if (res.data.length) {
-          commit("setDevices", res);
+          commit("setDevices", res, data.commitable);
           commit("setPagePerpageFilter", data);
           return res;
         }
