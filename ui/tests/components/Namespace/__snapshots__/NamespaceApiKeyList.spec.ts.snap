@@ -17,9 +17,9 @@ exports[`Namespace Api Key List > Renders the component 1`] = `
           </thead>
           <tbody data-v-046d4556=\\"\\">
             <tr>
-              <td class=\\"\\"><i class=\\"mdi-key-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\"></i> aaaa2</td>
-              <td class=\\"text-center\\" data-test=\\"key-name\\">administrator</td>
-              <td class=\\"text-center\\" data-test=\\"key-name\\">Expires on Jul 7 2024.</td>
+              <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\"></i> aaaa2</td>
+              <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">administrator</td>
+              <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Jul 7 2024.</td>
               <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
@@ -31,9 +31,9 @@ exports[`Namespace Api Key List > Renders the component 1`] = `
               </td>
             </tr>
             <tr>
-              <td class=\\"\\"><i class=\\"mdi-key-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\"></i> aaaa2</td>
-              <td class=\\"text-center\\" data-test=\\"key-name\\">administrator</td>
-              <td class=\\"text-center\\" data-test=\\"key-name\\">Expires on Jul 7 2024.</td>
+              <td class=\\"text-warning\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\"></i> aaaa2</td>
+              <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">administrator</td>
+              <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Jul 7 2024.</td>
               <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-8\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                 <!---->
                 <!---->
