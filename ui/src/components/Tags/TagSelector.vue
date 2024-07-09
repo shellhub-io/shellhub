@@ -10,15 +10,19 @@
           :value="selectedTags.length"
         >
           <v-btn
-            v-bind="props"
-            data-test="tags-btn"
-            color="primary"
-            variant="outlined"
-            :disabled="getListTags.length == 0"
-            @click="getTags"
+              v-bind="props"
+              data-test="tags-btn"
+              color="primary"
+              icon="mdi-tag"
+              variant="outlined"
+              slim
+              density="comfortable"
+              flat
+              tile
+              rounded
+              :disabled="getListTags.length == 0"
+              @click="getTags"
           >
-            Tags
-            <v-icon right> mdi-chevron-down </v-icon>
           </v-btn>
         </v-badge>
       </template>
@@ -29,6 +33,7 @@
 
             <v-list-item
               v-else
+              density="compact"
               :key="`item-${i}`"
               :value="item"
               active-color="primary"

@@ -8,19 +8,19 @@
       <v-text-field
         v-if="hasDevice"
         label="Search by hostname"
-        variant="underlined"
+        variant="outlined"
         color="primary"
         single-line
         hide-details
         v-model.trim="filter"
         v-on:keyup="searchDevices"
         append-inner-icon="mdi-magnify"
-        density="comfortable"
+        density="compact"
         data-test="search-text"
       />
     </v-col>
 
-    <div class="d-flex mt-4" data-test="device-header-component-group">
+    <div class="d-flex" data-test="device-header-component-group">
       <TagSelector v-if="isDeviceList" />
       <DeviceAdd />
     </div>

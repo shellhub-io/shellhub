@@ -5,7 +5,7 @@
   >
     <h1>Sessions</h1>
   </div>
-  <div>
+  <v-card variant="flat" class="border bg-v-theme-surface">
     <SessionList v-if="hasSession" data-test="sessions-list" />
 
     <BoxMessage
@@ -13,7 +13,7 @@
       typeMessage="session"
       data-test="BoxMessageSession-component"
     />
-  </div>
+  </v-card>
 </template>
 
 <script setup lang="ts">

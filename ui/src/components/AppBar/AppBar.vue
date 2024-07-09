@@ -2,13 +2,20 @@
   <v-app-bar
     flat
     floating
-    class="bg-background"
+    class="bg-background border-b bg-v-theme-surface"
   >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"
       @click.stop="showNavigationDrawer = !showNavigationDrawer"
       aria-label="Toggle Menu"
     />
+    <v-icon icon="mdi-server-network" class="ml-4"></v-icon>
+
+    <v-breadcrumbs :items="['dev', 'Devices']">
+      <template v-slot:divider>
+        <v-icon icon="mdi-chevron-right"></v-icon>
+      </template>
+    </v-breadcrumbs>
 
     <v-spacer />
 

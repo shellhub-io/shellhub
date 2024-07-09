@@ -1,12 +1,10 @@
 <template>
-  <div>
     <DeviceTable
       header="primary"
       status="accepted"
       :storeMethods="storeMethods"
       data-test="device-table"
     />
-  </div>
 </template>
 
 <script setup lang="ts">

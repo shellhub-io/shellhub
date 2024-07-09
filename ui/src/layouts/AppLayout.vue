@@ -27,12 +27,15 @@
             />
           </div>
         </router-link>
-        <v-divider class="ma-2" />
       </v-app-bar-title>
 
-      <div class="pa-2">
+      <div class="pa-4">
+        <NamespaceAdd>
+          <template #activator="{ props: activatorProps }">
+            <v-btn v-bind="activatorProps" color="primary" block>Abre-te, sésamo</v-btn>
+          </template>
+        </NamespaceAdd>
         <Namespace data-test="namespace-component" />
-        <v-divider class="ma-2" />
       </div>
 
       <v-list class="bg-v-theme-surface" data-test="list">
@@ -57,10 +60,9 @@
             </v-list-item-title>
           </div>
         </v-list-item>
-        <v-col class="d-flex align-end justify-center">
+        <v-list-item>
           <NewConnection />
-        </v-col>
-
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
 
@@ -75,6 +77,16 @@
           fluid
           data-test="container"
         >
+          <v-navigation-drawer
+              class="bg-v-theme-surface elevation-21 v-btn--elevated border-2"
+              permanent>
+            <v-list density="default" class="pt-0">
+              <v-list-item title="Profile" value="home"/>
+              <v-list-item title="Namespace" value="contacts"></v-list-item>
+              <v-list-item title="Private Keys" value="settings"></v-list-item>
+              <v-list-item title="Tags" value="settings"></v-list-item>
+            </v-list>
+          </v-navigation-drawer>
           <router-view :key="currentRoute.value.path" />
         </v-container>
       </slot>
@@ -110,6 +122,7 @@ import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import { envVariables } from "../envVariables";
 import NewConnection from "../components/NewConnection/NewConnection.vue";
+import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 
 const items = [
   {

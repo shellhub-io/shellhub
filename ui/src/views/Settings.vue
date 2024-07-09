@@ -1,20 +1,5 @@
 <template>
-  <v-card class="bg-v-theme-surface" data-test="settings-card">
-    <v-tabs background-color="secondary" stacked color="primary" align-tabs="center">
-      <v-tab
-        v-for="item in visibleItems"
-        :key="item.title"
-        :to="item.path"
-        :data-test="item.title + '-tab'"
-      >
-        {{ item.title }}
-      </v-tab>
-    </v-tabs>
-
-    <v-divider />
-  </v-card>
-
-  <v-card class="bg-v-theme-surface">
+  <v-card class="bg-v-theme-surface flat border">
     <router-view />
   </v-card>
 </template>
