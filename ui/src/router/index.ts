@@ -7,6 +7,12 @@ const Devices = () => import("@/views/Devices.vue");
 const DeviceList = () => import("@/components/Devices/DeviceList.vue");
 const DevicePendingList = () => import("@/components/Devices/DevicePendingList.vue");
 const DeviceRejectedList = () => import("@/components/Devices/DeviceRejectedList.vue");
+const Containers = () => import("@/views/Containers.vue");
+const ContainerList = () => import("@/components/Containers/ContainerList.vue");
+const ContainerPendingList = () => import("@/components/Containers/ContainerPendingList.vue");
+const ContainerRejectedList = () => import("@/components/Containers/ContainerRejectedList.vue");
+const Connectors = () => import("@/views/Connectors.vue");
+const detailsConnectors = () => import("@/views/ConnectorDetails.vue");
 const DetailsDevice = () => import("@/views/DetailsDevice.vue");
 const Sessions = () => import("@/views/Sessions.vue");
 const DetailsSessions = () => import("@/views/DetailsSessions.vue");
@@ -165,6 +171,53 @@ export const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
+    path: "/containers",
+    name: "containers",
+    beforeEnter: (to, from, next) => {
+      if (!envVariables.isEnterprise && !envVariables.isCloud && envVariables.premiumPaywall) {
+        store.commit("users/setShowPaywall", true);
+      }
+      next();
+    },
+    component: Containers,
+    redirect: {
+      name: "listContainers",
+    },
+    children: [
+      {
+        path: "",
+        name: "listContainers",
+        component: ContainerList,
+      },
+      {
+        path: "pending",
+        name: "pendingContainers",
+        component: ContainerPendingList,
+      },
+      {
+        path: "rejected",
+        name: "rejectedContainers",
+        component: ContainerRejectedList,
+      },
+    ],
+  },
+  {
+    path: "/containers/connectors",
+    name: "connectors",
+    component: Connectors,
+    beforeEnter: (to, from, next) => {
+      if (!envVariables.isEnterprise && !envVariables.isCloud && envVariables.premiumPaywall) {
+        store.commit("users/setShowPaywall", true);
+      }
+      next();
+    },
+  },
+  {
+    path: "/containers/connectors/:id",
+    name: "detailsConnectors",
+    component: detailsConnectors,
+  },
+  {
     path: "/device/:id",
     name: "detailsDevice",
     component: DetailsDevice,
@@ -231,7 +284,7 @@ export const routes: Array<RouteRecordRaw> = [
           if (enabled) {
             next();
           } else {
-            next("/invalid");
+            next("/404");
           }
         },
         component: SettingBilling,

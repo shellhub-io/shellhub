@@ -104,7 +104,6 @@ onMounted(async () => {
 });
 
 onUnmounted(async () => {
-  await store.dispatch("devices/setFilter", null);
+  await store.dispatch("devices/setFilter", "");
 });
-
 </script>

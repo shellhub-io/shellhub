@@ -1,5 +1,5 @@
 <template>
-  <v-card class="bg-v-theme-surface mx-auto py-6 border">
+  <v-card :loading="loading" class="bg-v-theme-surface mx-auto py-6 border">
     <v-card-title class="text-center d-flex justify-center pa-5">
       <div>
         <v-icon size="x-large" data-test="boxMessage-icon">
@@ -15,30 +15,15 @@
     </v-card-title>
 
     <div class="d-flex justify-center flex-column">
-      <v-list-item
-        v-for="(item, i) in text()"
-        :key="i"
-        class="text-center listText mg-fix"
-      >
-        <div
-          :data-test="i + '-boxMessage-text'"
-          v-text="item"
-        />
+      <v-list-item v-for="(item, i) in text()" :key="i" class="text-center listText mg-fix">
+        <div :data-test="i + '-boxMessage-text'" v-text="item" />
       </v-list-item>
     </div>
 
     <div class="d-flex justify-center flex-column">
       <!-- eslint-disable vue/no-v-html -->
-      <v-list-item
-        v-for="(item, index) in textWithLink()"
-        :key="index"
-        class="text-center listText mg-fix mt-n3"
-      >
-        <div
-          class="justify-center"
-          :data-test="index + '-boxMessage-text'"
-          v-html="item"
-        />
+      <v-list-item v-for="(item, index) in textWithLink()" :key="index" class="text-center listText mg-fix mt-n3">
+        <div class="justify-center" :data-test="index + '-boxMessage-text'" v-html="item" />
       </v-list-item>
       <!-- eslint-enable vue/no-v-html-->
     </div>
@@ -53,12 +38,16 @@
       <span v-else-if="typeMessage == 'publicKey'">
         <PublicKeyAdd @update="refreshPublicKey" />
       </span>
+
+      <div v-else-if="typeMessage == 'container'">
+        <slot name="container" />
+      </div>
     </v-card-actions>
   </v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useStore } from "../../store";
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 import FirewallRuleAdd from "../firewall/FirewallRuleAdd.vue";
@@ -108,6 +97,16 @@ const items = {
     ],
     textWithLink: [],
   },
+  container: {
+    icon: "mdi-server",
+    title: "Containers",
+    text: [
+      "In order to register a container on ShellHub, you need to configure a Docker Connector.",
+      `To view and connect to your containers in ShellHub, please add a Docker Engine connector.
+       This will allow you to connect to your Docker Engine and see all your containers here`,
+    ],
+    textWithLink: [],
+  },
   publicKey: {
     icon: "mdi-key",
     title: "Public Keys",
@@ -119,117 +118,118 @@ const items = {
   },
 };
 
-export default defineComponent({
-  props: {
-    typeMessage: {
-      type: String,
-      default: "firewall",
-      validator: (value: string) => ["device", "session", "firewall", "publicKey"].includes(value),
-      required: true,
-    },
+const props = defineProps({
+  typeMessage: {
+    type: String,
+    default: "firewall",
+    validator: (value: string) => ["device", "session", "firewall", "publicKey"].includes(value),
+    required: true,
   },
-  setup(props) {
-    const icon = () => {
-      switch (props.typeMessage) {
-        case "session":
-          return items.session.icon;
-        case "firewall":
-          return items.firewall.icon;
-        case "publicKey":
-          return items.publicKey.icon;
-        case "device":
-          return items.device.icon;
-        default:
-          return null;
-      }
-    };
-    const title = () => {
-      switch (props.typeMessage) {
-        case "session":
-          return items.session.title;
-        case "firewall":
-          return items.firewall.title;
-        case "publicKey":
-          return items.publicKey.title;
-        case "device":
-          return items.device.title;
-        default:
-          return null;
-      }
-    };
-    const text = () => {
-      switch (props.typeMessage) {
-        case "session":
-          return items.session.text;
-        case "firewall":
-          return items.firewall.text;
-        case "publicKey":
-          return items.publicKey.text;
-        case "device":
-          return items.device.text;
-        default:
-          return null;
-      }
-    };
-    const textWithLink = () => {
-      switch (props.typeMessage) {
-        case "session":
-          return items.session.textWithLink;
-        case "firewall":
-          return items.firewall.textWithLink;
-        case "publicKey":
-          return items.publicKey.textWithLink;
-        case "device":
-          return items.device.textWithLink;
-        default:
-          return null;
-      }
-    };
-
-    const store = useStore();
-
-    const refreshFirewallRule = async () => {
-      try {
-        await store.dispatch("firewallRules/refresh");
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.firewallRuleList,
-        );
-        handleError(error);
-      }
-    };
-
-    const refreshPublicKey = async () => {
-      try {
-        await store.dispatch("publicKeys/refresh");
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.publicKeyList,
-        );
-        handleError(error);
-      }
-    };
-
-    return {
-      items,
-      icon,
-      title,
-      text,
-      textWithLink,
-      refreshFirewallRule,
-      refreshPublicKey,
-    };
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  components: { DeviceAdd, FirewallRuleAdd, PublicKeyAdd },
 });
+
+const loading = computed(() => props.loading);
+
+const icon = () => {
+  switch (props.typeMessage) {
+    case "session":
+      return items.session.icon;
+    case "firewall":
+      return items.firewall.icon;
+    case "publicKey":
+      return items.publicKey.icon;
+    case "device":
+      return items.device.icon;
+    case "container":
+      return items.container.icon;
+    default:
+      return null;
+  }
+};
+const title = () => {
+  switch (props.typeMessage) {
+    case "session":
+      return items.session.title;
+    case "firewall":
+      return items.firewall.title;
+    case "publicKey":
+      return items.publicKey.title;
+    case "device":
+      return items.device.title;
+    case "container":
+      return items.container.title;
+    default:
+      return null;
+  }
+};
+const text = () => {
+  switch (props.typeMessage) {
+    case "session":
+      return items.session.text;
+    case "firewall":
+      return items.firewall.text;
+    case "publicKey":
+      return items.publicKey.text;
+    case "device":
+      return items.device.text;
+    case "container":
+      return items.container.text;
+    default:
+      return null;
+  }
+};
+const textWithLink = () => {
+  switch (props.typeMessage) {
+    case "session":
+      return items.session.textWithLink;
+    case "firewall":
+      return items.firewall.textWithLink;
+    case "publicKey":
+      return items.publicKey.textWithLink;
+    case "device":
+      return items.device.textWithLink;
+    case "container":
+      return items.container.textWithLink;
+    default:
+      return null;
+  }
+};
+
+const store = useStore();
+
+const refreshFirewallRule = async () => {
+  try {
+    await store.dispatch("firewallRules/refresh");
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.firewallRuleList,
+    );
+    handleError(error);
+  }
+};
+
+const refreshPublicKey = async () => {
+  try {
+    await store.dispatch("publicKeys/refresh");
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.publicKeyList,
+    );
+    handleError(error);
+  }
+};
 </script>
 
 <style lang="scss">
 .listText {
   min-height: 0px !important;
 }
+
 .mg-fix {
   margin: 0 auto;
 }

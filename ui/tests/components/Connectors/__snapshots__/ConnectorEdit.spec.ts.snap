@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Connector Edit > Renders the component 1`] = `
+"<div class=\\"v-list-item v-list-item--link v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text\\" tabindex=\\"0\\" data-test=\\"connector-edit-btn\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+  <!---->
+  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+    <!---->
+    <!---->
+    <div class=\\"d-flex align-center\\">
+      <div data-test=\\"connector-edit-icon\\" class=\\"mr-2\\"><i class=\\"mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+      <div class=\\"v-list-item-title\\"> Edit </div>
+    </div>
+  </div>
+  <!---->
+</div>"
+`;

@@ -55,12 +55,14 @@
         >
           <template v-slot:prepend>
             <v-list-item-title>
+
               <router-link
                 :to="{ name: 'detailsDevice', params: { id: item.uid } }"
                 :data-test="item.uid + '-field'"
               >
                 {{ item.name }}
               </router-link>
+
             </v-list-item-title>
           </template>
 
@@ -69,6 +71,7 @@
               v-if="hasAuthorization"
               :uid="item.uid"
               :name="item.name"
+              variant="device"
               :notification-status="true"
               :show="!getStatusNotifications"
               action="accept"
@@ -78,7 +81,6 @@
           </v-list-item-action>
         </v-list-item>
       </v-list>
-
       <v-btn
         to="/devices/pending"
         variant="tonal"
