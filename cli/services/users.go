@@ -76,20 +76,18 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		return ErrUserNotFound
 	}
 
-	detach, err := s.store.UserDetachInfo(ctx, user.ID)
+	userInfo, err := s.store.UserGetInfo(ctx, user.ID)
 	if err != nil {
 		return ErrNamespaceNotFound
 	}
 
-	// Delete all namespaces what the user is owner.
-	for _, ns := range detach["owner"] {
+	for _, ns := range userInfo.OwnedNamespaces {
 		if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
 			return err
 		}
 	}
 
-	// Remove user from all namespaces what it is a member.
-	for _, ns := range detach["member"] {
+	for _, ns := range userInfo.AssociatedNamespaces {
 		if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
 			return err
 		}
