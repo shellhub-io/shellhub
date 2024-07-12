@@ -54,7 +54,7 @@ const show = ref(false);
 const hasFirewallRule = computed(
   () => store.getters["firewallRules/getNumberFirewalls"] > 0,
 );
-const showBoxMessage = computed(() => !hasFirewallRule.value && show.value);
+const showBoxMessage = computed(() => !hasFirewallRule.value || show.value);
 
 const refresh = async () => {
   try {
@@ -73,8 +73,8 @@ onMounted(async () => {
     store.dispatch("box/setStatus", true);
     store.dispatch("firewallRules/resetPagePerpage");
     await refresh();
-    show.value = true;
   } catch (error: unknown) {
+    show.value = true;
     handleError(error);
   }
 });

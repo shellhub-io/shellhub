@@ -41,7 +41,9 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!---->
               <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
                 <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-view-dashboard mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-view-dashboard-listItem\\">Dashboard</div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-view-dashboard-listItem\\">Dashboard
+                  <!--v-if-->
+                </div>
               </div>
             </div>
             <!---->
@@ -53,7 +55,9 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!---->
               <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
                 <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cellphone-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cellphone-link-listItem\\">Devices</div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cellphone-link-listItem\\">Devices
+                  <!--v-if-->
+                </div>
               </div>
             </div>
             <!---->
@@ -65,7 +69,23 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!---->
               <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
                 <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-history-listItem\\">Sessions</div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-history-listItem\\">Sessions
+                  <!--v-if-->
+                </div>
+              </div>
+            </div>
+            <!---->
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/firewall/rules\\" data-test=\\"list-item\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
+            <!---->
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
+                <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-security mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-security-listItem\\">Firewall Rules
+                  <!--v-if-->
+                </div>
               </div>
             </div>
             <!---->
@@ -77,7 +97,9 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!---->
               <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
                 <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-key-listItem\\">Public Keys</div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-key-listItem\\">Public Keys
+                  <!--v-if-->
+                </div>
               </div>
             </div>
             <!---->
@@ -89,7 +111,9 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!---->
               <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
                 <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div>
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings</div>
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings
+                  <!--v-if-->
+                </div>
               </div>
             </div>
             <!---->

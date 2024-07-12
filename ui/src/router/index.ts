@@ -183,6 +183,12 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/firewall/rules",
     name: "firewalls",
     component: FirewallRules,
+    beforeEnter: (to, from, next) => {
+      if (!envVariables.isEnterprise && !envVariables.isCloud && envVariables.premiumPaywall) {
+        store.commit("users/setShowPaywall", true);
+      }
+      next();
+    },
   },
   {
     path: "/sshkeys/public-keys",
