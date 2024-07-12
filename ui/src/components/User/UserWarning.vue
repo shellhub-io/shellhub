@@ -44,6 +44,11 @@
     v-model="showForceRecoveryMail"
     data-test="MfaForceRecoveryMail-component"
   />
+
+  <PaywallDialog
+    v-model="showPaywall"
+    data-test="PaywallDialog-component"
+  />
 </template>
 
 <script setup lang="ts">
@@ -61,6 +66,7 @@ import handleError from "@/utils/handleError";
 import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
+import PaywallDialog from "./PaywallDialog.vue";
 
 const store = useStore();
 const router = useRouter();
@@ -70,6 +76,7 @@ const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
 const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
 const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
+const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );

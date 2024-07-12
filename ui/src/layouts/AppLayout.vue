@@ -37,7 +37,7 @@
 
       <v-list class="bg-v-theme-surface" data-test="list">
         <v-list-item
-          v-for="item in visibleItems"
+          v-for="item in items"
           :key="item.title"
           :to="item.path"
           lines="two"
@@ -54,6 +54,15 @@
 
             <v-list-item-title :data-test="item.icon + '-listItem'">
               {{ item.title }}
+              <v-chip
+                v-if="!envVariables.isCloud && !envVariables.isEnterprise && envVariables.premiumPaywall && item.isPremium"
+                density="comfortable"
+                label
+                variant="outlined"
+                size="x-small"
+                class="ml-1"
+                color="yellow"
+                prepend-icon="mdi-crown">Premium</v-chip>
             </v-list-item-title>
           </div>
         </v-list-item>
@@ -104,11 +113,11 @@ import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
+import { envVariables } from "../envVariables";
 import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
-import { envVariables } from "../envVariables";
 import NewConnection from "../components/NewConnection/NewConnection.vue";
 
 const items = [
@@ -131,7 +140,7 @@ const items = [
     icon: "mdi-security",
     title: "Firewall Rules",
     path: "/firewall/rules",
-    hidden: !envVariables.isEnterprise,
+    isPremium: true,
   },
   {
     icon: "mdi-key",
@@ -148,7 +157,6 @@ const items = [
 const router = useRouter();
 const store = useStore();
 const currentRoute = computed(() => router.currentRoute);
-const visibleItems = computed(() => items.filter((item) => !item.hidden));
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );

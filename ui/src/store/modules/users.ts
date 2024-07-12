@@ -6,7 +6,8 @@ export interface UsersState {
   statusUpdateAccountDialog: boolean;
   statusUpdateAccountDialogByDeviceAction: boolean;
   deviceDuplicationError: boolean,
-
+  showPaywall: boolean,
+  premiumContent: Array<object>,
 }
 
 export const users: Module<UsersState, State> = {
@@ -15,6 +16,8 @@ export const users: Module<UsersState, State> = {
     statusUpdateAccountDialog: false,
     statusUpdateAccountDialogByDeviceAction: false,
     deviceDuplicationError: false,
+    showPaywall: false,
+    premiumContent: [],
   },
 
   getters: {
@@ -23,6 +26,8 @@ export const users: Module<UsersState, State> = {
       return state.statusUpdateAccountDialogByDeviceAction;
     },
     deviceDuplicationError: (state) => state.deviceDuplicationError,
+    showPaywall: (state) => state.showPaywall,
+    getPremiumContent: (state) => state.premiumContent,
   },
 
   mutations: {
@@ -35,6 +40,13 @@ export const users: Module<UsersState, State> = {
     },
     updateDeviceDuplicationError(state, status) {
       state.deviceDuplicationError = status;
+    },
+
+    setShowPaywall(state, status) {
+      state.showPaywall = status;
+    },
+    setPremiumContent(state, data) {
+      state.premiumContent = data;
     },
   },
 
@@ -96,6 +108,16 @@ export const users: Module<UsersState, State> = {
     async updatePassword(context, data) {
       try {
         await apiUser.postUpdatePassword(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    async getPremiumContent(context) {
+      try {
+        const res = await apiUser.premiumContent();
+        context.commit("setPremiumContent", res);
       } catch (error) {
         console.error(error);
         throw error;
