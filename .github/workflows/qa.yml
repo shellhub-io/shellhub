@@ -94,6 +94,8 @@ jobs:
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go test -v ${{ matrix.extra_args }} -timeout 25m ./...
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
 
       - name: Go build [Go]
         if: matrix.project != 'ui' && matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
