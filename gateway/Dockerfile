@@ -1,33 +1,71 @@
-FROM nginx:1.27.0-alpine AS base
+# base stage
+FROM golang:1.22.5-alpine3.19 AS base
 
-RUN ["rm", "/etc/nginx/conf.d/default.conf"]
+ARG GOPROXY
 
-COPY --from=hairyhenderson/gomplate:v2.5.0-slim /gomplate /bin/gomplate
+RUN apk add --no-cache git ca-certificates libgcc certbot certbot-nginx curl
 
-RUN apk add inotify-tools
-RUN apk add certbot certbot-nginx
-RUN apk add curl
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
-RUN mkdir -p /etc/nginx/default.d
+COPY ./go.mod ./
 
-RUN mkdir /app
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
-VOLUME /etc/letsencrypt
+COPY ./gateway/go.mod ./gateway/go.sum ./
 
-WORKDIR /app
+RUN go mod download
 
-COPY ./gateway/entrypoint.sh /
+# builder stage
+FROM base AS builder
+
+COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
+COPY ./gateway .
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+RUN go mod download
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
+
+RUN go build
+
+# development stage
+FROM base AS development
+
+COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
+
+RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
+    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/letsencrypt/dhparam.pem
+
+RUN apk add --update openssl build-base
+RUN go install github.com/markbates/refresh@v1.11.1 && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3 && \
+    go install github.com/vektra/mockery/v2/...@v2.20.0
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
+
+RUN go mod download
+
+COPY ./gateway/entrypoint-dev.sh /entrypoint.sh
+
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
+# production stage
+FROM alpine:3.20.1 AS production
 
-FROM base as development 
+RUN apk add libgcc curl certbot certbot-nginx
 
-FROM base as production
+COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
 
-RUN apk add curl
+RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
+    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/letsencrypt/dhparam.pem
 
-COPY ./gateway/nginx.conf /app/
+COPY --from=builder /go/src/github.com/shellhub-io/shellhub/gateway/gateway /gateway
 
-COPY ./gateway/conf.d /app/conf.d
+RUN mkdir /templates
+
+COPY ./gateway/nginx /templates
+
+ENTRYPOINT /gateway
