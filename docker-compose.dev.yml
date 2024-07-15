@@ -53,8 +53,10 @@ services:
       dockerfile: gateway/Dockerfile
       target: development
     volumes:
-      - ./gateway/nginx.conf:/app/nginx.conf
-      - ./gateway/conf.d/:/app/conf.d/
+      - ./gateway:/go/src/github.com/shellhub-io/shellhub/gateway
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - ./.golangci.yaml:/.golangci.yaml
+      - ./gateway/nginx:/templates
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_ENV=${SHELLHUB_ENV}
