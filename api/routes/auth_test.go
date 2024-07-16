@@ -9,14 +9,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
@@ -538,54 +536,105 @@ func TestAuthPublicKey(t *testing.T) {
 	}
 }
 
-// TODO: refactor this
-func TestAuthRequest(t *testing.T) {
-	mock := new(mocks.Service)
-
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.NoError(t, err)
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
-		Username: "username",
-		Tenant:   "tenant",
-		Role:     authorizer.RoleInvalid,
-		ID:       "id",
-		AuthClaims: models.AuthClaims{
-			Claims: "user",
-		},
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(clock.Now().Add(time.Hour * 72)),
-		},
-	})
-
+func TestHandler_AuthRequest_with_authorization_header(t *testing.T) {
 	type Expected struct {
-		expectedStatus int
+		status  int
+		headers map[string]string
 	}
+
+	svcMock := new(mocks.Service)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
 	cases := []struct {
-		title         string
+		description   string
+		token         func() (string, error)
 		requiredMocks func()
 		expected      Expected
-	}{}
+	}{
+		{
+			description: "failed when token is invalid",
+			token: func() (string, error) {
+				return "", nil
+			},
+			requiredMocks: func() {
+				svcMock.On("PublicKey").Return(&privateKey.PublicKey).Once()
+			},
+			expected: Expected{
+				status:  401,
+				headers: map[string]string{},
+			},
+		},
+		{
+			description: "succeeds to authenticate a user",
+			token: func() (string, error) {
+				claims := authorizer.UserClaims{
+					ID:       "000000000000000000000000",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     authorizer.RoleOwner,
+					Username: "john_doe",
+				}
+
+				return jwttoken.EncodeUserClaims(claims, privateKey)
+			},
+			requiredMocks: func() {
+				svcMock.On("PublicKey").Return(&privateKey.PublicKey).Once()
+				svcMock.On("GetUserRole", gomock.Anything, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").Return("owner", nil).Once()
+			},
+			expected: Expected{
+				status: 200,
+				headers: map[string]string{
+					"X-ID":        "000000000000000000000000",
+					"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+					"X-Role":      authorizer.RoleOwner.String(),
+					"X-Username":  "john_doe",
+				},
+			},
+		},
+		{
+			description: "succeeds to authenticate a device",
+			token: func() (string, error) {
+				claims := authorizer.DeviceClaims{
+					UID:      "0000000000000000000000000000000000000000000000000000000000000000",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+				}
+
+				return jwttoken.EncodeDeviceClaims(claims, privateKey)
+			},
+			requiredMocks: func() {
+				svcMock.On("PublicKey").Return(&privateKey.PublicKey).Once()
+			},
+			expected: Expected{
+				status: 200,
+				headers: map[string]string{
+					"X-Device-UID": "0000000000000000000000000000000000000000000000000000000000000000",
+					"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				},
+			},
+		},
+	}
+
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
+		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
 			req := httptest.NewRequest(http.MethodGet, "/internal/auth", nil)
+
+			token, err := tc.token()
+			require.NoError(t, err)
+
 			req.Header.Set("Content-Type", "application/json")
-
-			tokenStr, err := token.SignedString(privateKey)
-			assert.NoError(t, err)
-
-			req.Header.Add("Authorization", "Bearer "+tokenStr)
-
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("Authorization", token)
 
 			rec := httptest.NewRecorder()
 
-			e := NewRouter(mock)
+			e := NewRouter(svcMock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
+			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
+			for k, v := range tc.expected.headers {
+				require.Equal(t, rec.Result().Header.Get(k), v)
+			}
 		})
 	}
 }

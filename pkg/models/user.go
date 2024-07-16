@@ -3,11 +3,7 @@ package models
 import (
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
@@ -106,29 +102,6 @@ type UserAuthResponse struct {
 	RecoveryEmail string `json:"recovery_email"`
 	Role          string `json:"role"`
 	MFA           bool   `json:"mfa"`
-}
-
-type UserAuthClaims struct {
-	ID                   string          `json:"id"`
-	Tenant               string          `json:"tenant"`
-	Role                 authorizer.Role `json:"-"`
-	Username             string          `json:"name"`
-	MFA                  bool            `json:"mfa"`
-	AuthClaims           `mapstruct:",squash"`
-	jwt.RegisteredClaims `mapstruct:",squash"`
-}
-
-// WithDefaults fill itself with default JWT attributes. Returns itself.
-func (u *UserAuthClaims) WithDefaults() *UserAuthClaims {
-	now := clock.Now()
-
-	u.RegisteredClaims.ID = uuid.Generate()
-	// u.RegisteredClaims.Issuer = "" // TODO: how can we get the correct issuer?
-	u.RegisteredClaims.IssuedAt = jwt.NewNumericDate(now)
-	u.RegisteredClaims.NotBefore = jwt.NewNumericDate(now)
-	u.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(now.Add(time.Hour * 72))
-
-	return u
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;

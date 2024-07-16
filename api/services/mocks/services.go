@@ -728,24 +728,6 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 	return r0, r1
 }
 
-// FillClaimsRole provides a mock function with given fields: ctx, claims
-func (_m *Service) FillClaimsRole(ctx context.Context, claims *models.UserAuthClaims) error {
-	ret := _m.Called(ctx, claims)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FillClaimsRole")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuthClaims) error); ok {
-		r0 = rf(ctx, claims)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -989,6 +971,34 @@ func (_m *Service) GetTags(ctx context.Context, tenant string) ([]string, int, e
 	}
 
 	return r0, r1, r2
+}
+
+// GetUserRole provides a mock function with given fields: ctx, tenantID, userID
+func (_m *Service) GetUserRole(ctx context.Context, tenantID string, userID string) (string, error) {
+	ret := _m.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserRole")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
+		return rf(ctx, tenantID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
+		r0 = rf(ctx, tenantID, userID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // KeepAliveSession provides a mock function with given fields: ctx, uid
