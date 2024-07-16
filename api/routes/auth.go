@@ -5,16 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
-	jwt "github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/mitchellh/mapstructure"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/api/routes/errors"
 	svc "github.com/shellhub-io/shellhub/api/services"
-	client "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
@@ -29,18 +25,29 @@ const (
 	AuthMFAURL               = "/auth/mfa"
 )
 
-const (
-	// AuthRequestUserToken is the type of the token used to authenticate a user.
-	AuthRequestUserToken = "user"
-	// AuthRequestDeviceToken is the type of the token used to authenticate a device.
-	AuthRequestDeviceToken = "device"
-)
-
-// AuthRequest checks the user and device authentication token.
+// AuthRequest is a proxy-level authentication middleware. It decodes a specified
+// authentication hash (e.g. JWT tokens and API keys), sets the credentials in
+// headers, and redirects to the original endpoint.
 //
-// This route is a special route and it is called every time a user tries to access a route which requires
-// authentication. It gets the JWT token sent, unwraps it and sets the information, like tenant, user, etc., as headers
-// of the response to be got in the subsequent through the [gateway.Context].
+// The following sequential diagram represents the authentication pipeline:
+//
+//	+------+       +----------------+        +----------+
+//	| User |       | /internal/auth |        | /api/... |
+//	+------+       +----------------+        +----------+
+//	   |              |                         |
+//	   | Send Request |                         |
+//	   |------------->|                         |
+//	   |              | Extract and decode hash |
+//	   |              | Set auth headers        |
+//	   |              |------------------------>|
+//	   |              |                         | Execute the target endpoint
+//	   |                                        |
+//	   | Send response back to the user         |
+//	   |<---------------------------------------|
+//
+// If the authentication fails for any reason, it must return the failed status
+// without redirecting the request. A token can be use to authenticate either a
+// device or a user.
 func (h *Handler) AuthRequest(c gateway.Context) error {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		apiKey, err := h.service.AuthAPIKey(c.Ctx(), key)
@@ -55,85 +62,37 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	token, ok := c.Get(middleware.DefaultJWTConfig.ContextKey).(*jwt.Token)
-	if !ok {
-		return svc.ErrTypeAssertion
+	bearerToken := c.Request().Header.Get("Authorization")
+	claims, err := jwttoken.ClaimsFromBearerToken(h.service.PublicKey(), bearerToken)
+	if err != nil {
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	rawClaims, ok := token.Claims.(*jwt.MapClaims)
-	if !ok {
-		return svc.ErrTypeAssertion
-	}
-
-	// setHeader sets a reader to the HTTP response to be read in the subsequent request.
-	setHeader := func(response gateway.Context, key string, value string) {
-		response.Response().Header().Set(key, value)
-	}
-
-	// decodeMap parses the JWT claims into a struct.
-	decodeMap := func(input *jwt.MapClaims, output any) error {
-		config := &mapstructure.DecoderConfig{
-			TagName:  "json",
-			Metadata: nil,
-			Result:   output,
-		}
-
-		decoder, err := mapstructure.NewDecoder(config)
-		if err != nil {
-			return err
-		}
-
-		return decoder.Decode(input)
-	}
-
-	switch (*rawClaims)["claims"] {
-	case AuthRequestUserToken:
-		claims := new(models.UserAuthClaims)
-		if err := decodeMap(rawClaims, claims); err != nil {
-			return err
-		}
-
-		// The TenantID is optional as the user may not be part of any namespace.
-		if claims.Tenant != "" {
-			// The rawClaims contain only the tenant ID of the namespace and not the user's role. This is because the role is a
-			// dynamic attribute, and a JWT token must be stateless (the role can change, but the token cannot). For this reason,
-			// we need to retrieve the role every time this middleware is invoked (generally from the cache; see the [method]
-			// signature for more info).
-			if err := h.service.FillClaimsRole(c.Ctx(), claims); err != nil {
+	switch claims := claims.(type) {
+	case *authorizer.DeviceClaims:
+		c.Response().Header().Set("X-Device-UID", claims.UID)
+		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
+	case *authorizer.UserClaims:
+		// As the role is a dynamic attribute, and a JWT token must be stateless, we need to retrieve the role
+		// every time this middleware is invoked (generally from the cache).
+		if claims.TenantID != "" {
+			role, err := h.service.GetUserRole(c.Ctx(), claims.TenantID, claims.ID)
+			if err != nil {
 				return err
 			}
-		}
 
-		args := c.QueryParam("args")
-		if args != "skip" && claims.Tenant != "" {
-			// This forces any no cached token to be invalid, even if it not not expired.
-			if ok, err := h.service.AuthIsCacheToken(c.Ctx(), claims.Tenant, claims.ID); err != nil || !ok {
-				return svc.NewErrAuthUnathorized(err)
-			}
+			claims.Role = authorizer.RoleFromString(role)
 		}
 
 		c.Response().Header().Set("X-ID", claims.ID)
 		c.Response().Header().Set("X-Username", claims.Username)
-		c.Response().Header().Set("X-Tenant-ID", claims.Tenant)
+		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
 		c.Response().Header().Set("X-Role", claims.Role.String())
-
-		return c.NoContent(http.StatusOK)
-	case AuthRequestDeviceToken:
-		var claims models.DeviceAuthClaims
-
-		if err := decodeMap(rawClaims, &claims); err != nil {
-			return err
-		}
-
-		// Extract device UID from JWT and set it into the header.
-		setHeader(c, client.DeviceUIDHeader, claims.UID)
-		setHeader(c, "X-Tenant-ID", claims.Tenant)
-
-		return c.NoContent(http.StatusOK)
 	default:
-
-		return svc.NewErrAuthUnathorized(nil)
+		return c.NoContent(http.StatusUnauthorized)
 	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) AuthDevice(c gateway.Context) error {
@@ -230,26 +189,4 @@ func (h *Handler) AuthPublicKey(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
-}
-
-func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		ctx, ok := c.Get("ctx").(*gateway.Context)
-		if !ok {
-			return svc.ErrTypeAssertion
-		}
-
-		apiKey := c.Request().Header.Get("X-API-KEY")
-		if apiKey == "" {
-			jwt := middleware.JWTWithConfig(middleware.JWTConfig{ //nolint:staticcheck
-				Claims:        &jwt.MapClaims{},
-				SigningKey:    ctx.Service().(svc.Service).PublicKey(),
-				SigningMethod: "RS256",
-			})
-
-			return jwt(next)(c)
-		}
-
-		return next(c)
-	}
 }

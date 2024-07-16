@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -48,8 +49,8 @@ type AuthService interface {
 	//
 	// It returns the created token and an error if any.
 	CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (res *models.UserAuthResponse, err error)
-	// FillClaimsRole fills the claims.Role with the current user's role. It returns an error, if any.
-	FillClaimsRole(ctx context.Context, claims *models.UserAuthClaims) (err error)
+	// GetUserRole get the user's role. It returns the user's role and an error, if any.
+	GetUserRole(ctx context.Context, tenantID, userID string) (role string, err error)
 	// AuthAPIKey authenticates the given key, returning its API key document. An API key can be used
 	// in place of a JWT token to authenticate requests. The key is only related to a namespace and not to a user,
 	// which means that some routes are blocked from authentication within this method. An API key can be expired,
@@ -77,18 +78,14 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}
 
 	uid := sha256.Sum256(structhash.Dump(auth, 1))
-
 	key := hex.EncodeToString(uid[:])
 
-	claims := &models.DeviceAuthClaims{
-		UID:    key,
-		Tenant: req.TenantID,
-		AuthClaims: models.AuthClaims{
-			Claims: "device",
-		},
+	claims := authorizer.DeviceClaims{
+		UID:      key,
+		TenantID: req.TenantID,
 	}
 
-	token, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+	token, err := jwttoken.EncodeDeviceClaims(claims, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -246,17 +243,14 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		role = member.Role.String()
 	}
 
-	claims := &models.UserAuthClaims{
+	claims := authorizer.UserClaims{
 		ID:       user.ID,
+		TenantID: tenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
-		Tenant:   tenantID,
-		AuthClaims: models.AuthClaims{
-			Claims: "user",
-		},
 	}
 
-	jwtToken, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
 	if err != nil {
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
@@ -274,7 +268,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
-	if err := s.AuthCacheToken(ctx, tenantID, user.ID, jwtToken); err != nil {
+	if err := s.AuthCacheToken(ctx, tenantID, user.ID, token); err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"id": user.ID}).
 			Warn("unable to cache the authentication token")
@@ -289,7 +283,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
-		Token:         jwtToken,
+		Token:         token,
 	}
 
 	return res, 0, "", nil
@@ -318,17 +312,14 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 	}
 
-	claims := &models.UserAuthClaims{
+	claims := authorizer.UserClaims{
 		ID:       user.ID,
-		Tenant:   namespace.TenantID,
+		TenantID: namespace.TenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
-		AuthClaims: models.AuthClaims{
-			Claims: "user",
-		},
 	}
 
-	token, err := jwttoken.Encode(claims.WithDefaults(), s.privKey)
+	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
@@ -409,20 +400,18 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 	}, nil
 }
 
-func (s *service) FillClaimsRole(ctx context.Context, claims *models.UserAuthClaims) error {
-	ns, err := s.store.NamespaceGet(ctx, claims.Tenant, false)
+func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (string, error) {
+	ns, err := s.store.NamespaceGet(ctx, tenantID, false)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	member, ok := ns.FindMember(claims.ID)
+	member, ok := ns.FindMember(userID)
 	if !ok {
-		return NewErrNamespaceMemberNotFound(claims.ID, nil)
+		return "", NewErrNamespaceMemberNotFound(userID, nil)
 	}
 
-	claims.Role = member.Role
-
-	return nil
+	return member.Role.String(), nil
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {
