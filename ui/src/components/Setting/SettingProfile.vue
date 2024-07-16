@@ -386,7 +386,6 @@ const enableEdit = (form: string) => {
 const updateUserData = async () => {
   if (!hasUserDataError.value) {
     const data = {
-      id: store.getters["auth/id"],
       name: name.value,
       username: username.value,
       email: email.value,
@@ -448,7 +447,10 @@ const resetPasswordFields = () => {
 const updatePassword = async () => {
   if (!hasUpdatePasswordError.value) {
     const data = {
-      id: store.getters["auth/id"],
+      name: name.value,
+      username: username.value,
+      email: email.value,
+      recovery_email: recoveryEmail.value,
       currentPassword: currentPassword.value,
       newPassword: newPassword.value,
     };

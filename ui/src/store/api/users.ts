@@ -1,4 +1,4 @@
-import { IUSerRecoverPassword, IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp } from "@/interfaces/IUSer";
+import { IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp } from "@/interfaces/IUSer";
 import { usersApi } from "../../api/http";
 
 export const signUp = async (data : IUserSignUp) => usersApi.registerUser({
@@ -24,14 +24,18 @@ export const postUpdatePassword = async (data : IUserUpdatePassword) => usersApi
   password: data.password,
 });
 
-export const patchUserData = async (data : IUser) => usersApi.updateUserData(data.id, {
+export const patchUserData = async (data : IUser) => usersApi.updateUser({
   name: data.name,
   username: data.username,
   email: data.email,
   recovery_email: data.recovery_email,
 });
 
-export const patchUserPassword = async (data : IUSerRecoverPassword) => usersApi.updateUserPassword(data.id, {
+export const patchUserPassword = async (data : IUser) => usersApi.updateUser({
+  name: data.name,
+  username: data.username,
+  email: data.email,
+  recovery_email: data.recovery_email,
   current_password: data.currentPassword,
-  new_password: data.newPassword,
+  password: data.newPassword,
 });

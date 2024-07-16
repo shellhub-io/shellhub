@@ -123,10 +123,9 @@ describe("Settings Namespace", () => {
       email: "test@test.com",
       name: "test",
       username: "test",
-      id: "xxxxxxxx",
     };
 
-    mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/data").reply(200);
+    mockUser.onPatch("http://localhost:3000/api/users").reply(200);
 
     await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
@@ -146,14 +145,17 @@ describe("Settings Namespace", () => {
 
   it("Successfully changes user password", async () => {
     const changePasswordData = {
+      recovery_email: "",
+      email: "",
+      name: "",
+      username: "",
       currentPassword: "test",
       newPassword: "test123",
-      id: "xxxxxxxx",
     };
 
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
 
-    mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/password").reply(200);
+    mockUser.onPatch("http://localhost:3000/api/users").reply(200);
 
     const changePasswordSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="password-text"]').setValue("test");
@@ -175,10 +177,9 @@ describe("Settings Namespace", () => {
       email: "test@test.com",
       name: "test",
       username: "test",
-      id: "xxxxxxxx",
     };
 
-    mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/data").reply(401);
+    mockUser.onPatch("http://localhost:3000/api/users").reply(401);
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
@@ -199,14 +200,17 @@ describe("Settings Namespace", () => {
 
   it("Fails changes user password", async () => {
     const changePasswordData = {
+      recovery_email: "",
+      email: "",
+      name: "",
+      username: "",
       currentPassword: "test",
       newPassword: "test123",
-      id: "xxxxxxxx",
     };
 
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
 
-    mockUser.onPatch("http://localhost:3000/api/users/xxxxxxxx/password").reply(401);
+    mockUser.onPatch("http://localhost:3000/api/users").reply(401);
 
     const changePasswordSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="password-text"]').setValue("test");

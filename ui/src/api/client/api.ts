@@ -2026,6 +2026,49 @@ export interface UpdateUserPasswordRequest {
 /**
  * 
  * @export
+ * @interface UpdateUserRequest
+ */
+export interface UpdateUserRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    'username'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    'email'?: string;
+    /**
+     * A recovery email serves as the user\'s final recourse to regain access to their account. It cannot be the same as the user\'s primary email. Once defined, it cannot be updated to an empty value. 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    'recovery_email'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    'password'?: string;
+    /**
+     * It\'s required when updating the user\'s password. 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    'current_password'?: string;
+}
+/**
+ * 
+ * @export
  * @interface User
  */
 export interface User {
@@ -12381,11 +12424,50 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * 
+         * @summary Update user
+         * @param {UpdateUserRequest} [updateUserRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser: async (updateUserRequest?: UpdateUserRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/users`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateUserRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update user\'s data.
          * @summary Update user data
          * @param {string} id User\&#39;s ID.
          * @param {UpdateUserDataRequest} [updateUserDataRequest] 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         updateUserData: async (id: string, updateUserDataRequest?: UpdateUserDataRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -12428,6 +12510,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {string} [id] User ID
          * @param {UpdateUserPasswordRequest} [updateUserPasswordRequest] 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         updateUserPassword: async (id?: string, updateUserPasswordRequest?: UpdateUserPasswordRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -12662,11 +12745,23 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * 
+         * @summary Update user
+         * @param {UpdateUserRequest} [updateUserRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUser(updateUserRequest?: UpdateUserRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(updateUserRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Update user\'s data.
          * @summary Update user data
          * @param {string} id User\&#39;s ID.
          * @param {UpdateUserDataRequest} [updateUserDataRequest] 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async updateUserData(id: string, updateUserDataRequest?: UpdateUserDataRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
@@ -12679,6 +12774,7 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {string} [id] User ID
          * @param {UpdateUserPasswordRequest} [updateUserPasswordRequest] 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async updateUserPassword(id?: string, updateUserPasswordRequest?: UpdateUserPasswordRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
@@ -12868,11 +12964,22 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.updateRecoverPassword(uid, updateRecoverPasswordRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * 
+         * @summary Update user
+         * @param {UpdateUserRequest} [updateUserRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser(updateUserRequest?: UpdateUserRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.updateUser(updateUserRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Update user\'s data.
          * @summary Update user data
          * @param {string} id User\&#39;s ID.
          * @param {UpdateUserDataRequest} [updateUserDataRequest] 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         updateUserData(id: string, updateUserDataRequest?: UpdateUserDataRequest, options?: any): AxiosPromise<void> {
@@ -12884,6 +12991,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {string} [id] User ID
          * @param {UpdateUserPasswordRequest} [updateUserPasswordRequest] 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         updateUserPassword(id?: string, updateUserPasswordRequest?: UpdateUserPasswordRequest, options?: any): AxiosPromise<void> {
@@ -13106,11 +13214,24 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
+     * 
+     * @summary Update user
+     * @param {UpdateUserRequest} [updateUserRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public updateUser(updateUserRequest?: UpdateUserRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).updateUser(updateUserRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Update user\'s data.
      * @summary Update user data
      * @param {string} id User\&#39;s ID.
      * @param {UpdateUserDataRequest} [updateUserDataRequest] 
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof UsersApi
      */
@@ -13124,6 +13245,7 @@ export class UsersApi extends BaseAPI {
      * @param {string} [id] User ID
      * @param {UpdateUserPasswordRequest} [updateUserPasswordRequest] 
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof UsersApi
      */
