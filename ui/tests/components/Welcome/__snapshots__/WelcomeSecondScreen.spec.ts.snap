@@ -5,10 +5,10 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
 <p class=\\"ml-4 pt-4 text-subtitle-2\\" data-test=\\"welcome-second-text\\"> The easiest way to install ShellHub agent is with our automatic one-line installation script, which works with all Linux distributions that have Docker installed and properly set up. </p>
 <div class=\\"mt-4 ml-4 mr-4\\">
   <p class=\\"ml-2 pt-4 text-subtitle-2 text-bold\\" data-test=\\"welcome-second-run-title\\"> Run the following command on your device: </p>
-  <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--readonly v-text-field code mt-1\\" data-test=\\"command-field\\">
+  <div class=\\"v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--readonly v-text-field code mt-1\\" data-test=\\"command-field\\">
     <!---->
     <div class=\\"v-input__control\\">
-      <div class=\\"v-field v-field--active v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
+      <div class=\\"v-field v-field--active v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
         <div class=\\"v-field__overlay\\"></div>
         <div class=\\"v-field__loader\\">
           <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
