@@ -90,13 +90,3 @@ func (c *Context) GetUsername() (string, bool) {
 
 	return "", false
 }
-
-// GetRole returns the user's namespace role got from JWT through gateway.
-func (c *Context) GetRole() (string, bool) {
-	role := c.Request().Header.Get("X-Role")
-	if role != "" {
-		return role, true
-	}
-
-	return "", false
-}
