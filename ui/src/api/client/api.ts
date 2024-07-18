@@ -28,11 +28,11 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
  */
 export interface AddNamespaceMemberRequest {
     /**
-     * Member\'s username.
+     * The unique identifier of the member, which can be either the username or the email. 
      * @type {string}
      * @memberof AddNamespaceMemberRequest
      */
-    'username': string;
+    'identifier'?: string;
     /**
      * 
      * @type {NamespaceMemberRole}
