@@ -11,7 +11,7 @@ interface INamespaceResponse {
   tenant_id: string;
   name: string;
   user_id: string;
-  username: string;
+  identifier: string;
   role: "administrator" | "operator" | "observer" | "owner";
 }
 
@@ -36,7 +36,7 @@ export const putNamespace = async (data: INamespaceResponse) => namespacesApi.ed
 });
 
 export const addUserToNamespace = async (data: INamespaceResponse) => namespacesApi.addNamespaceMember(data.tenant_id, {
-  username: data.username,
+  identifier: data.identifier,
   role: data.role,
 });
 

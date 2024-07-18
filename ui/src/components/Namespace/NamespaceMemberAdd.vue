@@ -21,10 +21,11 @@
 
         <v-card-text>
           <v-text-field
-            v-model="username"
-            label="Username"
-            :error-messages="usernameError"
+            v-model="identifier"
+            label="Identifier"
+            :error-messages="identifierError"
             required
+            hint="Can be e-mail or username"
             variant="underlined"
             data-test="username-text"
           />
@@ -55,8 +56,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
@@ -69,121 +70,104 @@ import {
 } from "../../interfaces/INotifications";
 import handleError from "../../utils/handleError";
 
-export default defineComponent({
-  emits: ["update"],
-  setup(props, ctx) {
-    const store = useStore();
-    const dialog = ref(false);
+const items = ["administrator", "operator", "observer"];
 
-    const {
-      value: username,
-      errorMessage: usernameError,
-      setErrors: setUsernameError,
-      resetField: resetUsername,
-    } = useField<string>("username", yup.string().required(), {
-      initialValue: "",
-    });
+const emit = defineEmits(["update"]);
+const store = useStore();
+const dialog = ref(false);
 
-    const {
-      value: selectedRole,
-      errorMessage: selectedRoleError,
-      setErrors: setSelectedRoleError,
-      resetField: resetSelectedRole,
-    } = useField<string>("selectedRole", yup.string().required(), {
-      initialValue: "",
-    });
-
-    const hasAuthorization = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.namespace.addMember,
-        );
-      }
-
-      return false;
-    };
-
-    const close = () => {
-      username.value = "";
-      selectedRole.value = "";
-      setUsernameError("");
-      setSelectedRoleError("");
-      dialog.value = false;
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const hasErrors = () => {
-      if (selectedRole.value === "") {
-        setSelectedRoleError("Select a role");
-        return true;
-      }
-
-      if (username.value === "") {
-        setUsernameError("This field is required");
-        return true;
-      }
-
-      return false;
-    };
-
-    const resetFields = () => {
-      resetUsername();
-      resetSelectedRole();
-    };
-
-    const addMember = async () => {
-      if (!hasErrors()) {
-        try {
-          await store.dispatch("namespaces/addUser", {
-            username: username.value,
-            tenant_id: store.getters["auth/tenant"],
-            role: selectedRole.value,
-          });
-
-          store.dispatch(
-            "snackbar/showSnackbarSuccessAction",
-            INotificationsSuccess.namespaceNewMember,
-          );
-          update();
-          resetFields();
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            if (axiosError.response?.status === 404) {
-              setUsernameError("This username doesn't exist.");
-            } else if (axiosError.response?.status === 409) {
-              setUsernameError(
-                "This user is already a member of this namespace.",
-              );
-            }
-          } else {
-            store.dispatch(
-              "snackbar/showSnackbarErrorAction",
-              INotificationsError.namespaceNewMember,
-            );
-            handleError(error);
-          }
-        }
-      }
-    };
-
-    return {
-      items: ["administrator", "operator", "observer"],
-      dialog,
-      username,
-      selectedRole,
-      selectedRoleError,
-      usernameError,
-      hasAuthorization,
-      addMember,
-      close,
-    };
-  },
+const {
+  value: identifier,
+  errorMessage: identifierError,
+  setErrors: setIdentifierError,
+  resetField: resetIdentifier,
+} = useField<string>("identifier", yup.string().required(), {
+  initialValue: "",
 });
+
+const {
+  value: selectedRole,
+  errorMessage: selectedRoleError,
+  setErrors: setSelectedRoleError,
+  resetField: resetSelectedRole,
+} = useField<string>("selectedRole", yup.string().required(), {
+  initialValue: "",
+});
+
+const hasAuthorization = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.namespace.addMember,
+    );
+  }
+
+  return false;
+};
+
+const hasErrors = () => {
+  if (selectedRole.value === "") {
+    setSelectedRoleError("Select a role");
+    return true;
+  }
+
+  if (identifier.value === "") {
+    setIdentifierError("This field is required");
+    return true;
+  }
+
+  return false;
+};
+
+const resetFields = () => {
+  resetIdentifier();
+  resetSelectedRole();
+};
+
+const close = () => {
+  resetFields();
+  dialog.value = false;
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
+
+const addMember = async () => {
+  if (!hasErrors()) {
+    try {
+      await store.dispatch("namespaces/addUser", {
+        identifier: identifier.value,
+        tenant_id: store.getters["auth/tenant"],
+        role: selectedRole.value,
+      });
+
+      store.dispatch(
+        "snackbar/showSnackbarSuccessAction",
+        INotificationsSuccess.namespaceNewMember,
+      );
+      update();
+      resetFields();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 404) {
+          setIdentifierError("This username doesn't exist.");
+        } else if (axiosError.response?.status === 409) {
+          setIdentifierError(
+            "This user is already a member of this namespace.",
+          );
+        }
+      } else {
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.namespaceNewMember,
+        );
+        handleError(error);
+      }
+    }
+  }
+};
 </script>
