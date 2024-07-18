@@ -236,15 +236,21 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrRoleInvalid()
 	}
 
-	passive, err := s.store.UserGetByUsername(ctx, req.MemberUsername)
-	if err != nil {
-		return nil, NewErrUserNotFound(req.MemberUsername, err)
+	member := new(models.User)
+	if req.MemberIdentifier.IsEmail() {
+		member, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.MemberIdentifier)))
+	} else {
+		member, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.MemberIdentifier)))
 	}
 
-	if err := s.store.NamespaceAddMember(ctx, req.TenantID, &models.Member{ID: passive.ID, Role: req.MemberRole}); err != nil {
+	if err != nil {
+		return nil, NewErrUserNotFound(string(req.MemberIdentifier), err)
+	}
+
+	if err := s.store.NamespaceAddMember(ctx, req.TenantID, &models.Member{ID: member.ID, Role: req.MemberRole}); err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
-			return nil, NewErrNamespaceMemberDuplicated(passive.ID, err)
+			return nil, NewErrNamespaceMemberDuplicated(member.ID, err)
 		default:
 			return nil, err
 		}

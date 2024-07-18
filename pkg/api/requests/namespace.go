@@ -1,6 +1,9 @@
 package requests
 
-import "github.com/shellhub-io/shellhub/pkg/api/authorizer"
+import (
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/models"
+)
 
 // TenantParam is a structure to represent and validate a namespace tenant as path param.
 type TenantParam struct {
@@ -44,10 +47,10 @@ type NamespaceEdit struct {
 }
 
 type NamespaceAddMember struct {
-	UserID         string          `header:"X-ID" validate:"required"`
-	TenantID       string          `param:"tenant" validate:"required,uuid"`
-	MemberUsername string          `json:"username" validate:"required,username"`
-	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
+	UserID           string                    `header:"X-ID" validate:"required"`
+	TenantID         string                    `param:"tenant" validate:"required,uuid"`
+	MemberIdentifier models.UserAuthIdentifier `json:"identifier" validate:"required"`
+	MemberRole       authorizer.Role           `json:"role" validate:"required,member_role"`
 }
 
 type NamespaceUpdateMember struct {
