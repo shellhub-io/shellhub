@@ -190,7 +190,12 @@ func (s *service) fillMembersData(ctx context.Context, members []models.Member) 
 			return nil, NewErrUserNotFound(member.ID, err)
 		}
 
-		members[index] = models.Member{ID: user.ID, Username: user.Username, Role: member.Role}
+		members[index] = models.Member{
+			ID:       user.ID,
+			Username: user.Username, // TODO: aggregate this in a query
+			Role:     member.Role,
+			Status:   member.Status,
+		}
 	}
 
 	return members, nil
@@ -236,21 +241,23 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrRoleInvalid()
 	}
 
-	member := new(models.User)
+	passiveUser := new(models.User)
 	if req.MemberIdentifier.IsEmail() {
-		member, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.MemberIdentifier)))
+		passiveUser, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.MemberIdentifier)))
 	} else {
-		member, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.MemberIdentifier)))
+		passiveUser, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.MemberIdentifier)))
 	}
 
 	if err != nil {
 		return nil, NewErrUserNotFound(string(req.MemberIdentifier), err)
 	}
 
-	if err := s.store.NamespaceAddMember(ctx, req.TenantID, &models.Member{ID: member.ID, Role: req.MemberRole}); err != nil {
+    // Currently, the member's status is always "accepted".
+	member := &models.Member{ID: passiveUser.ID, Role: req.MemberRole, Status: models.MemberStatusAccepted}
+	if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
-			return nil, NewErrNamespaceMemberDuplicated(member.ID, err)
+			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, err)
 		default:
 			return nil, err
 		}

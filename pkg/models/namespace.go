@@ -1,10 +1,6 @@
 package models
 
-import (
-	"time"
-
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-)
+import "time"
 
 type Namespace struct {
 	Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`

@@ -46,12 +46,14 @@ func TestNamespaceList(t *testing.T) {
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Members: []models.Member{
 							{
-								ID:   "507f1f77bcf86cd799439011",
-								Role: authorizer.RoleOwner,
+								ID:     "507f1f77bcf86cd799439011",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 							{
-								ID:   "6509e169ae6144b2f56bf288",
-								Role: authorizer.RoleObserver,
+								ID:     "6509e169ae6144b2f56bf288",
+								Role:   authorizer.RoleObserver,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 						MaxDevices: -1,
@@ -64,12 +66,14 @@ func TestNamespaceList(t *testing.T) {
 						TenantID:  "00000000-0000-4001-0000-000000000000",
 						Members: []models.Member{
 							{
-								ID:   "6509e169ae6144b2f56bf288",
-								Role: authorizer.RoleOwner,
+								ID:     "6509e169ae6144b2f56bf288",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 							{
-								ID:   "907f1f77bcf86cd799439022",
-								Role: authorizer.RoleOperator,
+								ID:     "907f1f77bcf86cd799439022",
+								Role:   authorizer.RoleOperator,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 						MaxDevices: 10,
@@ -82,8 +86,9 @@ func TestNamespaceList(t *testing.T) {
 						TenantID:  "00000000-0000-4002-0000-000000000000",
 						Members: []models.Member{
 							{
-								ID:   "657b0e3bff780d625f74e49a",
-								Role: authorizer.RoleOwner,
+								ID:     "657b0e3bff780d625f74e49a",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 						MaxDevices: 3,
@@ -96,8 +101,9 @@ func TestNamespaceList(t *testing.T) {
 						TenantID:  "00000000-0000-4003-0000-000000000000",
 						Members: []models.Member{
 							{
-								ID:   "6577267d8752d05270a4c07d",
-								Role: authorizer.RoleOwner,
+								ID:     "6577267d8752d05270a4c07d",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 						MaxDevices: -1,
@@ -171,12 +177,14 @@ func TestNamespaceGet(t *testing.T) {
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: authorizer.RoleOwner,
+							ID:     "507f1f77bcf86cd799439011",
+							Role:   authorizer.RoleOwner,
+							Status: models.MemberStatusAccepted,
 						},
 						{
-							ID:   "6509e169ae6144b2f56bf288",
-							Role: authorizer.RoleObserver,
+							ID:     "6509e169ae6144b2f56bf288",
+							Role:   authorizer.RoleObserver,
+							Status: models.MemberStatusAccepted,
 						},
 					},
 					MaxDevices:   -1,
@@ -199,12 +207,14 @@ func TestNamespaceGet(t *testing.T) {
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: authorizer.RoleOwner,
+							ID:     "507f1f77bcf86cd799439011",
+							Role:   authorizer.RoleOwner,
+							Status: models.MemberStatusAccepted,
 						},
 						{
-							ID:   "6509e169ae6144b2f56bf288",
-							Role: authorizer.RoleObserver,
+							ID:     "6509e169ae6144b2f56bf288",
+							Role:   authorizer.RoleObserver,
+							Status: models.MemberStatusAccepted,
 						},
 					},
 					MaxDevices:   -1,
@@ -264,12 +274,14 @@ func TestNamespaceGetByName(t *testing.T) {
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: authorizer.RoleOwner,
+							ID:     "507f1f77bcf86cd799439011",
+							Role:   authorizer.RoleOwner,
+							Status: models.MemberStatusAccepted,
 						},
 						{
-							ID:   "6509e169ae6144b2f56bf288",
-							Role: authorizer.RoleObserver,
+							ID:     "6509e169ae6144b2f56bf288",
+							Role:   authorizer.RoleObserver,
+							Status: models.MemberStatusAccepted,
 						},
 					},
 					MaxDevices: -1,
@@ -341,12 +353,14 @@ func TestNamespaceGetPreferred(t *testing.T) {
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: authorizer.RoleOwner,
+							ID:     "507f1f77bcf86cd799439011",
+							Role:   authorizer.RoleOwner,
+							Status: models.MemberStatusAccepted,
 						},
 						{
-							ID:   "6509e169ae6144b2f56bf288",
-							Role: authorizer.RoleObserver,
+							ID:     "6509e169ae6144b2f56bf288",
+							Role:   authorizer.RoleObserver,
+							Status: models.MemberStatusAccepted,
 						},
 					},
 					MaxDevices: -1,
@@ -368,12 +382,14 @@ func TestNamespaceGetPreferred(t *testing.T) {
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: authorizer.RoleOwner,
+							ID:     "507f1f77bcf86cd799439011",
+							Role:   authorizer.RoleOwner,
+							Status: models.MemberStatusAccepted,
 						},
 						{
-							ID:   "6509e169ae6144b2f56bf288",
-							Role: authorizer.RoleObserver,
+							ID:     "6509e169ae6144b2f56bf288",
+							Role:   authorizer.RoleObserver,
+							Status: models.MemberStatusAccepted,
 						},
 					},
 					MaxDevices: -1,
@@ -602,23 +618,35 @@ func TestNamespaceAddMember(t *testing.T) {
 		{
 			description: "fails when tenant is not found",
 			tenantID:    "nonexistent",
-			member:      &models.Member{ID: "6509de884238881ac1b2b289", Role: authorizer.RoleObserver},
-			fixtures:    []string{fixtureNamespaces},
-			expected:    Expected{err: store.ErrNoDocuments},
+			member: &models.Member{
+				ID:     "6509de884238881ac1b2b289",
+				Role:   authorizer.RoleObserver,
+				Status: models.MemberStatusAccepted,
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: Expected{err: store.ErrNoDocuments},
 		},
 		{
 			description: "fails when member has already been added",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
-			member:      &models.Member{ID: "6509e169ae6144b2f56bf288", Role: authorizer.RoleObserver},
-			fixtures:    []string{fixtureNamespaces},
-			expected:    Expected{err: mongo.ErrNamespaceDuplicatedMember},
+			member: &models.Member{
+				ID:     "6509e169ae6144b2f56bf288",
+				Role:   authorizer.RoleObserver,
+				Status: models.MemberStatusAccepted,
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: Expected{err: mongo.ErrNamespaceDuplicatedMember},
 		},
 		{
 			description: "succeeds when tenant is found",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
-			member:      &models.Member{ID: "6509de884238881ac1b2b289", Role: authorizer.RoleObserver},
-			fixtures:    []string{fixtureNamespaces},
-			expected:    Expected{err: nil},
+			member: &models.Member{
+				ID:     "6509de884238881ac1b2b289",
+				Role:   authorizer.RoleObserver,
+				Status: models.MemberStatusAccepted,
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: Expected{err: nil},
 		},
 	}
 
@@ -659,17 +687,23 @@ func TestNamespaceUpdateMember(t *testing.T) {
 			description: "fails when user is not found",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			memberID:    "000000000000000000000000",
-			changes:     &models.MemberChanges{Role: authorizer.RoleObserver},
-			fixtures:    []string{fixtureNamespaces},
-			expected:    Expected{err: mongo.ErrUserNotFound},
+			changes: &models.MemberChanges{
+				Role:   authorizer.RoleObserver,
+				Status: models.MemberStatusPending,
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: Expected{err: mongo.ErrUserNotFound},
 		},
 		{
 			description: "succeeds when tenant and user is found",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			memberID:    "6509e169ae6144b2f56bf288",
-			changes:     &models.MemberChanges{Role: authorizer.RoleAdministrator},
-			fixtures:    []string{fixtureNamespaces},
-			expected:    Expected{err: nil},
+			changes: &models.MemberChanges{
+				Role:   authorizer.RoleAdministrator,
+				Status: models.MemberStatusPending,
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: Expected{err: nil},
 		},
 	}
 
@@ -693,6 +727,7 @@ func TestNamespaceUpdateMember(t *testing.T) {
 			require.Equal(t, 2, len(namespace.Members))
 			require.Equal(t, tc.memberID, namespace.Members[1].ID)
 			require.Equal(t, tc.changes.Role, namespace.Members[1].Role)
+			require.Equal(t, tc.changes.Status, namespace.Members[1].Status)
 		})
 	}
 }

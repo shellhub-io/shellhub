@@ -6,11 +6,13 @@
             "members": [
                 {
                     "id": "507f1f77bcf86cd799439011",
-                    "role": "owner"
+                    "role": "owner",
+                    "status": "accepted"
                 },
                 {
                     "id": "6509e169ae6144b2f56bf288",
-                    "role": "observer"
+                    "role": "observer",
+                    "status": "accepted"
                 }
             ],
             "name": "namespace-1",
@@ -26,11 +28,13 @@
             "members": [
                 {
                     "id": "6509e169ae6144b2f56bf288",
-                    "role": "owner"
+                    "role": "owner",
+                    "status": "accepted"
                 },
                 {
                     "id": "907f1f77bcf86cd799439022",
-                    "role": "operator"
+                    "role": "operator",
+                    "status": "accepted"
                 }
             ],
             "name": "namespace-2",
@@ -46,7 +50,8 @@
             "members": [
                 {
                     "id": "657b0e3bff780d625f74e49a",
-                    "role": "owner"
+                    "role": "owner",
+                    "status": "accepted"
                 }
             ],
             "name": "namespace-3",
@@ -62,7 +67,8 @@
             "members": [
                 {
                     "id": "6577267d8752d05270a4c07d",
-                    "role": "owner"
+                    "role": "owner",
+                    "status": "accepted"
                 }
             ],
             "name": "namespace-4",

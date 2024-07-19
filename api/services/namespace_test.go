@@ -1074,8 +1074,9 @@ func TestAddNamespaceMember(t *testing.T) {
 						Owner:    "000000000000000000000000",
 						Members: []models.Member{
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOperator,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleOperator,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 					}, nil).
@@ -1110,8 +1111,9 @@ func TestAddNamespaceMember(t *testing.T) {
 						Owner:    "000000000000000000000000",
 						Members: []models.Member{
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOperator,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleOperator,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 					}, nil).
@@ -1146,8 +1148,9 @@ func TestAddNamespaceMember(t *testing.T) {
 						Owner:    "000000000000000000000000",
 						Members: []models.Member{
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 					}, nil).
@@ -1186,8 +1189,9 @@ func TestAddNamespaceMember(t *testing.T) {
 						Owner:    "000000000000000000000000",
 						Members: []models.Member{
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 					}, nil).
@@ -1207,7 +1211,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1233,8 +1237,9 @@ func TestAddNamespaceMember(t *testing.T) {
 						Owner:    "000000000000000000000000",
 						Members: []models.Member{
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 					}, nil).
@@ -1254,7 +1259,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1265,12 +1270,14 @@ func TestAddNamespaceMember(t *testing.T) {
 						Owner:    "000000000000000000000000",
 						Members: []models.Member{
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleOwner,
+								Status: models.MemberStatusAccepted,
 							},
 							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleObserver,
+								ID:     "000000000000000000000000",
+								Role:   authorizer.RoleObserver,
+								Status: models.MemberStatusAccepted,
 							},
 						},
 					}, nil).
@@ -1283,12 +1290,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					Owner:    "000000000000000000000000",
 					Members: []models.Member{
 						{
-							ID:   "000000000000000000000000",
-							Role: authorizer.RoleOwner,
+							ID:     "000000000000000000000000",
+							Role:   authorizer.RoleOwner,
+							Status: models.MemberStatusAccepted,
 						},
 						{
-							ID:   "000000000000000000000000",
-							Role: authorizer.RoleObserver,
+							ID:     "000000000000000000000000",
+							Role:   authorizer.RoleObserver,
+							Status: models.MemberStatusAccepted,
 						},
 					},
 				},
