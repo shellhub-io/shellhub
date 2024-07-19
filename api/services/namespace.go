@@ -11,6 +11,7 @@ import (
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -192,6 +193,7 @@ func (s *service) fillMembersData(ctx context.Context, members []models.Member) 
 
 		members[index] = models.Member{
 			ID:       user.ID,
+			AddedAt:  member.AddedAt,
 			Username: user.Username, // TODO: aggregate this in a query
 			Role:     member.Role,
 			Status:   member.Status,
@@ -252,8 +254,13 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrUserNotFound(string(req.MemberIdentifier), err)
 	}
 
-    // Currently, the member's status is always "accepted".
-	member := &models.Member{ID: passiveUser.ID, Role: req.MemberRole, Status: models.MemberStatusAccepted}
+	// Currently, the member's status is always "accepted".
+	member := &models.Member{
+		ID:      passiveUser.ID,
+		AddedAt: clock.Now(),
+		Role:    req.MemberRole,
+		Status:  models.MemberStatusAccepted,
+	}
 	if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
