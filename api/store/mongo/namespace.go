@@ -319,7 +319,7 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, member 
 
 	res, err := s.db.
 		Collection("namespaces").
-		UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": member.ID, "role": member.Role}}})
+		UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": member.ID, "role": member.Role, "status": member.Status}}})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -341,6 +341,10 @@ func (s *Store) NamespaceUpdateMember(ctx context.Context, tenantID string, memb
 
 	if changes.Role != "" {
 		update["members.$.role"] = changes.Role
+	}
+
+	if changes.Status != "" {
+		update["members.$.status"] = changes.Status
 	}
 
 	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, filter, bson.M{"$set": update})
