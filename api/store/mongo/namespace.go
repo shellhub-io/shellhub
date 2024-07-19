@@ -317,9 +317,16 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, member 
 		return ErrNamespaceDuplicatedMember
 	}
 
+	memberBson := bson.M{
+		"id":       member.ID,
+		"added_at": member.AddedAt,
+		"role":     member.Role,
+		"status":   member.Status,
+	}
+
 	res, err := s.db.
 		Collection("namespaces").
-		UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": bson.M{"id": member.ID, "role": member.Role, "status": member.Status}}})
+		UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$addToSet": bson.M{"members": memberBson}})
 	if err != nil {
 		return FromMongoError(err)
 	}
