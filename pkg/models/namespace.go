@@ -56,18 +56,8 @@ type NamespaceSettings struct {
 	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
 }
 
-type Member struct {
-	ID       string          `json:"id,omitempty" bson:"id,omitempty"`
-	Username string          `json:"username,omitempty" bson:"username,omitempty" validate:"username"`
-	Role     authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
-}
-
 type NamespaceChanges struct {
 	Name                   string  `bson:"name,omitempty"`
 	SessionRecord          *bool   `bson:"settings.session_record,omitempty"`
 	ConnectionAnnouncement *string `bson:"settings.connection_announcement,omitempty"`
-}
-
-type MemberChanges struct {
-	Role authorizer.Role `bson:"role,omitempty"`
 }
