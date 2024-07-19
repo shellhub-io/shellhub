@@ -154,7 +154,7 @@ const addMember = async () => {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
         if (axiosError.response?.status === 404) {
-          setIdentifierError("This username doesn't exist.");
+          setIdentifierError("This identifier doesn't exist.");
         } else if (axiosError.response?.status === 409) {
           setIdentifierError(
             "This user is already a member of this namespace.",
