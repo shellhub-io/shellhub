@@ -3,14 +3,7 @@
 local ngx_balancer = require("ngx.balancer")
 local resolver = require("resty.dns.resolver")
 local dns_cache = ngx.shared.dns_cache
-local hostnames = {"api", "ssh"}
-{{ if $cfg.EnableEnterprise }}
-table.insert(hostnames, "cloud-api")
-table.insert(hostnames, "admin-api")
-{{ end }}
-{{ if $cfg.EnableCloud }}
-table.insert(hostnames, "billing-api")
-{{ end }}
+local hostnames = {}
 
 local _M = {}
 
@@ -65,7 +58,6 @@ local function schedule()
 end
 
 function _M.init_worker()
-    ngx.timer.at(0, resolve_all_dns)
     schedule()
 end
 
@@ -92,6 +84,18 @@ function _M.balance()
     if not ok then
         ngx.log(ngx.ERR, "Failed to set the current peer: ", err)
         return ngx.exit(500)
+    end
+end
+
+function _M.set_peer(host, port)
+    ngx.ctx.upstream_host = host
+    ngx.ctx.upstream_port = port
+
+    local ip = dns_cache:get(host)
+    if not ip then
+        if resolve_dns(host) then
+            table.insert(hostnames, host)
+        end
     end
 end
 
