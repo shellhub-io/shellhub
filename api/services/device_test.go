@@ -77,7 +77,7 @@ func TestListDevices(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -155,7 +155,7 @@ func TestListDevices_status_removed(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -501,7 +501,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -564,7 +564,7 @@ func TestGetDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 			returnedDevice, err := service.GetDevice(ctx, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
@@ -787,7 +787,7 @@ func TestDeleteDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.DeleteDevice(ctx, tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -899,7 +899,7 @@ func TestRenameDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.device)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.RenameDevice(ctx, tc.uid, tc.deviceNewName, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -969,7 +969,7 @@ func TestLookupDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.device, tc.namespace)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			returnedDevice, err := service.LookupDevice(ctx, tc.namespace, tc.device.Name)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
 		})
@@ -1021,7 +1021,7 @@ func TestOfflineDevice(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1393,7 +1393,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1667,7 +1667,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1925,7 +1925,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -2578,7 +2578,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -2589,7 +2589,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 
 func TestDeviceUpdate(t *testing.T) {
 	mock := new(mocks.Store)
-	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	toPointer := func(s string) *string {
 		return &s
@@ -2986,7 +2986,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})

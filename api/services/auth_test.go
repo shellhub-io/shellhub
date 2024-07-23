@@ -101,7 +101,7 @@ func TestAuthDevice(t *testing.T) {
 			Longitude: 0,
 		}, nil).Once()
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, locator)
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, WithLocator(locator))
 
 	authRes, err := service.AuthDevice(ctx, authReq, "127.0.0.1")
 	assert.NoError(t, err)
@@ -796,7 +796,7 @@ func TestAuthUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, clientMock, nil)
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1096,7 +1096,7 @@ func TestCreateUserToken(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock, nil)
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1167,7 +1167,7 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
-							ExpiresIn: time.Date(2000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+							ExpiresIn: time.Date(2000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
 						nil,
 					).
@@ -1193,20 +1193,20 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
-							ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
 						nil,
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix()}, 2*time.Minute).
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix()}, 2*time.Minute).
 					Return(nil).
 					Once()
 			},
 			expected: Expected{
 				apiKey: &models.APIKey{
 					Name:      "dev",
-					ExpiresIn: time.Date(3000, 01, 01, 12, 00, 00, 00, time.UTC).Unix(),
+					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 				},
 				err: nil,
 			},
@@ -1215,7 +1215,7 @@ func TestAuthAPIKey(t *testing.T) {
 
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, clientMock, nil)
+	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, clientMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {

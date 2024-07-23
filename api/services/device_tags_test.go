@@ -76,7 +76,7 @@ func TestCreateTag(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, WithLocator(locator))
 
 			err := service.CreateDeviceTag(ctx, tc.uid, tc.deviceName)
 			assert.Equal(t, tc.expected, err)
@@ -161,7 +161,7 @@ func TestRemoveTag(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, WithLocator(locator))
 
 			err := service.RemoveDeviceTag(ctx, tc.uid, tc.deviceName)
 			assert.Equal(t, tc.expected, err)
@@ -237,7 +237,7 @@ func TestDeviceUpdateTag(t *testing.T) {
 			tc.requiredMocks()
 
 			locator := &mocksGeoIp.Locator{}
-			service := NewService(store.Store(storemock), privateKey, publicKey, storecache.NewNullCache(), clientMock, locator)
+			service := NewService(store.Store(storemock), privateKey, publicKey, storecache.NewNullCache(), clientMock, WithLocator(locator))
 
 			err := service.UpdateDeviceTag(context.TODO(), tc.uid, tc.tags)
 			assert.Equal(t, tc.expected, err)

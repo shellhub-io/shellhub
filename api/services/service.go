@@ -43,7 +43,15 @@ type Service interface {
 	APIKeyService
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, l geoip.Locator) *APIService {
+type Option func(service *APIService)
+
+func WithLocator(locator geoip.Locator) Option {
+	return func(service *APIService) {
+		service.locator = locator
+	}
+}
+
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c interface{}, options ...Option) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -52,5 +60,21 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		}
 	}
 
-	return &APIService{service: &service{store, privKey, pubKey, cache, c, l, validator.New()}}
+	service := &APIService{
+		service: &service{
+			store,
+			privKey,
+			pubKey,
+			cache,
+			c,
+			geoip.NewNullGeoLite(),
+			validator.New(),
+		},
+	}
+
+	for _, option := range options {
+		option(service)
+	}
+
+	return service
 }
