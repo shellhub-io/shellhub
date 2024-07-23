@@ -11,8 +11,10 @@ import (
 	mongooptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var srv = &dbtest.Server{}
-var c *mongo.Client
+var (
+	srv = &dbtest.Server{}
+	c   *mongo.Client
+)
 
 func TestMain(m *testing.M) {
 	os.Setenv("SHELLHUB_ENTERPRISE", "true")
