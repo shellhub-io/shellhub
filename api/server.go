@@ -144,26 +144,25 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	requestClient := requests.NewClient()
 
-	var locator geoip.Locator
-	if cfg.GeoIP {
-		var err error
+	servicesOptions := []services.Option{}
 
+	if cfg.GeoIP {
 		log.Info("GeoIP feature is enable")
-		locator, err = geoip.NewGeoLite2(cfg.GeoIPMaxMindLicense)
+
+		locator, err := geoip.NewGeoLite2(cfg.GeoIPMaxMindLicense)
 		if err != nil {
 			log.WithError(err).Fatal("Failed to init GeoIP")
 		}
-	} else {
-		log.Info("GeoIP is disabled")
-		locator = geoip.NewNullGeoLite()
+
+		servicesOptions = append(servicesOptions, services.WithLocator(locator))
 	}
 
-	service := services.NewService(store, nil, nil, cache, requestClient, locator)
+	service := services.NewService(store, nil, nil, cache, requestClient, servicesOptions...)
 
 	routerOptions := []routes.Option{}
 
 	if cfg.SentryDSN != "" {
-		log.Info("Starting Sentry client")
+		log.Info("Sentry report is enabled")
 
 		reporter, err := startSentry(cfg.SentryDSN)
 		if err != nil {

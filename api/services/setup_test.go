@@ -190,7 +190,7 @@ func TestSetup(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 			err := service.Setup(ctx, tc.req)
 			assert.Equal(t, tc.expected, err)

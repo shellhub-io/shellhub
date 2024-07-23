@@ -124,7 +124,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			ok, err := service.EvaluateKeyFilter(ctx, tc.key, tc.device)
 			assert.Equal(t, tc.expected, Expected{ok, err})
 		})
@@ -138,7 +138,7 @@ func TestListPublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -195,7 +195,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -270,7 +270,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	type Expected struct {
 		key *models.PublicKey
@@ -451,7 +451,7 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	type Expected struct {
 		err error
@@ -553,7 +553,7 @@ func TestCreatePublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now)
 
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, nil)
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	pubKey, _ := ssh.NewPublicKey(publicKey)
 
