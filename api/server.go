@@ -8,10 +8,6 @@ import (
 	"syscall"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/labstack/echo/v4"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
-	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -21,7 +17,6 @@ import (
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
-	"github.com/shellhub-io/shellhub/pkg/middleware"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -145,21 +140,14 @@ func startSentry(dsn string) (*sentry.Client, error) {
 }
 
 func startServer(ctx context.Context, cfg *config, store store.Store, cache storecache.Cache) error {
-	log.Info("Starting Sentry client")
-
-	reporter, err := startSentry(cfg.SentryDSN)
-	if err != nil {
-		log.WithField("DSN", cfg.SentryDSN).WithError(err).Warn("Failed to start Sentry")
-	} else {
-		log.Info("Sentry client started")
-	}
-
 	log.Info("Starting API server")
 
 	requestClient := requests.NewClient()
 
 	var locator geoip.Locator
 	if cfg.GeoIP {
+		var err error
+
 		log.Info("GeoIP feature is enable")
 		locator, err = geoip.NewGeoLite2(cfg.GeoIPMaxMindLicense)
 		if err != nil {
@@ -172,28 +160,32 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	service := services.NewService(store, nil, nil, cache, requestClient, locator)
 
-	e := routes.NewRouter(service)
-	e.Use(middleware.Log)
-	e.Use(echoMiddleware.RequestID())
-	e.HTTPErrorHandler = handlers.NewErrors(reporter)
+	routerOptions := []routes.Option{}
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			apicontext := gateway.NewContext(service, c)
+	if cfg.SentryDSN != "" {
+		log.Info("Starting Sentry client")
 
-			return next(apicontext)
+		reporter, err := startSentry(cfg.SentryDSN)
+		if err != nil {
+			log.WithField("DSN", cfg.SentryDSN).WithError(err).Warn("Failed to start Sentry")
+		} else {
+			log.Info("Sentry client started")
 		}
-	})
+
+		routerOptions = append(routerOptions, routes.WithReporter(reporter))
+	}
+
+	router := routes.NewRouter(service, routerOptions...)
 
 	go func() {
 		<-ctx.Done()
 
 		log.Debug("Closing HTTP server due context cancellation")
 
-		e.Close()
+		router.Close()
 	}()
 
-	err = e.Start(":8080") //nolint:errcheck
+	err := router.Start(":8080") //nolint:errcheck
 
 	log.WithError(err).Info("HTTP server closed")
 
