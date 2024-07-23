@@ -1,21 +1,36 @@
 package routes
 
 import (
+	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/api/routes/middleware"
+	routesmiddleware "github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
 )
 
-func NewRouter(service services.Service) *echo.Echo {
+type Option func(e *echo.Echo, handler *Handler) error
+
+func WithReporter(reporter *sentry.Client) Option {
+	return func(e *echo.Echo, handler *Handler) error {
+		e.HTTPErrorHandler = handlers.NewErrors(reporter)
+
+		return nil
+	}
+}
+
+func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	e := echo.New()
 	e.Binder = handlers.NewBinder()
 	e.Validator = handlers.NewValidator()
 	e.HTTPErrorHandler = handlers.NewErrors(nil)
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
+	e.Use(echoMiddleware.RequestID())
+	e.Use(pkgmiddleware.Log)
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			apicontext := gateway.NewContext(service, c)
@@ -25,6 +40,11 @@ func NewRouter(service services.Service) *echo.Echo {
 	})
 
 	handler := NewHandler(service)
+	for _, opt := range opts {
+		if err := opt(e, handler); err != nil {
+			return nil
+		}
+	}
 
 	// Internal routes only accessible by other services in the local container network
 	internalAPI := e.Group("/internal")
@@ -50,68 +70,68 @@ func NewRouter(service services.Service) *echo.Echo {
 	publicAPI := e.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
-	publicAPI.GET(AuthUserURLV2, gateway.Handler(handler.CreateUserToken))                                  // TODO: method POST
-	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), middleware.BlockAPIKey) // TODO: method POST
+	publicAPI.GET(AuthUserURLV2, gateway.Handler(handler.CreateUserToken))                                        // TODO: method POST
+	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthUserURL, gateway.Handler(handler.AuthUser))
 	publicAPI.POST(AuthUserURLV2, gateway.Handler(handler.AuthUser))
 	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
 
-	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.APIKeyCreate))
+	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyCreate))
 	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys))
-	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.APIKeyUpdate))
-	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.APIKeyDelete))
+	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyUpdate))
+	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyDelete))
 
-	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), middleware.BlockAPIKey)
-	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), middleware.BlockAPIKey)                 // WARN: DEPRECATED.
-	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), middleware.BlockAPIKey) // WARN: DEPRECATED.
+	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
+	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
+	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
 
-	publicAPI.GET(GetDeviceListURL, middleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(GetDeviceURL, middleware.Authorize(gateway.Handler(handler.GetDevice)))
-	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceUpdate))
-	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceRename))
-	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceAccept)) // TODO: DeviceWrite
-	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceRemove))
+	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
+	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
+	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
+	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceRename))
+	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceAccept)) // TODO: DeviceWrite
+	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
 
-	publicAPI.POST(CreateTagURL, gateway.Handler(handler.CreateDeviceTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceCreateTag))
-	publicAPI.PUT(UpdateTagURL, gateway.Handler(handler.UpdateDeviceTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceUpdateTag))
-	publicAPI.DELETE(RemoveTagURL, gateway.Handler(handler.RemoveDeviceTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceRemoveTag))
+	publicAPI.POST(CreateTagURL, gateway.Handler(handler.CreateDeviceTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceCreateTag))
+	publicAPI.PUT(UpdateTagURL, gateway.Handler(handler.UpdateDeviceTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceUpdateTag))
+	publicAPI.DELETE(RemoveTagURL, gateway.Handler(handler.RemoveDeviceTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceRemoveTag))
 
 	publicAPI.GET(GetTagsURL, gateway.Handler(handler.GetTags))
-	publicAPI.PUT(RenameTagURL, gateway.Handler(handler.RenameTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceRenameTag))
-	publicAPI.DELETE(DeleteTagsURL, gateway.Handler(handler.DeleteTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.DeviceDeleteTag))
+	publicAPI.PUT(RenameTagURL, gateway.Handler(handler.RenameTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceRenameTag))
+	publicAPI.DELETE(DeleteTagsURL, gateway.Handler(handler.DeleteTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceDeleteTag))
 
-	publicAPI.GET(GetSessionsURL, middleware.Authorize(gateway.Handler(handler.GetSessionList)))
-	publicAPI.GET(GetSessionURL, middleware.Authorize(gateway.Handler(handler.GetSession)))
+	publicAPI.GET(GetSessionsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSessionList)))
+	publicAPI.GET(GetSessionURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSession)))
 	publicAPI.GET(PlaySessionURL, gateway.Handler(handler.PlaySession))
 	publicAPI.DELETE(RecordSessionURL, gateway.Handler(handler.DeleteRecordedSession))
 
-	publicAPI.GET(GetStatsURL, middleware.Authorize(gateway.Handler(handler.GetStats)))
+	publicAPI.GET(GetStatsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetStats)))
 	publicAPI.GET(GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
 	publicAPI.GET(GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript))
 
-	publicAPI.POST(CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.PublicKeyCreate))
+	publicAPI.POST(CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.PublicKeyCreate))
 	publicAPI.GET(GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
-	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.PublicKeyEdit))
-	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.PublicKeyRemove))
+	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
+	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
 
-	publicAPI.POST(AddPublicKeyTagURL, gateway.Handler(handler.AddPublicKeyTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.PublicKeyAddTag))
-	publicAPI.PUT(UpdatePublicKeyTagsURL, gateway.Handler(handler.UpdatePublicKeyTags), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.PublicKeyUpdateTag))
-	publicAPI.DELETE(RemovePublicKeyTagURL, gateway.Handler(handler.RemovePublicKeyTag), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.PublicKeyRemoveTag))
+	publicAPI.POST(AddPublicKeyTagURL, gateway.Handler(handler.AddPublicKeyTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.PublicKeyAddTag))
+	publicAPI.PUT(UpdatePublicKeyTagsURL, gateway.Handler(handler.UpdatePublicKeyTags), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.PublicKeyUpdateTag))
+	publicAPI.DELETE(RemovePublicKeyTagURL, gateway.Handler(handler.RemovePublicKeyTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.PublicKeyRemoveTag))
 
 	publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace))
 	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace))
 	publicAPI.GET(ListNamespaceURL, gateway.Handler(handler.GetNamespaceList))
-	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.NamespaceUpdate))
-	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.NamespaceDelete))
+	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
+	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceDelete))
 
-	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.NamespaceAddMember))
-	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.NamespaceEditMember))
-	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.NamespaceRemoveMember))
+	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
+	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
+	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
 
 	publicAPI.GET(GetSessionRecordURL, gateway.Handler(handler.GetSessionRecord))
-	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), middleware.BlockAPIKey, middleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
+	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
 
 	return e
 }
