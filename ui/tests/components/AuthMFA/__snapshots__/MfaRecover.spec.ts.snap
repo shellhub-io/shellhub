@@ -15,10 +15,10 @@ exports[`RecoverMFA > Renders the component 1`] = `
       <h4 data-test=\\"sub-title\\">If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below</h4>
     </div>
   </div>
-  <div class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-text-field\\" data-test=\\"recovery-code\\">
+  <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field\\" data-test=\\"recovery-code\\">
     <!---->
     <div class=\\"v-input__control\\">
-      <div class=\\"v-field v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
+      <div class=\\"v-field v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr\\">
         <div class=\\"v-field__overlay\\"></div>
         <div class=\\"v-field__loader\\">
           <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
