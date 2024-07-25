@@ -9,11 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	loglevel.SetLogLevel()
-}
-
 func main() {
+	loglevel.SetLogLevel()
+
 	rootCmd := &cobra.Command{Use: "api"}
 
 	rootCmd.AddCommand(serverCmd)
