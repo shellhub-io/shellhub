@@ -3,33 +3,12 @@ package migrations
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-const defaultAnnouncementMessage = `
-******************************************************************
-*                                                                *
-*             Welcome to ShellHub Community Edition!             *
-*                                                                *
-* ShellHub is a next-generation SSH server, providing a          *
-* seamless, secure, and user-friendly solution for remote        *
-* access management. With ShellHub, you can manage all your      *
-* devices effortlessly from a single platform, ensuring optimal  *
-* security and productivity.                                     *
-*                                                                *
-* Want to learn more about ShellHub and explore other editions?  *
-* Visit: https://shellhub.io                                     *
-*                                                                *
-* Join our community and contribute to our open-source project:  *
-* https://github.com/shellhub-io/shellhub                        *
-*                                                                *
-* For assistance, please contact the system administrator.       *
-*                                                                *
-******************************************************************
-`
 
 var migration74 = migrate.Migration{
 	Version:     74,
@@ -47,7 +26,7 @@ var migration74 = migrate.Migration{
 
 		update := bson.M{
 			"$set": bson.M{
-				"settings.connection_announcement": defaultAnnouncementMessage,
+				"settings.connection_announcement": models.DefaultAnnouncementMessage,
 			},
 		}
 
@@ -65,7 +44,7 @@ var migration74 = migrate.Migration{
 		}).Info("Reverting migration")
 
 		filter := bson.M{
-			"settings.connection_announcement": defaultAnnouncementMessage,
+			"settings.connection_announcement": models.DefaultAnnouncementMessage,
 		}
 
 		update := bson.M{

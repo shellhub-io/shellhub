@@ -57,3 +57,26 @@ type NamespaceChanges struct {
 	SessionRecord          *bool   `bson:"settings.session_record,omitempty"`
 	ConnectionAnnouncement *string `bson:"settings.connection_announcement,omitempty"`
 }
+
+// default Announcement Message for the shellhub namespace
+const DefaultAnnouncementMessage = `
+******************************************************************
+*                                                                *
+*             Welcome to ShellHub Community Edition!             *
+*                                                                *
+* ShellHub is a next-generation SSH server, providing a          *
+* seamless, secure, and user-friendly solution for remote        *
+* access management. With ShellHub, you can manage all your      *
+* devices effortlessly from a single platform, ensuring optimal  *
+* security and productivity.                                     *
+*                                                                *
+* Want to learn more about ShellHub and explore other editions?  *
+* Visit: https://shellhub.io                                     *
+*                                                                *
+* Join our community and contribute to our open-source project:  *
+* https://github.com/shellhub-io/shellhub                        *
+*                                                                *
+* For assistance, please contact the system administrator.       *
+*                                                                *
+******************************************************************
+`

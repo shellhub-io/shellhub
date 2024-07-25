@@ -90,7 +90,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		},
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
-			ConnectionAnnouncement: "",
+			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 		},
 		TenantID: namespace.TenantID,
 	}

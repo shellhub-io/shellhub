@@ -99,7 +99,8 @@ func TestNamespaceCreate(t *testing.T) {
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 					Settings: &models.NamespaceSettings{
-						SessionRecord: true,
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -133,7 +134,8 @@ func TestNamespaceCreate(t *testing.T) {
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 					Settings: &models.NamespaceSettings{
-						SessionRecord: true,
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -146,7 +148,8 @@ func TestNamespaceCreate(t *testing.T) {
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 				Settings: &models.NamespaceSettings{
-					SessionRecord: true,
+					SessionRecord:          true,
+					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 				},
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
@@ -177,7 +180,8 @@ func TestNamespaceCreate(t *testing.T) {
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 					Settings: &models.NamespaceSettings{
-						SessionRecord: true,
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
@@ -190,7 +194,8 @@ func TestNamespaceCreate(t *testing.T) {
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 				Settings: &models.NamespaceSettings{
-					SessionRecord: true,
+					SessionRecord:          true,
+					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 				},
 				MaxDevices: MaxNumberDevicesLimited,
 				CreatedAt:  now,
@@ -221,7 +226,8 @@ func TestNamespaceCreate(t *testing.T) {
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 					Settings: &models.NamespaceSettings{
-						SessionRecord: true,
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -234,7 +240,8 @@ func TestNamespaceCreate(t *testing.T) {
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
 				Settings: &models.NamespaceSettings{
-					SessionRecord: true,
+					SessionRecord:          true,
+					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 				},
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
@@ -249,10 +256,10 @@ func TestNamespaceCreate(t *testing.T) {
 			s := NewService(store.Store(mock))
 			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant})
 			assert.Equal(t, tc.expected, Expected{ns, err})
+
+			mock.AssertExpectations(t)
 		})
 	}
-
-	mock.AssertExpectations(t)
 }
 
 func TestNamespaceAddMember(t *testing.T) {
