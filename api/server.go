@@ -104,15 +104,6 @@ type config struct {
 	SentryDSN string `env:"SENTRY_DSN,default="`
 }
 
-func init() {
-	if value, ok := os.LookupEnv("SHELLHUB_ENV"); ok && value == "development" {
-		log.SetLevel(log.TraceLevel)
-		log.Debug("Log level set to Trace")
-	} else {
-		log.Debug("Log level default")
-	}
-}
-
 // startSentry initializes the Sentry client.
 //
 // The Sentry client is used to report errors to the Sentry server, and is initialized only if the `SHELLHUB_SENTRY_DSN`
