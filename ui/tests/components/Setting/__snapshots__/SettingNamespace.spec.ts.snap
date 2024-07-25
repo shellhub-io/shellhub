@@ -185,6 +185,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                 <tr>
                   <th class=\\"text-start\\"><span>Username</span></th>
                   <th class=\\"text-center\\"><span>Role</span></th>
+                  <th class=\\"text-center\\"><span>Status</span></th>
                   <th class=\\"text-end\\"><span>Actions</span></th>
                 </tr>
               </thead>
@@ -192,6 +193,11 @@ exports[`Setting Namespace > Renders the component 1`] = `
                 <tr>
                   <td><i class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i> test</td>
                   <td class=\\"text-center\\">owner</td>
+                  <td class=\\"text-center\\" aria-describedby=\\"v-tooltip-10\\">
+                    <!---->
+                    <!--teleport start-->
+                    <!--teleport end-->
+                  </td>
                   <td class=\\"text-end\\">
                     <!--v-if-->
                   </td>
@@ -211,7 +217,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
           </div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
             <div data-v-80a16399=\\"\\" data-test=\\"api-key-generate\\">
-              <div aria-describedby=\\"v-tooltip-10\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <div aria-describedby=\\"v-tooltip-11\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                   <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Generate key </span>
                   <!---->
                   <!---->
@@ -237,9 +243,9 @@ exports[`Setting Namespace > Renders the component 1`] = `
                     <table>
                       <thead data-v-046d4556=\\"\\">
                         <tr data-v-046d4556=\\"\\">
-                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-12\\">Key Name <!----><!--teleport start--><!--teleport end--></span></th>
+                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-13\\">Key Name <!----><!--teleport start--><!--teleport end--></span></th>
                           <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Role</span></th>
-                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-13\\">Expiration Date <!----><!--teleport start--><!--teleport end--></span></th>
+                          <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-14\\">Expiration Date <!----><!--teleport start--><!--teleport end--></span></th>
                           <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Actions</span></th>
                         </tr>
                       </thead>
@@ -268,7 +274,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                     <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
                       <!---->
                       <div class=\\"v-input__control\\">
-                        <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-16\\">
+                        <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-17\\">
                           <div class=\\"v-field__overlay\\"></div>
                           <div class=\\"v-field__loader\\">
                             <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -286,7 +292,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                           </div>
                           <!---->
                           <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                            <!----><label class=\\"v-label v-field-label\\" for=\\"input-14\\">
+                            <!----><label class=\\"v-label v-field-label\\" for=\\"input-15\\">
                               <!---->
                               <!---->
                             </label>
@@ -294,7 +300,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                             <div class=\\"v-field__input\\" data-no-activator=\\"\\">
                               <!---->
                               <!---->
-                              <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-14\\" aria-describedby=\\"input-14-messages\\" outlined=\\"\\">
+                              <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-15\\" aria-describedby=\\"input-15-messages\\" outlined=\\"\\">
                             </div>
                             <!---->
                           </div>
@@ -340,8 +346,8 @@ exports[`Setting Namespace > Renders the component 1`] = `
                     <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default v-checkbox-btn\\">
                       <div class=\\"v-selection-control__wrapper text-primary\\">
                         <!---->
-                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-19\\" aria-disabled=\\"false\\" aria-label=\\"Enable session record\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-19-messages\\" value=\\"true\\"></div>
-                      </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-19\\">
+                        <div class=\\"v-selection-control__input\\"><i class=\\"mdi-checkbox-marked mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i><input id=\\"checkbox-20\\" aria-disabled=\\"false\\" aria-label=\\"Enable session record\\" type=\\"checkbox\\" aria-describedby=\\"checkbox-20-messages\\" value=\\"true\\"></div>
+                      </div><label class=\\"v-label v-label--clickable\\" for=\\"checkbox-20\\">
                         <!---->Enable session record
                       </label>
                     </div>
@@ -368,7 +374,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto mb-4\\">
-            <div aria-describedby=\\"v-tooltip-22\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+            <div aria-describedby=\\"v-tooltip-23\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
                 <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete namespace </span>
                 <!---->
                 <!---->

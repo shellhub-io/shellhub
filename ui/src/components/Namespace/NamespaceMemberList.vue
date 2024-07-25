@@ -37,6 +37,15 @@
             {{ member.role }}
           </td>
 
+          <td class="text-center">
+            {{ member.status }}
+            <v-tooltip
+              v-if="member.added_at !== '0001-01-01T00:00:00Z'"
+              activator="parent"
+              location="bottom"
+            >This member was added on {{ formatDate(member.added_at) }}</v-tooltip>
+          </td>
+
           <td class="text-end">
             <v-menu
               location="bottom"
@@ -95,9 +104,10 @@
   </v-table>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import axios, { AxiosError } from "axios";
+import { formatDate } from "../../utils/formateDate";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
@@ -106,91 +116,84 @@ import NamespaceMemberEdit from "./NamespaceMemberEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    namespace: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  namespace: {
+    type: Object,
+    required: true,
   },
-  setup(props) {
-    const store = useStore();
-    const tenant = computed(() => store.getters["auth/tenant"]);
-    const members = computed(() => props.namespace.members);
-    const hasAuthorizationEditMember = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.namespace.editMember,
-        );
-      }
-      return false;
-    };
-    const hasAuthorizationRemoveMember = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.namespace.removeMember,
-        );
-      }
-      return false;
-    };
-    const getNamespace = async () => {
-      try {
-        await store.dispatch("namespaces/get", tenant.value);
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          if (axiosError.response?.status === 403) {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-            handleError(error);
-          }
-        } else {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceLoad,
-          );
-          handleError(error);
-        }
-      }
-    };
-    const refresh = () => {
-      getNamespace();
-    };
-
-    const isNamespaceOwner = (role: string) => role === "owner";
-
-    return {
-      headers: [
-        {
-          text: "Username",
-          value: "username",
-          align: "start",
-          sortable: false,
-        },
-        {
-          text: "Role",
-          value: "role",
-          align: "center",
-          sortable: false,
-        },
-        {
-          text: "Actions",
-          value: "actions",
-          align: "end",
-          sortable: false,
-        },
-      ],
-      tenant,
-      members,
-      hasAuthorizationEditMember,
-      hasAuthorizationRemoveMember,
-      isNamespaceOwner,
-      refresh,
-    };
-  },
-  components: { NamespaceMemberDelete, NamespaceMemberEdit },
 });
+
+const headers = [
+  {
+    text: "Username",
+    value: "username",
+    align: "start",
+    sortable: false,
+  },
+  {
+    text: "Role",
+    value: "role",
+    align: "center",
+    sortable: false,
+  },
+  {
+    text: "Status",
+    value: "status",
+    align: "center",
+    sortable: false,
+  },
+  {
+    text: "Actions",
+    value: "actions",
+    align: "end",
+    sortable: false,
+  },
+];
+const store = useStore();
+const tenant = computed(() => store.getters["auth/tenant"]);
+const members = computed(() => props.namespace.members);
+const hasAuthorizationEditMember = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.namespace.editMember,
+    );
+  }
+  return false;
+};
+const hasAuthorizationRemoveMember = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.namespace.removeMember,
+    );
+  }
+  return false;
+};
+const getNamespace = async () => {
+  try {
+    await store.dispatch("namespaces/get", tenant.value);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 403) {
+        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        handleError(error);
+      }
+    } else {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.namespaceLoad,
+      );
+      handleError(error);
+    }
+  }
+};
+const refresh = () => {
+  getNamespace();
+};
+
+const isNamespaceOwner = (role: string) => role === "owner";
 </script>
