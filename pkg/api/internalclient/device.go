@@ -46,7 +46,7 @@ func (c *client) DevicesOffline(uid string) error {
 
 func (c *client) DevicesHeartbeat(tenant, uid string) error {
 	payload := []byte(fmt.Sprintf("%s:%s=%d", tenant, uid, clock.Now().Unix()))
-	_, err := c.asynq.Enqueue(asynq.NewTask("api:heartbeat", payload), asynq.Queue("api"), asynq.Group("heartbeats"))
+	_, err := c.asynq.Enqueue(asynq.NewTask("api:heartbeat", payload), asynq.Queue("api"), asynq.Group("api:heartbeat:batch"))
 
 	return err
 }
