@@ -419,16 +419,12 @@ func (s *Session) Announce(client gossh.Channel) error {
 		return nil
 	}
 
-	if _, err := client.Write([]byte("Announcement:\n\r")); err != nil {
-		return err
-	}
-
 	// Remove whitespaces and new lines at end
 	announcement = strings.TrimRightFunc(announcement, func(r rune) bool {
 		return r == ' ' || r == '\n' || r == '\t'
 	})
 
-	if _, err := client.Write([]byte("    " + strings.ReplaceAll(announcement, "\n", "\n\r    ") + "\n\r")); err != nil {
+	if _, err := client.Write([]byte(strings.ReplaceAll(announcement, "\n", "\n\r") + "\n\r")); err != nil {
 		return err
 	}
 
