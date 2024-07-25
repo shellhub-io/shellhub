@@ -13,10 +13,11 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
-	"github.com/shellhub-io/shellhub/api/workers"
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
+	workerlib "github.com/shellhub-io/shellhub/pkg/worker"
+	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -61,13 +62,6 @@ var serverCmd = &cobra.Command{
 
 		log.Info("Connected to MongoDB")
 
-		worker, err := workers.New(store)
-		if err != nil {
-			log.WithError(err).Warn("Failed to create workers.")
-		}
-
-		worker.Start(ctx)
-
 		go func() {
 			sig := <-sigs
 
@@ -99,9 +93,28 @@ type config struct {
 	GeoIP               bool   `env:"GEOIP,default=false"`
 	GeoIPMaxMindLicense string `env:"MAXMIND_LICENSE,default="`
 	// Session record cleanup worker schedule
-	SessionRecordCleanupSchedule string `env:"SESSION_RECORD_CLEANUP_SCHEDULE,default=@daily"`
 	// Sentry DSN.
 	SentryDSN string `env:"SENTRY_DSN,default="`
+	// AsynqGroupMaxDelay is the maximum duration to wait before processing a group of tasks.
+	//
+	// Its time unit is second.
+	//
+	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
+	AsynqGroupMaxDelay int `env:"ASYNQ_GROUP_MAX_DELAY,default=1"`
+	// AsynqGroupGracePeriod is the grace period has configurable upper bound: you can set a maximum aggregation delay, after which Asynq server
+	// will aggregate the tasks regardless of the remaining grace period.
+	///
+	// Its time unit is second.
+	//
+	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
+	AsynqGroupGracePeriod int64 `env:"ASYNQ_GROUP_GRACE_PERIOD,default=1"`
+	// AsynqGroupMaxSize is the maximum number of tasks that can be aggregated together. If that number is reached, Asynq
+	// server will aggregate the tasks immediately.
+	//
+	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
+	AsynqGroupMaxSize             int    `env:"ASYNQ_GROUP_MAX_SIZE,default=500"`
+	SessionRecordCleanupSchedule  string `env:"SESSION_RECORD_CLEANUP_SCHEDULE,default=@daily"`
+	SessionRecordCleanupRetention int    `env:"RECORD_RETENTION,default=0"`
 }
 
 // startSentry initializes the Sentry client.
@@ -165,6 +178,17 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 		routerOptions = append(routerOptions, routes.WithReporter(reporter))
 	}
 
+	worker := asynq.NewServer(cfg.RedisURI, asynq.BatchConfig(cfg.AsynqGroupMaxSize, cfg.AsynqGroupMaxDelay, int(cfg.AsynqGroupGracePeriod)))
+	worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
+	if cfg.SessionRecordCleanupRetention > 0 {
+		worker.HandleCron(workerlib.CronSpec(cfg.SessionRecordCleanupSchedule), service.CleanupSessions(cfg.SessionRecordCleanupRetention))
+	}
+
+	if err := worker.Start(); err != nil {
+		log.WithError(err).
+			Fatal("failed to start the worker")
+	}
+
 	router := routes.NewRouter(service, routerOptions...)
 
 	go func() {
@@ -172,6 +196,7 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 		log.Debug("Closing HTTP server due context cancellation")
 
+		worker.Shutdown()
 		router.Close()
 	}()
 
