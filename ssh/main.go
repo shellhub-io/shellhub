@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
@@ -37,10 +36,10 @@ func main() {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
-	tun := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial")
-	tun.API = internalclient.NewClientWithAsynq(env.RedisURI)
-	if tun.API == nil {
-		log.Fatal("failed to create internal client")
+	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", env.RedisURI)
+	if err != nil {
+		log.WithError(err).
+			Fatal("failed to create the internalclient")
 	}
 
 	router := tun.GetRouter()

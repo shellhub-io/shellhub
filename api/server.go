@@ -146,7 +146,11 @@ func startSentry(dsn string) (*sentry.Client, error) {
 func startServer(ctx context.Context, cfg *config, store store.Store, cache storecache.Cache) error {
 	log.Info("Starting API server")
 
-	requestClient := requests.NewClient()
+	requestClient, err := requests.NewClient()
+	if err != nil {
+		log.WithError(err).
+			Fatal("failed to create the internalclient")
+	}
 
 	servicesOptions := []services.Option{}
 
@@ -200,8 +204,7 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 		router.Close()
 	}()
 
-	err := router.Start(":8080") //nolint:errcheck
-
+	err = router.Start(":8080") //nolint:errcheck
 	log.WithError(err).Info("HTTP server closed")
 
 	return nil

@@ -21,10 +21,15 @@ type Tunnel struct {
 	router *echo.Echo
 }
 
-func NewTunnel(connection, dial string) *Tunnel {
+func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
+	api, err := internalclient.NewClient(internalclient.WithAsynqWorker(redisURI))
+	if err != nil {
+		return nil, err
+	}
+
 	tunnel := &Tunnel{
 		Tunnel: httptunnel.NewTunnel(connection, dial),
-		API:    internalclient.NewClient(),
+		API:    api,
 	}
 
 	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
@@ -171,7 +176,7 @@ func NewTunnel(connection, dial string) *Tunnel {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	return tunnel
+	return tunnel, nil
 }
 
 func (t *Tunnel) GetRouter() *echo.Echo {
