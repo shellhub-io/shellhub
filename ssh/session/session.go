@@ -85,7 +85,11 @@ type Session struct {
 func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
 	snap := getSnapshot(ctx)
 
-	api := internalclient.NewClient()
+	api, err := internalclient.NewClient()
+	if err != nil {
+		return nil, err
+	}
+
 	sshid := ctx.User()
 
 	target, err := target.NewTarget(sshid)

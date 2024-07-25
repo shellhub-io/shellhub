@@ -35,7 +35,10 @@ func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, er
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
 
-	cli := internalclient.NewClient()
+	cli, err := internalclient.NewClient()
+	if err != nil {
+		return nil, err
+	}
 
 	// Trys to get a device from the API.
 	device, err := cli.GetDevice(creds.Device)

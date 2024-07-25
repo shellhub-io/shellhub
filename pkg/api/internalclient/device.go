@@ -1,14 +1,15 @@
 package internalclient
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 )
 
 type deviceAPI interface {
@@ -45,10 +46,9 @@ func (c *client) DevicesOffline(uid string) error {
 }
 
 func (c *client) DevicesHeartbeat(tenant, uid string) error {
-	payload := []byte(fmt.Sprintf("%s:%s=%d", tenant, uid, clock.Now().Unix()))
-	_, err := c.asynq.Enqueue(asynq.NewTask("api:heartbeat", payload), asynq.Queue("api"), asynq.Group("api:heartbeat:batch"))
+	payload := fmt.Sprintf("%s:%s=%d", tenant, uid, clock.Now().Unix())
 
-	return err
+	return c.worker.SubmitToBatch(context.TODO(), worker.TaskPattern("api:heartbeat"), []byte(payload))
 }
 
 func (c *client) Lookup(lookup map[string]string) (string, []error) {
