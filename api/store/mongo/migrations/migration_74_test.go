@@ -55,7 +55,7 @@ func TestMigration74(t *testing.T) {
 					return errors.New("unable to find the namespace")
 				}
 
-				if ns.Settings.ConnectionAnnouncement != defaultAnnouncementMessage {
+				if ns.Settings.ConnectionAnnouncement != models.DefaultAnnouncementMessage {
 					return errors.New("unable to apply the migration")
 				}
 

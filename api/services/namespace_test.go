@@ -522,7 +522,8 @@ func TestCreateNamespace(t *testing.T) {
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings: &models.NamespaceSettings{
-						SessionRecord: true,
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
 					TenantID: "xxxxx",
 				}
@@ -560,7 +561,8 @@ func TestCreateNamespace(t *testing.T) {
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
 					Settings: &models.NamespaceSettings{
-						SessionRecord: true,
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
 					TenantID: "xxxxx",
 				}
@@ -598,7 +600,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
 				}
@@ -633,7 +638,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "random_uuid",
 					MaxDevices: -1,
 				}
@@ -650,7 +658,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "random_uuid",
 					MaxDevices: -1,
 				}, nil,
@@ -679,7 +690,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
 				}
@@ -695,7 +709,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
 				}, nil,
@@ -724,7 +741,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "xxxxx",
 					MaxDevices: 3,
 				}
@@ -740,7 +760,10 @@ func TestCreateNamespace(t *testing.T) {
 					Members: []models.Member{
 						{ID: "hash1", Role: authorizer.RoleOwner},
 					},
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
 					TenantID:   "xxxxx",
 					MaxDevices: 3,
 				}, nil,
