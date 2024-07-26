@@ -3,6 +3,7 @@ package migrations
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -24,9 +25,14 @@ var migration74 = migrate.Migration{
 			"settings.connection_announcement": "",
 		}
 
+		annoucementMsg := ""
+		if envs.IsCommunity() {
+			annoucementMsg = models.DefaultAnnouncementMessage
+		}
+
 		update := bson.M{
 			"$set": bson.M{
-				"settings.connection_announcement": models.DefaultAnnouncementMessage,
+				"settings.connection_announcement": annoucementMsg,
 			},
 		}
 
