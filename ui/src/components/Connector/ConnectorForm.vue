@@ -110,6 +110,7 @@
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { computed, ref, watch } from "vue";
+import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
 import {
   INotificationsError,
@@ -342,6 +343,10 @@ const saveConnector = async () => {
     };
   }
 
+  if (envVariables.isCommunity) {
+    store.commit("users/setShowPaywall", true);
+    return;
+  }
   try {
     await props.storeMethod(payload);
     store.dispatch(

@@ -175,6 +175,7 @@ import { useField } from "vee-validate";
 import * as yup from "yup";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
+import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
 import {
   INotificationsError,
@@ -438,6 +439,10 @@ const hasErrors = () => {
 
 const create = async () => {
   if (!hasErrors()) {
+    if (envVariables.isCommunity) {
+      store.commit("users/setShowPaywall", true);
+      return;
+    }
     constructFilterObject();
     try {
       await store.dispatch("firewallRules/post", ruleFirewall.value);

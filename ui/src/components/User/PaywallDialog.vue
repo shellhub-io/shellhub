@@ -105,6 +105,7 @@ const items = computed(() => store.getters["users/getPremiumContent"]);
 onMounted(() => {
   store.dispatch("users/getPremiumContent");
 });
+
 defineExpose({ dialog });
 </script>
 
