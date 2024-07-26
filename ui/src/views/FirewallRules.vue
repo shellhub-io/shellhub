@@ -43,6 +43,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "../store";
 import BoxMessage from "../components/Box/BoxMessage.vue";
+import { envVariables } from "../envVariables";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
 import { INotificationsError } from "../interfaces/INotifications";
@@ -72,7 +73,9 @@ onMounted(async () => {
   try {
     store.dispatch("box/setStatus", true);
     store.dispatch("firewallRules/resetPagePerpage");
-    await refresh();
+    if (!envVariables.isCommunity) {
+      await refresh();
+    }
   } catch (error: unknown) {
     show.value = true;
     handleError(error);

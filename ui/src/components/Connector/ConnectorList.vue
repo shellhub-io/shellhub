@@ -127,6 +127,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
+import { envVariables } from "../../envVariables";
 import DataTable from "../DataTable.vue";
 import ConnectorDelete from "../Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../Connector/ConnectorEdit.vue";
@@ -220,6 +221,9 @@ const getConnectors = async (perPagaeValue: number, pageValue: number) => {
 };
 
 onMounted(() => {
+  if (envVariables.isCommunity) {
+    return;
+  }
   getConnectors(itemsPerPage.value, page.value);
 });
 
