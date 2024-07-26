@@ -90,9 +90,13 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		},
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
-			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+			ConnectionAnnouncement: "",
 		},
 		TenantID: namespace.TenantID,
+	}
+
+	if envs.IsCommunity() {
+		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
 	}
 
 	if ok, err := s.validator.Struct(ns); !ok || err != nil {

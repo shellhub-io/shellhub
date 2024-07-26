@@ -493,6 +493,8 @@ func TestCreateNamespace(t *testing.T) {
 				}
 
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 			},
 			expected: Expected{
 				nil,
@@ -531,6 +533,8 @@ func TestCreateNamespace(t *testing.T) {
 				var isCloud bool
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(model, nil).Once()
 			},
 			expected: Expected{
@@ -570,6 +574,8 @@ func TestCreateNamespace(t *testing.T) {
 				var isCloud bool
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(model, errors.New("error")).Once()
 			},
 			expected: Expected{
@@ -611,6 +617,8 @@ func TestCreateNamespace(t *testing.T) {
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
 				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(nil, errors.New("error")).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 			},
 			expected: Expected{
 				nil, NewErrNamespaceCreateStore(errors.New("error")),
@@ -650,6 +658,8 @@ func TestCreateNamespace(t *testing.T) {
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
 				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(notCloudNamespace, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 			},
 			expected: Expected{
 				&models.Namespace{
@@ -692,7 +702,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: "",
 					},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
@@ -701,6 +711,8 @@ func TestCreateNamespace(t *testing.T) {
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
 				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(nil, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
 			},
 			expected: Expected{
 				&models.Namespace{
@@ -711,7 +723,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: "",
 					},
 					TenantID:   "xxxxx",
 					MaxDevices: -1,
@@ -743,7 +755,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: "",
 					},
 					TenantID:   "xxxxx",
 					MaxDevices: 3,
@@ -752,6 +764,8 @@ func TestCreateNamespace(t *testing.T) {
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
 				mock.On("NamespaceCreate", ctx, cloudNamespace).Return(nil, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
 			},
 			expected: Expected{
 				&models.Namespace{
@@ -762,7 +776,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: "",
 					},
 					TenantID:   "xxxxx",
 					MaxDevices: 3,
@@ -777,10 +791,12 @@ func TestCreateNamespace(t *testing.T) {
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			returnedNamespace, err := service.CreateNamespace(ctx, tc.namespace, tc.ownerID)
+
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
+
+			mock.AssertExpectations(t)
 		})
 	}
-	mock.AssertExpectations(t)
 }
 
 func TestEditNamespace(t *testing.T) {
