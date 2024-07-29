@@ -37,7 +37,7 @@
 
       <v-list class="bg-v-theme-surface" data-test="list">
         <v-list-item
-          v-for="item in items"
+          v-for="item in visibleItems"
           :key="item.title"
           :to="item.path"
           lines="two"
@@ -45,17 +45,19 @@
           :disabled="disableItem(item.title)"
           data-test="list-item"
         >
-          <div class="d-flex align-center">
-            <div class="mr-3">
-              <v-icon data-test="icon">
-                {{ item.icon }}
-              </v-icon>
-            </div>
 
-            <v-list-item-title :data-test="item.icon + '-listItem'">
+          <v-list-item-title
+            :data-test="item.icon + '-listItem'"
+          >
+            <div class="d-flex align-center">
+              <div class="mr-3">
+                <v-icon data-test="icon">
+                  {{ item.icon }}
+                </v-icon>
+              </div>
               {{ item.title }}
               <v-chip
-                v-if="!envVariables.isCloud && !envVariables.isEnterprise && envVariables.premiumPaywall && item.isPremium"
+                v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
                 density="comfortable"
                 label
                 variant="outlined"
@@ -63,8 +65,10 @@
                 class="ml-1"
                 color="yellow"
                 prepend-icon="mdi-crown">Premium</v-chip>
-            </v-list-item-title>
-          </div>
+
+            </div>
+          </v-list-item-title>
+
         </v-list-item>
         <v-col class="d-flex align-end justify-center">
           <NewConnection />
@@ -120,46 +124,6 @@ import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import NewConnection from "../components/NewConnection/NewConnection.vue";
 
-const items = [
-  {
-    icon: "mdi-view-dashboard",
-    title: "Dashboard",
-    path: "/",
-  },
-  {
-    icon: "mdi-cellphone-link",
-    title: "Devices",
-    path: "/devices",
-  },
-  {
-    icon: "mdi-server",
-    title: "Containers",
-    path: "/containers",
-    isPremium: true,
-  },
-  {
-    icon: "mdi-history",
-    title: "Sessions",
-    path: "/sessions",
-  },
-  {
-    icon: "mdi-security",
-    title: "Firewall Rules",
-    path: "/firewall/rules",
-    isPremium: true,
-  },
-  {
-    icon: "mdi-key",
-    title: "Public Keys",
-    path: "/sshkeys/public-keys",
-  },
-  {
-    icon: "mdi-cog",
-    title: "Settings",
-    path: "/settings",
-  },
-];
-
 const router = useRouter();
 const store = useStore();
 const currentRoute = computed(() => router.currentRoute);
@@ -184,6 +148,56 @@ onMounted(() => {
 });
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
+const showConnector = computed(() => (envVariables.isCommunity && !envVariables.premiumPaywall) || !envVariables.hasConnector);
+const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
+const items = [
+  {
+    icon: "mdi-view-dashboard",
+    title: "Dashboard",
+    path: "/",
+  },
+  {
+    icon: "mdi-cellphone-link",
+    title: "Devices",
+    path: "/devices",
+  },
+  {
+    icon: "mdi-server",
+    title: "Containers",
+    path: "/containers",
+  },
+  {
+    icon: "mdi-docker",
+    title: "Connectors",
+    path: "/connectors",
+    isPremium: true,
+    hidden: showConnector.value,
+  },
+  {
+    icon: "mdi-history",
+    title: "Sessions",
+    path: "/sessions",
+  },
+  {
+    icon: "mdi-security",
+    title: "Firewall Rules",
+    path: "/firewall/rules",
+    isPremium: true,
+    hidden: showFirewall.value,
+  },
+  {
+    icon: "mdi-key",
+    title: "Public Keys",
+    path: "/sshkeys/public-keys",
+  },
+  {
+    icon: "mdi-cog",
+    title: "Settings",
+    path: "/settings",
+  },
+];
+
+const visibleItems = computed(() => items.filter((item) => !item.hidden));
 
 defineExpose({
   items,

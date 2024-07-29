@@ -122,7 +122,7 @@ const props = defineProps({
   typeMessage: {
     type: String,
     default: "firewall",
-    validator: (value: string) => ["device", "session", "firewall", "publicKey"].includes(value),
+    validator: (value: string) => ["device", "session", "firewall", "publicKey", "container"].includes(value),
     required: true,
   },
   loading: {

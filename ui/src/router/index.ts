@@ -173,12 +173,6 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: "/containers",
     name: "containers",
-    beforeEnter: (to, from, next) => {
-      if (!envVariables.isEnterprise && !envVariables.isCloud && envVariables.premiumPaywall) {
-        store.commit("users/setShowPaywall", true);
-      }
-      next();
-    },
     component: Containers,
     redirect: {
       name: "listContainers",
@@ -202,18 +196,18 @@ export const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
-    path: "/containers/connectors",
+    path: "/connectors",
     name: "connectors",
     component: Connectors,
     beforeEnter: (to, from, next) => {
-      if (!envVariables.isEnterprise && !envVariables.isCloud && envVariables.premiumPaywall) {
+      if (envVariables.isCommunity && envVariables.premiumPaywall) {
         store.commit("users/setShowPaywall", true);
       }
       next();
     },
   },
   {
-    path: "/containers/connectors/:id",
+    path: "/connectors/:id",
     name: "detailsConnectors",
     component: detailsConnectors,
   },
@@ -237,7 +231,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "firewalls",
     component: FirewallRules,
     beforeEnter: (to, from, next) => {
-      if (!envVariables.isEnterprise && !envVariables.isCloud && envVariables.premiumPaywall) {
+      if (envVariables.isCommunity && envVariables.premiumPaywall) {
         store.commit("users/setShowPaywall", true);
       }
       next();
