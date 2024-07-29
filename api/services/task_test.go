@@ -103,7 +103,7 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock, nil)
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -152,7 +152,7 @@ func TestService_CleanupSessions(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock, nil)
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
