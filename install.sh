@@ -137,6 +137,14 @@ http_get() {
     fi
 }
 
+if [ "$(uname -s)" = "FreeBSD" ]; then
+    echo "👹 This system is running FreeBSD."
+    echo "❌ ERROR: Automatic installation is not supported on FreeBSD."
+    echo
+    echo "Please refer to the ShellHub port at https://github.com/shellhub-io/ports"
+    exit 1
+fi
+
 [ -z "$TENANT_ID" ] && { echo "ERROR: TENANT_ID is missing."; exit 1; }
 
 SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
