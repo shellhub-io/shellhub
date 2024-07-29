@@ -6,6 +6,7 @@
       status="pending"
       :storeMethods="storeMethods"
       data-test="container-table"
+      :committable="false"
 
     />
   </div>

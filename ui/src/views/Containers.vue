@@ -22,16 +22,6 @@
 
     <div class="d-flex mt-4" data-test="device-header-component-group">
       <TagSelector v-if="isContainerList" />
-      <v-btn
-        @click="router.push('/containers/connectors')"
-        color="primary"
-        tabindex="0"
-        variant="elevated"
-        aria-label="Dialog Add device"
-        data-test="connector-add-btn"
-      >
-        Manage Docker Connectors
-      </v-btn>
     </div>
   </div>
   <v-card :loading="loading" class="mt-2" v-if="show" data-test="device-table-component">
@@ -45,27 +35,26 @@
     type-message="container"
     data-test="boxMessageDevice-component"
   >
-    <template v-slot:container>
+    <template v-slot:container v-if="envVariables.hasConnector">
       <ConnectorAdd @update="refresh" />
     </template>
   </BoxMessage>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref, onUnmounted } from "vue";
+import { computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
+import { envVariables } from "../envVariables";
 import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
 import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
-import handleError from "@/utils/handleError";
 
 const store = useStore();
 const router = useRouter();
 const filter = ref("");
-const show = ref(false);
+const show = computed(() => store.getters["devices/getNumberDevices"] > 0);
 const loading = ref(false);
 
 const filterToEncodeBase64 = [
@@ -103,28 +92,6 @@ const searchDevices = () => {
 };
 
 const isContainerList = computed(() => router.currentRoute.value.name === "listContainers");
-
-onMounted(async () => {
-  try {
-    await store.dispatch("devices/fetch", {
-      page: store.getters["devices/getPage"],
-      perPage: store.getters["devices/getPerPage"],
-      filter: btoa(JSON.stringify(filterToEncodeBase64)),
-      committable: false,
-    });
-    if (store.getters["devices/getNumberDevices"] > 0) {
-      show.value = true;
-    }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) store.dispatch("snackbar/showSnackbarErrorAssociation");
-    } else {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
-    }
-    handleError(error);
-  }
-});
 
 const refresh = async () => {
   loading.value = true;
