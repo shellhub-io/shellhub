@@ -28,7 +28,7 @@ docker_install() {
        shellhubio/agent:$AGENT_VERSION
 }
 
-bundle_install() {
+standalone_install() {
     INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 
     if [ "$(id -u)" -ne 0 ]; then
@@ -40,7 +40,6 @@ bundle_install() {
         printf "ERROR: This is not a systemd-based operation system. Unable to proceed with the requested action.\n"
         exit 1
     fi
-
 
     echo "Downloading runc static binary..."
     {
@@ -128,7 +127,7 @@ if type docker > /dev/null 2>&1; then
     done
 fi
 
-INSTALL_METHOD="${INSTALL_METHOD:-bundle}"
+INSTALL_METHOD="${INSTALL_METHOD:-standalone}"
 
 # Auto detect arch if it has not already been set
 if [ -z "$AGENT_ARCH" ]; then
@@ -155,8 +154,8 @@ echo "Install method: $INSTALL_METHOD"
 echo "Agent version: $AGENT_VERSION"
 
 case "$INSTALL_METHOD" in
-    bundle)
-        bundle_install
+    standalone)
+        standalone_install
         ;;
     docker)
         docker_install
