@@ -38,6 +38,27 @@ docker_install() {
        shellhubio/agent:$AGENT_VERSION
 }
 
+snap_install() {
+    echo "📦 Installing ShellHub using snap method..."
+
+    if ! type snap > /dev/null 2>&1; then
+        echo "❌ Snap is not installed or not supported on this system."
+        exit 1
+    fi
+
+    echo "📥 Downloading ShellHub snap package..."
+
+    {
+        sudo snap install shellhub-agent --channel=$AGENT_VERSION
+    } || { echo "❌ Failed to download and install ShellHub snap package."; exit 1; }
+
+    echo "🚀 Starting ShellHub snap service..."
+
+    {
+        sudo snap start shellhub-agent
+    } || { echo "❌ Failed to start ShellHub snap service."; exit 1; }
+}
+
 standalone_install() {
     echo "🐧 Installing ShellHub using standalone method..."
 
@@ -140,6 +161,10 @@ if type docker > /dev/null 2>&1; then
     done
 fi
 
+if [ -z "$INSTALL_METHOD" ] && type snap > /dev/null 2>&1; then
+    INSTALL_METHOD="snap"
+fi
+
 INSTALL_METHOD="${INSTALL_METHOD:-standalone}"
 
 # Auto detect arch if it has not already been set
@@ -173,11 +198,14 @@ echo "- Agent version: $AGENT_VERSION"
 echo
 
 case "$INSTALL_METHOD" in
-    standalone)
-        standalone_install
-        ;;
     docker)
         docker_install
+        ;;
+    snap)
+        snap_install
+        ;;
+    standalone)
+        standalone_install
         ;;
     *)
         echo "❌ Install method not supported."
