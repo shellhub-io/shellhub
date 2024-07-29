@@ -23,17 +23,6 @@ services:
       start_period: 10s
       retries: 20
     ports: []
-  ui:
-    image: ui:test
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-      target: production 
-    healthcheck:
-      interval: 5s
-      start_period: 10s
-      retries: 20
-    ports: []
   cli:
     image: cli:test
     build:
