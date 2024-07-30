@@ -38,6 +38,7 @@
             />
 
             <DeviceDelete
+              variant="device"
               :uid="device.uid"
               @update="refreshUsers"
               data-test="deviceDelete-component"

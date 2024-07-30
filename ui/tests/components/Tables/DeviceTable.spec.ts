@@ -182,6 +182,8 @@ describe("Device Table", () => {
         storeMethods: mockStoreMethods,
         status: "accepted",
         header: "primary",
+        committable: true,
+        variant: "device",
       },
     });
   });
