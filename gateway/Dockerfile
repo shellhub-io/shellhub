@@ -53,7 +53,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/gateway
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.20.1 AS production
+FROM alpine:3.20.2 AS production
 
 RUN apk add libgcc curl certbot certbot-nginx
 
