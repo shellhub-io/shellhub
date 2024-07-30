@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Overridden variables from Go template: {{.Overrides}}
+
 docker_install() {
     echo "🐳 Installing ShellHub using docker method..."
 
