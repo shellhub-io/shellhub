@@ -156,11 +156,6 @@ func (h *Handler) CreateUserToken(c gateway.Context) error {
 		return err
 	}
 
-	// If the tenant id is not in the parameters, we get it from the header.
-	if req.TenantID == "" {
-		req.TenantID = c.Request().Header.Get("X-Tenant-ID")
-	}
-
 	if err := c.Validate(req); err != nil {
 		return err
 	}

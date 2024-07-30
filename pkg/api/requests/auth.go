@@ -11,6 +11,6 @@ type AuthTokenSwap struct {
 }
 
 type CreateUserToken struct {
-	UserID   string `header:"X-ID" validate:"required"`
+	UserID   string `param:"id" header:"X-ID" validate:"required"`
 	TenantID string `param:"tenant" validate:"omitempty,uuid"`
 }
