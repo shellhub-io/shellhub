@@ -6,6 +6,7 @@
       status="rejected"
       :storeMethods="storeMethods"
       data-test="device-table"
+      :committable="true"
     />
   </div>
 </template>

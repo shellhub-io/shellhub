@@ -6,7 +6,7 @@
       status="rejected"
       :storeMethods="storeMethods"
       data-test="container-table"
-      :committable="false"
+      :committable="true"
     />
   </div>
 </template>
