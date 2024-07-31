@@ -266,7 +266,7 @@ func (s *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, e
 			return nil, FromMongoError(err)
 		}
 
-		if ns.Owner != id {
+		if ns.Owner == id {
 			userInfo.OwnedNamespaces = append(userInfo.OwnedNamespaces, *ns)
 		} else {
 			userInfo.AssociatedNamespaces = append(userInfo.AssociatedNamespaces, *ns)
