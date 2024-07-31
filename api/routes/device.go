@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -42,6 +43,38 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 
 	if err := req.Filters.Unmarshal(); err != nil {
 		return err
+	}
+
+	if c.QueryParam("connector") != "" {
+		req.Filters.Data = append(req.Filters.Data, query.Filter{
+			Type: query.FilterTypeProperty,
+			Params: &query.FilterProperty{
+				Name:     "info.platform",
+				Operator: "eq",
+				Value:    "connector",
+			},
+		})
+	} else {
+		filter := []query.Filter{
+			{
+				Type: query.FilterTypeProperty,
+				Params: &query.FilterProperty{
+					Name:     "info.platform",
+					Operator: "eq",
+					Value:    "native",
+				},
+			},
+			{
+				Type: query.FilterTypeProperty,
+				Params: &query.FilterProperty{
+					Name:     "info.platform",
+					Operator: "eq",
+					Value:    "docker",
+				},
+			},
+		}
+
+		req.Filters.Data = append(req.Filters.Data, filter...)
 	}
 
 	if err := c.Validate(req); err != nil {
