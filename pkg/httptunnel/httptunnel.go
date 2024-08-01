@@ -82,7 +82,7 @@ func (t *Tunnel) Router() http.Handler {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		t.connman.Set(id, wsconnadapter.New(conn))
+		t.connman.Set(id, wsconnadapter.New(conn), t.DialerPath)
 
 		return nil
 	})

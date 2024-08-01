@@ -26,8 +26,8 @@ func New() *ConnectionManager {
 	}
 }
 
-func (m *ConnectionManager) Set(key string, conn *wsconnadapter.Adapter) {
-	dialer := revdial.NewDialer(conn, "/ssh/revdial")
+func (m *ConnectionManager) Set(key string, conn *wsconnadapter.Adapter, connPath string) {
+	dialer := revdial.NewDialer(conn, connPath)
 
 	m.dialers.Store(key, dialer)
 

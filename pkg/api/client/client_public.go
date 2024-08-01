@@ -104,12 +104,12 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 
 // NewReverseListener creates a new reverse listener connection to ShellHub's server. This listener receives the SSH
 // requests coming from the ShellHub server. Only authenticated devices can obtain a listener connection.
-func (c *client) NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error) {
+func (c *client) NewReverseListener(ctx context.Context, token string, connPath string) (*revdial.Listener, error) {
 	if token == "" {
 		return nil, errors.New("token is empty")
 	}
 
-	if err := c.reverser.Auth(ctx, token); err != nil {
+	if err := c.reverser.Auth(ctx, token, connPath); err != nil {
 		return nil, err
 	}
 

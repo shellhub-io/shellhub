@@ -14,7 +14,7 @@ import (
 
 //go:generate mockery --name=IReverser --filename=reverser.go
 type IReverser interface {
-	Auth(ctx context.Context, token string) error
+	Auth(ctx context.Context, token string, connPath string) error
 	NewListener() (*revdial.Listener, error)
 }
 
@@ -35,8 +35,8 @@ func NewReverser(host string) *Reverser {
 }
 
 // Auth creates a initial connection to the ShellHub SSH's server and authenticate it with the token received.
-func (r *Reverser) Auth(ctx context.Context, token string) error {
-	uri, err := url.JoinPath(r.host, "/ssh/connection")
+func (r *Reverser) Auth(ctx context.Context, token string, connPath string) error {
+	uri, err := url.JoinPath(r.host, connPath)
 	if err != nil {
 		return err
 	}
