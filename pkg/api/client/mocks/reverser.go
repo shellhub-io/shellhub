@@ -14,13 +14,13 @@ type IReverser struct {
 	mock.Mock
 }
 
-// Auth provides a mock function with given fields: ctx, token
-func (_m *IReverser) Auth(ctx context.Context, token string) error {
-	ret := _m.Called(ctx, token)
+// Auth provides a mock function with given fields: ctx, token, connPath
+func (_m *IReverser) Auth(ctx context.Context, token string, connPath string) error {
+	ret := _m.Called(ctx, token, connPath)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, token, connPath)
 	} else {
 		r0 = ret.Error(0)
 	}

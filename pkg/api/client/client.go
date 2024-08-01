@@ -25,7 +25,7 @@ type publicAPI interface {
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
-	NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error)
+	NewReverseListener(ctx context.Context, token string, connPath string) (*revdial.Listener, error)
 }
 
 //go:generate mockery --name=Client --filename=client.go

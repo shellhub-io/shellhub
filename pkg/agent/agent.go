@@ -492,7 +492,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token)
+			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
