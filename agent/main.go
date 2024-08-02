@@ -10,9 +10,10 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/shellhub-io/shellhub/pkg/agent"
-	"github.com/shellhub-io/shellhub/pkg/agent/connector"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/pkg/agent/ssh"
+	"github.com/shellhub-io/shellhub/pkg/agent/ssh/connector"
+	"github.com/shellhub-io/shellhub/pkg/agent/ssh/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
@@ -162,14 +163,14 @@ func main() {
 				}()
 			}
 
-			if err := ag.Listen(ctx); err != nil {
+			if err := ag.ListenSSH(ctx); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":            AgentVersion,
 					"mode":               mode,
 					"tenant_id":          cfg.TenantID,
 					"server_address":     cfg.ServerAddress,
 					"preferred_hostname": cfg.PreferredHostname,
-				}).Fatal("Failed to listen for connections")
+				}).Fatal("Failed to listen for SSH connections")
 			}
 
 			log.WithFields(log.Fields{
@@ -266,7 +267,7 @@ func main() {
 		Long: `Starts the SFTP server. This command is used internally by the agent and should not be used directly.
 It is initialized by the agent when a new SFTP session is created.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			agent.NewSFTPServer(command.SFTPServerMode(args[0]))
+			ssh.NewSFTPServer(command.SFTPServerMode(args[0]))
 		},
 	})
 
