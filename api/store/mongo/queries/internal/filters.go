@@ -42,6 +42,9 @@ func ParseFilterProperty(fp *query.FilterProperty) (bson.M, bool, error) {
 	case "gt":
 		res, err = fromGt(fp.Value)
 		ok = true
+	case "ne":
+		res, err = fromNe(fp.Value)
+		ok = true
 	default:
 		return nil, false, nil
 	}
@@ -96,4 +99,8 @@ func fromGt(value interface{}) (bson.M, error) {
 	}
 
 	return bson.M{"$gt": value}, nil
+}
+
+func fromNe(value interface{}) (bson.M, error) {
+	return bson.M{"$ne": value}, nil
 }
