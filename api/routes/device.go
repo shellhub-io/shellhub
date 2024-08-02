@@ -46,30 +46,38 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 	}
 
 	if c.QueryParam("connector") != "" {
-		req.Filters.Data = append(req.Filters.Data, query.Filter{
-			Type: query.FilterTypeProperty,
-			Params: &query.FilterProperty{
-				Name:     "info.platform",
-				Operator: "eq",
-				Value:    "connector",
-			},
-		})
-	} else {
 		filter := []query.Filter{
 			{
 				Type: query.FilterTypeProperty,
 				Params: &query.FilterProperty{
 					Name:     "info.platform",
 					Operator: "eq",
-					Value:    "native",
+					Value:    "connector",
 				},
 			},
+			{
+				Type: query.FilterTypeOperator,
+				Params: &query.FilterOperator{
+					Name: "and",
+				},
+			},
+		}
+
+		req.Filters.Data = append(req.Filters.Data, filter...)
+	} else {
+		filter := []query.Filter{
 			{
 				Type: query.FilterTypeProperty,
 				Params: &query.FilterProperty{
 					Name:     "info.platform",
-					Operator: "eq",
-					Value:    "docker",
+					Operator: "ne",
+					Value:    "connector",
+				},
+			},
+			{
+				Type: query.FilterTypeOperator,
+				Params: &query.FilterOperator{
+					Name: "and",
 				},
 			},
 		}
