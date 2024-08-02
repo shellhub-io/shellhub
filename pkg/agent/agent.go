@@ -42,7 +42,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"io"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -120,10 +119,6 @@ type Config struct {
 	// mode that was wrongly named `SIMPLE_USER_PASSWORD` instead of `SINGLE_USER_PASSWORD`, and willing to keep the
 	// compatibility, this new variable was created.
 	SimpleUserPassword string `env:"SIMPLE_USER_PASSWORD"`
-
-	// MaxRetryConnectionTimeout specifies the maximum time, in seconds, that an agent will wait
-	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
-	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
@@ -174,7 +169,6 @@ type Agent struct {
 	serverInfo *models.Info
 	server     *server.Server
 	tunnel     *tunnel.Tunnel
-	listening  chan bool
 	closed     atomic.Bool
 	mode       Mode
 }
@@ -495,8 +489,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 		WithProxyHandler(proxyHandler()).
 		Build()
 
-	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
-
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		for {
@@ -524,6 +516,26 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
 			if err != nil {
+				if errors.Is(err, client.ErrDialUnauthorized) {
+					log.WithError(err).WithFields(log.Fields{
+						"version":        AgentVersion,
+						"tenant_id":      a.authData.Namespace,
+						"server_address": a.config.ServerAddress,
+						"ssh_server":     sshEndpoint,
+						"sshid":          sshid,
+					}).Warn("Failed to because authentication data is invalid")
+
+					if err := a.authorize(); err != nil {
+						log.WithError(err).WithFields(log.Fields{
+							"version":        AgentVersion,
+							"tenant_id":      a.authData.Namespace,
+							"server_address": a.config.ServerAddress,
+							"ssh_server":     sshEndpoint,
+							"sshid":          sshid,
+						}).Error("Failed to authenticate the device on the server")
+					}
+				}
+
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
 					"tenant_id":      a.authData.Namespace,
@@ -531,6 +543,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 					"ssh_server":     sshEndpoint,
 					"sshid":          sshid,
 				}).Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+
 				time.Sleep(time.Second * 10)
 
 				continue
@@ -543,8 +556,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"ssh_server":     sshEndpoint,
 				"sshid":          sshid,
 			}).Info("Server connection established")
-
-			a.listening <- true
 
 			{
 				// NOTE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
@@ -561,88 +572,12 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 				listener.Close() // nolint:errcheck
 			}
-
-			a.listening <- false
 		}
 	}()
 
 	<-ctx.Done()
 
 	return a.Close()
-}
-
-// AgentPingDefaultInterval is the default time interval between ping on agent.
-const AgentPingDefaultInterval = 10 * time.Minute
-
-// ping sends an authorization request to the ShellHub server at each interval.
-// A random value between 10 and [config.MaxRetryConnectionTimeout] seconds is added to the interval
-// each time the ticker is executed.
-//
-// Ping only sends requests to the server if the agent is listening for connections. If the agent is not
-// listening, the ping process will be stopped. When the interval is 0, the default value is 10 minutes.
-func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
-	a.listening = make(chan bool)
-
-	if interval == 0 {
-		interval = AgentPingDefaultInterval
-	}
-
-	<-a.listening // NOTE: wait for the first connection to start to ping the server.
-	ticker := time.NewTicker(interval)
-
-	for {
-		if a.isClosed() {
-			return nil
-		}
-
-		select {
-		case <-ctx.Done():
-			log.WithFields(log.Fields{
-				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
-				"server_address": a.config.ServerAddress,
-			}).Debug("stopped pinging server due to context cancellation")
-
-			return nil
-		case ok := <-a.listening:
-			if ok {
-				log.WithFields(log.Fields{
-					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
-					"server_address": a.config.ServerAddress,
-					"timestamp":      time.Now(),
-				}).Debug("Starting the ping interval to server")
-
-				ticker.Reset(interval)
-			} else {
-				log.WithFields(log.Fields{
-					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
-					"server_address": a.config.ServerAddress,
-					"timestamp":      time.Now(),
-				}).Debug("Stopped pinging server due listener status")
-
-				ticker.Stop()
-			}
-		case <-ticker.C:
-			if err := a.authorize(); err != nil {
-				a.server.SetDeviceName(a.authData.Name)
-			}
-
-			log.WithFields(log.Fields{
-				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
-				"server_address": a.config.ServerAddress,
-				"name":           a.authData.Name,
-				"hostname":       a.config.PreferredHostname,
-				"identity":       a.config.PreferredIdentity,
-				"timestamp":      time.Now(),
-			}).Info("Ping")
-
-			randTimeout := time.Duration(rand.Intn(a.config.MaxRetryConnectionTimeout-10)+10) * time.Second //nolint:gosec
-			ticker.Reset(interval + randTimeout)
-		}
-	}
 }
 
 // CheckUpdate gets the ShellHub's server version.
