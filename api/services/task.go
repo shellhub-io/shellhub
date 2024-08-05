@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	log "github.com/sirupsen/logrus"
@@ -16,7 +15,6 @@ import (
 
 const (
 	TaskDevicesHeartbeat = worker.TaskPattern("api:heartbeat")
-	TaskCleanupSessions  = worker.TaskPattern("api:cleanup-sessions")
 )
 
 // Device Heartbeat sets the device status to "online". It processes in batch.
@@ -74,32 +72,6 @@ func (s *service) DevicesHeartbeat() worker.TaskHandler {
 
 		log.WithField("task", TaskDevicesHeartbeat.String()).
 			Info("finishing heartbeat task")
-
-		return nil
-	}
-}
-
-// CleanupSessions removes sessions older than the specified number of retention days.
-func (s *service) CleanupSessions(retention int) worker.CronHandler {
-	return func(ctx context.Context) error {
-		log.WithField("task", TaskCleanupSessions.String()).
-			Info("executing cleanup task")
-
-		lte := clock.Now().UTC().AddDate(0, 0, retention*(-1))
-		deletedCount, updatedCount, err := s.store.SessionDeleteRecordFrameByDate(ctx, lte)
-		if err != nil {
-			log.WithField("task", TaskCleanupSessions.String()).
-				WithError(err).
-				Error("failed to cleanup sessions")
-
-			return err
-		}
-
-		log.WithField("task", TaskCleanupSessions.String()).
-			WithField("lte", lte.String()).
-			WithField("deleted_count", deletedCount).
-			WithField("updated_count", updatedCount).
-			Info("finishing cleanup task")
 
 		return nil
 	}

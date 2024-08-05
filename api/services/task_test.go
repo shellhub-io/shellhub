@@ -8,8 +8,6 @@ import (
 
 	storemocks "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmocks "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/require"
 )
@@ -110,55 +108,6 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 			require.Equal(tt, tc.expected, s.DevicesHeartbeat()(ctx, tc.payload))
-		})
-	}
-}
-
-func TestService_CleanupSessions(t *testing.T) {
-	storeMock := new(storemocks.Store)
-	clockMock := new(clockmocks.Clock)
-
-	clock.DefaultBackend = clockMock
-	now := time.Now()
-	clockMock.On("Now").Return(now)
-
-	cases := []struct {
-		description   string
-		retention     int
-		requiredMocks func(context.Context)
-		expected      error
-	}{
-		{
-			description: "fails",
-			retention:   30,
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("SessionDeleteRecordFrameByDate", ctx, now.UTC().AddDate(0, 0, 30*(-1))).
-					Return(int64(0), int64(0), errors.New("error")).
-					Once()
-			},
-			expected: errors.New("error"),
-		},
-		{
-			description: "succeeds",
-			retention:   30,
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("SessionDeleteRecordFrameByDate", ctx, now.UTC().AddDate(0, 0, 30*(-1))).
-					Return(int64(30), int64(0), nil).
-					Once()
-			},
-			expected: nil,
-		},
-	}
-
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(tt *testing.T) {
-			ctx := context.Background()
-			tc.requiredMocks(ctx)
-			require.Equal(tt, tc.expected, s.CleanupSessions(tc.retention)(ctx))
 		})
 	}
 }
