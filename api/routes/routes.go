@@ -135,7 +135,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
 	e.Pre(echoMiddleware.Rewrite(map[string]string{
-		"/api/containers*":  "/api/devices?connector=true&$1",
+		"/api/containers":   "/api/devices?connector=true",
+		"/api/containers?*": "/api/devices?$1&connector=true",
 		"/api/containers/*": "/api/devices/$1",
 	}))
 
