@@ -16,7 +16,6 @@ import (
 	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
-	workerlib "github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -112,9 +111,7 @@ type config struct {
 	// server will aggregate the tasks immediately.
 	//
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
-	AsynqGroupMaxSize             int    `env:"ASYNQ_GROUP_MAX_SIZE,default=500"`
-	SessionRecordCleanupSchedule  string `env:"SESSION_RECORD_CLEANUP_SCHEDULE,default=@daily"`
-	SessionRecordCleanupRetention int    `env:"RECORD_RETENTION,default=0"`
+	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=500"`
 }
 
 // startSentry initializes the Sentry client.
@@ -184,9 +181,6 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	worker := asynq.NewServer(cfg.RedisURI, asynq.BatchConfig(cfg.AsynqGroupMaxSize, cfg.AsynqGroupMaxDelay, int(cfg.AsynqGroupGracePeriod)))
 	worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
-	if cfg.SessionRecordCleanupRetention > 0 {
-		worker.HandleCron(workerlib.CronSpec(cfg.SessionRecordCleanupSchedule), service.CleanupSessions(cfg.SessionRecordCleanupRetention))
-	}
 
 	if err := worker.Start(); err != nil {
 		log.WithError(err).
