@@ -6,32 +6,19 @@
       status="accepted"
       :storeMethods="storeMethods"
       data-test="container-table"
-      :committable="true"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import DeviceTable from "../Tables/DeviceTable.vue";
-import { FetchDevicesParams, IDeviceMethods } from "../../interfaces/IDevice";
+import { FetchContainerParams, IContainerMethods } from "../../interfaces/IContainer";
 import { useStore } from "@/store";
 
 const store = useStore();
 
-const filter = ref(btoa(JSON.stringify([
-  {
-    type: "property",
-    params: {
-      name: "info.platform",
-      operator: "eq",
-      value: "connector",
-    },
-  },
-])));
-
-const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, sortStatusString }: FetchDevicesParams) => {
-  await store.dispatch("devices/fetch", {
+const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, sortStatusString }: FetchContainerParams) => {
+  await store.dispatch("container/fetch", {
     perPage,
     page,
     filter,
@@ -41,19 +28,18 @@ const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, so
   });
 };
 
-const getFilter = () => filter.value;
-const getDevicesList = () => store.getters["devices/list"];
-const getSortStatusField = () => store.getters["devices/getSortStatusField"];
-const getSortStatusString = () => store.getters["devices/getSortStatusString"];
-const getNumberDevices = () => store.getters["devices/getNumberDevices"];
+const getFilter = () => store.getters["container/getFilter"];
+const getList = () => store.getters["container/list"];
+const getSortStatusField = () => store.getters["container/getSortStatusField"];
+const getSortStatusString = () => store.getters["container/getSortStatusString"];
+const getNumber = () => store.getters["container/getNumberContainers"];
 
-const storeMethods: IDeviceMethods = {
+const storeMethods: IContainerMethods = {
   fetchDevices,
   getFilter,
-  getDevicesList,
+  getList,
   getSortStatusField,
   getSortStatusString,
-  getNumberDevices,
+  getNumber,
 };
-
 </script>

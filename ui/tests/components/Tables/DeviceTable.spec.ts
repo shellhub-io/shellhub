@@ -132,10 +132,10 @@ describe("Device Table", () => {
   const mockStoreMethods = {
     fetchDevices: vi.fn(),
     getFilter: vi.fn(),
-    getDevicesList: vi.fn(),
+    getList: vi.fn(),
     getSortStatusField: vi.fn(),
     getSortStatusString: vi.fn(),
-    getNumberDevices: vi.fn(),
+    getNumber: vi.fn(),
   };
 
   const store = createStore({
@@ -182,7 +182,6 @@ describe("Device Table", () => {
         storeMethods: mockStoreMethods,
         status: "accepted",
         header: "primary",
-        committable: true,
         variant: "device",
       },
     });

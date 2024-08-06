@@ -17,7 +17,7 @@ type position = {
   longitude: number;
 }
 
-export interface IDevice {
+export interface IContainer {
   uid: string;
   name: string;
   identity: identity;
@@ -34,22 +34,27 @@ export interface IDevice {
   tags: Array<string>;
 }
 
-export interface IUpdateDeviceTags {
+export interface IUpdateContainerTags {
   uid: string;
   tags: UpdateTagsDeviceRequest;
 }
 
-export interface IDeviceRename {
+export interface IUpdateContainerTag {
+  uid: string;
+  tags: string;
+}
+
+export interface IContainerRename {
   uid: string;
   name: UpdateDeviceRequest;
 }
 
-export interface IDevicePostTag {
+export interface IContainerPostTag {
   uid: string;
   name: CreateDeviceTagRequest;
 }
 
-export interface FetchDevicesParams {
+export interface FetchContainerParams {
   perPage?: number;
   page?: number;
   filter?: string;
@@ -57,10 +62,10 @@ export interface FetchDevicesParams {
   sortStatusField: string;
   sortStatusString: string;
 }
-export interface IDeviceMethods {
-    fetchDevices: (params: FetchDevicesParams) => Promise<void>;
+export interface IContainerMethods {
+    fetchDevices: (params: FetchContainerParams) => Promise<void>;
     getFilter: () => string;
-    getList: () => IDevice[];
+    getList: () => IContainer[];
     getSortStatusField: () => string;
     getSortStatusString: () => string;
     getNumber: () => number;

@@ -32,6 +32,7 @@ describe("Devices store", () => {
       devices: [],
       quickConnectionList: [],
       device: {},
+      showDevices: false,
       numberDevices: 0,
       page: 1,
       perPage: 10,
@@ -49,6 +50,7 @@ describe("Devices store", () => {
     expect(store.getters["devices/list"]).toEqual(defaultState.devices);
     expect(store.getters["devices/listQuickConnection"]).toEqual(defaultState.quickConnectionList);
     expect(store.getters["devices/get"]).toEqual(defaultState.device);
+    expect(store.getters["devices/getShowDevices"]).toEqual(defaultState.showDevices);
     expect(store.getters["devices/getNumberDevices"]).toEqual(defaultState.numberDevices);
     expect(store.getters["devices/getPage"]).toEqual(defaultState.page);
     expect(store.getters["devices/getPerPage"]).toEqual(defaultState.perPage);

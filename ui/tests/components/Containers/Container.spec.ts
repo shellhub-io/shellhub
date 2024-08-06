@@ -6,7 +6,7 @@ import { VTab } from "vuetify/lib/components/index.mjs";
 import { store, key } from "@/store";
 import Containers from "@/components/Containers/Container.vue";
 import { router } from "@/router";
-import { namespacesApi, billingApi, devicesApi } from "@/api/http";
+import { namespacesApi, billingApi, devicesApi, containersApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const devices = [
@@ -123,6 +123,7 @@ describe("Device", () => {
   let mockNamespace: MockAdapter;
   let mockBilling: MockAdapter;
   let mockDevices: MockAdapter;
+  let mockContainers: MockAdapter;
 
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -131,19 +132,19 @@ describe("Device", () => {
     mockBilling = new MockAdapter(billingApi.getAxios());
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
+    mockContainers = new MockAdapter(containersApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
     mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
     mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
+    mockContainers.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
 
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("billing/setSubscription", billingData);
     store.commit("customer/setCustomer", customerData);
-    store.commit("devices/setDeviceChooserStatus", true);
 
     wrapper = mount(Containers, {
       global: {

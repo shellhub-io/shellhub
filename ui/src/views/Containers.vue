@@ -21,7 +21,7 @@
     </v-col>
 
     <div class="d-flex mt-4" data-test="device-header-component-group">
-      <TagSelector v-if="isContainerList" />
+      <TagSelector variant="container" v-if="isContainerList" />
     </div>
   </div>
   <v-card :loading="loading" class="mt-2" v-if="show" data-test="device-table-component">
@@ -50,41 +50,33 @@ import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
 import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
+import handleError from "@/utils/handleError";
 
 const store = useStore();
 const router = useRouter();
 const filter = ref("");
-const show = computed(() => store.getters["devices/getNumberDevices"] > 0);
 const loading = ref(false);
-
-const filterToEncodeBase64 = [
-  {
-    type: "property",
-    params: {
-      name: "info.platform",
-      operator: "eq",
-      value: "connector",
-    },
-  },
-  {
-    type: "property",
-    params: { name: "name", operator: "contains", value: filter.value },
-  },
-];
+const show = computed(() => store.getters["container/getShowContainers"]);
 
 const searchDevices = () => {
   let encodedFilter = "";
 
   if (filter.value) {
+    const filterToEncodeBase64 = [
+      {
+        type: "property",
+        params: { name: "name", operator: "contains", value: filter.value },
+      },
+    ];
     encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
   }
 
   try {
-    store.dispatch("devices/search", {
-      page: store.getters["devices/getPage"],
-      perPage: store.getters["devices/getPerPage"],
+    store.dispatch("container/search", {
+      page: store.getters["container/getPage"],
+      perPage: store.getters["container/getPerPage"],
       filter: encodedFilter,
-      status: store.getters["devices/getStatus"],
+      status: store.getters["container/getStatus"],
     });
   } catch {
     store.dispatch("snackbar/showSnackbarErrorDefault");
@@ -96,18 +88,22 @@ const isContainerList = computed(() => router.currentRoute.value.name === "listC
 const refresh = async () => {
   loading.value = true;
   setTimeout(() => {
-    store.dispatch("devices/fetch", {
-      page: store.getters["devices/getPage"],
-      perPage: store.getters["devices/getPerPage"],
-      filter: btoa(JSON.stringify(filterToEncodeBase64)),
-      committable: false,
-    });
+    try {
+      store.dispatch("container/fetch", {
+        page: store.getters["container/getPage"],
+        perPage: store.getters["container/getPerPage"],
+        filter: store.getters["container/getFilter"],
+        status: "",
+        committable: false,
+      });
+    } catch (error) {
+      handleError(error);
+    }
     loading.value = false;
   }, 10000);
 };
 
 onUnmounted(async () => {
-  await store.dispatch("devices/setFilter", "");
+  await store.dispatch("container/setFilter", "");
 });
-
 </script>
