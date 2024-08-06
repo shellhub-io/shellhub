@@ -221,19 +221,15 @@ const props = defineProps({
     type: String as PropType<"device" | "container">,
     required: true,
   },
-  committable: {
-    type: Boolean,
-    required: true,
-  },
 });
 
-const { fetchDevices, getFilter, getDevicesList, getSortStatusField, getSortStatusString, getNumberDevices } = props.storeMethods;
+const { fetchDevices, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
 
 const router = useRouter();
 const loading = ref(false);
 const filter = computed(() => getFilter());
-const items = computed(() => getDevicesList());
-const numberDevices = computed(() => getNumberDevices());
+const items = computed(() => getList());
+const numberDevices = computed(() => getNumber());
 const showDeviceAcceptButton = ref(false);
 const showDeviceRejectButton = ref(false);
 const itemsPerPage = ref(10);
@@ -301,7 +297,6 @@ onMounted(async () => {
       status: status.value,
       sortStatusField: "",
       sortStatusString: "",
-      committable: props.committable,
     });
   } catch (error: unknown) {
     handleError(error);
@@ -320,7 +315,6 @@ const getDevices = async (perPagaeValue: number, pageValue: number, filter: stri
       filter,
       sortStatusField: getSortStatusField(),
       sortStatusString: getSortStatusString(),
-      committable: props.committable,
     });
     loading.value = false;
   } catch (error: unknown) {
@@ -347,7 +341,7 @@ const sortByItem = async (field: string) => {
   } else {
     sortStatusString = "asc";
   }
-  await fetchDevices({ sortStatusField: field, sortStatusString, committable: props.committable });
+  await fetchDevices({ sortStatusField: field, sortStatusString });
   await getDevices(itemsPerPage.value, page.value, filter.value);
 };
 

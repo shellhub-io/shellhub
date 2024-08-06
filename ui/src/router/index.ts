@@ -149,6 +149,19 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/devices",
     name: "devices",
     component: Devices,
+    beforeEnter: (to, from, next) => {
+      const fetchDevices = async () => {
+        store.dispatch("devices/fetch", {
+          page: store.getters["devices/getPage"],
+          perPage: store.getters["devices/getPerPage"],
+          filter: store.getters["devices/getFilter"],
+          status: "",
+          committable: false,
+        });
+      };
+      next();
+      return fetchDevices();
+    },
     redirect: {
       name: "listDevices",
     },
@@ -174,6 +187,19 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/containers",
     name: "containers",
     component: Containers,
+    beforeEnter: (to, from, next) => {
+      const fetchContainers = async () => {
+        store.dispatch("container/fetch", {
+          page: store.getters["container/getPage"],
+          perPage: store.getters["container/getPerPage"],
+          filter: store.getters["container/getFilter"],
+          status: "",
+          committable: false,
+        });
+      };
+      next();
+      return fetchContainers();
+    },
     redirect: {
       name: "listContainers",
     },

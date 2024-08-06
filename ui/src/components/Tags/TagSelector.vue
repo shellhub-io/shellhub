@@ -55,103 +55,116 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  inheritAttrs: true,
-  setup() {
-    const store = useStore();
-
-    const prevSelectedLength = ref(0);
-
-    const getListTags = computed(() => store.getters["tags/list"]);
-
-    const selectedTags = computed<Array<string>>(() => store.getters["tags/selected"]);
-
-    const setSelectedTags = (item: Array<string>) => {
-      store.dispatch("tags/setSelected", item);
-    };
-
-    const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
-
-    const getTags = async () => {
-      await store.dispatch("tags/fetch");
-    };
-
-    const getDevices = async (item: Array<string>) => {
-      let encodedFilter : string | null = null;
-
-      const filter = [
-        {
-          type: "property",
-          params: { name: "tags", operator: "contains", value: item },
-        },
-      ];
-      encodedFilter = btoa(JSON.stringify(filter));
-
-      await store.dispatch("devices/setFilter", encodedFilter);
-
-      try {
-        store.dispatch("devices/refresh");
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          if (axiosError.response?.status === 403) {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
-            handleError(error);
-          }
-        } else {
-          store.dispatch("snackbar/showSnackbarErrorDefault");
-          handleError(error);
-        }
-      }
-    };
-
-    const fetchDevices = async () => {
-      const data = {
-        perPage: store.getters["devices/getPerPage"],
-        page: store.getters["devices/getPage"],
-        status: "accepted",
-        search: null,
-        filter: "",
-        sortStatusField: null,
-      };
-
-      await store.dispatch("devices/fetch", data);
-    };
-
-    const selectTag = async (item: string) => {
-      store.dispatch("tags/setSelected", item);
-      if (selectedTags.value.length > 0) {
-        await getDevices(selectedTags.value);
-        prevSelectedLength.value = selectedTags.value.length;
-      } else if (prevSelectedLength.value === 1 && selectedTags.value.length === 0) {
-        await fetchDevices();
-      }
-
-      if (selectedTags.value.length === 0) {
-        await store.dispatch("tags/clearSelectedTags");
-        await fetchDevices();
-      }
-    };
-
-    onMounted(() => {
-      getTags();
-    });
-
-    return {
-      prevSelectedLength,
-      selectedTags,
-      setSelectedTags,
-      getListTags,
-      getTags,
-      tagIsSelected,
-      selectTag,
-    };
+const props = defineProps({
+  variant: {
+    type: String as PropType<"device" | "container">,
+    required: true,
   },
+});
+const store = useStore();
+
+const prevSelectedLength = ref(0);
+
+const getListTags = computed(() => store.getters["tags/list"]);
+
+const selectedTags = computed<Array<string>>(() => store.getters["tags/selected"]);
+
+const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
+
+const getTags = async () => {
+  await store.dispatch("tags/fetch");
+};
+
+const getItems = async (item: Array<string>) => {
+  let encodedFilter : string | null = null;
+
+  const filter = [
+    {
+      type: "property",
+      params: { name: "tags", operator: "contains", value: item },
+    },
+  ];
+  encodedFilter = btoa(JSON.stringify(filter));
+
+  switch (props.variant) {
+    case "device":
+      await store.dispatch("devices/setFilter", encodedFilter);
+      break;
+    case "container":
+      await store.dispatch("container/setFilter", encodedFilter);
+      break;
+    default:
+      break;
+  }
+  try {
+    switch (props.variant) {
+      case "device":
+        await store.dispatch("devices/refresh", encodedFilter);
+        break;
+      case "container":
+        await store.dispatch("container/refresh", encodedFilter);
+        break;
+      default:
+        break;
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 403) {
+        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        handleError(error);
+      }
+    } else {
+      store.dispatch("snackbar/showSnackbarErrorDefault");
+      handleError(error);
+    }
+  }
+};
+
+const fetchDevices = async () => {
+  const data = {
+    perPage: props.variant === "device" ? store.getters["devices/getPerPage"] : store.getters["container/getPerPage"],
+    page: props.variant === "device" ? store.getters["devices/getPage"] : store.getters["container/getPage"],
+    status: "accepted",
+    search: null,
+    filter: "",
+    sortStatusField: null,
+  };
+
+  switch (props.variant) {
+    case "device":
+      await store.dispatch("devices/fetch", data);
+      break;
+    case "container":
+      await store.dispatch("container/fetch", data);
+      break;
+    default:
+      break;
+  }
+};
+
+const selectTag = async (item: string) => {
+  store.dispatch("tags/setSelected", item);
+  if (selectedTags.value.length > 0) {
+    await getItems(selectedTags.value);
+    prevSelectedLength.value = selectedTags.value.length;
+  } else if (prevSelectedLength.value === 1 && selectedTags.value.length === 0) {
+    await fetchDevices();
+  }
+
+  if (selectedTags.value.length === 0) {
+    await store.dispatch("tags/clearSelectedTags");
+    await fetchDevices();
+  }
+};
+
+onMounted(() => {
+  getTags();
 });
 </script>

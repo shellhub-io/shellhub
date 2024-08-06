@@ -6,7 +6,7 @@ import { store, key } from "@/store";
 import ContainerList from "@/components/Containers/ContainerList.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
-import { namespacesApi, billingApi, devicesApi } from "@/api/http";
+import { namespacesApi, billingApi, devicesApi, containersApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type ContainerListWrapper = VueWrapper<InstanceType<typeof ContainerList>>;
@@ -21,6 +21,8 @@ describe("Container List", () => {
   let mockDevices: MockAdapter;
 
   let mockBilling: MockAdapter;
+
+  let mockContainers: MockAdapter;
 
   const devices = [
     {
@@ -130,17 +132,6 @@ describe("Container List", () => {
     rejected_devices: 0,
   };
 
-  const filter = btoa(JSON.stringify([
-    {
-      type: "property",
-      params: {
-        name: "info.platform",
-        operator: "eq",
-        value: "connector",
-      },
-    },
-  ]));
-
   beforeEach(async () => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
@@ -149,13 +140,14 @@ describe("Container List", () => {
     mockBilling = new MockAdapter(billingApi.getAxios());
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
+    mockContainers = new MockAdapter(containersApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
     mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
     mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
     // eslint-disable-next-line vue/max-len
-    mockDevices.onGet(`http://localhost:3000/api/devices?filter=${filter.slice(0, -2)}%3D%3D&page=1&per_page=10&status=accepted`).reply(200, devices);
+    mockContainers.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);

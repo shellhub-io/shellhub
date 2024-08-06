@@ -115,15 +115,6 @@ const close = () => {
   emit("update", false);
 };
 
-const refreshStats = async () => {
-  try {
-    await store.dispatch("stats/get");
-  } catch (error: unknown) {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
-    handleError(error);
-  }
-};
-
 const refreshDevices = () => {
   try {
     emit("update");
@@ -163,7 +154,6 @@ const removeDevice = async () => {
 const rejectDevice = async () => {
   try {
     await store.dispatch("devices/reject", props.uid);
-    refreshStats();
     refreshDevices();
   } catch (error: unknown) {
     close();
@@ -179,7 +169,6 @@ const rejectDevice = async () => {
 const acceptDevice = async () => {
   try {
     await store.dispatch("devices/accept", props.uid);
-    refreshStats();
     refreshDevices();
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

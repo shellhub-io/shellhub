@@ -130,31 +130,6 @@ describe("Device List", () => {
     rejected_devices: 0,
   };
 
-  const filter = btoa(JSON.stringify([
-    {
-      type: "property",
-      params: {
-        name: "info.platform",
-        operator: "eq",
-        value: "native",
-      },
-    },
-    {
-      type: "property",
-      params: {
-        name: "info.platform",
-        operator: "eq",
-        value: "docker",
-      },
-    },
-    {
-      type: "operator",
-      params: {
-        name: "or",
-      },
-    },
-  ]));
-
   beforeEach(async () => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
@@ -169,9 +144,8 @@ describe("Device List", () => {
     mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
     mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
     // eslint-disable-next-line vue/max-len
-    mockDevices.onGet(`http://localhost:3000/api/devices?filter=${filter.slice(0, -1)}%3D&page=1&per_page=10&status=accepted`).reply(200, devices);
+    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-    console.log(`${filter.slice(0, -1)}%3D`);
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("billing/setSubscription", billingData);

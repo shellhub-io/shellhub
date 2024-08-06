@@ -29,6 +29,11 @@ const devicesApi = new axiosTs.DevicesApi(
   undefined,
   newAxiosInstance(),
 );
+const containersApi = new axiosTs.ContainersApi(
+  configuration,
+  undefined,
+  newAxiosInstance(),
+);
 const defaultApi = new axiosTs.DefaultApi(
   configuration,
   undefined,
@@ -107,6 +112,7 @@ export {
   configuration,
   sessionsApi,
   devicesApi,
+  containersApi,
   defaultApi,
   namespacesApi,
   apiKeysApi,

@@ -29,7 +29,6 @@ describe("Devices View", () => {
       role: "owner",
     },
   ];
-
   const namespaceData = {
     name: "test",
     owner: "test",
@@ -126,11 +125,11 @@ describe("Devices View", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
+  it("Renders the template with data", async () => {
+    expect(wrapper.find('[data-test="search-text"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="device-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-header-component-group"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="boxMessageDevice-component"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="boxMessageDevice-component"]').exists()).toBe(true);
   });
 });

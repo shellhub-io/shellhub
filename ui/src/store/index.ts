@@ -17,6 +17,7 @@ import { notifications, NotificationsState } from "./modules/notifications";
 import { modal, ModalState } from "./modules/modal";
 import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
+import { container, ContainerState } from "./modules/container";
 import { box, BoxState } from "./modules/box";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { billing } from "./modules/billing";
@@ -33,6 +34,7 @@ export interface State {
   customer: CustomerState;
   connectors: ConnectorState;
   devices: DevicesState;
+  container: ContainerState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
   modal: ModalState;
@@ -59,6 +61,7 @@ export const store = createStore<State>({
     billing,
     box,
     connectors,
+    container,
     customer,
     devices,
     firewallRules,

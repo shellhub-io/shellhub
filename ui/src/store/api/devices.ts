@@ -1,4 +1,4 @@
-import { IDevicePostTag, IDeviceRename, IUpdateDeviceTag } from "@/interfaces/IDevice";
+import { IDevicePostTag, IDeviceRename, IUpdateDeviceTags } from "@/interfaces/IDevice";
 import { devicesApi, tagsApi } from "../../api/http";
 
 export const postTag = async (data: IDevicePostTag) => tagsApi.createDeviceTag(data.uid, data.name);
@@ -33,6 +33,6 @@ export const acceptDevice = async (uid : string) => devicesApi.updateDeviceStatu
 
 export const rejectDevice = async (uid : string) => devicesApi.updateDeviceStatus(uid, "reject");
 
-export const updateDeviceTag = async (data : IUpdateDeviceTag) => devicesApi.updateTagsDevice(data.uid, data.tags);
+export const updateDeviceTags = async (data : IUpdateDeviceTags) => devicesApi.updateTagsDevice(data.uid, data.tags);
 
 export const removeDevice = async (uid : string) => devicesApi.deleteDevice(uid);

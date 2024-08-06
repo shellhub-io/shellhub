@@ -9,6 +9,8 @@ export interface DevicesState {
   devices: Array<IDevice>;
   quickConnectionList: Array<IDevice>;
   device: IDevice;
+  showDevices: boolean;
+  totalCount: number;
   numberDevices: number;
   page: number;
   perPage: number;
@@ -20,7 +22,7 @@ export interface DevicesState {
   devicesForUserToChoose: Array<IDevice>;
   numberdevicesForUserToChoose: number;
   devicesSelected: Array<IDevice>;
-  deviceName: string,
+  deviceName: string;
   }
 
 export const devices: Module<DevicesState, State> = {
@@ -29,7 +31,9 @@ export const devices: Module<DevicesState, State> = {
     devices: [],
     quickConnectionList: [],
     device: {} as IDevice,
+    showDevices: false,
     numberDevices: 0,
+    totalCount: 0,
     page: 1,
     perPage: 10,
     filter: "",
@@ -49,6 +53,7 @@ export const devices: Module<DevicesState, State> = {
     get: (state) => state.device,
     getName: (state) => state.device.name,
     getNumberDevices: (state) => state.numberDevices,
+    getShowDevices: (state) => state.showDevices,
     getPage: (state) => state.page,
     getPerPage: (state) => state.perPage,
     getFilter: (state) => state.filter,
@@ -64,15 +69,13 @@ export const devices: Module<DevicesState, State> = {
   },
 
   mutations: {
-    setDevices: (state, res, committable = true) => {
-      if (committable) {
-        state.devices = res.data;
-      }
+    setDevices: (state, res) => {
+      state.devices = res.data;
       state.numberDevices = parseInt(res.headers["x-total-count"], 10);
     },
 
-    setTotalCount: (state, res) => {
-      state.numberDevices = parseInt(res.headers["x-total-count"], 10);
+    setShowDevices: (state) => {
+      state.showDevices = true;
     },
 
     setQuickDevices: (state, res) => {
@@ -161,14 +164,12 @@ export const devices: Module<DevicesState, State> = {
           data.sortStatusField,
           data.sortStatusString,
         );
-        if (res.data.length) {
-          commit("setDevices", res, data.commitable);
-          commit("setPagePerpageFilter", data);
-          return res;
+        if (res.data.length && data.committable === false) {
+          commit("setShowDevices");
+          return;
         }
-
-        commit("clearListDevices");
-        return false;
+        commit("setDevices", res);
+        commit("setPagePerpageFilter", data);
       } catch (error) {
         commit("clearListDevices");
         throw error;
@@ -374,7 +375,7 @@ export const devices: Module<DevicesState, State> = {
 
     updateDeviceTag: async (context, data) => {
       try {
-        await apiDevice.updateDeviceTag(data);
+        await apiDevice.updateDeviceTags(data);
       } catch (error) {
         console.error(error);
         throw error;
