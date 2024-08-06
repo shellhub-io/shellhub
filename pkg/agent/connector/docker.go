@@ -211,13 +211,12 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 
 	// TODO: Let this configuration build next to the Agent [agent.LoadConfigFromEnv] function.
 	cfg := &agent.Config{
-		ServerAddress:             container.ServerAddress,
-		TenantID:                  container.Tenant,
-		PrivateKey:                container.PrivateKey,
-		PreferredIdentity:         container.ID,
-		PreferredHostname:         container.Name,
-		KeepAliveInterval:         30,
-		MaxRetryConnectionTimeout: 60,
+		ServerAddress:     container.ServerAddress,
+		TenantID:          container.Tenant,
+		PrivateKey:        container.PrivateKey,
+		PreferredIdentity: container.ID,
+		PreferredHostname: container.Name,
+		KeepAliveInterval: 30,
 	}
 
 	log.WithFields(log.Fields{
