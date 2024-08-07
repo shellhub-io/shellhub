@@ -172,25 +172,25 @@ func (_m *Client) ListDevices() ([]models.Device, error) {
 	return r0, r1
 }
 
-// NewReverseListener provides a mock function with given fields: ctx, token
-func (_m *Client) NewReverseListener(ctx context.Context, token string) (*revdial.Listener, error) {
-	ret := _m.Called(ctx, token)
+// NewReverseListener provides a mock function with given fields: ctx, token, connPath
+func (_m *Client) NewReverseListener(ctx context.Context, token string, connPath string) (*revdial.Listener, error) {
+	ret := _m.Called(ctx, token, connPath)
 
 	var r0 *revdial.Listener
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*revdial.Listener, error)); ok {
-		return rf(ctx, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*revdial.Listener, error)); ok {
+		return rf(ctx, token, connPath)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *revdial.Listener); ok {
-		r0 = rf(ctx, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *revdial.Listener); ok {
+		r0 = rf(ctx, token, connPath)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*revdial.Listener)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, token)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, token, connPath)
 	} else {
 		r1 = ret.Error(1)
 	}
