@@ -2,12 +2,13 @@
   <v-dialog
     v-model="dialog"
     transition="dialog-bottom-transition"
-    width="650"
+    max-width="650"
     height="800"
-    persistent
+    @click:outside="close"
+    @keydown.esc="close"
   >
     <v-card color="background" data-test="card-dialog">
-      <v-container>
+      <v-container class="px-6">
         <v-row data-test="icon-crown">
           <v-col class="d-flex justify-center align-center">
             <div class="circle-one shadow d-flex justify-center align-center">
