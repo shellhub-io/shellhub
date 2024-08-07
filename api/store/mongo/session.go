@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -253,64 +252,6 @@ func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, n
 	}
 
 	return nil
-}
-
-// SessionDeleteRecordFrameByDate deletes recorded sessions and updates session records
-// before the specified date.
-//
-// It takes a time 'lte', representing the maximum date. The method deletes all recorded sessions
-// with a 'time' field less than or equal to 'lte' It also updates 'sessions' records by setting
-// the 'recorded' field to false for sessions that started before 'lte' and are marked as recorded.
-//
-// The method returns the count of deleted sessions, the count of updated session records,
-// and any encountered error during the operation.
-func (s *Store) SessionDeleteRecordFrameByDate(ctx context.Context, lte time.Time) (deletedCount int64, updatedCount int64, err error) {
-	mongoSession, err := s.db.Client().StartSession()
-	if err != nil {
-		return deletedCount, updatedCount, FromMongoError(err)
-	}
-	defer mongoSession.EndSession(ctx)
-
-	_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
-		d, err := s.db.Collection("recorded_sessions").DeleteMany(
-			ctx,
-			bson.M{
-				"time": bson.D{
-					{Key: "$lte", Value: lte},
-				},
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		u, err := s.db.Collection("sessions").UpdateMany(
-			ctx,
-			bson.M{
-				"started_at": bson.D{
-					{Key: "$lte", Value: lte},
-				},
-				"recorded": bson.M{
-					"$eq": true,
-				},
-			},
-			bson.M{
-				"$set": bson.M{
-					"recorded": false,
-				},
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		deletedCount = d.DeletedCount
-		updatedCount = u.ModifiedCount
-
-		return nil, nil
-	})
-
-	return deletedCount, updatedCount, FromMongoError(err)
 }
 
 func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error {
