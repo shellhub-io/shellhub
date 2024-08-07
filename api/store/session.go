@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -16,7 +15,6 @@ type SessionStore interface {
 	SessionSetLastSeen(ctx context.Context, uid models.UID) error
 	SessionDeleteActives(ctx context.Context, uid models.UID) error
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
-	SessionDeleteRecordFrameByDate(ctx context.Context, lte time.Time) (deletedCount int64, updatedCount int64, err error)
 	SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error
 	SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error
 }

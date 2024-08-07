@@ -1728,41 +1728,6 @@ func (_m *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error
 	return r0
 }
 
-// SessionDeleteRecordFrameByDate provides a mock function with given fields: ctx, lte
-func (_m *Store) SessionDeleteRecordFrameByDate(ctx context.Context, lte time.Time) (int64, int64, error) {
-	ret := _m.Called(ctx, lte)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionDeleteRecordFrameByDate")
-	}
-
-	var r0 int64
-	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time) (int64, int64, error)); ok {
-		return rf(ctx, lte)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time) int64); ok {
-		r0 = rf(ctx, lte)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, time.Time) int64); ok {
-		r1 = rf(ctx, lte)
-	} else {
-		r1 = ret.Get(1).(int64)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, time.Time) error); ok {
-		r2 = rf(ctx, lte)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // SessionGet provides a mock function with given fields: ctx, uid
 func (_m *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session, error) {
 	ret := _m.Called(ctx, uid)
