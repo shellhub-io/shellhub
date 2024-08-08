@@ -615,6 +615,97 @@ func TestAuthUser(t *testing.T) {
 			},
 		},
 		{
+			description: "succeeds to authenticate with a namespace (and member status 'pending')",
+			sourceIP:    "127.0.0.1",
+			req: &requests.UserAuth{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+					},
+				}
+
+				mock.
+					On("UserGetByUsername", ctx, "john_doe").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:     "65fdd16b5f62f93184ec8a39",
+							Role:   "owner",
+							Status: models.MemberStatusPending,
+						},
+					},
+				}
+
+				mock.
+					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "65fdd16b5f62f93184ec8a39").
+					Return(ns, nil).
+					Once()
+
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+
+				preferredNamespace := ""
+				mock.
+					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "65fdd16b5f62f93184ec8a39",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "",
+					Role:   "",
+					Token:  "must ignore",
+				},
+				lockout:  0,
+				mfaToken: "",
+				err:      nil,
+			},
+		},
+		{
 			description: "succeeds to authenticate with a namespace (and empty preferred namespace)",
 			sourceIP:    "127.0.0.1",
 			req: &requests.UserAuth{
@@ -956,6 +1047,55 @@ func TestCreateUserToken(t *testing.T) {
 			expected: Expected{
 				res: nil,
 				err: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
+			},
+		},
+		{
+			description: "fails when member status is pending",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Confirmed: true,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+					},
+				}
+
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members: []models.Member{
+						{
+							ID:     "000000000000000000000000",
+							Role:   "owner",
+							Status: models.MemberStatusPending,
+						},
+					},
+				}
+
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(user, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(ns, nil).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil),
 			},
 		},
 		{
