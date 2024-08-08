@@ -36,8 +36,8 @@ type AuthService interface {
 	//
 	// It will try to use the user's preferred namespace or the first one to which the user was added. As the
 	// authentication key is a JWT, in these cases, the response does not contain the member role to avoid creating
-	// a stateful token. The role must be added in the auth middleware. The response's TenantID is empty if the user
-	// is not a member of any namespace.
+	// a stateful token. The role must be added in the auth middleware. The TenantID in the response will be empty if the user
+	// is not a member of any namespace or if the user's membership status is pending.
 	//
 	// It returns a timestamp when the block ends if the user is locked out, a token to be used with the OTP code if the MFA
 	// is enabled and an error, if any
@@ -45,7 +45,8 @@ type AuthService interface {
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
 	//
 	// It accepts an optional tenant ID to associate the token with a namespace. If the tenant ID is empty, it uses the user's
-	// preferred namespace or the first namespace to which the user was added.
+	// preferred namespace or the first namespace to which the user was added; if the user's membership status is pending, it
+	// returns an NamespaceNotFound error.
 	//
 	// It returns the created token and an error if any.
 	CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (res *models.UserAuthResponse, err error)
@@ -236,11 +237,13 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 
 	tenantID := ""
 	role := ""
-	// Populate the tenant and role when the user is associated with a namespace.
+	// Populate the tenant and role when the user is associated with a namespace. If the member status is pending, we
+	// ignore the namespace.
 	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID); ns != nil && ns.TenantID != "" {
-		tenantID = ns.TenantID
-		member, _ := ns.FindMember(user.ID)
-		role = member.Role.String()
+		if m, _ := ns.FindMember(user.ID); m.Status != models.MemberStatusPending {
+			tenantID = ns.TenantID
+			role = m.Role.String()
+		}
 	}
 
 	claims := authorizer.UserClaims{
@@ -296,6 +299,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	}
 
 	namespace := new(models.Namespace)
+	// TODO: handle this error
 	switch req.TenantID {
 	case "":
 		namespace, err = s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID)
@@ -310,6 +314,10 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	memberInfo, ok := namespace.FindMember(user.ID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
+	}
+
+	if memberInfo.Status == models.MemberStatusPending {
+		return nil, NewErrNamespaceNotFound(req.TenantID, nil)
 	}
 
 	claims := authorizer.UserClaims{
