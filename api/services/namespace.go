@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -170,7 +169,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	}
 
 	if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
-		if err := s.BillingReport(s.client.(req.Client), tenantID, ReportNamespaceDelete); err != nil {
+		if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	}
