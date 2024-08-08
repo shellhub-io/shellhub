@@ -8,6 +8,8 @@ import (
 )
 
 type NamespaceStore interface {
+	// NamespaceList retrieves a list of namespaces. When the user's ID is available in the context, it will exclude
+	// namespaces where the user has a pending membership status.
 	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error)
 
 	// NamespaceGet retrieves a namespace identified by the given tenantID.
