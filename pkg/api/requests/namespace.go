@@ -2,6 +2,7 @@ package requests
 
 import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -18,6 +19,12 @@ type RoleBody struct {
 // MemberParam is a structure to represent and validate a member UID as path param.
 type MemberParam struct {
 	MemberUID string `param:"uid" validate:"required"`
+}
+
+// NamespaceCreate is the structure to represent the request data for create namespace endpoint.
+type NamespaceList struct {
+	query.Paginator
+	query.Filters
 }
 
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.

@@ -9,7 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -18,7 +17,7 @@ import (
 )
 
 type NamespaceService interface {
-	ListNamespaces(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error)
+	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
@@ -41,16 +40,8 @@ type NamespaceService interface {
 	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
 }
 
-// ListNamespaces lists selected namespaces from a user.
-//
-// It receives a context, used to "control" the request flow, a pagination query, that indicate how many registers are
-// requested per page, a filter string, a base64 encoded value what is converted to a slice of models.Filter and an
-// export flag.
-//
-// ListNamespaces returns a slice of models.Namespace, the total of namespaces and an error. When error is not nil, the
-// slice of models.Namespace is nil, total is zero.
-func (s *service) ListNamespaces(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, paginator, filters, export)
+func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
+	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, false)
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}

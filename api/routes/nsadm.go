@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 )
 
@@ -28,24 +27,22 @@ const (
 )
 
 func (h *Handler) GetNamespaceList(c gateway.Context) error {
-	type Query struct {
-		query.Paginator
-		query.Filters
-	}
+	req := new(requests.NamespaceList)
 
-	query := Query{}
-
-	if err := c.Bind(&query); err != nil {
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	query.Paginator.Normalize()
-
-	if err := query.Filters.Unmarshal(); err != nil {
+	req.Paginator.Normalize()
+	if err := req.Filters.Unmarshal(); err != nil {
 		return err
 	}
 
-	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), query.Paginator, query.Filters, false)
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	namespaces, count, err := h.service.ListNamespaces(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

@@ -33,17 +33,18 @@ func TestListNamespaces(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		paginator     query.Paginator
-		filters       query.Filters
+		req           *requests.NamespaceList
 		ctx           context.Context
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fail when could not get the namespace list",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			filters:     query.Filters{},
-			ctx:         ctx,
+			req: &requests.NamespaceList{
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{},
+			},
+			ctx: ctx,
 			requiredMocks: func() {
 				mock.On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false).Return(nil, 0, errors.New("error")).Once()
 			},
@@ -55,9 +56,11 @@ func TestListNamespaces(t *testing.T) {
 		},
 		{
 			description: "fail when could not get a user",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			filters:     query.Filters{},
-			ctx:         ctx,
+			req: &requests.NamespaceList{
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{},
+			},
+			ctx: ctx,
 			requiredMocks: func() {
 				namespaces := []models.Namespace{
 					{
@@ -99,9 +102,11 @@ func TestListNamespaces(t *testing.T) {
 		},
 		{
 			description: "success to get the namespace list",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			filters:     query.Filters{},
-			ctx:         ctx,
+			req: &requests.NamespaceList{
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{},
+			},
+			ctx: ctx,
 			requiredMocks: func() {
 				namespaces := []models.Namespace{
 					{
@@ -208,12 +213,13 @@ func TestListNamespaces(t *testing.T) {
 		},
 	}
 
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			nss, count, err := services.ListNamespaces(tc.ctx, tc.paginator, tc.filters, false)
+			nss, count, err := s.ListNamespaces(tc.ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{nss, count, err})
 		})
 	}
