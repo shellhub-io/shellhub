@@ -13,7 +13,7 @@ exports[`Sessions View > Renders the component 1`] = `
           <table>
             <thead data-v-046d4556=\\"\\">
               <tr data-v-046d4556=\\"\\">
-                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Active</span></th>
+                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Recorded</span></th>
                 <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Device</span></th>
                 <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Username</span></th>
                 <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Authenticated</span></th>
@@ -25,7 +25,16 @@ exports[`Sessions View > Renders the component 1`] = `
             </thead>
             <tbody data-v-046d4556=\\"\\">
               <tr data-v-459ab1b4=\\"\\">
-                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><i data-v-459ab1b4=\\"\\" class=\\"mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-0\\"></i>
+                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\">
+                  <div data-v-459ab1b4=\\"\\" aria-describedby=\\"v-tooltip-0\\">
+                    <div data-v-459ab1b4=\\"\\" device=\\"[object Object]\\" data-test=\\"sessionPlay-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-play mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Play </span>
+                        <!---->
+                        <!---->
+                      </button>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
@@ -35,7 +44,7 @@ exports[`Sessions View > Renders the component 1`] = `
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\">
                   <!--v-if--><span data-v-459ab1b4=\\"\\">test</span>
                 </td>
-                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><i data-v-459ab1b4=\\"\\" class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-1\\"></i>
+                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><i data-v-459ab1b4=\\"\\" class=\\"mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success\\" aria-hidden=\\"true\\" aria-describedby=\\"v-tooltip-2\\"></i>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
@@ -44,7 +53,7 @@ exports[`Sessions View > Renders the component 1`] = `
                 </td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\"></span></td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\"></span></td>
-                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-2\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
+                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-3\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
                   <!---->
                   <!---->
                   <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-459ab1b4=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
@@ -77,7 +86,7 @@ exports[`Sessions View > Renders the component 1`] = `
           <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
             <!---->
             <div class=\\"v-input__control\\">
-              <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-10\\">
+              <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-9\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
                   <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -95,7 +104,7 @@ exports[`Sessions View > Renders the component 1`] = `
                 </div>
                 <!---->
                 <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
+                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-7\\">
                     <!---->
                     <!---->
                   </label>
@@ -103,7 +112,7 @@ exports[`Sessions View > Renders the component 1`] = `
                   <div class=\\"v-field__input\\" data-no-activator=\\"\\">
                     <!---->
                     <!---->
-                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" outlined=\\"\\">
+                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-7\\" aria-describedby=\\"input-7-messages\\" outlined=\\"\\">
                   </div>
                   <!---->
                 </div>

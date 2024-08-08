@@ -1,18 +1,16 @@
 <template>
   <div>
-    <v-list-item
+    <v-btn
+      color="primary"
+      prepend-icon="mdi-play"
+      variant="outlined"
+      density="comfortable"
+      data-test="connect-btn"
       @click="openDialog"
-      v-bind="$attrs"
-      :disabled="notHasAuthorization"
+      :disabled="!isCommunity && props.disabled"
     >
-      <div class="d-flex align-center">
-        <v-icon class="mr-2"> mdi-play </v-icon>
-
-        <v-list-item-title data-test="mdi-information-list-item">
-          Play Session
-        </v-list-item-title>
-      </div>
-    </v-list-item>
+      Play
+    </v-btn>
 
     <v-dialog
       :transition="false"
@@ -145,6 +143,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
@@ -165,7 +167,7 @@ const xterm = ref<Terminal>({} as Terminal);
 const fitAddon = ref<FitAddon>({} as FitAddon);
 const iterativeTimer = ref<Timer>();
 const iterativePrinting = ref<Timer>();
-
+const isCommunity = computed(() => envVariables.isCommunity);
 const store = useStore();
 const length = computed(() => logs.value.length);
 const nowTimerDisplay = computed(() => getTimerNow.value);

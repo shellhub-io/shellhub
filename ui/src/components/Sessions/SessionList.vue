@@ -18,14 +18,21 @@
       <template v-slot:rows>
         <tr v-for="(session, index) in sessions" :key="index">
           <td class="text-center">
-            <v-icon v-if="session.active" color="success">
-              mdi-check-circle
-            </v-icon>
-            <v-tooltip location="bottom" v-else>
+            <v-tooltip location="bottom" :disabled="hasAuthorizationPlay()">
               <template v-slot:activator="{ props }">
-                <v-icon v-bind="props"> mdi-check-circle </v-icon>
+                <div v-bind="props">
+                  <SessionPlay
+                    :disabled="!session.authenticated || !session.recorded"
+                    :uid="session.uid"
+                    :device="session.device"
+                    :notHasAuthorization="!hasAuthorizationPlay()"
+                    :recorded="session.authenticated && session.recorded"
+                    @update="refreshSessions"
+                    data-test="sessionPlay-component"
+                  />
+                </div>
               </template>
-              <span>{{ lastSeen(session.last_seen) }}</span>
+              <span> You don't have this kind of authorization. </span>
             </v-tooltip>
           </td>
 
@@ -100,23 +107,6 @@
                   </div>
                 </v-list-item>
 
-                <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorizationPlay()">
-                  <template v-slot:activator="{ props }">
-                    <div v-bind="props">
-                      <SessionPlay
-                        v-if="session.authenticated && session.recorded || envVariables.isCommunity"
-                        :uid="session.uid"
-                        :device="session.device"
-                        :notHasAuthorization="!hasAuthorizationPlay()"
-                        :recorded="session.authenticated && session.recorded"
-                        @update="refreshSessions"
-                        data-test="sessionPlay-component"
-                      />
-                    </div>
-                  </template>
-                  <span> You don't have this kind of authorization. </span>
-                </v-tooltip>
-
                 <v-tooltip
                   location="bottom"
                   class="text-center"
@@ -151,9 +141,8 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
-import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
-import { formatDateCompact, lastSeen } from "../../utils/formateDate";
+import { formatDateCompact } from "../../utils/formateDate";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
@@ -162,8 +151,8 @@ import handleError from "@/utils/handleError";
 
 const headers = [
   {
-    text: "Active",
-    value: "active",
+    text: "Recorded",
+    value: "recorded",
   },
   {
     text: "Device",
@@ -199,7 +188,6 @@ const router = useRouter();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-
 const sessions = computed(() => store.getters["sessions/list"]);
 const numberSessions = computed(
   () => store.getters["sessions/getNumberSessions"],
