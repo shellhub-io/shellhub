@@ -14,6 +14,11 @@ type Namespace struct {
 	DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
 	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
 	Billing      *Billing           `json:"billing" bson:"billing,omitempty"`
+	Network      *Network           `json:"network" bson:"network"`
+}
+
+type Network struct {
+	Enable bool
 }
 
 // HasMaxDevices checks if the namespace has a maximum number of devices.
