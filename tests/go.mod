@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/bramvdbogaerde/go-scp v1.4.0
-	github.com/docker/docker v27.1.0+incompatible
+	github.com/docker/docker v27.1.1+incompatible
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/sftp v1.13.6
