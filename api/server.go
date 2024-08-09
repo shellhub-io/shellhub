@@ -13,7 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
-	requests "github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
@@ -143,7 +143,7 @@ func startSentry(dsn string) (*sentry.Client, error) {
 func startServer(ctx context.Context, cfg *config, store store.Store, cache storecache.Cache) error {
 	log.Info("Starting API server")
 
-	requestClient, err := requests.NewClient()
+	apiClient, err := internalclient.NewClient(internalclient.WithAsynqWorker(cfg.RedisURI))
 	if err != nil {
 		log.WithError(err).
 			Fatal("failed to create the internalclient")
@@ -162,7 +162,7 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 		servicesOptions = append(servicesOptions, services.WithLocator(locator))
 	}
 
-	service := services.NewService(store, nil, nil, cache, requestClient, servicesOptions...)
+	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)
 
 	routerOptions := []routes.Option{}
 

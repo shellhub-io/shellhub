@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -170,7 +169,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	}
 
 	if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
-		if err := s.BillingReport(s.client.(req.Client), tenantID, ReportNamespaceDelete); err != nil {
+		if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	}
@@ -258,13 +257,21 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrUserNotFound(string(req.MemberIdentifier), err)
 	}
 
-	// Currently, the member's status is always "accepted".
 	member := &models.Member{
 		ID:      passiveUser.ID,
 		AddedAt: clock.Now(),
 		Role:    req.MemberRole,
 		Status:  models.MemberStatusAccepted,
 	}
+
+	// In cloud instances, the member must accept the invite before enter in the namespace.
+	if envs.IsCloud() {
+		member.Status = models.MemberStatusPending
+		if err := s.client.InviteMember(ctx, req.TenantID, string(req.MemberIdentifier)); err != nil {
+			return nil, err // TODO: map this error
+		}
+	}
+
 	if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
