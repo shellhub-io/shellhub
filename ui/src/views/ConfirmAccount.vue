@@ -30,7 +30,7 @@
       Back to
       <router-link
         class="ml-1"
-        :to="{ name: 'login' }"
+        :to="{ name: 'Login' }"
       >
         Login
       </router-link>
@@ -58,7 +58,7 @@ const resendEmail = async () => {
       "snackbar/showSnackbarSuccessAction",
       INotificationsSuccess.resendEmail,
     );
-    await router.push({ name: "login" });
+    await router.push({ name: "Login" });
   } catch (error) {
     store.dispatch(
       "snackbar/showSnackbarErrorDefault",

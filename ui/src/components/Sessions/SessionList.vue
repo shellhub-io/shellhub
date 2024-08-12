@@ -247,11 +247,11 @@ watch(itemsPerPage, async () => {
 });
 
 const redirectToSession = (sessionUid: string) => {
-  router.push({ name: "detailsSession", params: { id: sessionUid } });
+  router.push({ name: "SessionDetails", params: { id: sessionUid } });
 };
 
 const redirectDevice = (deviceUid: string) => {
-  router.push({ name: "detailsDevice", params: { id: deviceUid } });
+  router.push({ name: "DeviceDetails", params: { id: deviceUid } });
 };
 
 const refreshSessions = async () => {

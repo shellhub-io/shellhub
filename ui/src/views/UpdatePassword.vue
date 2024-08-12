@@ -61,7 +61,7 @@
       Back to
       <router-link
         class="ml-1"
-        :to="{ name: 'login' }"
+        :to="{ name: 'Login' }"
       >
         Login
       </router-link>
@@ -178,7 +178,7 @@ const updatePassword = async () => {
       password: password.value,
     };
     await store.dispatch("users/updatePassword", data.value);
-    await router.push({ name: "login" });
+    await router.push({ name: "Login" });
     store.dispatch(
       "snackbar/showSnackbarSuccessAction",
       INotificationsSuccess.updatingAccount,

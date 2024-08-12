@@ -83,7 +83,7 @@ const searchDevices = () => {
   }
 };
 
-const isContainerList = computed(() => router.currentRoute.value.name === "listContainers");
+const isContainerList = computed(() => router.currentRoute.value.name === "ContainerList");
 
 const refresh = async () => {
   loading.value = true;

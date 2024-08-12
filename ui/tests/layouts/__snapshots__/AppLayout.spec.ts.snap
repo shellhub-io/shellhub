@@ -153,7 +153,11 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-menu mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
-        </button>
+        </button><i class=\\"mdi-server-network mdi v-icon notranslate v-theme--dark v-icon--size-default ml-4 hidden-md-and-down\\" aria-hidden=\\"true\\"></i>
+        <ul class=\\"v-breadcrumbs v-breadcrumbs--density-default hidden-md-and-down\\">
+          <!---->
+          <!---->
+        </ul>
         <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-11\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
