@@ -18,7 +18,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.32.0
 	github.com/undefinedlabs/go-mpatch v1.0.7
 	github.com/xakep666/mongo-migrate v0.3.2
-	go.mongodb.org/mongo-driver v1.16.0
+	go.mongodb.org/mongo-driver v1.16.1
 	golang.org/x/crypto v0.25.0
 )
 
