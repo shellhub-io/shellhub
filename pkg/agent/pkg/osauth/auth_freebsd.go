@@ -153,7 +153,17 @@ func parseMasterPasswdLine(line string) (User, error) {
 
 // VerifyPasswordHash checks if the password match with the hash.
 func VerifyPasswordHash(hash, password string) bool {
-	if hash == "" {
+	if hash == "" && password == "" {
+		return true
+	}
+
+	if password == "" && (hash == "*LOCKED*" || hash == "*") {
+		log.Error("Password is locked")
+
+		return false
+	}
+
+	if hash != "" && password == "" {
 		log.Error("Password entry is empty")
 
 		return false
