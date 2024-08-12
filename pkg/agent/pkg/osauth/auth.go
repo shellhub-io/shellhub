@@ -133,7 +133,17 @@ func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 
 // VerifyPasswordHash checks if the password match with the hash.
 func VerifyPasswordHash(hash, password string) bool {
-	if hash == "" {
+	if hash == "" && password == "" {
+		return true
+	}
+
+	if password == "" && (hash == "!" || hash == "x" || hash == "*" || hash == "!*") {
+		logrus.Error("Password is locked")
+
+		return false
+	}
+
+	if hash != "" && password == "" {
 		logrus.Error("Password entry is empty")
 
 		return false
