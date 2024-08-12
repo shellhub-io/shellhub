@@ -78,7 +78,7 @@ describe("Update Password", () => {
     await flushPromises();
 
     expect(updatePasswordSpy).toHaveBeenCalledWith("users/updatePassword", requestData);
-    expect(routerPushSpy).toHaveBeenCalledWith({ name: "login" });
+    expect(routerPushSpy).toHaveBeenCalledWith({ name: "Login" });
   });
 
   it("Error in updating password", async () => {

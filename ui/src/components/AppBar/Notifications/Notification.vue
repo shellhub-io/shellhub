@@ -57,7 +57,7 @@
             <v-list-item-title>
 
               <router-link
-                :to="{ name: 'detailsDevice', params: { id: item.uid } }"
+                :to="{ name: 'DeviceDetails', params: { id: item.uid } }"
                 :data-test="item.uid + '-field'"
               >
                 {{ item.name }}

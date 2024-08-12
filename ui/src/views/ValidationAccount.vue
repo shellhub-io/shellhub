@@ -45,7 +45,7 @@
       Back to
       <router-link
         class="ml-1"
-        :to="{ name: 'login' }"
+        :to="{ name: 'Login' }"
         data-test="login-btn"
       >
         Login

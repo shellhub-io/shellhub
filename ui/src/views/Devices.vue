@@ -76,7 +76,7 @@ const searchDevices = () => {
   }
 };
 
-const isDeviceList = computed(() => router.currentRoute.value.name === "listDevices");
+const isDeviceList = computed(() => router.currentRoute.value.name === "DeviceList");
 
 onUnmounted(async () => {
   await store.dispatch("devices/setFilter", "");

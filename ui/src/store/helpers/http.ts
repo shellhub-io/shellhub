@@ -29,7 +29,7 @@ export default () => {
       store.dispatch("spinner/setStatus", false);
       if (error.response.status === 401) {
         await store.dispatch("auth/logout");
-        await router.push({ name: "login" });
+        await router.push({ name: "Login" });
       }
       throw error;
     },

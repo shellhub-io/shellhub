@@ -49,7 +49,7 @@
         data-test="isCloud-card"
       >
         Back to
-        <router-link class="ml-1 text-decoration-none" :to="{ name: 'login' }">
+        <router-link class="ml-1 text-decoration-none" :to="{ name: 'Login' }">
           <strong>Login</strong>
         </router-link>
       </v-card-subtitle>

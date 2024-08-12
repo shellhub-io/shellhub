@@ -37,7 +37,7 @@ const items = computed(() => [
   },
   {
     title: "Namespace",
-    path: "/settings/namespace-manager",
+    path: "/settings/namespace",
     hidden: !currentInANamespace.value,
   },
   {

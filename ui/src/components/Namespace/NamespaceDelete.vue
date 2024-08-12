@@ -134,7 +134,7 @@ export default defineComponent({
         dialog.value = !dialog.value;
         await store.dispatch("namespaces/remove", tenant.value);
         await store.dispatch("auth/logout");
-        await router.push({ name: "login" });
+        await router.push({ name: "Login" });
         store.dispatch(
           "snackbar/showSnackbarSuccessAction",
           INotificationsSuccess.namespaceDelete,

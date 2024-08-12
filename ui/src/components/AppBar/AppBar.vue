@@ -9,6 +9,13 @@
       @click.stop="showNavigationDrawer = !showNavigationDrawer"
       aria-label="Toggle Menu"
     />
+    <v-icon icon="mdi-server-network" class="ml-4 hidden-md-and-down" />
+
+    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down">
+      <template v-slot:divider>
+        <v-icon icon="mdi-chevron-right" />
+      </template>
+    </v-breadcrumbs>
 
     <v-spacer />
 
@@ -100,7 +107,7 @@ import {
   computed,
   ref,
 } from "vue";
-import { RouteLocationRaw, useRouter } from "vue-router";
+import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
 import handleError from "../../utils/handleError";
@@ -114,8 +121,14 @@ type MenuItem = {
   method: () => void;
 };
 
+type BreadcrumbItem = {
+  title: string;
+  href: string;
+};
+
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
@@ -143,7 +156,7 @@ const logout = async () => {
     await store.dispatch("auth/logout");
     await store.dispatch("stats/clear");
     await store.dispatch("namespaces/clearNamespaceList");
-    await router.push({ name: "login" });
+    await router.push({ name: "Login" });
     createNewClient();
   } catch (error: unknown) {
     handleError(error);
@@ -166,7 +179,7 @@ const menu = [
   {
     title: "Settings",
     type: "path",
-    path: "/settings",
+    path: "/Settings",
     icon: "mdi-cog",
     // eslint-disable-next-line no-void
     method: () => void 0,
@@ -179,4 +192,22 @@ const menu = [
     method: logout,
   },
 ];
+
+// Generate breadcrumb items based on the current route
+const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
+  const breadcrumbs: BreadcrumbItem[] = [];
+  route.matched.forEach((match) => {
+    if (match.name) {
+      // Convert PascalCase to separated words
+      const title = (match.name as string).replace(/([a-z])([A-Z])/g, "$1 $2");
+      breadcrumbs.push({
+        title,
+        href: match.path,
+      });
+    }
+  });
+  return breadcrumbs;
+};
+
+const breadcrumbItems = computed(() => generateBreadcrumbs(route));
 </script>

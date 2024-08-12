@@ -120,7 +120,7 @@
         Do you have account ?
         <router-link
           class="ml-1"
-          :to="{ name: 'login' }"
+          :to="{ name: 'Login' }"
         >
           Login
         </router-link>

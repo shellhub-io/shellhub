@@ -12,10 +12,10 @@ const ContainerList = () => import("@/components/Containers/ContainerList.vue");
 const ContainerPendingList = () => import("@/components/Containers/ContainerPendingList.vue");
 const ContainerRejectedList = () => import("@/components/Containers/ContainerRejectedList.vue");
 const Connectors = () => import("@/views/Connectors.vue");
-const detailsConnectors = () => import("@/views/ConnectorDetails.vue");
-const DetailsDevice = () => import("@/views/DetailsDevice.vue");
+const ConnectorDetails = () => import("@/views/ConnectorDetails.vue");
+const DeviceDetails = () => import("@/views/DetailsDevice.vue");
 const Sessions = () => import("@/views/Sessions.vue");
-const DetailsSessions = () => import("@/views/DetailsSessions.vue");
+const SessionDetails = () => import("@/views/DetailsSessions.vue");
 const FirewallRules = () => import("@/views/FirewallRules.vue");
 const PublicKeys = () => import("@/views/PublicKeys.vue");
 const Settings = () => import("@/views/Settings.vue");
@@ -28,7 +28,7 @@ const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
 export const routes: Array<RouteRecordRaw> = [
   {
     path: "/login",
-    name: "login",
+    name: "Login",
     meta: {
       layout: "LoginLayout",
       requiresAuth: false,
@@ -39,13 +39,10 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/mfa-login",
     name: "MfaLogin",
     beforeEnter: (to, from, next) => {
-      // Check if the user is coming from the login route
-      if (from.name === "login") {
-        // Allow access to MFA login if the user is coming from the login route
+      if (from.name === "Login") {
         next();
       } else {
-        // Redirect to login if the user is not coming from the login route
-        next({ name: "login" });
+        next({ name: "Login" });
       }
     },
     meta: {
@@ -61,7 +58,7 @@ export const routes: Array<RouteRecordRaw> = [
       if (from.name === "MfaLogin") {
         next();
       } else {
-        next({ name: "login" });
+        next({ name: "Login" });
       }
     },
     meta: {
@@ -77,7 +74,7 @@ export const routes: Array<RouteRecordRaw> = [
       if (from.name === "RecoverMfa") {
         next();
       } else {
-        next({ name: "login" });
+        next({ name: "Login" });
       }
     },
     meta: {
@@ -147,83 +144,73 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/devices",
-    name: "devices",
+    name: "Devices",
     component: Devices,
-    beforeEnter: (to, from, next) => {
-      const fetchDevices = async () => {
-        store.dispatch("devices/fetch", {
-          page: store.getters["devices/getPage"],
-          perPage: store.getters["devices/getPerPage"],
-          filter: store.getters["devices/getFilter"],
-          status: "",
-          committable: false,
-        });
-      };
+    beforeEnter: async (to, from, next) => {
+      await store.dispatch("devices/fetch", {
+        page: store.getters["devices/getPage"],
+        perPage: store.getters["devices/getPerPage"],
+        filter: store.getters["devices/getFilter"],
+        status: "",
+        committable: false,
+      });
       next();
-      return fetchDevices();
     },
-    redirect: {
-      name: "listDevices",
-    },
+    redirect: { name: "DeviceList" },
     children: [
       {
         path: "",
-        name: "listDevices",
+        name: "DeviceList",
         component: DeviceList,
       },
       {
         path: "pending",
-        name: "pendingDevices",
+        name: "DevicePendingList",
         component: DevicePendingList,
       },
       {
         path: "rejected",
-        name: "rejectedDevices",
+        name: "DeviceRejectedList",
         component: DeviceRejectedList,
       },
     ],
   },
   {
     path: "/containers",
-    name: "containers",
+    name: "Containers",
     component: Containers,
-    beforeEnter: (to, from, next) => {
-      const fetchContainers = async () => {
-        store.dispatch("container/fetch", {
-          page: store.getters["container/getPage"],
-          perPage: store.getters["container/getPerPage"],
-          filter: store.getters["container/getFilter"],
-          status: "",
-          committable: false,
-        });
-      };
+    beforeEnter: async (to, from, next) => {
+      await store.dispatch("container/fetch", {
+        page: store.getters["container/getPage"],
+        perPage: store.getters["container/getPerPage"],
+        filter: store.getters["container/getFilter"],
+        status: "",
+        committable: false,
+      });
       next();
-      return fetchContainers();
     },
-    redirect: {
-      name: "listContainers",
-    },
+    redirect: { name: "ContainerList" },
     children: [
       {
         path: "",
-        name: "listContainers",
+        name: "ContainerList",
         component: ContainerList,
       },
       {
         path: "pending",
-        name: "pendingContainers",
+        name: "ContainerPendingList",
         component: ContainerPendingList,
       },
       {
         path: "rejected",
-        name: "rejectedContainers",
+        name: "ContainerRejectedList",
         component: ContainerRejectedList,
       },
     ],
   },
   {
     path: "/connectors",
-    name: "connectors",
+    name: "Connectors",
     component: Connectors,
     beforeEnter: (to, from, next) => {
       if (envVariables.isCommunity && envVariables.premiumPaywall) {
@@ -234,13 +221,13 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/connectors/:id",
-    name: "detailsConnectors",
-    component: detailsConnectors,
+    name: "ConnectorDetails",
+    component: ConnectorDetails,
   },
   {
-    path: "/device/:id",
-    name: "detailsDevice",
-    component: DetailsDevice,
+    path: "/devices/:id",
+    name: "DeviceDetails",
+    component: DeviceDetails,
   },
   {
     path: "/sessions",
@@ -249,12 +236,12 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/sessions/:id",
-    name: "detailsSession",
-    component: DetailsSessions,
+    name: "SessionDetails",
+    component: SessionDetails,
   },
   {
     path: "/firewall/rules",
-    name: "firewalls",
+    name: "FirewallRules",
     component: FirewallRules,
     beforeEnter: (to, from, next) => {
       if (envVariables.isCommunity && envVariables.premiumPaywall) {
@@ -265,43 +252,40 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/sshkeys/public-keys",
-    name: "publicKeys",
+    name: "PublicKeys",
     component: PublicKeys,
   },
   {
     path: "/settings",
-    name: "settings",
+    name: "Settings",
     component: Settings,
-    redirect: {
-      name: "profileSettings",
-    },
+    redirect: { name: "SettingProfile" },
     children: [
       {
         path: "profile",
-        name: "profileSettings",
+        name: "SettingProfile",
         component: SettingProfile,
       },
       {
-        path: "namespace-manager",
-        name: "namespaceSettings",
+        path: "namespace",
+        name: "SettingNamespace",
         component: SettingNamespace,
       },
       {
         path: "private-keys",
-        name: "privateKeysSettings",
+        name: "SettingPrivateKeys",
         component: SettingPrivateKeys,
       },
       {
         path: "tags",
-        name: "tagsSettings",
+        name: "SettingTags",
         component: SettingTags,
       },
       {
         path: "billing",
-        name: "billingSettings",
+        name: "SettingBilling",
         beforeEnter: (to, from, next) => {
-          const enabled = envVariables.billingEnable;
-          if (enabled) {
+          if (envVariables.billingEnable) {
             next();
           } else {
             next("/404");
@@ -312,13 +296,13 @@ export const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
-    path: "/:catchAll(.*)",
-    redirect: { name: "NotFound" },
-  },
-  {
     path: "/404",
     name: "NotFound",
     component: () => import("../views/NotFound.vue"),
+  },
+  {
+    path: "/:catchAll(.*)",
+    redirect: { name: "NotFound" },
   },
 ];
 
@@ -336,8 +320,8 @@ router.beforeEach(async (to, from, next) => {
 
   // Redirect to the appropriate page based on authentication status
   if (requiresAuth && !isLoggedIn) {
-    next({ name: "login" }); // Redirect to login page if authentication is required and user is not logged in
-  } else if (to.name === "login" && isLoggedIn) {
+    next({ name: "Login" }); // Redirect to login page if authentication is required and user is not logged in
+  } else if (to.name === "Login" && isLoggedIn) {
     next({ path: "/" }); // Redirect from login page to home if user is already logged in
   } else {
     next(); // Continue with the original navigation
