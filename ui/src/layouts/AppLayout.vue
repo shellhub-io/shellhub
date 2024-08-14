@@ -27,12 +27,10 @@
             />
           </div>
         </router-link>
-        <v-divider class="ma-2" />
       </v-app-bar-title>
 
       <div class="pa-2">
         <Namespace data-test="namespace-component" />
-        <v-divider class="ma-2" />
       </div>
 
       <v-list class="bg-v-theme-surface" data-test="list">
