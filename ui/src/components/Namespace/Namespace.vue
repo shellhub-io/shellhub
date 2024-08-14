@@ -1,199 +1,117 @@
 <template>
-  <v-list
-    v-if="hasNamespace"
-    v-model:opened="opened"
-  >
-    <v-list-group v-model="listing">
-      <template v-slot:activator="{ props }">
-        <v-list-item
-          v-bind="props"
-          class="text-primary icon-primary"
-        >
-          <v-list-item-title> {{ namespace.name }}</v-list-item-title>
-          <v-expand-transition>
-            <v-list-item-subtitle
-              v-if="!isListOpen"
-              class="text-wrap text-caption text-grey-darken-1"
-            >Active Namespace</v-list-item-subtitle>
-          </v-expand-transition>
-        </v-list-item>
-      </template>
+  <NamespaceAdd v-model="isAddNamespaceDialogVisible" />
 
-      <NamespaceList data-test="namespaceList-component" />
-    </v-list-group>
-  </v-list>
-  <v-expand-transition>
-    <NamespaceAdd
-      v-if="isListOpen"
-      :enableSwitchIn="isEnterprise"
-      isSmall
-      data-test="namespaceAdd-component"
-      @update="getNamespaces"
-    />
-  </v-expand-transition>
+  <v-select
+    :menu-props="{ closeOnContentClick: true }"
+    v-model="selectedNamespace"
+    label="Active Namespace"
+    variant="outlined"
+    item-title="name"
+    item-value="url"
+    :items="namespaceList"
+    :hide-details="true"
+    class="mt-1"
+  >
+    <template #prepend-inner>
+      <v-chip label color="primary" class="text-uppercase">{{ firstNamespaceLetter }}</v-chip>
+    </template>
+    <template #prepend-item>
+      <v-list-subheader>
+        All Namespaces
+      </v-list-subheader>
+    </template>
+    <template #item="{ item }">
+      <v-list-item @click="changeNamespace((item.raw as NamespaceItem).tenant_id)" title="">
+        <v-chip label color="primary" class="text-uppercase mr-2">{{ (item.raw as NamespaceItem).name.charAt(0) }}</v-chip>
+        <span>{{ (item.raw as NamespaceItem).name }}</span>
+      </v-list-item>
+    </template>
+
+    <template #append-item>
+      <v-divider />
+      <v-list-item class="mt-2 mb-0">
+        <v-btn
+          variant="flat"
+          prepend-icon="mdi-plus-box"
+          color="primary"
+          class="ma-0"
+          block
+          @click="isAddNamespaceDialogVisible = true"
+        >New Namespace
+        </v-btn>
+      </v-list-item>
+    </template>
+  </v-select>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, watch, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
-import { envVariables } from "../../envVariables";
-import { INotificationsError } from "../../interfaces/INotifications";
-import NamespaceList from "./NamespaceList.vue";
+import { useStore } from "@/store";
+import { INotificationsError } from "@/interfaces/INotifications";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  inheritAttrs: false,
-  setup() {
-    const store = useStore();
-    const inANamespace = ref(false);
-    const listing = ref(false);
-    const isChecking = ref(false);
-    const namespace = computed(() => store.getters["namespaces/get"]);
-    const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-    );
-    const openVersion = computed(() => !envVariables.isEnterprise);
-    const tenant = computed(() => localStorage.getItem("tenant"));
-    const isEnterprise = computed(() => envVariables.isEnterprise);
-    const opened = ref([]);
-    const isListOpen = computed(() => opened.value.length > 0);
+interface NamespaceItem {
+  tenant_id: string;
+  name: string;
+}
 
-    const getNamespaces = async () => {
-      try {
-        if (!store.getters["auth/isLoggedIn"]) return;
-        await store.dispatch("namespaces/fetch", {
-          page: 1,
-          perPage: 30,
-        });
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          switch (true) {
-            case !inANamespace.value && axiosError.response?.status === 403: {
-              // dialog pops
-              break;
-            }
-            case axiosError.response?.status === 403: {
-              store.dispatch("snackbar/showSnackbarErrorAssociation");
-              break;
-            }
-            default: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorLoading",
-                INotificationsError.namespaceList,
-              );
-              handleError(error);
-            }
+const store = useStore();
+const namespaceList = computed(() => store.getters["namespaces/list"]);
+const selectedNamespace = computed(() => store.getters["namespaces/get"]);
+const tenant = computed(() => localStorage.getItem("tenant"));
+const firstNamespaceLetter = computed(() => (store.getters["namespaces/get"].name ?? "").charAt(0));
+const isAddNamespaceDialogVisible = ref(false);
+
+// Change the current namespace
+const changeNamespace = async (tenantId: string) => {
+  try {
+    await store.dispatch("namespaces/switchNamespace", {
+      tenant_id: tenantId,
+    });
+    window.location.reload();
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.namespaceSwitch,
+    );
+    handleError(error);
+  }
+};
+
+// Fetch the current namespace
+const fetchNamespace = async () => {
+  try {
+    await store.dispatch("namespaces/get", tenant.value);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      switch (true) {
+        case axiosError.response?.status === 404: {
+          // detects namespace inserted
+          const namespaceFind = store.getters["namespaces/list"][0];
+          if (tenant.value === "" && namespaceFind !== undefined) {
+            changeNamespace(namespaceFind.tenant_id);
           }
-        } else {
+          break;
+        }
+        case axiosError.response?.status === 500 && tenant.value === null: {
+          break;
+        }
+        default: {
           store.dispatch(
             "snackbar/showSnackbarErrorLoading",
-            INotificationsError.namespaceList,
+            INotificationsError.namespaceLoad,
           );
           handleError(error);
         }
       }
-    };
-    const switchIn = async (tenantId: string) => {
-      try {
-        await store.dispatch("namespaces/switchNamespace", {
-          tenant_id: tenantId,
-        });
-        window.location.reload();
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.namespaceSwitch,
-        );
-        handleError(error);
-      }
-    };
+    }
+  }
+};
 
-    const checkNewNamespace = async () => {
-      if (!store.getters["auth/isLoggedIn"]) return;
-
-      await store.dispatch("namespaces/fetch", {
-        page: 1,
-        perPage: 10,
-        fitler: "",
-      });
-      if (store.getters["namespaces/list"].length > 0) {
-        switchIn(store.getters["namespaces/list"][0].tenant_id);
-      }
-    };
-
-    const getNamespace = async () => {
-      if (!store.getters["auth/isLoggedIn"]) return;
-      if (isChecking.value) return;
-
-      try {
-        await store.dispatch("namespaces/get", tenant.value);
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          switch (true) {
-            case axiosError.response?.status === 404: {
-              // detects namespace inserted
-              const namespaceFind = store.getters["namespaces/list"][0];
-              if (tenant.value === "" && namespaceFind !== undefined) {
-                switchIn(namespaceFind.tenant_id);
-              }
-              break;
-            }
-            case axiosError.response?.status === 500 && tenant.value === null: {
-              break;
-            }
-            default: {
-              store.dispatch(
-                "snackbar/showSnackbarErrorLoading",
-                INotificationsError.namespaceLoad,
-              );
-              handleError(error);
-            }
-          }
-        }
-      }
-    };
-
-    onMounted(async () => {
-      await getNamespaces();
-      if (inANamespace.value) {
-        await getNamespace();
-      }
-      if (Object.keys(namespace.value).length === 0 && openVersion.value) {
-        isChecking.value = true;
-        // Interval to check if the namespace has been added by cli
-        setInterval(() => {
-          checkNewNamespace();
-        }, 3000);
-      }
-    });
-
-    watch(hasNamespace, (status) => {
-      inANamespace.value = status;
-      getNamespace();
-    });
-    watch(listing, (val) => {
-      if (val) {
-        getNamespaces();
-      }
-    });
-
-    return {
-      inANamespace,
-      hasNamespace,
-      tenant,
-      listing,
-      switchIn,
-      namespace,
-      isEnterprise,
-      getNamespaces,
-      opened,
-      isListOpen,
-    };
-  },
-  components: { NamespaceList, NamespaceAdd },
+onMounted(async () => {
+  await fetchNamespace();
 });
 </script>
