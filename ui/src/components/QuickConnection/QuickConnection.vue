@@ -5,11 +5,11 @@
       color="primary"
       tabindex="0"
       variant="elevated"
-      aria-label="Dialog New Connection"
-      data-test="new-connection-open-btn"
+      aria-label="Dialog Quick Connection"
+      data-test="quick-connection-open-btn"
       prepend-icon="mdi-link"
     >
-      New Connection
+      Quick Connection
     </v-btn>
     <div>
       <p
@@ -23,7 +23,6 @@
       v-model="dialog"
       width="1000"
       transition="dialog-bottom-transition"
-      data-test="new-connection-dialog"
     >
       <v-card class="bg-v-theme-surface content" min-height="700" max-height="700">
         <div class="pa-5">
@@ -69,7 +68,7 @@
               </p>
             </v-col>
           </v-row>
-          <NewConnectionList ref="list" />
+          <QuickConnectionList ref="list" />
         </v-card-text>
         <v-card-actions>
           <v-row class="ml-2">
@@ -109,11 +108,11 @@
 import { useMagicKeys } from "@vueuse/core";
 import { watch, ref, onUnmounted } from "vue";
 import axios, { AxiosError } from "axios";
-import NewConnectionList from "./NewConnectionList.vue";
+import QuickConnectionList from "./QuickConnectionList.vue";
 import { useStore } from "../../store";
 import handleError from "../../utils/handleError";
 
-const list = ref<InstanceType<typeof NewConnectionList>>();
+const list = ref<InstanceType<typeof QuickConnectionList>>();
 const dialog = ref(false);
 const store = useStore();
 const filter = ref("");
