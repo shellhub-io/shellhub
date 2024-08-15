@@ -71,7 +71,7 @@
 
         </v-list-item>
         <v-col class="d-flex align-end justify-center">
-          <NewConnection />
+          <QuickConnection />
         </v-col>
 
       </v-list>
@@ -122,7 +122,7 @@ import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
-import NewConnection from "../components/NewConnection/NewConnection.vue";
+import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 
 const router = useRouter();
 const store = useStore();

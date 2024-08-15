@@ -1,28 +1,26 @@
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
-import NewConnection from "@/components/NewConnection/NewConnection.vue";
+import QuickConnectionList from "@/components/QuickConnection/QuickConnectionList.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
-import { namespacesApi, devicesApi } from "@/api/http";
+import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type NewConnectionWrapper = VueWrapper<InstanceType<typeof NewConnection>>;
+type QuickConnectionListWrapper = VueWrapper<InstanceType<typeof QuickConnectionList>>;
 
-describe("New Connection", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
-  let wrapper: NewConnectionWrapper;
+describe("Quick Connection List", () => {
+  let wrapper: QuickConnectionListWrapper;
 
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
 
   let mockDevices: MockAdapter;
+
+  let mockBilling: MockAdapter;
 
   const devices = [
     {
@@ -54,6 +52,17 @@ describe("New Connection", () => {
     },
   ];
 
+  const billingData = {
+    active: false,
+    status: "canceled",
+    customer_id: "cus_test",
+    subscription_id: "sub_test",
+    current_period_end: 2068385820,
+    created_at: "",
+    updated_at: "",
+    invoices: [],
+  };
+
   const namespaceData = {
     name: "user",
     owner: "xxxxxxxx",
@@ -63,6 +72,7 @@ describe("New Connection", () => {
     devices_count: 3,
     devices: 2,
     created_at: "",
+    billing: billingData,
   };
 
   const authData = {
@@ -76,6 +86,23 @@ describe("New Connection", () => {
     role: "owner",
   };
 
+  const customerData = {
+    id: "cus_test",
+    name: "test",
+    email: "test@test.com",
+    payment_methods: [
+      {
+        id: "test_id",
+        number: "xxxxxxxxxxxx4242",
+        brand: "visa",
+        exp_month: 3,
+        exp_year: 2029,
+        cvc: "",
+        default: true,
+      },
+    ],
+  };
+
   const stats = {
     registered_devices: 2,
     online_devices: 1,
@@ -85,16 +112,18 @@ describe("New Connection", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
+    mockBilling = new MockAdapter(billingApi.getAxios());
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
+    mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
+    mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
     mockDevices
       // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
@@ -103,13 +132,12 @@ describe("New Connection", () => {
 
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
+    store.commit("billing/setSubscription", billingData);
+    store.commit("customer/setCustomer", customerData);
 
-    wrapper = mount(NewConnection, {
+    wrapper = mount(QuickConnectionList, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -126,50 +154,43 @@ describe("New Connection", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders the dialog open button and other key elements", async () => {
-    const dialog = new DOMWrapper(document.body);
-
-    expect(wrapper.find('[data-test="new-connection-open-btn"]').exists()).toBe(true);
-
-    await wrapper.findComponent('[data-test="new-connection-open-btn"]').trigger("click");
-
-    expect(dialog.find('[data-test="search-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="hostname-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="os-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="sshid-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="tags-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="connect-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="copy-sshid-instructions"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="connect-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="navigate-up-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="navigate-down-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+  it("Renders the devices list", () => {
+    expect(wrapper.find('[data-test="devices-list"]').exists()).toBe(true);
   });
 
-  it("keyboardMacros function toggles dialog value on Ctrl + K keydown", async () => {
-    const dialog = new DOMWrapper(document.body);
-
-    const event = new KeyboardEvent("keydown", { ctrlKey: true, key: "k" });
-
-    dispatchEvent(event);
-
-    expect(dialog.find('[data-test="new-connection-dialog"]').exists()).toBe(true);
+  it("Renders each device card", () => {
+    expect(wrapper.find('[data-test="device-list-item"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-name"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-info"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-ssh-id"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-tags"]').exists()).toBe(true);
   });
 
-  it("Checks if the fetch function handles error on failure", async () => {
+  it("Renders the copy ID button", () => {
+    expect(wrapper.find('[data-test="copy-id-button"]').exists()).toBe(true);
+  });
+
+  it("Renders the tag chips", () => {
+    expect(wrapper.find('[data-test="tag-chip"]').exists()).toBe(true);
+  });
+
+  it("Renders the no tags chip", async () => {
+    // Change the value of tags[0] to an empty string for the first device
+    devices[0].tags[0] = "";
+    await flushPromises();
+    expect(wrapper.find('[data-test="no-tags-chip"]').exists()).toBe(true);
+  });
+
+  it("Renders the no online devices message", async () => {
     mockDevices.reset();
-
+    // Test with an empty online filtered request
     mockDevices
     // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
-      .reply(403);
-
-    const storeSpy = vi.spyOn(store, "dispatch");
-
-    await wrapper.findComponent('[data-test="new-connection-open-btn"]').trigger("click");
-
+      .reply(200, []);
     await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
+    expect(wrapper.find('[data-test="no-online-devices"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="no-online-devices-icon"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="no-online-devices-message"]').exists()).toBe(true);
   });
 });

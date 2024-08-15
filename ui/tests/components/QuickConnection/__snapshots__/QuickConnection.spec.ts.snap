@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Quick Connection > Renders the component 1`] = `
+"<div data-v-136d2a2f=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-link mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connection </span>
+    <!---->
+    <!---->
+  </button>
+  <div data-v-136d2a2f=\\"\\">
+    <p data-v-136d2a2f=\\"\\" class=\\"text-caption text-md font-weight-bold text-grey-darken-1 ma-1\\" data-test=\\"quick-connect-instructions\\"> Press \\"Ctrl + K\\" to Quick Connect! </p>
+  </div>
+  <!---->
+  <!---->
+</div>"
+`;
