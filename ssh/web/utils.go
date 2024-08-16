@@ -61,7 +61,7 @@ func (c *Credentials) isPublicKey() bool { // nolint: unused
 
 // isPassword checks if connection is using password method.
 func (c *Credentials) isPassword() bool {
-	return c.Password != ""
+	return !c.isPublicKey()
 }
 
 // Dimensions represents a web SSH terminal dimensions.
