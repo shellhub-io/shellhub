@@ -69,7 +69,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 			}
 
 			if err := sess.Dial(ctx); err != nil {
-				logger.WithError(err).Error("destination device is offline or connot be reached")
+				logger.WithError(err).Error("destination device is offline or cannot be reached")
 
 				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
 			}

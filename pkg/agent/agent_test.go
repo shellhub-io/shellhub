@@ -107,7 +107,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			description: "success to load the environemental variables",
+			description: "success to load the environmental variables",
 			requiredMocks: func() {
 				envs := new(Config)
 

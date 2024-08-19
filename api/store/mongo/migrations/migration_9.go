@@ -13,7 +13,7 @@ import (
 
 var migration9 = migrate.Migration{
 	Version:     9,
-	Description: "Set all devices names to lowercase in the devices colletion",
+	Description: "Set all devices names to lowercase in the devices collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",

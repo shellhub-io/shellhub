@@ -510,7 +510,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", errors.New("error")),
 		},
 		{
-			description: "fails when role is greather than user's role",
+			description: "fails when role is greater than user's role",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
 				TenantID:    "00000000-0000-4000-0000-000000000000",

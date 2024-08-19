@@ -22,7 +22,7 @@ func TestBinder(t *testing.T) {
 			expected:    nil,
 		},
 		{
-			description: "succeeds to bind query parameters with special caracters",
+			description: "succeeds to bind query parameters with special characters",
 			expected:    nil,
 		},
 	}

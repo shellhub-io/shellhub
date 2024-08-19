@@ -38,7 +38,7 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 
 	data := new(channelData)
 	if err := gossh.Unmarshal(newChan.ExtraData(), data); err != nil {
-		newChan.Reject(gossh.ConnectionFailed, "faild to parse forward data: "+err.Error()) //nolint:errcheck
+		newChan.Reject(gossh.ConnectionFailed, "failed to parse forward data: "+err.Error()) //nolint:errcheck
 		log.WithError(err).WithFields(log.Fields{
 			"username":    sess.Target.Username,
 			"sshid":       sess.Target.Data,
