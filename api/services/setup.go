@@ -38,7 +38,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		UserData: data,
 		Password: password,
 		// NOTE: user's created from the setup screen doesn't need to be confirmed.
-		Confirmed: true,
+		Status:    models.UserStatusConfirmed,
 		CreatedAt: clock.Now(),
 	}
 

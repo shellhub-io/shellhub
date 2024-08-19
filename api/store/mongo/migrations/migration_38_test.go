@@ -33,7 +33,6 @@ func TestMigration38(t *testing.T) {
 	userNoCreatedAt := models.User{
 		ID:         "userNoCreatedID",
 		Namespaces: 0,
-		Confirmed:  false,
 		CreatedAt:  timeZero,
 		LastLogin:  timeNow,
 		UserData: models.UserData{
@@ -48,7 +47,6 @@ func TestMigration38(t *testing.T) {
 	userWithCreatedAt := models.User{
 		ID:         "userWithCreatedID",
 		Namespaces: 0,
-		Confirmed:  false,
 		CreatedAt:  timePast,
 		LastLogin:  timeNow,
 		UserData: models.UserData{

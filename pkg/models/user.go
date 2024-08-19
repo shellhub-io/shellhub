@@ -7,14 +7,30 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
+type UserStatus string
+
+const (
+	// UserStatusNotConfirmed applies to cloud-only instances. This status is assigned to a user who has registered
+	// but has not yet confirmed their email address.
+	UserStatusNotConfirmed UserStatus = "not-confirmed"
+
+	// UserStatusConfirmed indicates that the user has completed the registration process and confirmed their email address.
+	// Users in community and enterprise instances will always be created with this status.
+	UserStatusConfirmed UserStatus = "confirmed"
+)
+
+func (s UserStatus) String() string {
+	return string(s)
+}
+
 type User struct {
-	ID             string    `json:"id,omitempty" bson:"_id,omitempty"`
-	Namespaces     int       `json:"namespaces" bson:"namespaces,omitempty"`
-	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
-	Confirmed      bool      `json:"confirmed"`
-	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
-	LastLogin      time.Time `json:"last_login" bson:"last_login"`
-	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
+	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
+	Status         UserStatus `json:"status" bson:"status"`
+	Namespaces     int        `json:"namespaces" bson:"namespaces,omitempty"`
+	MaxNamespaces  int        `json:"max_namespaces" bson:"max_namespaces"`
+	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
+	LastLogin      time.Time  `json:"last_login" bson:"last_login"`
+	EmailMarketing bool       `json:"email_marketing" bson:"email_marketing"`
 	UserData       `bson:",inline"`
 	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
 	// check if MFA is active for the user.
@@ -117,14 +133,14 @@ type UserTokenRecover struct {
 // UserChanges specifies the attributes that can be updated for a user. Any zero values in this
 // struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
 type UserChanges struct {
-	LastLogin          time.Time `bson:"last_login,omitempty"`
-	Name               string    `bson:"name,omitempty"`
-	Username           string    `bson:"username,omitempty"`
-	Email              string    `bson:"email,omitempty"`
-	RecoveryEmail      string    `bson:"recovery_email,omitempty"`
-	Password           string    `bson:"password,omitempty"`
-	Confirmed          *bool     `bson:"confirmed,omitempty"`
-	PreferredNamespace *string   `bson:"preferences.preferred_namespace,omitempty"`
+	LastLogin          time.Time  `bson:"last_login,omitempty"`
+	Name               string     `bson:"name,omitempty"`
+	Username           string     `bson:"username,omitempty"`
+	Email              string     `bson:"email,omitempty"`
+	RecoveryEmail      string     `bson:"recovery_email,omitempty"`
+	Password           string     `bson:"password,omitempty"`
+	Status             UserStatus `bson:"status,omitempty"`
+	PreferredNamespace *string    `bson:"preferences.preferred_namespace,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
