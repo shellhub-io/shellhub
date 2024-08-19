@@ -238,15 +238,9 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrRoleInvalid()
 	}
 
-	passiveUser := new(models.User)
-	if req.MemberIdentifier.IsEmail() {
-		passiveUser, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.MemberIdentifier)))
-	} else {
-		passiveUser, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.MemberIdentifier)))
-	}
-
+	passiveUser, err := s.store.UserGetByEmail(ctx, strings.ToLower(req.MemberEmail))
 	if err != nil {
-		return nil, NewErrUserNotFound(string(req.MemberIdentifier), err)
+		return nil, NewErrUserNotFound(req.MemberEmail, err)
 	}
 
 	// Currently, the member's status is always "accepted".
