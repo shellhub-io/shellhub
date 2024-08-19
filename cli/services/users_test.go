@@ -140,7 +140,7 @@ func TestUserCreate(t *testing.T) {
 						Plain: "secret",
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
-					Confirmed:     true,
+					Status:        models.UserStatusConfirmed,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 				}
@@ -173,7 +173,7 @@ func TestUserCreate(t *testing.T) {
 						Plain: "secret",
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
-					Confirmed:     true,
+					Status:        models.UserStatusConfirmed,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 				}
@@ -189,7 +189,7 @@ func TestUserCreate(t *testing.T) {
 					Plain: "secret",
 					Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 				},
-				Confirmed:     true,
+				Status:        models.UserStatusConfirmed,
 				CreatedAt:     clock.Now(),
 				MaxNamespaces: MaxNumberNamespacesCommunity,
 			}, nil},

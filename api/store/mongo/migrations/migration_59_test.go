@@ -77,7 +77,6 @@ func TestMigration59(t *testing.T) {
 					ID:             "652594bcc7b001c6f298df48",
 					Namespaces:     0,
 					MaxNamespaces:  0,
-					Confirmed:      false,
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					EmailMarketing: false,

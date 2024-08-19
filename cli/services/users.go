@@ -53,7 +53,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 	user := &models.User{
 		UserData:      userData,
 		Password:      password,
-		Confirmed:     true,
+		Status:        models.UserStatusConfirmed,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
 	}

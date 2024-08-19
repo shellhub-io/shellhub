@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration32(t *testing.T) {
@@ -47,9 +46,4 @@ func TestMigration32(t *testing.T) {
 	version, _, err = migrates.Version(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(32), version)
-
-	var migratedUser *models.User
-	err = c.Database("test").Collection("users").FindOne(context.TODO(), bson.M{"name": "name"}).Decode(&migratedUser)
-	assert.NoError(t, err)
-	assert.Equal(t, false, migratedUser.Confirmed)
 }

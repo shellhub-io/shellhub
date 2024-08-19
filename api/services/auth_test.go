@@ -185,7 +185,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: false,
+					Status:    models.UserStatusNotConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -221,7 +221,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -264,7 +264,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -315,7 +315,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: true,
@@ -375,7 +375,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -434,7 +434,7 @@ func TestAuthUser(t *testing.T) {
 				mfaToken: "",
 				err: NewErrUserUpdate(&models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					UserData: models.UserData{
 						Username: "john_doe",
@@ -456,7 +456,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -534,7 +534,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -624,7 +624,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -715,7 +715,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -805,7 +805,7 @@ func TestAuthUser(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -942,7 +942,7 @@ func TestCreateUserToken(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -980,7 +980,7 @@ func TestCreateUserToken(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -1015,7 +1015,7 @@ func TestCreateUserToken(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -1055,7 +1055,7 @@ func TestCreateUserToken(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -1104,7 +1104,7 @@ func TestCreateUserToken(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,
@@ -1172,7 +1172,7 @@ func TestCreateUserToken(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
 						Enabled: false,

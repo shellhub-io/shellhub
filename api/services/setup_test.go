@@ -61,7 +61,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{
 						Name:     "userteste",
@@ -98,7 +98,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{
 						Name:     "userteste",
@@ -151,7 +151,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Confirmed: true,
+					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{
 						Name:     "userteste",

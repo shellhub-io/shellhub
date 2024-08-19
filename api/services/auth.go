@@ -184,7 +184,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	if !user.Confirmed {
+	if user.Status != models.UserStatusConfirmed {
 		return nil, 0, "", NewErrUserNotConfirmed(nil)
 	}
 
