@@ -1027,10 +1027,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the namespace was not found",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1046,10 +1046,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member was not found",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1074,10 +1074,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member is not on the namespace",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1105,10 +1105,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the passive role's is owner",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleOwner,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleOwner,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1142,10 +1142,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member's role cannot act over passive member's role",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleAdministrator,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleAdministrator,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1179,10 +1179,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when passive member was not found",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1208,22 +1208,22 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, 0, nil).
 					Once()
 				storeMock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserGetByEmail", ctx, "john.doe@test.com").
 					Return(nil, errors.New("error")).
 					Once()
 			},
 			expected: Expected{
 				namespace: nil,
-				err:       NewErrUserNotFound("john_doe", errors.New("error")),
+				err:       NewErrUserNotFound("john.doe@test.com", errors.New("error")),
 			},
 		},
 		{
 			description: "fails when cannot add the member",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1249,7 +1249,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, 0, nil).
 					Once()
 				storeMock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserGetByEmail", ctx, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -1268,10 +1268,10 @@ func TestAddNamespaceMember(t *testing.T) {
 		{
 			description: "succeeds",
 			req: &requests.NamespaceAddMember{
-				UserID:           "000000000000000000000000",
-				TenantID:         "00000000-0000-4000-0000-000000000000",
-				MemberIdentifier: "john_doe",
-				MemberRole:       authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1297,7 +1297,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, 0, nil).
 					Once()
 				storeMock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserGetByEmail", ctx, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
