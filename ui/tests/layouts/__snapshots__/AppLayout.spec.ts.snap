@@ -3,7 +3,7 @@
 exports[`App Layout Component > Renders the component 1`] = `
 "<div data-v-e7291ef4=\\"\\" class=\\"v-application v-theme--dark v-layout v-layout--full-height v-locale--is-ltr\\">
   <div class=\\"v-application__wrap\\">
-    <nav class=\\"v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface\\" style=\\"left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px; transition: none;\\" data-v-e7291ef4=\\"\\" app=\\"\\" data-test=\\"navigation-drawer\\">
+    <nav class=\\"v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface\\" style=\\"left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; transition: none; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;\\" data-v-e7291ef4=\\"\\" app=\\"\\" data-test=\\"navigation-drawer\\">
       <!---->
       <!---->
       <div class=\\"v-navigation-drawer__content\\">
@@ -32,7 +32,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           <div class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--dark v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mt-1\\">
             <!---->
             <div class=\\"v-input__control\\">
-              <div class=\\"v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--prepended v-field--variant-outlined v-theme--dark v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"listbox\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-11\\">
+              <div class=\\"v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--prepended v-field--variant-outlined v-theme--dark v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"listbox\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\">
                 <div class=\\"v-field__overlay\\"></div>
                 <div class=\\"v-field__loader\\">
                   <div class=\\"v-progress-linear v-theme--dark v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
@@ -57,14 +57,14 @@ exports[`App Layout Component > Renders the component 1`] = `
                   <!----></span>
                 </div>
                 <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
+                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
                     <!---->Active Namespace
                   </label>
                   <!---->
                   <div class=\\"v-field__input\\" data-no-activator=\\"\\">
                     <!---->
                     <!---->
-                    <div class=\\"v-select__selection\\"><span class=\\"v-select__selection-text\\">[object Object]<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" inputmode=\\"none\\" aria-label=\\"Open\\" title=\\"Open\\">
+                    <div class=\\"v-select__selection\\"><span class=\\"v-select__selection-text\\">[object Object]<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-1\\" aria-describedby=\\"input-1-messages\\" inputmode=\\"none\\" aria-label=\\"Open\\" title=\\"Open\\">
                   </div>
                   <!---->
                 </div>
@@ -75,7 +75,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                 </div>
                 <div class=\\"v-field__outline\\">
                   <div class=\\"v-field__outline__start\\"></div>
-                  <div class=\\"v-field__outline__notch\\"><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-8\\">
+                  <div class=\\"v-field__outline__notch\\"><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-1\\">
                       <!---->Active Namespace
                     </label></div>
                   <div class=\\"v-field__outline__end\\"></div>
@@ -205,7 +205,7 @@ exports[`App Layout Component > Renders the component 1`] = `
       <!---->
     </transition-stub>
     <snackbarcomponent data-v-e7291ef4=\\"\\"></snackbarcomponent>
-    <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background\\" style=\\"top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; left: 0px; width: calc(100% - 0px - 0px); transition: none;\\" data-test=\\"app-bar\\">
+    <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background\\" style=\\"top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);\\" data-test=\\"app-bar\\">
       <!---->
       <div class=\\"v-toolbar__content\\" style=\\"height: 64px;\\">
         <!---->
@@ -214,14 +214,14 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </button>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-3\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-15\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-5\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-6\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-17\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-18\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" left=\\"\\"></i><div>USER</div><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark ml-1 mr-1\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
           <!---->
           <!---->
