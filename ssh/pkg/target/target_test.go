@@ -91,7 +91,7 @@ func TestSplitSSHID(t *testing.T) {
 		expected    Expected
 	}{
 		{
-			description: "failst when when Data does not contain a dot",
+			description: "fails when when Data does not contain a dot",
 			target: &Target{
 				Username: "username",
 				Data:     "username@localhost",

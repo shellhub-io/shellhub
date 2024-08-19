@@ -199,7 +199,7 @@ func TestDeviceUpdateTag(t *testing.T) {
 			expected: NewErrDeviceNotFound("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when an unexpected error occours",
+			description: "fails when an unexpected error occurs",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tags:        []string{"device1", "device2", "device3"},
 			requiredMocks: func() {

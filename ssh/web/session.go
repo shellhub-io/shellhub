@@ -218,7 +218,7 @@ func newSession(conn *Conn, creds *Credentials, dim Dimensions, info Info) error
 							"cols":   dim.Cols,
 							"rows":   dim.Rows,
 						},
-					).WithError(err).Error("failed to change the seze of window for terminal session")
+					).WithError(err).Error("failed to change the size of window for terminal session")
 
 					return
 				}

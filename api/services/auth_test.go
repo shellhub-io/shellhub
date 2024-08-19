@@ -176,7 +176,7 @@ func TestAuthUser(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when user is not confimed",
+			description: "fails when user is not confirmed",
 			sourceIP:    "127.0.0.1",
 			req: &requests.UserAuth{
 				Identifier: "john_doe",

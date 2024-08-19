@@ -26,7 +26,7 @@ func TestTenantFromContext(t *testing.T) {
 				ID: "00000000-0000-4000-0000-000000000000",
 			},
 		}, {
-			description: "validate empty tenant string, for ID behaviour",
+			description: "validate empty tenant string, for ID behavior",
 			headers:     map[string]string{},
 			expected:    nil,
 		},
@@ -75,7 +75,7 @@ func TestUsernameFromContext(t *testing.T) {
 				ID: "someone",
 			},
 		}, {
-			description: "validate empty username string, for ID behaviour",
+			description: "validate empty username string, for ID behavior",
 			headers:     map[string]string{},
 			expected:    nil,
 		},
@@ -124,7 +124,7 @@ func TestIDFromContext(t *testing.T) {
 				ID: "507f191e810c19729de860ea",
 			},
 		}, {
-			description: "validate empty ID string, for ID behaviour",
+			description: "validate empty ID string, for ID behavior",
 			headers:     map[string]string{},
 			expected:    nil,
 		},

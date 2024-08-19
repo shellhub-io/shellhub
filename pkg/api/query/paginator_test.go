@@ -23,7 +23,7 @@ func TestPaginatorNormalize(t *testing.T) {
 			expected:    &Paginator{Page: 1, PerPage: 10},
 		},
 		{
-			description: "set PerPage to MaxPerParge when PerPage is greather than 100",
+			description: "set PerPage to MaxPerParge when PerPage is greater than 100",
 			paginator:   &Paginator{Page: 1, PerPage: 101},
 			expected:    &Paginator{Page: 1, PerPage: 100},
 		},

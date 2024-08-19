@@ -284,7 +284,7 @@ func TestUpdateSession(t *testing.T) {
 		expected      error
 	}{
 		{
-			name:  "fails whne cannot get the sessioni",
+			name:  "fails when cannot get the session",
 			uid:   models.UID("_uid"),
 			model: models.SessionUpdate{},
 			requiredMocks: func() {

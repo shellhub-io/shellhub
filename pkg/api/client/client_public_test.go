@@ -430,7 +430,7 @@ func TestReverseListener(t *testing.T) {
 			expected:      errors.New("token is empty"),
 		},
 		{
-			description: "fail when connot auth the agent on the SSH server",
+			description: "fail when cannot auth the agent on the SSH server",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			requiredMocks: func() {
 				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", "").Return(errors.New("")).Once()
@@ -438,7 +438,7 @@ func TestReverseListener(t *testing.T) {
 			expected: errors.New(""),
 		},
 		{
-			description: "fail when connot create a new reverse listener",
+			description: "fail when cannot create a new reverse listener",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			requiredMocks: func() {
 				mock.On("Auth", context.Background(), "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", "").Return(nil).Once()

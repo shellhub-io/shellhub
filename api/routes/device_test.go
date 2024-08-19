@@ -862,7 +862,7 @@ func TestUpdateDevice(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			title: "fails when try to uodate a existing device",
+			title: "fails when try to update a existing device",
 			updatePayload: requests.DeviceUpdate{
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Name:        &name,

@@ -1059,7 +1059,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when could not get the devcie",
+			description: "fails when could not get the device",
 			uid:         models.UID("uid"),
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
@@ -1427,7 +1427,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when could not get the devcie",
+			description: "fails when could not get the device",
 			uid:         models.UID("uid"),
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
@@ -1701,7 +1701,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when could not get the devcie",
+			description: "fails when could not get the device",
 			uid:         models.UID("uid"),
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
@@ -1959,7 +1959,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when could not get the devcie",
+			description: "fails when could not get the device",
 			uid:         models.UID("uid"),
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
@@ -2634,7 +2634,7 @@ func TestDeviceUpdate(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "fails when name does not meet the validatino requirements",
+			description: "fails when name does not meet the validation requirements",
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        toPointer(""),
@@ -2688,7 +2688,7 @@ func TestDeviceUpdate(t *testing.T) {
 			expected: NewErrDeviceDuplicated("same", nil),
 		},
 		{
-			description: "success when udpate device for a different name",
+			description: "success when update device for a different name",
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        other,
@@ -2746,7 +2746,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when could not get the devcie",
+			description: "fails when could not get the device",
 			uid:         models.UID("uid"),
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
