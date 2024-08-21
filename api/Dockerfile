@@ -52,6 +52,10 @@ COPY ./api/entrypoint-dev.sh /entrypoint.sh
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
+RUN mkdir -p /templates
+
+COPY ./install.sh /templates/install.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
@@ -61,8 +65,8 @@ RUN apk add curl
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
-RUN mkdir /templates
+RUN mkdir -p /templates
 
-COPY ./api/templates /templates
+COPY ./install.sh /templates/install.sh
 
 ENTRYPOINT /api server

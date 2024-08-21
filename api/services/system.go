@@ -41,7 +41,7 @@ func (s *service) SystemGetInfo(_ context.Context, req requests.SystemGetInfo) (
 }
 
 func (s *service) SystemDownloadInstallScript(_ context.Context, req requests.SystemInstallScript) (*template.Template, map[string]interface{}, error) {
-	tmpl, err := template.ParseFiles("./templates/kickstart.sh")
+	tmpl, err := template.ParseFiles("/templates/install.sh")
 	if err != nil {
 		return nil, nil, err
 	}
