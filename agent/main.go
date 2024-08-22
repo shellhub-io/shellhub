@@ -113,51 +113,68 @@ func main() {
 			// Disable check update in development mode
 			if AgentVersion != "latest" {
 				go func() {
+					ticker := time.NewTicker(24 * time.Hour)
+					defer ticker.Stop()
+
 					for {
-						nextVersion, err := ag.CheckUpdate()
-						if err != nil {
-							log.WithError(err).WithFields(log.Fields{
+						select {
+						case <-ctx.Done():
+							log.WithFields(log.Fields{
 								"version":            AgentVersion,
 								"mode":               mode,
 								"tenant_id":          cfg.TenantID,
 								"server_address":     cfg.ServerAddress,
 								"preferred_hostname": cfg.PreferredHostname,
-							}).Error("Failed to check update")
+							}).Info("Update interval check done")
 
-							goto sleep
-						}
-
-						if nextVersion.GreaterThan(currentVersion) {
-							if err := updater.ApplyUpdate(nextVersion); err != nil {
+							return
+						case <-ticker.C:
+							nextVersion, err := ag.CheckUpdate()
+							if err != nil {
 								log.WithError(err).WithFields(log.Fields{
 									"version":            AgentVersion,
 									"mode":               mode,
 									"tenant_id":          cfg.TenantID,
 									"server_address":     cfg.ServerAddress,
 									"preferred_hostname": cfg.PreferredHostname,
-								}).Error("Failed to apply update")
+								}).Error("Failed to check update")
+
+								log.WithFields(log.Fields{
+									"version":            AgentVersion,
+									"mode":               mode,
+									"tenant_id":          cfg.TenantID,
+									"server_address":     cfg.ServerAddress,
+									"preferred_hostname": cfg.PreferredHostname,
+								}).Info("Sleeping for 24 hours")
+
+								continue
 							}
 
-							log.WithFields(log.Fields{
-								"version":            currentVersion,
-								"next_version":       nextVersion.String(),
-								"mode":               mode,
-								"tenant_id":          cfg.TenantID,
-								"server_address":     cfg.ServerAddress,
-								"preferred_hostname": cfg.PreferredHostname,
-							}).Info("Update successfully applied")
+							if nextVersion.GreaterThan(currentVersion) {
+								if err := updater.ApplyUpdate(nextVersion); err != nil {
+									log.WithError(err).WithFields(log.Fields{
+										"version":            AgentVersion,
+										"mode":               mode,
+										"tenant_id":          cfg.TenantID,
+										"server_address":     cfg.ServerAddress,
+										"preferred_hostname": cfg.PreferredHostname,
+									}).Error("Failed to apply update")
+
+									continue
+								}
+
+								log.WithFields(log.Fields{
+									"version":            currentVersion,
+									"next_version":       nextVersion.String(),
+									"mode":               mode,
+									"tenant_id":          cfg.TenantID,
+									"server_address":     cfg.ServerAddress,
+									"preferred_hostname": cfg.PreferredHostname,
+								}).Info("Update successfully applied")
+
+								return
+							}
 						}
-
-					sleep:
-						log.WithFields(log.Fields{
-							"version":            AgentVersion,
-							"mode":               mode,
-							"tenant_id":          cfg.TenantID,
-							"server_address":     cfg.ServerAddress,
-							"preferred_hostname": cfg.PreferredHostname,
-						}).Info("Sleeping for 24 hours")
-
-						time.Sleep(time.Hour * 24)
 					}
 				}()
 			}
