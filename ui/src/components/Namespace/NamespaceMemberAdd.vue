@@ -21,13 +21,12 @@
 
         <v-card-text>
           <v-text-field
-            v-model="identifier"
-            label="Identifier"
-            :error-messages="identifierError"
+            v-model="email"
+            label="Email"
+            :error-messages="emailError"
             required
-            hint="Can be e-mail or username"
             variant="underlined"
-            data-test="username-text"
+            data-test="email-text"
           />
         </v-card-text>
 
@@ -77,11 +76,11 @@ const store = useStore();
 const dialog = ref(false);
 
 const {
-  value: identifier,
-  errorMessage: identifierError,
-  setErrors: setIdentifierError,
+  value: email,
+  errorMessage: emailError,
+  setErrors: setEmailError,
   resetField: resetIdentifier,
-} = useField<string>("identifier", yup.string().required(), {
+} = useField<string>("identifier", yup.string().email().required(), {
   initialValue: "",
 });
 
@@ -112,8 +111,8 @@ const hasErrors = () => {
     return true;
   }
 
-  if (identifier.value === "") {
-    setIdentifierError("This field is required");
+  if (email.value === "") {
+    setEmailError("This field is required");
     return true;
   }
 
@@ -139,7 +138,7 @@ const addMember = async () => {
   if (!hasErrors()) {
     try {
       await store.dispatch("namespaces/addUser", {
-        identifier: identifier.value,
+        email: email.value,
         tenant_id: store.getters["auth/tenant"],
         role: selectedRole.value,
       });
@@ -154,9 +153,9 @@ const addMember = async () => {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
         if (axiosError.response?.status === 404) {
-          setIdentifierError("This identifier doesn't exist.");
+          setEmailError("This identifier doesn't exist.");
         } else if (axiosError.response?.status === 409) {
-          setIdentifierError(
+          setEmailError(
             "This user is already a member of this namespace.",
           );
         }
