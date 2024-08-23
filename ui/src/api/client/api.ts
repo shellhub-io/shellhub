@@ -24,15 +24,28 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
 /**
  * 
  * @export
+ * @interface AcceptInviteRequest
+ */
+export interface AcceptInviteRequest {
+    /**
+     * The unique key included in the email link.
+     * @type {string}
+     * @memberof AcceptInviteRequest
+     */
+    'sig': string;
+}
+/**
+ * 
+ * @export
  * @interface AddNamespaceMemberRequest
  */
 export interface AddNamespaceMemberRequest {
     /**
-     * The unique identifier of the member, which can be either the username or the email. 
+     * The email of the member.
      * @type {string}
      * @memberof AddNamespaceMemberRequest
      */
-    'identifier'?: string;
+    'email'?: string;
     /**
      * 
      * @type {NamespaceMemberRole}
@@ -4493,6 +4506,40 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+         * @summary Delete user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUser: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/user`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Detachs a payment method from a customer.
          * @summary Detach payment method
          * @param {AttachPaymentMethodRequest} [attachPaymentMethodRequest] 
@@ -5571,6 +5618,16 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+         * @summary Delete user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteUser(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUser(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Detachs a payment method from a customer.
          * @summary Detach payment method
          * @param {AttachPaymentMethodRequest} [attachPaymentMethodRequest] 
@@ -5950,6 +6007,15 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.deleteFirewallRule(id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+         * @summary Delete user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUser(options?: any): AxiosPromise<void> {
+            return localVarFp.deleteUser(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Detachs a payment method from a customer.
          * @summary Detach payment method
          * @param {AttachPaymentMethodRequest} [attachPaymentMethodRequest] 
@@ -6316,6 +6382,17 @@ export class CloudApi extends BaseAPI {
      */
     public deleteFirewallRule(id: number, options?: AxiosRequestConfig) {
         return CloudApiFp(this.configuration).deleteFirewallRule(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+     * @summary Delete user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CloudApi
+     */
+    public deleteUser(options?: AxiosRequestConfig) {
+        return CloudApiFp(this.configuration).deleteUser(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8981,6 +9058,122 @@ export class InternalApi extends BaseAPI {
 
 
 /**
+ * MembersApi - axios parameter creator
+ * @export
+ */
+export const MembersApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('acceptInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * MembersApi - functional programming interface
+ * @export
+ */
+export const MembersApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = MembersApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * MembersApi - factory interface
+ * @export
+ */
+export const MembersApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = MembersApiFp(configuration)
+    return {
+        /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * MembersApi - object-oriented interface
+ * @export
+ * @class MembersApi
+ * @extends {BaseAPI}
+ */
+export class MembersApi extends BaseAPI {
+    /**
+     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * @summary Accept a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {AcceptInviteRequest} [acceptInviteRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MembersApi
+     */
+    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig) {
+        return MembersApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
  * MfaApi - axios parameter creator
  * @export
  */
@@ -9503,6 +9696,48 @@ export class MfaApi extends BaseAPI {
  */
 export const NamespacesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('acceptInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Add a member to a namespace.
          * @summary Add a member to a namespace
@@ -10305,6 +10540,18 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = NamespacesApiAxiosParamCreator(configuration)
     return {
         /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Add a member to a namespace.
          * @summary Add a member to a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -10538,6 +10785,17 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
     const localVarFp = NamespacesApiFp(configuration)
     return {
         /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Add a member to a namespace.
          * @summary Add a member to a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -10751,6 +11009,19 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
  * @extends {BaseAPI}
  */
 export class NamespacesApi extends BaseAPI {
+    /**
+     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * @summary Accept a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {AcceptInviteRequest} [acceptInviteRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Add a member to a namespace.
      * @summary Add a member to a namespace
@@ -13885,6 +14156,48 @@ export class TagsApi extends BaseAPI {
 export const UsersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('acceptInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Authenticate a user who has MFA enabled. This endpoint should be called after the default authUser endpoint, which generates an `X-MFA-Token` indicating that the user has already authenticated with a password. 
          * @summary Auth MFA
          * @param {MfaAuth} [mfaAuth] 
@@ -13946,6 +14259,40 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(loginRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+         * @summary Delete user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUser: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/user`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -14629,6 +14976,18 @@ export const UsersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = UsersApiAxiosParamCreator(configuration)
     return {
         /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Authenticate a user who has MFA enabled. This endpoint should be called after the default authUser endpoint, which generates an `X-MFA-Token` indicating that the user has already authenticated with a password. 
          * @summary Auth MFA
          * @param {MfaAuth} [mfaAuth] 
@@ -14648,6 +15007,16 @@ export const UsersApiFp = function(configuration?: Configuration) {
          */
         async authUser(loginRequest?: LoginRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authUser(loginRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+         * @summary Delete user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteUser(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUser(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -14865,6 +15234,17 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = UsersApiFp(configuration)
     return {
         /**
+         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * @summary Accept a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AcceptInviteRequest} [acceptInviteRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Authenticate a user who has MFA enabled. This endpoint should be called after the default authUser endpoint, which generates an `X-MFA-Token` indicating that the user has already authenticated with a password. 
          * @summary Auth MFA
          * @param {MfaAuth} [mfaAuth] 
@@ -14883,6 +15263,15 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          */
         authUser(loginRequest?: LoginRequest, options?: any): AxiosPromise<UserAuth> {
             return localVarFp.authUser(loginRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+         * @summary Delete user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUser(options?: any): AxiosPromise<void> {
+            return localVarFp.deleteUser(options).then((request) => request(axios, basePath));
         },
         /**
          * Disable MFA for a user. To disable MFA, the user must provide either a recovery code or the current MFA code. If a recovery code is used, it will be invalidated for future use.  The recovery code used to regain access to the account can be used within a 10-minute window on this endpoint. 
@@ -15081,6 +15470,19 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
  */
 export class UsersApi extends BaseAPI {
     /**
+     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * @summary Accept a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {AcceptInviteRequest} [acceptInviteRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Authenticate a user who has MFA enabled. This endpoint should be called after the default authUser endpoint, which generates an `X-MFA-Token` indicating that the user has already authenticated with a password. 
      * @summary Auth MFA
      * @param {MfaAuth} [mfaAuth] 
@@ -15102,6 +15504,17 @@ export class UsersApi extends BaseAPI {
      */
     public authUser(loginRequest?: LoginRequest, options?: AxiosRequestConfig) {
         return UsersApiFp(this.configuration).authUser(loginRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
+     * @summary Delete user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public deleteUser(options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).deleteUser(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
