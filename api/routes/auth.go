@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -49,6 +51,40 @@ const (
 // without redirecting the request. A token can be use to authenticate either a
 // device or a user.
 func (h *Handler) AuthRequest(c gateway.Context) error {
+	if c.QueryParam("args") == "dav" {
+		device, key, ok := c.Request().BasicAuth()
+		if !ok {
+			log.Error("authentication data to dav not provied or incomplete")
+
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		if _, err := h.service.GetDevice(c.Request().Context(), models.UID(device)); err != nil {
+			log.WithError(err).Error("failed to get the device for dav authentication")
+
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		apiKey, err := h.service.AuthAPIKey(c.Ctx(), key)
+		if err != nil {
+			log.WithError(err).Error("failed to get the api key for dav authenticatoin")
+
+			return err
+		}
+
+		c.Response().Header().Set("X-Tenant-ID", apiKey.TenantID)
+		c.Response().Header().Set("X-Device-UID", device)
+		c.Response().Header().Set("X-Role", apiKey.Role.String())
+
+		log.WithFields(log.Fields{
+			"tenant": apiKey.TenantID,
+			"device": device,
+			"role":   apiKey.Role,
+		}).Info("dav authentication done")
+
+		return c.NoContent(http.StatusOK)
+	}
+
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		apiKey, err := h.service.AuthAPIKey(c.Ctx(), key)
 		if err != nil {

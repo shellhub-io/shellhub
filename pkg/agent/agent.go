@@ -41,7 +41,6 @@ package agent
 import (
 	"context"
 	"crypto/rsa"
-	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -64,6 +63,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/webdav"
 )
 
 // AgentVersion store the version to be embed inside the binary. This is
@@ -390,48 +390,34 @@ func connHandler(serv *server.Server) func(c echo.Context) error {
 	}
 }
 
-func httpHandler() func(c echo.Context) error {
+func davHandler() func(c echo.Context) error {
 	return func(c echo.Context) error {
-		replyError := func(err error, msg string, code int) error {
-			log.WithError(err).WithFields(log.Fields{
-				"remote":    c.Request().RemoteAddr,
-				"namespace": c.Request().Header.Get("X-Namespace"),
-				"path":      c.Request().Header.Get("X-Path"),
-				"version":   AgentVersion,
-			}).Error(msg)
+		log.Info("DAV handler called")
+		defer log.Info("DAV handler done")
 
-			return c.String(code, msg)
-		}
-
-		in, err := net.Dial("tcp", ":80")
+		raw, err := url.JoinPath("/", c.Param("*"))
 		if err != nil {
-			return replyError(err, "failed to connect to HTTP server on device", http.StatusInternalServerError)
+			log.WithError(err).Error("failed to join the paths")
+
+			return err
 		}
 
-		defer in.Close()
+		// TODO: "/host/" for Agent in Docker mode.
+		handler := &webdav.Handler{
+			FileSystem: webdav.Dir("/host/"),
+			LockSystem: webdav.NewMemLS(),
+		}
 
-		url, err := url.Parse(c.Request().Header.Get("X-Path"))
+		req, err := http.NewRequest(c.Request().Method, raw, c.Request().Body)
 		if err != nil {
-			return replyError(err, "failed to parse URL", http.StatusInternalServerError)
+			log.WithError(err).Error("failed to create the DAV request")
 		}
 
-		c.Request().URL.Scheme = "http"
-		c.Request().URL = url
+		log.WithFields(log.Fields{
+			"request": req.URL.String(),
+		}).Info("DAV request")
 
-		if err := c.Request().Write(in); err != nil {
-			return replyError(err, "failed to write request to the server on device", http.StatusInternalServerError)
-		}
-
-		out, _, err := c.Response().Hijack()
-		if err != nil {
-			return replyError(err, "failed to hijack connection", http.StatusInternalServerError)
-		}
-
-		defer out.Close() // nolint:errcheck
-
-		if _, err := io.Copy(out, in); err != nil {
-			return replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
-		}
+		handler.ServeHTTP(c.Response(), req)
 
 		return nil
 	}
@@ -462,7 +448,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 	a.tunnel = tunnel.NewBuilder().
 		WithConnHandler(connHandler(a.server)).
 		WithCloseHandler(closeHandler(a, a.server)).
-		WithHTTPHandler(httpHandler()).
+		WithDAVHandler(davHandler()).
 		Build()
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck

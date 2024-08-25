@@ -12,7 +12,7 @@ import (
 type Tunnel struct {
 	router       *echo.Echo
 	srv          *http.Server
-	HTTPHandler  func(e echo.Context) error
+	DAVHandler   func(e echo.Context) error
 	ConnHandler  func(e echo.Context) error
 	CloseHandler func(e echo.Context) error
 }
@@ -27,8 +27,8 @@ func NewBuilder() *Builder {
 	}
 }
 
-func (t *Builder) WithHTTPHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.HTTPHandler = handler
+func (t *Builder) WithDAVHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.DAVHandler = handler
 
 	return t
 }
@@ -60,8 +60,8 @@ func NewTunnel() *Tunnel {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
-		HTTPHandler: func(e echo.Context) error {
-			panic("HTTPHandler can not be nil")
+		DAVHandler: func(e echo.Context) error {
+			panic("DAVHandler can not be nil")
 		},
 		ConnHandler: func(e echo.Context) error {
 			panic("connHandler can not be nil")
@@ -70,8 +70,8 @@ func NewTunnel() *Tunnel {
 			panic("closeHandler can not be nil")
 		},
 	}
-	e.GET("/ssh/http", func(e echo.Context) error {
-		return t.HTTPHandler(e)
+	e.Any("/dav/*", func(e echo.Context) error {
+		return t.DAVHandler(e)
 	})
 	e.GET("/ssh/:id", func(e echo.Context) error {
 		return t.ConnHandler(e)

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -137,35 +138,56 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		return c.NoContent(http.StatusOK)
 	})
 
-	tunnel.router.Any("/ssh/http", func(c echo.Context) error {
-		dev, err := tunnel.API.GetDeviceByPublicURLAddress(c.Request().Header.Get("X-Public-URL-Address"))
+	tunnel.router.Any("/api/dav/*", func(c echo.Context) error {
+		tenant := c.Request().Header.Get("X-Tenant-ID")
+		device := c.Request().Header.Get("X-Device-UID")
+		path := c.Param("*")
+
+		conn, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", tenant, device))
 		if err != nil {
+			log.WithFields(log.Fields{
+				"tenant": tenant,
+				"device": device,
+			}).WithError(err).Error("failed to find the device on tunnel for dav connection")
+
 			return err
 		}
 
-		if !dev.PublicURL {
-			return err
-		}
+		defer conn.Close()
 
-		in, err := tunnel.Dial(c.Request().Context(), dev.UID)
+		raw, err := url.JoinPath("/dav", path)
 		if err != nil {
+			log.WithError(err).Error("failed to join the paths")
+
 			return err
 		}
 
-		defer in.Close()
+		req, err := http.NewRequest(c.Request().Method, raw, c.Request().Body)
+		if err != nil {
+			log.WithError(err).Error("failed to create the DAV request")
 
-		if err := c.Request().Write(in); err != nil {
+			return err
+		}
+
+		if err := req.Write(conn); err != nil {
+			log.WithError(err).Error("failed to write the request to the device")
+
 			return err
 		}
 
 		ctr := http.NewResponseController(c.Response())
 		out, _, err := ctr.Hijack()
 		if err != nil {
+			log.WithError(err).Error("failed to hijack the connection")
+
 			return err
 		}
 
 		defer out.Close()
-		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
+
+		if _, err := io.Copy(out, conn); errors.Is(err, io.ErrUnexpectedEOF) {
+			log.WithError(err).Error("failed to copy back the request to the client")
+
 			return err
 		}
 
