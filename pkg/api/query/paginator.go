@@ -27,10 +27,15 @@ func NewPaginator() *Paginator {
 }
 
 // Normalize ensures valid values for Page and PerPage in the pagination query.
-// If query.PerPage is less than one, it is set to `DefaultPerPage`.
+// If query.PerPage is less than zero, it is set to `DefaultPerPage`.
 // If query.Page is less than one, it is set to `MinPage`.
 // The maximum allowed value for query.PerPage is `MaxPerPage`.
 func (p *Paginator) Normalize() {
-	p.PerPage = int(math.Max(math.Min(float64(p.PerPage), float64(MaxPerPage)), float64(DefaultPerPage)))
 	p.Page = int(math.Max(float64(MinPage), float64(p.Page)))
+
+	if p.PerPage == 0 {
+		p.PerPage = DefaultPerPage
+	} else {
+		p.PerPage = int(math.Max(math.Min(float64(p.PerPage), float64(MaxPerPage)), float64(MinPerPage)))
+	}
 }

@@ -20,12 +20,17 @@ func TestPaginatorNormalize(t *testing.T) {
 		{
 			description: "set PerPage to DefaultPerParge when PerPage is lower than 1",
 			paginator:   &Paginator{Page: 1, PerPage: -2},
-			expected:    &Paginator{Page: 1, PerPage: 10},
+			expected:    &Paginator{Page: 1, PerPage: 1},
 		},
 		{
 			description: "set PerPage to MaxPerParge when PerPage is greater than 100",
 			paginator:   &Paginator{Page: 1, PerPage: 101},
 			expected:    &Paginator{Page: 1, PerPage: 100},
+		},
+		{
+			description: "set PerPage to DefaultPerPage when PerPage is 0",
+			paginator:   &Paginator{Page: 1, PerPage: 0},
+			expected:    &Paginator{Page: 1, PerPage: 10},
 		},
 		{
 			description: "successfully parse query",
