@@ -97,7 +97,14 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+							Status:  models.MemberStatusAccepted,
+						},
+					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
@@ -132,7 +139,14 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+							Status:  models.MemberStatusAccepted,
+						},
+					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
@@ -146,7 +160,14 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
-				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+				Members: []models.Member{
+					{
+						ID:      "507f191e810c19729de860ea",
+						Role:    "owner",
+						AddedAt: now,
+						Status:  models.MemberStatusAccepted,
+					},
+				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
@@ -178,7 +199,14 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+							Status:  models.MemberStatusAccepted,
+						},
+					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
@@ -192,7 +220,14 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
-				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+				Members: []models.Member{
+					{
+						ID:      "507f191e810c19729de860ea",
+						Role:    "owner",
+						AddedAt: now,
+						Status:  models.MemberStatusAccepted,
+					},
+				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
@@ -224,7 +259,14 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+							Status:  models.MemberStatusAccepted,
+						},
+					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
@@ -238,7 +280,14 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
-				Members:  []models.Member{{ID: "507f191e810c19729de860ea", Role: "owner"}},
+				Members: []models.Member{
+					{
+						ID:      "507f191e810c19729de860ea",
+						Role:    "owner",
+						AddedAt: now,
+						Status:  models.MemberStatusAccepted,
+					},
+				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
