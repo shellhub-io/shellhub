@@ -2,7 +2,6 @@
   <v-dialog v-model="showNoNamespace" :retain-focus="false" persistent max-width="650px">
     <v-card
       v-model="showNoNamespace"
-
       class="bg-v-theme-surface"
     >
       <v-card-title class="bg-primary">
@@ -35,11 +34,17 @@
         </div>
       </v-card-text>
 
-      <v-card-actions>
+      <v-card-actions v-if="!openVersion">
         <v-spacer />
         <div>
+          <v-btn
+            color="primary"
+            @click="showNamespaceAdd = true"
+            data-test="save-btn">
+            Add Namespace
+          </v-btn>
           <NamespaceAdd
-            v-if="!openVersion"
+            v-model="showNamespaceAdd"
             enableSwitchIn
             data-test="namespaceAdd-component"
           />
@@ -50,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { envVariables } from "../../envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
 
@@ -62,6 +67,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update"]);
+
+const showNamespaceAdd = ref(false);
 
 const showNoNamespace = computed({
   get() {
