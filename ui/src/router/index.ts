@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
@@ -24,6 +25,7 @@ const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue
 const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
 const SettingTags = () => import("@/components/Setting/SettingTags.vue");
 const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
+const NamespaceInviteDialog = () => import("@/components/Namespace/NamespaceInviteDialog.vue");
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -256,6 +258,15 @@ export const routes: Array<RouteRecordRaw> = [
     component: PublicKeys,
   },
   {
+    path: "/accept-invite",
+    name: "AcceptInvite",
+    component: NamespaceInviteDialog,
+    beforeEnter: (to, from, next) => {
+      store.commit("namespaces/setShowNamespaceInvite", true);
+      next();
+    },
+  },
+  {
     path: "/settings",
     name: "Settings",
     component: Settings,
@@ -320,7 +331,10 @@ router.beforeEach(async (to, from, next) => {
 
   // Redirect to the appropriate page based on authentication status
   if (requiresAuth && !isLoggedIn) {
-    next({ name: "Login" }); // Redirect to login page if authentication is required and user is not logged in
+    next({
+      name: "Login",
+      query: { redirect: to.fullPath },
+    }); // Redirect to login page if authentication is required and user is not logged in
   } else if (to.name === "Login" && isLoggedIn) {
     next({ path: "/" }); // Redirect from login page to home if user is already logged in
   } else {

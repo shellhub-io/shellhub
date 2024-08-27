@@ -12,6 +12,8 @@ export interface NamespacesState {
   invoicesLength: number;
   numberNamespaces: number;
   owner: boolean;
+  showNamespaceInviteDialog: boolean,
+
 }
 
 export const namespaces: Module<NamespacesState, State> = {
@@ -24,6 +26,7 @@ export const namespaces: Module<NamespacesState, State> = {
     invoicesLength: 0,
     numberNamespaces: 0,
     owner: false,
+    showNamespaceInviteDialog: false,
   },
 
   getters: {
@@ -32,12 +35,17 @@ export const namespaces: Module<NamespacesState, State> = {
     getNumberNamespaces: (state) => state.numberNamespaces,
     owner: (state) => state.owner,
     billing: (state) => state.billing,
+    showNamespaceInviteDialog: (state) => state.showNamespaceInviteDialog,
   },
 
   mutations: {
     setNamespaces: (state, res) => {
       state.namespaces = res.data;
       state.numberNamespaces = parseInt(res.headers["x-total-count"], 10);
+    },
+
+    setShowNamespaceInvite: (state, status) => {
+      state.showNamespaceInviteDialog = status;
     },
 
     setNamespace: (state, res) => {
@@ -155,6 +163,15 @@ export const namespaces: Module<NamespacesState, State> = {
     removeUser: async (context, data) => {
       try {
         await apiNamespace.removeUserFromNamespace(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    acceptInvite: async (context, data) => {
+      try {
+        await apiNamespace.acceptNamespaceInvite(data);
       } catch (error) {
         console.error(error);
         throw error;

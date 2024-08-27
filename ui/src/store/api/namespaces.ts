@@ -1,19 +1,5 @@
-import { INamespace } from "@/interfaces/INamespace";
+import { INamespace, INamespaceInvite, INamespaceResponse } from "@/interfaces/INamespace";
 import { namespacesApi } from "../../api/http";
-
-interface INamespaceSettings {
-  connection_announcement: string;
-  session_record: boolean;
-}
-interface INamespaceResponse {
-  settings: INamespaceSettings;
-  id: string;
-  tenant_id: string;
-  name: string;
-  user_id: string;
-  email: string;
-  role: "administrator" | "operator" | "observer" | "owner";
-}
 
 export const postNamespace = async (data: string) => namespacesApi.createNamespace({ name: data });
 
@@ -49,3 +35,5 @@ export const removeUserFromNamespace = async (
 ) => namespacesApi.removeNamespaceMember(data.tenant_id, data.user_id);
 
 export const tenantSwitch = async (data: INamespace) => namespacesApi.getNamespaceToken(data.tenant_id);
+
+export const acceptNamespaceInvite = async (data: INamespaceInvite) => namespacesApi.acceptInvite(data.tenant, { sig: data.sig });
