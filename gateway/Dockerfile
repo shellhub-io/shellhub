@@ -34,8 +34,10 @@ FROM base AS development
 
 COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
 
+RUN mkdir /etc/shellhub-gateway
+
 RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
-    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/letsencrypt/dhparam.pem
+    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/shellhub-gateway/dhparam.pem
 
 RUN apk add --update openssl build-base
 RUN go install github.com/markbates/refresh@v1.11.1 && \
@@ -59,8 +61,10 @@ RUN apk add libgcc curl certbot certbot-nginx
 
 COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
 
+RUN mkdir /etc/shellhub-gateway
+
 RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
-    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/letsencrypt/dhparam.pem
+    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/shellhub-gateway/dhparam.pem
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/gateway/gateway /gateway
 
