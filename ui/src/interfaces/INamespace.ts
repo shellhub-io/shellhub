@@ -22,3 +22,22 @@ export interface INamespace {
   created_at: string;
   billing: IBilling;
 }
+
+export interface INamespaceInvite {
+  tenant_id: string;
+  sig: string;
+}
+
+export interface INamespaceSettings {
+  connection_announcement: string;
+  session_record: boolean;
+}
+export interface INamespaceResponse {
+  settings: INamespaceSettings;
+  id: string;
+  tenant_id: string;
+  name: string;
+  user_id: string;
+  email: string;
+  role: "administrator" | "operator" | "observer" | "owner";
+}

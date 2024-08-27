@@ -11,6 +11,7 @@
   />
 
   <NamespaceInstructions
+    v-if="!showNamespaceInviteDialog && showInstructions"
     v-model:show="showInstructions"
     @update="showInstructions = false"
     data-test="namespaceInstructions-component"
@@ -49,6 +50,10 @@
     v-model="showPaywall"
     data-test="PaywallDialog-component"
   />
+
+  <NamespaceInviteDialog
+    v-model="showNamespaceInviteDialog"
+  />
 </template>
 
 <script setup lang="ts">
@@ -67,6 +72,7 @@ import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
+import NamespaceInviteDialog from "./../Namespace/NamespaceInviteDialog.vue";
 
 const store = useStore();
 const router = useRouter();
@@ -76,17 +82,17 @@ const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
 const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
 const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
+const showNamespaceInviteDialog = computed(() => store.getters["namespaces/showNamespaceInviteDialog"]);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
+const stats = computed(() => store.getters["stats/stats"]);
+const announcements = computed(() => store.getters["announcement/list"]);
+const announcement = computed(() => store.getters["announcement/get"]);
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
 const hasWarning = computed(
   () => store.getters["devices/getDeviceChooserStatus"],
 );
-const stats = computed(() => store.getters["stats/stats"]);
-const announcements = computed(() => store.getters["announcement/list"]);
-const announcement = computed(() => store.getters["announcement/get"]);
-
 const statusWarning = async () => {
   const bill = store.getters["namespaces/get"].billing;
 

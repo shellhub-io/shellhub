@@ -188,5 +188,6 @@ exports[`App Layout Component > Renders the component 1`] = `
 </div>
 <!--v-if-->
 <!--v-if-->
+<!--v-if-->
 <!--v-if-->"
 `;

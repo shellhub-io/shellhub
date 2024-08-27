@@ -23,7 +23,7 @@ const onResponseError = async (error: AxiosError): Promise<AxiosError> => {
   // @ts-ignore
   if (error.response.status === 401) {
     await store.dispatch("auth/logout");
-    await router.push({ name: "Login" });
+    await router.push({ name: "Login", query: router.currentRoute.value.query });
   }
   return Promise.reject(error);
 };

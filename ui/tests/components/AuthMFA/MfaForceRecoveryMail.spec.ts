@@ -132,7 +132,6 @@ describe("Force Adding a Recovery Mail", () => {
     await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test");
     await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
     await flushPromises();
-    console.log(wrapper.vm.recoveryEmailError);
     expect(storeSpy).toHaveBeenCalledWith("users/patchData", { id: "xxxxxxxx", recovery_email: "test" });
     expect(wrapper.vm.recoveryEmailError).toBe("Please enter a valid email address");
   });
