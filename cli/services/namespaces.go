@@ -6,7 +6,6 @@ import (
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
@@ -30,16 +29,10 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 	}
 
 	ns := &models.Namespace{
-		Name:     input.Namespace,
-		Owner:    user.ID,
-		TenantID: input.TenantID,
-		MaxDevices: func() int {
-			if envs.IsCloud() {
-				return MaxNumberDevicesLimited
-			}
-
-			return MaxNumberDevicesUnlimited
-		}(),
+		Name:       input.Namespace,
+		Owner:      user.ID,
+		TenantID:   input.TenantID,
+		MaxDevices: getMaxDevices(),
 		Members: []models.Member{
 			{
 				ID:      user.ID,
