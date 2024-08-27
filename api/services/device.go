@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -264,7 +263,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		}
 	case envs.IsCloud():
 		if namespace.Billing.IsActive() {
-			if err := s.BillingReport(s.client.(req.Client), namespace.TenantID, ReportDeviceAccept); err != nil {
+			if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
 				return NewErrBillingReportNamespaceDelete(err)
 			}
 		} else {
@@ -289,7 +288,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 				}
 			}
 
-			ok, err := s.BillingEvaluate(s.client.(req.Client), namespace.TenantID)
+			ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
 			if err != nil {
 				return NewErrBillingEvaluate(err)
 			}
