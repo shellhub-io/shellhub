@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -80,6 +81,9 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 }
 
 func (s *Store) UserCreate(ctx context.Context, user *models.User) error {
+	user.CreatedAt = time.Now()
+	user.LastLogin = time.Time{}
+
 	_, err := s.db.Collection("users").InsertOne(ctx, user)
 
 	return FromMongoError(err)
