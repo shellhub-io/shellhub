@@ -44,28 +44,10 @@ func (h *Handler) GetSystemInfo(c gateway.Context) error {
 func (h *Handler) GetSystemDownloadInstallScript(c gateway.Context) error {
 	c.Response().Writer.Header().Add("Content-Type", "text/x-shellscript")
 
-	var req requests.SystemInstallScript
-
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if req.Host == "" {
-		req.Host = c.Request().Host
-	}
-
-	if req.Scheme == "" {
-		req.Scheme = "http"
-	}
-
-	if req.ForwardedPort != "" {
-		req.Host = req.Host + ":" + req.ForwardedPort
-	}
-
-	tmpl, data, err := h.service.SystemDownloadInstallScript(c.Ctx(), req)
+	data, err := h.service.SystemDownloadInstallScript(c.Ctx())
 	if err != nil {
 		return err
 	}
 
-	return tmpl.Execute(c.Response().Writer, data)
+	return c.String(http.StatusOK, data)
 }
