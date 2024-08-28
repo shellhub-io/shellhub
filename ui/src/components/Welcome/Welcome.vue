@@ -166,7 +166,8 @@ const command = () => {
   const port = window.location.port ? `:${window.location.port}` : "";
   const { hostname } = window.location;
 
-  return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh?tenant_id=${curl.value.tenant}" | sh`;
+  return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh" 
+  | TENANT_ID=${curl.value.tenant} SERVER_ADDRESS=${window.location.protocol}//${hostname} sh`;
 };
 
 const close = () => {

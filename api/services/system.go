@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
-	"text/template"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -13,7 +13,7 @@ import (
 
 type SystemService interface {
 	SystemGetInfo(ctx context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error)
-	SystemDownloadInstallScript(ctx context.Context, req requests.SystemInstallScript) (*template.Template, map[string]interface{}, error)
+	SystemDownloadInstallScript(ctx context.Context) (string, error)
 }
 
 // SystemGetInfo returns system instance information.
@@ -40,19 +40,11 @@ func (s *service) SystemGetInfo(_ context.Context, req requests.SystemGetInfo) (
 	return info, nil
 }
 
-func (s *service) SystemDownloadInstallScript(_ context.Context, req requests.SystemInstallScript) (*template.Template, map[string]interface{}, error) {
-	tmpl, err := template.ParseFiles("/templates/install.sh")
+func (s *service) SystemDownloadInstallScript(_ context.Context) (string, error) {
+	data, err := os.ReadFile("/templates/install.sh")
 	if err != nil {
-		return nil, nil, err
+		return "", err
 	}
 
-	return tmpl, map[string]interface{}{
-		"scheme":             req.Scheme,
-		"host":               req.Host,
-		"tenant_id":          req.TenantID,
-		"keepalive_interval": req.KeepAliveInternavel,
-		"preferred_hostname": req.PreferredHostname,
-		"preferred_identity": req.PreferredIdentity,
-		"version":            envs.DefaultBackend.Get("SHELLHUB_VERSION"),
-	}, nil
+	return string(data), nil
 }
