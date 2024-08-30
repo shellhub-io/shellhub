@@ -182,29 +182,8 @@ func (s *Store) NamespaceGetPreferred(ctx context.Context, tenantID, userID stri
 }
 
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
-	session, err := s.db.Client().StartSession()
+	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
 	if err != nil {
-		return nil, err
-	}
-	defer session.EndSession(ctx)
-
-	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
-		_, err := s.db.Collection("namespaces").InsertOne(sessCtx, namespace)
-		if err != nil {
-			return nil, err
-		}
-
-		objID, err := primitive.ObjectIDFromHex(namespace.Owner)
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if _, err := s.db.Collection("users").UpdateOne(sessCtx, bson.M{"_id": objID}, bson.M{"$inc": bson.M{"namespaces": 1}}); err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		return nil, nil
-	}); err != nil {
 		return nil, err
 	}
 
@@ -219,11 +198,6 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	defer session.EndSession(ctx)
 
 	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
-		ns, err := s.NamespaceGet(ctx, tenantID, true)
-		if err != nil {
-			return nil, err
-		}
-
 		if _, err := s.db.Collection("namespaces").DeleteOne(sessCtx, bson.M{"tenant_id": tenantID}); err != nil {
 			return nil, FromMongoError(err)
 		}
@@ -237,15 +211,6 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 			if _, err := s.db.Collection(collection).DeleteMany(sessCtx, bson.M{"tenant_id": tenantID}); err != nil {
 				return nil, FromMongoError(err)
 			}
-		}
-
-		objID, err := primitive.ObjectIDFromHex(ns.Owner)
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if _, err := s.db.Collection("users").UpdateOne(sessCtx, bson.M{"_id": objID}, bson.M{"$inc": bson.M{"namespaces": -1}}); err != nil {
-			return nil, FromMongoError(err)
 		}
 
 		_, err = s.db.
