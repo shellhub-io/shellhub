@@ -58,6 +58,10 @@ func (h *Handler) CreateNamespace(c gateway.Context) error {
 		return err
 	}
 
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
 	var userID string
 	if v := c.ID(); v != nil {
 		userID = v.ID

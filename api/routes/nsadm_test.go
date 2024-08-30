@@ -26,17 +26,17 @@ func TestCreateNamespace(t *testing.T) {
 	}
 	cases := []struct {
 		title         string
-		uid           string
+		userID        string
 		req           string
 		expected      Expected
 		requiredMocks func()
 	}{
 		{
-			title: "fails when try to creating a namespace",
-			uid:   "123",
-			req:   `{ "name": "example", "tenant": "tenant"}`,
+			title:  "fails when try to creating a namespace",
+			userID: "00000000-0000-4000-0000-000000000000",
+			req:    `{ "name": "namespace", "tenant": "36512069-be88-497a-b0ec-03ed05b1f7e7"}`,
 			requiredMocks: func() {
-				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "123").Return(nil, svc.ErrNotFound).Once()
+				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "00000000-0000-4000-0000-000000000000").Return(nil, svc.ErrNotFound).Once()
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusNotFound,
@@ -44,11 +44,11 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
-			title: "success when try to creating a namespace",
-			uid:   "123",
-			req:   `{ "name": "example", "tenant": "tenant"}`,
+			title:  "success when try to creating a namespace",
+			userID: "123",
+			req:    `{ "name": "namespace", "tenant": "36512069-be88-497a-b0ec-03ed05b1f7e7"}`,
 			requiredMocks: func() {
-				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "123").Return(&models.Namespace{}, nil).Once()
+				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{}, nil).Once()
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusOK,
@@ -64,7 +64,7 @@ func TestCreateNamespace(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "123")
+			req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000000")
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
