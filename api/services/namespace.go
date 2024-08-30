@@ -78,8 +78,10 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		Owner: user.ID,
 		Members: []models.Member{
 			{
-				ID:   user.ID,
-				Role: authorizer.RoleOwner,
+				ID:      user.ID,
+				Role:    authorizer.RoleOwner,
+				Status:  models.MemberStatusAccepted,
+				AddedAt: clock.Now(),
 			},
 		},
 		Settings: &models.NamespaceSettings{
