@@ -53,21 +53,17 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 }
 
 func (h *Handler) CreateNamespace(c gateway.Context) error {
-	var req requests.NamespaceCreate
-	if err := c.Bind(&req); err != nil {
+	req := new(requests.NamespaceCreate)
+
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
-	var userID string
-	if v := c.ID(); v != nil {
-		userID = v.ID
-	}
-
-	namespace, err := h.service.CreateNamespace(c.Ctx(), req, userID)
+	namespace, err := h.service.CreateNamespace(c.Ctx(), req)
 	if err != nil {
 		return err
 	}
