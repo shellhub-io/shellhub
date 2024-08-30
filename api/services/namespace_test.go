@@ -511,57 +511,12 @@ func TestCreateNamespace(t *testing.T) {
 					TenantID: "xxxxx",
 				}
 
-				var isCloud bool
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(model, nil).Once()
 			},
 			expected: Expected{
 				nil,
 				NewErrNamespaceDuplicated(nil),
-			},
-		},
-		{
-			description: "fails when store get namespace by name fails",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
-				Name:     "namespace",
-				TenantID: "xxxxx",
-			},
-			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				model := &models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
-					TenantID: "xxxxx",
-				}
-
-				var isCloud bool
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(model, errors.New("error")).Once()
-			},
-			expected: Expected{
-				nil,
-				NewErrNamespaceNotFound("namespace", errors.New("error")),
 			},
 		},
 		{
@@ -595,7 +550,7 @@ func TestCreateNamespace(t *testing.T) {
 					MaxDevices: -1,
 				}
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
+				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
 				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(nil, errors.New("error")).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
@@ -636,7 +591,7 @@ func TestCreateNamespace(t *testing.T) {
 				}
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
 				uuidMock.On("Generate").Return("random_uuid").Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
+				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
 				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(notCloudNamespace, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
@@ -689,7 +644,7 @@ func TestCreateNamespace(t *testing.T) {
 					MaxDevices: -1,
 				}
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
+				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
 				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(nil, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
@@ -742,7 +697,7 @@ func TestCreateNamespace(t *testing.T) {
 					MaxDevices: 3,
 				}
 				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, nil).Once()
+				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
 				mock.On("NamespaceCreate", ctx, cloudNamespace).Return(nil, nil).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()

@@ -69,6 +69,10 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
 	}
 
+	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(namespace.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
+		return nil, NewErrNamespaceDuplicated(nil)
+	}
+
 	ns := &models.Namespace{
 		Name:  strings.ToLower(namespace.Name),
 		Owner: user.ID,
@@ -100,15 +104,6 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 	} else {
 		// we don't set limits on enterprise and community instances
 		ns.MaxDevices = -1
-	}
-
-	otherNamespace, err := s.store.NamespaceGetByName(ctx, ns.Name)
-	if err != nil && err != store.ErrNoDocuments {
-		return nil, NewErrNamespaceNotFound(ns.Name, err)
-	}
-
-	if otherNamespace != nil {
-		return nil, NewErrNamespaceDuplicated(nil)
 	}
 
 	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
