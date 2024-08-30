@@ -31,10 +31,9 @@ func TestMigration38(t *testing.T) {
 	}
 
 	userNoCreatedAt := models.User{
-		ID:         "userNoCreatedID",
-		Namespaces: 0,
-		CreatedAt:  timeZero,
-		LastLogin:  timeNow,
+		ID:        "userNoCreatedID",
+		CreatedAt: timeZero,
+		LastLogin: timeNow,
 		UserData: models.UserData{
 			Name:     "userNoCreatedAt",
 			Email:    "userNoCreatedAt@mail.com",
@@ -45,10 +44,9 @@ func TestMigration38(t *testing.T) {
 		},
 	}
 	userWithCreatedAt := models.User{
-		ID:         "userWithCreatedID",
-		Namespaces: 0,
-		CreatedAt:  timePast,
-		LastLogin:  timeNow,
+		ID:        "userWithCreatedID",
+		CreatedAt: timePast,
+		LastLogin: timeNow,
 		UserData: models.UserData{
 			Name:     "userWithCreatedAt",
 			Email:    "userWithCreatedAt@mail.com",

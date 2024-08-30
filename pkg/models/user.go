@@ -24,13 +24,13 @@ func (s UserStatus) String() string {
 }
 
 type User struct {
-	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
-	Status         UserStatus `json:"status" bson:"status"`
-	Namespaces     int        `json:"namespaces" bson:"namespaces,omitempty"`
-	MaxNamespaces  int        `json:"max_namespaces" bson:"max_namespaces"`
-	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
-	LastLogin      time.Time  `json:"last_login" bson:"last_login"`
-	EmailMarketing bool       `json:"email_marketing" bson:"email_marketing"`
+	ID     string     `json:"id,omitempty" bson:"_id,omitempty"`
+	Status UserStatus `json:"status" bson:"status"`
+	// MaxNamespaces represents the count of namespaces that the user can owns.
+	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
+	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
+	LastLogin      time.Time `json:"last_login" bson:"last_login"`
+	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
 	UserData       `bson:",inline"`
 	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
 	// check if MFA is active for the user.

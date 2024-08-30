@@ -470,7 +470,17 @@ func TestCreateNamespace(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000", MaxNamespaces: 1, Namespaces: 1}, 0, nil).
+					Return(&models.User{ID: "000000000000000000000000", MaxNamespaces: 1}, 0, nil).
+					Once()
+				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
 					Once()
 			},
 			expected: Expected{

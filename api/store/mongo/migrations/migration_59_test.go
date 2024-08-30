@@ -75,7 +75,6 @@ func TestMigration59(t *testing.T) {
 			expected: Expected{
 				user: &models.User{
 					ID:             "652594bcc7b001c6f298df48",
-					Namespaces:     0,
 					MaxNamespaces:  0,
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),

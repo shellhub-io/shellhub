@@ -64,9 +64,16 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	// When MaxNamespaces is less than zero, it means that the user has no limit of namespaces.
-	if user.MaxNamespaces > 0 && user.MaxNamespaces <= user.Namespaces {
-		return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
+	// When MaxNamespaces is less than or equal to zero, it means that the user has no limit
+	// of namespaces.
+	if user.MaxNamespaces > 0 {
+		info, err := s.store.UserGetInfo(ctx, req.UserID)
+		switch {
+		case err != nil:
+			return nil, err
+		case len(info.OwnedNamespaces) >= user.MaxNamespaces:
+			return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
+		}
 	}
 
 	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
