@@ -93,8 +93,8 @@ const command = () => {
   const port = window.location.port ? `:${window.location.port}` : "";
   const { hostname } = window.location;
 
-  return `curl -sSf "${window.location.protocol}//${hostname}${port}/install.sh" 
-  | TENANT_ID=${tenant.value} SERVER_ADDRESS=${window.location.protocol}//${hostname} sh`;
+  // eslint-disable-next-line vue/max-len
+  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenant.value} SERVER_ADDRESS=${window.location.protocol}//${hostname} sh`;
 };
 
 const copyCommand = () => {
