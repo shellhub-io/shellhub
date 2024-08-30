@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
@@ -12,6 +13,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
@@ -417,6 +420,11 @@ func TestSetMemberData(t *testing.T) {
 
 func TestCreateNamespace(t *testing.T) {
 	storeMock := new(mocks.Store)
+	clockMock := new(clockmock.Clock)
+	clock.DefaultBackend = clockMock
+
+	now := time.Now()
+	clockMock.On("Now").Return(now)
 
 	ctx := context.TODO()
 
@@ -556,8 +564,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -617,8 +627,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -635,8 +647,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -656,8 +670,10 @@ func TestCreateNamespace(t *testing.T) {
 					Owner:    "000000000000000000000000",
 					Members: []models.Member{
 						{
-							ID:   "000000000000000000000000",
-							Role: authorizer.RoleOwner,
+							ID:      "000000000000000000000000",
+							Role:    authorizer.RoleOwner,
+							Status:  models.MemberStatusAccepted,
+							AddedAt: now,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -715,8 +731,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -733,8 +751,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -754,8 +774,10 @@ func TestCreateNamespace(t *testing.T) {
 					Owner:    "000000000000000000000000",
 					Members: []models.Member{
 						{
-							ID:   "000000000000000000000000",
-							Role: authorizer.RoleOwner,
+							ID:      "000000000000000000000000",
+							Role:    authorizer.RoleOwner,
+							Status:  models.MemberStatusAccepted,
+							AddedAt: now,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -809,8 +831,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -827,8 +851,10 @@ func TestCreateNamespace(t *testing.T) {
 							Owner:    "000000000000000000000000",
 							Members: []models.Member{
 								{
-									ID:   "000000000000000000000000",
-									Role: authorizer.RoleOwner,
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
 								},
 							},
 							Settings: &models.NamespaceSettings{
@@ -848,8 +874,10 @@ func TestCreateNamespace(t *testing.T) {
 					Owner:    "000000000000000000000000",
 					Members: []models.Member{
 						{
-							ID:   "000000000000000000000000",
-							Role: authorizer.RoleOwner,
+							ID:      "000000000000000000000000",
+							Role:    authorizer.RoleOwner,
+							Status:  models.MemberStatusAccepted,
+							AddedAt: now,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -1089,6 +1117,11 @@ func TestAddNamespaceMember(t *testing.T) {
 	}
 
 	storeMock := new(mocks.Store)
+	clockMock := new(clockmock.Clock)
+	clock.DefaultBackend = clockMock
+
+	now := time.Now()
+	clockMock.On("Now").Return(now)
 
 	cases := []struct {
 		description   string
