@@ -3,12 +3,15 @@ package services
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
@@ -17,6 +20,11 @@ import (
 
 func TestSetup(t *testing.T) {
 	mock := new(mocks.Store)
+	clockMock := new(clockmock.Clock)
+	clock.DefaultBackend = clockMock
+
+	now := time.Now()
+	clockMock.On("Now").Return(now)
 
 	ctx := context.TODO()
 
