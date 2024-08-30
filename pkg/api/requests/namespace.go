@@ -28,6 +28,7 @@ type NamespaceList struct {
 
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceCreate struct {
+	UserID   string `header:"X-ID" validate:"required"`
 	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
 	TenantID string `json:"tenant" validate:"omitempty,uuid"`
 }

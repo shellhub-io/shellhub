@@ -17,7 +17,7 @@ import (
 
 type NamespaceService interface {
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)
-	CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error)
+	CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 
@@ -58,10 +58,10 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 }
 
 // CreateNamespace creates a new namespace.
-func (s *service) CreateNamespace(ctx context.Context, namespace requests.NamespaceCreate, userID string) (*models.Namespace, error) {
-	user, _, err := s.store.UserGetByID(ctx, userID, false)
+func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCreate) (*models.Namespace, error) {
+	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
 	if err != nil || user == nil {
-		return nil, NewErrUserNotFound(userID, err)
+		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
 	// When MaxNamespaces is less than zero, it means that the user has no limit of namespaces.
@@ -69,12 +69,12 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
 	}
 
-	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(namespace.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
+	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
 		return nil, NewErrNamespaceDuplicated(err)
 	}
 
 	ns := &models.Namespace{
-		Name:  strings.ToLower(namespace.Name),
+		Name:  strings.ToLower(req.Name),
 		Owner: user.ID,
 		Members: []models.Member{
 			{
@@ -86,14 +86,14 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 			SessionRecord:          true,
 			ConnectionAnnouncement: "",
 		},
-		TenantID: namespace.TenantID,
+		TenantID: req.TenantID,
 	}
 
 	if envs.IsCommunity() {
 		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
 	}
 
-	if namespace.TenantID == "" {
+	if req.TenantID == "" {
 		ns.TenantID = uuid.Generate()
 	}
 

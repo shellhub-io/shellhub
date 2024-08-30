@@ -431,14 +431,13 @@ func TestCreateNamespace(t *testing.T) {
 	cases := []struct {
 		description   string
 		requiredMocks func()
-		userID        string
 		req           *requests.NamespaceCreate
 		expected      Expected
 	}{
 		{
 			description: "fails when store user get has no documents",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -455,8 +454,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when user reachs the max namespaces",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -473,8 +472,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when a namespace already exists",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -495,8 +494,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "fails retrieve namespace fails without ErrNoDocuments",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -517,8 +516,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when store namespace create fails",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -578,8 +577,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -672,8 +671,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace-:-without tenant id",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "",
 			},
@@ -770,8 +769,8 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace-:-env=cloud",
-			userID:      "000000000000000000000000",
 			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
@@ -869,7 +868,7 @@ func TestCreateNamespace(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			returnedNamespace, err := service.CreateNamespace(ctx, *tc.req, tc.userID)
+			returnedNamespace, err := service.CreateNamespace(ctx, tc.req)
 
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
 
