@@ -52,7 +52,7 @@ type Config struct {
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
 	// state. Default is 30 seconds.
-	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,default=30"`
+	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,overwrite,default=30"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
