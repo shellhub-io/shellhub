@@ -29,7 +29,7 @@ type NamespaceList struct {
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceCreate struct {
 	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
-	TenantID string `json:"tenant" validate:"uuid"`
+	TenantID string `json:"tenant" validate:"omitempty,uuid"`
 }
 
 // NamespaceGet is the structure to represent the request data for get namespace endpoint.

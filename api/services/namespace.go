@@ -89,10 +89,6 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
 	}
 
-	if ok, err := s.validator.Struct(ns); !ok || err != nil {
-		return nil, NewErrNamespaceInvalid(err)
-	}
-
 	if namespace.TenantID == "" {
 		ns.TenantID = uuid.Generate()
 	}
