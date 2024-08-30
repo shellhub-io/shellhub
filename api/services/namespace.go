@@ -70,7 +70,7 @@ func (s *service) CreateNamespace(ctx context.Context, namespace requests.Namesp
 	}
 
 	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(namespace.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
-		return nil, NewErrNamespaceDuplicated(nil)
+		return nil, NewErrNamespaceDuplicated(err)
 	}
 
 	ns := &models.Namespace{

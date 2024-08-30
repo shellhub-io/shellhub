@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -417,7 +416,7 @@ func TestSetMemberData(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(mocks.Store)
 
 	ctx := context.TODO()
 
@@ -432,291 +431,435 @@ func TestCreateNamespace(t *testing.T) {
 	cases := []struct {
 		description   string
 		requiredMocks func()
-		ownerID       string
-		namespace     requests.NamespaceCreate
+		userID        string
+		req           *requests.NamespaceCreate
 		expected      Expected
 	}{
 		{
 			description: "fails when store user get has no documents",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
 				Name:     "namespace",
-				TenantID: "xxxxx",
+				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				mock.On("UserGetByID", ctx, user.ID, false).Return(nil, 0, store.ErrNoDocuments).Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(nil, 0, store.ErrNoDocuments).
+					Once()
 			},
 			expected: Expected{
-				nil,
-				NewErrUserNotFound("hash1", store.ErrNoDocuments),
+				ns:  nil,
+				err: NewErrUserNotFound("000000000000000000000000", store.ErrNoDocuments),
 			},
 		},
 		{
-			description: "fails when store user get fails",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
+			description: "fails when user reachs the max namespaces",
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
 				Name:     "namespace",
-				TenantID: "xxxxx",
+				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, errors.New("error")).Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000", MaxNamespaces: 1, Namespaces: 1}, 0, nil).
+					Once()
 			},
 			expected: Expected{
-				nil,
-				NewErrUserNotFound("hash1", errors.New("error")),
+				ns:  nil,
+				err: NewErrNamespaceLimitReached(1, nil),
 			},
 		},
 		{
 			description: "fails when a namespace already exists",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
 				Name:     "namespace",
-				TenantID: "xxxxx",
+				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				model := &models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
-					TenantID: "xxxxx",
-				}
-
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(model, nil).Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(&models.Namespace{Name: "namespace"}, nil).
+					Once()
 			},
 			expected: Expected{
-				nil,
-				NewErrNamespaceDuplicated(nil),
+				ns:  nil,
+				err: NewErrNamespaceDuplicated(nil),
+			},
+		},
+		{
+			description: "fails retrieve namespace fails without ErrNoDocuments",
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(nil, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				ns:  nil,
+				err: NewErrNamespaceDuplicated(errors.New("error")),
 			},
 		},
 		{
 			description: "fails when store namespace create fails",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
 				Name:     "namespace",
-				TenantID: "xxxxx",
+				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				var isCloud bool
-				notCloudNamespace := &models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				// envs.IsCommunity = true
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				// --
+				// envs.IsCloud = false
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				// --
+				storeMock.
+					On(
+						"NamespaceCreate",
+						ctx,
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+					).
+					Return(nil, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				ns:  nil,
+				err: NewErrNamespaceCreateStore(errors.New("error")),
+			},
+		},
+		{
+			description: "succeeds to create a namespace",
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				// envs.IsCommunity = true
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				// --
+				// envs.IsCloud = false
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				// --
+				storeMock.
+					On(
+						"NamespaceCreate",
+						ctx,
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+					).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				ns: &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
 					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
+						{
+							ID:   "000000000000000000000000",
+							Role: authorizer.RoleOwner,
+						},
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
-					TenantID:   "xxxxx",
 					MaxDevices: -1,
-				}
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
-				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(nil, errors.New("error")).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-			},
-			expected: Expected{
-				nil, NewErrNamespaceCreateStore(errors.New("error")),
+				},
+				err: nil,
 			},
 		},
 		{
-			description: "generates namespace with random tenant",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
-				Name: "namespace",
+			description: "succeeds to create a namespace-:-without tenant id",
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
+				Name:     "namespace",
+				TenantID: "",
 			},
 			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				var isCloud bool
-				notCloudNamespace := &models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				// envs.IsCommunity = true
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				// --
+				// envs.IsCloud = false
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				// --
+				uuidMock.
+					On("Generate").
+					Return("4de9253f-4a2a-49e7-a748-26e7a009bd2e").
+					Once()
+				storeMock.
+					On(
+						"NamespaceCreate",
+						ctx,
+						&models.Namespace{
+							TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+					).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				ns: &models.Namespace{
+					TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
 					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
+						{
+							ID:   "000000000000000000000000",
+							Role: authorizer.RoleOwner,
+						},
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 					},
-					TenantID:   "random_uuid",
 					MaxDevices: -1,
-				}
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				uuidMock.On("Generate").Return("random_uuid").Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
-				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(notCloudNamespace, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-			},
-			expected: Expected{
-				&models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
-					TenantID:   "random_uuid",
-					MaxDevices: -1,
-				}, nil,
+				},
+				err: nil,
 			},
 		},
 		{
-			description: "checks the enterprise&community instance",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
+			description: "succeeds to create a namespace-:-env=cloud",
+			userID:      "000000000000000000000000",
+			req: &requests.NamespaceCreate{
 				Name:     "namespace",
-				TenantID: "xxxxx",
+				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				var isCloud bool
-				notCloudNamespace := &models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: "",
-					},
-					TenantID:   "xxxxx",
-					MaxDevices: -1,
-				}
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
-				mock.On("NamespaceCreate", ctx, notCloudNamespace).Return(nil, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				// envs.IsCommunity = false
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("true").
+					Once()
+				// --
+				// envs.IsCloud = true
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				// --
+				storeMock.
+					On(
+						"NamespaceCreate",
+						ctx,
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: "",
+							},
+							MaxDevices: 3,
+						},
+					).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Members: []models.Member{
+								{
+									ID:   "000000000000000000000000",
+									Role: authorizer.RoleOwner,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: Expected{
-				&models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
+				ns: &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
 					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
+						{
+							ID:   "000000000000000000000000",
+							Role: authorizer.RoleOwner,
+						},
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: "",
 					},
-					TenantID:   "xxxxx",
-					MaxDevices: -1,
-				}, nil,
-			},
-		},
-		{
-			description: "checks the cloud instance",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
-				Name:     "namespace",
-				TenantID: "xxxxx",
-			},
-			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				isCloud := true
-				cloudNamespace := &models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: "",
-					},
-					TenantID:   "xxxxx",
 					MaxDevices: 3,
-				}
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, store.ErrNoDocuments).Once()
-				mock.On("NamespaceCreate", ctx, cloudNamespace).Return(nil, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return(strconv.FormatBool(isCloud)).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
-			},
-			expected: Expected{
-				&models.Namespace{
-					Name:  strings.ToLower("namespace"),
-					Owner: "hash1",
-					Members: []models.Member{
-						{ID: "hash1", Role: authorizer.RoleOwner},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: "",
-					},
-					TenantID:   "xxxxx",
-					MaxDevices: 3,
-				}, nil,
+				},
+				err: nil,
 			},
 		},
 	}
@@ -725,12 +868,12 @@ func TestCreateNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			returnedNamespace, err := service.CreateNamespace(ctx, tc.namespace, tc.ownerID)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			returnedNamespace, err := service.CreateNamespace(ctx, *tc.req, tc.userID)
 
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
 
-			mock.AssertExpectations(t)
+			storeMock.AssertExpectations(t)
 		})
 	}
 }
