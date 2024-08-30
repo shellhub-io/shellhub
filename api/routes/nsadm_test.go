@@ -36,7 +36,7 @@ func TestCreateNamespace(t *testing.T) {
 			userID: "00000000-0000-4000-0000-000000000000",
 			req:    `{ "name": "namespace", "tenant": "36512069-be88-497a-b0ec-03ed05b1f7e7"}`,
 			requiredMocks: func() {
-				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "00000000-0000-4000-0000-000000000000").Return(nil, svc.ErrNotFound).Once()
+				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceCreate")).Return(nil, svc.ErrNotFound).Once()
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusNotFound,
@@ -48,7 +48,7 @@ func TestCreateNamespace(t *testing.T) {
 			userID: "123",
 			req:    `{ "name": "namespace", "tenant": "36512069-be88-497a-b0ec-03ed05b1f7e7"}`,
 			requiredMocks: func() {
-				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("requests.NamespaceCreate"), "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{}, nil).Once()
+				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceCreate")).Return(&models.Namespace{}, nil).Once()
 			},
 			expected: Expected{
 				expectedStatus:  http.StatusOK,
