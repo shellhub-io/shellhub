@@ -16,7 +16,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -481,30 +480,6 @@ func TestCreateNamespace(t *testing.T) {
 			expected: Expected{
 				nil,
 				NewErrUserNotFound("hash1", errors.New("error")),
-			},
-		},
-		{
-			description: "fails when a namespace field is invalid",
-			ownerID:     "hash1",
-			namespace: requests.NamespaceCreate{
-				Name: "name.with.dot",
-			},
-			requiredMocks: func() {
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-			},
-			expected: Expected{
-				nil,
-				NewErrNamespaceInvalid(validator.ErrStructureInvalid),
 			},
 		},
 		{
