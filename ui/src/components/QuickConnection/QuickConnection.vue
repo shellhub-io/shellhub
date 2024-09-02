@@ -166,7 +166,7 @@ watch(dialog, async (value) => {
 });
 
 onUnmounted(async () => {
-  await store.dispatch("devices/setFilter", null);
+  await store.dispatch("devices/setFilter", "");
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
