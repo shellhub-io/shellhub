@@ -242,13 +242,21 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrUserNotFound(req.MemberEmail, err)
 	}
 
-	// Currently, the member's status is always "accepted".
 	member := &models.Member{
 		ID:      passiveUser.ID,
 		AddedAt: clock.Now(),
 		Role:    req.MemberRole,
 		Status:  models.MemberStatusAccepted,
 	}
+
+	// In cloud instances, the member must accept the invite before enter in the namespace.
+	if envs.IsCloud() {
+		member.Status = models.MemberStatusPending
+		if err := s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):

@@ -61,3 +61,10 @@ func NewClient(opts ...clientOption) (Client, error) {
 
 	return c, nil
 }
+
+// mustWorker panics if [client.worker] is nil.
+func (c *client) mustWorker() {
+	if c.worker == nil {
+		panic("Client does not have any worker")
+	}
+}

@@ -54,10 +54,11 @@ type NamespaceEdit struct {
 }
 
 type NamespaceAddMember struct {
-	UserID      string          `header:"X-ID" validate:"required"`
-	TenantID    string          `param:"tenant" validate:"required,uuid"`
-	MemberEmail string          `json:"email" validate:"required"`
-	MemberRole  authorizer.Role `json:"role" validate:"required,member_role"`
+	FowardedHost string          `header:"X-Forwarded-Host" validate:"required"`
+	UserID       string          `header:"X-ID" validate:"required"`
+	TenantID     string          `param:"tenant" validate:"required,uuid"`
+	MemberEmail  string          `json:"email" validate:"required"`
+	MemberRole   authorizer.Role `json:"role" validate:"required,member_role"`
 }
 
 type NamespaceUpdateMember struct {
