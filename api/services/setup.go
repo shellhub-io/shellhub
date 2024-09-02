@@ -42,17 +42,18 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		CreatedAt: clock.Now(),
 	}
 
-	if err := s.store.UserCreate(ctx, user); err != nil {
+	insertedID, err := s.store.UserCreate(ctx, user)
+	if err != nil {
 		return NewErrUserDuplicated([]string{req.Username}, err)
 	}
 
 	namespace := &models.Namespace{
 		Name:       req.Namespace,
-		Owner:      user.ID,
+		Owner:      insertedID,
 		MaxDevices: 0,
 		Members: []models.Member{
 			{
-				ID:   user.ID,
+				ID:   insertedID,
 				Role: authorizer.RoleOwner,
 			},
 		},

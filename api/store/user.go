@@ -9,7 +9,11 @@ import (
 
 type UserStore interface {
 	UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error)
-	UserCreate(ctx context.Context, user *models.User) error
+
+	// UserCreate creates a new user with the provided data. `user.CreatedAt` is set to now before save.
+	// It returns the inserted ID or an error, if any.
+	UserCreate(ctx context.Context, user *models.User) (insertedID string, err error)
+
 	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
 	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
 	UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error)

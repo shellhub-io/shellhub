@@ -144,7 +144,7 @@ func TestUserCreate(t *testing.T) {
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 				}
-				mock.On("UserCreate", ctx, user).Return(errors.New("error")).Once()
+				mock.On("UserCreate", ctx, user).Return("", errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrCreateNewUser},
 		},
@@ -177,7 +177,7 @@ func TestUserCreate(t *testing.T) {
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 				}
-				mock.On("UserCreate", ctx, user).Return(nil).Once()
+				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
 			},
 			expected: Expected{&models.User{
 				UserData: models.UserData{

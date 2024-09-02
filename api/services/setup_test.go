@@ -19,7 +19,7 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(mocks.Store)
 	clockMock := new(clockmock.Clock)
 	clock.DefaultBackend = clockMock
 
@@ -81,7 +81,7 @@ func TestSetup(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 				}
-				mock.On("UserCreate", ctx, user).Return(errors.New("error", "", 0)).Once()
+				storeMock.On("UserCreate", ctx, user).Return("", errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrUserDuplicated([]string{"userteste"}, errors.New("error", "", 0)),
 		},
@@ -120,11 +120,11 @@ func TestSetup(t *testing.T) {
 				}
 				namespace := &models.Namespace{
 					Name:       "teste-space",
-					Owner:      user.ID,
+					Owner:      "000000000000000000000000",
 					MaxDevices: 0,
 					Members: []models.Member{
 						{
-							ID:   user.ID,
+							ID:   "000000000000000000000000",
 							Role: authorizer.RoleOwner,
 						},
 					},
@@ -134,8 +134,8 @@ func TestSetup(t *testing.T) {
 					},
 					CreatedAt: now,
 				}
-				mock.On("UserCreate", ctx, user).Return(nil).Once()
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
+				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
+				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrNamespaceDuplicated(errors.New("error", "", 0)),
 		},
@@ -173,11 +173,11 @@ func TestSetup(t *testing.T) {
 				}
 				namespace := &models.Namespace{
 					Name:       "teste-space",
-					Owner:      user.ID,
+					Owner:      "000000000000000000000000",
 					MaxDevices: 0,
 					Members: []models.Member{
 						{
-							ID:   user.ID,
+							ID:   "000000000000000000000000",
 							Role: authorizer.RoleOwner,
 						},
 					},
@@ -187,8 +187,8 @@ func TestSetup(t *testing.T) {
 					},
 					CreatedAt: now,
 				}
-				mock.On("UserCreate", ctx, user).Return(nil).Once()
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
+				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
 			},
 			expected: nil,
 		},
@@ -198,7 +198,7 @@ func TestSetup(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 			err := service.Setup(ctx, tc.req)
 			assert.Equal(t, tc.expected, err)

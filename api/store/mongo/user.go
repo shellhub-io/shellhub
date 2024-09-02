@@ -80,13 +80,16 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 	return users, count, FromMongoError(err)
 }
 
-func (s *Store) UserCreate(ctx context.Context, user *models.User) error {
+func (s *Store) UserCreate(ctx context.Context, user *models.User) (string, error) {
 	user.CreatedAt = time.Now()
 	user.LastLogin = time.Time{}
 
-	_, err := s.db.Collection("users").InsertOne(ctx, user)
+	r, err := s.db.Collection("users").InsertOne(ctx, user)
+	if err != nil {
+		return "", FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func (s *Store) UserGetByUsername(ctx context.Context, username string) (*models.User, error) {
