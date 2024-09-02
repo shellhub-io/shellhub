@@ -182,7 +182,6 @@ func TestUserCreate(t *testing.T) {
 		{
 			description: "succeeds when data is valid",
 			user: &models.User{
-				ID: "507f1f77bcf86cd799439011",
 				UserData: models.UserData{
 					Name:     "john doe",
 					Username: "john_doe",
@@ -206,8 +205,9 @@ func TestUserCreate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.UserCreate(ctx, tc.user)
+			insertedID, err := s.UserCreate(ctx, tc.user)
 			assert.Equal(t, tc.expected, err)
+			assert.NotEmpty(t, insertedID)
 		})
 	}
 }

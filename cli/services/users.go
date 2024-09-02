@@ -58,7 +58,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		MaxNamespaces: MaxNumberNamespacesCommunity,
 	}
 
-	if err := s.store.UserCreate(ctx, user); err != nil {
+	if _, err := s.store.UserCreate(ctx, user); err != nil {
 		return nil, ErrCreateNewUser
 	}
 
