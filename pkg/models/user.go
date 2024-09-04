@@ -141,6 +141,8 @@ type UserChanges struct {
 	Password           string     `bson:"password,omitempty"`
 	Status             UserStatus `bson:"status,omitempty"`
 	PreferredNamespace *string    `bson:"preferences.preferred_namespace,omitempty"`
+	MaxNamespaces      *int       `bson:"max_namespaces,omitempty"`
+	EmailMarketing     *bool      `bson:"email_marketing,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
