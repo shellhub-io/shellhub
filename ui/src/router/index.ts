@@ -3,7 +3,7 @@ import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
 
-const Dashboard = () => import("@/views/Dashboard.vue");
+const Home = () => import("@/views/Home.vue");
 const Devices = () => import("@/views/Devices.vue");
 const DeviceList = () => import("@/components/Devices/DeviceList.vue");
 const DevicePendingList = () => import("@/components/Devices/DevicePendingList.vue");
@@ -141,8 +141,8 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/",
-    name: "Dashboard",
-    component: Dashboard,
+    name: "Home",
+    component: Home,
   },
   {
     path: "/devices",

@@ -3,17 +3,17 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
-import Dashboard from "@/views/Dashboard.vue";
+import Home from "@/views/Home.vue";
 import { namespacesApi, usersApi, devicesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type DashboardWrapper = VueWrapper<InstanceType<typeof Dashboard>>;
+type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
 
-describe("Dashboard", () => {
-  let wrapper: DashboardWrapper;
+describe("Home", () => {
+  let wrapper: HomeWrapper;
 
   const vuetify = createVuetify();
 
@@ -86,7 +86,7 @@ describe("Dashboard", () => {
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("namespaces/setNamespaces", res);
 
-    wrapper = mount(Dashboard, {
+    wrapper = mount(Home, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {
@@ -115,10 +115,10 @@ describe("Dashboard", () => {
   });
 
   it("Renders the template with data", async () => {
-    expect(wrapper.find('[data-test="dashboard-card"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="home-card"]').exists()).toBe(true);
     wrapper.vm.hasStatus = true; // Set the conditional validation to true so it can show the error card.
     await nextTick();
-    expect(wrapper.find('[data-test="dashboard-failed"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
   });
 
   it("Displays error message if API call fails with 403 status code", async () => {
@@ -126,8 +126,8 @@ describe("Dashboard", () => {
 
     await flushPromises();
 
-    expect(wrapper.find('[data-test="dashboard-failed"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="dashboard-failed"]').text()).toContain(
+    expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
       "Something is wrong, try again !",
     );
   });
