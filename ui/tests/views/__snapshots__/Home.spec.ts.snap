@@ -1,9 +1,9 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Dashboard > Renders the component 1`] = `
+exports[`Home > Renders the component 1`] = `
 "<div class=\\"v-row mt-2 ml-2\\">
   <div class=\\"v-col-md-4 v-col-12 pt-0\\">
-    <div data-test=\\"dashboard-card\\">
+    <div data-test=\\"home-card\\">
       <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-card__loader\\">
@@ -54,7 +54,7 @@ exports[`Dashboard > Renders the component 1`] = `
     </div>
   </div>
   <div class=\\"v-col-md-4 v-col-12 pt-0\\">
-    <div data-test=\\"dashboard-card\\">
+    <div data-test=\\"home-card\\">
       <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-card__loader\\">
@@ -102,7 +102,7 @@ exports[`Dashboard > Renders the component 1`] = `
     </div>
   </div>
   <div class=\\"v-col-md-4 v-col-12 pt-0\\">
-    <div data-test=\\"dashboard-card\\">
+    <div data-test=\\"home-card\\">
       <div class=\\"v-card v-theme--light v-card--density-compact elevation-8 v-card--variant-flat pa-1 mb-2 border bg-v-theme-surface\\">
         <!---->
         <div class=\\"v-card__loader\\">

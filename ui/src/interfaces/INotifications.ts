@@ -44,7 +44,7 @@ export enum INotificationsSuccess {
 }
 
 export enum INotificationsError {
-  dashboard = "dashboard",
+  home = "home",
   notificationList = "list notification",
   deviceList = "list device",
   deviceAccess = "accessing device",

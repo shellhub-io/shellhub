@@ -1,7 +1,7 @@
 <template>
   <v-row class="mt-2 ml-2" v-if="!hasStatus">
     <v-col cols="12" md="4" class="pt-0" v-for="item in items" :key="item.id">
-      <div data-test="dashboard-card">
+      <div data-test="home-card">
         <Card
           :id="item.id"
           :title="item.title"
@@ -16,7 +16,7 @@
       </div>
     </v-col>
   </v-row>
-  <v-card data-test="dashboard-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
+  <v-card data-test="home-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
     <p class="text-center">Something is wrong, try again !</p>
   </v-card>
 </template>
@@ -100,7 +100,7 @@ onMounted(async () => {
           hasStatus.value = true;
           store.dispatch(
             "snackbar/showSnackbarErrorAction",
-            INotificationsError.dashboard,
+            INotificationsError.home,
           );
           break;
         }

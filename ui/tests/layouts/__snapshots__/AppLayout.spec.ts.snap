@@ -32,9 +32,9 @@ exports[`App Layout Component > Renders the component 1`] = `
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-view-dashboard-listItem\\">
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-home-listItem\\">
                 <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-view-dashboard mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Dashboard
+                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Home
                   <!--v-if-->
                 </div>
               </div>

@@ -145,13 +145,13 @@ onMounted(() => {
   store.dispatch("privateKey/fetch");
 });
 
-const disableItem = (item: string) => !hasNamespaces.value && item !== "Dashboard";
+const disableItem = (item: string) => !hasNamespaces.value && item !== "Home";
 const showConnector = computed(() => (envVariables.isCommunity && !envVariables.premiumPaywall) || !envVariables.hasConnector);
 const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
 const items = [
   {
-    icon: "mdi-view-dashboard",
-    title: "Dashboard",
+    icon: "mdi-home",
+    title: "Home",
     path: "/",
   },
   {
