@@ -13,6 +13,7 @@ const ContainerList = () => import("@/components/Containers/ContainerList.vue");
 const ContainerPendingList = () => import("@/components/Containers/ContainerPendingList.vue");
 const ContainerRejectedList = () => import("@/components/Containers/ContainerRejectedList.vue");
 const Connectors = () => import("@/views/Connectors.vue");
+const Connections = () => import("@/views/Connection.vue");
 const ConnectorDetails = () => import("@/views/ConnectorDetails.vue");
 const DeviceDetails = () => import("@/views/DetailsDevice.vue");
 const Sessions = () => import("@/views/Sessions.vue");
@@ -220,6 +221,11 @@ export const routes: Array<RouteRecordRaw> = [
       }
       next();
     },
+  },
+  {
+    path: "/connection/:token",
+    name: "Connection",
+    component: Connections,
   },
   {
     path: "/connectors/:id",

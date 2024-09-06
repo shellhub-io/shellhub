@@ -7,7 +7,7 @@
         variant="outlined"
         density="comfortable"
         data-test="connect-btn"
-        @click="open()"
+        @click="showTerminal = true"
       >
         {{ online ? "Connect" : "Offline" }}
       </v-btn>
@@ -16,7 +16,7 @@
       v-model="showTerminal"
       :fullscreen="$vuetify.display.smAndDown"
       :max-width="!$vuetify.display.smAndDown ? $vuetify.display.thresholds.sm : null"
-      @click:outside="close"
+      @click:outside="showTerminal = !showTerminal"
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
         <v-card-title
@@ -24,7 +24,7 @@
         >
           Terminal
           <v-spacer />
-          <v-icon @click="close()" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
+          <v-icon @click="showTerminal = false" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
         </v-card-title>
 
         <div class="mt-2" v-if="showLoginForm">
@@ -165,14 +165,9 @@
 import {
   ref,
   computed,
-  watch,
 } from "vue";
 import { useField } from "vee-validate";
-import "xterm/css/xterm.css";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
 import * as yup from "yup";
-import axios from "axios";
 import { useStore } from "../../store";
 import {
   createKeyFingerprint,
@@ -181,7 +176,6 @@ import {
   parsePrivateKeySsh,
 } from "../../utils/validate";
 import { IPrivateKey } from "../../interfaces/IPrivateKey";
-import { IParams } from "../../interfaces/IParams";
 import { IConnectToTerminal } from "../../interfaces/ITerminal";
 
 const props = defineProps({
@@ -215,9 +209,6 @@ const tabActive = ref("Password");
 const showPassword = ref(false);
 const showLoginForm = ref(true);
 const privateKey = ref("");
-const xterm = ref<(Terminal)>({} as Terminal);
-const ws = ref<WebSocket>({} as WebSocket);
-const fitAddon = ref<FitAddon>({} as FitAddon);
 const terminal = ref<HTMLElement>({} as HTMLElement);
 const uid = computed(() => props.uid);
 const showTerminal = ref(store.getters["modal/terminal"] === uid.value);
@@ -238,25 +229,12 @@ const {
   initialValue: "",
 });
 
-const webTermDimensions = computed(() => ({
-  cols: xterm.value.cols,
-  rows: xterm.value.rows,
-}));
-
 const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
 
 const nameOfPrivateKeys = computed(() => {
   const list = getListPrivateKeys.value;
   return list.map((item: IPrivateKey) => item.name);
 });
-
-watch(showTerminal, (value) => {
-  if (value) showLoginForm.value = true;
-});
-
-const encodeURLParams = (params: IParams) => Object.entries(params)
-  .map(([key, value]) => `${key}=${value}`)
-  .join("&");
 
 const connect = async (params: IConnectToTerminal) => {
   if (params.password && !username.value && !password.value) {
@@ -267,97 +245,7 @@ const connect = async (params: IConnectToTerminal) => {
     return;
   }
 
-  const response = await axios.post("/ws/ssh", {
-    device: props.uid,
-    username: username.value,
-    ...params,
-  });
-
-  const { token } = response.data;
-
-  showLoginForm.value = false;
-
-  if (!xterm.value.element) {
-    xterm.value.open(terminal.value);
-  }
-
-  fitAddon.value.fit();
-  xterm.value.focus();
-
-  let protocolConnectionURL = "";
-
-  if (window.location.protocol === "http:") {
-    protocolConnectionURL = "ws";
-  } else {
-    protocolConnectionURL = "wss";
-  }
-
-  const wsInfo = { token, ...webTermDimensions.value };
-
-  const enc = new TextEncoder();
-  ws.value = new WebSocket(
-    `${protocolConnectionURL}://${
-      window.location.host
-    }/ws/ssh?${encodeURLParams(wsInfo)}`,
-  );
-
-      enum MessageKind {
-        Input = 1,
-        Resize,
-      }
-
-      interface Message {
-        kind: MessageKind;
-        data: unknown;
-      }
-
-      ws.value.onmessage = (ev) => {
-        xterm.value.write(ev.data);
-      };
-
-      xterm.value.onData((data) => {
-        const message: Message = {
-          kind: MessageKind.Input,
-          data: [...enc.encode(data)],
-        };
-
-        ws.value.send(JSON.stringify(message));
-      });
-
-      xterm.value.onResize((data) => {
-        const message: Message = {
-          kind: MessageKind.Resize,
-          data: { cols: data.cols, rows: data.rows },
-        };
-
-        ws.value.send(JSON.stringify(message));
-      });
-
-      ws.value.onclose = () => {
-        xterm.value.write("\r\nConnection ended");
-      };
-};
-
-const open = () => {
-  showTerminal.value = true;
-  privateKey.value = "";
-
-  xterm.value = new Terminal({
-    cursorBlink: true,
-    fontFamily: "monospace",
-    theme: {
-      background: "#0f1526",
-    },
-  });
-
-  fitAddon.value = new FitAddon();
-  xterm.value.loadAddon(fitAddon.value);
-
-  store.dispatch("modal/toggleTerminal", props.uid);
-
-  if (xterm.value.element) {
-    xterm.value.reset();
-  }
+  await store.dispatch("terminals/fetch", params);
 };
 
 const resetFieldValidation = () => {
@@ -366,7 +254,7 @@ const resetFieldValidation = () => {
 };
 
 const connectWithPassword = () => {
-  connect({ password: password.value });
+  connect({ username: username.value, device: props.uid, password: password.value });
 };
 
 const findPrivateKeyByName = (name: string) => {
@@ -389,25 +277,7 @@ const connectWithPrivateKey = async () => {
     ));
   }
   const fingerprint = await createKeyFingerprint(privateKeyData.data);
-  connect({ fingerprint, signature });
+  connect({ username: username.value, device: props.uid, fingerprint, signature });
 };
 
-const close = () => {
-  if (ws.value.OPEN) {
-    ws.value.close();
-  }
-  showTerminal.value = false;
-  xterm.value.clear();
-  resetFieldValidation();
-  store.dispatch("modal/toggleTerminal", "");
-};
-
-defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
-
-<!-- <style lang="scss" scoped>
-.xterm-helper {
-  background: #0f1526;
-  width: 105%;
-}
-</style> -->

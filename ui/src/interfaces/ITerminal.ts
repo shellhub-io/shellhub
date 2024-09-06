@@ -1,4 +1,6 @@
 export interface IConnectToTerminal {
+  device: string,
+  username: string,
   password?: string;
   signature?: string;
   fingerprint?: string;
