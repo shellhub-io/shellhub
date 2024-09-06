@@ -5,6 +5,8 @@
   >
     <h1>Connection</h1>
     <v-spacer />
+
+    <v-btn>change addon</v-btn>
   </div>
 
   <div ref="terminal" class="w-100 h-100 ma-0 pa-0" />
@@ -32,6 +34,7 @@ const initializeTerminal = async () => {
 
     xterm.value = terminalData.value.xterm;
     if (xterm.value && terminal.value) {
+      xterm.value.loadAddon(terminalData.value.fitAddon);
       xterm.value.open(terminal.value);
       xterm.value.focus();
     }

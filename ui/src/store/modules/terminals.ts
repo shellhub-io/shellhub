@@ -27,16 +27,16 @@ interface Message {
 }
 
 export interface TerminalState {
-  terminals: Record<string, { xterm: Terminal, websocket: WebSocket }>;
+  terminals: Record<string, { xterm: Terminal, websocket: WebSocket, fitAddon: FitAddon }>;
 }
 
-const createXtermInstance = (): Terminal => {
+const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
   const xterm = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
     theme: { background: "#fff0000" },
-    cols: webTermDimensions.cols,
-    rows: webTermDimensions.rows,
+    cols: 180,
+    rows: 50,
   });
 
   const fitAddon = new FitAddon();
@@ -49,7 +49,7 @@ const createXtermInstance = (): Terminal => {
   fitAddon.fit();
   xterm.focus();
 
-  return xterm;
+  return { xterm, fitAddon };
 };
 
 const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket => {
@@ -94,15 +94,8 @@ export const terminals: Module<TerminalState, State> = {
   },
 
   mutations: {
-    setNewTab(state, { token, xterm, websocket }) {
-      state.terminals[token] = { xterm, websocket };
-    },
-    resizeTerminal(state, { token, cols, rows }) {
-      const terminal = state.terminals[token];
-      if (terminal) {
-        terminal.xterm.resize(cols, rows);
-        // Optionally trigger fitAddon.fit() if FitAddon is used
-      }
+    setNewTab(state, { token, xterm, websocket, fitAddon }) {
+      state.terminals[token] = { xterm, websocket, fitAddon };
     },
   },
 
@@ -112,10 +105,10 @@ export const terminals: Module<TerminalState, State> = {
         const response = await axios.post("/ws/ssh", params);
 
         const { token } = response.data;
-        const xterm = createXtermInstance();
+        const { xterm, fitAddon } = createXtermInstance();
         const websocket = createWebSocketConnection(token, xterm);
 
-        commit("setNewTab", { token, xterm, websocket });
+        commit("setNewTab", { token, xterm, websocket, fitAddon });
         await router.push({ name: "Connection", params: { token } });
       } catch (error) {
         commit("clearListPublicKeys");
