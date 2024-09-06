@@ -3,20 +3,21 @@
     <v-btn
       @click="dialog = !dialog"
       color="primary"
+      variant="flat"
       tabindex="0"
-      variant="elevated"
       aria-label="Dialog Quick Connection"
       data-test="quick-connection-open-btn"
-      prepend-icon="mdi-link"
+      prepend-icon="mdi-console"
+      block
     >
-      Quick Connection
+      Quick Connect
     </v-btn>
     <div>
       <p
         class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1"
         data-test="quick-connect-instructions"
       >
-        Press "Ctrl + K" to Quick Connect!
+        Press <v-chip density="compact" size="small" label>Ctrl+K</v-chip> to Quick Connect!
       </p>
     </div>
     <v-dialog

@@ -10,7 +10,7 @@
     item-value="url"
     :items="namespaceList"
     :hide-details="true"
-    class="mt-1"
+    class="mt-2"
   >
     <template #prepend-inner>
       <v-chip label color="primary" class="text-uppercase">{{ firstNamespaceLetter }}</v-chip>

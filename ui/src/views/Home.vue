@@ -1,5 +1,5 @@
 <template>
-  <v-row class="mt-2 ml-2" v-if="!hasStatus">
+  <v-row v-if="!hasStatus">
     <v-col cols="12" md="4" class="pt-0" v-for="item in items" :key="item.id">
       <div data-test="home-card">
         <Card

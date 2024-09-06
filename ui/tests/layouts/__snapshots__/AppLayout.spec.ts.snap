@@ -126,12 +126,17 @@ exports[`App Layout Component > Renders the component 1`] = `
             <!---->
           </a>
           <div data-v-e7291ef4=\\"\\" class=\\"v-col d-flex align-end justify-center\\">
-            <div data-v-136d2a2f=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connection </span>
+            <div data-v-136d2a2f=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connect </span>
                 <!---->
                 <!---->
               </button>
               <div data-v-136d2a2f=\\"\\">
-                <p data-v-136d2a2f=\\"\\" class=\\"text-caption text-md font-weight-bold text-grey-darken-1 ma-1\\" data-test=\\"quick-connect-instructions\\"> Press \\"Ctrl + K\\" to Quick Connect! </p>
+                <p data-v-136d2a2f=\\"\\" class=\\"text-caption text-md font-weight-bold text-grey-darken-1 ma-1\\" data-test=\\"quick-connect-instructions\\"> Press <span data-v-136d2a2f=\\"\\" class=\\"v-chip v-chip--label v-theme--dark v-chip--density-compact v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+                  <!---->
+                  <!---->
+                <div class=\\"v-chip__content\\" data-no-activator=\\"\\">Ctrl+K</div>
+                <!---->
+                <!----></span> to Quick Connect! </p>
               </div>
               <!---->
               <!---->
@@ -158,14 +163,14 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </ul>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-11\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-12\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-13\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-15\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" left=\\"\\"></i><div>USER</div><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark ml-1 mr-1\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
           <!---->
           <!---->
