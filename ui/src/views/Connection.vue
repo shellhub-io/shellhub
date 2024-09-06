@@ -1,11 +1,11 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row"
+  <v-layout
+    class="w-100 terminal-layout"
     data-test="device-title"
   >
-  </div>
+    <div ref="terminal"/>
+  </v-layout>
 
-  <div ref="terminal" class="w-100 h-100 ma-0 pa-0" />
 </template>
 
 <script setup lang="ts">
@@ -30,7 +30,10 @@ const initializeTerminal = async () => {
 
     xterm.value = terminalData.value.xterm;
     if (xterm.value && terminal.value) {
-      xterm.value.loadAddon(terminalData.value.fitAddon);
+      setTimeout(() => {
+        terminalData.value.fitAddon.fit();
+      }, 1000);
+
       xterm.value.open(terminal.value);
       xterm.value.focus();
     }
@@ -53,5 +56,9 @@ onMounted(() => {
 <style>
 .terminal {
   padding: 20px;
+}
+
+.terminal-layout {
+  background-color: black;
 }
 </style>

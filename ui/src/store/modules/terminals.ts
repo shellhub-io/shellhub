@@ -36,7 +36,7 @@ const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
     fontFamily: "monospace",
     theme: { background: "#fff0000" },
     cols: 180,
-    rows: 50,
+    rows: 20,
   });
 
   const fitAddon = new FitAddon();
@@ -46,7 +46,6 @@ const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
     xterm.reset();
   }
 
-  fitAddon.fit();
   xterm.focus();
 
   return { xterm, fitAddon };
