@@ -72,7 +72,10 @@ const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket =>
       kind: MessageKind.Resize,
       data: { cols: data.cols, rows: data.rows },
     };
-    ws.send(JSON.stringify(message));
+
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(message));
+    }
   });
 
   ws.onclose = () => xterm.write("\r\nConnection ended");
