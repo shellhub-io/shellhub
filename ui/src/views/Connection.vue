@@ -17,6 +17,7 @@ import { useStore } from "../store";
 
 const store = useStore();
 const route = useRoute();
+const initialized = ref(false);
 
 const xterm = ref<Terminal | null>(null);
 const terminal = ref<HTMLElement | null>(null);
@@ -30,9 +31,12 @@ const initializeTerminal = async () => {
 
     xterm.value = terminalData.value.xterm;
     if (xterm.value && terminal.value) {
-      setTimeout(() => {
-        terminalData.value.fitAddon.fit();
-      }, 1000);
+      xterm.value.onRender(() => {
+        if (!initialized.value) {
+          terminalData.value.fitAddon.fit();
+          initialized.value = true;
+        }
+      });
 
       xterm.value.open(terminal.value);
       xterm.value.focus();

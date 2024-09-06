@@ -46,8 +46,6 @@ const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
     xterm.reset();
   }
 
-  xterm.focus();
-
   return { xterm, fitAddon };
 };
 
