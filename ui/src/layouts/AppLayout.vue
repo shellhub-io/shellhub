@@ -75,7 +75,7 @@
     <v-main data-test="main">
       <slot>
         <v-container
-          class="pa-8"
+          :class="noGaps ? 'pa-0' : 'pa-8'"
           fluid
           data-test="container"
         >
@@ -189,6 +189,8 @@ const items = [
 ];
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
+
+const noGaps = computed(() => router.currentRoute.value.meta.noGaps);
 
 defineExpose({
   items,

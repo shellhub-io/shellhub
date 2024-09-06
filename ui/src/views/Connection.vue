@@ -3,10 +3,6 @@
     class="d-flex flex-column justify-space-between align-center flex-sm-row"
     data-test="device-title"
   >
-    <h1>Connection</h1>
-    <v-spacer />
-
-    <v-btn>change addon</v-btn>
   </div>
 
   <div ref="terminal" class="w-100 h-100 ma-0 pa-0" />
@@ -53,3 +49,9 @@ onMounted(() => {
   }
 });
 </script>
+
+<style>
+.terminal {
+  padding: 20px;
+}
+</style>

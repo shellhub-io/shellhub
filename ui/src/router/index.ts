@@ -226,6 +226,9 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/connection/:token",
     name: "Connection",
     component: Connections,
+    meta: {
+      noGaps: true,
+    },
   },
   {
     path: "/connectors/:id",
