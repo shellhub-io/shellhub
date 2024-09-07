@@ -367,21 +367,6 @@ func TestSetMemberData(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when user is not found",
-			members: []models.Member{
-				{ID: "hash1", Role: authorizer.RoleObserver},
-				{ID: "hash2", Role: authorizer.RoleObserver},
-				{ID: "hash3", Role: authorizer.RoleObserver},
-			},
-			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, "hash1", false).Return(nil, 0, errors.New("error")).Once()
-			},
-			expected: Expected{
-				members: nil,
-				err:     NewErrUserNotFound("hash1", errors.New("error")),
-			},
-		},
-		{
 			description: "success to fill member data",
 			members: []models.Member{
 				{ID: "hash1", Role: authorizer.RoleObserver},

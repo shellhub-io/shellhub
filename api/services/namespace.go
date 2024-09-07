@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 type NamespaceService interface {
@@ -181,8 +182,12 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 func (s *service) fillMembersData(ctx context.Context, members []models.Member) ([]models.Member, error) {
 	for index, member := range members {
 		user, _, err := s.store.UserGetByID(ctx, member.ID, false)
-		if err != nil || user == nil {
-			return nil, NewErrUserNotFound(member.ID, err)
+		if err != nil {
+			log.WithError(err).
+				WithField("id", member.ID).
+				Error("user not found")
+
+			continue
 		}
 
 		members[index] = models.Member{
