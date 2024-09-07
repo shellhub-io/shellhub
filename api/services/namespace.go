@@ -327,14 +327,9 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	member, _, err := s.store.UserGetByID(ctx, req.MemberID, false)
-	if err != nil {
-		return nil, NewErrUserNotFound(req.MemberID, err)
-	}
-
-	passive, ok := namespace.FindMember(member.ID)
+	passive, ok := namespace.FindMember(req.MemberID)
 	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(member.ID, err)
+		return nil, NewErrNamespaceMemberNotFound(req.MemberID, err)
 	}
 
 	if !active.Role.HasAuthority(passive.Role) {
@@ -352,7 +347,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		}
 	}
 
-	s.AuthUncacheToken(ctx, namespace.TenantID, member.ID) // nolint: errcheck
+	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) // nolint: errcheck
 
 	return s.store.NamespaceGet(ctx, req.TenantID, true)
 }

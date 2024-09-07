@@ -56,52 +56,6 @@ func TestListNamespaces(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when could not get a user",
-			req: &requests.NamespaceList{
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-				Filters:   query.Filters{},
-			},
-			ctx: ctx,
-			requiredMocks: func() {
-				namespaces := []models.Namespace{
-					{
-						Name:     "group1",
-						Owner:    "hash",
-						TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-						Members: []models.Member{
-							{
-								ID:   "hash",
-								Role: authorizer.RoleOwner,
-							},
-						},
-					},
-					{
-						Name:     "group2",
-						Owner:    "hash",
-						TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-						Members: []models.Member{
-							{
-								ID:   "hash",
-								Role: authorizer.RoleOwner,
-							},
-							{
-								ID:   "hash2",
-								Role: authorizer.RoleObserver,
-							},
-						},
-					},
-				}
-
-				mock.On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false).Return(namespaces, len(namespaces), nil).Once()
-				mock.On("UserGetByID", ctx, "hash", false).Return(nil, 0, errors.New("error")).Once()
-			},
-			expected: Expected{
-				namespaces: nil,
-				count:      0,
-				err:        NewErrNamespaceMemberFillData(NewErrUserNotFound("hash", errors.New("error"))),
-			},
-		},
-		{
 			description: "success to get the namespace list",
 			req: &requests.NamespaceList{
 				Paginator: query.Paginator{Page: 1, PerPage: 10},
@@ -1954,45 +1908,6 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when the passive member was not found",
-			req: &requests.NamespaceRemoveMember{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				MemberID: "000000000000000000000001",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000001", false).
-					Return(nil, 0, ErrUserNotFound).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("000000000000000000000001", ErrUserNotFound),
-			},
-		},
-		{
 			description: "fails when the passive member is not on the namespace",
 			req: &requests.NamespaceRemoveMember{
 				UserID:   "000000000000000000000000",
@@ -2019,13 +1934,6 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000001", false).
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
 					}, 0, nil).
 					Once()
 			},
@@ -2067,13 +1975,6 @@ func TestRemoveNamespaceMember(t *testing.T) {
 						UserData: models.UserData{Username: "jane_doe"},
 					}, 0, nil).
 					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000001", false).
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
-					}, 0, nil).
-					Once()
 			},
 			expected: Expected{
 				namespace: nil,
@@ -2111,13 +2012,6 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000001", false).
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
 					}, 0, nil).
 					Once()
 				storeMock.
@@ -2161,13 +2055,6 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000001", false).
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
 					}, 0, nil).
 					Once()
 				storeMock.
