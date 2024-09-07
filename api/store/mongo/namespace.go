@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -182,6 +183,8 @@ func (s *Store) NamespaceGetPreferred(ctx context.Context, tenantID, userID stri
 }
 
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+	namespace.CreatedAt = clock.Now()
+
 	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
 	if err != nil {
 		return nil, err

@@ -10,6 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmocks "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -432,6 +434,12 @@ func TestNamespaceGetPreferred(t *testing.T) {
 }
 
 func TestNamespaceCreate(t *testing.T) {
+	now := time.Now()
+
+	clockMock := new(clockmocks.Clock)
+	clockMock.On("Now").Return(now)
+	clock.DefaultBackend = clockMock
+
 	type Expected struct {
 		ns  *models.Namespace
 		err error
@@ -461,9 +469,10 @@ func TestNamespaceCreate(t *testing.T) {
 			fixtures: []string{},
 			expected: Expected{
 				ns: &models.Namespace{
-					Name:     "namespace-1",
-					Owner:    "507f1f77bcf86cd799439011",
-					TenantID: "00000000-0000-4000-0000-000000000000",
+					CreatedAt: now,
+					Name:      "namespace-1",
+					Owner:     "507f1f77bcf86cd799439011",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Members: []models.Member{
 						{
 							ID:   "507f1f77bcf86cd799439011",
