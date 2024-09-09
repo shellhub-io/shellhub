@@ -55,10 +55,7 @@ const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket =>
   const ws = new WebSocket(url);
   const enc = new TextEncoder();
 
-  //ws.binaryType = "arraybuffer";
-
   ws.onmessage = (ev) => {
-    console.log("onMessage", ev.data);
     xterm.write(ev.data);
   };
 
@@ -67,7 +64,6 @@ const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket =>
       kind: MessageKind.Input,
       data: [...enc.encode(data)],
     };
-    console.log("onData", message);
     ws.send(JSON.stringify(message));
   });
 
@@ -78,7 +74,6 @@ const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket =>
     };
 
     if (ws.readyState === WebSocket.OPEN) {
-      console.log("onResize", message);
       ws.send(JSON.stringify(message));
     }
   });
@@ -112,6 +107,15 @@ export const terminals: Module<TerminalState, State> = {
         const { token } = response.data;
         const { xterm, fitAddon } = createXtermInstance();
         const websocket = createWebSocketConnection(token, xterm);
+
+        websocket.addEventListener("open", () => {
+          const data = fitAddon.proposeDimensions();
+          const message: Message = {
+            kind: MessageKind.Resize,
+            data: { cols: data?.cols, rows: data?.rows },
+          };
+          websocket.send(JSON.stringify(message));
+        });
 
         commit("setNewTab", { token, xterm, websocket, fitAddon });
         await router.push({ name: "Connection", params: { token } });
