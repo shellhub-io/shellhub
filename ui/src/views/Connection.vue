@@ -18,8 +18,8 @@
   setup
   lang="ts"
 >
-import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
-import { useEventListener } from '@vueuse/core'
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
