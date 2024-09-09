@@ -75,7 +75,7 @@
     <v-main data-test="main">
       <slot>
         <v-container
-          :class="noGaps ? 'd-flex flex-column fill-height pa-0' : 'pa-8'"
+          :class="noGaps ? 'd-flex fill-height pa-0' : 'pa-8'"
           fluid
           data-test="container"
         >

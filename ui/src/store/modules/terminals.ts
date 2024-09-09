@@ -1,15 +1,15 @@
 import { Module } from "vuex";
 import axios from "axios";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
 import { State } from "..";
 import { IConnectToTerminal } from "@/interfaces/ITerminal";
 import { IParams } from "@/interfaces/IParams";
 import { router } from "@/router";
 
 const webTermDimensions = {
-  cols: 180,
-  rows: 50,
+  cols: 0,
+  rows: 0,
 };
 
 const encodeURLParams = (params: IParams): string => Object.entries(params)
@@ -35,8 +35,6 @@ const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
     cursorBlink: true,
     fontFamily: "monospace",
     theme: { background: "#fff0000" },
-    cols: 180,
-    rows: 20,
   });
 
   const fitAddon = new FitAddon();
@@ -57,13 +55,19 @@ const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket =>
   const ws = new WebSocket(url);
   const enc = new TextEncoder();
 
-  ws.onmessage = (ev) => xterm.write(ev.data);
+  //ws.binaryType = "arraybuffer";
+
+  ws.onmessage = (ev) => {
+    console.log("onMessage", ev.data);
+    xterm.write(ev.data);
+  };
 
   xterm.onData((data) => {
     const message: Message = {
       kind: MessageKind.Input,
       data: [...enc.encode(data)],
     };
+    console.log("onData", message);
     ws.send(JSON.stringify(message));
   });
 
@@ -74,6 +78,7 @@ const createWebSocketConnection = (token: string, xterm: Terminal): WebSocket =>
     };
 
     if (ws.readyState === WebSocket.OPEN) {
+      console.log("onResize", message);
       ws.send(JSON.stringify(message));
     }
   });

@@ -53,9 +53,8 @@
     "vuex": "^4.0.2",
     "webcrypto": "^0.1.1",
     "webfontloader": "^1.6.28",
-    "xterm": "^5.0.0",
-    "xterm-addon-attach": "^0.8.0",
-    "xterm-addon-fit": "^0.7.0"
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
