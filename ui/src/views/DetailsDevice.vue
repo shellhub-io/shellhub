@@ -110,6 +110,16 @@
           <p>{{ formatDate(device.last_seen) }}</p>
         </div>
       </div>
+      <div>
+        <div class="text-overline mt-3">Position:</div>
+        <iframe
+          title="map"
+          width="100%"
+          height="350"
+          :src="mapUrl()"
+          style="border: 1px solid black"
+        />
+      </div>
     </v-card-text>
   </v-card>
   <v-card class="mt-2 pa-4 bg-v-theme-surface" v-else>
@@ -169,4 +179,13 @@ const receiveName = (params: string) => {
   device.value.name = params;
 };
 
+const mapUrl = (): string => {
+  const west = device.value.position.longitude - 5;
+  const south = device.value.position.latitude - 5;
+  const east = device.value.position.longitude + 5;
+  const north = device.value.position.latitude + 5;
+
+  const osm = "https://www.openstreetmap.org/export/embed.html";
+  return `${osm}?bbox=${west},${south},${east},${north}&layer=mapnik&marker=${(south + north) / 2},${(west + east) / 2}`;
+};
 </script>
