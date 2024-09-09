@@ -18,7 +18,7 @@
   setup
   lang="ts"
 >
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onActivated, onUnmounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { Terminal } from "@xterm/xterm";
@@ -60,6 +60,10 @@ onUnmounted(() => {
     xterm.value.reset();
     xterm.value.clear();
   }
+});
+
+onActivated(() => {
+  window.dispatchEvent(new Event("resize"));
 });
 </script>
 
