@@ -41,6 +41,17 @@ const initializeTerminal = async () => {
       xterm.value.open(el.value);
       xterm.value.focus();
       terminalData.value.fitAddon.fit();
+
+      terminalData.value.websocket.addEventListener("open", () => {
+        const data = terminalData.value.fitAddon.proposeDimensions();
+        terminalData.value.websocket.send(JSON.stringify({
+          kind: 2,
+          data: {
+            cols: data.cols,
+            rows: data.rows,
+          },
+        }));
+      });
     }
   }
 };
