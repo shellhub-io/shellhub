@@ -2,7 +2,7 @@
   <v-row
     justify="center"
     align="center"
-    class="fill-height terminal-layout"
+    class="fill-height terminal-layout pa-4"
   >
     <v-col class="fill-height">
       <div
@@ -75,10 +75,6 @@ onUnmounted(() => {
 </script>
 
 <style>
-.terminal {
-  padding: 20px;
-}
-
 .terminal-layout {
   background-color: #000000;
 }
