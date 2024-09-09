@@ -19,6 +19,7 @@
   lang="ts"
 >
 import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
+import { useEventListener } from '@vueuse/core'
 import { useRoute } from "vue-router";
 import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
@@ -26,7 +27,6 @@ import { useStore } from "../store";
 
 const store = useStore();
 const route = useRoute();
-const initialized = ref(false);
 
 const xterm = ref<Terminal | null>(null);
 const el = ref<HTMLElement | null>(null);
@@ -53,7 +53,7 @@ const initializeTerminal = async () => {
         }));
       });
 
-      window.addEventListener("resize", () => {
+      useEventListener(window, "resize", () => {
         terminalData.value.fitAddon.fit();
       });
     }
