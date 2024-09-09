@@ -52,6 +52,10 @@ const initializeTerminal = async () => {
           },
         }));
       });
+
+      window.addEventListener("resize", () => {
+        terminalData.value.fitAddon.fit();
+      });
     }
   }
 };
@@ -76,6 +80,6 @@ onUnmounted(() => {
 }
 
 .terminal-layout {
-  background-color: #ff0000;
+  background-color: #000000;
 }
 </style>
