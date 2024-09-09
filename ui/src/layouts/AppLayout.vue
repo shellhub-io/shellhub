@@ -79,7 +79,11 @@
           fluid
           data-test="container"
         >
-          <router-view :key="currentRoute.value.path" />
+          <router-view v-slot="{ Component }">
+            <keep-alive include="Connection">
+              <component :is="Component" :key="currentRoute.value.path" />
+            </keep-alive>
+          </router-view>
         </v-container>
       </slot>
     </v-main>
