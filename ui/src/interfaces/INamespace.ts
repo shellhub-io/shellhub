@@ -24,7 +24,7 @@ export interface INamespace {
 }
 
 export interface INamespaceInvite {
-  tenant_id: string;
+  tenant: string;
   sig: string;
 }
 
