@@ -59,7 +59,7 @@ COPY ./install.sh /templates/install.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.20.2 AS production
+FROM alpine:3.20.3 AS production
 
 RUN apk add curl
 
