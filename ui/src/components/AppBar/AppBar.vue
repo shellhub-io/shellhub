@@ -9,26 +9,16 @@
       @click.stop="showNavigationDrawer = !showNavigationDrawer"
       aria-label="Toggle Menu"
     />
-    <v-row>
-      <v-col sm="2">
-        <v-select
-          prepend-icon="mdi-server-network ml-4 hidden-md-and-down"
-          label="Select Terminal"
-          :items="terminalTokens"
-          item-value="token"
-          item-text="token"
-          v-model="selectedToken"
-        />
 
-      </v-col>
-      <v-col>
-        <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down">
-          <template v-slot:divider>
-            <v-icon icon="mdi-chevron-right" />
-          </template>
-        </v-breadcrumbs>
-      </v-col>
-    </v-row>
+    <v-icon icon="mdi-server-network" class="ml-4 hidden-md-and-down" />
+
+    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down">
+      <template v-slot:divider>
+        <v-icon icon="mdi-chevron-right" />
+      </template>
+    </v-breadcrumbs>
+
+    <v-spacer />
 
     <v-tooltip
       location="bottom"
@@ -117,7 +107,6 @@
 import {
   computed,
   ref,
-  watch,
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useStore } from "../../store";
@@ -204,16 +193,6 @@ const menu = [
     method: logout,
   },
 ];
-
-const selectedToken = ref(null);
-
-const terminalTokens = computed(() => Object.keys(store.getters["terminals/getTerminal"]));
-
-watch(selectedToken, (newToken) => {
-  if (newToken) {
-    router.push({ name: "Connection", params: { token: newToken } });
-  }
-});
 
 const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
   const breadcrumbs: BreadcrumbItem[] = [];

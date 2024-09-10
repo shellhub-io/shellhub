@@ -61,8 +61,33 @@
             {{ item.title }}
           </v-list-item-title>
         </v-list-item>
-        <v-col class="d-flex align-end justify-center">
-          <QuickConnection />
+
+        <v-col v-if="terminalTokens.length > 0" class="d-flex align-end justify-center pa-2">
+          <TerminalSelect @open-quick-dialog="isAddNamespaceDialogVisible = true" />
+        </v-col>
+
+        <v-col v-else class="d-flex align-end justify-center">
+          <div>
+            <v-btn
+              @click="isAddNamespaceDialogVisible = true"
+              color="primary"
+              tabindex="0"
+              variant="elevated"
+              aria-label="Dialog Quick Connection"
+              data-test="quick-connection-open-btn"
+              prepend-icon="mdi-link"
+            >
+              Quick Connection
+            </v-btn>
+            <div>
+              <p
+                class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1"
+                data-test="quick-connect-instructions"
+              >
+                Press "Ctrl + K" to Quick Connect!
+              </p>
+            </div>
+          </div>
         </v-col>
 
       </v-list>
@@ -104,6 +129,7 @@
     </v-overlay>
   </v-app>
 
+  <QuickConnection v-model="isAddNamespaceDialogVisible" />
   <UserWarning data-test="userWarning-component" />
 </template>
 
@@ -118,6 +144,7 @@ import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
+import TerminalSelect from "@/components/Terminal/TerminalSelect.vue";
 
 const router = useRouter();
 const store = useStore();
@@ -128,7 +155,7 @@ const hasNamespaces = computed(
 const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
-
+const isAddNamespaceDialogVisible = ref(false);
 const { lgAndUp } = useDisplay();
 
 const showNavigationDrawer = ref(lgAndUp);
@@ -193,7 +220,7 @@ const items = [
 ];
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
-
+const terminalTokens = computed(() => Object.keys(store.getters["terminals/getTerminal"]));
 const noGaps = computed(() => router.currentRoute.value.meta.noGaps);
 
 defineExpose({

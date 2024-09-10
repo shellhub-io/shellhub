@@ -14,10 +14,7 @@
 
 </template>
 
-<script
-  setup
-  lang="ts"
->
+<script setup lang="ts">
 import { computed, onMounted, onActivated, onUnmounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";

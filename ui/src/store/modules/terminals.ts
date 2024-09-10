@@ -27,7 +27,7 @@ interface Message {
 }
 
 export interface TerminalState {
-  terminals: Record<string, { xterm: Terminal, websocket: WebSocket, fitAddon: FitAddon }>;
+  terminals: Record<string, { xterm: Terminal, websocket: WebSocket, fitAddon: FitAddon, uid: string }>;
 }
 
 const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
@@ -94,8 +94,15 @@ export const terminals: Module<TerminalState, State> = {
   },
 
   mutations: {
-    setNewTab(state, { token, xterm, websocket, fitAddon }) {
-      state.terminals[token] = { xterm, websocket, fitAddon };
+    setNewTab(state, { token, xterm, websocket, fitAddon, uid }) {
+      state.terminals[token] = { xterm, websocket, fitAddon, uid };
+    },
+    removeTerminal(state, token) {
+      if (state.terminals[token]) {
+        state.terminals[token].xterm.dispose();
+        state.terminals[token].websocket.close();
+        delete state.terminals[token];
+      }
     },
   },
 
@@ -103,7 +110,7 @@ export const terminals: Module<TerminalState, State> = {
     async fetch({ commit }, params: IConnectToTerminal) {
       try {
         const response = await axios.post("/ws/ssh", params);
-
+        const uid = params.device;
         const { token } = response.data;
         const { xterm, fitAddon } = createXtermInstance();
         const websocket = createWebSocketConnection(token, xterm);
@@ -117,12 +124,15 @@ export const terminals: Module<TerminalState, State> = {
           websocket.send(JSON.stringify(message));
         });
 
-        commit("setNewTab", { token, xterm, websocket, fitAddon });
+        commit("setNewTab", { token, xterm, websocket, fitAddon, uid });
         await router.push({ name: "Connection", params: { token } });
       } catch (error) {
         commit("clearListPublicKeys");
         throw error;
       }
+    },
+    removeTerminal({ commit }, token) {
+      commit("removeTerminal", token);
     },
   },
 };
