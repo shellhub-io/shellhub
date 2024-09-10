@@ -104,13 +104,11 @@
         </div>
       </div>
 
-      <div>
+      <div v-if="isOnline()">
         <div class="text-overline mt-3">Last Seen:</div>
         <div data-test="deviceConvertDate-field">
           <p>{{ formatDate(device.last_seen) }}</p>
         </div>
-      </div>
-      <div>
         <div class="text-overline mt-3">Position:</div>
         <iframe
           title="map"
@@ -178,6 +176,8 @@ const refreshUsers = async () => {
 const receiveName = (params: string) => {
   device.value.name = params;
 };
+
+const isOnline = (): boolean => navigator.onLine;
 
 const mapUrl = (): string => {
   const west = device.value.position.longitude - 5;

@@ -74,8 +74,6 @@ exports[`Details Device > Renders the component 1`] = `
       <div data-test=\\"deviceConvertDate-field\\">
         <p></p>
       </div>
-    </div>
-    <div>
       <div class=\\"text-overline mt-3\\">Position:</div><iframe title=\\"map\\" width=\\"100%\\" height=\\"350\\" src=\\"https://www.openstreetmap.org/export/embed.html?bbox=-5,-5,5,5&amp;layer=mapnik&amp;marker=0,0\\" style=\\"border: 1px solid black;\\"></iframe>
     </div>
   </div>
@@ -158,8 +156,6 @@ exports[`Details Device > Renders the component when device has no last seen dat
       <div data-test=\\"deviceConvertDate-field\\">
         <p></p>
       </div>
-    </div>
-    <div>
       <div class=\\"text-overline mt-3\\">Position:</div><iframe title=\\"map\\" width=\\"100%\\" height=\\"350\\" src=\\"https://www.openstreetmap.org/export/embed.html?bbox=-5,-5,5,5&amp;layer=mapnik&amp;marker=0,0\\" style=\\"border: 1px solid black;\\"></iframe>
     </div>
   </div>
@@ -242,8 +238,6 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
       <div data-test=\\"deviceConvertDate-field\\">
         <p></p>
       </div>
-    </div>
-    <div>
       <div class=\\"text-overline mt-3\\">Position:</div><iframe title=\\"map\\" width=\\"100%\\" height=\\"350\\" src=\\"https://www.openstreetmap.org/export/embed.html?bbox=-5,-5,5,5&amp;layer=mapnik&amp;marker=0,0\\" style=\\"border: 1px solid black;\\"></iframe>
     </div>
   </div>
@@ -326,8 +320,6 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
       <div data-test=\\"deviceConvertDate-field\\">
         <p></p>
       </div>
-    </div>
-    <div>
       <div class=\\"text-overline mt-3\\">Position:</div><iframe title=\\"map\\" width=\\"100%\\" height=\\"350\\" src=\\"https://www.openstreetmap.org/export/embed.html?bbox=-5,-5,5,5&amp;layer=mapnik&amp;marker=0,0\\" style=\\"border: 1px solid black;\\"></iframe>
     </div>
   </div>
@@ -403,8 +395,6 @@ exports[`Details Device > Renders the component when device status is not accept
       <div data-test=\\"deviceConvertDate-field\\">
         <p></p>
       </div>
-    </div>
-    <div>
       <div class=\\"text-overline mt-3\\">Position:</div><iframe title=\\"map\\" width=\\"100%\\" height=\\"350\\" src=\\"https://www.openstreetmap.org/export/embed.html?bbox=-5,-5,5,5&amp;layer=mapnik&amp;marker=0,0\\" style=\\"border: 1px solid black;\\"></iframe>
     </div>
   </div>
