@@ -71,4 +71,8 @@ onActivated(() => {
 .terminal-layout {
   background-color: #000000;
 }
+
+.terminal {
+  position: absolute;
+}
 </style>
