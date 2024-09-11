@@ -248,35 +248,48 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrUserNotFound(req.MemberEmail, err)
 	}
 
-	addedAt := clock.Now()
-	expiresAt := addedAt.Add(7 * (24 * time.Hour))
-
-	member := &models.Member{
-		ID:        passiveUser.ID,
-		AddedAt:   addedAt,
-		ExpiresAt: expiresAt,
-		Role:      req.MemberRole,
-		Status:    models.MemberStatusAccepted,
-	}
-
-	// In cloud instances, the member must accept the invite before enter in the namespace.
-	if envs.IsCloud() {
-		member.Status = models.MemberStatusPending
-		if err := s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
-		switch {
-		case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
-			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, err)
-		default:
-			return nil, err
-		}
+	if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
+		return nil, err
 	}
 
 	return s.store.NamespaceGet(ctx, req.TenantID, true)
+}
+
+// addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
+func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
+	return func(ctx context.Context) error {
+		member := &models.Member{
+			ID:      memberID,
+			AddedAt: clock.Now(),
+			Role:    req.MemberRole,
+		}
+
+		// In cloud instances, the member must accept the invite before enter in the namespace.
+		if envs.IsCloud() {
+			member.Status = models.MemberStatusPending
+			member.ExpiresAt = member.AddedAt.Add(7 * (24 * time.Hour))
+		} else {
+			member.Status = models.MemberStatusAccepted
+			member.ExpiresAt = time.Time{}
+		}
+
+		if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
+			switch {
+			case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
+				return NewErrNamespaceMemberDuplicated(member.ID, err)
+			default:
+				return err
+			}
+		}
+
+		if envs.IsCloud() {
+			if err := s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {

@@ -9,16 +9,20 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuid_mocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestListNamespaces(t *testing.T) {
@@ -1321,7 +1325,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					Return("false").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					On("WithTransaction", ctx, mock.Anything).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1374,7 +1378,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					Return("false").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1413,148 +1417,6 @@ func TestAddNamespaceMember(t *testing.T) {
 							ID:     "000000000000000000000000",
 							Role:   authorizer.RoleObserver,
 							Status: models.MemberStatusAccepted,
-						},
-					},
-				},
-				err: nil,
-			},
-		},
-		{
-			description: "fails when instance is cloud and cannot send the invite",
-			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:     "000000000000000000000000",
-								Role:   authorizer.RoleOwner,
-								Status: models.MemberStatusAccepted,
-							},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
-					Once()
-				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
-					Return(&models.User{ID: "000000000000000000000001"}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
-				clientMock.
-					On("InviteMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", "localhost").
-					Return(errors.New("error")).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       errors.New("error"),
-			},
-		},
-		{
-			description: "succeeds when the instance is cloud",
-			req: &requests.NamespaceAddMember{
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-				FowardedHost: "localhost",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:     "000000000000000000000000",
-								Role:   authorizer.RoleOwner,
-								Status: models.MemberStatusAccepted,
-							},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
-					Once()
-				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
-					Return(&models.User{
-						ID: "000000000000000000000001",
-					}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
-				clientMock.
-					On("InviteMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", "localhost").
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:     "000000000000000000000000",
-								Role:   authorizer.RoleOwner,
-								Status: models.MemberStatusAccepted,
-							},
-							{
-								ID:     "000000000000000000000001",
-								Role:   authorizer.RoleObserver,
-								Status: models.MemberStatusPending,
-							},
-						},
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Name:     "namespace",
-					Owner:    "000000000000000000000000",
-					Members: []models.Member{
-						{
-							ID:     "000000000000000000000000",
-							Role:   authorizer.RoleOwner,
-							Status: models.MemberStatusAccepted,
-						},
-						{
-							ID:     "000000000000000000000001",
-							Role:   authorizer.RoleObserver,
-							Status: models.MemberStatusPending,
 						},
 					},
 				},
@@ -1575,6 +1437,216 @@ func TestAddNamespaceMember(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestService_addMember(t *testing.T) {
+	envMock = new(envmock.Backend)
+	clockMock := new(clockmock.Clock)
+	storeMock := new(mocks.Store)
+
+	envs.DefaultBackend = envMock
+	clock.DefaultBackend = clockMock
+
+	now := time.Now()
+	clockMock.On("Now").Return(now)
+
+	cases := []struct {
+		description   string
+		memberID      string
+		req           *requests.NamespaceAddMember
+		requiredMocks func(context.Context)
+		expected      error
+	}{
+		{
+			description: "fails cannot add the member",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			description: "fails when member is duplicated",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
+					Return(mongo.ErrNamespaceDuplicatedMember).
+					Once()
+			},
+			expected: NewErrNamespaceMemberDuplicated("000000000000000000000000", mongo.ErrNamespaceDuplicatedMember),
+		},
+		{
+			description: "succeeds",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
+					Return(nil).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "[cloud] fails cannot add the member",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			description: "[cloud] fails when member is duplicated",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					Return(mongo.ErrNamespaceDuplicatedMember).
+					Once()
+			},
+			expected: NewErrNamespaceMemberDuplicated("000000000000000000000000", mongo.ErrNamespaceDuplicatedMember),
+		},
+		{
+			description: "[cloud] fails cannot send the invite",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					Return(nil).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				clientMock.
+					On("InviteMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000", "localhost").
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			description: "[cloud] succeeds",
+			memberID:    "000000000000000000000000",
+			req: &requests.NamespaceAddMember{
+				FowardedHost: "localhost",
+				UserID:       "000000000000000000000000",
+				TenantID:     "00000000-0000-4000-0000-000000000000",
+				MemberEmail:  "john.doe@test.com",
+				MemberRole:   authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				storeMock.
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					Return(nil).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				clientMock.
+					On("InviteMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000", "localhost").
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			ctx := context.Background()
+			tc.requiredMocks(ctx)
+
+			cb := s.addMember(tc.memberID, tc.req)
+			assert.Equal(tt, tc.expected, cb(ctx))
+
+			storeMock.AssertExpectations(tt)
+			envMock.AssertExpectations(tt)
+		})
+	}
 }
 
 func TestUpdateNamespaceMember(t *testing.T) {
