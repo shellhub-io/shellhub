@@ -77,10 +77,14 @@ const closeTerminal = (token: string) => {
 };
 
 const openQuickConnection = () => emit("openQuickDialog");
+const currentRoute = computed(() => route.params.token);
+const currentToken = computed(() => store.getters["terminals/getTerminal"][currentRoute.value]);
 
 watch(route, (newRoute) => {
-  if (newRoute.name !== "Connection") {
-    selectedToken.value = null;
+  if (newRoute.name === "Connection") {
+    selectedToken.value = currentToken.value.uid.slice(0, 10);
+    return;
   }
+  selectedToken.value = null;
 });
 </script>
