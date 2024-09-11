@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
@@ -247,11 +248,15 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrUserNotFound(req.MemberEmail, err)
 	}
 
+	addedAt := clock.Now()
+	expiresAt := addedAt.Add(7 * (24 * time.Hour))
+
 	member := &models.Member{
-		ID:      passiveUser.ID,
-		AddedAt: clock.Now(),
-		Role:    req.MemberRole,
-		Status:  models.MemberStatusAccepted,
+		ID:        passiveUser.ID,
+		AddedAt:   addedAt,
+		ExpiresAt: expiresAt,
+		Role:      req.MemberRole,
+		Status:    models.MemberStatusAccepted,
 	}
 
 	// In cloud instances, the member must accept the invite before enter in the namespace.

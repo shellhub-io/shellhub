@@ -1321,7 +1321,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					Return("false").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1374,7 +1374,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					Return("false").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1516,7 +1516,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now}).
+					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
 					Return(nil).
 					Once()
 				storeMock.

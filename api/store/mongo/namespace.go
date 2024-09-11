@@ -294,10 +294,11 @@ func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, member 
 	}
 
 	memberBson := bson.M{
-		"id":       member.ID,
-		"added_at": member.AddedAt,
-		"role":     member.Role,
-		"status":   member.Status,
+		"id":         member.ID,
+		"added_at":   member.AddedAt,
+		"expires_at": member.ExpiresAt,
+		"role":       member.Role,
+		"status":     member.Status,
 	}
 
 	res, err := s.db.
@@ -328,6 +329,10 @@ func (s *Store) NamespaceUpdateMember(ctx context.Context, tenantID string, memb
 
 	if changes.Status != "" {
 		update["members.$.status"] = changes.Status
+	}
+
+	if changes.ExpiresAt != nil {
+		update["members.$.expires_at"] = *changes.ExpiresAt
 	}
 
 	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, filter, bson.M{"$set": update})
