@@ -93,9 +93,24 @@
       </v-list>
     </v-navigation-drawer>
 
+    <v-navigation-drawer
+      v-if="terminalTokens.length > 0"
+      theme="dark"
+      v-model="showTerminalDrawer"
+      absolute
+      app
+      class="bg-v-theme-surface"
+      data-test="navigation-drawer"
+      location="right"
+    >
+      daskjdsalkjds
+    </v-navigation-drawer>
     <SnackbarComponent />
 
-    <AppBar v-model="showNavigationDrawer" data-test="app-bar" />
+    <AppBar
+      v-model:showNavigationDrawer="showNavigationDrawer"
+      v-model:showTerminalDrawer="showTerminalDrawer"
+      data-test="app-bar" />
 
     <v-main data-test="main">
       <slot>
@@ -160,6 +175,7 @@ const { lgAndUp } = useDisplay();
 
 const showNavigationDrawer = ref(lgAndUp);
 
+const showTerminalDrawer = ref(false);
 const hasSpinner = computed({
   get() { return store.getters["spinner/status"]; },
   set(v) { store.dispatch("spinner/setStatus", v); },

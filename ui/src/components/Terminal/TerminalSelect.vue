@@ -1,13 +1,16 @@
 <template>
   <v-select
     variant="outlined"
-    label="Select Terminal"
+    :label="selectedToken === null ? 'Select Terminal' : 'Active Terminal'"
     :items="terminalTokens"
     :hide-details="true"
     item-title="uid"
     item-value="token"
     v-model="selectedToken"
   >
+    <template #prepend-inner v-if="selectedToken !== null">
+      <v-chip label icon color="primary" class="text-uppercase"><v-icon>mdi-console</v-icon></v-chip>
+    </template>
     <template #prepend-item>
       <v-list-subheader>
         All Open Sessions
@@ -17,10 +20,10 @@
       <v-list-item @click="goToTerminal(item.value)">
         <v-row cols="12">
           <v-col cols="10" class="d-flex justify-start align-center">
-            <v-chip label color="primary" class="text-uppercase mr-2">{{ item.raw.uid.charAt(0) }}</v-chip>
+            <v-chip label icon color="primary" class="text-uppercase mr-2"><v-icon>mdi-console</v-icon></v-chip>
             <span>{{ item.raw.uid.slice(0, 10) }}</span>
           </v-col>
-          <v-col cols="2" class="d-flex justify- align-center ma-0 pa-0">
+          <v-col cols="2" class="d-flex justify-center align-center ma-0 pa-0 ">
             <v-btn icon variant="plain" @click.stop="closeTerminal(item.value)">
               <v-icon>mdi-close</v-icon>
             </v-btn>

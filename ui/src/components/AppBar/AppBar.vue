@@ -100,6 +100,12 @@
         </v-list-item>
       </v-list>
     </v-menu>
+
+    <v-app-bar-nav-icon
+      v-if="terminalTokens"
+      @click.stop="showTerminalDrawer = !showTerminalDrawer"
+      aria-label="Toggle Menu"
+    />
   </v-app-bar>
 </template>
 
@@ -137,7 +143,10 @@ const currentUser = computed(() => store.getters["auth/currentUser"]);
 const defaultSize = ref(24);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
 
-const showNavigationDrawer = defineModel<boolean>();
+const terminalTokens = computed(() => route.name === "Connection");
+
+const showNavigationDrawer = defineModel<boolean>("showNavigationDrawer", false);
+const showTerminalDrawer = defineModel<boolean>("showTerminalDrawer", false);
 
 const triggerClick = (item: MenuItem): void => {
   switch (item.type) {

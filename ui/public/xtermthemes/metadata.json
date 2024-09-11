@@ -1,0 +1,137 @@
+[
+  {
+    "name": "Termius Dark",
+    "file": "termius_dark.json",
+    "dark": true
+  },
+  {
+    "name": "Termius Light",
+    "file": "termius_light.json",
+    "dark": false
+  },
+  {
+    "name": "Atom One Dark",
+    "file": "atom_one_dark.json",
+    "dark": true
+  },
+  {
+    "name": "Atom One Light",
+    "file": "atom_one_light.json",
+    "dark": false
+  },
+  {
+    "name": "Halloween",
+    "file": "halloween.json",
+    "dark": true
+  },
+  {
+    "name": "Dia De Muertos",
+    "file": "dia_de_muertos.json",
+    "dark": false
+  },
+  {
+    "name": "Gruvbox Dark",
+    "file": "gruvbox_dark.json",
+    "dark": true
+  },
+  {
+    "name": "Gruvbox Light",
+    "file": "gruvbox_light.json",
+    "dark": false
+  },
+  {
+    "name": "Material Dark",
+    "file": "material_dark.json",
+    "dark": true
+  },
+  {
+    "name": "Material Light",
+    "file": "material_light.json",
+    "dark": false
+  },
+  {
+    "name": "Manhattan",
+    "file": "manhattan.json",
+    "dark": true
+  },
+  {
+    "name": "Plastic World",
+    "file": "plastic_world.json",
+    "dark": false
+  },
+  {
+    "name": "Basic",
+    "file": "basic.json",
+    "dark": false
+  },
+  {
+    "name": "Homebrew",
+    "file": "homebrew.json",
+    "dark": true
+  },
+  {
+    "name": "Grass",
+    "file": "grass.json",
+    "dark": true
+  },
+  {
+    "name": "Man Page",
+    "file": "man_page.json",
+    "dark": false
+  },
+  {
+    "name": "Novel",
+    "file": "novel.json",
+    "dark": false
+  },
+  {
+    "name": "Ocean",
+    "file": "ocean.json",
+    "dark": true
+  },
+  {
+    "name": "Pro",
+    "file": "pro.json",
+    "dark": true
+  },
+  {
+    "name": "Red Sands",
+    "file": "red_sands.json",
+    "dark": true
+  },
+  {
+    "name": "Solarized Dark",
+    "file": "solarized_dark.json",
+    "dark": true
+  },
+  {
+    "name": "Solarized Light",
+    "file": "solarized_light.json",
+    "dark": false
+  },
+  {
+    "name": "Silver Aerogel",
+    "file": "silver_aerogel.json",
+    "dark": false
+  },
+  {
+    "name": "Dracula",
+    "file": "dracula.json",
+    "dark": true
+  },
+  {
+    "name": "Monokai",
+    "file": "monokai.json",
+    "dark": true
+  },
+  {
+    "name": "Nord Light",
+    "file": "nord_light.json",
+    "dark": false
+  },
+  {
+    "name": "Nord Dark",
+    "file": "nord_dark.json",
+    "dark": true
+  }
+]
