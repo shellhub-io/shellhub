@@ -103,7 +103,17 @@
       data-test="navigation-drawer"
       location="right"
     >
-      daskjdsalkjds
+      <div class="pa-4">
+        <p>Select Theme:</p>
+        <v-btn
+          v-for="theme in availableThemes"
+          :key="theme"
+          class="ma-2"
+          @click="changeTheme(theme.file)"
+        >
+          {{ theme.name }}
+        </v-btn>
+      </div>
     </v-navigation-drawer>
     <SnackbarComponent />
 
@@ -150,7 +160,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
@@ -162,6 +172,7 @@ import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import TerminalSelect from "@/components/Terminal/TerminalSelect.vue";
 
 const router = useRouter();
+const route = useRoute();
 const store = useStore();
 const currentRoute = computed(() => router.currentRoute);
 const hasNamespaces = computed(
@@ -237,7 +248,16 @@ const items = [
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
 const terminalTokens = computed(() => Object.keys(store.getters["terminals/getTerminal"]));
+const availableThemes = computed(() => store.getters["terminals/getThemes"]);
 const noGaps = computed(() => router.currentRoute.value.meta.noGaps);
+
+const changeTheme = async (theme) => {
+  await store.dispatch("terminals/applyTheme", { token: route.params.token, themeName: theme });
+};
+
+onMounted(async () => {
+  await store.dispatch("terminals/fetchThemes");
+});
 
 defineExpose({
   items,

@@ -2,7 +2,7 @@ import { Module } from "vuex";
 import axios from "axios";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { WebglAddon } from "@xterm/addon-webgl"
+import { WebglAddon } from "@xterm/addon-webgl";
 import { State } from "..";
 import { IConnectToTerminal } from "@/interfaces/ITerminal";
 import { IParams } from "@/interfaces/IParams";
@@ -29,13 +29,14 @@ interface Message {
 
 export interface TerminalState {
   terminals: Record<string, { xterm: Terminal, websocket: WebSocket, fitAddon: FitAddon, uid: string }>;
+  themes: Array<{ name: string, file: string, dark: boolean }>;
 }
 
-const createXtermInstance = (): { xterm: Terminal, fitAddon: FitAddon } => {
+const createXtermInstance = (theme: any = {}): { xterm: Terminal, fitAddon: FitAddon } => {
   const xterm = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
-    theme: { background: "#fff0000" },
+    theme: theme || { background: "#fff0000" },
   });
 
   const fitAddon = new FitAddon();
@@ -89,10 +90,13 @@ export const terminals: Module<TerminalState, State> = {
   namespaced: true,
   state: {
     terminals: {},
+    themes: [],
   },
 
   getters: {
     getTerminal: (state) => state.terminals,
+    getThemes: (state) => state.themes,
+    findThemeByName: (state) => (themeName: string) => state.themes.find((theme) => theme.name === themeName),
   },
 
   mutations: {
@@ -106,9 +110,26 @@ export const terminals: Module<TerminalState, State> = {
         delete state.terminals[token];
       }
     },
+    setThemes(state, themes) {
+      state.themes = themes;
+    },
+    applyTheme(state, { token, theme }) {
+      const terminal = state.terminals[token];
+      if (terminal) {
+        terminal.xterm.options.theme = theme;
+      }
+    },
   },
 
   actions: {
+    async fetchThemes({ commit }) {
+      try {
+        const response = await axios.get("/xtermthemes/metadata.json");
+        commit("setThemes", response.data);
+      } catch (error) {
+        console.error("Error fetching themes:", error);
+      }
+    },
     async fetch({ commit }, params: IConnectToTerminal) {
       try {
         const response = await axios.post("/ws/ssh", params);
@@ -135,6 +156,11 @@ export const terminals: Module<TerminalState, State> = {
     },
     removeTerminal({ commit }, token) {
       commit("removeTerminal", token);
+    },
+    applyTheme({ commit }, { token, themeName }) {
+      axios.get(`/xtermthemes/${themeName}`).then((response) => {
+        commit("applyTheme", { token, theme: response.data });
+      });
     },
   },
 };
