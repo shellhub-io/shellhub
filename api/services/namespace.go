@@ -26,9 +26,20 @@ type NamespaceService interface {
 	// EditNamespace updates a namespace for the specified requests.NamespaceEdit#Tenant.
 	// It returns the namespace with the updated fields and an error, if any.
 	EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error)
-	// AddNamespaceMember adds a member to a namespace. The member's role cannot have more authority than the user who is
-	// adding the member; owners cannot be created. It returns the namespace and an error, if any.
+
+	// AddNamespaceMember is responsible for adding a new member to a namespace.
+	//
+	// In cloud environments, the member is assigned a 'pending' status, and an invitation email is
+	// sent. In community and enterprise environments, the member is immediately given an 'accepted'
+	// status. If the member was previously invited and remains in 'pending' status, it will resend
+	// the invitation instead of add the memberif the expiration date is reached.
+	//
+	// The role assigned to the new member must not grant more authority than the user adding them (e.g.,
+	// an administrator cannot add a member with a higher role such as an owner). Owners cannot be created.
+	//
+	// It returns the namespace and an error if any.
 	AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)
+
 	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
 	// have more authority than the user who is updating the member; owners cannot be created. It returns an error, if any.
 	UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error
@@ -248,6 +259,25 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrUserNotFound(req.MemberEmail, err)
 	}
 
+	// In cloud instances, if a member exists and their status is pending and the expiration date is reached,
+	// we resend the invite instead of adding the member.
+	// In community and enterprise instances, a "duplicate" error is always returned,
+	// since the member will never be in a pending status.
+	// Otherwise, add the member "from scratch"
+	if m, ok := namespace.FindMember(passiveUser.ID); ok {
+		now := clock.Now()
+
+		if !envs.IsCloud() || !(m.Status == models.MemberStatusPending && m.ExpiresAt.Before(now)) {
+			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
+		}
+
+		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m.ID, req)); err != nil {
+			return nil, err
+		}
+
+		return s.store.NamespaceGet(ctx, req.TenantID, true)
+	}
+
 	if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
 		return nil, err
 	}
@@ -274,12 +304,7 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 		}
 
 		if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
-			switch {
-			case errors.Is(err, mongo.ErrNamespaceDuplicatedMember):
-				return NewErrNamespaceMemberDuplicated(member.ID, err)
-			default:
-				return err
-			}
+			return err
 		}
 
 		if envs.IsCloud() {
@@ -289,6 +314,21 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 		}
 
 		return nil
+	}
+}
+
+// resendMemberInvite returns a transaction callback that resends an invitation to the member with the
+// specified ID.
+func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
+	return func(ctx context.Context) error {
+		expiresAt := clock.Now().Add(7 * (24 * time.Hour))
+		changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
+
+		if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {
+			return err
+		}
+
+		return s.client.InviteMember(ctx, req.TenantID, memberID, req.FowardedHost)
 	}
 }
 
