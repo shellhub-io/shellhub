@@ -103,18 +103,47 @@
       data-test="navigation-drawer"
       location="right"
     >
-      <div class="pa-4">
-        <p>Select Theme:</p>
-        <v-btn
-          v-for="theme in availableThemes"
-          :key="theme"
-          class="ma-2"
-          @click="changeTheme(theme.file)"
-        >
-          {{ theme.name }}
-        </v-btn>
-      </div>
+      <v-container>
+        <v-row>
+          <v-col class="mb-1 pt-3">
+            <h3>Themes:</h3>
+          </v-col>
+        </v-row>
+
+        <v-card class="elevation-0">
+          <v-virtual-scroll
+            :items="availableThemes"
+            height="500"
+            class="bg-v-theme-surface"
+            data-test="virtual-scroller"
+          >
+            <template #default="{ item }">
+              <v-list-item
+                :key="item"
+                lines="two"
+                data-test="list-item"
+                @click="changeTheme(item.file)"
+              >
+                <v-row cols="12">
+                  <v-col cols="4" class="d-flex justify-end align-center">
+                    <v-icon
+                      :style="`background:${item.preview.background};border-radius:50%;`"
+                      class="pa-4"
+                      :color="item.preview.foreground"
+                      :icon="item.dark ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'" />
+                  </v-col>
+                  <v-col>
+                    <h4>{{ item.name }}</h4>
+                  </v-col>
+                </v-row>
+              </v-list-item>
+            </template>
+          </v-virtual-scroll>
+        </v-card>
+        <div class="pa-4" />
+      </v-container>
     </v-navigation-drawer>
+
     <SnackbarComponent />
 
     <AppBar

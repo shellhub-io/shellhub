@@ -2,8 +2,8 @@
   <v-row
     justify="center"
     align="center"
-    class="fill-height terminal-layout pa-4"
-  >
+    class="fill-height pa-4"
+    :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }">
     <v-col class="fill-height">
       <div
         ref="el"
@@ -65,10 +65,6 @@ onActivated(() => {
 </script>
 
 <style>
-.terminal-layout {
-  background-color: #000000;
-}
-
 .terminal {
   position: absolute;
 }

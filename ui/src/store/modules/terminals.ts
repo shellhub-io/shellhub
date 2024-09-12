@@ -32,7 +32,7 @@ export interface TerminalState {
   themes: Array<{ name: string, file: string, dark: boolean }>;
 }
 
-const createXtermInstance = (theme: any = {}): { xterm: Terminal, fitAddon: FitAddon } => {
+const createXtermInstance = (theme: unknown = {}): { xterm: Terminal, fitAddon: FitAddon } => {
   const xterm = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
