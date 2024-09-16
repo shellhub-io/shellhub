@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
@@ -75,14 +76,26 @@ func (t *Tunnel) Router() http.Handler {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		id, err := t.ConnectionHandler(c.Request())
+		key, err := t.ConnectionHandler(c.Request())
 		if err != nil {
 			conn.Close()
 
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		t.connman.Set(id, wsconnadapter.New(conn), t.DialerPath)
+		requestID := c.Request().Header.Get("X-Request-ID")
+		parts := strings.Split(key, ":")
+		tenant := parts[0]
+		device := parts[1]
+
+		t.connman.Set(
+			key,
+			wsconnadapter.
+				New(conn).
+				WithID(requestID).
+				WithDevice(tenant, device),
+			t.DialerPath,
+		)
 
 		return nil
 	})
