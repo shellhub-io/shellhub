@@ -7,7 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var ErrNoConnection = errors.New("no connection")
@@ -27,12 +27,12 @@ func New() *ConnectionManager {
 }
 
 func (m *ConnectionManager) Set(key string, conn *wsconnadapter.Adapter, connPath string) {
-	dialer := revdial.NewDialer(conn, connPath)
+	dialer := revdial.NewDialer(conn.Logger, conn, connPath)
 
 	m.dialers.Store(key, dialer)
 
 	if size := m.dialers.Size(key); size > 1 {
-		logrus.WithFields(logrus.Fields{
+		log.WithFields(log.Fields{
 			"key":  key,
 			"size": size,
 		}).Warning("Multiple connections stored for the same identifier.")
@@ -67,7 +67,7 @@ func (m *ConnectionManager) Dial(ctx context.Context, key string) (net.Conn, err
 	}
 
 	if size := m.dialers.Size(key); size > 1 {
-		logrus.WithFields(logrus.Fields{
+		log.WithFields(log.Fields{
 			"key":  key,
 			"size": size,
 		}).Warning("Multiple connections found for the same identifier during reverse tunnel dialing.")
