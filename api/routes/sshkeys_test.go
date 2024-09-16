@@ -189,7 +189,7 @@ func TestDeletePublicKey(t *testing.T) {
 	}{
 		{
 			description: "fails when role is observer",
-			fingerprint: "fingerprint",
+			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
@@ -202,7 +202,7 @@ func TestDeletePublicKey(t *testing.T) {
 		},
 		{
 			description: "fails when role is operator",
-			fingerprint: "fingerprint",
+			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
@@ -214,8 +214,8 @@ func TestDeletePublicKey(t *testing.T) {
 			expected: Expected{status: http.StatusForbidden},
 		},
 		{
-			description: "fails when try to deleting an existing public key",
-			fingerprint: "fingerprint",
+			description: "fails when try to deleting a non existent public key",
+			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
@@ -224,15 +224,15 @@ func TestDeletePublicKey(t *testing.T) {
 			},
 			requiredMocks: func() {
 				svcMock.
-					On("DeletePublicKey", gomock.Anything, "fingerprint", "00000000-0000-4000-0000-000000000000").
+					On("DeletePublicKey", gomock.Anything, "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8", "00000000-0000-4000-0000-000000000000").
 					Return(svc.ErrNotFound).
 					Once()
 			},
 			expected: Expected{status: http.StatusNotFound},
 		},
 		{
-			description: "success when try to deleting an existing public key",
-			fingerprint: "fingerprint",
+			description: "success when fingerprint is encoded",
+			fingerprint: "8e%3Ab3%3Ae2%3Ace%3A3c%3A6c%3A27%3Aff%3A51%3Ac9%3A5d%3A77%3Aaf%3A92%3A2f%3Ad8",
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
@@ -241,7 +241,24 @@ func TestDeletePublicKey(t *testing.T) {
 			},
 			requiredMocks: func() {
 				svcMock.
-					On("DeletePublicKey", gomock.Anything, "fingerprint", "00000000-0000-4000-0000-000000000000").
+					On("DeletePublicKey", gomock.Anything, "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+			},
+			expected: Expected{status: http.StatusOK},
+		},
+		{
+			description: "success when try to deleting an existing public key",
+			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+				"X-ID":         "000000000000000000000000",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("DeletePublicKey", gomock.Anything, "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8", "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
 			},
