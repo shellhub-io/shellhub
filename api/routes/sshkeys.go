@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
@@ -123,6 +124,10 @@ func (h *Handler) DeletePublicKey(c gateway.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
+
+	// NOTE: This is a temporary workaround.
+	// TODO: Investigate why echo is not decoding the Fingerprint.
+	req.Fingerprint, _ = url.QueryUnescape(req.Fingerprint)
 
 	if err := c.Validate(&req); err != nil {
 		return err
