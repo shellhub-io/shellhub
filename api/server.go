@@ -106,12 +106,12 @@ type config struct {
 	// Its time unit is second.
 	//
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
-	AsynqGroupGracePeriod int64 `env:"ASYNQ_GROUP_GRACE_PERIOD,default=1"`
+	AsynqGroupGracePeriod int64 `env:"ASYNQ_GROUP_GRACE_PERIOD,default=2"`
 	// AsynqGroupMaxSize is the maximum number of tasks that can be aggregated together. If that number is reached, Asynq
 	// server will aggregate the tasks immediately.
 	//
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
-	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=500"`
+	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=1000"`
 }
 
 // startSentry initializes the Sentry client.
