@@ -93,56 +93,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-navigation-drawer
-      v-if="terminalTokens.length > 0"
-      theme="dark"
-      v-model="showTerminalDrawer"
-      absolute
-      app
-      class="bg-v-theme-surface"
-      data-test="navigation-drawer"
-      location="right"
-    >
-      <v-container>
-        <v-row>
-          <v-col class="mb-1 pt-3">
-            <h3>Themes:</h3>
-          </v-col>
-        </v-row>
-
-        <v-card class="elevation-0">
-          <v-virtual-scroll
-            :items="availableThemes"
-            height="500"
-            class="bg-v-theme-surface"
-            data-test="virtual-scroller"
-          >
-            <template #default="{ item }">
-              <v-list-item
-                :key="item"
-                lines="two"
-                data-test="list-item"
-                @click="changeTheme(item.file)"
-              >
-                <v-row cols="12">
-                  <v-col cols="4" class="d-flex justify-end align-center">
-                    <v-icon
-                      :style="`background:${item.preview.background};border-radius:50%;`"
-                      class="pa-4"
-                      :color="item.preview.foreground"
-                      :icon="item.dark ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'" />
-                  </v-col>
-                  <v-col>
-                    <h4>{{ item.name }}</h4>
-                  </v-col>
-                </v-row>
-              </v-list-item>
-            </template>
-          </v-virtual-scroll>
-        </v-card>
-        <div class="pa-4" />
-      </v-container>
-    </v-navigation-drawer>
+    <TerminalDrawer v-if="terminalTokens.length > 0 && terminalRoute" v-model="showTerminalDrawer" />
 
     <SnackbarComponent />
 
@@ -197,6 +148,7 @@ import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
+import TerminalDrawer from "@/components/Terminal/TerminalDrawer.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import TerminalSelect from "@/components/Terminal/TerminalSelect.vue";
 
@@ -216,6 +168,8 @@ const { lgAndUp } = useDisplay();
 const showNavigationDrawer = ref(lgAndUp);
 
 const showTerminalDrawer = ref(false);
+const terminalRoute = computed(() => route.name === "Connection");
+
 const hasSpinner = computed({
   get() { return store.getters["spinner/status"]; },
   set(v) { store.dispatch("spinner/setStatus", v); },
@@ -277,12 +231,7 @@ const items = [
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
 const terminalTokens = computed(() => Object.keys(store.getters["terminals/getTerminal"]));
-const availableThemes = computed(() => store.getters["terminals/getThemes"]);
 const noGaps = computed(() => router.currentRoute.value.meta.noGaps);
-
-const changeTheme = async (theme) => {
-  await store.dispatch("terminals/applyTheme", { token: route.params.token, themeName: theme });
-};
 
 onMounted(async () => {
   await store.dispatch("terminals/fetchThemes");

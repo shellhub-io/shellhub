@@ -36,6 +36,7 @@ const createXtermInstance = (theme: unknown = {}): { xterm: Terminal, fitAddon: 
   const xterm = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
+    fontSize: 14,
     theme: theme || { background: "#fff0000" },
   });
 
@@ -96,6 +97,7 @@ export const terminals: Module<TerminalState, State> = {
   getters: {
     getTerminal: (state) => state.terminals,
     getThemes: (state) => state.themes,
+    getFontSize: (state) => state.terminals.fontSize,
     findThemeByName: (state) => (themeName: string) => state.themes.find((theme) => theme.name === themeName),
   },
 
@@ -117,6 +119,12 @@ export const terminals: Module<TerminalState, State> = {
       const terminal = state.terminals[token];
       if (terminal) {
         terminal.xterm.options.theme = theme;
+      }
+    },
+    setFontSize(state, { token, fontSize }) {
+      if (state.terminals[token]) {
+        state.terminals[token].xterm.options.fontSize = fontSize;
+        state.terminals[token].fitAddon.fit();
       }
     },
   },
@@ -162,5 +170,14 @@ export const terminals: Module<TerminalState, State> = {
         commit("applyTheme", { token, theme: response.data });
       });
     },
+    changeFontSize(context, { token, adjustment }) {
+      const currentFontSize = context.state.terminals[token].xterm.options.fontSize || 14;
+      let newFontSize = currentFontSize + adjustment;
+      if (newFontSize < 12) {
+        newFontSize = 12;
+      }
+      context.commit("setFontSize", { token, fontSize: newFontSize });
+    },
+
   },
 };

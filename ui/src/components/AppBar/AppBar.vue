@@ -105,6 +105,7 @@
       v-if="terminalTokens"
       @click.stop="showTerminalDrawer = !showTerminalDrawer"
       aria-label="Toggle Menu"
+      icon="mdi-cog"
     />
   </v-app-bar>
 </template>
@@ -145,8 +146,8 @@ const isDarkMode = ref(getStatusDarkMode.value === "dark");
 
 const terminalTokens = computed(() => route.name === "Connection");
 
-const showNavigationDrawer = defineModel<boolean>("showNavigationDrawer", false);
-const showTerminalDrawer = defineModel<boolean>("showTerminalDrawer", false);
+const showNavigationDrawer = defineModel("showNavigationDrawer", { default: false });
+const showTerminalDrawer = defineModel("showTerminalDrawer", { default: false });
 
 const triggerClick = (item: MenuItem): void => {
   switch (item.type) {
