@@ -5,7 +5,7 @@ included_extensions:
 - .go
 build_target_path: ""
 build_path: /go/src/github.com/shellhub-io/shellhub/api
-build_flags: ["-gcflags", 'all="-N -l"']
+build_flags: ["-gcflags=all=-N -l"]
 build_delay: 200ns
 binary_name: api
 command_flags: ["server"]
