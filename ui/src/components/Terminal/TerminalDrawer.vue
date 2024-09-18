@@ -18,7 +18,6 @@
         <v-virtual-scroll
           :items="availableThemes"
           height="500"
-          class=""
           data-test="virtual-scroller"
         >
           <template #default="{ item }">
@@ -83,6 +82,7 @@ interface ThemeItem {
   name: string;
   dark: boolean;
 }
+
 const store = useStore();
 const route = useRoute();
 const showTerminalDrawer = ref(false);
@@ -103,12 +103,12 @@ const changeTheme = async (theme: string) => {
   await store.dispatch("terminals/applyTheme", { token: token.value, themeName: theme });
 };
 
-const increaseFontSize = () => {
-  store.dispatch("terminals/changeFontSize", { token: token.value, adjustment: 2 });
+const increaseFontSize = async () => {
+  await store.dispatch("terminals/changeFontSize", { token: token.value, adjustment: 2 });
 };
 
-const decreaseFontSize = () => {
-  store.dispatch("terminals/changeFontSize", { token: token.value, adjustment: -2 });
+const decreaseFontSize = async () => {
+  await store.dispatch("terminals/changeFontSize", { token: token.value, adjustment: -2 });
 };
 
 defineExpose({ showTerminalDrawer });
