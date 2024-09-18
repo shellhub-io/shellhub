@@ -9,4 +9,4 @@ if [ ! -f /var/run/secrets/ssh_private_key ]; then
     openssl genrsa -out /var/run/secrets/ssh_private_key 2048
 fi
 
-refresh run
+air

@@ -2,4 +2,4 @@
 
 ln -sf $PWD/gateway /gateway
 
-refresh run
+air

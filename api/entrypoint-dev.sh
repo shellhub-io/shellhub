@@ -12,4 +12,4 @@ fi
 
 ln -sf $PWD/api /api
 
-refresh run
+air
