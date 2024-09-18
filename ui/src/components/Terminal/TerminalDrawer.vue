@@ -4,6 +4,7 @@
     v-model="showTerminalDrawer"
     absolute
     app
+    disable-resize-watcher
     class="bg-v-theme-surface"
     data-test="navigation-drawer"
     location="right"
