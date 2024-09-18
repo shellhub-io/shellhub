@@ -43,7 +43,7 @@
       </v-card>
       <v-row class="mt-2">
         <v-col>
-          <h3>Themes:</h3>
+          <h3>Font-size:</h3>
         </v-col>
       </v-row>
       <v-card class="bg-v-theme-surface elevation-3 mt-2">
