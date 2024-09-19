@@ -117,9 +117,7 @@ export const terminals: Module<TerminalState, State> = {
     },
     applyTheme(state, { token, theme }) {
       const terminal = state.terminals[token];
-      if (terminal) {
-        terminal.xterm.options.theme = theme;
-      }
+      terminal.xterm.options.theme = theme;
     },
     setFontSize(state, { token, fontSize }) {
       if (state.terminals[token]) {
@@ -165,8 +163,8 @@ export const terminals: Module<TerminalState, State> = {
     removeTerminal({ commit }, token) {
       commit("removeTerminal", token);
     },
-    applyTheme({ commit }, { token, themeName }) {
-      axios.get(`/xtermthemes/${themeName}`).then((response) => {
+    async applyTheme({ commit }, { token, themeName }) {
+      await axios.get(`/xtermthemes/${themeName}`).then((response) => {
         commit("applyTheme", { token, theme: response.data });
       });
     },
