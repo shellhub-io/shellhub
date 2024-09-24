@@ -118,10 +118,10 @@ import {
   ref,
   watch,
 } from "vue";
-import { Terminal } from "xterm";
-import "xterm/css/xterm.css";
-import { FitAddon } from "xterm-addon-fit";
+import { Terminal } from "@xterm/xterm";
+import "@xterm/xterm/css/xterm.css";
 import moment from "moment";
+import { FitAddon } from "@xterm/addon-fit";
 import { envVariables } from "../../envVariables";
 import { useStore } from "../../store";
 import { INotificationsError } from "../../interfaces/INotifications";
