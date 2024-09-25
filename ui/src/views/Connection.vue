@@ -20,7 +20,7 @@ const el = ref<HTMLElement | null>(null);
 const token = computed(() => route.params.token as string);
 const terminalData = computed(() => store.getters["terminals/getTerminal"][token.value]);
 
-const scrollbarColor = computed(() => terminalData.value.xterm.options.theme.selection);
+const scrollbarColor = computed(() => terminalData.value?.xterm.options.theme.selection);
 
 const { lgAndUp } = useDisplay();
 

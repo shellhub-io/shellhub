@@ -2,6 +2,7 @@ import { Module } from "vuex";
 import axios from "axios";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from '@xterm/addon-web-links';
 import { WebglAddon } from "@xterm/addon-webgl";
 import { State } from "..";
 import { IConnectToTerminal } from "@/interfaces/ITerminal";
@@ -43,6 +44,7 @@ const createXtermInstance = (theme: unknown = {}): { xterm: Terminal, fitAddon: 
   const fitAddon = new FitAddon();
   xterm.loadAddon(fitAddon);
   xterm.loadAddon(new WebglAddon());
+  xterm.loadAddon(new WebLinksAddon());
 
   if (xterm.element) {
     xterm.reset();

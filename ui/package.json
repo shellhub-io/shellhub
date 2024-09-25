@@ -32,6 +32,7 @@
     "@vue/runtime-dom": "^3.2.40",
     "@vueuse/core": "^8.2.0",
     "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0",
     "@xterm/addon-webgl": "^0.18.0",
     "@xterm/xterm": "^5.5.0",
     "assert": "^2.0.0",
