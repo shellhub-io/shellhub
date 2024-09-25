@@ -1,22 +1,11 @@
 <template>
-  <v-row
-    justify="center"
-    align="center"
-    class="fill-height pa-4"
-    :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }">
-    <v-col class="fill-height">
-      <div
-        ref="el"
-        class="fill-height"
-      />
-    </v-col>
-  </v-row>
-
+  <div ref="el" class="fill-height w-100" :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }"></div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onActivated, onUnmounted, ref } from "vue";
+import { computed, onMounted, onActivated, onUnmounted, ref, watch } from "vue";
 import { useEventListener } from "@vueuse/core";
+import { useDisplay } from "vuetify";
 import { useRoute } from "vue-router";
 import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
@@ -30,6 +19,26 @@ const el = ref<HTMLElement | null>(null);
 
 const token = computed(() => route.params.token as string);
 const terminalData = computed(() => store.getters["terminals/getTerminal"][token.value]);
+
+const scrollbarColor = computed(() => terminalData.value.xterm.options.theme.selection);
+
+const { lgAndUp } = useDisplay();
+
+function toMilliseconds(s) {
+    return parseFloat(s) * (/\ds$/.test(s) ? 1000 : 1);
+}
+
+watch(lgAndUp, async(value) => {
+  const drawerElement = document.querySelector(".v-navigation-drawer");
+
+  if (drawerElement) {
+    const transitionDuration = getComputedStyle(drawerElement).getPropertyValue("transition-duration");
+
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, toMilliseconds(transitionDuration) * 2);
+  }
+});
 
 const initializeTerminal = async () => {
   if (terminalData.value && el.value) {
@@ -65,7 +74,24 @@ onActivated(() => {
 </script>
 
 <style>
-.terminal {
-  position: absolute;
+@-moz-document url-prefix() {
+  .xterm-viewport {
+    overflow: scroll !important;
+    scrollbar-width: auto;
+    scrollbar-color: v-bind(scrollbarColor) transparent;
+  }
+}
+
+.xterm-viewport::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.xterm-viewport::-webkit-scrollbar-track {
+  border-radius: 4px;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: v-bind(scrollbarColor);
 }
 </style>
