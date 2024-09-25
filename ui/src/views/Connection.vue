@@ -1,5 +1,5 @@
 <template>
-  <div ref="el" class="fill-height w-100" :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }"></div>
+  <div ref="el" class="term" :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }"></div>
 </template>
 
 <script setup lang="ts">
@@ -23,6 +23,19 @@ const terminalData = computed(() => store.getters["terminals/getTerminal"][token
 const scrollbarColor = computed(() => terminalData.value?.xterm.options.theme.selection);
 
 const { lgAndUp } = useDisplay();
+
+const leftMargin = computed(() => {
+  const main = document.querySelector('main');
+  if (lgAndUp.value) {
+    return getComputedStyle(main!).getPropertyValue('--v-layout-left');
+  }
+  return 0;
+});
+
+const topMargin = computed(() => {
+  const main = document.querySelector('main');
+  return getComputedStyle(main!).getPropertyValue('--v-layout-top');
+});
 
 function toMilliseconds(s) {
     return parseFloat(s) * (/\ds$/.test(s) ? 1000 : 1);
@@ -53,6 +66,10 @@ const initializeTerminal = async () => {
       });
     }
   }
+
+  setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+  }, 0);
 };
 
 onMounted(() => {
@@ -74,6 +91,15 @@ onActivated(() => {
 </script>
 
 <style>
+.term {
+  position: absolute;
+  top: v-bind(topMargin);
+  bottom: 0px;
+  left: v-bind(leftMargin);
+  right:0;
+  margin-right: 0px;
+}
+
 @-moz-document url-prefix() {
   .xterm-viewport {
     overflow: scroll !important;

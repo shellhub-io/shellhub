@@ -3,6 +3,7 @@
     theme="dark"
     v-model="showTerminalDrawer"
     floating
+    temporary
     disable-resize-watcher
     scrim="transparent"
     class="bg-v-theme-surface"
