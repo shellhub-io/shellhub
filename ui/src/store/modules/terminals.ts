@@ -4,6 +4,7 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { WebglAddon } from "@xterm/addon-webgl";
+import { ImageAddon } from 'xterm-addon-image';
 import { State } from "..";
 import { IConnectToTerminal } from "@/interfaces/ITerminal";
 import { IParams } from "@/interfaces/IParams";
@@ -45,6 +46,7 @@ const createXtermInstance = (theme: unknown = {}): { xterm: Terminal, fitAddon: 
   xterm.loadAddon(fitAddon);
   xterm.loadAddon(new WebglAddon());
   xterm.loadAddon(new WebLinksAddon());
+  xterm.loadAddon(new ImageAddon());
 
   if (xterm.element) {
     xterm.reset();
