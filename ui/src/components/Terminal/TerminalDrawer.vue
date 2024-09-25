@@ -2,9 +2,9 @@
   <v-navigation-drawer
     theme="dark"
     v-model="showTerminalDrawer"
-    absolute
-    app
+    floating
     disable-resize-watcher
+    scrim="transparent"
     class="bg-v-theme-surface"
     data-test="navigation-drawer"
     location="right"
