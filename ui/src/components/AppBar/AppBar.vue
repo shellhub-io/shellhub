@@ -1,5 +1,6 @@
 <template>
   <v-app-bar
+    v-if="!terminalRoute"
     flat
     floating
     class="bg-background"
@@ -102,7 +103,7 @@
     </v-menu>
 
     <v-app-bar-nav-icon
-      v-if="terminalTokens"
+      v-if="terminalRoute"
       @click.stop="showTerminalDrawer = !showTerminalDrawer"
       aria-label="Toggle Menu"
       icon="mdi-cog"
@@ -144,7 +145,7 @@ const currentUser = computed(() => store.getters["auth/currentUser"]);
 const defaultSize = ref(24);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
 
-const terminalTokens = computed(() => route.name === "Connection");
+const terminalRoute = computed(() => route.name === "Connection");
 
 const showNavigationDrawer = defineModel("showNavigationDrawer", { default: false });
 const showTerminalDrawer = defineModel("showTerminalDrawer", { default: false });

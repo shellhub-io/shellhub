@@ -1,5 +1,6 @@
 <template>
-  <div ref="el" class="term" :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }"></div>
+  <div ref="el" class="term" :style="{ backgroundColor: terminalData?.xterm?.options?.theme?.background || '#000' }" />
+  <TerminalDrawer v-if="terminalData" v-model="showTerminalDrawer" />
 </template>
 
 <script setup lang="ts">
@@ -8,6 +9,7 @@ import { useEventListener } from "@vueuse/core";
 import { useDisplay } from "vuetify";
 import { useRoute } from "vue-router";
 import { Terminal } from "@xterm/xterm";
+import TerminalDrawer from "@/components/Terminal/TerminalDrawer.vue";
 import "@xterm/xterm/css/xterm.css";
 import { useStore } from "../store";
 
@@ -19,29 +21,32 @@ const el = ref<HTMLElement | null>(null);
 
 const token = computed(() => route.params.token as string);
 const terminalData = computed(() => store.getters["terminals/getTerminal"][token.value]);
-
+const showTerminalDrawer = defineModel("showTerminalDrawer", { default: false });
 const scrollbarColor = computed(() => terminalData.value?.xterm.options.theme.selection);
 
 const { lgAndUp } = useDisplay();
 
 const leftMargin = computed(() => {
-  const main = document.querySelector('main');
-  if (lgAndUp.value) {
-    return getComputedStyle(main!).getPropertyValue('--v-layout-left');
+  const main = document.querySelector("main");
+  if (lgAndUp.value && main) {
+    return getComputedStyle(main).getPropertyValue("--v-layout-left");
   }
   return 0;
 });
 
 const topMargin = computed(() => {
-  const main = document.querySelector('main');
-  return getComputedStyle(main!).getPropertyValue('--v-layout-top');
+  const main = document.querySelector("main");
+  if (main) {
+    return getComputedStyle(main).getPropertyValue("--v-layout-top");
+  }
+  return 0;
 });
 
 function toMilliseconds(s) {
-    return parseFloat(s) * (/\ds$/.test(s) ? 1000 : 1);
+  return parseFloat(s) * (/\ds$/.test(s) ? 1000 : 1);
 }
 
-watch(lgAndUp, async(value) => {
+watch(lgAndUp, async () => {
   const drawerElement = document.querySelector(".v-navigation-drawer");
 
   if (drawerElement) {
@@ -68,7 +73,7 @@ const initializeTerminal = async () => {
   }
 
   setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
+    window.dispatchEvent(new Event("resize"));
   }, 0);
 };
 

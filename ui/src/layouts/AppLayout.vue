@@ -92,14 +92,10 @@
 
       </v-list>
     </v-navigation-drawer>
-
-    <TerminalDrawer v-if="terminalTokens.length > 0 && terminalRoute" v-model="showTerminalDrawer" />
-
     <SnackbarComponent />
 
     <AppBar
       v-model:showNavigationDrawer="showNavigationDrawer"
-      v-model:showTerminalDrawer="showTerminalDrawer"
       data-test="app-bar" />
 
     <v-main data-test="main">
@@ -140,7 +136,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
@@ -148,12 +144,10 @@ import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
-import TerminalDrawer from "@/components/Terminal/TerminalDrawer.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import TerminalSelect from "@/components/Terminal/TerminalSelect.vue";
 
 const router = useRouter();
-const route = useRoute();
 const store = useStore();
 const currentRoute = computed(() => router.currentRoute);
 const hasNamespaces = computed(
@@ -166,9 +160,6 @@ const isAddNamespaceDialogVisible = ref(false);
 const { lgAndUp } = useDisplay();
 
 const showNavigationDrawer = ref(lgAndUp);
-
-const showTerminalDrawer = ref(false);
-const terminalRoute = computed(() => route.name === "Connection");
 
 const hasSpinner = computed({
   get() { return store.getters["spinner/status"]; },
