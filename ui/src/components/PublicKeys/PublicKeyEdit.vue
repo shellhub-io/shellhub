@@ -247,6 +247,12 @@ const hasTags = computed(() => {
   return Reflect.ownKeys(keyObject.filter)[0] === "tags";
 });
 
+watch(choiceFilter, async () => {
+  if (choiceFilter.value === "tags") {
+    await store.dispatch("tags/fetch");
+  }
+});
+
 const tagNames = computed({
   get() {
     return store.getters["tags/list"];
