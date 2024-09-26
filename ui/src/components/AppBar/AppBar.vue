@@ -1,9 +1,11 @@
 <template>
   <v-app-bar
-    v-if="!terminalRoute"
-    flat
     floating
-    class="bg-background"
+    :elevated="terminalData"
+    :flat="!terminalData"
+    :class="{ 'bg-background': !terminalData }"
+    :color="terminalData?.xterm?.options?.theme?.background"
+    :style="{ color: terminalData?.xterm?.options?.theme?.foreground }"
   >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"
@@ -21,89 +23,91 @@
 
     <v-spacer />
 
-    <v-tooltip
-      location="bottom"
-      class="text-center"
-    >
-      <template v-slot:activator="{ props }">
-        <v-btn
-          v-bind="props"
-          :size="defaultSize"
-          class="ml-1 mr-1"
-          color="primary"
-          aria-label="community-help-icon"
-          icon="mdi-help-circle"
-          @click="openShellhubHelp()"
-        />
-      </template>
-      <span>Report an issue or make a question for the shellhub team</span>
-    </v-tooltip>
-
-    <Notification data-test="notification-component" />
-
-    <v-menu>
-      <template v-slot:activator="{ props }">
-        <v-btn
-          color="primary"
-          v-bind="props"
-          class="d-flex align-center justify-center"
-        >
-          <v-icon
-            :size="defaultSize"
-            class="mr-2"
-            left
-          > mdi-account </v-icon>
-
-          <div>{{ currentUser || "USER" }}</div>
-
-          <v-icon
+    <template v-if="!terminalData">
+      <v-tooltip
+        location="bottom"
+        class="text-center"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
             :size="defaultSize"
             class="ml-1 mr-1"
-            right
-          >
-            mdi-chevron-down
-          </v-icon>
-        </v-btn>
-      </template>
-      <v-list class="bg-v-theme-surface">
-        <v-list-item
-          v-for="item in menu"
-          :key="item.title"
-          :value="item"
-          :data-test="item.title"
-          @click="triggerClick(item)"
-        >
-          <div class="d-flex align-center">
-            <v-icon
-              :icon="item.icon"
-              class="mr-2"
-            />
-
-            <v-list-item-title>
-              {{ item.title }}
-            </v-list-item-title>
-          </div>
-        </v-list-item>
-
-        <v-divider />
-
-        <v-list-item density="compact">
-          <v-switch
-            label="Dark Mode"
-            :model-value="isDarkMode"
-            :onchange="toggleDarkMode"
-            data-test="dark-mode-switch"
-            density="comfortable"
             color="primary"
-            inset
-            hide-details
+            aria-label="community-help-icon"
+            icon="mdi-help-circle"
+            @click="openShellhubHelp()"
           />
-        </v-list-item>
-      </v-list>
-    </v-menu>
+        </template>
+        <span>Report an issue or make a question for the shellhub team</span>
+      </v-tooltip>
+
+      <Notification data-test="notification-component" />
+
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            color="primary"
+            v-bind="props"
+            class="d-flex align-center justify-center"
+          >
+            <v-icon
+              :size="defaultSize"
+              class="mr-2"
+              left
+            > mdi-account </v-icon>
+
+            <div>{{ currentUser || "USER" }}</div>
+
+            <v-icon
+              :size="defaultSize"
+              class="ml-1 mr-1"
+              right
+            >
+              mdi-chevron-down
+            </v-icon>
+          </v-btn>
+        </template>
+        <v-list class="bg-v-theme-surface">
+          <v-list-item
+            v-for="item in menu"
+            :key="item.title"
+            :value="item"
+            :data-test="item.title"
+            @click="triggerClick(item)"
+          >
+            <div class="d-flex align-center">
+              <v-icon
+                :icon="item.icon"
+                class="mr-2"
+              />
+
+              <v-list-item-title>
+                {{ item.title }}
+              </v-list-item-title>
+            </div>
+          </v-list-item>
+
+          <v-divider />
+
+          <v-list-item density="compact">
+            <v-switch
+              label="Dark Mode"
+              :model-value="isDarkMode"
+              :onchange="toggleDarkMode"
+              data-test="dark-mode-switch"
+              density="comfortable"
+              color="primary"
+              inset
+              hide-details
+            />
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </template>
 
     <v-app-bar-nav-icon
-      v-if="terminalRoute"
+      v-if="terminalData"
       @click.stop="showTerminalDrawer = !showTerminalDrawer"
       aria-label="Toggle Menu"
       icon="mdi-cog"
@@ -115,6 +119,7 @@
 import {
   computed,
   ref,
+  watch,
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useStore } from "../../store";
@@ -220,4 +225,7 @@ const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
 };
 
 const breadcrumbItems = computed(() => generateBreadcrumbs(route));
+
+const token = computed(() => route.params.token as string);
+const terminalData = computed(() => store.getters["terminals/getTerminal"][token.value]);
 </script>
