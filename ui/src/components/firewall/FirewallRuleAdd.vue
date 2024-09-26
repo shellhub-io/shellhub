@@ -195,6 +195,7 @@ export interface FirewallRuleType {
   filter?: filterType;
 }
 
+const store = useStore();
 const emit = defineEmits(["update"]);
 const dialog = ref(false);
 const action = ref("create");
@@ -313,8 +314,6 @@ const rules = ref({
   required: (value: string) => !!value || "Required.",
 });
 
-const store = useStore();
-
 const tagNames = computed(() => store.getters["tags/list"]);
 
 const hasAuthorization = computed(() => {
@@ -401,6 +400,12 @@ const close = () => {
   dialog.value = false;
   resetRuleFirewall();
 };
+
+watch(choiceFilter, async () => {
+  if (choiceFilter.value === "tags") {
+    await store.dispatch("tags/fetch");
+  }
+});
 
 const update = () => {
   emit("update");
