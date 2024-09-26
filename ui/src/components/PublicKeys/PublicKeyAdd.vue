@@ -251,6 +251,12 @@ watch(tagChoices, (list) => {
   }
 });
 
+watch(choiceFilter, async () => {
+  if (choiceFilter.value === "tags") {
+    await store.dispatch("tags/fetch");
+  }
+});
+
 watch(publicKeyData, async () => {
   if (publicKeyData.value !== "") {
     setPublicKeyDataError("Field is required");
@@ -306,6 +312,7 @@ const setLocalVariable = () => {
   choiceFilter.value = "all";
   choiceUsername.value = "all";
 };
+
 watch(dialog, (value) => {
   if (!value) {
     setLocalVariable();
