@@ -14,8 +14,8 @@
     </template>
     <v-dialog
       v-model="showTerminal"
-      max-width="1024px"
-      min-width="55vw"
+      :fullscreen="$vuetify.display.smAndDown"
+      :max-width="!$vuetify.display.smAndDown ? $vuetify.display.thresholds.sm : null"
       @click:outside="close"
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
@@ -29,10 +29,11 @@
 
         <div class="mt-2" v-if="showLoginForm">
           <v-tabs align-tabs="center" color="primary" v-model="tabActive">
-            <v-tab value="Password" data-test="password-tab" @click="resetFieldValidation">Password</v-tab>
+            <v-tab value="Password" block data-test="password-tab" @click="resetFieldValidation">Password</v-tab>
             <v-tab
               value="PrivateKey"
               @click="resetFieldValidation"
+              block
               data-test="private-key-tab"
             >Private Key</v-tab
             >
@@ -42,30 +43,45 @@
             <v-window v-model="tabActive">
               <v-window-item value="Password">
                 <v-form lazy-validation @submit.prevent="connectWithPassword()">
-                  <v-text-field
-                    v-model="username"
-                    :error-messages="usernameError"
-                    label="Username"
-                    autofocus
-                    variant="underlined"
-                    :validate-on-blur="true"
-                    data-test="username-field"
-                  />
-
-                  <v-text-field
-                    color="primary"
-                    :append-inner-icon="
-                      showPassword ? 'mdi-eye' : 'mdi-eye-off'
-                    "
-                    v-model="password"
-                    :error-messages="passwordError"
-                    label="Password"
-                    required
-                    variant="underlined"
-                    data-test="password-field"
-                    :type="showPassword ? 'text' : 'password'"
-                    @click:append-inner="showPassword = !showPassword"
-                  />
+                  <v-container>
+                    <v-row>
+                      <v-col>
+                        <v-text-field
+                          v-model="username"
+                          :error-messages="usernameError"
+                          label="Username"
+                          autofocus
+                          variant="underlined"
+                          hint="Enter an existing user on the device"
+                          persistent-hint
+                          persistent-placeholder
+                          :validate-on-blur="true"
+                          data-test="username-field"
+                        />
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col>
+                        <v-text-field
+                          color="primary"
+                          :append-inner-icon="
+                            showPassword ? 'mdi-eye' : 'mdi-eye-off'
+                          "
+                          v-model="password"
+                          :error-messages="passwordError"
+                          label="Password"
+                          required
+                          variant="underlined"
+                          hint="Enter a valid password for the user on the device"
+                          persistent-hint
+                          persistent-placeholder
+                          data-test="password-field"
+                          :type="showPassword ? 'text' : 'password'"
+                          @click:append-inner="showPassword = !showPassword"
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-container>
 
                   <v-card-actions>
                     <v-spacer />
@@ -86,25 +102,39 @@
                 <v-form
                   lazy-validation
                   @submit.prevent="connectWithPrivateKey()">
-                  <v-text-field
-                    v-model="username"
-                    :error-messages="usernameError"
-                    label="Username"
-                    autofocus
-                    variant="underlined"
-                    :validate-on-blur="true"
-                    data-test="username-field-pk"
-                  />
-
-                  <v-select
-                    v-model="privateKey"
-                    :items="nameOfPrivateKeys"
-                    item-text="name"
-                    item-value="data"
-                    variant="underlined"
-                    label="Private Keys"
-                    data-test="privatekeys-select"
-                  />
+                  <v-container>
+                    <v-row>
+                      <v-col>
+                        <v-text-field
+                          v-model="username"
+                          :error-messages="usernameError"
+                          label="Username"
+                          autofocus
+                          variant="underlined"
+                          hint="Enter an existing user on the device"
+                          persistent-hint
+                          persistent-placeholder
+                          :validate-on-blur="true"
+                          data-test="username-field-pk"
+                        />
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col>
+                        <v-select
+                          v-model="privateKey"
+                          :items="nameOfPrivateKeys"
+                          item-text="name"
+                          item-value="data"
+                          variant="underlined"
+                          label="Private Key"
+                          hint="Select a private key file for authentication"
+                          persistent-hint
+                          data-test="privatekeys-select"
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-container>
 
                   <v-card-actions>
                     <v-spacer />
