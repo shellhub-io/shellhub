@@ -33,7 +33,7 @@
         <Namespace data-test="namespace-component" />
       </div>
 
-      <v-list class="bg-v-theme-surface" data-test="list">
+      <v-list density="compact" class="bg-v-theme-surface" data-test="list">
         <v-list-item
           v-for="item in visibleItems"
           :key="item.title"
@@ -43,30 +43,23 @@
           :disabled="disableItem(item.title)"
           data-test="list-item"
         >
-
-          <v-list-item-title
-            :data-test="item.icon + '-listItem'"
-          >
-            <div class="d-flex align-center">
-              <div class="mr-3">
-                <v-icon data-test="icon">
-                  {{ item.icon }}
-                </v-icon>
-              </div>
-              {{ item.title }}
-              <v-chip
-                v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
-                density="comfortable"
-                label
-                variant="outlined"
-                size="x-small"
-                class="ml-1"
-                color="yellow"
-                prepend-icon="mdi-crown">Premium</v-chip>
-
-            </div>
+          <template #prepend>
+            <v-icon data-test="icon">
+              {{ item.icon }}
+            </v-icon>
+          </template>
+          <template #append>
+            <v-icon
+              v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
+              color="yellow"
+              size="x-small"
+              icon="mdi-crown"
+              data-test="icon"
+            />
+          </template>
+          <v-list-item-title :data-test="item.icon + '-listItem'">
+            {{ item.title }}
           </v-list-item-title>
-
         </v-list-item>
         <v-col class="d-flex align-end justify-center">
           <QuickConnection />

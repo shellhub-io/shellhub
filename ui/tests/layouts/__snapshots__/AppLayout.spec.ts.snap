@@ -27,103 +27,103 @@ exports[`App Layout Component > Renders the component 1`] = `
           </div>
         </div>
         <!--v-if-->
-        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-default v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/\\" tabindex=\\"-2\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/\\" tabindex=\\"-2\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-home-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Home
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-home-listItem\\">Home</div>
             </div>
-            <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/devices\\" data-test=\\"list-item\\">
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/devices\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cellphone-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cellphone-link-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cellphone-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Devices
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cellphone-link-listItem\\">Devices</div>
             </div>
-            <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/containers\\" data-test=\\"list-item\\">
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/containers\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-server mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-server-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-server mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Containers
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-server-listItem\\">Containers</div>
             </div>
-            <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sessions\\" data-test=\\"list-item\\">
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sessions\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-history-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Sessions
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-history-listItem\\">Sessions</div>
             </div>
-            <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/firewall/rules\\" data-test=\\"list-item\\">
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/firewall/rules\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-security mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-security-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-security mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Firewall Rules
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-security-listItem\\">Firewall Rules</div>
             </div>
-            <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sshkeys/public-keys\\" data-test=\\"list-item\\">
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sshkeys/public-keys\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-key-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Public Keys
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-key-listItem\\">Public Keys</div>
             </div>
-            <!---->
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-default v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/settings\\" data-test=\\"list-item\\">
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/settings\\" data-test=\\"list-item\\">
             <!----><span class=\\"v-list-item__underlay\\"></span>
-            <!---->
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
             <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"d-flex align-center\\">
-                  <div data-v-e7291ef4=\\"\\" class=\\"mr-3\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i></div> Settings
-                  <!--v-if-->
-                </div>
-              </div>
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings</div>
             </div>
-            <!---->
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
           </a>
           <div data-v-e7291ef4=\\"\\" class=\\"v-col d-flex align-end justify-center\\">
             <div data-v-136d2a2f=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connect </span>
