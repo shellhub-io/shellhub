@@ -1,5 +1,23 @@
 [
   {
+    "name": "ShellHub Dark",
+    "file": "shellhub_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#18191B",
+      "foreground": "#667ACC"
+    }
+  },
+  {
+    "name": "ShellHub Henry",
+    "file": "shellhub_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#F5F5F5",
+      "foreground": "#667ACC"
+    }
+  },
+  {
     "name": "Termius Dark",
     "file": "termius_dark.json",
     "dark": true,

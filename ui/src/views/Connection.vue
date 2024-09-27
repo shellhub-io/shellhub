@@ -37,7 +37,9 @@ const leftMargin = computed(() => {
 const topMargin = computed(() => {
   const main = document.querySelector("main");
   if (main) {
-    return getComputedStyle(main).getPropertyValue("--v-layout-top");
+    let value = getComputedStyle(main).getPropertyValue("--v-layout-top");
+    value = value.replace("px", "");
+    return `${parseInt(value) + 0}px`;
   }
   return 0;
 });
