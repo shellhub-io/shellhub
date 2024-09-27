@@ -107,7 +107,7 @@
     </template>
 
     <v-app-bar-nav-icon
-      v-if="terminalData"
+      v-if="terminalRoute"
       @click.stop="showTerminalDrawer = !showTerminalDrawer"
       aria-label="Toggle Menu"
       icon="mdi-cog"
@@ -119,7 +119,6 @@
 import {
   computed,
   ref,
-  watch,
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useStore } from "../../store";
@@ -149,8 +148,9 @@ const getStatusDarkMode = computed(
 const currentUser = computed(() => store.getters["auth/currentUser"]);
 const defaultSize = ref(24);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
-
 const terminalRoute = computed(() => route.name === "Connection");
+const token = computed(() => route.params.token as string);
+const terminalData = computed(() => store.getters["terminals/getTerminal"][token.value]);
 
 const showNavigationDrawer = defineModel("showNavigationDrawer", { default: false });
 const showTerminalDrawer = defineModel("showTerminalDrawer", { default: false });
@@ -225,7 +225,4 @@ const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
 };
 
 const breadcrumbItems = computed(() => generateBreadcrumbs(route));
-
-const token = computed(() => route.params.token as string);
-const terminalData = computed(() => store.getters["terminals/getTerminal"][token.value]);
 </script>

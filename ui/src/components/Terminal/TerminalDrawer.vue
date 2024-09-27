@@ -1,19 +1,10 @@
 <template>
-  <v-fab
-    @click="showTerminalDrawer = !showTerminalDrawer"
-    :icon="showTerminalDrawer ? 'mdi-arrow-collapse-right' : 'mdi-cog'"
-    appear
-    flat
-    app
-    elevation="1"
-    absolute
-    location="bottom right"
-  />
   <v-navigation-drawer
     theme="dark"
     v-model="showTerminalDrawer"
+    absolute
     floating
-    temporary
+    app
     disable-resize-watcher
     scrim="transparent"
     class="bg-v-theme-surface"
