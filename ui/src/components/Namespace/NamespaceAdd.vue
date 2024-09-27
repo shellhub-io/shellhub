@@ -26,7 +26,7 @@
             <v-card-text>
               <v-text-field
                 v-model="namespaceName"
-                label="Username"
+                label="Namespace"
                 :error-messages="namespaceNameError"
                 required
                 variant="underlined"
@@ -197,5 +197,5 @@ const addNamespace = async () => {
   }
 };
 
-const openVersion = computed(() => !envVariables.isCloud || !envVariables.isEnterprise);
+const openVersion = computed(() => !envVariables.isCloud && !envVariables.isEnterprise);
 </script>
