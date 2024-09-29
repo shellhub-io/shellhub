@@ -212,6 +212,47 @@ func TestAuthUser(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when user is 'invited'",
+			sourceIP:    "127.0.0.1",
+			req: &requests.UserAuth{
+				Identifier: "john.doe@test.com",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				mock.
+					On("UserGetByEmail", ctx, "john.doe@test.com").
+					Return(
+						&models.User{
+
+							ID:        "65fdd16b5f62f93184ec8a39",
+							Status:    models.UserStatusInvited,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+							},
+							Password: models.UserPassword{
+								Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
+			},
+		},
+		{
 			description: "fails when an account lockout occurs",
 			sourceIP:    "127.0.0.1",
 			req: &requests.UserAuth{

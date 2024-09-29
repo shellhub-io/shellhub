@@ -184,8 +184,13 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	if user.Status != models.UserStatusConfirmed {
+	switch user.Status {
+	case models.UserStatusInvited:
+		return nil, 0, "", NewErrAuthUnathorized(nil)
+	case models.UserStatusNotConfirmed:
 		return nil, 0, "", NewErrUserNotConfirmed(nil)
+	default:
+		break
 	}
 
 	// Checks whether the user is currently blocked from new login attempts

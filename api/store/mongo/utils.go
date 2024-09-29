@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"io"
+	"reflect"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -71,4 +72,32 @@ func removeDuplicate[T comparable](slice []T) []T {
 	}
 
 	return list
+}
+
+// structToBson converts a struct to it's bson representation.
+func structToBson[T any](v T) primitive.M {
+	data, err := bson.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+
+	doc := make(primitive.M)
+	if err := bson.Unmarshal(data, &doc); err != nil {
+		panic(err)
+	}
+
+	return doc
+}
+
+// sanitizeBson recursively sanitizes a bson, setting zero-value fields to nil
+func sanitizeBson(data primitive.M) {
+	for k, v := range data {
+		if reflect.TypeOf(v) == reflect.TypeOf(primitive.M{}) {
+			sanitizeBson(v.(primitive.M))
+		} else {
+			if v != nil && reflect.DeepEqual(v, reflect.Zero(reflect.TypeOf(v)).Interface()) {
+				data[k] = nil
+			}
+		}
+	}
 }
