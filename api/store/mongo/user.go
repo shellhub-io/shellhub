@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -83,6 +84,18 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 func (s *Store) UserCreate(ctx context.Context, user *models.User) (string, error) {
 	user.CreatedAt = time.Now()
 	user.LastLogin = time.Time{}
+
+	r, err := s.db.Collection("users").InsertOne(ctx, user)
+	if err != nil {
+		return "", FromMongoError(err)
+	}
+
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (s *Store) UserCreateInvited(ctx context.Context, email string) (string, error) {
+	user := structToBson(models.User{CreatedAt: clock.Now(), Status: models.UserStatusInvited, UserData: models.UserData{Email: email}})
+	sanitizeBson(user)
 
 	r, err := s.db.Collection("users").InsertOne(ctx, user)
 	if err != nil {

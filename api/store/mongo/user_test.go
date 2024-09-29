@@ -8,6 +8,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -208,6 +210,68 @@ func TestUserCreate(t *testing.T) {
 			insertedID, err := s.UserCreate(ctx, tc.user)
 			assert.Equal(t, tc.expected, err)
 			assert.NotEmpty(t, insertedID)
+		})
+	}
+}
+
+func TestStore_UserCreateInvited(t *testing.T) {
+	now := time.Now()
+
+	cases := []struct {
+		description string
+		email       string
+		fixtures    []string
+		mocks       func()
+	}{
+		{
+			description: "succeeds",
+			email:       "john.doe@test.com",
+			fixtures:    []string{},
+			mocks: func() {
+				mockClock := new(clockmock.Clock)
+				clock.DefaultBackend = mockClock
+				mockClock.On("Now").Return(now)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			ctx := context.Background()
+			tc.mocks()
+
+			require.NoError(tt, srv.Apply(tc.fixtures...))
+			tt.Cleanup(func() {
+				require.NoError(tt, srv.Reset())
+			})
+
+			insertedID, err := s.UserCreateInvited(ctx, tc.email)
+			require.NoError(tt, err)
+			require.NotEmpty(tt, insertedID)
+
+			objID, _ := primitive.ObjectIDFromHex(insertedID)
+
+			tmpUser := make(map[string]interface{})
+			require.NoError(tt, db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&tmpUser))
+			require.Equal(
+				tt,
+				map[string]interface{}{
+					"_id":             objID,
+					"created_at":      primitive.NewDateTimeFromTime(now),
+					"last_login":      primitive.NewDateTimeFromTime(time.Time{}),
+					"status":          models.UserStatusInvited.String(),
+					"max_namespaces":  nil,
+					"name":            nil,
+					"username":        nil,
+					"email":           "john.doe@test.com",
+					"recovery_email":  nil,
+					"email_marketing": nil,
+					"password":        nil,
+					"preferences":     map[string]interface{}{"preferred_namespace": nil},
+					"mfa":             map[string]interface{}{"enabled": nil, "secret": nil, "recovery_codes": nil},
+				},
+				tmpUser,
+			)
 		})
 	}
 }

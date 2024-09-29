@@ -10,6 +10,10 @@ import (
 type UserStatus string
 
 const (
+	// UserStatusInvited applies to cloud-only instances. This status is assigned to a user who has been invited to a
+	// namespace but has not yet completed the registration process.
+	UserStatusInvited UserStatus = "invited"
+
 	// UserStatusNotConfirmed applies to cloud-only instances. This status is assigned to a user who has registered
 	// but has not yet confirmed their email address.
 	UserStatusNotConfirmed UserStatus = "not-confirmed"
@@ -43,8 +47,8 @@ type User struct {
 
 type UserData struct {
 	Name     string `json:"name" validate:"required,name"`
-	Username string `json:"username" bson:",omitempty" validate:"required,username"`
-	Email    string `json:"email" bson:",omitempty" validate:"required,email"`
+	Username string `json:"username" bson:"username" validate:"required,username"`
+	Email    string `json:"email" bson:"email" validate:"required,email"`
 	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
 	// when they lose access to all other methods. It must never be equal to [UserData.Email].
 	//
