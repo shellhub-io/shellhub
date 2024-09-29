@@ -964,7 +964,7 @@ func TestCreateUserToken(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when ID is not found",
+			description: "fails when user is not found",
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -978,67 +978,34 @@ func TestCreateUserToken(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when tenant_id is empty and namespace is not found",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
-			requiredMocks: func(ctx context.Context) {
-				user := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
-					},
-				}
-
-				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(user, 0, nil).
-					Once()
-				storeMock.
-					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
-					Return(nil, store.ErrNoDocuments).
-					Once()
-			},
-			expected: Expected{
-				res: nil,
-				err: NewErrNamespaceNotFound("", store.ErrNoDocuments),
-			},
-		},
-		{
-			description: "fails when tenant_id is not empty and namespace is not found",
+			description: "[with-tenant] fails when namespace is not found",
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
-				user := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-				}
-
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(user, 0, nil).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						0,
+						nil,
+					).
 					Once()
 				storeMock.
 					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
@@ -1051,38 +1018,44 @@ func TestCreateUserToken(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when user is not member of the namespace",
+			description: "[with-tenant] fails when user is not a member of the namespace",
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
-				user := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-				}
-
-				ns := &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members:  []models.Member{},
-				}
-
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(user, 0, nil).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						0,
+						nil,
+					).
 					Once()
 				storeMock.
 					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
-					Return(ns, nil).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Members:  []models.Member{},
+						},
+						nil,
+					).
 					Once()
 			},
 			expected: Expected{
@@ -1091,99 +1064,106 @@ func TestCreateUserToken(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when member status is pending",
+			description: "[with-tenant] fails when user membership is pending",
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
-				user := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
-					},
-				}
-
-				ns := &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:     "000000000000000000000000",
-							Role:   "owner",
-							Status: models.MemberStatusPending,
-						},
-					},
-				}
-
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(user, 0, nil).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						0,
+						nil,
+					).
 					Once()
 				storeMock.
 					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
-					Return(ns, nil).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Members: []models.Member{
+								{
+									ID:     "000000000000000000000000",
+									Role:   "administrator",
+									Status: models.MemberStatusPending,
+								},
+							},
+						},
+						nil,
+					).
 					Once()
 			},
 			expected: Expected{
 				res: nil,
-				err: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil),
+				err: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
 			},
 		},
 		{
-			description: "succeeds when tenant id is empty",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
+			description: "[with-tenant] succeeds",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
-				user := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
-					},
-				}
-
-				ns := &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:   "000000000000000000000000",
-							Role: "owner",
-						},
-					},
-				}
-
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(user, 0, nil).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						0,
+						nil,
+					).
 					Once()
 				storeMock.
-					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
-					Return(ns, nil).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Members: []models.Member{
+								{
+									ID:     "000000000000000000000000",
+									Role:   "owner",
+									Status: models.MemberStatusAccepted,
+								},
+							},
+						},
+						nil,
+					).
 					Once()
 				preferredNamespace := "00000000-0000-4000-0000-000000000000"
 				storeMock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{PreferredNamespace: &preferredNamespace}).
 					Return(nil).
 					Once()
 				clockMock := new(clockmock.Clock)
@@ -1208,48 +1188,50 @@ func TestCreateUserToken(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when tenant id is not empty",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			description: "[without-tenant] succeeds when user has a preferred namespace",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
 			requiredMocks: func(ctx context.Context) {
-				user := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-				}
-
-				ns := &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:   "000000000000000000000000",
-							Role: "owner",
-						},
-					},
-				}
-
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(user, 0, nil).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+							},
+						},
+						0,
+						nil,
+					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
-					Return(ns, nil).
-					Once()
-				preferredNamespace := "00000000-0000-4000-0000-000000000000"
-				storeMock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{PreferredNamespace: &preferredNamespace}).
-					Return(nil).
+					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Members: []models.Member{
+								{
+									ID:     "000000000000000000000000",
+									Role:   "owner",
+									Status: models.MemberStatusAccepted,
+								},
+							},
+						},
+						nil,
+					).
 					Once()
 				clockMock := new(clockmock.Clock)
 				clock.DefaultBackend = clockMock
@@ -1267,6 +1249,61 @@ func TestCreateUserToken(t *testing.T) {
 					Email:  "john.doe@test.com",
 					Tenant: "00000000-0000-4000-0000-000000000000",
 					Role:   "owner",
+					Token:  "must ignore",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "[without-tenant] succeeds when user doesn't has a preferred namespace",
+			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGetPreferred", ctx, "", "000000000000000000000000").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+				cacheMock.
+					On("Set", ctx, "token_000000000000000000000000", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "000000000000000000000000",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "",
+					Role:   "",
 					Token:  "must ignore",
 				},
 				err: nil,

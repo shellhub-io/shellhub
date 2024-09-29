@@ -304,31 +304,52 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	namespace := new(models.Namespace)
-	// TODO: handle this error
+	tenantID := ""
+	role := ""
+
 	switch req.TenantID {
 	case "":
-		namespace, err = s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID)
+		// A user may not have a preferred namespace. In such cases, we create a token without it.
+		namespace, err := s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID)
+		if err != nil {
+			break
+		}
+
+		member, ok := namespace.FindMember(user.ID)
+		if !ok {
+			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
+		}
+
+		if member.Status != models.MemberStatusPending {
+			tenantID = namespace.TenantID
+			role = member.Role.String()
+		}
 	default:
-		namespace, err = s.store.NamespaceGet(ctx, req.TenantID, false)
-	}
+		namespace, err := s.store.NamespaceGet(ctx, req.TenantID, false)
+		if err != nil {
+			return nil, NewErrNamespaceNotFound(req.TenantID, err)
+		}
 
-	if namespace == nil {
-		return nil, NewErrNamespaceNotFound(req.TenantID, err)
-	}
+		member, ok := namespace.FindMember(user.ID)
+		if !ok {
+			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
+		}
 
-	memberInfo, ok := namespace.FindMember(user.ID)
-	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
-	}
+		if member.Status == models.MemberStatusPending {
+			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
+		}
 
-	if memberInfo.Status == models.MemberStatusPending {
-		return nil, NewErrNamespaceNotFound(req.TenantID, nil)
+		tenantID = namespace.TenantID
+		role = member.Role.String()
+
+		if user.Preferences.PreferredNamespace != namespace.TenantID {
+			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+		}
 	}
 
 	claims := authorizer.UserClaims{
 		ID:       user.ID,
-		TenantID: namespace.TenantID,
+		TenantID: tenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
 	}
@@ -338,12 +359,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		return nil, NewErrTokenSigned(err)
 	}
 
-	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &namespace.TenantID}); err != nil {
-		return nil, NewErrUserUpdate(user, err)
-	}
-
-	if err := s.AuthCacheToken(ctx, namespace.TenantID, user.ID, token); err != nil {
+	if err := s.AuthCacheToken(ctx, tenantID, user.ID, token); err != nil {
 		log.WithError(err).Warn("unable to cache the user's auth token")
 	}
 
@@ -354,8 +370,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Email:         user.Email,
 		RecoveryEmail: user.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
-		Tenant:        namespace.TenantID,
-		Role:          memberInfo.Role.String(),
+		Tenant:        tenantID,
+		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
 	}, nil
