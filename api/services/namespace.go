@@ -27,17 +27,17 @@ type NamespaceService interface {
 	// It returns the namespace with the updated fields and an error, if any.
 	EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error)
 
-	// AddNamespaceMember is responsible for adding a new member to a namespace.
+	// AddNamespaceMember adds a member to a namespace.
 	//
-	// In cloud environments, the member is assigned a 'pending' status, and an invitation email is
-	// sent. In community and enterprise environments, the member is immediately given an 'accepted'
-	// status. If the member was previously invited and remains in 'pending' status, it will resend
-	// the invitation instead of add the memberif the expiration date is reached.
+	// In cloud environments, the member is assigned a [MemberStatusPending] status until they accept the invite via
+	// an invitation email. If the target user does not exist, the email will redirect them to the registration page,
+	// and the invite can be accepted after finishing. In community and enterprise environments, the status is set to
+	// [MemberStatusAccepted] without sending an email.
 	//
 	// The role assigned to the new member must not grant more authority than the user adding them (e.g.,
 	// an administrator cannot add a member with a higher role such as an owner). Owners cannot be created.
 	//
-	// It returns the namespace and an error if any.
+	// It returns the namespace and an error, if any.
 	AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)
 
 	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
@@ -256,9 +256,20 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrRoleInvalid()
 	}
 
+	// In cloud instances, if the target user does not exist, we need to create a new user
+	// with the specified email. We use the inserted ID to identify the user once they complete
+	// the registration and accepts the invitation.
 	passiveUser, err := s.store.UserGetByEmail(ctx, strings.ToLower(req.MemberEmail))
 	if err != nil {
-		return nil, NewErrUserNotFound(req.MemberEmail, err)
+		if !envs.IsCloud() || !errors.Is(err, store.ErrNoDocuments) {
+			return nil, NewErrUserNotFound(req.MemberEmail, err)
+		}
+
+		passiveUser = &models.User{}
+		passiveUser.ID, err = s.store.UserCreateInvited(ctx, strings.ToLower(req.MemberEmail))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// In cloud instances, if a member exists and their status is pending and the expiration date is reached,
@@ -276,12 +287,10 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m.ID, req)); err != nil {
 			return nil, err
 		}
-
-		return s.store.NamespaceGet(ctx, req.TenantID, true)
-	}
-
-	if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
-		return nil, err
+	} else {
+		if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
+			return nil, err
+		}
 	}
 
 	return s.store.NamespaceGet(ctx, req.TenantID, true)
