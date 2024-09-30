@@ -2,9 +2,9 @@ import { Module } from "vuex";
 import axios from "axios";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { WebLinksAddon } from '@xterm/addon-web-links';
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
-import { ImageAddon } from 'xterm-addon-image';
+import { ImageAddon } from "xterm-addon-image";
 import { State } from "..";
 import { IConnectToTerminal } from "@/interfaces/ITerminal";
 import { IParams } from "@/interfaces/IParams";
@@ -32,6 +32,7 @@ interface Message {
 export interface TerminalState {
   terminals: Record<string, { xterm: Terminal, websocket: WebSocket, fitAddon: FitAddon, uid: string }>;
   themes: Array<{ name: string, file: string, dark: boolean }>;
+  fonts: Array<{ name: string, family: string }>;
 }
 
 const createXtermInstance = (theme: unknown = {}): { xterm: Terminal, fitAddon: FitAddon } => {
@@ -96,11 +97,13 @@ export const terminals: Module<TerminalState, State> = {
   state: {
     terminals: {},
     themes: [],
+    fonts: [],
   },
 
   getters: {
     getTerminal: (state) => state.terminals,
     getThemes: (state) => state.themes,
+    getFonts: (state) => state.fonts,
     getFontSize: (state) => state.terminals.fontSize,
     findThemeByName: (state) => (themeName: string) => state.themes.find((theme) => theme.name === themeName),
   },
@@ -119,9 +122,18 @@ export const terminals: Module<TerminalState, State> = {
     setThemes(state, themes) {
       state.themes = themes;
     },
+    setFonts(state, fonts) {
+      state.fonts = fonts;
+    },
     applyTheme(state, { token, theme }) {
       const terminal = state.terminals[token];
       terminal.xterm.options.theme = theme;
+    },
+    setFontFamily(state, { token, fontFamily }) {
+      if (state.terminals[token]) {
+        state.terminals[token].xterm.options.fontFamily = `${fontFamily}`;
+        state.terminals[token].fitAddon.fit();
+      }
     },
     setFontSize(state, { token, fontSize }) {
       if (state.terminals[token]) {
@@ -180,6 +192,17 @@ export const terminals: Module<TerminalState, State> = {
       }
       context.commit("setFontSize", { token, fontSize: newFontSize });
     },
-
+    async fetchFonts(context) {
+      const fonts = [
+        { name: "Fira Code", family: "Fira Code" },
+        { name: "Source Code Pro", family: "Source Code Pro" },
+        { name: "JetBrains Mono", family: "JetBrains Mono" },
+        { name: "Ubuntu Mono", family: "Ubuntu Mono" },
+        { name: "Noto Mono", family: "Noto Mono" },
+        { name: "Inconsolata", family: "Inconsolata" },
+        { name: "Anonymous Pro", family: "Anonymous Pro" },
+      ];
+      context.commit("setFonts", fonts);
+    },
   },
 };

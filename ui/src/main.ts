@@ -8,7 +8,15 @@ import { key, store } from "./store";
 import { router } from "./router";
 import App from "./App.vue";
 
+// Local and Xterm Fonts
 import { loadFonts } from "./plugins/webfontloader";
+import "@fontsource/fira-code";
+import "@fontsource/source-code-pro";
+import "@fontsource/jetbrains-mono";
+import "@fontsource/ubuntu-mono";
+import "@fontsource/noto-mono";
+import "@fontsource/inconsolata";
+import "@fontsource/anonymous-pro";
 
 import SnackbarComponent from "./components/Snackbar/Snackbar.vue";
 import { SnackbarPlugin } from "./plugins/snackbar";

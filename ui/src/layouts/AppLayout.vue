@@ -233,6 +233,7 @@ const noGaps = computed(() => router.currentRoute.value.meta.noGaps);
 
 onMounted(async () => {
   await store.dispatch("terminals/fetchThemes");
+  await store.dispatch("terminals/fetchFonts");
 });
 
 defineExpose({

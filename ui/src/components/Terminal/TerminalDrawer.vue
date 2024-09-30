@@ -45,10 +45,19 @@
       </v-card>
       <v-row class="mt-2">
         <v-col>
-          <h3>Font-size:</h3>
+          <h3>Fonts:</h3>
         </v-col>
       </v-row>
       <v-card class="bg-v-theme-surface elevation-3 mt-2">
+        <div>
+          <v-select
+            v-model="fontFamily"
+            :items="availableFonts"
+            item-text="name"
+            item-value="family"
+            label="Select Font"
+          />
+        </div>
         <v-card-text>
           <div class="d-flex align-center">
             <v-text-field v-model="fontSize">
@@ -90,8 +99,17 @@ const store = useStore();
 const route = useRoute();
 const showTerminalDrawer = ref(false);
 const token = computed(() => route.params.token as string);
-
 const availableThemes = computed(() => store.getters["terminals/getThemes"]);
+const availableFonts = computed(() => store.getters["terminals/getFonts"].map(({ name }) => name));
+
+const fontFamily = computed({
+  get() {
+    return store.getters["terminals/getTerminal"][token.value].xterm.options.fontFamily;
+  },
+  set(newFont) {
+    store.commit("terminals/setFontFamily", { token: token.value, fontFamily: newFont });
+  },
+});
 
 const fontSize = computed({
   get() {
@@ -104,6 +122,7 @@ const fontSize = computed({
 
 const changeTheme = async (theme: string) => {
   await store.dispatch("terminals/applyTheme", { token: token.value, themeName: theme });
+  console.log(availableFonts.value);
 };
 
 const increaseFontSize = async () => {

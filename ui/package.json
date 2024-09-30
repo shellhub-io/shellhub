@@ -16,6 +16,13 @@
   },
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@fontsource/anonymous-pro": "^5.1.0",
+    "@fontsource/fira-code": "^5.1.0",
+    "@fontsource/inconsolata": "^5.1.0",
+    "@fontsource/jetbrains-mono": "^5.1.0",
+    "@fontsource/noto-mono": "^5.1.0",
+    "@fontsource/source-code-pro": "^5.1.0",
+    "@fontsource/ubuntu-mono": "^5.1.0",
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
