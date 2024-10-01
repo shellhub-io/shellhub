@@ -129,9 +129,12 @@ export const terminals: Module<TerminalState, State> = {
       const terminal = state.terminals[token];
       terminal.xterm.options.theme = theme;
     },
-    setFontFamily(state, { token, fontFamily }) {
+    async setFontFamily(state, { token, fontFamily }) {
       if (state.terminals[token]) {
-        state.terminals[token].xterm.options.fontFamily = `${fontFamily}`;
+        await document.fonts.load(`1em ${fontFamily}`);
+        await document.fonts.ready;
+
+        state.terminals[token].xterm.options.fontFamily = fontFamily;
         state.terminals[token].fitAddon.fit();
       }
     },
