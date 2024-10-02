@@ -403,6 +403,27 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when user reachs the zero namespaces",
+			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 0,
+					}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				ns:  nil,
+				err: NewErrNamespaceCreationIsForbidden(0, nil),
+			},
+		},
+		{
 			description: "fails when user reachs the max namespaces",
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
@@ -412,7 +433,10 @@ func TestCreateNamespace(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000", MaxNamespaces: 1}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 1,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
@@ -439,8 +463,21 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -461,8 +498,21 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -483,8 +533,21 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -546,8 +609,21 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -646,8 +722,21 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -750,14 +839,27 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				// envs.IsCommunity = false
+				storeMock.
 					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(&models.User{ID: "000000000000000000000000"}, 0, nil).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				// envs.IsCommunity = false
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").

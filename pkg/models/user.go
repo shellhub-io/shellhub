@@ -118,6 +118,7 @@ type UserAuthResponse struct {
 	RecoveryEmail string `json:"recovery_email"`
 	Role          string `json:"role"`
 	MFA           bool   `json:"mfa"`
+	MaxNamespaces int    `json:"max_namespaces"`
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;

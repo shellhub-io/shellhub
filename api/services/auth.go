@@ -287,6 +287,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
+		MaxNamespaces: user.MaxNamespaces,
 	}
 
 	return res, 0, "", nil
@@ -351,6 +352,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Tenant:        namespace.TenantID,
 		Role:          memberInfo.Role.String(),
 		Token:         token,
+		MaxNamespaces: user.MaxNamespaces,
 	}, nil
 }
 

@@ -117,6 +117,7 @@ var (
 	ErrAuthInvalid                  = errors.New("auth invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthUnathorized              = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached        = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
+	ErrNamespaceCreationIsForbidden = errors.New("namespace creation not permitted for user", ErrLayer, ErrCodeForbidden)
 	ErrDeviceRemovedCount           = errors.New("device removed count", ErrLayer, ErrCodeNotFound)
 	ErrDeviceRemovedInsert          = errors.New("device removed insert", ErrLayer, ErrCodeStore)
 	ErrDeviceRemovedFull            = errors.New("device removed full", ErrLayer, ErrCodePayment)
@@ -430,6 +431,11 @@ func NewErrBadRequest(err error) error {
 // NewErrNamespaceLimitReached a error to be used when the user namespace limit number is reached.
 func NewErrNamespaceLimitReached(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceLimitReached, limit, err)
+}
+
+// NewErrNamespaceCreationIsForbidden a error, since user have no permition to add a new namespace
+func NewErrNamespaceCreationIsForbidden(limit int, err error) error {
+	return NewErrLimit(ErrNamespaceCreationIsForbidden, limit, err)
 }
 
 func NewErrDeviceRemovedCount(next error) error {
