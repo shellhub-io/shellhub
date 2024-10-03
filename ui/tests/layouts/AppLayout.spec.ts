@@ -46,7 +46,7 @@ describe("App Layout Component", () => {
 
   it("Renders internal components", () => {
     expect(wrapper.find('[data-test="navigation-drawer"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="app-bar-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="drawer-toolbar"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="logo"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="list-item"]').exists()).toBe(true);

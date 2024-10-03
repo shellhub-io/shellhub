@@ -7,25 +7,31 @@ exports[`App Layout Component > Renders the component 1`] = `
       <!---->
       <!---->
       <div class=\\"v-navigation-drawer__content\\">
-        <div data-v-e7291ef4=\\"\\" class=\\"v-toolbar-title v-app-bar-title\\" data-test=\\"app-bar-title\\">
-          <div class=\\"v-toolbar-title__placeholder\\">
-            <!----><a data-v-e7291ef4=\\"\\" href=\\"/\\" class=\\"text-decoration-none\\">
-              <div data-v-e7291ef4=\\"\\" class=\\"d-flex justify-center pa-4 pb-2\\">
-                <div data-v-e7291ef4=\\"\\" class=\\"v-responsive v-img v-img--booting d-sm-flex hidden-sm-and-down\\" style=\\"max-width: 140px;\\" aria-label=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" role=\\"img\\" data-test=\\"logo\\">
-                  <div class=\\"v-responsive__sizer\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" style=\\"display: none;\\"></transition-stub>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <!---->
-                  </transition-stub>
+        <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--density-default v-theme--dark v-locale--is-ltr bg-v-theme-surface\\" data-test=\\"drawer-toolbar\\">
+          <!---->
+          <div class=\\"v-toolbar__content\\" style=\\"height: 64px;\\">
+            <!---->
+            <!---->
+            <div data-v-e7291ef4=\\"\\" class=\\"v-spacer\\"></div><a data-v-e7291ef4=\\"\\" href=\\"/\\" class=\\"text-decoration-none\\">
+              <div data-v-e7291ef4=\\"\\" class=\\"v-responsive v-img v-img--booting\\" style=\\"min-width: 140px;\\" aria-label=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" role=\\"img\\" data-test=\\"logo\\">
+                <div class=\\"v-responsive__sizer\\"></div>
+                <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" style=\\"display: none;\\"></transition-stub>
+                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                   <!---->
-                  <!---->
-                  <!---->
-                  <!---->
-                </div>
+                </transition-stub>
+                <!---->
+                <!---->
+                <!---->
+                <!---->
               </div>
             </a>
+            <div data-v-e7291ef4=\\"\\" class=\\"v-spacer\\"></div>
+            <!---->
           </div>
-        </div>
+          <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+            <!---->
+          </transition-stub>
+        </header>
         <!--v-if-->
         <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/\\" tabindex=\\"-2\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
             <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
