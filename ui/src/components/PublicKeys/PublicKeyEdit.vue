@@ -49,7 +49,7 @@
             <v-text-field
               v-if="choiceUsername === 'username'"
               v-model="username"
-              label="Rule source IP"
+              label="Rule username"
               variant="underlined"
               :error-messages="usernameError"
               data-test="rule-field"
