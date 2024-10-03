@@ -12,22 +12,21 @@
       class="bg-v-theme-surface"
       data-test="navigation-drawer"
     >
-      <v-app-bar-title data-test="app-bar-title">
+      <v-toolbar class="bg-v-theme-surface" data-test="drawer-toolbar">
+        <v-spacer />
         <router-link
           to="/"
           class="text-decoration-none"
         >
-          <div class="d-flex justify-center pa-4 pb-2">
-            <v-img
-              class="d-sm-flex hidden-sm-and-down"
-              :src="Logo"
-              max-width="140"
-              alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
-              data-test="logo"
-            />
-          </div>
+          <v-img
+            :src="Logo"
+            min-width="140"
+            alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
+            data-test="logo"
+          />
         </router-link>
-      </v-app-bar-title>
+        <v-spacer />
+      </v-toolbar>
 
       <div class="pa-2" v-if="hasNamespaces">
         <Namespace data-test="namespace-component" />
