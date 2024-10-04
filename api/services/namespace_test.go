@@ -69,26 +69,26 @@ func TestListNamespaces(t *testing.T) {
 				namespaces := []models.Namespace{
 					{
 						Name:     "group1",
-						Owner:    "hash",
+						Owner:    "66ffe0745a82ba5c4fe842ac",
 						TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
 						Members: []models.Member{
 							{
-								ID:   "hash",
+								ID:   "66ffe0745a82ba5c4fe842ac",
 								Role: authorizer.RoleOwner,
 							},
 						},
 					},
 					{
 						Name:     "group2",
-						Owner:    "hash",
+						Owner:    "66ffe0745a82ba5c4fe842ac",
 						TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
 						Members: []models.Member{
 							{
-								ID:   "hash",
+								ID:   "66ffe0745a82ba5c4fe842ac",
 								Role: authorizer.RoleOwner,
 							},
 							{
-								ID:   "hash2",
+								ID:   "66ffe0232da6d319c9769afb",
 								Role: authorizer.RoleObserver,
 							},
 						},
@@ -96,77 +96,62 @@ func TestListNamespaces(t *testing.T) {
 				}
 
 				user := &models.User{
+					ID: "66ffe0745a82ba5c4fe842ac",
 					UserData: models.UserData{
-						Name:     "user",
-						Username: "hash",
+						Name:     "John Doe",
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
 					},
-					ID: "hash",
 				}
 
 				user1 := &models.User{
+					ID: "66ffe0232da6d319c9769afb",
 					UserData: models.UserData{
-						Name:     "user2",
-						Username: "hash2",
+						Name:     "Jane Smith",
+						Username: "jane_smith",
+						Email:    "jane.smith@test.com",
 					},
-					ID: "hash2",
 				}
 
 				// TODO: Add mock to fillMembersData what will replace the three call to UserGetByID.
 				mock.On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false).Return(namespaces, len(namespaces), nil).Once()
-				mock.On("UserGetByID", ctx, "hash", false).Return(user, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "hash2", false).Return(user1, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "hash", false).Return(user, 0, nil).Once()
+				mock.On("UserGetByID", ctx, "66ffe0745a82ba5c4fe842ac", false).Return(user, 0, nil).Once()
+				mock.On("UserGetByID", ctx, "66ffe0232da6d319c9769afb", false).Return(user1, 0, nil).Once()
+				mock.On("UserGetByID", ctx, "66ffe0745a82ba5c4fe842ac", false).Return(user, 0, nil).Once()
 			},
 			expected: Expected{
 				namespaces: []models.Namespace{
 					{
-						Name: "group1", Owner: "hash", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+						Name:     "group1",
+						Owner:    "66ffe0745a82ba5c4fe842ac",
+						TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
 						Members: []models.Member{
 							{
-								ID:       "hash",
-								Username: "hash",
-								Role:     authorizer.RoleOwner,
+								ID:    "66ffe0745a82ba5c4fe842ac",
+								Email: "john.doe@test.com",
+								Role:  authorizer.RoleOwner,
 							},
 						},
 					},
-					{Name: "group2", Owner: "hash", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4", Members: []models.Member{
-						{
-							ID:       "hash",
-							Username: "hash",
-							Role:     authorizer.RoleOwner,
-						},
-						{
-							ID:       "hash2",
-							Username: "hash2",
-							Role:     authorizer.RoleObserver,
-						},
-					}},
-				},
-				count: len([]models.Namespace{
 					{
-						Name: "group1", Owner: "hash", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+						Name:     "group2",
+						Owner:    "66ffe0745a82ba5c4fe842ac",
+						TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
 						Members: []models.Member{
 							{
-								ID:       "hash",
-								Username: "hash",
-								Role:     authorizer.RoleOwner,
+								ID:    "66ffe0745a82ba5c4fe842ac",
+								Email: "john.doe@test.com",
+								Role:  authorizer.RoleOwner,
 							},
-						},
-					},
-					{Name: "group2", Owner: "hash", TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4", Members: []models.Member{
-						{
-							ID:       "hash",
-							Username: "hash",
-							Role:     authorizer.RoleOwner,
-						},
-						{
-							ID:       "hash2",
-							Username: "hash2",
-							Role:     authorizer.RoleObserver,
-						},
-					}},
-				}),
-				err: nil,
+							{
+								ID:    "66ffe0232da6d319c9769afb",
+								Email: "jane.smith@test.com",
+								Role:  authorizer.RoleObserver,
+							},
+						}},
+				},
+				count: 2,
+				err:   nil,
 			},
 		},
 	}
@@ -197,110 +182,87 @@ func TestGetNamespace(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		user          *models.User
-		namespace     *models.Namespace
-		ctx           context.Context
+		tenantID      string
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails when could not get the namespace",
-			ctx:         ctx,
-			user:        &models.User{UserData: models.UserData{Name: "user1", Username: "hash1"}, ID: "hash1"},
-			namespace: &models.Namespace{
-				Name:     "group1",
-				Owner:    "hash1",
-				TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-				Members: []models.Member{
-					{
-						ID:       "hash1",
-						Username: "hash1",
-						Role:     authorizer.RoleOwner,
-					},
-				},
-			},
+			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-					Members: []models.Member{
-						{
-							ID:       "hash1",
-							Username: "hash1",
-							Role:     authorizer.RoleOwner,
-						},
-					},
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(nil, errors.New("error")).Once()
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(nil, errors.New("error")).
+					Once()
 			},
 			expected: Expected{
 				namespace: nil,
-				err:       NewErrNamespaceNotFound("a736a52b-5777-4f92-b0b8-e359bf484713", errors.New("error")),
+				err:       NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", errors.New("error")),
 			},
 		},
 		{
 			description: "succeeds",
-			ctx:         ctx,
-			namespace: &models.Namespace{
-				Name:     "group1",
-				Owner:    "hash1",
-				TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-				Members: []models.Member{
-					{
-						ID:       "hash1",
-						Username: "hash1",
-						Role:     authorizer.RoleOwner,
-					},
-				},
-			},
-			user: &models.User{
-				UserData: models.UserData{
-					Name:     "user1",
-					Username: "hash1",
-				},
-				ID: "hash1",
-			},
+			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				namespace := &models.Namespace{
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "66ffe21f76d5207a38a056d5",
+							TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+							Members: []models.Member{
+								{
+									ID:   "66ffe21f76d5207a38a056d5",
+									Role: authorizer.RoleOwner,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				mock.
+					On("UserGetByID", ctx, "66ffe21f76d5207a38a056d5", false).
+					Return(
+						&models.User{
+							ID: "66ffe21f76d5207a38a056d5",
+							UserData: models.UserData{
+								Name:     "John Doe",
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				namespace: &models.Namespace{
 					Name:     "group1",
-					Owner:    "hash1",
+					Owner:    "66ffe21f76d5207a38a056d5",
 					TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
 					Members: []models.Member{
 						{
-							ID:       "hash1",
-							Username: "hash1",
-							Role:     authorizer.RoleOwner,
+							ID:    "66ffe21f76d5207a38a056d5",
+							Role:  authorizer.RoleOwner,
+							Email: "john.doe@test.com",
 						},
 					},
-				}
-
-				user := &models.User{
-					UserData: models.UserData{
-						Name:     "user1",
-						Username: "hash1",
-					},
-					ID: "hash1",
-				}
-
-				mock.On("NamespaceGet", ctx, namespace.TenantID, true).Return(namespace, nil).Once()
-				mock.On("UserGetByID", ctx, user.ID, false).Return(user, 0, nil).Once()
-			},
-			expected: Expected{
-				namespace: &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Members: []models.Member{{ID: "hash1", Username: "hash1", Role: authorizer.RoleOwner}}},
-				err:       nil,
+				},
+				err: nil,
 			},
 		},
 	}
+
+	s := NewService(mock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			returnNamespace, err := service.GetNamespace(ctx, tc.namespace.TenantID)
-			assert.Equal(t, tc.expected, Expected{returnNamespace, err})
+			ns, err := s.GetNamespace(ctx, tc.tenantID)
+			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
 
@@ -326,35 +288,116 @@ func TestSetMemberData(t *testing.T) {
 		{
 			description: "success to fill member data",
 			members: []models.Member{
-				{ID: "hash1", Role: authorizer.RoleObserver},
-				{ID: "hash2", Role: authorizer.RoleObserver},
-				{ID: "hash3", Role: authorizer.RoleObserver},
-				{ID: "hash4", Role: authorizer.RoleOwner},
+				{
+					ID:   "76a8bf2812dabc4fae5d1a42",
+					Role: authorizer.RoleObserver,
+				},
+				{
+					ID:   "95e4bdc9023a5f9b8d5b8c9a",
+					Role: authorizer.RoleObserver,
+				},
+				{
+					ID:   "b7c2fbb745fe9c6d7b648832",
+					Role: authorizer.RoleObserver,
+				},
+				{
+					ID:   "f8a1d4e8752f6a3b9c7b2d14",
+					Role: authorizer.RoleOwner,
+				},
 			},
 			requiredMocks: func() {
-				mock.On("UserGetByID", ctx, "hash1", false).Return(&models.User{ID: "hash1", UserData: models.UserData{Username: "username1"}}, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "hash2", false).Return(&models.User{ID: "hash2", UserData: models.UserData{Username: "username2"}}, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "hash3", false).Return(&models.User{ID: "hash3", UserData: models.UserData{Username: "username3"}}, 0, nil).Once()
-				mock.On("UserGetByID", ctx, "hash4", false).Return(&models.User{ID: "hash4", UserData: models.UserData{Username: "username4"}}, 0, nil).Once()
+				mock.
+					On("UserGetByID", ctx, "76a8bf2812dabc4fae5d1a42", false).
+					Return(
+						&models.User{
+							ID: "76a8bf2812dabc4fae5d1a42",
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@example.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				mock.
+					On("UserGetByID", ctx, "95e4bdc9023a5f9b8d5b8c9a", false).
+					Return(
+						&models.User{
+							ID: "95e4bdc9023a5f9b8d5b8c9a",
+							UserData: models.UserData{
+								Username: "jane_smith",
+								Email:    "jane.smith@example.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				mock.
+					On("UserGetByID", ctx, "b7c2fbb745fe9c6d7b648832", false).
+					Return(
+						&models.User{
+							ID: "b7c2fbb745fe9c6d7b648832",
+							UserData: models.UserData{
+								Username: "michael_brown",
+								Email:    "michael.brown@example.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				mock.
+					On("UserGetByID", ctx, "f8a1d4e8752f6a3b9c7b2d14", false).
+					Return(
+						&models.User{
+							ID: "f8a1d4e8752f6a3b9c7b2d14",
+							UserData: models.UserData{
+								Username: "sarah_connor",
+								Email:    "sarah.connor@example.com",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
 			},
 			expected: Expected{
 				members: []models.Member{
-					{ID: "hash1", Username: "username1", Role: authorizer.RoleObserver},
-					{ID: "hash2", Username: "username2", Role: authorizer.RoleObserver},
-					{ID: "hash3", Username: "username3", Role: authorizer.RoleObserver},
-					{ID: "hash4", Username: "username4", Role: authorizer.RoleOwner},
+					{
+						ID:    "76a8bf2812dabc4fae5d1a42",
+						Email: "john.doe@example.com",
+						Role:  authorizer.RoleObserver,
+					},
+					{
+						ID:    "95e4bdc9023a5f9b8d5b8c9a",
+						Email: "jane.smith@example.com",
+						Role:  authorizer.RoleObserver,
+					},
+					{
+						ID:    "b7c2fbb745fe9c6d7b648832",
+						Email: "michael.brown@example.com",
+						Role:  authorizer.RoleObserver,
+					},
+					{
+						ID:    "f8a1d4e8752f6a3b9c7b2d14",
+						Email: "sarah.connor@example.com",
+						Role:  authorizer.RoleOwner,
+					},
 				},
 				err: nil,
 			},
 		},
 	}
 
+	s := NewService(mock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			members, err := services.fillMembersData(ctx, tc.members)
+			members, err := s.fillMembersData(ctx, tc.members)
 			assert.Equal(t, tc.expected, Expected{members, err})
 		})
 	}

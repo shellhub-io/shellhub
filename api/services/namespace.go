@@ -205,11 +205,11 @@ func (s *service) fillMembersData(ctx context.Context, members []models.Member) 
 		}
 
 		members[index] = models.Member{
-			ID:       user.ID,
-			AddedAt:  member.AddedAt,
-			Username: user.Username, // TODO: aggregate this in a query
-			Role:     member.Role,
-			Status:   member.Status,
+			ID:      user.ID,
+			AddedAt: member.AddedAt,
+			Email:   user.Email, // TODO: aggregate this in a query
+			Role:    member.Role,
+			Status:  member.Status,
 		}
 	}
 
