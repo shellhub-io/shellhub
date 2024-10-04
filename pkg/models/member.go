@@ -21,9 +21,9 @@ type Member struct {
 	// and it is ignored for members whose status is not 'pending'.
 	ExpiresAt time.Time `json:"expires_at" bson:"expires_at"`
 
-	Username string          `json:"username,omitempty" bson:"username,omitempty" validate:"username"` // TODO: remove
-	Role     authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
-	Status   MemberStatus    `json:"status" bson:"status"`
+	Email  string          `json:"email,omitempty" bson:"email,omitempty" validate:"email"` // TODO: remove
+	Role   authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
+	Status MemberStatus    `json:"status" bson:"status"`
 }
 
 type MemberChanges struct {
