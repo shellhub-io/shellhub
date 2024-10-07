@@ -105,7 +105,9 @@ func (cb *CertBot) stopACMEServer(server *http.Server) {
 
 // renewCertificates periodically renews the SSL certificates.
 func (cb *CertBot) renewCertificates() {
-	for range time.Tick(24 * time.Hour) {
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
 		fmt.Println("Checking if SSL certificate needs to be renewed")
 		cmd := exec.Command(
 			"certbot",
