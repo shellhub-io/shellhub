@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"log"
 	"net"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // CertBot handles the generation and renewal of SSL certificates.
@@ -109,7 +110,6 @@ func (cb *CertBot) renewCertificates() {
 		cmd := exec.Command(
 			"certbot",
 			"renew",
-			"--staging",
 			"--webroot",
 			"--webroot-path",
 			cb.rootDir,
