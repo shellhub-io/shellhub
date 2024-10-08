@@ -24,8 +24,13 @@ var (
 )
 
 type Store struct {
-	db    *mongo.Database
-	cache cache.Cache
+	db      *mongo.Database
+	cache   cache.Cache
+	options *StoreOptions
+}
+
+func (s *Store) Options() store.StoreOptions {
+	return s.options
 }
 
 func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
@@ -47,7 +52,7 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 }
 
 func NewStore(ctx context.Context, db *mongo.Database, cache cache.Cache, opts ...options.DatabaseOpt) (store.Store, error) {
-	store := &Store{db: db, cache: cache}
+	store := &Store{db: db, cache: cache, options: &StoreOptions{}}
 
 	for _, opt := range opts {
 		if err := opt(ctx, store.db); err != nil {
@@ -56,4 +61,7 @@ func NewStore(ctx context.Context, db *mongo.Database, cache cache.Cache, opts .
 	}
 
 	return store, nil
+}
+
+type StoreOptions struct {
 }

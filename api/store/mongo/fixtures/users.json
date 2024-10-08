@@ -43,6 +43,17 @@
             "name": "Alex Rodriguez",
             "password": "c5093eb98678c7a3324825b84c6b67c1127b93786482ddbbd356e67e29b2763f",
             "username": "alex_rodriguez"
+        },
+        "6509e169ae6144b2f56bf288": {
+            "status": "confirmed",
+            "created_at": "2023-01-05T12:00:00.000Z",
+            "last_login": "2023-01-05T12:00:00.000Z",
+            "email": "maria.garcia@test.com",
+            "email_marketing": true,
+            "max_namespaces": 5,
+            "name": "Maria Garcia",
+            "password": "c2301b2b7e872843b473d2c301e4fb2e6e9f27f2e7a1b6ad44a3b2c97f1670b3",
+            "username": "maria_garcia"
         }
     }
 }
