@@ -91,7 +91,7 @@ exports[`Home > Renders the component 1`] = `
             <div class=\\"v-list-item__spacer\\"></div>
           </div>
         </div>
-        <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" href=\\"/devices\\" tabindex=\\"0\\" buttonname-test=\\"View all Devices\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" tabindex=\\"0\\" href=\\"/devices\\" buttonname-test=\\"View all Devices\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">View all Devices</span>
             <!---->
             <!---->
@@ -139,7 +139,7 @@ exports[`Home > Renders the component 1`] = `
             <div class=\\"v-list-item__spacer\\"></div>
           </div>
         </div>
-        <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" href=\\"/sessions\\" tabindex=\\"0\\" buttonname-test=\\"View all Sessions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-card-actions\\"><a class=\\"v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle\\" tabindex=\\"0\\" href=\\"/sessions\\" buttonname-test=\\"View all Sessions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
             <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">View all Sessions</span>
             <!---->
             <!---->
