@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -46,7 +45,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 	}
 
 	if req.TenantID != "" {
-		ns, err := s.store.NamespaceGet(ctx, req.TenantID, mongo.CountAcceptedDevices())
+		ns, err := s.store.NamespaceGet(ctx, req.TenantID, store.CountAcceptedDevices(s.store))
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -195,7 +194,7 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 
 // UpdateDeviceStatus updates the device status.
 func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant, mongo.CountAcceptedDevices())
+	namespace, err := s.store.NamespaceGet(ctx, tenant, store.CountAcceptedDevices(s.store))
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}

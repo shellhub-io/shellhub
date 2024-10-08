@@ -8,7 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/shellhub-io/shellhub/api/store/options"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -120,7 +119,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, options.CountAcceptedDevices(), options.EnrichMembersData())
+	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, store.CountAcceptedDevices(s.store), store.EnrichMembersData(s.store))
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}
@@ -134,7 +133,7 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 //
 // GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID, options.CountAcceptedDevices(), options.EnrichMembersData())
+	namespace, err := s.store.NamespaceGet(ctx, tenantID, store.CountAcceptedDevices(s.store), store.EnrichMembersData(s.store))
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -149,7 +148,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 // When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
 // service if it exists.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceGet(ctx, tenantID, options.CountAcceptedDevices())
+	ns, err := s.store.NamespaceGet(ctx, tenantID, store.CountAcceptedDevices(s.store))
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -183,7 +182,7 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.Tenant, options.CountAcceptedDevices(), options.EnrichMembersData())
+	return s.store.NamespaceGet(ctx, req.Tenant, store.CountAcceptedDevices(s.store), store.EnrichMembersData(s.store))
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
@@ -228,14 +227,14 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 			return nil, err
 		}
 
-		return s.store.NamespaceGet(ctx, req.TenantID, options.CountAcceptedDevices(), options.EnrichMembersData())
+		return s.store.NamespaceGet(ctx, req.TenantID, store.CountAcceptedDevices(s.store), store.EnrichMembersData(s.store))
 	}
 
 	if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
 		return nil, err
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, options.CountAcceptedDevices(), options.EnrichMembersData())
+	return s.store.NamespaceGet(ctx, req.TenantID, store.CountAcceptedDevices(s.store), store.EnrichMembersData(s.store))
 }
 
 // addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
@@ -360,7 +359,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 
 	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) // nolint: errcheck
 
-	return s.store.NamespaceGet(ctx, req.TenantID, options.CountAcceptedDevices(), options.EnrichMembersData())
+	return s.store.NamespaceGet(ctx, req.TenantID, store.CountAcceptedDevices(s.store), store.EnrichMembersData(s.store))
 }
 
 // EditSessionRecordStatus defines if the sessions will be recorded.

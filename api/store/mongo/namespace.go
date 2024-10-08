@@ -395,7 +395,7 @@ func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) 
 }
 
 // CountAcceptedDevices fills the device count of a namespace.
-func CountAcceptedDevices() store.NamespaceQueryOption {
+func (*StoreOptions) CountAcceptedDevices() store.NamespaceQueryOption {
 	return func(ctx context.Context, ns *models.Namespace) error {
 		db, ok := ctx.Value("db").(*mongo.Database)
 		if !ok {
@@ -414,7 +414,7 @@ func CountAcceptedDevices() store.NamespaceQueryOption {
 }
 
 // EnrichMembersData fills the email attribute of each member of the namespace.
-func EnrichMembersData() store.NamespaceQueryOption {
+func (*StoreOptions) EnrichMembersData() store.NamespaceQueryOption {
 	return func(ctx context.Context, ns *models.Namespace) error {
 		db, ok := ctx.Value("db").(*mongo.Database)
 		if !ok {
