@@ -30,7 +30,7 @@
         <tr v-for="(member, i) in members" :key="i">
           <td>
             <v-icon> mdi-account </v-icon>
-            {{ member.username }}
+            {{ member.email }}
           </td>
 
           <td class="text-center">
@@ -125,8 +125,8 @@ const props = defineProps({
 
 const headers = [
   {
-    text: "Username",
-    value: "username",
+    text: "Email",
+    value: "email",
     align: "start",
     sortable: false,
   },

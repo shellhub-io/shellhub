@@ -278,7 +278,7 @@ exports[`Sign Up > Renders the component 1`] = `
         <!---->
         <!---->
       </button></div>
-    <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto\\" data-test=\\"login-btn\\"> Do you have account ? <a href=\\"/login\\" class=\\"ml-1\\"> Login </a></div>
+    <div class=\\"v-card-subtitle d-flex align-center justify-center pa-4 mx-auto\\" data-test=\\"login-btn\\"> Do you have an account? <a href=\\"/login\\" class=\\"ml-1\\"> Login </a></div>
   </form>
   <!--v-if-->
 </div>"

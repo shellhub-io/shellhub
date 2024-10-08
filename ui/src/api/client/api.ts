@@ -45,7 +45,7 @@ export interface AddNamespaceMemberRequest {
      * @type {string}
      * @memberof AddNamespaceMemberRequest
      */
-    'email'?: string;
+    'email': string;
     /**
      * 
      * @type {NamespaceMemberRole}
@@ -2134,12 +2134,38 @@ export interface NamespaceMembersInner {
      */
     'id'?: string;
     /**
+     * The time when the member was invited.
+     * @type {string}
+     * @memberof NamespaceMembersInner
+     */
+    'added_at'?: string;
+    /**
+     * **NOTE: ONLY USED IN CLOUD INSTANCE.**  The time when the invite expires. If the member is not in `pending` status, this will be set to the zero UTC time. 
+     * @type {string}
+     * @memberof NamespaceMembersInner
+     */
+    'expires_at'?: string;
+    /**
      * 
      * @type {NamespaceMemberRole}
      * @memberof NamespaceMembersInner
      */
     'role'?: NamespaceMemberRole;
+    /**
+     * 
+     * @type {string}
+     * @memberof NamespaceMembersInner
+     */
+    'status'?: NamespaceMembersInnerStatusEnum;
 }
+
+export const NamespaceMembersInnerStatusEnum = {
+    Accepted: 'accepted',
+    Pending: 'pending'
+} as const;
+
+export type NamespaceMembersInnerStatusEnum = typeof NamespaceMembersInnerStatusEnum[keyof typeof NamespaceMembersInnerStatusEnum];
+
 /**
  * Namespace\'s settings.
  * @export
@@ -2378,6 +2404,49 @@ export interface RecoverPasswordRequest {
  */
 export type RecoverPasswordRequestUsername = string;
 
+/**
+ * 
+ * @export
+ * @interface RegisterUserRequest
+ */
+export interface RegisterUserRequest {
+    /**
+     * The full name of the user.
+     * @type {string}
+     * @memberof RegisterUserRequest
+     */
+    'name': string;
+    /**
+     * The user\'s email address, which must be unique. This email will be used for login and for receiving important notifications, such as password reset emails. If `email_marketing` is set to `true`, promotional emails will also be sent to this address. 
+     * @type {string}
+     * @memberof RegisterUserRequest
+     */
+    'email': string;
+    /**
+     * The username, which must be unique across the system. Users can log in using either their username or email. 
+     * @type {string}
+     * @memberof RegisterUserRequest
+     */
+    'username': string;
+    /**
+     * The password for the user account. Must follow the regex. 
+     * @type {string}
+     * @memberof RegisterUserRequest
+     */
+    'password': string;
+    /**
+     * Indicates whether the user opts to receive marketing and promotional emails. 
+     * @type {boolean}
+     * @memberof RegisterUserRequest
+     */
+    'email_marketing': boolean;
+    /**
+     * **For standard registration processes, this field should be ignored.**   A unique signature included in an invitation email. This is used to automatically confirm the user\'s registration without requiring an additional confirmation email. 
+     * @type {string}
+     * @memberof RegisterUserRequest
+     */
+    'sig'?: string;
+}
 /**
  * 
  * @export
@@ -2781,43 +2850,6 @@ export interface UpdateUserRequest {
      * @memberof UpdateUserRequest
      */
     'current_password'?: string;
-}
-/**
- * 
- * @export
- * @interface User
- */
-export interface User {
-    /**
-     * User\'s name.
-     * @type {string}
-     * @memberof User
-     */
-    'name': string;
-    /**
-     * User\'s E-mail.
-     * @type {string}
-     * @memberof User
-     */
-    'email': string;
-    /**
-     * User\'s username.
-     * @type {string}
-     * @memberof User
-     */
-    'username': string;
-    /**
-     * User\'s password.
-     * @type {string}
-     * @memberof User
-     */
-    'password': string;
-    /**
-     * User\'s email marketing option.
-     * @type {boolean}
-     * @memberof User
-     */
-    'email_marketing'?: boolean;
 }
 /**
  * 
@@ -5098,13 +5130,13 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Register user
-         * @summary Register user
-         * @param {User} [user] 
+         * 
+         * @summary Register a new user
+         * @param {RegisterUserRequest} [registerUserRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerUser: async (user?: User, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        registerUser: async (registerUserRequest?: RegisterUserRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/register`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5124,7 +5156,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(user, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(registerUserRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -5791,14 +5823,14 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Register user
-         * @summary Register user
-         * @param {User} [user] 
+         * 
+         * @summary Register a new user
+         * @param {RegisterUserRequest} [registerUserRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async registerUser(user?: User, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.registerUser(user, options);
+        async registerUser(registerUserRequest?: RegisterUserRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.registerUser(registerUserRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -6164,14 +6196,14 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.recoverPassword(recoverPasswordRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Register user
-         * @summary Register user
-         * @param {User} [user] 
+         * 
+         * @summary Register a new user
+         * @param {RegisterUserRequest} [registerUserRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerUser(user?: User, options?: any): AxiosPromise<void> {
-            return localVarFp.registerUser(user, options).then((request) => request(axios, basePath));
+        registerUser(registerUserRequest?: RegisterUserRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.registerUser(registerUserRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Report an action.
@@ -6574,15 +6606,15 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * Register user
-     * @summary Register user
-     * @param {User} [user] 
+     * 
+     * @summary Register a new user
+     * @param {RegisterUserRequest} [registerUserRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof CloudApi
      */
-    public registerUser(user?: User, options?: AxiosRequestConfig) {
-        return CloudApiFp(this.configuration).registerUser(user, options).then((request) => request(this.axios, this.basePath));
+    public registerUser(registerUserRequest?: RegisterUserRequest, options?: AxiosRequestConfig) {
+        return CloudApiFp(this.configuration).registerUser(registerUserRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -9105,6 +9137,48 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+         * @summary Invite member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addNamespaceMember: async (tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('addNamespaceMember', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/members`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(addNamespaceMemberRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -9125,6 +9199,18 @@ export const MembersApiFp = function(configuration?: Configuration) {
          */
         async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+         * @summary Invite member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Namespace>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addNamespaceMember(tenant, addNamespaceMemberRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -9148,6 +9234,17 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
         acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: any): AxiosPromise<void> {
             return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
         },
+        /**
+         * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+         * @summary Invite member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: any): AxiosPromise<Namespace> {
+            return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -9169,6 +9266,19 @@ export class MembersApi extends BaseAPI {
      */
     public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: AxiosRequestConfig) {
         return MembersApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+     * @summary Invite member
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MembersApi
+     */
+    public addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig) {
+        return MembersApiFp(this.configuration).addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -9739,8 +9849,8 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Add a member to a namespace.
-         * @summary Add a member to a namespace
+         * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+         * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
          * @param {*} [options] Override http request option.
@@ -10552,8 +10662,8 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Add a member to a namespace.
-         * @summary Add a member to a namespace
+         * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+         * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
          * @param {*} [options] Override http request option.
@@ -10796,8 +10906,8 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Add a member to a namespace.
-         * @summary Add a member to a namespace
+         * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+         * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
          * @param {*} [options] Override http request option.
@@ -11023,8 +11133,8 @@ export class NamespacesApi extends BaseAPI {
     }
 
     /**
-     * Add a member to a namespace.
-     * @summary Add a member to a namespace
+     * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
+     * @summary Invite member
      * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
      * @param {*} [options] Override http request option.
@@ -14626,13 +14736,13 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Register user
-         * @summary Register user
-         * @param {User} [user] 
+         * 
+         * @summary Register a new user
+         * @param {RegisterUserRequest} [registerUserRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerUser: async (user?: User, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        registerUser: async (registerUserRequest?: RegisterUserRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/register`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -14652,7 +14762,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(user, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(registerUserRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -15118,14 +15228,14 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Register user
-         * @summary Register user
-         * @param {User} [user] 
+         * 
+         * @summary Register a new user
+         * @param {RegisterUserRequest} [registerUserRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async registerUser(user?: User, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.registerUser(user, options);
+        async registerUser(registerUserRequest?: RegisterUserRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.registerUser(registerUserRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -15363,14 +15473,14 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.recoverPassword(recoverPasswordRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Register user
-         * @summary Register user
-         * @param {User} [user] 
+         * 
+         * @summary Register a new user
+         * @param {RegisterUserRequest} [registerUserRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerUser(user?: User, options?: any): AxiosPromise<void> {
-            return localVarFp.registerUser(user, options).then((request) => request(axios, basePath));
+        registerUser(registerUserRequest?: RegisterUserRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.registerUser(registerUserRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Sends an email to both the user\'s main and recovery addresses. Each email contains a unique code, which remains valid for at most 1 day. The user must provide both codes to reset their MFA. 
@@ -15625,15 +15735,15 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * Register user
-     * @summary Register user
-     * @param {User} [user] 
+     * 
+     * @summary Register a new user
+     * @param {RegisterUserRequest} [registerUserRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public registerUser(user?: User, options?: AxiosRequestConfig) {
-        return UsersApiFp(this.configuration).registerUser(user, options).then((request) => request(this.axios, this.basePath));
+    public registerUser(registerUserRequest?: RegisterUserRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).registerUser(registerUserRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
