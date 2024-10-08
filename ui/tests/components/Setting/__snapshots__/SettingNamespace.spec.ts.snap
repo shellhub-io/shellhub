@@ -165,8 +165,8 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
             <div data-v-80a16399=\\"\\">
-              <div aria-describedby=\\"v-tooltip-8\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Member </span>
+              <div aria-describedby=\\"v-tooltip-8\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"invite-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Invite Member </span>
                   <!---->
                   <!---->
                 </button></div>
@@ -183,7 +183,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <table>
               <thead>
                 <tr>
-                  <th class=\\"text-start\\"><span>Username</span></th>
+                  <th class=\\"text-start\\"><span>Email</span></th>
                   <th class=\\"text-center\\"><span>Role</span></th>
                   <th class=\\"text-center\\"><span>Status</span></th>
                   <th class=\\"text-end\\"><span>Actions</span></th>
@@ -191,7 +191,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
               </thead>
               <tbody>
                 <tr>
-                  <td><i class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i> test</td>
+                  <td><i class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i> </td>
                   <td class=\\"text-center\\">owner</td>
                   <td class=\\"text-center\\" aria-describedby=\\"v-tooltip-10\\">
                     <!---->

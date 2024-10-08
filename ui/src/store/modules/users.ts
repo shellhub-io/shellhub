@@ -1,4 +1,5 @@
 import { Module } from "vuex";
+import { AxiosResponse } from "axios";
 import * as apiUser from "../api/users";
 import { State } from "..";
 
@@ -8,6 +9,7 @@ export interface UsersState {
   deviceDuplicationError: boolean,
   showPaywall: boolean,
   premiumContent: Array<object>,
+  signUpToken: string,
 }
 
 export const users: Module<UsersState, State> = {
@@ -18,6 +20,7 @@ export const users: Module<UsersState, State> = {
     deviceDuplicationError: false,
     showPaywall: false,
     premiumContent: [],
+    signUpToken: "",
   },
 
   getters: {
@@ -28,6 +31,7 @@ export const users: Module<UsersState, State> = {
     deviceDuplicationError: (state) => state.deviceDuplicationError,
     showPaywall: (state) => state.showPaywall,
     getPremiumContent: (state) => state.premiumContent,
+    getSignToken: (state) => state.signUpToken,
   },
 
   mutations: {
@@ -42,9 +46,14 @@ export const users: Module<UsersState, State> = {
       state.deviceDuplicationError = status;
     },
 
+    setSignUpToken(state, token) {
+      state.signUpToken = token;
+    },
+
     setShowPaywall(state, status) {
       state.showPaywall = status;
     },
+
     setPremiumContent(state, data) {
       state.premiumContent = data;
     },
@@ -53,7 +62,20 @@ export const users: Module<UsersState, State> = {
   actions: {
     async signUp(context, data) {
       try {
-        await apiUser.signUp(data);
+        const res: AxiosResponse = await apiUser.signUp(data);
+
+        if (res.data.token) {
+          context.commit("setSignUpToken", res.data.token);
+          context.commit("auth/authSuccess", res.data, { root: true });
+          localStorage.setItem("token", res.data.token || "");
+          localStorage.setItem("user", res.data.user || "");
+          localStorage.setItem("name", res.data.name || "");
+          localStorage.setItem("tenant", res.data.tenant || "");
+          localStorage.setItem("email", res.data.email || "");
+          localStorage.setItem("id", res.data.id || "");
+          localStorage.setItem("role", res.data.role || "");
+          localStorage.setItem("namespacesWelcome", JSON.stringify({}));
+        }
       } catch (error) {
         console.error(error);
         throw error;

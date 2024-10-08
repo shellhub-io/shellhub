@@ -11,7 +11,7 @@
   />
 
   <NamespaceInstructions
-    v-if="!showNamespaceInviteDialog && showInstructions"
+    v-if="route.name !== 'AcceptInvite' && showInstructions"
     v-model:show="showInstructions"
     @update="showInstructions = false"
     data-test="namespaceInstructions-component"
@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
@@ -76,6 +76,7 @@ import NamespaceInviteDialog from "./../Namespace/NamespaceInviteDialog.vue";
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 const showInstructions = ref(false);
 const show = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);

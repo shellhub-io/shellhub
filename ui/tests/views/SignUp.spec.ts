@@ -23,7 +23,6 @@ describe("Sign Up", () => {
 
     envVariables.isCloud = true;
 
-    // Create a mock adapter for the usersApi instance
     mock = new MockAdapter(usersApi.getAxios());
 
     wrapper = mount(SignUp, {
@@ -93,7 +92,7 @@ describe("Sign Up", () => {
 
     vi.runOnlyPendingTimers();
     await flushPromises();
-
+    await nextTick();
     expect(signUpSpy).toHaveBeenCalledWith("users/signUp", {
       name: "test",
       email: "test@test.com",

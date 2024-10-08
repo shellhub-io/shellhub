@@ -165,6 +165,10 @@ export const auth: Module<AuthState, State> = {
       state.disableTimeout = data;
     },
 
+    setToken(state, data) {
+      state.token = data;
+    },
+
     setRecoveryCode: (state, data) => {
       state.recoveryCode = data;
     },

@@ -18,6 +18,7 @@ export interface IUserSignUp {
   password: string;
   username: string;
   emailMarketing?: boolean;
+  sig?: string;
 }
 
 export interface IUserUpdatePassword {

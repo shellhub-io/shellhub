@@ -7,8 +7,9 @@
             :disabled="!hasAuthorization()"
             color="primary"
             @click="dialog = !dialog"
+            data-test="invite-dialog-btn"
           >
-            Add Member
+            Invite Member
           </v-btn>
         </div>
       </template>
@@ -17,9 +18,12 @@
 
     <v-dialog v-model="dialog" max-width="450" @click:outside="close()">
       <v-card data-test="namespaceNewMember-dialog" class="bg-v-theme-surface">
-        <v-card-title class="bg-primary"> Add member to namespace </v-card-title>
+        <v-card-title class="bg-primary"> Invite member </v-card-title>
 
         <v-card-text>
+          <p class="text-caption text-grey-lighten-4 mb-1">
+            If this email isn't associated with an existing account, we'll send  an email to sign-up.
+          </p>
           <v-text-field
             v-model="email"
             label="Email"
@@ -46,8 +50,8 @@
           <v-spacer />
           <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
 
-          <v-btn color="primary" data-test="add-btn" @click="addMember()">
-            Add
+          <v-btn color="primary" data-test="invite-btn" @click="addMember()">
+            Invite
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -152,21 +156,21 @@ const addMember = async () => {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
-        if (axiosError.response?.status === 404) {
-          setEmailError("This identifier doesn't exist.");
-        } else if (axiosError.response?.status === 409) {
+        if (axiosError.response?.status === 409) {
           setEmailError(
             "This user is already a member of this namespace.",
           );
+        } else {
+          store.dispatch(
+            "snackbar/showSnackbarErrorAction",
+            INotificationsError.namespaceNewMember,
+          );
+          handleError(error);
         }
-      } else {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceNewMember,
-        );
-        handleError(error);
       }
     }
   }
 };
+
+defineExpose({ emailError });
 </script>

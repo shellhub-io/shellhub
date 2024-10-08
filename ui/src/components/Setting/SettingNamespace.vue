@@ -49,7 +49,7 @@
             <v-spacer />
 
             <v-col md="auto" class="ml-auto">
-              <NamespaceMemberAdd @update="refresh" />
+              <NamespaceMemberInvite @update="refresh" />
             </v-col>
           </v-row>
 
@@ -123,7 +123,7 @@ import { onMounted, computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
-import NamespaceMemberAdd from "../Namespace/NamespaceMemberAdd.vue";
+import NamespaceMemberInvite from "../Namespace/NamespaceMemberInvite.vue";
 import NamespaceMemberList from "../Namespace/NamespaceMemberList.vue";
 import NamespaceGenerateApiKey from "../Namespace/NamespaceGenerateApiKey.vue";
 import NamespaceApiKeyList from "../Namespace/NamespaceApiKeyList.vue";
