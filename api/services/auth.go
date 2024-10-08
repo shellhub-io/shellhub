@@ -137,7 +137,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}
 
 	// The order here is critical as we don't want to register devices if the tenant id is invalid
-	namespace, err := s.store.NamespaceGet(ctx, device.TenantID, false)
+	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(device.TenantID, err)
 	}
@@ -305,7 +305,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	case "":
 		namespace, err = s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID)
 	default:
-		namespace, err = s.store.NamespaceGet(ctx, req.TenantID, false)
+		namespace, err = s.store.NamespaceGet(ctx, req.TenantID)
 	}
 
 	if namespace == nil {
@@ -411,7 +411,7 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 }
 
 func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (string, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID, false)
+	ns, err := s.store.NamespaceGet(ctx, tenantID)
 	if err != nil {
 		return "", err
 	}

@@ -83,7 +83,7 @@ func TestAuthDevice(t *testing.T) {
 		Return(nil).Once()
 	mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
 		Return(device, nil).Once()
-	mock.On("NamespaceGet", ctx, namespace.TenantID, false).
+	mock.On("NamespaceGet", ctx, namespace.TenantID).
 		Return(namespace, nil).Once()
 
 	// Mock time.Now using monkey patch
@@ -1000,7 +1000,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(user, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -1040,7 +1040,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(user, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(ns, nil).
 					Once()
 			},
@@ -1089,7 +1089,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(user, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(ns, nil).
 					Once()
 			},
@@ -1202,7 +1202,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(user, 0, nil).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(ns, nil).
 					Once()
 				preferredNamespace := "00000000-0000-4000-0000-000000000000"
