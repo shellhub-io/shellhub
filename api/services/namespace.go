@@ -120,7 +120,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, false, options.CountAcceptedDevices(), options.EnrichMembersData())
+	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, options.CountAcceptedDevices(), options.EnrichMembersData())
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}

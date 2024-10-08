@@ -51,7 +51,7 @@ func TestListNamespaces(t *testing.T) {
 			ctx: ctx,
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -70,7 +70,7 @@ func TestListNamespaces(t *testing.T) {
 			ctx: ctx,
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						[]models.Namespace{
 							{
