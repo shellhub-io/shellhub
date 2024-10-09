@@ -46,6 +46,8 @@ func SameDomainRedirectPolicy() resty.RedirectPolicyFunc {
 	}
 }
 
+var ErrDialUnauthorized = errors.New("failed to dial due unauthorizated error")
+
 // DialContext creates a websocket connection to ShellHub's SSH server.
 //
 // It receivees the endpoint to connect and the necessary headers for authentication on the server. If the server
@@ -75,6 +77,8 @@ func DialContext(ctx context.Context, address string, header http.Header) (*webs
 			}
 
 			return DialContext(ctx, parseToWS(location.String()), header)
+		case http.StatusUnauthorized:
+			return nil, nil, ErrDialUnauthorized
 		default:
 			return nil, nil, err
 		}
