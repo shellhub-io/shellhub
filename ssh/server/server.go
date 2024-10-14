@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"time"
@@ -55,30 +54,29 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 
 			logger.Info("new connection established")
 
-			target, err := target.NewTarget(ctx.User())
-			if err != nil {
+			if _, err := target.NewTarget(ctx.User()); err != nil {
 				logger.WithError(err).Error("invalid SSHID")
 
-				return fmt.Sprintf("%s is not a valid SSHID\n", ctx.User())
+				return "it is not a valid SSHID"
 			}
 
 			sess, err := session.NewSession(ctx, tunnel, cache)
 			if err != nil {
 				logger.WithError(err).Error("failed to create the session")
 
-				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
+				return "device is offline or cannot be reached"
 			}
 
 			if err := sess.Dial(ctx); err != nil {
 				logger.WithError(err).Error("destination device is offline or cannot be reached")
 
-				return fmt.Sprintf("%s is offline or cannot be reached\n", target.Data)
+				return "device is offline or cannot be reached"
 			}
 
 			if err := sess.Evaluate(ctx); err != nil {
 				logger.WithError(err).Error("destination device has a firewall to blocked it or a billing issue")
 
-				return fmt.Sprintf("you cannot access %s due a policy rule\n", target.Data)
+				return "you cannot access the device due a policy rule"
 			}
 
 			return ""
