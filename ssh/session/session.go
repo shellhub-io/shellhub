@@ -163,7 +163,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			Target:    target,
 			Device:    device,
 			Lookup:    lookup,
-			SSHID:     ctx.User(),
+			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespace, hostname),
 		},
 		once: new(sync.Once),
 	}
