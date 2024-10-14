@@ -90,18 +90,6 @@ jobs:
               exit 1
           fi
 
-      - name: Unit test [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: go test -v ${{ matrix.extra_args }} -timeout 25m ./...
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: true
-
-      - name: Go build [Go]
-        if: matrix.project != 'ui' && matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: go build -v ${{ matrix.extra_args }} ./...
-
       - name: Code format [Go]
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
         if: matrix.os == 'ubuntu-latest' && github.event.pull_request.draft == false
@@ -114,6 +102,18 @@ jobs:
           version: v1.54
           args: ${{ matrix.lint_args }} ./...
           skip-pkg-cache: true
+
+      - name: Unit test [Go]
+        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        working-directory: ${{ matrix.project }}
+        run: go test -v ${{ matrix.extra_args }} -timeout 25m ./...
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
+
+      - name: Go build [Go]
+        if: matrix.project != 'ui' && matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        working-directory: ${{ matrix.project }}
+        run: go build -v ${{ matrix.extra_args }} ./...
 
       - name: Set up Node.JS 21.4.0 [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
