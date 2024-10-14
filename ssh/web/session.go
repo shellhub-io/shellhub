@@ -2,14 +2,18 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
+	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -87,7 +91,7 @@ func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, er
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
-func newSession(conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
 	log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -102,11 +106,19 @@ func newSession(conn *Conn, creds *Credentials, dim Dimensions, info Info) error
 		"rows":   dim.Rows,
 	}).Info("handling web client request end")
 
-	user := fmt.Sprintf("%s@%s", creds.Username, creds.Device)
+	uuid := uuid.Generate()
+
+	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
 	auth, err := getAuth(creds, magickey.GetRerefence())
 	if err != nil {
 		return ErrGetAuth
 	}
+
+	if err := cache.Set(ctx, "web-ip/"+user, fmt.Sprintf("%s:%s", creds.Device, info.IP), 1*time.Minute); err != nil {
+		return err
+	}
+
+	defer cache.Delete(ctx, "web-ip/"+user) //nolint:errcheck
 
 	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
 		User:            user,
@@ -139,15 +151,6 @@ func newSession(conn *Conn, creds *Credentials, dim Dimensions, info Info) error
 	}
 
 	defer agent.Close()
-
-	if err = agent.Setenv("IP_ADDRESS", info.IP); err != nil {
-		return ErrEnvIPAddress
-	}
-
-	// NOTICE: when a SSH web shell is initialized, we set a env variable to the end user identify its origin.
-	if err = agent.Setenv("WS", "true"); err != nil {
-		return ErrEnvWS
-	}
 
 	stdin, err := agent.StdinPipe()
 	if err != nil {

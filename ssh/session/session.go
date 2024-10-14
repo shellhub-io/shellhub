@@ -12,6 +12,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
@@ -82,7 +83,7 @@ type Session struct {
 // the session without registering, connecting to the agent and etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, error) {
+func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Cache) (*Session, error) {
 	snap := getSnapshot(ctx)
 
 	api, err := internalclient.NewClient()
@@ -91,6 +92,14 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 	}
 
 	sshid := ctx.User()
+
+	hos, err := host.NewHost(ctx.RemoteAddr().String())
+	if err != nil {
+		log.WithError(err).
+			Error("failed to create a new host")
+
+		return nil, ErrHost
+	}
 
 	target, err := target.NewTarget(sshid)
 	if err != nil {
@@ -104,6 +113,28 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 			return nil, err
 		}
 	} else {
+		if hos.IsLocalhost() {
+			var data string
+
+			if err := cache.Get(ctx, "web-ip/"+sshid, &data); err != nil {
+				log.WithError(err).
+					Error("failed to get the ip from web session")
+
+				return nil, err
+			}
+
+			if err := cache.Delete(ctx, "web-ip/"+sshid); err != nil {
+				log.WithError(err).
+					Error("failed to delete the web session ip from cache")
+
+				return nil, err
+			}
+
+			parts := strings.Split(data, ":")
+			target.Data = parts[0]
+			hos.Host = parts[1]
+		}
+
 		device, err := api.GetDevice(target.Data)
 		if err != nil {
 			return nil, err
@@ -121,14 +152,6 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel) (*Session, err
 	device, errs := api.DeviceLookup(lookup)
 	if len(errs) > 0 {
 		return nil, errs[0]
-	}
-
-	hos, err := host.NewHost(ctx.RemoteAddr().String())
-	if err != nil {
-		log.WithError(err).
-			Error("failed to create a new host")
-
-		return nil, ErrHost
 	}
 
 	session := &Session{

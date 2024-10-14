@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/token"
 	"golang.org/x/net/websocket"
 )
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
-func NewSSHServerBridge(router *echo.Echo) {
+func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 	const WebsocketSSHBridgeRoute = "/ws/ssh"
 
 	manager := newManager(30 * time.Second)
@@ -105,6 +106,8 @@ func NewSSHServerBridge(router *echo.Echo) {
 		creds.decryptPassword(magickey.GetRerefence()) //nolint:errcheck
 
 		if err := newSession(
+			wsconn.Request().Context(),
+			cache,
 			conn,
 			creds,
 			Dimensions{cols, rows},

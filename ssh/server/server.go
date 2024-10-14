@@ -8,6 +8,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	"github.com/shellhub-io/shellhub/ssh/server/auth"
@@ -32,7 +33,7 @@ type Server struct {
 	tunnel *httptunnel.Tunnel
 }
 
-func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
+func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Server {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		tunnel: tunnel,
@@ -61,7 +62,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel) *Server {
 				return fmt.Sprintf("%s is not a valid SSHID\n", ctx.User())
 			}
 
-			sess, err := session.NewSession(ctx, tunnel)
+			sess, err := session.NewSession(ctx, tunnel, cache)
 			if err != nil {
 				logger.WithError(err).Error("failed to create the session")
 
