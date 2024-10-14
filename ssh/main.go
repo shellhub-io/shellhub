@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	"github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
@@ -36,6 +37,12 @@ func main() {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
+	cache, err := cache.NewRedisCache(env.RedisURI, 0)
+	if err != nil {
+		log.WithError(err).
+			Fatal("failed to connect to redis cache")
+	}
+
 	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", env.RedisURI)
 	if err != nil {
 		log.WithError(err).
@@ -44,7 +51,7 @@ func main() {
 
 	router := tun.GetRouter()
 
-	web.NewSSHServerBridge(router)
+	web.NewSSHServerBridge(router, cache)
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)
@@ -59,5 +66,5 @@ func main() {
 		ConnectTimeout:               env.ConnectTimeout,
 		RecordURL:                    env.RecordURL,
 		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
-	}, tun.Tunnel).ListenAndServe())
+	}, tun.Tunnel, cache).ListenAndServe())
 }
