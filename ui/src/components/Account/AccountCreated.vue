@@ -86,11 +86,9 @@ const resendEmail = async () => {
 };
 
 const redirect = async () => {
-  const queryParams = route.query;
-  const targetRoute = isNormalMessage.value ? "/" : { name: "AcceptInvite", query: queryParams };
-
   try {
-    await router.push(targetRoute);
+    store.commit("namespaces/setShowNamespaceInvite", true);
+    await router.push({ name: "Home", query: route.query });
   } catch (error) {
     handleError(error);
   }

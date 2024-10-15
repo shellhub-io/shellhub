@@ -9,7 +9,7 @@ export interface UsersState {
   deviceDuplicationError: boolean,
   showPaywall: boolean,
   premiumContent: Array<object>,
-  signUpToken: string,
+  signUpToken: string | undefined,
 }
 
 export const users: Module<UsersState, State> = {
@@ -20,7 +20,7 @@ export const users: Module<UsersState, State> = {
     deviceDuplicationError: false,
     showPaywall: false,
     premiumContent: [],
-    signUpToken: "",
+    signUpToken: undefined,
   },
 
   getters: {

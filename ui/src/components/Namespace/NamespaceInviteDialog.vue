@@ -52,79 +52,88 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import axios, { AxiosError } from "axios";
+import { ref, watch } from "vue";
+import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "@/store";
 
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const modalTitle = ref<string>("You've Been Invited to Join a Namespace");
-// eslint-disable-next-line vue/max-len
-const modalMessage = ref<string>("Accepting this invitation will allow you to collaborate with the Namespace collaborators. Please choose whether to accept or decline this invitation.");
-const modalError = ref<boolean>(false);
-const buttonText = ref("Close");
-const showDialog = computed(() => store.getters["namespaces/showNamespaceInviteDialog"]);
+const emit = defineEmits(["close"]);
 
+const modalTitle = ref("You've Been Invited to Join a Namespace");
+// eslint-disable-next-line vue/max-len
+const modalMessage = ref("Accepting this invitation will allow you to collaborate with the Namespace collaborators. Please choose whether to accept or decline this invitation.");
+const modalError = ref(false);
+const buttonText = ref("Close");
+const showDialog = ref(store.getters["namespaces/showNamespaceInviteDialog"]);
+
+watch(
+  () => store.getters["namespaces/showNamespaceInviteDialog"],
+  (newValue) => {
+    showDialog.value = newValue;
+  },
+);
 const close = async () => {
   store.commit("namespaces/setShowNamespaceInvite", false);
-  await router.push({ path: "/" }).then(() => {
-    window.location.reload();
-  });
+  emit("close");
+  await router.replace({ query: {} });
+};
+
+const errorToMessage = (status?: number): string => {
+  const errorMessages: Record<number, string> = {
+    400: "It seems like there was an issue with the request. Please check the invitation link and try again.",
+    // eslint-disable-next-line vue/max-len
+    403: "The token provided appears to be invalid or not associated with your account. Please verify your credentials and try again later.",
+    404: "We couldn't find the namespace or member associated with this invitation. The invitation might have expired.",
+    500: "Our servers encountered an issue while processing your invitation acceptance. Please try again later.",
+  };
+
+  return status ? errorMessages[status] ?? "An unexpected error occurred. Please try again later."
+    : "An unexpected error occurred. Please try again later.";
+};
+
+const handleInviteError = (error: unknown) => {
+  modalError.value = true;
+  modalTitle.value = "Invite Accept Error";
+
+  if (axios.isAxiosError(error)) {
+    modalMessage.value = errorToMessage(error.response?.status);
+  } else {
+    modalMessage.value = "An unexpected error occurred. Please try again later.";
+  }
+
+  buttonText.value = "Close";
 };
 
 const acceptInvite = async () => {
   try {
-    await store.dispatch("namespaces/acceptInvite", {
-      tenant: route.query["tenant-id"] as string || route.query.tenantid as string,
-      sig: route.query.sig as string,
-    });
-    // eslint-disable-next-line vue/max-len
+    const tenant = (route.query["tenant-id"] || route.query.tenantid) as string;
+    const sig = route.query.sig as string;
+
+    await store.dispatch("namespaces/acceptInvite", { tenant, sig });
+
     modalMessage.value = "Your invitation has been successfully accepted! You are now a member of the namespace.";
     buttonText.value = "Switch to New Namespace";
-    await store.dispatch("namespaces/switchNamespace", {
-      tenant_id: route.query["tenant-id"] as string || route.query.tenantid as string,
-    });
-    await store.dispatch("namespaces/fetch", {
-      page: 1,
-      perPage: 10,
-      filter: "",
-    });
-    close();
-  } catch (error: unknown) {
-    modalError.value = true;
-    modalTitle.value = "Invite Accept Error";
 
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      switch (axiosError.response?.status) {
-        case 400:
-          modalMessage.value = "It seems like there was an issue with the request. Please check the invitation link and try again.";
-          break;
-        case 403:
-          // eslint-disable-next-line vue/max-len
-          modalMessage.value = "The token provided appears to be invalid or not associated with your account. Please verify your credentials and try again later.";
-          break;
-        case 404:
-          // eslint-disable-next-line vue/max-len
-          modalMessage.value = "We couldn't find the namespace or member associated with this invitation. The invitation might have expired.";
-          break;
-        case 500:
-          modalMessage.value = "Our servers encountered an issue while processing your invitation acceptance. Please try again later.";
-          break;
-        default:
-          modalMessage.value = "An unexpected error occurred. Please try again later.";
-          break;
-      }
-    }
-    buttonText.value = "Close";
+    await store.dispatch("namespaces/switchNamespace", { tenant_id: tenant });
+    await store.dispatch("namespaces/fetch", { page: 1, perPage: 10, filter: "" });
+
+    close();
+  } catch (error) {
+    handleInviteError(error);
   }
 };
 
-const declineInvite = () => {
-  close();
-};
+const declineInvite = close;
 
-defineExpose({ modalTitle, close, acceptInvite, declineInvite, modalMessage, modalError });
+defineExpose({
+  modalTitle,
+  modalMessage,
+  modalError,
+  close,
+  acceptInvite,
+  declineInvite,
+});
 </script>
