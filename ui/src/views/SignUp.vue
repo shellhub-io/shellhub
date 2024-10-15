@@ -136,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, Ref } from "vue";
+import { ref, onMounted, Ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useField } from "vee-validate";
 import * as yup from "yup";
@@ -154,6 +154,7 @@ const acceptMarketing = ref(false);
 const acceptPrivacyPolicy = ref(false);
 const isEmailLocked = ref(false);
 const messageKind: Ref<"sig" | "normal"> = ref("normal");
+const token = computed(() => store.getters["users/getSignToken"]);
 const sigValue = ref("");
 
 const {
@@ -240,10 +241,9 @@ const createAccount = async () => {
       };
 
       await store.dispatch("users/signUp", signUpData);
-
       showMessage.value = true;
 
-      if (!sigValue.value) {
+      if (!token.value) {
         await router.push({ name: "ConfirmAccount", query: { username: username.value } });
       }
       messageKind.value = "sig";
@@ -254,4 +254,5 @@ const createAccount = async () => {
     }
   }
 };
+
 </script>

@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
+import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized, NavigationGuardNext } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
 
@@ -25,7 +25,6 @@ const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue
 const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
 const SettingTags = () => import("@/components/Setting/SettingTags.vue");
 const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
-const NamespaceInviteDialog = () => import("@/components/Namespace/NamespaceInviteDialog.vue");
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -259,11 +258,9 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/accept-invite",
-    name: "AcceptInvite",
-    component: NamespaceInviteDialog,
-    beforeEnter: (to, from, next) => {
+    redirect: (to) => ({ path: "/", query: to.query }),
+    beforeEnter: () => {
       store.commit("namespaces/setShowNamespaceInvite", true);
-      next();
     },
   },
   {
@@ -322,22 +319,46 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from, next) => {
-  const isLoggedIn = store.getters["auth/isLoggedIn"];
-  const layout = to.meta.layout || "AppLayout";
-  const requiresAuth = to.meta.requiresAuth ?? true;
+router.beforeEach(
+  async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+    const hasInviteParams = Boolean(to.query.sig && (to.query["tenant-id"] || to.query.tenantid));
+    const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
+    const requiresAuth = to.meta.requiresAuth ?? true;
 
-  await store.dispatch("layout/setLayout", layout);
+    const layout = to.meta.layout || "AppLayout";
+    await store.dispatch("layout/setLayout", layout);
 
-  // Redirect to the appropriate page based on authentication status
-  if (requiresAuth && !isLoggedIn) {
-    next({
-      name: "Login",
-      query: { redirect: to.fullPath },
-    }); // Redirect to login page if authentication is required and user is not logged in
-  } else if (to.name === "Login" && isLoggedIn) {
-    next({ path: "/" }); // Redirect from login page to home if user is already logged in
-  } else {
-    next(); // Continue with the original navigation
-  }
-});
+    if (!isLoggedIn) {
+      if (requiresAuth) {
+        return next({
+          name: "Login",
+          query: { redirect: to.fullPath },
+        });
+      }
+      return next();
+    }
+
+    if (hasInviteParams) {
+      switch (to.path) {
+        case "/accept-invite":
+          if (isLoggedIn) {
+            store.commit("namespaces/setShowNamespaceInvite", true);
+            return next();
+          }
+          return next({
+            name: "Login",
+            query: { redirect: to.fullPath },
+          });
+        case "/sign-up":
+          if (isLoggedIn) {
+            return next({ path: "/" });
+          }
+          return next();
+        default:
+          return next();
+      }
+    }
+
+    return next();
+  },
+);

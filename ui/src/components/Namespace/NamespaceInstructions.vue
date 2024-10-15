@@ -56,9 +56,11 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
 import { envVariables } from "../../envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
 
+const route = useRoute();
 const props = defineProps({
   show: {
     type: Boolean,
@@ -72,7 +74,7 @@ const showNamespaceAdd = ref(false);
 
 const showNoNamespace = computed({
   get() {
-    return props.show;
+    return route.name === "AcceptInvite" ? false : props.show;
   },
   set(value: boolean) {
     emit("update", value);

@@ -11,7 +11,7 @@
   />
 
   <NamespaceInstructions
-    v-if="route.name !== 'AcceptInvite' && showInstructions"
+    v-if="!showNamespaceInviteDialog && showInstructions"
     v-model:show="showInstructions"
     @update="showInstructions = false"
     data-test="namespaceInstructions-component"
@@ -53,11 +53,13 @@
 
   <NamespaceInviteDialog
     v-model="showNamespaceInviteDialog"
+    @close="onNamespaceInviteDialogClose"
   />
+
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
@@ -74,9 +76,15 @@ import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
 import NamespaceInviteDialog from "./../Namespace/NamespaceInviteDialog.vue";
 
+interface FetchOptions {
+  page: number;
+  perPage: number;
+}
+
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+
 const showInstructions = ref(false);
 const show = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
@@ -86,6 +94,7 @@ const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecove
 const showNamespaceInviteDialog = computed(() => store.getters["namespaces/showNamespaceInviteDialog"]);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const stats = computed(() => store.getters["stats/stats"]);
+const layout = computed(() => store.getters["layout/getLayout"]);
 const announcements = computed(() => store.getters["announcement/list"]);
 const announcement = computed(() => store.getters["announcement/get"]);
 const hasNamespaces = computed(
@@ -105,11 +114,6 @@ const statusWarning = async () => {
     store.getters["stats/stats"].registered_devices > 3
         && !store.getters["billing/active"]
   );
-};
-
-const billingWarning = async () => {
-  const status = await statusWarning();
-  await store.dispatch("devices/setDeviceChooserStatus", status);
 };
 
 const namespaceHasBeenShown = (tenant: string) => (
@@ -167,29 +171,54 @@ const ShowAnnouncementsCheck = async () => {
   }
 };
 
+watch(
+  () => route.query,
+  (query) => {
+    if (query.sig && (query["tenant-id"] || query.tenantid) && layout.value === "AppLayout") {
+      store.commit("namespaces/setShowNamespaceInvite", true);
+    }
+  },
+  { immediate: true },
+);
+
 const isBillingEnabled = computed(() => envVariables.billingEnable);
 
-const showDialogs = async () => {
-  try {
-    if (!store.getters["auth/isLoggedIn"]) return;
+const isLoggedIn = (): boolean => store.getters["auth/isLoggedIn"];
 
-    await store.dispatch("namespaces/fetch", {
-      page: 1,
-      perPage: 30,
-    });
+const fetchNamespaces = async (options: FetchOptions): Promise<void> => {
+  await store.dispatch("namespaces/fetch", options);
+};
+
+const handleBillingWarning = async (): Promise<void> => {
+  if (isBillingEnabled.value) {
+    const status = await statusWarning();
+    await store.dispatch("devices/setDeviceChooserStatus", status);
+  }
+};
+
+const onNamespaceInviteDialogClose = () => {
+  if (!showNamespaceInviteDialog.value && !hasNamespaces.value) {
+    showInstructions.value = true;
+  }
+};
+
+const showDialogs = async (): Promise<void> => {
+  if (!isLoggedIn()) return;
+
+  try {
+    await fetchNamespaces({ page: 1, perPage: 30 });
 
     if (hasNamespaces.value) {
       await store.dispatch("stats/get");
-
       showScreenWelcome();
-      if (isBillingEnabled.value) {
-        await billingWarning();
-      }
-    } else {
-      // this shows the namespace instructions when the user has no namespace
+      await handleBillingWarning();
+      return;
+    }
+
+    if (!showNamespaceInviteDialog.value) {
       showInstructions.value = true;
     }
-  } catch (error: unknown) {
+  } catch (error) {
     store.dispatch(
       "snackbar/showSnackbarErrorLoading",
       INotificationsError.namespaceList,

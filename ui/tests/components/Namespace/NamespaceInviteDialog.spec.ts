@@ -109,8 +109,10 @@ describe("Namespace Invite Dialog", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders dialog elements with correct data-test attributes", () => {
+  it("Renders dialog elements with correct data-test attributes", async () => {
     const dialog = new DOMWrapper(document.body);
+
+    await flushPromises();
 
     expect(dialog.find('[data-test="card-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="dialog-title"]').exists()).toBe(true);
