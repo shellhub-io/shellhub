@@ -48,7 +48,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	}
 
 	namespace := &models.Namespace{
-		Name:       req.Namespace,
+		Name:       req.Username,
 		Owner:      insertedID,
 		MaxDevices: 0,
 		Members: []models.Member{
@@ -60,11 +60,15 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		CreatedAt: clock.Now(),
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          false,
-			ConnectionAnnouncement: "",
+			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 		},
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
+		if err := s.store.UserDelete(ctx, insertedID); err != nil {
+			return NewErrUserDelete(err)
+		}
+
 		return NewErrNamespaceDuplicated(err)
 	}
 
