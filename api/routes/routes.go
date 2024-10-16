@@ -133,6 +133,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(GetSessionRecordURL, gateway.Handler(handler.GetSessionRecord))
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
 
+	publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
+
 	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
 	e.Pre(echoMiddleware.Rewrite(map[string]string{
 		"/api/containers":   "/api/devices?connector=true",
