@@ -57,7 +57,7 @@ func TestNamespaceList(t *testing.T) {
 								ID:      "6509e169ae6144b2f56bf288",
 								AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 								Role:    authorizer.RoleObserver,
-								Status:  models.MemberStatusAccepted,
+								Status:  models.MemberStatusPending,
 							},
 						},
 						MaxDevices: -1,
@@ -156,27 +156,24 @@ func TestNamespaceGet(t *testing.T) {
 	}
 
 	cases := []struct {
-		description  string
-		tenant       string
-		countDevices bool
-		fixtures     []string
-		expected     Expected
+		description string
+		tenant      string
+		fixtures    []string
+		expected    Expected
 	}{
 		{
-			description:  "fails when tenant is not found",
-			tenant:       "nonexistent",
-			countDevices: false,
-			fixtures:     []string{fixtureNamespaces, fixtureDevices},
+			description: "fails when tenant is not found",
+			tenant:      "nonexistent",
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				ns:  nil,
 				err: store.ErrNoDocuments,
 			},
 		},
 		{
-			description:  "succeeds when tenant is found without countDevices",
-			tenant:       "00000000-0000-4000-0000-000000000000",
-			countDevices: false,
-			fixtures:     []string{fixtureNamespaces, fixtureDevices},
+			description: "succeeds when tenant is found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				ns: &models.Namespace{
 					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -194,44 +191,12 @@ func TestNamespaceGet(t *testing.T) {
 							ID:      "6509e169ae6144b2f56bf288",
 							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 							Role:    authorizer.RoleObserver,
-							Status:  models.MemberStatusAccepted,
+							Status:  models.MemberStatusPending,
 						},
 					},
 					MaxDevices:   -1,
 					Settings:     &models.NamespaceSettings{SessionRecord: true},
 					DevicesCount: 0,
-				},
-				err: nil,
-			},
-		},
-		{
-			description:  "succeeds when tenant is found with countDevices",
-			tenant:       "00000000-0000-4000-0000-000000000000",
-			countDevices: true,
-			fixtures:     []string{fixtureNamespaces, fixtureDevices},
-			expected: Expected{
-				ns: &models.Namespace{
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:      "507f1f77bcf86cd799439011",
-							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
-						},
-						{
-							ID:      "6509e169ae6144b2f56bf288",
-							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-							Role:    authorizer.RoleObserver,
-							Status:  models.MemberStatusAccepted,
-						},
-					},
-					MaxDevices:   -1,
-					Settings:     &models.NamespaceSettings{SessionRecord: true},
-					DevicesCount: 3,
 				},
 				err: nil,
 			},
@@ -247,7 +212,7 @@ func TestNamespaceGet(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, err := s.NamespaceGet(ctx, tc.tenant, tc.countDevices)
+			ns, err := s.NamespaceGet(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
 		})
 	}
@@ -295,7 +260,7 @@ func TestNamespaceGetByName(t *testing.T) {
 							ID:      "6509e169ae6144b2f56bf288",
 							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 							Role:    authorizer.RoleObserver,
-							Status:  models.MemberStatusAccepted,
+							Status:  models.MemberStatusPending,
 						},
 					},
 					MaxDevices: -1,
@@ -376,7 +341,7 @@ func TestNamespaceGetPreferred(t *testing.T) {
 							ID:      "6509e169ae6144b2f56bf288",
 							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 							Role:    authorizer.RoleObserver,
-							Status:  models.MemberStatusAccepted,
+							Status:  models.MemberStatusPending,
 						},
 					},
 					MaxDevices: -1,
@@ -407,7 +372,7 @@ func TestNamespaceGetPreferred(t *testing.T) {
 							ID:      "6509e169ae6144b2f56bf288",
 							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 							Role:    authorizer.RoleObserver,
-							Status:  models.MemberStatusAccepted,
+							Status:  models.MemberStatusPending,
 						},
 					},
 					MaxDevices: -1,

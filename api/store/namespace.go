@@ -8,24 +8,33 @@ import (
 )
 
 type NamespaceStore interface {
-	// NamespaceList retrieves a list of namespaces. When the user's ID is available in the context, it will exclude
-	// namespaces where the user has a pending membership status.
-	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool) ([]models.Namespace, int, error)
+	// NamespaceList retrieves a list of namespaces based on the provided filters and pagination settings.
+	// If the user ID is available in the context, it will only match namespaces that the user is a member
+	// of and does not have a pending membership status. A list of options can be passed to inject
+	// additional data into each namespace in the list.
+	//
+	// It returns the list of namespaces, the total count of matching documents (ignoring pagination), and
+	// an error if any.
+	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool, opts ...NamespaceQueryOption) ([]models.Namespace, int, error)
 
-	// NamespaceGet retrieves a namespace identified by the given tenantID.
-	// If countDevices is set to true, it populates the [github.com/shellhub-io/shellhub/pkg/models.Namespace.DevicesCount].
-	// Otherwise, the value will always be 0.
+	// NamespaceGet retrieves a namespace identified by the given tenantID. A list of options can be
+	// passed to inject additional data into the namespace.
 	//
 	// It returns the namespace or an error if any.
-	NamespaceGet(ctx context.Context, tenantID string, countDevices bool) (*models.Namespace, error)
+	NamespaceGet(ctx context.Context, tenantID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+
+	// NamespaceGetByName retrieves a namespace by its name, similar to [Store.NamespaceGet], but matches by name instead
+	// of tenantID.
+	NamespaceGetByName(ctx context.Context, name string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+
 	// NamespaceGetPreferred retrieves a namespace identified by the given tenantID where the user is a member.
-	// If the tenantID is an empty string, it defaults to the first namespace found where the user is a member
-	// (usually the first one to it was added).
+	// If the tenantID is an empty string, it defaults to the first namespace where the user is a member (typically
+	// the first one the user was added to). A list of options can be passed via `opts` to inject additional data
+	// into the namespace.
 	//
 	// It returns the namespace or an error if any.
-	NamespaceGetPreferred(ctx context.Context, tenantID, userID string) (*models.Namespace, error)
+	NamespaceGetPreferred(ctx context.Context, tenantID, userID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
 
-	NamespaceGetByName(ctx context.Context, name string) (*models.Namespace, error)
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 
 	// NamespaceEdit updates a namespace with the specified tenant.
