@@ -19,15 +19,12 @@ import (
 
 func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
 	query := []bson.M{}
+
 	queryMatch, err := queries.FromFilters(&filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
 	query = append(query, queryMatch...)
-
-	if len(queryMatch) > 0 {
-		query = append(query, queryMatch...)
-	}
 
 	// Only match for the respective tenant if requested
 	if id := gateway.IDFromContext(ctx); id != nil {
