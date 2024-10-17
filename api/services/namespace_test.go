@@ -54,7 +54,7 @@ func TestListNamespaces(t *testing.T) {
 				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -75,7 +75,7 @@ func TestListNamespaces(t *testing.T) {
 				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, false, mock.Anything, mock.Anything).
+					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.Anything, mock.Anything).
 					Return(
 						[]models.Namespace{
 							{

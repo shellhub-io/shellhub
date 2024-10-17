@@ -17,44 +17,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
+func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
 	query := []bson.M{}
 	queryMatch, err := queries.FromFilters(&filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
 	query = append(query, queryMatch...)
-
-	if export {
-		query = []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "devices",
-					"localField":   "tenant_id",
-					"foreignField": "tenant_id",
-					"as":           "devices",
-				},
-			},
-			{
-				"$addFields": bson.M{
-					"devices": bson.M{"$size": "$devices"},
-				},
-			},
-			{
-				"$lookup": bson.M{
-					"from":         "sessions",
-					"localField":   "devices.uid",
-					"foreignField": "device_uid",
-					"as":           "sessions",
-				},
-			},
-			{
-				"$addFields": bson.M{
-					"sessions": bson.M{"$size": "$sessions"},
-				},
-			},
-		}
-	}
 
 	if len(queryMatch) > 0 {
 		query = append(query, queryMatch...)

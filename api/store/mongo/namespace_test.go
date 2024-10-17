@@ -29,7 +29,6 @@ func TestNamespaceList(t *testing.T) {
 		description string
 		page        query.Paginator
 		filters     query.Filters
-		export      bool
 		fixtures    []string
 		expected    Expected
 	}{
@@ -37,7 +36,6 @@ func TestNamespaceList(t *testing.T) {
 			description: "succeeds when namespaces list is not empty",
 			page:        query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
-			export:      false,
 			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: []models.Namespace{
@@ -141,7 +139,7 @@ func TestNamespaceList(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, count, err := s.NamespaceList(ctx, tc.page, tc.filters, tc.export)
+			ns, count, err := s.NamespaceList(ctx, tc.page, tc.filters)
 			sort(tc.expected.ns)
 			sort(ns)
 			assert.Equal(t, tc.expected, Expected{ns: ns, count: count, err: err})

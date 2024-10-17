@@ -15,7 +15,7 @@ type NamespaceStore interface {
 	//
 	// It returns the list of namespaces, the total count of matching documents (ignoring pagination), and
 	// an error if any.
-	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool, opts ...NamespaceQueryOption) ([]models.Namespace, int, error)
+	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...NamespaceQueryOption) ([]models.Namespace, int, error)
 
 	// NamespaceGet retrieves a namespace identified by the given tenantID. A list of options can be
 	// passed to inject additional data into the namespace.
