@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mocks"
+	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -15,11 +15,12 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestListDevices(t *testing.T) {
-	storeMock := new(mocks.Store)
+	storeMock := new(storemock.Store)
 
 	type Expected struct {
 		devices []models.Device
@@ -93,7 +94,7 @@ func TestListDevices(t *testing.T) {
 }
 
 func TestListDevices_status_removed(t *testing.T) {
-	storeMock := new(mocks.Store)
+	storeMock := new(storemock.Store)
 
 	type Expected struct {
 		devices []models.Device
@@ -171,7 +172,9 @@ func TestListDevices_status_removed(t *testing.T) {
 }
 
 func TestListDevices_tenant_not_empty(t *testing.T) {
-	storeMock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
 		devices []models.Device
@@ -195,8 +198,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -216,8 +220,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -245,8 +250,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -278,8 +284,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -311,8 +318,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -344,8 +352,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -377,8 +386,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 3}, nil).
 					Once()
 				envMock.
@@ -410,8 +420,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 3}, nil).
 					Once()
 				envMock.
@@ -443,8 +454,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -476,8 +488,9 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", true).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesCount: 2}, nil).
 					Once()
 				envMock.
@@ -517,7 +530,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 }
 
 func TestGetDevice(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -575,7 +588,7 @@ func TestGetDevice(t *testing.T) {
 }
 
 func TestDeleteDevice(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -591,8 +604,10 @@ func TestDeleteDevice(t *testing.T) {
 			uid:         models.UID("_uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
-				mock.On("DeviceGetByUID", ctx, models.UID("_uid"), "tenant").
-					Return(nil, errors.New("error", "", 0)).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("_uid"), "tenant").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("_uid"), errors.New("error", "", 0)),
 		},
@@ -601,93 +616,69 @@ func TestDeleteDevice(t *testing.T) {
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
-				device := &models.Device{
-					UID:       "uid",
-					TenantID:  "tenant",
-					CreatedAt: time.Time{},
-				}
-
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), "tenant").
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, "tenant", false).
-					Return(nil, errors.New("error", "", 0)).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "tenant").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("tenant", errors.New("error", "", 0)),
-		},
-		{
-			description: "fails when device removed insert return error",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "id",
-					TenantID: "tenant",
-					Members: []models.Member{
-						{
-							ID:   "id",
-							Role: authorizer.RoleOwner,
-						},
-						{
-							ID:   "id2",
-							Role: authorizer.RoleObserver,
-						},
-					},
-					MaxDevices: 3,
-				}
-
-				device := &models.Device{
-					UID:       "uid",
-					TenantID:  "tenant",
-					CreatedAt: time.Time{},
-				}
-
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), "tenant").
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, "tenant", false).
-					Return(namespace, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
-				envMock.On("Get", "SHELLHUB_BILLING").Return("true").Once()
-				mock.On("DeviceRemovedInsert", ctx, "tenant", device).
-					Return(errors.New("error", "", 0)).Once()
-			},
-			expected: NewErrDeviceRemovedInsert(errors.New("error", "", 0)),
 		},
 		{
 			description: "fails when the store device delete fails",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "id",
-					TenantID: "tenant",
-					Members: []models.Member{
-						{
-							ID:   "id",
-							Role: authorizer.RoleOwner,
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "tenant").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
 						},
-						{
-							ID:   "id2",
-							Role: authorizer.RoleObserver,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "id",
+							TenantID: "tenant",
+							Members: []models.Member{
+								{
+									ID:   "id",
+									Role: authorizer.RoleOwner,
+								},
+								{
+									ID:   "id2",
+									Role: authorizer.RoleObserver,
+								},
+							},
+							MaxDevices: 3,
 						},
-					},
-					MaxDevices: 3,
-				}
-
-				device := &models.Device{
-					UID:       "uid",
-					TenantID:  "tenant",
-					CreatedAt: time.Time{},
-				}
-
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), "tenant").
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, "tenant", false).
-					Return(namespace, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
-					Return(errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").Return("false").
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("uid")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -696,108 +687,190 @@ func TestDeleteDevice(t *testing.T) {
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
-				device := &models.Device{
-					UID:       "uid",
-					TenantID:  "tenant",
-					CreatedAt: time.Time{},
-				}
-
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), "tenant").
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, "tenant", false).
-					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
-					Return(nil).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "tenant").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "id",
+							TenantID: "tenant",
+							Members: []models.Member{
+								{
+									ID:   "id",
+									Role: authorizer.RoleOwner,
+								},
+								{
+									ID:   "id2",
+									Role: authorizer.RoleObserver,
+								},
+							},
+							MaxDevices: 3,
+						},
+						nil,
+					).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").Return("false").
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("uid")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
-		},
-		/*{
-			description: "fails to report usage",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				device := &models.Device{
-					UID:       "uid",
-					TenantID:  "tenant",
-					CreatedAt: time.Time{},
-				}
-
-				namespaceBilling := &models.Namespace{
-					Name:       "namespace1",
-					MaxDevices: -1,
-					Billing: &models.Billing{
-						Active: true,
-					},
-				}
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), "tenant").
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, "tenant").
-					Return(namespaceBilling, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				clockMock.On("Now").Return(now).Twice()
-				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
-				clientMock.On("ReportUsage", &models.UsageRecord{
-					Device:    device,
-					Namespace: namespaceBilling,
-					Timestamp: now.Unix(),
-				}).Return(500, nil).Once()
-			},
-			expected: ErrReport,
 		},
 		{
-			description: "reports usage with success",
+			description: "[with_billing] fails when device removed insert return error",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
-				device := &models.Device{
-					UID:       "uid",
-					TenantID:  "tenant",
-					CreatedAt: time.Time{},
-				}
-
-				namespaceBilling := &models.Namespace{
-					Name:    "namespace1",
-					Members: []models.Member{{ID: "id", Role: authorizer.RoleOwner}, {ID: "id2", Role: authorizer.RoleObserver}},
-					Billing: &models.Billing{
-						Active: true,
-					},
-				}
-
-				mock.On("DeviceGetByUID", ctx, models.UID(device.UID), "tenant").
-					Return(device, nil).Once()
-				mock.On("NamespaceGet", ctx, "tenant").
-					Return(namespaceBilling, nil).Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				clockMock.On("Now").Return(now).Twice()
-				envMock.On("Get", "SHELLHUB_BILLING").Return(strconv.FormatBool(true)).Once()
-				clientMock.On("ReportUsage", &models.UsageRecord{
-					Device:    device,
-					Namespace: namespaceBilling,
-					Timestamp: now.Unix(),
-				}).Return(200, nil).Once()
-				mock.On("DeviceDelete", ctx, models.UID(device.UID)).
-					Return(nil).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "tenant").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "id",
+							TenantID: "tenant",
+							Members: []models.Member{
+								{
+									ID:   "id",
+									Role: authorizer.RoleOwner,
+								},
+								{
+									ID:   "id2",
+									Role: authorizer.RoleObserver,
+								},
+							},
+							MaxDevices: 3,
+						},
+						nil,
+					).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").Return("true").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_BILLING").Return("true").
+					Once()
+				storeMock.
+					On(
+						"DeviceRemovedInsert",
+						ctx,
+						"tenant",
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+					).
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: NewErrDeviceRemovedInsert(errors.New("error", "", 0)),
+		},
+		{
+			description: "[with_billing] succeeds",
+			uid:         models.UID("uid"),
+			tenant:      "tenant",
+			requiredMocks: func() {
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "tenant").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "id",
+							TenantID: "tenant",
+							Members: []models.Member{
+								{
+									ID:   "id",
+									Role: authorizer.RoleOwner,
+								},
+								{
+									ID:   "id2",
+									Role: authorizer.RoleObserver,
+								},
+							},
+							MaxDevices: 3,
+						},
+						nil,
+					).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").Return("true").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_BILLING").Return("true").
+					Once()
+				storeMock.
+					On(
+						"DeviceRemovedInsert",
+						ctx,
+						"tenant",
+						&models.Device{
+							UID:       "uid",
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+					).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("uid")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
-		},*/
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.DeleteDevice(ctx, tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestRenameDevice(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -909,7 +982,7 @@ func TestRenameDevice(t *testing.T) {
 }
 
 func TestLookupDevice(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -978,7 +1051,7 @@ func TestLookupDevice(t *testing.T) {
 }
 
 func TestOfflineDevice(t *testing.T) {
-	storeMock := new(mocks.Store)
+	storeMock := new(storemock.Store)
 
 	cases := []struct {
 		name     string
@@ -1035,7 +1108,9 @@ func TestOfflineDevice(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus_same_mac(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -1053,8 +1128,11 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
@@ -1064,13 +1142,19 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
@@ -1080,20 +1164,29 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
@@ -1103,23 +1196,32 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
@@ -1129,34 +1231,48 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
 					Return(&models.Device{
 						UID:      "uid",
 						Name:     "name",
 						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "anothermac"},
-					}, nil).Once()
+					},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "anothermac"},
+						}, nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceDuplicated("name", nil),
 		},
@@ -1166,37 +1282,54 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1206,40 +1339,58 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceRename", ctx, models.UID("uid"), "name").
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1249,43 +1400,62 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(nil).Once()
-
-				mock.On("DeviceDelete", ctx, models.UID("notsameuid")).
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceRename", ctx, models.UID("uid"), "name").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("notsameuid")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1295,46 +1465,66 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(nil).Once()
-
-				mock.On("DeviceDelete", ctx, models.UID("notsameuid")).
-					Return(nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceRename", ctx, models.UID("uid"), "name").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("notsameuid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1344,46 +1534,65 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
 					Return(&models.Device{
 						UID:      "notsameuid",
 						Name:     "name",
 						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:      "notsameuid",
-						Name:     "name",
-						Identity: &models.DeviceIdentity{MAC: "mac"},
-					}, nil).Once()
-
-				mock.On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
-					Return(nil).Once()
-
-				mock.On("DeviceRename", ctx, models.UID("uid"), "name").
-					Return(nil).Once()
-
-				mock.On("DeviceDelete", ctx, models.UID("notsameuid")).
-					Return(nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(nil).Once()
+					},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceRename", ctx, models.UID("uid"), "name").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("notsameuid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -1393,17 +1602,19 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -1421,8 +1632,11 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
@@ -1432,13 +1646,20 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
@@ -1448,20 +1669,30 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
@@ -1471,23 +1702,34 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
@@ -1497,65 +1739,46 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:  "fb2de504e98d3ccab342b53d83395cd7fda297c71e8da550c31478bae0dbb8c5",
-						Name: "name",
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:  "fb2de504e98d3ccab342b53d83395cd7fda297c71e8da550c31478bae0dbb8c5",
+							Name: "name",
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceDuplicated("name", nil),
-		},
-		{
-			description: "fails namespace has reached the limit of devices in community instance",
-			uid:         models.UID("uid"),
-			status:      "accepted",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 3,
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-			},
-			expected: NewErrDeviceMaxDevicesReached(3),
 		},
 		{
 			description: "fails namespace has reached the limit of devices in enterprise instance",
@@ -1563,31 +1786,48 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 3,
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Twice()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID:     "00000000-0000-0000-0000-000000000000",
+							MaxDevices:   3,
+							DevicesCount: 3,
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
 			},
 			expected: NewErrDeviceMaxDevicesReached(3),
 		},
@@ -1597,32 +1837,49 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1632,32 +1889,48 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -1667,17 +1940,19 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -1695,8 +1970,11 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
@@ -1706,13 +1984,20 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
@@ -1722,20 +2007,30 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
@@ -1745,23 +2040,34 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
@@ -1771,34 +2077,53 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-						Billing: &models.Billing{
-							Active: true,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Billing: &models.Billing{
+								Active: true,
+							},
 						},
-					}, nil).Once()
+						nil,
+					).
+					Once()
 
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				clientMock.On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").Return(0, errors.New("error", "", 0)).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").Once()
+				clientMock.
+					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
+					Return(0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrBillingReportNamespaceDelete(errors.New("error", "", 0)),
 		},
@@ -1808,34 +2133,53 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-						Billing: &models.Billing{
-							Active: true,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Billing: &models.Billing{
+								Active: true,
+							},
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				clientMock.On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").Return(402, nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				clientMock.
+					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
+					Return(402, nil).
+					Once()
 			},
 			expected: NewErrBillingReportNamespaceDelete(ErrPaymentRequired),
 		},
@@ -1845,37 +2189,57 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-						Billing: &models.Billing{
-							Active: true,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Billing: &models.Billing{
+								Active: true,
+							},
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				clientMock.On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").Return(200, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				clientMock.
+					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
+					Return(200, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -1885,37 +2249,57 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-						Billing: &models.Billing{
-							Active: true,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Billing: &models.Billing{
+								Active: true,
+							},
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				clientMock.On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").Return(200, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				clientMock.
+					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
+					Return(200, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -1925,17 +2309,19 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -1953,8 +2339,11 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
@@ -1964,13 +2353,20 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
@@ -1980,20 +2376,30 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
@@ -2003,23 +2409,34 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
@@ -2029,35 +2446,50 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceRemovedGet(errors.New("error", "", 0)),
 		},
@@ -2067,38 +2499,54 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, nil).Once()
-
-				mock.On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(int64(0), errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(int64(0), errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceRemovedCount(errors.New("error", "", 0)),
 		},
@@ -2108,40 +2556,59 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID:     "00000000-0000-0000-0000-000000000000",
+							MaxDevices:   3,
+							DevicesCount: 1,
+							Billing: &models.Billing{
+								Active: false,
+							},
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, nil).Once()
-
-				mock.On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(int64(2), nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(int64(2), nil).
+					Once()
 			},
 			expected: NewErrDeviceRemovedFull(3, nil),
 		},
@@ -2151,42 +2618,58 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, nil).Once()
-
-				mock.On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(int64(1), nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(nil, 0, errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(int64(1), nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrBillingEvaluate(ErrEvaluate),
 		},
@@ -2196,44 +2679,64 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, nil).Once()
-
-				mock.On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(int64(1), nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{
-					CanAccept: false,
-				}, 0, nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(int64(1), nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.BillingEvaluation{
+							CanAccept: false,
+						},
+						0,
+						nil,
+					).
+					Once()
 			},
 			expected: ErrDeviceLimit,
 		},
@@ -2243,47 +2746,68 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, nil).Once()
-
-				mock.On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(int64(1), nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{
-					CanAccept: true,
-				}, 0, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(int64(1), nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.BillingEvaluation{
+							CanAccept: true,
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -2293,47 +2817,68 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil, nil).Once()
-
-				mock.On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(int64(1), nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{
-					CanAccept: true,
-				}, 0, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedCount", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(int64(1), nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.BillingEvaluation{
+							CanAccept: true,
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2343,40 +2888,54 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).Once()
-
-				mock.On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(&models.DeviceRemoved{}, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceRemovedDelete(errors.New("error", "", 0)),
 		},
@@ -2386,42 +2945,57 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
 					Return(&models.DeviceRemoved{}, nil).Once()
-
-				mock.On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(nil, 0, errors.New("error", "", 0)).Once()
+				storeMock.
+					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrBillingEvaluate(ErrEvaluate),
 		},
@@ -2431,44 +3005,64 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).Once()
-
-				mock.On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{
-					CanAccept: false,
-				}, 0, nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(&models.DeviceRemoved{}, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.BillingEvaluation{
+							CanAccept: false,
+						},
+						0,
+						nil,
+					).
+					Once()
 			},
 			expected: ErrDeviceLimit,
 		},
@@ -2478,47 +3072,68 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).Once()
-
-				mock.On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{
-					CanAccept: true,
-				}, 0, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(errors.New("error", "", 0)).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(&models.DeviceRemoved{}, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.BillingEvaluation{
+							CanAccept: true,
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -2528,47 +3143,68 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID:     "00000000-0000-0000-0000-000000000000",
-						MaxDevices:   3,
-						DevicesCount: 1,
-						Billing: &models.Billing{
-							Active: false,
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
 						},
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-
-				mock.On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).Once()
-
-				mock.On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(nil).Once()
-
-				clientMock.On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{
-					CanAccept: true,
-				}, 0, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
-					Return(nil).Once()
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Twice()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(&models.DeviceRemoved{}, nil).
+					Once()
+				storeMock.
+					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
+					Return(nil).
+					Once()
+				clientMock.
+					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.BillingEvaluation{
+							CanAccept: true,
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2578,18 +3214,17 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestDeviceUpdate(t *testing.T) {
-	mock := new(mocks.Store)
-	service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	storeMock := new(storemock.Store)
 
 	toPointer := func(s string) *string {
 		return &s
@@ -2597,7 +3232,7 @@ func TestDeviceUpdate(t *testing.T) {
 
 	other := toPointer("other")
 
-	tests := []struct {
+	cases := []struct {
 		description   string
 		uid           string
 		tenant        string
@@ -2613,8 +3248,10 @@ func TestDeviceUpdate(t *testing.T) {
 			name:        nil,
 			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
-				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
 		},
@@ -2625,11 +3262,16 @@ func TestDeviceUpdate(t *testing.T) {
 			name:        toPointer("name"),
 			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
-				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-						Name: "name",
-					}, nil).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							Name: "name",
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2640,11 +3282,16 @@ func TestDeviceUpdate(t *testing.T) {
 			name:        toPointer(""),
 			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
-				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-						Name: "name",
-					}, nil).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							Name: "name",
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceInvalid(map[string]interface{}{"name": ""}, nil),
 		},
@@ -2655,14 +3302,19 @@ func TestDeviceUpdate(t *testing.T) {
 			name:        toPointer("same"),
 			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
-				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-						Name: "name",
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, errors.New("error", "", 0)).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							Name: "name",
+						},
+						nil,
+					).Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("same"), fmt.Errorf("failed to get device by name: %w", errors.New("error", "", 0))),
 		},
@@ -2673,17 +3325,26 @@ func TestDeviceUpdate(t *testing.T) {
 			name:        toPointer("same"),
 			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
-				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-						Name: "name",
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(&models.Device{
-						UID:  "fb2de504e98d3ccab342b53d83395cd7fda297c71e8da550c31478bae0dbb8c5",
-						Name: "same",
-					}, nil).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							Name: "name",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(
+						&models.Device{
+							UID:  "fb2de504e98d3ccab342b53d83395cd7fda297c71e8da550c31478bae0dbb8c5",
+							Name: "same",
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceDuplicated("same", nil),
 		},
@@ -2694,23 +3355,32 @@ func TestDeviceUpdate(t *testing.T) {
 			name:        other,
 			publicKey:   new(bool),
 			requiredMocks: func(ctx context.Context) {
-				mock.On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-						Name: "name",
-					}, nil).Once()
-
-				mock.On("DeviceGetByName", ctx, "other", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).Once()
-
-				mock.On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), other, new(bool)).
-					Return(nil).Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							Name: "name",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByName", ctx, "other", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), other, new(bool)).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
 	}
 
-	for _, test := range tests {
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, test := range cases {
 		t.Run(test.description, func(t *testing.T) {
 			ctx := context.Background()
 			test.requiredMocks(ctx)
@@ -2722,7 +3392,9 @@ func TestDeviceUpdate(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -2740,8 +3412,11 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
 		},
@@ -2751,13 +3426,20 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			status:      "accepted",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound("uid", errors.New("error", "", 0)),
 		},
@@ -2767,20 +3449,30 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
@@ -2790,23 +3482,34 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "pending",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("pending")).
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("pending")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -2816,23 +3519,34 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "pending",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("pending")).
-					Return(nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("pending")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2842,23 +3556,34 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "rejected",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("rejected")).
-					Return(errors.New("error", "", 0)).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("rejected")).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
@@ -2868,23 +3593,33 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "rejected",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
-
-				mock.On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("rejected")).
-					Return(nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("rejected")).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -2894,20 +3629,30 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "accepted",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "accepted",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "accepted",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusAccepted(nil),
 		},
@@ -2917,20 +3662,29 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "removed",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusInvalid("removed", nil),
 		},
@@ -2940,20 +3694,29 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "unused",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusInvalid("unused", nil),
 		},
@@ -2963,34 +3726,44 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "unused",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", true).
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-0000-0000-000000000000",
-					}, nil).Once()
-
-				mock.On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
-					Return(&models.Device{
-						UID:       "uid",
-						Name:      "name",
-						TenantID:  "00000000-0000-0000-0000-000000000000",
-						Status:    "pending",
-						Identity:  &models.DeviceIdentity{MAC: "mac"},
-						CreatedAt: time.Time{},
-					}, nil).Once()
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("uid"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
 			},
 			expected: NewErrDeviceStatusInvalid("unused", nil),
 		},
 	}
 
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.UpdateDeviceStatus(ctx, tc.tenant, tc.uid, tc.status)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }

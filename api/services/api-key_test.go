@@ -46,7 +46,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -67,7 +67,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							Name:     "namespace",
@@ -102,7 +102,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							Name:     "namespace",
@@ -136,7 +136,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							Name:     "namespace",
@@ -178,7 +178,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							Name:     "namespace",
@@ -231,7 +231,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							Name:     "namespace",
@@ -309,7 +309,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							Name:     "namespace",
@@ -503,7 +503,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -520,7 +520,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
 					Once()
 			},
@@ -537,7 +537,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
@@ -558,7 +558,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
@@ -583,7 +583,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", false).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.

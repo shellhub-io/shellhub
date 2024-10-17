@@ -16,7 +16,7 @@ type SSHKeysTagsService interface {
 //
 // It checks if the models.Namespace and models.PublicKey exists and try to perform the addition action.
 func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	if _, err := s.store.NamespaceGet(ctx, tenant, false); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
@@ -59,7 +59,7 @@ func (s *service) AddPublicKeyTag(ctx context.Context, tenant, fingerprint, tag 
 
 // RemovePublicKeyTag trys to remove a tag from the models.PublicKey, when its filter is from Tags type.
 func (s *service) RemovePublicKeyTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	if _, err := s.store.NamespaceGet(ctx, tenant, false); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
 		return NewErrNamespaceNotFound(tenant, nil)
 	}
 
@@ -110,7 +110,7 @@ func (s *service) UpdatePublicKeyTags(ctx context.Context, tenant, fingerprint s
 
 	tags = set(tags)
 
-	if _, err := s.store.NamespaceGet(ctx, tenant, false); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
 		return NewErrNamespaceNotFound(tenant, nil)
 	}
 
