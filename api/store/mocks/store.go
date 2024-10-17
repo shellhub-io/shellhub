@@ -1229,14 +1229,14 @@ func (_m *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string)
 	return r0, r1
 }
 
-// NamespaceList provides a mock function with given fields: ctx, paginator, filters, export, opts
-func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, export bool, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
+// NamespaceList provides a mock function with given fields: ctx, paginator, filters, opts
+func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, paginator, filters, export)
+	_ca = append(_ca, ctx, paginator, filters)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -1247,25 +1247,25 @@ func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, f
 	var r0 []models.Namespace
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, bool, ...store.NamespaceQueryOption) ([]models.Namespace, int, error)); ok {
-		return rf(ctx, paginator, filters, export, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) ([]models.Namespace, int, error)); ok {
+		return rf(ctx, paginator, filters, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, bool, ...store.NamespaceQueryOption) []models.Namespace); ok {
-		r0 = rf(ctx, paginator, filters, export, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) []models.Namespace); ok {
+		r0 = rf(ctx, paginator, filters, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters, bool, ...store.NamespaceQueryOption) int); ok {
-		r1 = rf(ctx, paginator, filters, export, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) int); ok {
+		r1 = rf(ctx, paginator, filters, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters, bool, ...store.NamespaceQueryOption) error); ok {
-		r2 = rf(ctx, paginator, filters, export, opts...)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) error); ok {
+		r2 = rf(ctx, paginator, filters, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
