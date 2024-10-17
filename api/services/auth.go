@@ -244,7 +244,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	role := ""
 	// Populate the tenant and role when the user is associated with a namespace. If the member status is pending, we
 	// ignore the namespace.
-	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID); ns != nil && ns.TenantID != "" {
+	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.ID); ns != nil && ns.TenantID != "" {
 		if m, _ := ns.FindMember(user.ID); m.Status != models.MemberStatusPending {
 			tenantID = ns.TenantID
 			role = m.Role.String()
@@ -310,7 +310,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	switch req.TenantID {
 	case "":
 		// A user may not have a preferred namespace. In such cases, we create a token without it.
-		namespace, err := s.store.NamespaceGetPreferred(ctx, user.Preferences.PreferredNamespace, user.ID)
+		namespace, err := s.store.NamespaceGetPreferred(ctx, user.ID)
 		if err != nil {
 			break
 		}

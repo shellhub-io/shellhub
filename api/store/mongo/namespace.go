@@ -131,10 +131,13 @@ Opts:
 	return ns, nil
 }
 
-func (s *Store) NamespaceGetPreferred(ctx context.Context, tenantID, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
+func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
 	filter := bson.M{"members.id": userID}
-	if tenantID != "" {
-		filter["tenant_id"] = tenantID
+
+	if user, _, _ := s.UserGetByID(ctx, userID, false); user != nil {
+		if user.Preferences.PreferredNamespace != "" {
+			filter["tenant_id"] = user.Preferences.PreferredNamespace
+		}
 	}
 
 	ns := new(models.Namespace)

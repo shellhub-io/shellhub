@@ -27,13 +27,12 @@ type NamespaceStore interface {
 	// of tenantID.
 	NamespaceGetByName(ctx context.Context, name string, opts ...NamespaceQueryOption) (*models.Namespace, error)
 
-	// NamespaceGetPreferred retrieves a namespace identified by the given tenantID where the user is a member.
-	// If the tenantID is an empty string, it defaults to the first namespace where the user is a member (typically
-	// the first one the user was added to). A list of options can be passed via `opts` to inject additional data
-	// into the namespace.
+	// NamespaceGetPreferred retrieves the user's preferred namespace. If the user has no preferred namespace it returns
+	// the first namespace where the user is a member (typically the first one the user was added to). A list of options
+	// can be passed via `opts` to inject additional data into the namespace.
 	//
 	// It returns the namespace or an error if any.
-	NamespaceGetPreferred(ctx context.Context, tenantID, userID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+	NamespaceGetPreferred(ctx context.Context, userID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
 
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 

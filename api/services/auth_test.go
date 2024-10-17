@@ -449,7 +449,7 @@ func TestAuthUser(t *testing.T) {
 					Return(nil).
 					Once()
 				mock.
-					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
@@ -531,7 +531,7 @@ func TestAuthUser(t *testing.T) {
 					Return(nil).
 					Once()
 				mock.
-					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
@@ -620,7 +620,7 @@ func TestAuthUser(t *testing.T) {
 				}
 
 				mock.
-					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
 
@@ -711,7 +711,7 @@ func TestAuthUser(t *testing.T) {
 				}
 
 				mock.
-					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
 
@@ -801,7 +801,7 @@ func TestAuthUser(t *testing.T) {
 				}
 
 				mock.
-					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(ns, nil).
 					Once()
 
@@ -880,7 +880,7 @@ func TestAuthUser(t *testing.T) {
 					Return(nil).
 					Once()
 				mock.
-					On("NamespaceGetPreferred", ctx, "", "65fdd16b5f62f93184ec8a39").
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
@@ -1217,7 +1217,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGetPreferred", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -1284,7 +1284,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGetPreferred", ctx, "", "000000000000000000000000").
+					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				clockMock := new(clockmock.Clock)

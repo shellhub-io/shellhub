@@ -1164,14 +1164,14 @@ func (_m *Store) NamespaceGetByName(ctx context.Context, name string, opts ...st
 	return r0, r1
 }
 
-// NamespaceGetPreferred provides a mock function with given fields: ctx, tenantID, userID, opts
-func (_m *Store) NamespaceGetPreferred(ctx context.Context, tenantID string, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
+// NamespaceGetPreferred provides a mock function with given fields: ctx, userID, opts
+func (_m *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, tenantID, userID)
+	_ca = append(_ca, ctx, userID)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -1181,19 +1181,19 @@ func (_m *Store) NamespaceGetPreferred(ctx context.Context, tenantID string, use
 
 	var r0 *models.Namespace
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...store.NamespaceQueryOption) (*models.Namespace, error)); ok {
-		return rf(ctx, tenantID, userID, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.NamespaceQueryOption) (*models.Namespace, error)); ok {
+		return rf(ctx, userID, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...store.NamespaceQueryOption) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, userID, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.NamespaceQueryOption) *models.Namespace); ok {
+		r0 = rf(ctx, userID, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, ...store.NamespaceQueryOption) error); ok {
-		r1 = rf(ctx, tenantID, userID, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.NamespaceQueryOption) error); ok {
+		r1 = rf(ctx, userID, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
