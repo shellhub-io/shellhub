@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/spf13/cobra"
@@ -25,7 +27,7 @@ func NamespaceCommands(service services.Services) *cobra.Command {
 
 func namespaceCreate(service services.Services) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create <namespace> <owner> [tenant]",
+		Use:   "create <namespace> <owner> [tenant] -type",
 		Short: "Create a namespace",
 		Long: `Creates a new namespace in the system using the provided namespace name, associated owner's username, and an optional tenant ID.
 The owner must be a valid username within the system. If a tenant ID is provided, it should be in UUID format.`,
@@ -36,6 +38,7 @@ The owner must be a valid username within the system. If a tenant ID is provided
 			if len(args) == 2 {
 				args = append(args, "")
 			}
+			fmt.Println(args)
 
 			var input inputs.NamespaceCreate
 
@@ -52,6 +55,7 @@ The owner must be a valid username within the system. If a tenant ID is provided
 			cmd.Println("Namespace:", namespace.Name)
 			cmd.Println("Tenant:", namespace.TenantID)
 			cmd.Println("Owner:", namespace.Owner)
+			cmd.Println("Type:", namespace.Type)
 
 			return nil
 		},
