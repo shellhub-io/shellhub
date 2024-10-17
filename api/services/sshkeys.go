@@ -67,7 +67,7 @@ func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, 
 }
 
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
-	if _, err := s.store.NamespaceGet(ctx, tenant, false); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
 		return nil, NewErrNamespaceNotFound(tenant, err)
 	}
 
@@ -171,7 +171,7 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
-	if _, err := s.store.NamespaceGet(ctx, tenant, false); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 

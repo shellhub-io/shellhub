@@ -23,9 +23,12 @@ var (
 	ErrStoreApplyMigration       = errors.New("fail to apply Mongo migrations")
 )
 
+type queryOptions struct{}
+
 type Store struct {
-	db    *mongo.Database
-	cache cache.Cache
+	db      *mongo.Database
+	options *queryOptions
+	cache   cache.Cache
 }
 
 func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
@@ -47,7 +50,7 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 }
 
 func NewStore(ctx context.Context, db *mongo.Database, cache cache.Cache, opts ...options.DatabaseOpt) (store.Store, error) {
-	store := &Store{db: db, cache: cache}
+	store := &Store{db: db, cache: cache, options: &queryOptions{}}
 
 	for _, opt := range opts {
 		if err := opt(ctx, store.db); err != nil {
