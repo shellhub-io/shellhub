@@ -15,6 +15,8 @@ COPY ./gateway/go.mod ./gateway/go.sum ./
 
 RUN go mod download
 
+COPY ./gateway/setup /srv/setup
+
 # builder stage
 FROM base AS builder
 
