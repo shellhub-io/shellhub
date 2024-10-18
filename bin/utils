@@ -20,6 +20,12 @@ evaluate_docker_compose() {
         exit 1
     fi
 
+    if [ "$(COMPOSE_COMMAND version --short 2> /dev/null | sed -e 's/\.//g')" -lt 2210 ]; then
+        echo >&2 "ERROR: The Docker Compose version isn't compatible with the format tag required. Please update your Docker Compose"
+        echo >&2 "ERROR: Check for more information: https://github.com/shellhub-io/shellhub/discussions/4164"
+        exit 1
+    fi
+
     echo "$COMPOSE_COMMAND"
 }
 
