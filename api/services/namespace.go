@@ -92,10 +92,18 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 			ConnectionAnnouncement: "",
 		},
 		TenantID: req.TenantID,
+		Type: &models.Type{
+			Personal: true,
+		},
 	}
 
 	if envs.IsCommunity() {
 		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
+	}
+
+	if req.Type == "team" {
+		ns.Type.Personal = false
+		ns.Type.Team = true
 	}
 
 	if req.TenantID == "" {
