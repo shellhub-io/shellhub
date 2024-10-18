@@ -57,6 +57,7 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./.golangci.yaml:/.golangci.yaml
       - ./gateway/nginx:/templates
+      - ./gateway/setup:/srv/setup
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_ENV=${SHELLHUB_ENV}

@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/sethvargo/go-envconfig"
-	"runtime"
 )
 
 // GatewayConfig holds the configuration settings for the gateway.
@@ -21,6 +22,7 @@ type GatewayConfig struct {
 	EnableProxyProtocol  bool   `env:"SHELLHUB_PROXY"`
 	EnableEnterprise     bool   `env:"SHELLHUB_ENTERPRISE"`
 	EnableCloud          bool   `env:"SHELLHUB_CLOUD"`
+	MongoURI             string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
 }
 
 var validate = validator.New()
