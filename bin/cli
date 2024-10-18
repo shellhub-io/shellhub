@@ -13,7 +13,7 @@ exit_with_error() {
 cd $(dirname $(readlink_f $0))/../
 
 DOCKER_COMPOSE=$(evaluate_docker_compose)
-SERVICES=$($DOCKER_COMPOSE ps --format '{{.Service}}' | tr '\n' ' ')
+SERVICES=$($DOCKER_COMPOSE ps | tr '\n' ' ')
 
 [ -z "$SERVICES" ] && exit_with_error
 echo -n "$SERVICES" | awk '!(/mongo/ && /redis/ && /api/) { exit 1; }' || exit_with_error
