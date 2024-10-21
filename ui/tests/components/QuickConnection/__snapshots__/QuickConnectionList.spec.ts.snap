@@ -22,7 +22,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
       </div>
       <!---->
       <!---->
-      <div data-v-7c65953f=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--nav v-theme--light v-list-item--density-default v-list-item--one-line v-list-item--rounded v-list-item--variant-text ma-0 pa-0 card\\" tabindex=\\"-2\\" data-test=\\"device-list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+      <div data-v-7c65953f=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--nav v-theme--light v-list-item--density-default v-list-item--one-line v-list-item--rounded v-list-item--variant-text ma-0 pa-0 card\\" tabindex=\\"-2\\" aria-selected=\\"false\\" data-test=\\"device-list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
         <!---->
         <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
           <!---->

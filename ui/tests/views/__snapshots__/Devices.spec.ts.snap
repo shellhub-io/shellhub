@@ -42,7 +42,7 @@ exports[`Devices View > Renders the component 1`] = `
     <div class=\\"text-sm-h5 text-md-h5 text-wrap text-center\\" data-test=\\"boxMessage-title\\"> Looks like you don't have any Device</div>
   </div>
   <div class=\\"d-flex justify-center flex-column\\">
-    <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text text-center listText mg-fix\\">
+    <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text text-center listText mg-fix\\" aria-selected=\\"false\\">
       <!----><span class=\\"v-list-item__underlay\\"></span>
       <!---->
       <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -55,7 +55,7 @@ exports[`Devices View > Renders the component 1`] = `
   </div>
   <div class=\\"d-flex justify-center flex-column\\">
     <!-- eslint-disable vue/no-v-html -->
-    <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text text-center listText mg-fix mt-n3\\">
+    <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text text-center listText mg-fix mt-n3\\" aria-selected=\\"false\\">
       <!----><span class=\\"v-list-item__underlay\\"></span>
       <!---->
       <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
