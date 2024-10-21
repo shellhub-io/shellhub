@@ -5,6 +5,20 @@ import (
 	"time"
 )
 
+func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
+	t := new(T)
+
+	if err := cache.Get(ctx, key, t); err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func Set[T any](ctx context.Context, cache Cache, key string, value T, ttl time.Duration) error {
+	return cache.Set(ctx, key, value, ttl)
+}
+
 type Cache interface {
 	Get(ctx context.Context, key string, value interface{}) error
 	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
