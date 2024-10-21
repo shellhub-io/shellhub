@@ -22,7 +22,7 @@ exports[`Home > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" data-test=\\"registeredDevices-btn\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" aria-selected=\\"false\\" data-test=\\"registeredDevices-btn\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -73,7 +73,7 @@ exports[`Home > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" data-test=\\"viewOnlineDevices-btn\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" aria-selected=\\"false\\" data-test=\\"viewOnlineDevices-btn\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -121,7 +121,7 @@ exports[`Home > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" data-test=\\"viewActiveSession-btn\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text\\" aria-selected=\\"false\\" data-test=\\"viewActiveSession-btn\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
