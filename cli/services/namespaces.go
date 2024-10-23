@@ -46,6 +46,13 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 		},
 		CreatedAt: clock.Now(),
+		Type:      models.NewDefaultType(),
+	}
+
+	if models.IsTypeTeam(input.Type) {
+		ns.Type = models.TypeTeam
+	} else if models.IsTypePersonal(input.Type) {
+		ns.Type = models.TypePersonal
 	}
 
 	ns, err = s.store.NamespaceCreate(ctx, ns)
