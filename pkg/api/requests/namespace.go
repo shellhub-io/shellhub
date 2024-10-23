@@ -31,6 +31,7 @@ type NamespaceCreate struct {
 	UserID   string `header:"X-ID" validate:"required"`
 	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
 	TenantID string `json:"tenant" validate:"omitempty,uuid"`
+	Type     string `json:"type" validate:"omitempty,lowercase,oneof=personal team"`
 }
 
 // NamespaceGet is the structure to represent the request data for get namespace endpoint.
