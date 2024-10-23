@@ -64,10 +64,17 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 			ConnectionAnnouncement: "",
 		},
 		TenantID: req.TenantID,
+		Type:     models.NewDefaultType(),
 	}
 
 	if envs.IsCommunity() {
 		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
+	}
+
+	if models.IsTypeTeam(req.Type) {
+		ns.Type = models.TypeTeam
+	} else if models.IsTypePersonal(req.Type) {
+		ns.Type = models.TypePersonal
 	}
 
 	if req.TenantID == "" {

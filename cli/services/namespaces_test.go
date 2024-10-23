@@ -37,14 +37,16 @@ func TestNamespaceCreate(t *testing.T) {
 		namespace     string
 		username      string
 		tenant        string
+		typeNamespace string
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
-			description: "fails when namespace is not valid",
-			namespace:   "",
-			username:    "john_doe",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			description:   "fails when namespace is not valid",
+			namespace:     "",
+			username:      "john_doe",
+			tenant:        "00000000-0000-4000-0000-000000000000",
+			typeNamespace: "",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
@@ -52,10 +54,11 @@ func TestNamespaceCreate(t *testing.T) {
 			expected: Expected{nil, ErrNamespaceInvalid},
 		},
 		{
-			description: "fails when namespace is not valid due name",
-			namespace:   "invalid_namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			description:   "fails when namespace is not valid due name",
+			namespace:     "invalid_namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-4000-0000-000000000000",
+			typeNamespace: "",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
@@ -63,10 +66,11 @@ func TestNamespaceCreate(t *testing.T) {
 			expected: Expected{nil, ErrNamespaceInvalid},
 		},
 		{
-			description: "fails when could not find a user",
-			namespace:   "namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			description:   "fails when could not find a user",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-4000-0000-000000000000",
+			typeNamespace: "",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
@@ -75,14 +79,15 @@ func TestNamespaceCreate(t *testing.T) {
 			expected: Expected{nil, ErrUserNotFound},
 		},
 		{
-			description: "fails when namespace is duplicated",
-			namespace:   "namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-0000-0000-000000000000",
+			description:   "fails when namespace is duplicated",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
@@ -97,6 +102,7 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -117,14 +123,15 @@ func TestNamespaceCreate(t *testing.T) {
 			expected: Expected{nil, ErrDuplicateNamespace},
 		},
 		{
-			description: "succeeds in creating a namespace when user and namespace data are valid - Community",
-			namespace:   "namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-0000-0000-000000000000",
+			description:   "succeeds in creating a namespace when user and namespace data are valid - Community",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
@@ -139,6 +146,7 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -160,6 +168,7 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
+				Type:     models.TypePersonal,
 				Members: []models.Member{
 					{
 						ID:      "507f191e810c19729de860ea",
@@ -177,15 +186,16 @@ func TestNamespaceCreate(t *testing.T) {
 			}, nil},
 		},
 		{
-			description: "succeeds in creating a namespace when user and namespace data are valid - Cloud",
-			namespace:   "namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-0000-0000-000000000000",
+			description:   "succeeds in creating a namespace when user and namespace data are valid - Cloud - type team",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "team",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -199,6 +209,7 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -220,6 +231,7 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
+				Type:     models.TypeTeam,
 				Members: []models.Member{
 					{
 						ID:      "507f191e810c19729de860ea",
@@ -237,15 +249,16 @@ func TestNamespaceCreate(t *testing.T) {
 			}, nil},
 		},
 		{
-			description: "succeeds in creating a namespace when user and namespace data are valid - Enterprise",
-			namespace:   "namespace",
-			username:    "john_doe",
-			tenant:      "00000000-0000-0000-0000-000000000000",
+			description:   "succeeds in creating a namespace when user and namespace data are valid - Cloud",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "",
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -259,6 +272,70 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypeTeam,
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+							Status:  models.MemberStatusAccepted,
+						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
+					MaxDevices: MaxNumberDevicesLimited,
+					CreatedAt:  now,
+				}
+				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+			},
+			expected: Expected{&models.Namespace{
+				Name:     "namespace",
+				Owner:    "507f191e810c19729de860ea",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Type:     models.TypeTeam,
+				Members: []models.Member{
+					{
+						ID:      "507f191e810c19729de860ea",
+						Role:    "owner",
+						AddedAt: now,
+						Status:  models.MemberStatusAccepted,
+					},
+				},
+				Settings: &models.NamespaceSettings{
+					SessionRecord:          true,
+					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+				},
+				MaxDevices: MaxNumberDevicesLimited,
+				CreatedAt:  now,
+			}, nil},
+		},
+		{
+			description:   "succeeds in creating a namespace when user and namespace data are valid - Enterprise - type team",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "team",
+			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "507f191e810c19729de860ea",
+					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -280,6 +357,70 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
+				Type:     models.TypeTeam,
+				Members: []models.Member{
+					{
+						ID:      "507f191e810c19729de860ea",
+						Role:    "owner",
+						AddedAt: now,
+						Status:  models.MemberStatusAccepted,
+					},
+				},
+				Settings: &models.NamespaceSettings{
+					SessionRecord:          true,
+					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+				},
+				MaxDevices: MaxNumberDevicesUnlimited,
+				CreatedAt:  now,
+			}, nil},
+		},
+		{
+			description:   "succeeds in creating a namespace when user and namespace data are valid - Enterprise",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "00000000-0000-0000-0000-000000000000",
+			typeNamespace: "",
+			requiredMocks: func() {
+				envMock := &env_mocks.Backend{}
+				envs.DefaultBackend = envMock
+				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
+				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "507f191e810c19729de860ea",
+					TenantID: "00000000-0000-0000-0000-000000000000",
+					Type:     models.TypePersonal,
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+							Status:  models.MemberStatusAccepted,
+						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
+					MaxDevices: MaxNumberDevicesUnlimited,
+					CreatedAt:  now,
+				}
+				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+			},
+			expected: Expected{&models.Namespace{
+				Name:     "namespace",
+				Owner:    "507f191e810c19729de860ea",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Type:     models.TypePersonal,
 				Members: []models.Member{
 					{
 						ID:      "507f191e810c19729de860ea",
@@ -303,7 +444,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tc.requiredMocks()
 
 			s := NewService(store.Store(mock))
-			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant})
+			ns, err := s.NamespaceCreate(ctx, &inputs.NamespaceCreate{Namespace: tc.namespace, Owner: tc.username, TenantID: tc.tenant, Type: tc.typeNamespace})
 			assert.Equal(t, tc.expected, Expected{ns, err})
 
 			mock.AssertExpectations(t)
