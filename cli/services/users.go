@@ -62,6 +62,8 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		return nil, ErrCreateNewUser
 	}
 
+	s.store.SystemSet(ctx, "setup", true) //nolint:errcheck
+
 	return user, nil
 }
 

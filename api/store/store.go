@@ -14,6 +14,7 @@ type Store interface {
 	StatsStore
 	APIKeyStore
 	TransactionStore
+	SystemStore
 
 	Options() QueryOptions
 }
