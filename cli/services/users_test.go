@@ -178,6 +178,7 @@ func TestUserCreate(t *testing.T) {
 					MaxNamespaces: MaxNumberNamespacesCommunity,
 				}
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
+				mock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
 			},
 			expected: Expected{&models.User{
 				UserData: models.UserData{

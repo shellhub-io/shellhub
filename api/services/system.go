@@ -19,7 +19,7 @@ type SystemService interface {
 // SystemGetInfo returns system instance information.
 // It receives a context (ctx) and requests.SystemGetInfo, what contains a host (host) which is used to determine the
 // API and SSH host of the system, and a port (port) that can be specified to override the API port from the host.
-func (s *service) SystemGetInfo(_ context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error) {
+func (s *service) SystemGetInfo(ctx context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error) {
 	apiHost := strings.Split(req.Host, ":")[0]
 	sshPort := envs.DefaultBackend.Get("SHELLHUB_SSH_PORT")
 
@@ -35,6 +35,16 @@ func (s *service) SystemGetInfo(_ context.Context, req requests.SystemGetInfo) (
 		info.Endpoints.API = fmt.Sprintf("%s:%d", apiHost, req.Port)
 	} else {
 		info.Endpoints.API = req.Host
+	}
+
+	info.Setup = true
+	if envs.IsCommunity() {
+		system, err := s.store.SystemGet(ctx)
+		if err != nil {
+			return nil, NewErrSetupForbidden(err)
+		}
+
+		info.Setup = system.Setup
 	}
 
 	return info, nil
