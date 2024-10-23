@@ -11,9 +11,14 @@ import (
 
 type SetupService interface {
 	Setup(ctx context.Context, req requests.Setup) error
+	SetupCheck(ctx context.Context) error
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) error {
+	if system, err := s.store.SystemGet(ctx); err != nil || system.Setup {
+		return NewErrSetupForbidden(err)
+	}
+
 	data := models.UserData{
 		Name:          req.Name,
 		Email:         req.Email,
@@ -48,7 +53,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	}
 
 	namespace := &models.Namespace{
-		Name:       req.Namespace,
+		Name:       req.Username,
 		Owner:      insertedID,
 		MaxDevices: 0,
 		Members: []models.Member{
@@ -60,12 +65,28 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		CreatedAt: clock.Now(),
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          false,
-			ConnectionAnnouncement: "",
+			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
 		},
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
+		if err := s.store.UserDelete(ctx, insertedID); err != nil {
+			return NewErrUserDelete(err)
+		}
+
 		return NewErrNamespaceDuplicated(err)
+	}
+
+	if err := s.store.SystemSet(ctx, "setup", true); err != nil { //nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) SetupCheck(ctx context.Context) error {
+	if system, err := s.store.SystemGet(ctx); err != nil || system.Setup {
+		return NewErrSetupForbidden(err)
 	}
 
 	return nil

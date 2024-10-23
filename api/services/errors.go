@@ -131,6 +131,8 @@ var (
 	ErrAPIKeyDuplicated             = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrAuthForbidden                = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleInvalid                  = errors.New("role is invalid", ErrLayer, ErrCodeForbidden)
+	ErrUserDelete                   = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
+	ErrSetupForbidden               = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
 )
 
 func NewErrRoleInvalid() error {
@@ -476,4 +478,12 @@ func NewErrDeviceMaxDevicesReached(count int) error {
 
 func NewErrAuthForbidden() error {
 	return NewErrForbidden(ErrAuthForbidden, nil)
+}
+
+func NewErrUserDelete(err error) error {
+	return NewErrInvalid(ErrUserDelete, nil, err)
+}
+
+func NewErrSetupForbidden(err error) error {
+	return NewErrForbidden(ErrSetupForbidden, err)
 }

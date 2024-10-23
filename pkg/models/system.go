@@ -9,3 +9,7 @@ type SystemInfoEndpoints struct {
 	API string `json:"api"`
 	SSH string `json:"ssh"`
 }
+
+type System struct {
+	Setup bool `json:"setup" bson:"setup"`
+}
