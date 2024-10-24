@@ -70,7 +70,7 @@ func NewTunnel() *Tunnel {
 			panic("closeHandler can not be nil")
 		},
 	}
-	e.GET("/ssh/http", func(e echo.Context) error {
+	e.Any("/ssh/http", func(e echo.Context) error {
 		return t.HTTPHandler(e)
 	})
 	e.GET("/ssh/:id", func(e echo.Context) error {
