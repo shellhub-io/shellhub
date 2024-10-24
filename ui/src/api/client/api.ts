@@ -1921,6 +1921,19 @@ export interface LoginRequest {
 /**
  * 
  * @export
+ * @interface LookupUserStatus200Response
+ */
+export interface LookupUserStatus200Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof LookupUserStatus200Response
+     */
+    'status'?: string;
+}
+/**
+ * 
+ * @export
  * @interface MfaAuth
  */
 export interface MfaAuth {
@@ -2157,6 +2170,12 @@ export interface NamespaceMembersInner {
      * @memberof NamespaceMembersInner
      */
     'status'?: NamespaceMembersInnerStatusEnum;
+    /**
+     * Member\'s email.
+     * @type {string}
+     * @memberof NamespaceMembersInner
+     */
+    'email'?: string;
 }
 
 export const NamespaceMembersInnerStatusEnum = {
@@ -2911,6 +2930,12 @@ export interface UserAuth {
      * @memberof UserAuth
      */
     'mfa'?: boolean;
+    /**
+     * Indicates the maximum number of namespaces a user is allowed to create. If set to 0, the user is not permitted to create any namespaces. If set to -1, the user has no limit on the number of namespaces they can create.
+     * @type {number}
+     * @memberof UserAuth
+     */
+    'max_namespaces'?: number;
 }
 
 /**
@@ -9179,6 +9204,51 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+         * @summary Lookup User\'s Status
+         * @param {string} tenant The tenant ID of the namespace.
+         * @param {string} id The user\&#39;s ID.
+         * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        lookupUserStatus: async (tenant: string, id: string, sig: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('lookupUserStatus', 'tenant', tenant)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('lookupUserStatus', 'id', id)
+            // verify required parameter 'sig' is not null or undefined
+            assertParamExists('lookupUserStatus', 'sig', sig)
+            const localVarPath = `/api/namespaces/{tenant}/members/{id}/accept-invite`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (sig !== undefined) {
+                localVarQueryParameter['sig'] = sig;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -9213,6 +9283,19 @@ export const MembersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.addNamespaceMember(tenant, addNamespaceMemberRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+         * @summary Lookup User\'s Status
+         * @param {string} tenant The tenant ID of the namespace.
+         * @param {string} id The user\&#39;s ID.
+         * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async lookupUserStatus(tenant: string, id: string, sig: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LookupUserStatus200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.lookupUserStatus(tenant, id, sig, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     }
 };
 
@@ -9244,6 +9327,18 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
          */
         addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: any): AxiosPromise<Namespace> {
             return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+         * @summary Lookup User\'s Status
+         * @param {string} tenant The tenant ID of the namespace.
+         * @param {string} id The user\&#39;s ID.
+         * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        lookupUserStatus(tenant: string, id: string, sig: string, options?: any): AxiosPromise<LookupUserStatus200Response> {
+            return localVarFp.lookupUserStatus(tenant, id, sig, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -9279,6 +9374,20 @@ export class MembersApi extends BaseAPI {
      */
     public addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig) {
         return MembersApiFp(this.configuration).addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+     * @summary Lookup User\'s Status
+     * @param {string} tenant The tenant ID of the namespace.
+     * @param {string} id The user\&#39;s ID.
+     * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MembersApi
+     */
+    public lookupUserStatus(tenant: string, id: string, sig: string, options?: AxiosRequestConfig) {
+        return MembersApiFp(this.configuration).lookupUserStatus(tenant, id, sig, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -10552,6 +10661,51 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+         * @summary Lookup User\'s Status
+         * @param {string} tenant The tenant ID of the namespace.
+         * @param {string} id The user\&#39;s ID.
+         * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        lookupUserStatus: async (tenant: string, id: string, sig: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('lookupUserStatus', 'tenant', tenant)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('lookupUserStatus', 'id', id)
+            // verify required parameter 'sig' is not null or undefined
+            assertParamExists('lookupUserStatus', 'sig', sig)
+            const localVarPath = `/api/namespaces/{tenant}/members/{id}/accept-invite`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (sig !== undefined) {
+                localVarQueryParameter['sig'] = sig;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Remove a member from a namespace.
          * @summary Remove a member from a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -10860,6 +11014,19 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+         * @summary Lookup User\'s Status
+         * @param {string} tenant The tenant ID of the namespace.
+         * @param {string} id The user\&#39;s ID.
+         * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async lookupUserStatus(tenant: string, id: string, sig: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LookupUserStatus200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.lookupUserStatus(tenant, id, sig, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Remove a member from a namespace.
          * @summary Remove a member from a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -11085,6 +11252,18 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
          */
         getNamespaces(filter?: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Namespace>> {
             return localVarFp.getNamespaces(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+         * @summary Lookup User\'s Status
+         * @param {string} tenant The tenant ID of the namespace.
+         * @param {string} id The user\&#39;s ID.
+         * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        lookupUserStatus(tenant: string, id: string, sig: string, options?: any): AxiosPromise<LookupUserStatus200Response> {
+            return localVarFp.lookupUserStatus(tenant, id, sig, options).then((request) => request(axios, basePath));
         },
         /**
          * Remove a member from a namespace.
@@ -11345,6 +11524,20 @@ export class NamespacesApi extends BaseAPI {
      */
     public getNamespaces(filter?: string, page?: number, perPage?: number, options?: AxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).getNamespaces(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Clients may need to check a user\'s status before deciding whether to redirect to the accept-invite workflow or to the signup process. It is intended for use exclusively by clients in the `invite-member` pipeline. 
+     * @summary Lookup User\'s Status
+     * @param {string} tenant The tenant ID of the namespace.
+     * @param {string} id The user\&#39;s ID.
+     * @param {string} sig The signature included in the email. This is used instead of the user\&#39;s token to authenticate the request.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public lookupUserStatus(tenant: string, id: string, sig: string, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).lookupUserStatus(tenant, id, sig, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

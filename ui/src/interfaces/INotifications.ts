@@ -108,7 +108,8 @@ export enum INotificationsError {
   connectorDelete = "deleting a connector",
   connectorEdit = "editing a connector",
   connectorLoad = "loading the connector list",
-  connectorDetail = "loading the connector details"
+  connectorDetail = "loading the connector details",
+  routeAcceptInvite = "entering your invitation",
 }
 
 export enum INotificationsCopy {

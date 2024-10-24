@@ -90,7 +90,10 @@ describe("Login", () => {
     });
 
     expect(wrapper.findComponent(".v-alert").exists()).toBeFalsy();
-    expect(routerPushSpy).toHaveBeenCalledWith("/");
+    expect(routerPushSpy).toHaveBeenCalledWith({
+      path: "/",
+      query: {},
+    });
   });
 
   it("calls the mfa action when the login form is submitted", async () => {

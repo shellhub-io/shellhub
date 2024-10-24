@@ -87,8 +87,11 @@ const resendEmail = async () => {
 
 const redirect = async () => {
   try {
-    store.commit("namespaces/setShowNamespaceInvite", true);
-    await router.push({ name: "Home", query: route.query });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { redirect, ...cleanedQuery } = route.query;
+
+    // Perform the redirect to accept-invite with the cleaned query parameters
+    await router.push({ name: "AcceptInvite", query: cleanedQuery });
   } catch (error) {
     handleError(error);
   }

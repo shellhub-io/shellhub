@@ -12,8 +12,7 @@ export interface NamespacesState {
   invoicesLength: number;
   numberNamespaces: number;
   owner: boolean;
-  showNamespaceInviteDialog: boolean,
-
+  userStatus: string;
 }
 
 export const namespaces: Module<NamespacesState, State> = {
@@ -26,7 +25,7 @@ export const namespaces: Module<NamespacesState, State> = {
     invoicesLength: 0,
     numberNamespaces: 0,
     owner: false,
-    showNamespaceInviteDialog: false,
+    userStatus: "",
   },
 
   getters: {
@@ -35,7 +34,7 @@ export const namespaces: Module<NamespacesState, State> = {
     getNumberNamespaces: (state) => state.numberNamespaces,
     owner: (state) => state.owner,
     billing: (state) => state.billing,
-    showNamespaceInviteDialog: (state) => state.showNamespaceInviteDialog,
+    getUserStatus: (state) => state.userStatus,
   },
 
   mutations: {
@@ -44,16 +43,16 @@ export const namespaces: Module<NamespacesState, State> = {
       state.numberNamespaces = parseInt(res.headers["x-total-count"], 10);
     },
 
-    setShowNamespaceInvite: (state, status) => {
-      state.showNamespaceInviteDialog = status;
-    },
-
     setNamespace: (state, res) => {
       state.namespace = res.data;
     },
 
     setBilling: (state, data) => {
       state.billing = data;
+    },
+
+    setUserStatus: (state, status) => {
+      state.userStatus = status;
     },
 
     removeNamespace: (state, id) => {
@@ -172,6 +171,16 @@ export const namespaces: Module<NamespacesState, State> = {
     acceptInvite: async (context, data) => {
       try {
         await apiNamespace.acceptNamespaceInvite(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    lookupUserStatus: async (context, data) => {
+      try {
+        const res = await apiNamespace.lookupUserStatus(data);
+        context.commit("setUserStatus", res.data.status);
       } catch (error) {
         console.error(error);
         throw error;

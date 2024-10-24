@@ -3,6 +3,7 @@
 exports[`Login > Renders the component 1`] = `
 "<div class=\\"v-container v-locale--is-ltr\\">
   <!--v-if-->
+  <!--v-if-->
   <transition-stub name=\\"slide-y-reverse-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
     <!---->
   </transition-stub>

@@ -1,6 +1,7 @@
 import { Module } from "vuex";
 import { AxiosError } from "axios";
 import * as apiAuth from "../api/auth";
+import * as apiNamespace from "../api/namespaces";
 import { IUserLogin } from "@/interfaces/IUserLogin";
 import { State } from "..";
 
@@ -252,6 +253,23 @@ export const auth: Module<AuthState, State> = {
         localStorage.setItem("token", resp.data.token || "");
         localStorage.setItem("mfa", "true");
         context.commit("authSuccess", resp.data);
+      }
+    },
+
+    enterInvitedNamespace: async (context, data) => {
+      try {
+        localStorage.removeItem("role");
+
+        const res = await apiNamespace.tenantSwitch(data);
+        if (res.status === 200) {
+          localStorage.setItem("token", res.data.token || "");
+          localStorage.setItem("tenant", data.tenant_id);
+          localStorage.setItem("role", res.data.role || "");
+        }
+        context.commit("authSuccess", res.data);
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     },
 

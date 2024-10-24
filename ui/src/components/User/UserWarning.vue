@@ -11,7 +11,7 @@
   />
 
   <NamespaceInstructions
-    v-if="!showNamespaceInviteDialog && showInstructions"
+    v-if="showInstructions"
     v-model:show="showInstructions"
     @update="showInstructions = false"
     data-test="namespaceInstructions-component"
@@ -50,12 +50,6 @@
     v-model="showPaywall"
     data-test="PaywallDialog-component"
   />
-
-  <NamespaceInviteDialog
-    v-model="showNamespaceInviteDialog"
-    @close="onNamespaceInviteDialogClose"
-  />
-
 </template>
 
 <script setup lang="ts">
@@ -74,7 +68,6 @@ import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
-import NamespaceInviteDialog from "./../Namespace/NamespaceInviteDialog.vue";
 
 interface FetchOptions {
   page: number;
@@ -91,7 +84,6 @@ const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
 const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
 const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
-const showNamespaceInviteDialog = computed(() => store.getters["namespaces/showNamespaceInviteDialog"]);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const stats = computed(() => store.getters["stats/stats"]);
 const layout = computed(() => store.getters["layout/getLayout"]);
@@ -175,7 +167,7 @@ watch(
   () => route.query,
   (query) => {
     if (query.sig && (query["tenant-id"] || query.tenantid) && layout.value === "AppLayout") {
-      store.commit("namespaces/setShowNamespaceInvite", true);
+      router.push({ name: "AcceptInvite", query });
     }
   },
   { immediate: true },
@@ -196,12 +188,6 @@ const handleBillingWarning = async (): Promise<void> => {
   }
 };
 
-const onNamespaceInviteDialogClose = () => {
-  if (!showNamespaceInviteDialog.value && !hasNamespaces.value) {
-    showInstructions.value = true;
-  }
-};
-
 const showDialogs = async (): Promise<void> => {
   if (!isLoggedIn()) return;
 
@@ -213,10 +199,6 @@ const showDialogs = async (): Promise<void> => {
       showScreenWelcome();
       await handleBillingWarning();
       return;
-    }
-
-    if (!showNamespaceInviteDialog.value) {
-      showInstructions.value = true;
     }
   } catch (error) {
     store.dispatch(
