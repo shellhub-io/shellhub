@@ -104,11 +104,19 @@
         </div>
       </div>
 
-      <div>
+      <div v-if="isOnline()">
         <div class="text-overline mt-3">Last Seen:</div>
         <div data-test="deviceConvertDate-field">
           <p>{{ formatDate(device.last_seen) }}</p>
         </div>
+        <div class="text-overline mt-3">Position:</div>
+        <iframe
+          title="map"
+          width="100%"
+          height="350"
+          :src="mapUrl()"
+          style="border: 1px solid black"
+        />
       </div>
     </v-card-text>
   </v-card>
@@ -169,4 +177,15 @@ const receiveName = (params: string) => {
   device.value.name = params;
 };
 
+const isOnline = (): boolean => navigator.onLine;
+
+const mapUrl = (): string => {
+  const west = device.value.position.longitude - 5;
+  const south = device.value.position.latitude - 5;
+  const east = device.value.position.longitude + 5;
+  const north = device.value.position.latitude + 5;
+
+  const osm = "https://www.openstreetmap.org/export/embed.html";
+  return `${osm}?bbox=${west},${south},${east},${north}&layer=mapnik&marker=${(south + north) / 2},${(west + east) / 2}`;
+};
 </script>
