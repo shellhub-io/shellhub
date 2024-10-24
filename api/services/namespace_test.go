@@ -473,6 +473,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -549,6 +550,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -569,6 +571,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -592,6 +595,7 @@ func TestCreateNamespace(t *testing.T) {
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
+					Type:     models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
@@ -666,6 +670,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -686,6 +691,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -709,6 +715,7 @@ func TestCreateNamespace(t *testing.T) {
 					TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
+					Type:     models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
@@ -727,11 +734,12 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds to create a namespace-:-env=cloud",
+			description: "succeeds to create a namespace-:-env=cloud type team",
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
 				TenantID: "00000000-0000-4000-0000-000000000000",
+				Type:     "team",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -779,6 +787,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -799,6 +808,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -822,6 +832,124 @@ func TestCreateNamespace(t *testing.T) {
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
+					Type:     models.TypeTeam,
+					Members: []models.Member{
+						{
+							ID:      "000000000000000000000000",
+							Role:    authorizer.RoleOwner,
+							Status:  models.MemberStatusAccepted,
+							AddedAt: now,
+						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: "",
+					},
+					MaxDevices: 3,
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds to create a namespace-:-env=cloud",
+			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Type:     "",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				// envs.IsCommunity = false
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, 0, nil).
+					Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, "namespace").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("true").
+					Once()
+				// --
+				// envs.IsCloud = true
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				// --
+				storeMock.
+					On(
+						"NamespaceCreate",
+						ctx,
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
+							Members: []models.Member{
+								{
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: "",
+							},
+							MaxDevices: 3,
+						},
+					).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Type:     models.TypePersonal,
+							Members: []models.Member{
+								{
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									Status:  models.MemberStatusAccepted,
+									AddedAt: now,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				ns: &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
+					Type:     models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",

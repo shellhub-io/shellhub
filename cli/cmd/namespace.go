@@ -24,15 +24,16 @@ func NamespaceCommands(service services.Services) *cobra.Command {
 }
 
 func namespaceCreate(service services.Services) *cobra.Command {
-	return &cobra.Command{
+	cmdNamespace := &cobra.Command{
 		Use:   "create <namespace> <owner> [tenant]",
 		Short: "Create a namespace",
-		Long: `Creates a new namespace in the system using the provided namespace name, associated owner's username, and an optional tenant ID.
+		Long: `Creates a new namespace in the system using the provided namespace name, associated owner's username, and an optional tenant ID and Type.
 The owner must be a valid username within the system. If a tenant ID is provided, it should be in UUID format.`,
-		Example: `cli namespace create dev john_doe`,
-		Args:    cobra.RangeArgs(2, 3),
+		Example: `cli namespace create dev john_doe --type=team`,
+		Args:    cobra.RangeArgs(2, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Avoid panic when TenantID isn't provided.
+
 			if len(args) == 2 {
 				args = append(args, "")
 			}
@@ -43,6 +44,12 @@ The owner must be a valid username within the system. If a tenant ID is provided
 				return err
 			}
 
+			typeNamespace, err := cmd.Flags().GetString("type")
+			if err != nil {
+				return err
+			}
+			input.Type = typeNamespace
+
 			namespace, err := service.NamespaceCreate(cmd.Context(), &input)
 			if err != nil {
 				return err
@@ -52,10 +59,15 @@ The owner must be a valid username within the system. If a tenant ID is provided
 			cmd.Println("Namespace:", namespace.Name)
 			cmd.Println("Tenant:", namespace.TenantID)
 			cmd.Println("Owner:", namespace.Owner)
+			cmd.Println("Type:", namespace.Type)
 
 			return nil
 		},
 	}
+
+	cmdNamespace.PersistentFlags().String("type", "personal", "type")
+
+	return cmdNamespace
 }
 
 func namespaceDelete(service services.Services) *cobra.Command {

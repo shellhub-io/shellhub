@@ -1,12 +1,13 @@
 package main
 
 import (
-	"golang.org/x/sys/unix"
 	"log"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"golang.org/x/sys/unix"
 )
 
 // rlimitMaxNumFiles returns the maximum number of open files allowed by the system.
