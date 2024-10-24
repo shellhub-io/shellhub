@@ -11,7 +11,6 @@ import (
 
 type SetupService interface {
 	Setup(ctx context.Context, req requests.Setup) error
-	SetupCheck(ctx context.Context) error
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) error {
@@ -79,14 +78,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 
 	if err := s.store.SystemSet(ctx, "setup", true); err != nil { //nolint:revive
 		return err
-	}
-
-	return nil
-}
-
-func (s *service) SetupCheck(ctx context.Context) error {
-	if system, err := s.store.SystemGet(ctx); err != nil || system.Setup {
-		return NewErrSetupForbidden(err)
 	}
 
 	return nil

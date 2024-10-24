@@ -3,6 +3,7 @@ package models
 type SystemInfo struct {
 	Version   string               `json:"version"`
 	Endpoints *SystemInfoEndpoints `json:"endpoints"`
+	Setup     *bool                `json:"setup,omitempty"`
 }
 
 type SystemInfoEndpoints struct {

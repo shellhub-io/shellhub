@@ -136,7 +136,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
-		publicAPI.GET(SetupEndpoint, gateway.Handler(handler.SetupCheck))
 	}
 
 	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.

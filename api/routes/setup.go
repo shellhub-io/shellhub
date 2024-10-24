@@ -25,11 +25,3 @@ func (h *Handler) Setup(c gateway.Context) error {
 
 	return c.NoContent(http.StatusOK)
 }
-
-func (h *Handler) SetupCheck(c gateway.Context) error {
-	if err := h.service.SetupCheck(c.Ctx()); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
-}

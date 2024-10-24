@@ -54,7 +54,7 @@ func (s *Store) SystemSet(ctx context.Context, key string, value any) error {
 		return FromMongoError(err)
 	}
 
-	if err := s.cache.Delete(ctx, key); err != nil {
+	if err := s.cache.Delete(ctx, SystemCollection); err != nil {
 		log.WithField(SystemCollection, key).Warn("failed to delete system from cache")
 	}
 
