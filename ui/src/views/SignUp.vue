@@ -167,8 +167,7 @@ const token = computed(() => store.getters["users/getSignToken"]);
 const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
 
 const alertVisible = computed(
-  () => userStatus.value === "invited"
-  || (route.query.redirect?.includes("/accept-invite") && !showMessage.value),
+  () => (userStatus.value === "invited" || route.query.redirect?.includes("/accept-invite")) && !showMessage.value,
 );
 
 const sigValue = ref("");
