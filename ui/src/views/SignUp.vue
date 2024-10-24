@@ -1,5 +1,14 @@
 <template>
   <v-container class="pb-0 mb-0">
+    <v-alert
+      v-if="alertVisible"
+      type="warning"
+      variant="tonal"
+      class="mb-4"
+      data-test="user-status-alert"
+    >
+      Please create your account before accepting the namespace invitation.
+    </v-alert>
     <form @submit.prevent="createAccount" v-if="!showMessage">
       <v-card-title class="text-center">Create Account</v-card-title>
       <v-container>
@@ -155,6 +164,13 @@ const acceptPrivacyPolicy = ref(false);
 const isEmailLocked = ref(false);
 const messageKind: Ref<"sig" | "normal"> = ref("normal");
 const token = computed(() => store.getters["users/getSignToken"]);
+const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
+
+const alertVisible = computed(
+  () => userStatus.value === "invited"
+  || (route.query.redirect?.includes("/accept-invite") && !showMessage.value),
+);
+
 const sigValue = ref("");
 
 const {

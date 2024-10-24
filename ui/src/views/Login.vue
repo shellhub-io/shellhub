@@ -1,6 +1,15 @@
 <template>
   <v-container>
     <v-alert
+      v-if="alertVisible"
+      type="warning"
+      variant="tonal"
+      class="mb-4"
+      data-test="user-status-alert"
+    >
+      {{ alertMessage }}
+    </v-alert>
+    <v-alert
       v-if="loginToken"
       data-test="loadingToken-alert"
       class="pa-6 bg-v-theme-surface"
@@ -143,6 +152,24 @@ const isCountdownFinished = ref(false);
 const isMfa = computed(() => store.getters["auth/isMfa"]);
 const loginTimeout = computed(() => store.getters["auth/getLoginTimeout"]);
 
+// Alerts for user status on accept namespace invitation logic
+const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
+const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
+
+const cameFromAcceptInvite = computed(() => isLoggedIn.value === false && route.query.redirect?.includes("/accept-invite"));
+
+const alertMessage = computed(() => {
+  if (userStatus.value === "not-confirmed") {
+    return "Your account is not confirmed, please confirm it before attempting to accept the namespace invite.";
+  } if (cameFromAcceptInvite.value) {
+    return "Please login before accepting any namespace invitation.";
+  }
+  return "";
+});
+
+const alertVisible = computed(() => userStatus.value === "not-confirmed" || cameFromAcceptInvite.value);
+
+// Logic for wrong login countdown
 const { startCountdown, countdown } = useCountdown();
 
 const countdownTimer = ref("");
@@ -155,6 +182,7 @@ watch(countdown, (newValue) => {
   }
 });
 
+// Logic for Token Login
 onMounted(async () => {
   if (!route.query.token) {
     return;
@@ -170,11 +198,16 @@ onMounted(async () => {
 const login = async () => {
   try {
     await store.dispatch("auth/login", { username: username.value, password: password.value });
+
+    const redirectPath = route.query.redirect ? route.query.redirect.toString() : "/";
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { redirect, ...cleanedQuery } = route.query;
+
     if (isMfa.value === true) {
-      router.push({ name: "MfaLogin" });
+      await router.push({ name: "MfaLogin" });
       localStorage.setItem("name", username.value);
     } else {
-      router.push(route.query.redirect ? route.query.redirect.toString() : "/");
+      await router.push({ path: redirectPath, query: cleanedQuery });
     }
   } catch (error: unknown) {
     isCountdownFinished.value = false;

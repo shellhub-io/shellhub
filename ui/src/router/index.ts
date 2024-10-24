@@ -2,6 +2,53 @@
 import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized, NavigationGuardNext } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
+import { INotificationsError } from "@/interfaces/INotifications";
+
+export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+  try {
+    await store.dispatch("namespaces/lookupUserStatus", {
+      tenant: to.query["tenant-id"] || from.query["tenant-id"],
+      id: to.query["user-id"] || from.query["user-id"],
+      sig: to.query.sig || from.query.sig,
+    });
+    const userStatus = store.getters["namespaces/getUserStatus"];
+    const isLoggedIn = store.getters["auth/isLoggedIn"];
+
+    switch (userStatus) {
+      case "invited":
+        next({
+          path: "/sign-up",
+          query: { redirect: to.path, ...to.query },
+        });
+        return;
+      case "not-confirmed":
+        next({
+          path: "/login",
+          query: { redirect: "/accept-invite", ...to.query },
+        });
+        return;
+      case "confirmed":
+        if (!isLoggedIn) {
+          next({
+            path: "/login",
+            query: { redirect: "/accept-invite", ...to.query },
+          });
+          return;
+        }
+        next();
+        break;
+      default:
+        break;
+    }
+    next();
+  } catch (error) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.routeAcceptInvite,
+    );
+    next({ name: "Login" });
+  }
+};
 
 const Home = () => import("@/views/Home.vue");
 const Devices = () => import("@/views/Devices.vue");
@@ -19,6 +66,7 @@ const Sessions = () => import("@/views/Sessions.vue");
 const SessionDetails = () => import("@/views/DetailsSessions.vue");
 const FirewallRules = () => import("@/views/FirewallRules.vue");
 const PublicKeys = () => import("@/views/PublicKeys.vue");
+const AcceptInvite = () => import("@/views/NamespaceInviteCard.vue");
 const Settings = () => import("@/views/Settings.vue");
 const SettingProfile = () => import("@/components/Setting/SettingProfile.vue");
 const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue");
@@ -139,6 +187,16 @@ export const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/ConfirmAccount.vue"),
   },
   {
+    path: "/accept-invite",
+    name: "AcceptInvite",
+    component: AcceptInvite,
+    beforeEnter: handleAcceptInvite,
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+  },
+  {
     path: "/",
     name: "Home",
     component: Home,
@@ -257,13 +315,6 @@ export const routes: Array<RouteRecordRaw> = [
     component: PublicKeys,
   },
   {
-    path: "/accept-invite",
-    redirect: (to) => ({ path: "/", query: to.query }),
-    beforeEnter: () => {
-      store.commit("namespaces/setShowNamespaceInvite", true);
-    },
-  },
-  {
     path: "/settings",
     name: "Settings",
     component: Settings,
@@ -321,7 +372,6 @@ export const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    const hasInviteParams = Boolean(to.query.sig && (to.query["tenant-id"] || to.query.tenantid));
     const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
     const requiresAuth = to.meta.requiresAuth ?? true;
 
@@ -337,28 +387,6 @@ router.beforeEach(
       }
       return next();
     }
-
-    if (hasInviteParams) {
-      switch (to.path) {
-        case "/accept-invite":
-          if (isLoggedIn) {
-            store.commit("namespaces/setShowNamespaceInvite", true);
-            return next();
-          }
-          return next({
-            name: "Login",
-            query: { redirect: to.fullPath },
-          });
-        case "/sign-up":
-          if (isLoggedIn) {
-            return next({ path: "/" });
-          }
-          return next();
-        default:
-          return next();
-      }
-    }
-
     return next();
   },
 );

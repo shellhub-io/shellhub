@@ -37,3 +37,7 @@ export const removeUserFromNamespace = async (
 export const tenantSwitch = async (data: INamespace) => namespacesApi.getNamespaceToken(data.tenant_id);
 
 export const acceptNamespaceInvite = async (data: INamespaceInvite) => namespacesApi.acceptInvite(data.tenant, { sig: data.sig });
+
+export const lookupUserStatus = async (
+  data: { tenant: string; id: string; sig: string; },
+) => namespacesApi.lookupUserStatus(data.tenant, data.id, data.sig);
