@@ -100,7 +100,7 @@ jobs:
         with:
           working-directory: ${{ matrix.project }}
           version: v1.54
-          args: ${{ matrix.lint_args }} ./...
+          args: --timeout 2m ${{ matrix.lint_args }} ./...
           skip-pkg-cache: true
 
       - name: Unit test [Go]
