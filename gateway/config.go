@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/sethvargo/go-envconfig"
-	"runtime"
 )
 
 // GatewayConfig holds the configuration settings for the gateway.
 type GatewayConfig struct {
 	Env                  string `env:"SHELLHUB_ENV"`
 	Domain               string `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
+	PublicUrl            bool   `env:"SHELLHUB_PUBLIC_URL"`
 	PublicUrlDomain      string `env:"SHELLHUB_PUBLIC_URL_DOMAIN"`
 	WorkerProcesses      string `env:"WORKER_PROCESSES,default=auto"`
 	MaxWorkerOpenFiles   int    `env:"MAX_WORKER_OPEN_FILES,default=0"`
