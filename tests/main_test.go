@@ -13,8 +13,8 @@ import (
 
 // keygen generates private and public keys required to startup a ShellHub instance.
 func keygen() error {
-	const PrivateKeyPermission uint = 0o600
-	const PublicKeyPermission uint = 0o644
+	const PrivateKeyPermission uint = 0600
+	const PublicKeyPermission uint = 0644
 
 	const APIPrivatKeyPath string = "../api_private_key"
 	const APIPublicKeyPath string = "../api_public_key"

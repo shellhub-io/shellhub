@@ -66,14 +66,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.21"
+          cache-dependency-path: "**/*.sum"
         id: go
-
-      - name: Cache Go files [Go]
-        uses: actions/cache@v3
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Get Go dependencies [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
@@ -99,9 +93,8 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           working-directory: ${{ matrix.project }}
-          version: v1.54
-          args: ${{ matrix.lint_args }} ./...
-          skip-pkg-cache: true
+          version: v1.61.0
+          args: --timeout 2m ${{ matrix.lint_args }} ./...
 
       - name: Unit test [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
