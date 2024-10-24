@@ -2,21 +2,24 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
-func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
-	t := new(T)
+var ErrGetNotFound = errors.New("failed to find the value on the cache")
 
-	if err := cache.Get(ctx, key, t); err != nil {
+func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
+	var t *T
+
+	if err := cache.Get(ctx, key, &t); err != nil {
 		return nil, err
 	}
 
-	return t, nil
-}
+	if t == nil {
+		return nil, ErrGetNotFound
+	}
 
-func Set[T any](ctx context.Context, cache Cache, key string, value T, ttl time.Duration) error {
-	return cache.Set(ctx, key, value, ttl)
+	return t, nil
 }
 
 type Cache interface {
