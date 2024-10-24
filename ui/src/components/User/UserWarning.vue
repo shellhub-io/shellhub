@@ -53,8 +53,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
@@ -69,15 +69,8 @@ import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
 
-interface FetchOptions {
-  page: number;
-  perPage: number;
-}
-
 const store = useStore();
 const router = useRouter();
-const route = useRoute();
-
 const showInstructions = ref(false);
 const show = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
@@ -86,7 +79,6 @@ const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]
 const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const stats = computed(() => store.getters["stats/stats"]);
-const layout = computed(() => store.getters["layout/getLayout"]);
 const announcements = computed(() => store.getters["announcement/list"]);
 const announcement = computed(() => store.getters["announcement/get"]);
 const hasNamespaces = computed(
@@ -106,6 +98,11 @@ const statusWarning = async () => {
     store.getters["stats/stats"].registered_devices > 3
         && !store.getters["billing/active"]
   );
+};
+
+const billingWarning = async () => {
+  const status = await statusWarning();
+  await store.dispatch("devices/setDeviceChooserStatus", status);
 };
 
 const namespaceHasBeenShown = (tenant: string) => (
@@ -163,44 +160,29 @@ const ShowAnnouncementsCheck = async () => {
   }
 };
 
-watch(
-  () => route.query,
-  (query) => {
-    if (query.sig && (query["tenant-id"] || query.tenantid) && layout.value === "AppLayout") {
-      router.push({ name: "AcceptInvite", query });
-    }
-  },
-  { immediate: true },
-);
-
 const isBillingEnabled = computed(() => envVariables.billingEnable);
 
-const isLoggedIn = (): boolean => store.getters["auth/isLoggedIn"];
-
-const fetchNamespaces = async (options: FetchOptions): Promise<void> => {
-  await store.dispatch("namespaces/fetch", options);
-};
-
-const handleBillingWarning = async (): Promise<void> => {
-  if (isBillingEnabled.value) {
-    const status = await statusWarning();
-    await store.dispatch("devices/setDeviceChooserStatus", status);
-  }
-};
-
-const showDialogs = async (): Promise<void> => {
-  if (!isLoggedIn()) return;
-
+const showDialogs = async () => {
   try {
-    await fetchNamespaces({ page: 1, perPage: 30 });
+    if (!store.getters["auth/isLoggedIn"]) return;
+
+    await store.dispatch("namespaces/fetch", {
+      page: 1,
+      perPage: 30,
+    });
 
     if (hasNamespaces.value) {
       await store.dispatch("stats/get");
+
       showScreenWelcome();
-      await handleBillingWarning();
-      return;
+      if (isBillingEnabled.value) {
+        await billingWarning();
+      }
+    } else {
+      // this shows the namespace instructions when the user has no namespace
+      showInstructions.value = true;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     store.dispatch(
       "snackbar/showSnackbarErrorLoading",
       INotificationsError.namespaceList,
