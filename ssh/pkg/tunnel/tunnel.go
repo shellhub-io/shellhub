@@ -15,6 +15,24 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	ErrDeviceHTTPPublicURLForbidden = errors.New("device public url not allowed")
+	ErrDeviceHTTPDial               = errors.New("failed to connect to device")
+	ErrDeviceHTTPWriteRequest       = errors.New("failed to send data to the device")
+	ErrDeviceHTTPHijackRequest      = errors.New("failed to capture the request")
+	ErrDeviceHTTPReadResponse       = errors.New("failed to write the response back to the client")
+)
+
+type Message struct {
+	Message string `json:"message"`
+}
+
+func NewMessageFromError(err error) Message {
+	return Message{
+		Message: err.Error(),
+	}
+}
+
 type Tunnel struct {
 	Tunnel *httptunnel.Tunnel
 	API    internalclient.Client
@@ -138,35 +156,75 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 	})
 
 	tunnel.router.Any("/ssh/http", func(c echo.Context) error {
-		dev, err := tunnel.API.GetDeviceByPublicURLAddress(c.Request().Header.Get("X-Public-URL-Address"))
-		if err != nil {
-			return err
+		requestID := c.Request().Header.Get("X-Request-ID")
+
+		namespace := c.Request().Header.Get("X-Namespace")
+		log.WithFields(log.Fields{
+			"request-id": requestID,
+			"namespace":  namespace,
+		}).Debug("namespace name")
+
+		device := c.Request().Header.Get("X-Device")
+		log.WithFields(log.Fields{
+			"request-id": requestID,
+			"device":     device,
+		}).Debug("device name")
+
+		dev, errs := tunnel.API.DeviceLookup(map[string]string{
+			"domain": namespace,
+			"name":   device,
+		})
+		if len(errs) > 0 {
+			log.WithError(errs[0]).Error("failed to get the public url")
+
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPPublicURLForbidden))
 		}
+
+		logger := log.WithFields(log.Fields{
+			"request-id": requestID,
+			"uid":        dev.UID,
+			"device":     device,
+			"namespace":  namespace,
+			"tenant":     dev.TenantID,
+		})
 
 		if !dev.PublicURL {
-			return err
+			logger.Error("device doesn't allow public url access")
+
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPPublicURLForbidden))
 		}
 
-		in, err := tunnel.Dial(c.Request().Context(), dev.UID)
+		in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", dev.TenantID, dev.UID))
 		if err != nil {
-			return err
+			logger.WithError(err).Error("failed to dial to device")
+
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPDial))
 		}
 
 		defer in.Close()
 
+		logger.Trace("new HTTP connection initialized")
+		defer logger.Trace("HTTP connection doned")
+
 		if err := c.Request().Write(in); err != nil {
-			return err
+			logger.WithError(err).Error("failed to write the request to the agent")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPWriteRequest))
 		}
 
 		ctr := http.NewResponseController(c.Response())
 		out, _, err := ctr.Hijack()
 		if err != nil {
-			return err
+			logger.WithError(err).Error("failed to hijact the http request")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPHijackRequest))
 		}
 
 		defer out.Close()
 		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
-			return err
+			logger.WithError(err).Error("failed to copy the response to the client")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPReadResponse))
 		}
 
 		return nil
