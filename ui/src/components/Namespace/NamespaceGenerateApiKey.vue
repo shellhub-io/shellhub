@@ -20,6 +20,15 @@
       <v-card data-test="namespace-generate-dialog" class="bg-v-theme-surface">
         <v-card-title class="bg-primary">New Api Key</v-card-title>
 
+        <v-card-text v-if="failKey">
+          <v-alert
+            :text="errorMessage"
+            type="error"
+            class="mt-1"
+            data-test="failMessage-alert"
+          />
+        </v-card-text>
+
         <v-card-text data-test="namespace-generate-title">
           Generate a key that is scoped to the repository and is appropriate for personal API usage via HTTPS.
         </v-card-text>
@@ -85,15 +94,6 @@
           />
         </v-card-text>
 
-        <v-card-text v-if="failKey">
-          <v-alert
-            :text="errorMessage"
-            type="error"
-            class="mb-2"
-            data-test="failMessage-alert"
-          />
-        </v-card-text>
-
         <v-card-actions>
           <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
           <v-spacer />
@@ -111,7 +111,7 @@
 import { computed, ref, watch } from "vue";
 import moment from "moment";
 import * as yup from "yup";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useField } from "vee-validate";
 import hasPermission from "../../utils/permission";
 import { useStore } from "@/store";
@@ -170,7 +170,7 @@ const getExpiryDate = (item) => {
   if (item === "No expire") {
     return {
       expirationDate: "This key will never expire",
-      expirationDateSelect: "Expires never",
+      expirationDateSelect: "Never Expires",
     };
   }
 
@@ -236,6 +236,35 @@ watch(selectedDate, (newVal) => {
   expirationHint.value = getExpiryDate(newVal.title).expirationDate;
 });
 
+const handleGenerateKeyError = (error: unknown) => {
+  failKey.value = true;
+  successKey.value = false;
+  store.dispatch(
+    "snackbar/showSnackbarErrorAction",
+    INotificationsError.generateKey,
+  );
+
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    switch (status) {
+      case 400:
+        errorMessage.value = "Please provide a name for the API key.";
+        break;
+      case 401:
+        errorMessage.value = "You are not authorized to create an API key.";
+        break;
+      case 409:
+        errorMessage.value = "An API key with the same name already exists.";
+        break;
+      default:
+        errorMessage.value = "An error occurred while generating your API key. Please try again later.";
+        handleError(error);
+    }
+  } else {
+    handleError(error);
+  }
+};
+
 const generateKey = async () => {
   try {
     await store.dispatch("apiKeys/generateApiKey", {
@@ -248,31 +277,7 @@ const generateKey = async () => {
     failKey.value = false;
     emit("update");
   } catch (error: unknown) {
-    failKey.value = true;
-    successKey.value = false;
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.generateKey,
-    );
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      switch (axiosError.response?.status) {
-        case 400:
-          errorMessage.value = "Please provide a name for the API key.";
-          break;
-        case 401:
-          errorMessage.value = "You are not authorized to create an API key.";
-          break;
-        case 409:
-          errorMessage.value = "An API key with the same name already exists.";
-          break;
-        default:
-          errorMessage.value = "An error occurred while generating your API key. Please try again later.";
-          handleError(error);
-      }
-      return;
-    }
-    handleError(error);
+    handleGenerateKeyError(error);
   }
 };
 
