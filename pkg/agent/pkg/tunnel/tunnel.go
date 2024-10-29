@@ -12,7 +12,7 @@ import (
 type Tunnel struct {
 	router       *echo.Echo
 	srv          *http.Server
-	HTTPHandler  func(e echo.Context) error
+	ProxyHandler func(e echo.Context) error
 	ConnHandler  func(e echo.Context) error
 	CloseHandler func(e echo.Context) error
 }
@@ -27,8 +27,8 @@ func NewBuilder() *Builder {
 	}
 }
 
-func (t *Builder) WithHTTPHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.HTTPHandler = handler
+func (t *Builder) WithProxyHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.ProxyHandler = handler
 
 	return t
 }
@@ -60,24 +60,29 @@ func NewTunnel() *Tunnel {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
-		HTTPHandler: func(e echo.Context) error {
-			panic("HTTPHandler can not be nil")
-		},
 		ConnHandler: func(e echo.Context) error {
-			panic("connHandler can not be nil")
+			panic("ConnHandler can not be nil")
 		},
 		CloseHandler: func(e echo.Context) error {
-			panic("closeHandler can not be nil")
+			panic("CloseHandler can not be nil")
+		},
+		ProxyHandler: func(e echo.Context) error {
+			panic("ProxyHandler can not be nil")
 		},
 	}
-	e.Any("/ssh/http", func(e echo.Context) error {
-		return t.HTTPHandler(e)
-	})
 	e.GET("/ssh/:id", func(e echo.Context) error {
 		return t.ConnHandler(e)
 	})
 	e.GET("/ssh/close/:id", func(e echo.Context) error {
 		return t.CloseHandler(e)
+	})
+	e.CONNECT("/ssh/proxy/:addr", func(e echo.Context) error {
+		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
+		// successful, blindly forward data in both directions until the tunnel is closed.
+		//
+		// https://en.wikipedia.org/wiki/HTTP_tunnel
+		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
+		return t.ProxyHandler(e)
 	})
 
 	return t

@@ -1,12 +1,14 @@
 package tunnel
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -19,8 +21,9 @@ var (
 	ErrDeviceHTTPPublicURLForbidden = errors.New("device public url not allowed")
 	ErrDeviceHTTPDial               = errors.New("failed to connect to device")
 	ErrDeviceHTTPWriteRequest       = errors.New("failed to send data to the device")
-	ErrDeviceHTTPHijackRequest      = errors.New("failed to capture the request")
 	ErrDeviceHTTPReadResponse       = errors.New("failed to write the response back to the client")
+	ErrDeviceHTTPHijackRequest      = errors.New("failed to capture the request")
+	ErrDeviceHTTPParsePath          = errors.New("failed to parse the path")
 )
 
 type Message struct {
@@ -170,6 +173,12 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 			"device":     device,
 		}).Debug("device name")
 
+		path := c.Request().Header.Get("X-Path")
+		log.WithFields(log.Fields{
+			"request-id": requestID,
+			"device":     device,
+		}).Debug("path")
+
 		dev, errs := tunnel.API.DeviceLookup(map[string]string{
 			"domain": namespace,
 			"name":   device,
@@ -206,7 +215,32 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		logger.Trace("new HTTP connection initialized")
 		defer logger.Trace("HTTP connection doned")
 
-		if err := c.Request().Write(in); err != nil {
+		// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
+		// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
+		// connections for any port, but this route should only connect to the HTTP server.
+		req, _ := http.NewRequest(http.MethodConnect, "/ssh/proxy/:80", nil)
+
+		if err := req.Write(in); err != nil {
+			logger.WithError(err).Error("failed to write the request to the agent")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPWriteRequest))
+		}
+
+		if _, err := http.ReadResponse(bufio.NewReader(in), req); err != nil {
+			logger.WithError(err).Error("failed to read the request from the agent")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPReadResponse))
+		}
+
+		req = c.Request()
+		req.URL, err = url.Parse(path)
+		if err != nil {
+			logger.WithError(err).Error("failed to parse the path")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPReadResponse))
+		}
+
+		if err := req.Write(in); err != nil {
 			logger.WithError(err).Error("failed to write the request to the agent")
 
 			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPWriteRequest))
@@ -221,6 +255,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		}
 
 		defer out.Close()
+
 		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
 			logger.WithError(err).Error("failed to copy the response to the client")
 
