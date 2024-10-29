@@ -24,7 +24,7 @@
         </p>
 
         <p class="text-body-2 mb-2">
-          After confirming this action cannot be redone.
+          If needed, you can re-invite this user to the namespace at any time.
         </p>
       </v-card-text>
 
@@ -41,8 +41,8 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -50,53 +50,44 @@ import {
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    member: {
-      type: Object,
-      required: true,
-    },
-    hasAuthorization: {
-      type: Boolean,
-      required: true,
-    },
+const props = defineProps({
+  member: {
+    type: Object,
+    required: true,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const showDialog = ref(false);
-    const store = useStore();
-
-    const update = () => {
-      ctx.emit("update");
-      showDialog.value = false;
-    };
-
-    const remove = async () => {
-      try {
-        const tenant = store.getters["auth/tenant"];
-        await store.dispatch("namespaces/removeUser", {
-          user_id: props.member.id,
-          tenant_id: tenant,
-        });
-
-        update();
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.namespaceDelete,
-        );
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceRemoveUser,
-        );
-        handleError(error);
-      }
-    };
-
-    return {
-      showDialog,
-      remove,
-    };
+  hasAuthorization: {
+    type: Boolean,
+    required: true,
   },
 });
+const emit = defineEmits(["update"]);
+const showDialog = ref(false);
+const store = useStore();
+
+const update = () => {
+  emit("update");
+  showDialog.value = false;
+};
+
+const remove = async () => {
+  try {
+    const tenant = store.getters["auth/tenant"];
+    await store.dispatch("namespaces/removeUser", {
+      user_id: props.member.id,
+      tenant_id: tenant,
+    });
+
+    update();
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.namespaceDelete,
+    );
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.namespaceRemoveUser,
+    );
+    handleError(error);
+  }
+};
 </script>
