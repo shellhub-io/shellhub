@@ -24,16 +24,6 @@
         <v-divider />
 
         <v-card-text class="mt-4 mb-0 pb-1">
-          <v-text-field
-            v-model="memberLocal.username"
-            :disabled="true"
-            variant="underlined"
-            label="Username"
-            :error-messages="errorMessage"
-            require
-            data-test="username-text"
-          />
-
           <v-row align="center">
             <v-col cols="12">
               <v-select
@@ -69,9 +59,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
-import axios, { AxiosError } from "axios";
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import axios from "axios";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -80,92 +70,95 @@ import { IMember } from "../../interfaces/IMember";
 import { useStore } from "../../store";
 import handleError from "../../utils/handleError";
 
-export default defineComponent({
-  props: {
-    member: {
-      type: Object as () => IMember,
-      required: false,
-      default: {} as IMember,
-    },
-    show: {
-      type: Boolean,
-      required: false,
-    },
-    notHasAuthorization: {
-      type: Boolean,
-      default: false,
-    },
-    style: {
-      type: [String, Object],
-      default: undefined,
-    },
+const props = defineProps({
+  member: {
+    type: Object as () => IMember,
+    required: false,
+    default: {} as IMember,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const store = useStore();
-    const showDialog = ref(false);
-    const memberLocal = ref({} as IMember);
-    const errorMessage = ref("");
-
-    const setLocalVariable = () => {
-      memberLocal.value = { ...props.member, selectedRole: props.member.role };
-    };
-
-    onMounted(() => {
-      setLocalVariable();
-    });
-
-    const close = () => {
-      setLocalVariable();
-      showDialog.value = false;
-    };
-
-    const update = () => {
-      ctx.emit("update");
-      close();
-    };
-
-    const editMember = async () => {
-      try {
-        await store.dispatch("namespaces/editUser", {
-          user_id: memberLocal.value.id,
-          tenant_id: store.getters["auth/tenant"],
-          role: memberLocal.value.selectedRole,
-        });
-
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.namespaceEditMember,
-        );
-        update();
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError;
-          if (axiosError.response?.status === 400) {
-            errorMessage.value = "The user isn't linked to the namespace.";
-          } else if (axiosError.response?.status === 403) {
-            errorMessage.value = "You don't have permission to assign a role to the user.";
-          } else if (axiosError.response?.status === 404) {
-            errorMessage.value = "The username doesn't exist.";
-          }
-        } else {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceEditMember,
-          );
-          handleError(error);
-        }
-      }
-    };
-
-    return {
-      showDialog,
-      items: ["administrator", "operator", "observer"],
-      memberLocal,
-      errorMessage,
-      close,
-      editMember,
-    };
+  show: {
+    type: Boolean,
+    required: false,
+  },
+  notHasAuthorization: {
+    type: Boolean,
+    default: false,
+  },
+  style: {
+    type: [String, Object],
+    default: undefined,
   },
 });
+const emit = defineEmits(["update"]);
+const store = useStore();
+const showDialog = ref(false);
+const memberLocal = ref({} as IMember);
+const errorMessage = ref("");
+const items = ["administrator", "operator", "observer"];
+
+const setLocalVariable = () => {
+  memberLocal.value = { ...props.member, selectedRole: props.member.role };
+};
+
+onMounted(() => {
+  setLocalVariable();
+});
+
+const close = () => {
+  setLocalVariable();
+  showDialog.value = false;
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
+
+const handleEditMemberError = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    switch (status) {
+      case 400:
+        errorMessage.value = "The user isn't linked to the namespace.";
+        break;
+      case 403:
+        errorMessage.value = "You don't have permission to assign a role to the user.";
+        break;
+      case 404:
+        errorMessage.value = "The username doesn't exist.";
+        break;
+      default:
+        store.dispatch(
+          "snackbar/showSnackbarErrorAction",
+          INotificationsError.namespaceEditMember,
+        );
+        handleError(error);
+    }
+  } else {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.namespaceEditMember,
+    );
+    handleError(error);
+  }
+};
+
+const editMember = async () => {
+  try {
+    await store.dispatch("namespaces/editUser", {
+      user_id: memberLocal.value.id,
+      tenant_id: store.getters["auth/tenant"],
+      role: memberLocal.value.selectedRole,
+    });
+
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.namespaceEditMember,
+    );
+    update();
+  } catch (error: unknown) {
+    handleEditMemberError(error);
+  }
+};
+
 </script>
