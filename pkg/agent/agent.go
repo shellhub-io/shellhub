@@ -49,6 +49,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -390,48 +391,79 @@ func connHandler(serv *server.Server) func(c echo.Context) error {
 	}
 }
 
-func httpHandler() func(c echo.Context) error {
+// proxyHandler handlers proxy connections to the required address.
+func proxyHandler() func(c echo.Context) error {
+	const ProxyHandlerNetwork = "tcp"
+
 	return func(c echo.Context) error {
-		replyError := func(err error, msg string, code int) error {
-			log.WithError(err).WithFields(log.Fields{
-				"remote":    c.Request().RemoteAddr,
-				"namespace": c.Request().Header.Get("X-Namespace"),
-				"path":      c.Request().Header.Get("X-Path"),
-				"version":   AgentVersion,
-			}).Error(msg)
+		logger := log.WithFields(log.Fields{
+			"remote":    c.Request().RemoteAddr,
+			"namespace": c.Request().Header.Get("X-Namespace"),
+			"path":      c.Request().Header.Get("X-Path"),
+			"version":   AgentVersion,
+		})
+
+		errorResponse := func(err error, msg string, code int) error {
+			logger.WithError(err).Error(msg)
 
 			return c.String(code, msg)
 		}
 
-		in, err := net.Dial("tcp", ":80")
+		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
+		// localhost:8080.
+		addr := c.Param("addr")
+
+		in, err := net.Dial(ProxyHandlerNetwork, addr)
 		if err != nil {
-			return replyError(err, "failed to connect to HTTP server on device", http.StatusInternalServerError)
+			logger.WithError(err).Error("failed to dial to the server")
+
+			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
 		}
 
 		defer in.Close()
 
-		url, err := url.Parse(c.Request().Header.Get("X-Path"))
-		if err != nil {
-			return replyError(err, "failed to parse URL", http.StatusInternalServerError)
-		}
+		// NOTE: Inform to the connection that the dial was successfully.
+		c.NoContent(http.StatusOK) //nolint:errcheck
 
-		c.Request().URL.Scheme = "http"
-		c.Request().URL = url
-
-		if err := c.Request().Write(in); err != nil {
-			return replyError(err, "failed to write request to the server on device", http.StatusInternalServerError)
-		}
-
+		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
+		// depend upon anything externally, only the data.
 		out, _, err := c.Response().Hijack()
 		if err != nil {
-			return replyError(err, "failed to hijack connection", http.StatusInternalServerError)
+			logger.WithError(err).Error("failed to dial to hijack the connection")
+
+			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
 		}
 
 		defer out.Close() // nolint:errcheck
 
-		if _, err := io.Copy(out, in); err != nil {
-			return replyError(err, "failed to copy response from device service to client", http.StatusInternalServerError)
-		}
+		wg := new(sync.WaitGroup)
+		done := sync.OnceFunc(func() {
+			defer in.Close()
+			defer out.Close()
+
+			logger.Trace("close called on in and out connections")
+		})
+
+		wg.Add(1)
+		go func() {
+			defer done()
+			defer wg.Done()
+
+			io.Copy(in, out) //nolint:errcheck
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer done()
+			defer wg.Done()
+
+			io.Copy(out, in) //nolint:errcheck
+		}()
+
+		logger.WithError(err).Trace("proxy handler waiting for data pipe")
+		wg.Wait()
+
+		logger.WithError(err).Trace("proxy handler done")
 
 		return nil
 	}
@@ -462,7 +494,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 	a.tunnel = tunnel.NewBuilder().
 		WithConnHandler(connHandler(a.server)).
 		WithCloseHandler(closeHandler(a, a.server)).
-		WithHTTPHandler(httpHandler()).
+		WithProxyHandler(proxyHandler()).
 		Build()
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
