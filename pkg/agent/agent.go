@@ -404,7 +404,7 @@ func proxyHandler() func(c echo.Context) error {
 		})
 
 		errorResponse := func(err error, msg string, code int) error {
-			logger.WithError(err).Error(msg)
+			logger.WithError(err).Debug(msg)
 
 			return c.String(code, msg)
 		}
@@ -415,22 +415,20 @@ func proxyHandler() func(c echo.Context) error {
 
 		in, err := net.Dial(ProxyHandlerNetwork, addr)
 		if err != nil {
-			logger.WithError(err).Error("failed to dial to the server")
-
 			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
 		}
 
 		defer in.Close()
 
 		// NOTE: Inform to the connection that the dial was successfully.
-		c.NoContent(http.StatusOK) //nolint:errcheck
+		if err := c.NoContent(http.StatusOK); err != nil {
+			return errorResponse(err, "failed to send the ok status code back to server", http.StatusInternalServerError)
+		}
 
 		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
 		// depend upon anything externally, only the data.
 		out, _, err := c.Response().Hijack()
 		if err != nil {
-			logger.WithError(err).Error("failed to dial to hijack the connection")
-
 			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
 		}
 
