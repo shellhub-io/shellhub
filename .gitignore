@@ -14,7 +14,13 @@ go.work
 go.work.sum
 go.sum
 
+# Docker binaries
+agent/agent
+api/api
 cli/cli
+gateway/gateway
+ssh/ssh
+
 agent/shellhub.key
 
 # Directory used by devscripts/run-agent to store binaries
