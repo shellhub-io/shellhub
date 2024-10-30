@@ -24,6 +24,7 @@ var (
 	ErrDeviceHTTPReadResponse       = errors.New("failed to write the response back to the client")
 	ErrDeviceHTTPHijackRequest      = errors.New("failed to capture the request")
 	ErrDeviceHTTPParsePath          = errors.New("failed to parse the path")
+	ErrDeviceHTTPConnect            = errors.New("failed to connect to HTTP port on device")
 )
 
 type Message struct {
@@ -198,7 +199,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		})
 
 		if !dev.PublicURL {
-			logger.Error("device doesn't allow public url access")
+			logger.Warn("device doesn't allow public url access")
 
 			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPPublicURLForbidden))
 		}
@@ -226,10 +227,10 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPWriteRequest))
 		}
 
-		if _, err := http.ReadResponse(bufio.NewReader(in), req); err != nil {
-			logger.WithError(err).Error("failed to read the request from the agent")
+		if resp, err := http.ReadResponse(bufio.NewReader(in), req); err != nil || resp.StatusCode != http.StatusOK {
+			logger.WithError(err).Error("failed to connect to HTTP port on device")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPReadResponse))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPConnect))
 		}
 
 		req = c.Request()
