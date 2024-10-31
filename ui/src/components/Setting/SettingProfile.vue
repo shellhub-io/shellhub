@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row align="center" justify="center" class="mt-4">
+    <v-row align="center" justify="center">
       <v-col sm="8">
         <v-row>
           <v-col data-test="account-header">
