@@ -15,6 +15,15 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// ensureDatabasePath ensures that [dbPath] exists and creates if not.
+func ensureDatabasePath() error {
+	if err := os.MkdirAll(dbPath, 0o755); err != nil {
+		return errors.New("failed to create dbPath: " + err.Error())
+	}
+
+	return nil
+}
+
 // fetchDBs concurrently downloads the GeoIP database files from the provided URLs and extracts
 // them to [dbPath]. It will halt and return an error if any download or extraction fails.
 func fetchDBs(ctx context.Context, urls []string) error {
