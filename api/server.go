@@ -15,7 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/geoip"
+	"github.com/shellhub-io/shellhub/pkg/geoip/geolite2"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -84,13 +84,6 @@ type config struct {
 	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
 	// RedisCachePoolSize is the pool size of connections available for Redis cache.
 	RedisCachePoolSize int `env:"REDIS_CACHE_POOL_SIZE,default=0"`
-	// Enable GeoIP feature.
-	//
-	// GeoIP features enable the ability to get the logitude and latitude of the client from the IP address.
-	// The feature is disabled by default. To enable it, it is required to have a `MAXMIND` database license and feed it
-	// to `SHELLHUB_MAXMIND_LICENSE` with it, and `SHELLHUB_GEOIP=true`.
-	GeoIP               bool   `env:"GEOIP,default=false"`
-	GeoIPMaxMindLicense string `env:"MAXMIND_LICENSE,default="`
 	// Session record cleanup worker schedule
 	// Sentry DSN.
 	SentryDSN string `env:"SENTRY_DSN,default="`
@@ -112,6 +105,10 @@ type config struct {
 	//
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
 	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=1000"`
+
+	// GeoipMaxmindLicense is the Maxmind license key used to authenticate requests for
+	// downloading the GeoIP database directly from MaxMind.
+	GeoipMaxmindLicense string `env:"MAXMIND_LICENSE,default="`
 }
 
 // startSentry initializes the Sentry client.
@@ -151,10 +148,10 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	servicesOptions := []services.Option{}
 
-	if cfg.GeoIP {
+	if cfg.GeoipMaxmindLicense != "" {
 		log.Info("GeoIP feature is enable")
 
-		locator, err := geoip.NewGeoLite2(cfg.GeoIPMaxMindLicense)
+		locator, err := geolite2.NewLocator(ctx, geolite2.FetchFromLicenseKey(cfg.GeoipMaxmindLicense))
 		if err != nil {
 			log.WithError(err).Fatal("Failed to init GeoIP")
 		}
