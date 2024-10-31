@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/shellhub-io/shellhub/pkg/geoip"
+	"github.com/shellhub-io/shellhub/pkg/geoip/geolite2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
@@ -25,7 +26,7 @@ var migration47 = migrate.Migration{
 
 		var locator geoip.Locator
 		if os.Getenv("GEOIP") == "true" {
-			locator, _ = geoip.NewGeoLite2(os.Getenv("MAXMIND_LICENSE"))
+			locator, _ = geolite2.NewLocator(ctx, geolite2.FetchFromLicenseKey(os.Getenv("MAXMIND_LICENSE")))
 		} else {
 			locator = geoip.NewNullGeoLite()
 		}
