@@ -31,6 +31,10 @@ var (
 // NewLocator initializes a new geoip.Locator by setting up access to the GeoIP databases.
 // If the databases do not exist locally, they will be downloaded using the provided fetcher method.
 func NewLocator(ctx context.Context, fetcher GeoliteFetcher) (geoip.Locator, error) {
+	if err := ensureDatabasePath(); err != nil {
+		return nil, err
+	}
+
 	if err := fetcher(ctx); err != nil {
 		return nil, err
 	}
