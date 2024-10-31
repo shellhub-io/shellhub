@@ -106,8 +106,14 @@ type config struct {
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
 	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=1000"`
 
-	// GeoipMaxmindLicense is the Maxmind license key used to authenticate requests for
-	// downloading the GeoIP database directly from MaxMind.
+	// GeoipMirror specifies an alternative mirror URL for downloading the GeoIP databases.
+	// This field takes precedence over [GeoipMaxmindLicense]; when both are configured,
+	// GeoipMirror will be used as the primary source for database downloads.
+	GeoipMirror string `env:"MAXMIND_MIRROR,default="`
+
+	// GeoipMaxmindLicense is the MaxMind license key used to authenticate requests for
+	// downloading the GeoIP database directly from MaxMind. If [GeoipMirror] is not set,
+	// this license key will be used as the fallback method for fetching the database.
 	GeoipMaxmindLicense string `env:"MAXMIND_LICENSE,default="`
 }
 
@@ -148,15 +154,24 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	servicesOptions := []services.Option{}
 
-	if cfg.GeoipMaxmindLicense != "" {
+	if cfg.GeoipMirror != "" {
+		log.Info("GeoIP feature is enable")
+
+		locator, err := geolite2.NewLocator(ctx, geolite2.FetchFromMirror(cfg.GeoipMirror))
+		if err != nil {
+			log.WithError(err).Fatal("Failed to init GeoIP")
+		} else {
+			servicesOptions = append(servicesOptions, services.WithLocator(locator))
+		}
+	} else if cfg.GeoipMaxmindLicense != "" {
 		log.Info("GeoIP feature is enable")
 
 		locator, err := geolite2.NewLocator(ctx, geolite2.FetchFromLicenseKey(cfg.GeoipMaxmindLicense))
 		if err != nil {
 			log.WithError(err).Fatal("Failed to init GeoIP")
+		} else {
+			servicesOptions = append(servicesOptions, services.WithLocator(locator))
 		}
-
-		servicesOptions = append(servicesOptions, services.WithLocator(locator))
 	}
 
 	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)

@@ -41,3 +41,33 @@ func FetchFromLicenseKey(licenseKey string) GeoliteFetcher {
 		return nil
 	}
 }
+
+func FetchFromMirror(mirror string) GeoliteFetcher {
+	return func(ctx context.Context) error {
+		urls := []string{}
+		for _, id := range []string{dbCountryID, dbCityID} {
+			_, err := os.Stat(filepath.Join(dbPath, id+dbExtension))
+			switch {
+			case errors.Is(err, fs.ErrNotExist):
+				u, err := url.Parse(mirror)
+				if err != nil {
+					return err
+				}
+
+				u.Path = "/" + id + ".tar.gz"
+
+				urls = append(urls, u.String())
+			default:
+				return err
+			}
+		}
+
+		if len(urls) > 0 {
+			if err := fetchDBs(ctx, urls); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
