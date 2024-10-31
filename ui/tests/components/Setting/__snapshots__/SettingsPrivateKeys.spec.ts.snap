@@ -2,7 +2,7 @@
 
 exports[`Setting Private Keys > Renders the component 1`] = `
 "<div class=\\"v-container v-locale--is-ltr\\">
-  <div class=\\"v-row align-center justify-center mt-4\\">
+  <div class=\\"v-row align-center justify-center\\">
     <div class=\\"v-col-sm-8 v-col\\">
       <div class=\\"v-alert v-theme--light text-primary v-alert--density-default v-alert--variant-tonal text-subtitle-2\\" role=\\"alert\\" data-test=\\"privacy-policy-alert\\">
         <!----><span class=\\"v-alert__underlay\\"></span>

@@ -2,7 +2,7 @@
 
 exports[`Setting Namespace > Renders the component 1`] = `
 "<div data-v-80a16399=\\"\\" class=\\"v-container v-locale--is-ltr\\">
-  <div data-v-80a16399=\\"\\" class=\\"v-row align-center justify-center mt-4\\">
+  <div data-v-80a16399=\\"\\" class=\\"v-row align-center justify-center\\">
     <div data-v-80a16399=\\"\\" class=\\"v-col-sm-8 v-col\\">
       <div data-v-80a16399=\\"\\" class=\\"v-row\\">
         <div data-v-80a16399=\\"\\" class=\\"v-col\\">

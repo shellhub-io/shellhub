@@ -2,7 +2,7 @@
 
 exports[`Setting Owner Info > Renders the component 1`] = `
 "<div class=\\"v-container v-locale--is-ltr\\">
-  <div class=\\"v-row align-center justify-center mt-4 mb-4\\">
+  <div class=\\"v-row align-center justify-center\\">
     <div class=\\"v-col-sm-8 v-col\\">
       <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated pb-0 elevation-0\\">
         <!---->

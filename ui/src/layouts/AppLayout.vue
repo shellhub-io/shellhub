@@ -6,7 +6,7 @@
     <v-navigation-drawer
       theme="dark"
       v-model="showNavigationDrawer"
-      :permanent="lgAndUp"
+      :permanent="permanent"
       absolute
       app
       class="bg-v-theme-surface"
@@ -126,7 +126,8 @@ const getStatusDarkMode = computed(
 
 const { lgAndUp } = useDisplay();
 
-const showNavigationDrawer = ref(lgAndUp);
+const permanent = computed(() => lgAndUp.value);
+const showNavigationDrawer = ref(lgAndUp.value);
 
 const hasSpinner = computed({
   get() { return store.getters["spinner/status"]; },

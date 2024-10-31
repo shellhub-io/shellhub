@@ -2,7 +2,7 @@
   <v-app-bar
     flat
     floating
-    class="bg-background"
+    class="bg-background border-b-thin"
   >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"

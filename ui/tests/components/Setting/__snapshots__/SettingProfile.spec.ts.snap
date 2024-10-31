@@ -2,7 +2,7 @@
 
 exports[`Settings Namespace > Renders the component 1`] = `
 "<div data-v-b3fa301d=\\"\\" class=\\"v-container v-locale--is-ltr\\">
-  <div data-v-b3fa301d=\\"\\" class=\\"v-row align-center justify-center mt-4\\">
+  <div data-v-b3fa301d=\\"\\" class=\\"v-row align-center justify-center\\">
     <div data-v-b3fa301d=\\"\\" class=\\"v-col-sm-8 v-col\\">
       <div data-v-b3fa301d=\\"\\" class=\\"v-row\\">
         <div data-v-b3fa301d=\\"\\" class=\\"v-col\\" data-test=\\"account-header\\">
