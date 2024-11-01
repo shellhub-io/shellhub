@@ -1,5 +1,5 @@
-import { IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp } from "@/interfaces/IUSer";
-import { usersApi } from "../../api/http";
+import { IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp, IUserSetup } from "@/interfaces/IUSer";
+import { usersApi, systemApi } from "../../api/http";
 
 export const signUp = async (data : IUserSignUp) => usersApi.registerUser({
   name: data.name,
@@ -46,3 +46,12 @@ export const premiumContent = async () => {
   const data = await response.json();
   return data;
 };
+
+export const setup = async (data: IUserSetup) => systemApi.setup(data.sign, {
+  name: data.name,
+  username: data.username,
+  email: data.email,
+  password: data.password,
+});
+
+export const getInfo = async () => systemApi.getInfo();

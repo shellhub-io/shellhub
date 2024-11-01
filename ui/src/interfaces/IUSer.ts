@@ -21,6 +21,14 @@ export interface IUserSignUp {
   sig?: string;
 }
 
+export interface IUserSetup {
+  sign: string;
+  email: string;
+  name: string;
+  password: string;
+  username: string;
+}
+
 export interface IUserUpdatePassword {
   id: string;
   token: string;

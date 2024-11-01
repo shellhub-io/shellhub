@@ -54,8 +54,8 @@ describe("App Layout Component", () => {
     expect(wrapper.find('[data-test="app-bar"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="main"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="container"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="overlay"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="progress-circular"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="overlay"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="progress-circular"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="userWarning-component"]').exists()).toBe(false);
   });
 

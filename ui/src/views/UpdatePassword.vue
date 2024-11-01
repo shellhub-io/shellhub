@@ -5,7 +5,7 @@
     </v-card-title>
 
     <v-card-text data-test="sub-text">
-      <div class="d-flex align-center justify-center text-center mb-6">
+      <div class="d-flex align-center justify-center text-center">
         Please insert your new password.
       </div>
     </v-card-text>
