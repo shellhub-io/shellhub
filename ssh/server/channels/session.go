@@ -1,6 +1,7 @@
 package channels
 
 import (
+	"io"
 	"strings"
 	"sync"
 
@@ -58,6 +59,20 @@ const (
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.10
 	ExitStatusRequest = "exit-status"
 )
+
+// A client may request agent forwarding for a previously-opened session using the following channel request. This
+// request is sent after the channel has been opened, but before a [ShellRequestType], command or
+// [SubsystemRequestType] has been executed.
+//
+// https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.1
+const AuthRequestOpenSSHRequest = "auth-agent-req@openssh.com"
+
+// After a client has requested that a session have agent forwarding enabled, the server later may request a connection
+// to the forwarded agent. The server does this by requesting a dedicated channel to communicate with the client's
+// agent.
+//
+// https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.2
+const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 
 type DefaultSessionHandlerOptions struct {
 	RecordURL string
@@ -261,6 +276,78 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 							return
 						}
 					}
+				case AuthRequestOpenSSHRequest:
+					_, err := agent.SendRequest(AuthRequestOpenSSHRequest, req.WantReply, req.Payload)
+					if err != nil {
+						reject(nil, "failed to the auth request to agent")
+
+						return
+					}
+
+					req.Reply(true, nil) //nolint:errcheck
+
+					gliderssh.SetAgentRequested(ctx)
+
+					go func() {
+						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
+						agentChannels := sess.AgentClient.HandleChannelOpen(AuthRequestOpenSSHChannel)
+
+						for {
+							newAgentChannel, ok := <-agentChannels
+							if !ok {
+								reject(nil, "channel for agent forwarding done")
+
+								return
+							}
+
+							agentChannel, reqs, err := newAgentChannel.Accept()
+							if err != nil {
+								reject(nil, "failed to accept the chanel request from agent on auth request")
+
+								return
+							}
+
+							defer agentChannel.Close()
+							go gossh.DiscardRequests(reqs)
+
+							go func() {
+								clientChannel, reqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
+								if err != nil {
+									reject(nil, "failed to open the auth request channel from agent to client")
+
+									return
+								}
+
+								defer clientChannel.Close()
+								go gossh.DiscardRequests(reqs)
+
+								var wg sync.WaitGroup
+
+								wg.Add(1)
+								go func() {
+									defer agentChannel.CloseWrite() //nolint:errcheck
+									defer wg.Done()
+
+									if _, err := io.Copy(agentChannel, clientChannel); err != nil && err != io.EOF {
+										logger.WithError(err).Trace("auth agent forwarding coping from client to agent")
+									}
+								}()
+
+								wg.Add(1)
+								go func() {
+									defer clientChannel.CloseWrite() //nolint:errcheck
+									defer wg.Done()
+
+									if _, err := io.Copy(clientChannel, agentChannel); err != nil && err != io.EOF {
+										logger.WithError(err).Trace("auth agent forwarding coping from agent to client")
+									}
+								}()
+
+								wg.Wait()
+							}()
+							logger.WithError(err).Trace("auth request channel piping done")
+						}
+					}()
 				default:
 					if req.WantReply {
 						if err := req.Reply(ok, nil); err != nil {

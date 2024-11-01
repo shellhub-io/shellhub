@@ -31,6 +31,7 @@ docker_install() {
        -v /etc/resolv.conf:/etc/resolv.conf \
        -v /var/run:/var/run \
        -v /var/log:/var/log \
+       -v /tmp:/tmp \
        -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
        -e SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key \
        -e SHELLHUB_TENANT_ID=$TENANT_ID \

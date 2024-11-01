@@ -50,7 +50,7 @@ func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd) *Sessioner {
 func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, winCh, isPty := session.Pty()
 
-	scmd := newShellCmd(*s.deviceName, session.User(), sspty.Term, session.Environ())
+	scmd := generateShellCmd(*s.deviceName, session, sspty.Term)
 
 	pts, err := startPty(scmd, session, winCh)
 	if err != nil {
@@ -110,7 +110,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	_, _, isPty := session.Pty()
 
-	cmd := newShellCmd(*s.deviceName, session.User(), "", session.Environ())
+	cmd := generateShellCmd(*s.deviceName, session, "")
 
 	stdout, _ := cmd.StdoutPipe()
 	stdin, _ := cmd.StdinPipe()

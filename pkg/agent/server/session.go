@@ -2,6 +2,10 @@ package server
 
 import (
 	"fmt"
+	"os"
+	"os/user"
+	"path"
+	"strconv"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	log "github.com/sirupsen/logrus"
@@ -51,7 +55,57 @@ func GetSessionType(session gliderssh.Session) (Type, error) {
 func (s *Server) sessionHandler(session gliderssh.Session) {
 	log.Info("New session request")
 
-	go s.startKeepAliveLoop(session)
+	if gliderssh.AgentRequested(session) {
+		user, err := user.Lookup(session.User())
+		if err != nil {
+			log.WithError(err).Error("failed to get the user")
+
+			return
+		}
+
+		id, err := strconv.Atoi(user.Uid)
+		if err != nil {
+			log.WithError(err).Error("failed to get the user ID")
+
+			return
+		}
+
+		gid, err := strconv.Atoi(user.Gid)
+		if err != nil {
+			log.WithError(err).Error("failed to get the group IP")
+
+			return
+		}
+
+		l, err := gliderssh.NewAgentListener()
+		if err != nil {
+			log.WithError(err).Error("failed to create agent listener")
+
+			return
+		}
+
+		defer l.Close()
+
+		authSock := l.Addr().String()
+
+		// NOTE: When the agent is started by the root user, we need to change the ownership of the Unix socket created
+		// to allow access for the logged-in user.
+		if err := os.Chown(path.Dir(authSock), id, gid); err != nil {
+			log.WithError(err).Error("failed to change the permission of directory where unix socket was created")
+
+			return
+		}
+
+		if err := os.Chown(authSock, id, gid); err != nil {
+			log.WithError(err).Error("failed to change the permission of unix socket")
+
+			return
+		}
+
+		session.Context().SetValue("SSH_AUTH_SOCK", authSock)
+
+		go gliderssh.ForwardAgentConnections(l, session)
+	}
 
 	sessionType, err := GetSessionType(session)
 	if err != nil {
