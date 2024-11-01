@@ -146,7 +146,7 @@ describe("Login", () => {
       password: "password",
     });
 
-    expect(wrapper.findComponent('[data-test="invalid-login-alert"]').exists()).toBeTruthy();
+    expect(wrapper.findComponent('[data-test="invalid-login-alert"]').exists());
   });
 
   it("redirects to ConfirmAccount route on 403 response", async () => {

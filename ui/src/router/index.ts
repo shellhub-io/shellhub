@@ -82,6 +82,12 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
+    beforeEnter: (to, from, next) => {
+      if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+        next({ name: "Setup" });
+      }
+      next();
+    },
     component: () => import("../views/Login.vue"),
   },
   {
@@ -171,11 +177,32 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: "/sign-up",
     name: "SignUp",
+    beforeEnter: (to, from, next) => {
+      if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+        next({ name: "Setup" });
+      }
+      next();
+    },
     meta: {
       layout: "LoginLayout",
       requiresAuth: false,
     },
     component: () => import("../views/SignUp.vue"),
+  },
+  {
+    path: "/setup",
+    name: "Setup",
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+    beforeEnter: (to, from, next) => {
+      if (!envVariables.isCommunity || store.getters["users/getSystemInfo"].setup) {
+        next({ name: "Login" });
+      }
+      next();
+    },
+    component: () => import("../views/Setup.vue"),
   },
   {
     path: "/confirm-account",
@@ -372,12 +399,17 @@ export const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+    await store.dispatch("users/fetchSystemInfo");
+
     const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
     const requiresAuth = to.meta.requiresAuth ?? true;
 
     const layout = to.meta.layout || "AppLayout";
     await store.dispatch("layout/setLayout", layout);
 
+    // if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+    //   return next({ name: "Setup" });
+    // }
     if (!isLoggedIn) {
       if (requiresAuth) {
         return next({
@@ -385,8 +417,15 @@ router.beforeEach(
           query: { redirect: to.fullPath },
         });
       }
-      return next();
     }
+
     return next();
   },
 );
+// if (requiresAuth) {
+//   return next({
+//     name: "Login",
+//     query: { redirect: to.fullPath },
+//   });
+// }
+// return next();

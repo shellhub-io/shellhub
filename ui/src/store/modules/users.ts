@@ -10,6 +10,14 @@ export interface UsersState {
   showPaywall: boolean,
   premiumContent: Array<object>,
   signUpToken: string | undefined,
+  info: {
+    version: string;
+    endpoints: {
+      ssh: string;
+      api: string;
+    };
+    setup: boolean;
+  }
 }
 
 export const users: Module<UsersState, State> = {
@@ -21,6 +29,14 @@ export const users: Module<UsersState, State> = {
     showPaywall: false,
     premiumContent: [],
     signUpToken: undefined,
+    info: {
+      version: "",
+      endpoints: {
+        ssh: "",
+        api: "",
+      },
+      setup: false,
+    },
   },
 
   getters: {
@@ -32,6 +48,7 @@ export const users: Module<UsersState, State> = {
     showPaywall: (state) => state.showPaywall,
     getPremiumContent: (state) => state.premiumContent,
     getSignToken: (state) => state.signUpToken,
+    getSystemInfo: (state) => state.info,
   },
 
   mutations: {
@@ -56,6 +73,10 @@ export const users: Module<UsersState, State> = {
 
     setPremiumContent(state, data) {
       state.premiumContent = data;
+    },
+
+    setSystemInfo(state, payload) {
+      state.info = payload;
     },
   },
 
@@ -85,6 +106,15 @@ export const users: Module<UsersState, State> = {
     async patchData(context, data) {
       try {
         await apiUser.patchUserData(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    async setup(context, data) {
+      try {
+        await apiUser.setup(data);
       } catch (error) {
         console.error(error);
         throw error;
@@ -143,6 +173,15 @@ export const users: Module<UsersState, State> = {
       } catch (error) {
         console.error(error);
         throw error;
+      }
+    },
+
+    async fetchSystemInfo({ commit }) {
+      try {
+        const response = await apiUser.getInfo();
+        commit("setSystemInfo", response.data);
+      } catch (error) {
+        console.error(error);
       }
     },
 

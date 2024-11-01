@@ -1879,6 +1879,12 @@ export interface Info {
      * @memberof Info
      */
     'endpoints'?: InfoEndpoints;
+    /**
+     * Setup instance status.
+     * @type {boolean}
+     * @memberof Info
+     */
+    'setup'?: boolean;
 }
 /**
  * 
@@ -2674,6 +2680,37 @@ export interface SetSessionRecordRequest {
      * @memberof SetSessionRecordRequest
      */
     'session_record'?: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface SetupRequest
+ */
+export interface SetupRequest {
+    /**
+     * User\'s name.
+     * @type {string}
+     * @memberof SetupRequest
+     */
+    'name': string;
+    /**
+     * User\'s E-mail.
+     * @type {string}
+     * @memberof SetupRequest
+     */
+    'email': string;
+    /**
+     * User\'s username.
+     * @type {string}
+     * @memberof SetupRequest
+     */
+    'username': string;
+    /**
+     * User\'s password.
+     * @type {string}
+     * @memberof SetupRequest
+     */
+    'password': string;
 }
 /**
  * 
@@ -7448,112 +7485,6 @@ export class ContainersApi extends BaseAPI {
      */
     public updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig) {
         return ContainersApiFp(this.configuration).updateTagsContainer(uid, updateTagsDeviceRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-/**
- * DefaultApi - axios parameter creator
- * @export
- */
-export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Get information about ShellHub instance like version, SSH and API addresses.
-         * @summary Get info
-         * @param {string} [agentVersion] Agent\&#39;s version.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getInfo: async (agentVersion?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/info`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (agentVersion !== undefined) {
-                localVarQueryParameter['agent_version'] = agentVersion;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * DefaultApi - functional programming interface
- * @export
- */
-export const DefaultApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Get information about ShellHub instance like version, SSH and API addresses.
-         * @summary Get info
-         * @param {string} [agentVersion] Agent\&#39;s version.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getInfo(agentVersion?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Info>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getInfo(agentVersion, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-    }
-};
-
-/**
- * DefaultApi - factory interface
- * @export
- */
-export const DefaultApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = DefaultApiFp(configuration)
-    return {
-        /**
-         * Get information about ShellHub instance like version, SSH and API addresses.
-         * @summary Get info
-         * @param {string} [agentVersion] Agent\&#39;s version.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getInfo(agentVersion?: string, options?: any): AxiosPromise<Info> {
-            return localVarFp.getInfo(agentVersion, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * DefaultApi - object-oriented interface
- * @export
- * @class DefaultApi
- * @extends {BaseAPI}
- */
-export class DefaultApi extends BaseAPI {
-    /**
-     * Get information about ShellHub instance like version, SSH and API addresses.
-     * @summary Get info
-     * @param {string} [agentVersion] Agent\&#39;s version.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DefaultApi
-     */
-    public getInfo(agentVersion?: string, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).getInfo(agentVersion, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -13495,6 +13426,189 @@ export class SshApi extends BaseAPI {
      */
     public updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: AxiosRequestConfig) {
         return SshApiFp(this.configuration).updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * SystemApi - axios parameter creator
+ * @export
+ */
+export const SystemApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get information about ShellHub instance like version, SSH and API addresses.
+         * @summary Get info
+         * @param {string} [agentVersion] Agent\&#39;s version.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getInfo: async (agentVersion?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/info`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (agentVersion !== undefined) {
+                localVarQueryParameter['agent_version'] = agentVersion;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Register an user and create namespace with the same name as username
+         * @summary User setup
+         * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
+         * @param {SetupRequest} [setupRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setup: async (sign: string, setupRequest?: SetupRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'sign' is not null or undefined
+            assertParamExists('setup', 'sign', sign)
+            const localVarPath = `/api/setup`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (sign !== undefined) {
+                localVarQueryParameter['sign'] = sign;
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(setupRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * SystemApi - functional programming interface
+ * @export
+ */
+export const SystemApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = SystemApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get information about ShellHub instance like version, SSH and API addresses.
+         * @summary Get info
+         * @param {string} [agentVersion] Agent\&#39;s version.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getInfo(agentVersion?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Info>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getInfo(agentVersion, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Register an user and create namespace with the same name as username
+         * @summary User setup
+         * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
+         * @param {SetupRequest} [setupRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async setup(sign: string, setupRequest?: SetupRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setup(sign, setupRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * SystemApi - factory interface
+ * @export
+ */
+export const SystemApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = SystemApiFp(configuration)
+    return {
+        /**
+         * Get information about ShellHub instance like version, SSH and API addresses.
+         * @summary Get info
+         * @param {string} [agentVersion] Agent\&#39;s version.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getInfo(agentVersion?: string, options?: any): AxiosPromise<Info> {
+            return localVarFp.getInfo(agentVersion, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Register an user and create namespace with the same name as username
+         * @summary User setup
+         * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
+         * @param {SetupRequest} [setupRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setup(sign: string, setupRequest?: SetupRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.setup(sign, setupRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * SystemApi - object-oriented interface
+ * @export
+ * @class SystemApi
+ * @extends {BaseAPI}
+ */
+export class SystemApi extends BaseAPI {
+    /**
+     * Get information about ShellHub instance like version, SSH and API addresses.
+     * @summary Get info
+     * @param {string} [agentVersion] Agent\&#39;s version.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SystemApi
+     */
+    public getInfo(agentVersion?: string, options?: AxiosRequestConfig) {
+        return SystemApiFp(this.configuration).getInfo(agentVersion, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Register an user and create namespace with the same name as username
+     * @summary User setup
+     * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
+     * @param {SetupRequest} [setupRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SystemApi
+     */
+    public setup(sign: string, setupRequest?: SetupRequest, options?: AxiosRequestConfig) {
+        return SystemApiFp(this.configuration).setup(sign, setupRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
