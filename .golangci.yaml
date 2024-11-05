@@ -26,6 +26,7 @@ linters:
     - stylecheck
     - nlreturn
     - nilerr
+    - gosec
 
 linters-settings:
   staticcheck:
