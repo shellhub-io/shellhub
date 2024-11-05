@@ -4,7 +4,7 @@ exports[`Setup Account > Renders the component 1`] = `
 "<div class=\\"v-container v-locale--is-ltr pb-0 mb-0\\">
   <!--v-if-->
   <form>
-    <div class=\\"v-card-title text-center\\" data-test=\\"welcome-title\\">Welcome to Shellhub!</div>
+    <div class=\\"v-card-title text-center\\" data-test=\\"welcome-title\\">Welcome to ShellHub!</div>
     <div class=\\"v-window v-theme--light\\">
       <div class=\\"v-window__container\\">
         <transition-stub appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" disabled=\\"true\\">
@@ -57,7 +57,7 @@ exports[`Setup Account > Renders the component 1`] = `
                   <!---->
                 </div>
               </div><button type=\\"submit\\" class=\\"v-btn v-btn--block v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal\\" disabled=\\"\\" data-test=\\"sign-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Create account </span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Setup </span>
                 <!---->
                 <!---->
               </button>

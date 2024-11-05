@@ -9,7 +9,7 @@
       data-test="user-status-alert"
     />
     <form @submit.prevent="setupAccount">
-      <v-card-title class="text-center" data-test="welcome-title">Welcome to Shellhub!</v-card-title>
+      <v-card-title class="text-center" data-test="welcome-title">Welcome to ShellHub!</v-card-title>
       <v-window v-model="el">
         <v-window-item :value="1">
           <v-card-subtitle style="white-space: normal;" data-test="subtitle-1">
@@ -37,7 +37,7 @@
               variant="tonal"
               block
             >
-              Create account
+              Setup
             </v-btn>
           </v-container>
         </v-window-item>
@@ -117,7 +117,7 @@
               variant="tonal"
               block
             >
-              Setup
+              Create Account
             </v-btn>
           </v-card-actions>
         </v-window-item>
