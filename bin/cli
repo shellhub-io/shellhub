@@ -13,9 +13,15 @@ exit_with_error() {
 cd $(dirname $(readlink_f $0))/../
 
 DOCKER_COMPOSE=$(evaluate_docker_compose)
-SERVICES=$($DOCKER_COMPOSE ps | tr '\n' ' ')
 
-[ -z "$SERVICES" ] && exit_with_error
-echo -n "$SERVICES" | awk '!(/mongo/ && /redis/ && /api/) { exit 1; }' || exit_with_error
+# Disable "exit on error" for service check
+set +e
+
+SERVICES=$($DOCKER_COMPOSE ps -q | grep -v INFO: | xargs docker inspect -f '{{.State.Running}}' 2>/dev/null | grep -c 'true')
+
+# Re-enable "exit on error" after service check
+set -e
+
+[ ! "$SERVICES" -gt 0 ] && exit_with_error
 
 exec $DOCKER_COMPOSE exec cli ./cli $@
