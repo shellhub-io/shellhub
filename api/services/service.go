@@ -37,6 +37,7 @@ type Service interface {
 	SSHKeysTagsService
 	SessionService
 	NamespaceService
+	MemberService
 	AuthService
 	StatsService
 	SetupService

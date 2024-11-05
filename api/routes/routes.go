@@ -130,6 +130,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
 	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
 	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
+	publicAPI.DELETE(LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), routesmiddleware.BlockAPIKey)
 
 	publicAPI.GET(GetSessionRecordURL, gateway.Handler(handler.GetSessionRecord))
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))

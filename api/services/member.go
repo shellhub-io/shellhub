@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 )
 
 type MemberService interface {
@@ -37,10 +38,13 @@ type MemberService interface {
 	// have more authority than the user who is updating the member; owners cannot be created. It returns an error, if any.
 	UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error
 
-	// RemoveNamespaceMember removes a member with the specified ID in the specified namespace. The member's role cannot
-	// have more authority than the user who is removing the member; owners cannot be removed. It returns the namespace
-	// and an error, if any.
+	// RemoveNamespaceMember removes a specified member from a namespace. The action must be performed by a user with higher
+	// authority than the target member. Owners cannot be removed. Returns the updated namespace and an error, if any.
 	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
+
+	// LeaveNamespace allows the authenticated user to remove themselves from the namespace. Owners cannot leave the namespace.
+	// Returns an error, if any.
+	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) error
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
@@ -213,18 +217,48 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrRoleInvalid()
 	}
 
-	if err := s.store.NamespaceRemoveMember(ctx, req.TenantID, req.MemberID); err != nil {
+	if err := s.removeMember(ctx, namespace, req.MemberID); err != nil { //nolint:revive
+		return nil, err
+	}
+
+	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+}
+
+func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) error {
+	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+	if err != nil {
+		return NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	if m, ok := ns.FindMember(req.UserID); !ok || m.Role == authorizer.RoleOwner {
+		return NewErrAuthForbidden()
+	}
+
+	if err := s.removeMember(ctx, ns, req.UserID); err != nil { //nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID string) error {
+	if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, userID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
-			return nil, NewErrNamespaceNotFound(req.TenantID, err)
+			return NewErrNamespaceNotFound(ns.TenantID, err)
 		case errors.Is(err, mongo.ErrUserNotFound):
-			return nil, NewErrNamespaceMemberNotFound(req.MemberID, err)
+			return NewErrNamespaceMemberNotFound(userID, err)
 		default:
-			return nil, err
+			return err
 		}
 	}
 
-	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) // nolint: errcheck
+	if err := s.AuthUncacheToken(ctx, ns.TenantID, userID); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", ns.TenantID).
+			WithField("user_id", userID).
+			Error("failed to remove the member")
+	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	return nil
 }

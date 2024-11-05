@@ -16,6 +16,7 @@ const (
 	EditNamespaceURL           = "/namespaces/:tenant"
 	AddNamespaceMemberURL      = "/namespaces/:tenant/members"
 	RemoveNamespaceMemberURL   = "/namespaces/:tenant/members/:uid"
+	LeaveNamespaceURL          = "/namespaces/members"
 	EditNamespaceMemberURL     = "/namespaces/:tenant/members/:uid"
 	GetSessionRecordURL        = "/users/security"
 	EditSessionRecordStatusURL = "/users/security/:tenant"
@@ -172,6 +173,24 @@ func (h *Handler) RemoveNamespaceMember(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
+}
+
+func (h *Handler) LeaveNamespace(c gateway.Context) error {
+	req := new(requests.LeaveNamespace)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if err := h.service.LeaveNamespace(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) EditNamespaceMember(c gateway.Context) error {

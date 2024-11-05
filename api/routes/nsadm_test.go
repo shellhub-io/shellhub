@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
@@ -378,6 +380,66 @@ func TestEditNamespace(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/users/security/%s", tc.headers["X-Tenant-ID"]), strings.NewReader(string(jsonData)))
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
+			rec := httptest.NewRecorder()
+
+			e := NewRouter(svcMock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+		})
+	}
+
+	svcMock.AssertExpectations(t)
+}
+
+func TestHandler_LeaveNamespace(t *testing.T) {
+	svcMock := new(mocks.Service)
+
+	cases := []struct {
+		description   string
+		headers       map[string]string
+		requiredMocks func()
+		expected      int
+	}{
+		{
+			description: "fails to leave the namespace",
+			headers: map[string]string{
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"}).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: http.StatusInternalServerError,
+		},
+		{
+			description: "success to leave the namespace",
+			headers: map[string]string{
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"}).
+					Return(nil).
+					Once()
+			},
+			expected: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/members", nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
