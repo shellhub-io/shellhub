@@ -74,6 +74,11 @@ type NamespaceRemoveMember struct {
 	MemberID string `param:"uid" validate:"required"`
 }
 
+type LeaveNamespace struct {
+	UserID   string `header:"X-ID" validate:"required"`
+	TenantID string `header:"X-Tenant-ID" validate:"required,uuid"`
+}
+
 // SessionEditRecordStatus is the structure to represent the request data for edit session record status endpoint.
 type SessionEditRecordStatus struct {
 	TenantParam

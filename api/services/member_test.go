@@ -1558,3 +1558,146 @@ func TestRemoveNamespaceMember(t *testing.T) {
 
 	storeMock.AssertExpectations(t)
 }
+
+func TestService_LeaveNamespace(t *testing.T) {
+	type Expected struct {
+		err error
+	}
+
+	storeMock := new(storemock.Store)
+
+	cases := []struct {
+		description   string
+		req           *requests.LeaveNamespace
+		requiredMocks func(context.Context)
+		expected      Expected
+	}{
+		{
+			description: "fails when the namespace was not found",
+			req: &requests.LeaveNamespace{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(nil, ErrNamespaceNotFound).
+					Once()
+			},
+			expected: Expected{err: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound)},
+		},
+		{
+			description: "fails when the user is not on the namespace",
+			req: &requests.LeaveNamespace{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members:  []models.Member{},
+					}, nil).
+					Once()
+			},
+			expected: Expected{err: NewErrAuthForbidden()},
+		},
+		{
+			description: "fails when the user is owner",
+			req: &requests.LeaveNamespace{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{err: NewErrAuthForbidden()},
+		},
+		{
+			description: "fails when cannot remove the member",
+			req: &requests.LeaveNamespace{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: Expected{errors.New("error")},
+		},
+		{
+			description: "succeeds",
+			req: &requests.LeaveNamespace{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return(nil).
+					Once()
+			},
+			expected: Expected{err: nil},
+		},
+	}
+
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.TODO()
+			tc.requiredMocks(ctx)
+
+			err := s.LeaveNamespace(ctx, tc.req)
+			assert.Equal(t, tc.expected, Expected{err})
+		})
+	}
+
+	storeMock.AssertExpectations(t)
+}
