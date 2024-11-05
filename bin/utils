@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -e
-
 # Evaluate the appropriate Docker Compose command based on availability and V2 compatibility.
 #
 # If a compatible command is found, it is set to $COMPOSE_COMMAND. If no compatible command
@@ -45,6 +43,15 @@ readlink_f() {
      else
          readlink -f "$1"
      fi)
+}
+
+exit_if_not_running() {
+  local DOCKER_COMPOSE
+  DOCKER_COMPOSE=$(evaluate_docker_compose)
+
+  SERVICES=$($DOCKER_COMPOSE ps -q | grep -v INFO: | xargs docker inspect -f '{{.State.Running}}' 2>/dev/null | grep -c 'true')
+
+  [ "$SERVICES" -le 0 ] && { echo "🚫 ERROR: ShellHub is not running. Exiting."; exit 1; }
 }
 
 set -o allexport
