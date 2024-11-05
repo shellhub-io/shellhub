@@ -14,14 +14,6 @@ cd $(dirname $(readlink_f $0))/../
 
 DOCKER_COMPOSE=$(evaluate_docker_compose)
 
-# Disable "exit on error" for service check
-set +e
-
-SERVICES=$($DOCKER_COMPOSE ps -q | grep -v INFO: | xargs docker inspect -f '{{.State.Running}}' 2>/dev/null | grep -c 'true')
-
-# Re-enable "exit on error" after service check
-set -e
-
-[ ! "$SERVICES" -gt 0 ] && exit_with_error
+exit_if_not_running
 
 exec $DOCKER_COMPOSE exec cli ./cli $@
