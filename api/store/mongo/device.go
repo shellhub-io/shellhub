@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec
 	"fmt"
 	"strings"
 	"time"
@@ -648,7 +648,7 @@ func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator 
 }
 
 func (s *Store) DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url_address": fmt.Sprintf("%x", md5.Sum([]byte(uid)))}})
+	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url_address": fmt.Sprintf("%x", md5.Sum([]byte(uid)))}}) //nolint:gosec
 	if err != nil {
 		return FromMongoError(err)
 	}

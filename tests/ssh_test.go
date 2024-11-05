@@ -153,7 +153,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -176,7 +176,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password("wrongpassword"),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				_, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
@@ -194,7 +194,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -243,7 +243,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.PublicKeys(signer),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
@@ -266,7 +266,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.PublicKeys(signer),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				_, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
@@ -281,7 +281,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -318,7 +318,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -348,7 +348,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -393,7 +393,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password("password"),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -444,7 +444,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password("password"),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -476,7 +476,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -515,7 +515,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -548,7 +548,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -584,7 +584,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -623,7 +623,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -658,7 +658,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				var conn *ssh.Client
@@ -693,7 +693,7 @@ func TestSSH(t *testing.T) {
 					Auth: []ssh.AuthMethod{
 						ssh.Password(ShellHubAgentPassword),
 					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
 				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", env.services.Env("SHELLHUB_SSH_PORT")), config)

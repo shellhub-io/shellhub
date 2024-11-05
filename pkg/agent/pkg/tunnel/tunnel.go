@@ -54,7 +54,7 @@ func NewTunnel() *Tunnel {
 
 	t := &Tunnel{
 		router: e,
-		srv: &http.Server{
+		srv: &http.Server{ //nolint:gosec
 			Handler: e,
 			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive

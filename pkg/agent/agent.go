@@ -639,7 +639,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 				"timestamp":      time.Now(),
 			}).Info("Ping")
 
-			randTimeout := time.Duration(rand.Intn(a.config.MaxRetryConnectionTimeout-10)+10) * time.Second
+			randTimeout := time.Duration(rand.Intn(a.config.MaxRetryConnectionTimeout-10)+10) * time.Second //nolint:gosec
 			ticker.Reset(interval + randTimeout)
 		}
 	}

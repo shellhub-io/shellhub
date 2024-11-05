@@ -60,7 +60,7 @@ func main() {
 		log.Info("Profiling enabled at http://0.0.0.0:8080/debug/pprof/")
 	}
 
-	go http.ListenAndServe(":8080", router) // nolint:errcheck
+	go http.ListenAndServe(":8080", router) // nolint:errcheck,gosec
 
 	log.Fatal(server.NewServer(&server.Options{
 		ConnectTimeout:               env.ConnectTimeout,
