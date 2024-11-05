@@ -153,7 +153,7 @@ func (s *server) setupAsynq() error {
 	for _, c := range s.cronjobs {
 		s.asynqMux.HandleFunc(c.Identifier, cronToAsynq(c.Handler))
 		task := asynq.NewTask(c.Identifier, nil, asynq.Queue(cronQueue))
-		if _, err := s.asynqSch.Register(c.Spec.String(), task, buildCronOptions(s, &c)...); err != nil {
+		if _, err := s.asynqSch.Register(c.Spec.String(), task, buildCronOptions(s, &c)...); err != nil { //nolint:gosec
 			return worker.ErrHandleCronFailed
 		}
 	}
