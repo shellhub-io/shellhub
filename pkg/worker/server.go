@@ -12,7 +12,7 @@ type Server interface {
 	// HandleCron executes the cronFunc every time the cron specification is met.
 	//
 	// It panics if the cron specification is invalid.
-	HandleCron(spec CronSpec, cronFunc CronHandler)
+	HandleCron(spec CronSpec, cronFunc CronHandler, opts ...CronjobOption)
 	// Start initializes and starts the worker in a non-blocking manner. The server is
 	// turned off whedn the context was done.
 	//

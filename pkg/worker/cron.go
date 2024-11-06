@@ -38,4 +38,8 @@ type Cronjob struct {
 	Spec CronSpec
 	// Handler is the callback function that will be executed when the cron specification is met.
 	Handler CronHandler
+	// Unique defines whether the task cannot be perfomed concurrently.
+	Unique bool
 }
+
+type CronjobOption func(c *Cronjob)

@@ -106,6 +106,11 @@ type config struct {
 	// Check [https://github.com/hibiken/asynq/wiki/Task-aggregation] for more information.
 	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=1000"`
 
+	// AsynqUniquenessTimeout defines the maximum duration, in hours, for which a unique job
+	// remains locked in the queue. If the job does not complete within this timeout, the lock
+	// is released, allowing a new instance of the job to be enqueued and executed.
+	AsynqUniquenessTimeout int `env:"ASYNQ_UNIQUENESS_TIMEOUT,default=24"`
+
 	// GeoipMirror specifies an alternative mirror URL for downloading the GeoIP databases.
 	// This field takes precedence over [GeoipMaxmindLicense]; when both are configured,
 	// GeoipMirror will be used as the primary source for database downloads.
@@ -191,7 +196,12 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 		routerOptions = append(routerOptions, routes.WithReporter(reporter))
 	}
 
-	worker := asynq.NewServer(cfg.RedisURI, asynq.BatchConfig(cfg.AsynqGroupMaxSize, cfg.AsynqGroupMaxDelay, int(cfg.AsynqGroupGracePeriod)))
+	worker := asynq.NewServer(
+		cfg.RedisURI,
+		asynq.BatchConfig(cfg.AsynqGroupMaxSize, cfg.AsynqGroupMaxDelay, int(cfg.AsynqGroupGracePeriod)),
+		asynq.UniquenessTimeout(cfg.AsynqUniquenessTimeout),
+	)
+
 	worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
 
 	if err := worker.Start(); err != nil {

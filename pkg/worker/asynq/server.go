@@ -32,12 +32,24 @@ func BatchConfig(maxSize, maxDelay, gracePeriod int) ServerOption {
 	}
 }
 
+// UniquenessTimeout defines the maximum duration, in hours, for which a unique job remains locked
+// in the queue. If the job does not complete within this timeout, the lock is released, allowing
+// a new instance of the job to be enqueued and executed.
+func UniquenessTimeout(timeout int) ServerOption {
+	return func(s *server) error {
+		s.uniquenessTimeout = timeout
+
+		return nil
+	}
+}
+
 type server struct {
-	redisURI    string
-	asynqSrv    *asynq.Server
-	asynqMux    *asynq.ServeMux
-	asynqSch    *asynq.Scheduler
-	batchConfig *batchConfig
+	redisURI          string
+	asynqSrv          *asynq.Server
+	asynqMux          *asynq.ServeMux
+	asynqSch          *asynq.Scheduler
+	batchConfig       *batchConfig
+	uniquenessTimeout int
 
 	queues   queues
 	tasks    []worker.Task
@@ -77,13 +89,17 @@ func (s *server) HandleTask(pattern worker.TaskPattern, handler worker.TaskHandl
 	s.tasks = append(s.tasks, task)
 }
 
-func (s *server) HandleCron(spec worker.CronSpec, handler worker.CronHandler) {
+func (s *server) HandleCron(spec worker.CronSpec, handler worker.CronHandler, opts ...worker.CronjobOption) {
 	spec.MustValidate()
 
 	cronjob := worker.Cronjob{
 		Identifier: uuid.Generate(),
 		Spec:       spec,
 		Handler:    handler,
+	}
+
+	for _, opt := range opts {
+		opt(&cronjob)
 	}
 
 	s.cronjobs = append(s.cronjobs, cronjob)
@@ -137,7 +153,7 @@ func (s *server) setupAsynq() error {
 	for _, c := range s.cronjobs {
 		s.asynqMux.HandleFunc(c.Identifier, cronToAsynq(c.Handler))
 		task := asynq.NewTask(c.Identifier, nil, asynq.Queue(cronQueue))
-		if _, err := s.asynqSch.Register(c.Spec.String(), task); err != nil {
+		if _, err := s.asynqSch.Register(c.Spec.String(), task, buildCronOptions(s, &c)...); err != nil {
 			return worker.ErrHandleCronFailed
 		}
 	}
