@@ -401,15 +401,16 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 
 	cases := []struct {
 		description   string
+		tenantID      string
 		headers       map[string]string
 		requiredMocks func()
 		expected      int
 	}{
 		{
 			description: "fails to leave the namespace",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
 			headers: map[string]string{
-				"X-ID":        "000000000000000000000000",
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+				"X-ID": "000000000000000000000000",
 			},
 			requiredMocks: func() {
 				svcMock.
@@ -421,6 +422,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		},
 		{
 			description: "success to leave the namespace",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
 			headers: map[string]string{
 				"X-ID":        "000000000000000000000000",
 				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
@@ -436,10 +438,10 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.description, func(tt *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/members", nil)
+			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/"+tc.tenantID+"/members", nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -449,7 +451,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			e := NewRouter(svcMock)
 			e.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			assert.Equal(tt, tc.expected, rec.Result().StatusCode)
 		})
 	}
 
