@@ -31,6 +31,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
 	e.Use(echoMiddleware.RequestID())
+	e.Use(echoMiddleware.Secure())
 	e.Use(pkgmiddleware.Log)
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
