@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="showNoNamespace" :retain-focus="false" persistent max-width="650px">
+  <v-dialog v-model="showNoNamespace" :retain-focus="false" max-width="650px">
     <v-card
       v-model="showNoNamespace"
       class="bg-v-theme-surface"

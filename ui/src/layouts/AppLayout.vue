@@ -32,6 +32,20 @@
         <Namespace data-test="namespace-component" />
       </div>
 
+      <div class="d-flex justify-center" v-else-if="envVariables.isCloud">
+        <v-btn
+          color="primary"
+          @click="showNamespaceAdd = true"
+          data-test="save-btn">
+          Add Namespace
+        </v-btn>
+        <NamespaceAdd
+          v-model="showNamespaceAdd"
+          enableSwitchIn
+          data-test="namespaceAdd-component"
+        />
+      </div>
+
       <v-list density="compact" class="bg-v-theme-surface" data-test="list">
         <v-list-item
           v-for="item in visibleItems"
@@ -113,10 +127,12 @@ import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "../../src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
+import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 
 const router = useRouter();
 const store = useStore();
 const currentRoute = computed(() => router.currentRoute);
+const showNamespaceAdd = ref(false);
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
@@ -138,7 +154,7 @@ onMounted(() => {
   store.dispatch("privateKey/fetch");
 });
 
-const disableItem = (item: string) => !hasNamespaces.value && item !== "Home";
+const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
 const showConnector = computed(() => (envVariables.isCommunity && !envVariables.premiumPaywall) || !envVariables.hasConnector);
 const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
 const items = [

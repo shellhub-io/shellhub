@@ -37,4 +37,6 @@ export const resetMfa = async (validation: MfaReset) => mfaApi.resetMFA(validati
   recovery_email_code: validation.recovery_email_code,
 });
 
+export const deleteUser = async () => usersApi.deleteUser();
+
 export const info = async () => usersApi.getUserInfo();

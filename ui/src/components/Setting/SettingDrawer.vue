@@ -33,7 +33,7 @@ const { lgAndUp } = useDisplay();
 const permanent = computed(() => lgAndUp.value);
 const showNavigationDrawer = ref(true);
 const store = useStore();
-const currentInANamespace = computed(() => localStorage.getItem("tenant") !== "");
+const namespacedInstance = computed(() => localStorage.getItem("tenant") !== "");
 const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
 
 const items = computed(() => [
@@ -44,7 +44,7 @@ const items = computed(() => [
   {
     title: "Namespace",
     path: "/settings/namespace",
-    hidden: !currentInANamespace.value,
+    hidden: !namespacedInstance.value,
   },
   {
     title: "Private Keys",
@@ -53,6 +53,7 @@ const items = computed(() => [
   {
     title: "Tags",
     path: "/settings/tags",
+    hidden: !namespacedInstance.value,
   },
   {
     title: "Billing",

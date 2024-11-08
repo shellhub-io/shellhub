@@ -353,6 +353,28 @@ exports[`Settings Namespace > Renders the component 1`] = `
       <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
       <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
       <!--v-if-->
+      <div data-v-b3fa301d=\\"\\" class=\\"mt-6 mb-4\\" data-test=\\"deleteOperation-div\\">
+        <h3 data-v-b3fa301d=\\"\\" class=\\"mb-2\\">Danger Zone</h3>
+        <div data-v-b3fa301d=\\"\\" class=\\"v-row mt-2 mb-2\\">
+          <div data-v-b3fa301d=\\"\\" class=\\"v-col ml-3\\">
+            <h4 data-v-b3fa301d=\\"\\">Delete this account</h4>
+            <div data-v-b3fa301d=\\"\\" class=\\"ml-2\\">
+              <p data-v-b3fa301d=\\"\\"> Deleting your account is permanent. This action will erase all your data and cannot be undone. Please be sure before proceeding. </p>
+            </div>
+          </div>
+          <div data-v-b3fa301d=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
+            <div aria-describedby=\\"v-tooltip-16\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete Account </span>
+                <!---->
+                <!---->
+              </button></div>
+            <!--teleport start-->
+            <!--teleport end-->
+            <!---->
+            <!---->
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>"
