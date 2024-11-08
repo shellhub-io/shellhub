@@ -33,7 +33,6 @@
     v-model:show="showDeviceWarning"
     @update="showDeviceWarning = false"
     data-test="DeviceAcceptWarning-component"
-
   />
 
   <RecoveryHelper

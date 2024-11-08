@@ -33,7 +33,8 @@ exports[`App Layout Component > Renders the component 1`] = `
           </transition-stub>
         </header>
         <!--v-if-->
-        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" aria-selected=\\"false\\" href=\\"/\\" data-test=\\"list-item\\">
+            <!----><span class=\\"v-list-item__underlay\\"></span>
             <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
               <div class=\\"v-list-item__spacer\\"></div>
             </div>
@@ -116,8 +117,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class=\\"v-list-item__spacer\\"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" aria-selected=\\"false\\" href=\\"/settings\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
+          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
             <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
               <div class=\\"v-list-item__spacer\\"></div>
             </div>

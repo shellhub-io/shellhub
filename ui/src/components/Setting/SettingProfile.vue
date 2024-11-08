@@ -161,16 +161,18 @@
             </v-col>
           </v-row>
 
-          <div class="mt-4 pl-4 pr-4 pb-4 mb-4">
-            <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
-              using your favorite TOPT Provider in order to access your ShellHub account.</p>
-            <div v-if="mfaEnabled === 'true'">
+          <v-row>
+            <v-col>
+              <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
+                using your favorite TOPT Provider in order to access your ShellHub account.</p>
+            </v-col>
+            <v-col md="auto" v-if="mfaEnabled === 'true'">
               <mfa-disable @success="() => mfaEnabled = 'false'" />
-            </div>
-            <div v-else>
+            </v-col>
+            <v-col md="auto" v-else>
               <mfa-settings @enabled="showCongratulationsModal" @reset-form="setRecoveryEmail()" />
-            </div>
-          </div>
+            </v-col>
+          </v-row>
           <v-row justify="center">
             <v-dialog v-model="dialog" width="auto" scrollable transition="dialog-bottom-transition" data-test="dialog">
               <v-card class="bg-v-theme-surface content" width="650" data-test="card-first-page">
@@ -216,6 +218,25 @@
             </v-dialog>
           </v-row>
         </div>
+
+        <div class="mt-6 mb-4" data-test="deleteOperation-div" v-if="envVariables.isCloud">
+          <h3 class="mb-2">Danger Zone</h3>
+          <v-row class="mt-2 mb-2">
+            <v-col class="ml-3">
+              <h4>Delete this account</h4>
+              <div class="ml-2">
+                <p>
+                  Deleting your account is permanent. This action will erase all your data and cannot be undone.
+                  Please be sure before proceeding.
+                </p>
+              </div>
+            </v-col>
+
+            <v-col md="auto" class="ml-auto">
+              <UserDelete />
+            </v-col>
+          </v-row>
+        </div>
       </v-col>
     </v-row>
   </v-container>
@@ -232,6 +253,7 @@ import { INotificationsSuccess } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
+import UserDelete from "../User/UserDelete.vue";
 import { envVariables } from "../../envVariables";
 
 const store = useStore();

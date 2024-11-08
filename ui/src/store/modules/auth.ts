@@ -328,6 +328,11 @@ export const auth: Module<AuthState, State> = {
       context.commit("authSuccess", resp.data);
     },
 
+    async deleteUser(context) {
+      await apiAuth.deleteUser();
+      context.dispatch("logout");
+    },
+
     logout(context) {
       context.commit("logout");
       localStorage.removeItem("token");
