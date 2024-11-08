@@ -3,7 +3,7 @@
 exports[`Devices View > Renders the component 1`] = `
 "<div class=\\"d-flex flex-column justify-space-between align-center flex-sm-row\\" data-test=\\"device-title\\">
   <h1>Devices</h1>
-  <div class=\\"v-col-sm-12 v-col-md-6 v-col\\">
+  <div class=\\"v-col-md-6 v-col\\">
     <!--v-if-->
   </div>
   <div class=\\"d-flex mt-4\\" data-test=\\"device-header-component-group\\">

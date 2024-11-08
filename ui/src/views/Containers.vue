@@ -4,7 +4,7 @@
     data-test="device-title"
   >
     <h1>Containers</h1>
-    <v-col md="6" sm="12">
+    <v-col md="6">
       <v-text-field
         v-if="show"
         label="Search by hostname"

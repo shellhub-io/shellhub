@@ -5,8 +5,6 @@
   >
     <h1>Docker Connectors</h1>
 
-    <v-col md="6" sm="12" />
-
     <div class="d-flex mt-4 mb-2" data-test="device-header-component-group">
       <v-btn
         @click="router.push('/containers')"
