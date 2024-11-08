@@ -30,7 +30,7 @@
         </v-card-text>
 
         <v-card-text data-test="namespace-generate-title">
-          Generate a key that is scoped to the repository and is appropriate for personal API usage via HTTPS.
+          Generate a key that is scoped to the namespace and is appropriate for personal API usage via HTTPS.
         </v-card-text>
 
         <v-card-text>
