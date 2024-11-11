@@ -48,9 +48,7 @@ exports[`Sessions View > Renders the component 1`] = `
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
-                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\">
-                  <div data-v-459ab1b4=\\"\\" class=\\"v-code bg-tabs\\">192.168.0.1</div>
-                </td>
+                <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><code data-v-459ab1b4=\\"\\" class=\\"v-code bg-tabs\\">192.168.0.1</code></td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\"></span></td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\"></span></td>
                 <td data-v-459ab1b4=\\"\\" class=\\"text-center\\"><span data-v-459ab1b4=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-3\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
