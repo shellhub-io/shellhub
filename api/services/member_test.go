@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -1565,6 +1566,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 	}
 
 	storeMock := new(storemock.Store)
+	cacheMock := new(cachemock.Cache)
 
 	cases := []struct {
 		description   string
@@ -1575,8 +1577,9 @@ func TestService_LeaveNamespace(t *testing.T) {
 		{
 			description: "fails when the namespace was not found",
 			req: &requests.LeaveNamespace{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000001",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1589,8 +1592,9 @@ func TestService_LeaveNamespace(t *testing.T) {
 		{
 			description: "fails when the user is not on the namespace",
 			req: &requests.LeaveNamespace{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000001",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1608,8 +1612,9 @@ func TestService_LeaveNamespace(t *testing.T) {
 		{
 			description: "fails when the user is owner",
 			req: &requests.LeaveNamespace{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000001",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1632,8 +1637,9 @@ func TestService_LeaveNamespace(t *testing.T) {
 		{
 			description: "fails when cannot remove the member",
 			req: &requests.LeaveNamespace{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000001",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1660,8 +1666,9 @@ func TestService_LeaveNamespace(t *testing.T) {
 		{
 			description: "succeeds",
 			req: &requests.LeaveNamespace{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000001",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -1685,9 +1692,42 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			expected: Expected{err: nil},
 		},
+		{
+			description: "succeeds when TenantID is equal to AuthenticatedTenantID",
+			req: &requests.LeaveNamespace{
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000").
+					Return(nil).
+					Once()
+			},
+			expected: Expected{err: nil},
+		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
