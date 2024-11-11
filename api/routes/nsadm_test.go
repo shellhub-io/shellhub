@@ -410,11 +410,12 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			description: "fails to leave the namespace",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			headers: map[string]string{
-				"X-ID": "000000000000000000000000",
+				"X-ID":        "000000000000000000000000",
+				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
 				svcMock.
-					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"}).
+					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -429,7 +430,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				svcMock.
-					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"}).
+					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
 					Return(nil).
 					Once()
 			},

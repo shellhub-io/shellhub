@@ -75,8 +75,11 @@ type NamespaceRemoveMember struct {
 }
 
 type LeaveNamespace struct {
-	UserID   string `header:"X-ID" validate:"required"`
+	UserID string `header:"X-ID" validate:"required"`
+	// TenantID represents the namespace that the user intends to leave.
 	TenantID string `param:"tenant" validate:"required,uuid"`
+	// AuthenticatedTenantID represents the namespace to which the user is currently authenticated.
+	AuthenticatedTenantID string `header:"X-Tenant-ID" validate:"required"`
 }
 
 // SessionEditRecordStatus is the structure to represent the request data for edit session record status endpoint.

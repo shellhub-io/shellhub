@@ -42,7 +42,8 @@ type MemberService interface {
 	// authority than the target member. Owners cannot be removed. Returns the updated namespace and an error, if any.
 	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
 
-	// LeaveNamespace allows the authenticated user to remove themselves from the namespace. Owners cannot leave the namespace.
+	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
+	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated.
 	// Returns an error, if any.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) error
 }
@@ -221,6 +222,13 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, err
 	}
 
+	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", req.TenantID).
+			WithField("user_id", req.UserID).
+			Error("failed to uncache the token")
+	}
+
 	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
 }
 
@@ -238,6 +246,15 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return err
 	}
 
+	if req.TenantID == req.AuthenticatedTenantID {
+		if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
+			log.WithError(err).
+				WithField("tenant_id", req.TenantID).
+				WithField("user_id", req.UserID).
+				Error("failed to uncache the token")
+		}
+	}
+
 	return nil
 }
 
@@ -251,13 +268,6 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID
 		default:
 			return err
 		}
-	}
-
-	if err := s.AuthUncacheToken(ctx, ns.TenantID, userID); err != nil {
-		log.WithError(err).
-			WithField("tenant_id", ns.TenantID).
-			WithField("user_id", userID).
-			Error("failed to remove the member")
 	}
 
 	return nil
