@@ -186,11 +186,15 @@ func (h *Handler) LeaveNamespace(c gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.LeaveNamespace(c.Ctx(), req); err != nil {
+	res, err := h.service.LeaveNamespace(c.Ctx(), req)
+	switch {
+	case err != nil:
 		return err
+	case res != nil:
+		return c.JSON(http.StatusOK, res)
+	default:
+		return c.NoContent(http.StatusOK)
 	}
-
-	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) EditNamespaceMember(c gateway.Context) error {

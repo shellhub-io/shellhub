@@ -416,7 +416,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
-					Return(errors.New("error")).
+					Return(nil, errors.New("error")).
 					Once()
 			},
 			expected: http.StatusInternalServerError,
@@ -431,7 +431,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			requiredMocks: func() {
 				svcMock.
 					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
-					Return(nil).
+					Return(nil, nil).
 					Once()
 			},
 			expected: http.StatusOK,

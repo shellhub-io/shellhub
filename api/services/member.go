@@ -45,7 +45,7 @@ type MemberService interface {
 	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
 	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated.
 	// Returns an error, if any.
-	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) error
+	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
@@ -232,30 +232,43 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
 }
 
-func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) error {
+func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
 	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
 	if err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
 	if m, ok := ns.FindMember(req.UserID); !ok || m.Role == authorizer.RoleOwner {
-		return NewErrAuthForbidden()
+		return nil, NewErrAuthForbidden()
 	}
 
 	if err := s.removeMember(ctx, ns, req.UserID); err != nil { //nolint:revive
-		return err
+		return nil, err
 	}
 
-	if req.TenantID == req.AuthenticatedTenantID {
-		if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
-			log.WithError(err).
-				WithField("tenant_id", req.TenantID).
-				WithField("user_id", req.UserID).
-				Error("failed to uncache the token")
-		}
+	// If the user is attempting to leave a namespace other than the authenticated one,
+	// there is no need to generate a new token.
+	if req.TenantID != req.AuthenticatedTenantID {
+		return nil, nil
 	}
 
-	return nil
+	emptyString := "" // just to be used as a pointer
+	if err := s.store.UserUpdate(ctx, req.UserID, &models.UserChanges{PreferredNamespace: &emptyString}); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", req.TenantID).
+			WithField("user_id", req.UserID).
+			Error("failed to reset user's preferred namespace")
+	}
+
+	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", req.TenantID).
+			WithField("user_id", req.UserID).
+			Error("failed to uncache the token")
+	}
+
+	// TODO: make this method a util function
+	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
 }
 
 func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID string) error {
