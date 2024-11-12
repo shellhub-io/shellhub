@@ -81,5 +81,5 @@ const showNoNamespace = computed({
   },
 });
 
-const openVersion = computed(() => !envVariables.isCloud || !envVariables.isEnterprise);
+const openVersion = computed(() => !envVariables.isCloud && !envVariables.isEnterprise);
 </script>
