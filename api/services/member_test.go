@@ -1562,6 +1562,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 
 func TestService_LeaveNamespace(t *testing.T) {
 	type Expected struct {
+		res *models.UserAuthResponse
 		err error
 	}
 
@@ -1587,7 +1588,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Return(nil, ErrNamespaceNotFound).
 					Once()
 			},
-			expected: Expected{err: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound)},
+			expected: Expected{
+				res: nil,
+				err: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound),
+			},
 		},
 		{
 			description: "fails when the user is not on the namespace",
@@ -1607,7 +1611,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: Expected{err: NewErrAuthForbidden()},
+			expected: Expected{
+				res: nil,
+				err: NewErrAuthForbidden(),
+			},
 		},
 		{
 			description: "fails when the user is owner",
@@ -1632,7 +1639,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: Expected{err: NewErrAuthForbidden()},
+			expected: Expected{
+				res: nil,
+				err: NewErrAuthForbidden(),
+			},
 		},
 		{
 			description: "fails when cannot remove the member",
@@ -1661,7 +1671,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Return(errors.New("error")).
 					Once()
 			},
-			expected: Expected{errors.New("error")},
+			expected: Expected{
+				res: nil,
+				err: errors.New("error"),
+			},
 		},
 		{
 			description: "succeeds",
@@ -1690,7 +1703,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expected: Expected{err: nil},
+			expected: Expected{
+				res: nil,
+				err: nil,
+			},
 		},
 		{
 			description: "succeeds when TenantID is equal to AuthenticatedTenantID",
@@ -1718,12 +1734,69 @@ func TestService_LeaveNamespace(t *testing.T) {
 					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
 					Return(nil).
 					Once()
+				emptyString := ""
+				storeMock.
+					On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{PreferredNamespace: &emptyString}).
+					Return(nil).
+					Once()
 				cacheMock.
 					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000").
 					Return(nil).
 					Once()
+
+				// NOTE: This test is a replica of TestService_CreateUserToken because this method
+				// internally calls it to create another token. Since this functionality is already tested,
+				// we are duplicating the test here to prevent failures. The important tests are all in the lines above.
+				storeMock.
+					On("UserGetByID", ctx, "000000000000000000000000", false).
+					Return(
+						&models.User{
+							ID:        "000000000000000000000000",
+							Status:    models.UserStatusConfirmed,
+							LastLogin: now,
+							MFA: models.UserMFA{
+								Enabled: false,
+							},
+							UserData: models.UserData{
+								Username: "john_doe",
+								Email:    "john.doe@test.com",
+								Name:     "john doe",
+							},
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+							Preferences: models.UserPreferences{
+								PreferredNamespace: "",
+							},
+						},
+						0,
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				clockMock := new(clockmock.Clock)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+				cacheMock.
+					On("Set", ctx, "token_000000000000000000000000", mock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
 			},
-			expected: Expected{err: nil},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:     "000000000000000000000000",
+					Name:   "john doe",
+					User:   "john_doe",
+					Email:  "john.doe@test.com",
+					Tenant: "",
+					Role:   "",
+					Token:  "must ignore",
+				},
+				err: nil,
+			},
 		},
 	}
 
@@ -1734,8 +1807,14 @@ func TestService_LeaveNamespace(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			err := s.LeaveNamespace(ctx, tc.req)
-			assert.Equal(t, tc.expected, Expected{err})
+			res, err := s.LeaveNamespace(ctx, tc.req)
+			// Since the resulting token is not crucial for the assertion and
+			// difficult to mock, it is safe to ignore this field.
+			if res != nil {
+				res.Token = "must ignore"
+			}
+
+			assert.Equal(t, tc.expected, Expected{res, err})
 		})
 	}
 

@@ -1018,21 +1018,33 @@ func (_m *Service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 }
 
 // LeaveNamespace provides a mock function with given fields: ctx, req
-func (_m *Service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) error {
+func (_m *Service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LeaveNamespace")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.LeaveNamespace) error); ok {
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.LeaveNamespace) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.LeaveNamespace) *models.UserAuthResponse); ok {
 		r0 = rf(ctx, req)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.LeaveNamespace) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ListAPIKeys provides a mock function with given fields: ctx, req
