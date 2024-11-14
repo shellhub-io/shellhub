@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/vue";
 import VueGtag from "vue-gtag";
+import { createChatWoot } from "@productdevbook/chatwoot/vue";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
 import { key, store } from "./store";
@@ -18,6 +19,19 @@ import { SnackbarPlugin } from "./plugins/snackbar";
 /* import font awesome icon component */
 
 const app = createApp(App);
+
+const chatwoot = createChatWoot({
+  init: {
+    websiteToken: envVariables.chatWootWebsiteToken,
+    baseUrl: envVariables.chatWootBaseURL,
+  },
+  settings: {
+    locale: "en",
+    position: "right",
+    hideMessageBubble: true,
+  },
+  partytown: false,
+});
 
 Sentry.init({
   app,
@@ -42,6 +56,9 @@ app.use(store, key);
 app.use(VueGtag, {
   config: { id: envVariables.googleAnalyticsID || "" },
 });
+if (envVariables.isCloud || envVariables.isEnterprise) {
+  app.use(chatwoot);
+}
 app.use(SnackbarPlugin);
 app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");

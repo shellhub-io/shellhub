@@ -38,6 +38,8 @@ export const tenantSwitch = async (data: INamespace) => namespacesApi.getNamespa
 
 export const acceptNamespaceInvite = async (data: INamespaceInvite) => namespacesApi.acceptInvite(data.tenant, { sig: data.sig });
 
+export const getSupportID = async (tenant: string) => namespacesApi.getNamespaceSupport(tenant);
+
 export const lookupUserStatus = async (
   data: { tenant: string; id: string; sig: string; },
 ) => namespacesApi.lookupUserStatus(data.tenant, data.id, data.sig);
