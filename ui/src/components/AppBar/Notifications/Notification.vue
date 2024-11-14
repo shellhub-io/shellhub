@@ -5,17 +5,15 @@
         v-bind="$props"
         v-if="showNumberNotifications > 0"
         :content="showNumberNotifications"
-        :value="showNumberNotifications"
-        offset-x="10"
-        location="top left"
+        offset-y="-5"
+        location="top right"
         color="success"
+        size="x-small"
         data-test="notifications-badge"
       >
         <v-icon
           v-bind="props"
-          class="ml-2 mr-2"
           color="primary"
-          :size="defaultSize"
           aria-label="notifications-icon"
           @click="getNotifications()"
         >
@@ -27,7 +25,6 @@
         v-else
         class="ml-2 mr-2"
         color="primary"
-        :size="defaultSize"
         aria-label="notifications-icon"
         @click="getNotifications()"
       >

@@ -169,49 +169,48 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </ul>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text ml-1 mr-1\\" style=\\"width: 24px; height: 24px;\\" aria-describedby=\\"v-tooltip-12\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text\\" aria-describedby=\\"v-tooltip-12\\" aria-label=\\"community-help-icon\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark text-primary v-icon--clickable ml-2 mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text d-flex align-center justify-center\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-15\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-account mdi v-icon notranslate v-theme--dark mr-2\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" left=\\"\\"></i><div>USER</div><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark ml-1 mr-1\\" style=\\"font-size: 24px; height: 24px; width: 24px;\\" aria-hidden=\\"true\\" right=\\"\\"></i></span>
-          <!---->
-          <!---->
-        </button>
-        <!---->
-        <!---->
-      </div>
-      <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <!---->
-      </transition-stub>
-    </header>
-    <main data-v-e7291ef4=\\"\\" class=\\"v-main\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px; transition: none;\\" data-test=\\"main\\">
-      <div data-v-e7291ef4=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr pa-8\\" data-test=\\"container\\">
-        <!---->
-      </div>
-    </main>
-    <!---->
-    <!--teleport start-->
-    <div class=\\"v-overlay v-overlay--absolute v-overlay--active v-overlay--contained v-theme--dark v-locale--is-ltr align-center justify-center w-100 h-100\\" style=\\"z-index: 2000;\\" data-v-e7291ef4=\\"\\" data-test=\\"overlay\\">
-      <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\">
-        <!---->
-      </transition-stub>
-      <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"true\\" css=\\"true\\">
-        <div class=\\"v-overlay__content\\">
-          <div data-v-e7291ef4=\\"\\" class=\\"v-progress-circular v-progress-circular--indeterminate v-theme--dark\\" style=\\"width: 64px; height: 64px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Request loading\\" data-test=\\"progress-circular\\"><svg style=\\"transform: rotate(calc(-90deg + 0deg));\\" xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 42.666666666666664 42.666666666666664\\">
-              <circle class=\\"v-progress-circular__underlay\\" fill=\\"transparent\\" cx=\\"50%\\" cy=\\"50%\\" r=\\"20\\" stroke-width=\\"2.6666666666666665\\" stroke-dasharray=\\"125.66370614359172\\" stroke-dashoffset=\\"0\\"></circle>
-              <circle class=\\"v-progress-circular__overlay\\" fill=\\"transparent\\" cx=\\"50%\\" cy=\\"50%\\" r=\\"20\\" stroke-width=\\"2.6666666666666665\\" stroke-dasharray=\\"125.66370614359172\\" stroke-dashoffset=\\"125.66370614359172px\\"></circle>
-            </svg>
-            <!---->
-          </div>
-        </div>
-      </transition-stub>
-    </div>
-    <!--teleport end-->
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-14\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-15\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><div class=\\"v-avatar v-theme--dark bg-primary v-avatar--density-default v-avatar--size-x-small v-avatar--variant-flat border\\"><div class=\\"v-responsive v-img v-img--booting\\"><div class=\\"v-responsive__sizer\\"></div><!----><transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><!----></transition-stub><!----><!----><!----><!----></div><!--v-if--><!----><span class=\\"v-avatar__underlay\\"></span>
+      </div></span><span class=\\"v-btn__append\\"><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+      <!----></button>
+      <!---->
+      <!---->
   </div>
+  <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+    <!---->
+  </transition-stub>
+  </header>
+  <main data-v-e7291ef4=\\"\\" class=\\"v-main\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px; transition: none;\\" data-test=\\"main\\">
+    <div data-v-e7291ef4=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr pa-8\\" data-test=\\"container\\">
+      <!---->
+    </div>
+  </main>
+  <!---->
+  <!--teleport start-->
+  <div class=\\"v-overlay v-overlay--absolute v-overlay--active v-overlay--contained v-theme--dark v-locale--is-ltr align-center justify-center w-100 h-100\\" style=\\"z-index: 2000;\\" data-v-e7291ef4=\\"\\" data-test=\\"overlay\\">
+    <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\">
+      <!---->
+    </transition-stub>
+    <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"true\\" css=\\"true\\">
+      <div class=\\"v-overlay__content\\">
+        <div data-v-e7291ef4=\\"\\" class=\\"v-progress-circular v-progress-circular--indeterminate v-theme--dark\\" style=\\"width: 64px; height: 64px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Request loading\\" data-test=\\"progress-circular\\"><svg style=\\"transform: rotate(calc(-90deg + 0deg));\\" xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 42.666666666666664 42.666666666666664\\">
+            <circle class=\\"v-progress-circular__underlay\\" fill=\\"transparent\\" cx=\\"50%\\" cy=\\"50%\\" r=\\"20\\" stroke-width=\\"2.6666666666666665\\" stroke-dasharray=\\"125.66370614359172\\" stroke-dashoffset=\\"0\\"></circle>
+            <circle class=\\"v-progress-circular__overlay\\" fill=\\"transparent\\" cx=\\"50%\\" cy=\\"50%\\" r=\\"20\\" stroke-width=\\"2.6666666666666665\\" stroke-dasharray=\\"125.66370614359172\\" stroke-dashoffset=\\"125.66370614359172px\\"></circle>
+          </svg>
+          <!---->
+        </div>
+      </div>
+    </transition-stub>
+  </div>
+  <!--teleport end-->
+</div>
 </div>
 <!--v-if-->
 <!--v-if-->

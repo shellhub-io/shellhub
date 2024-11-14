@@ -26,8 +26,7 @@
       <template v-slot:activator="{ props }">
         <v-btn
           v-bind="props"
-          :size="defaultSize"
-          class="ml-1 mr-1"
+          size="medium"
           color="primary"
           aria-label="community-help-icon"
           icon="mdi-help-circle"
@@ -44,23 +43,13 @@
         <v-btn
           color="primary"
           v-bind="props"
-          class="d-flex align-center justify-center"
+          append-icon="mdi-menu-down"
+          class="pl-2 pr-2 mr-4"
         >
-          <v-icon
-            :size="defaultSize"
-            class="mr-2"
-            left
-          > mdi-account </v-icon>
-
-          <div>{{ currentUser || "USER" }}</div>
-
-          <v-icon
-            :size="defaultSize"
-            class="ml-1 mr-1"
-            right
-          >
-            mdi-chevron-down
-          </v-icon>
+          <v-avatar size="x-small" color="primary" class="border">
+            <v-img v-if="!avatarLoadingFailed" :src="avatar" v-on:error="avatarLoadingFailed = true" />
+            <v-icon color="surface" v-if="avatarLoadingFailed">mdi-account</v-icon>
+          </v-avatar>
         </v-btn>
       </template>
       <v-list class="bg-v-theme-surface">
@@ -108,6 +97,7 @@ import {
   ref,
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
+import { computedAsync } from "@vueuse/core";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
 import handleError from "../../utils/handleError";
@@ -132,10 +122,18 @@ const route = useRoute();
 const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
-const currentUser = computed(() => store.getters["auth/currentUser"]);
-const defaultSize = ref(24);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
-
+const avatarLoadingFailed = ref(false);
+const avatar = computedAsync(
+  async () => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(store.getters["auth/email"]);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    const digest = Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    return `https://gravatar.com/avatar/${digest}?d=404`;
+  },
+  "",
+);
 const showNavigationDrawer = defineModel<boolean>();
 
 const triggerClick = (item: MenuItem): void => {
