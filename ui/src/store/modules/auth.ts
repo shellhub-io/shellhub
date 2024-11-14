@@ -1,10 +1,12 @@
 import { Module } from "vuex";
 import { AxiosError } from "axios";
+import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import * as apiAuth from "../api/auth";
 import * as apiNamespace from "../api/namespaces";
 import { IUserLogin } from "@/interfaces/IUserLogin";
 import { State } from "..";
 
+const { reset, toggle } = useChatWoot();
 export interface AuthState {
   status: string;
   token: string;
@@ -118,6 +120,8 @@ export const auth: Module<AuthState, State> = {
       state.email = "";
       state.role = "";
       state.mfa = false;
+      toggle("close");
+      reset();
     },
 
     changeData(state, data) {

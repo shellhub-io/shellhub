@@ -3,15 +3,17 @@
     flat
     floating
     class="bg-background border-b-thin"
+    data-test="app-bar"
   >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"
       @click.stop="showNavigationDrawer = !showNavigationDrawer"
       aria-label="Toggle Menu"
+      data-test="menu-toggle"
     />
     <v-icon icon="mdi-server-network" class="ml-4 hidden-md-and-down" />
 
-    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down">
+    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down" data-test="breadcrumbs">
       <template v-slot:divider>
         <v-icon icon="mdi-chevron-right" />
       </template>
@@ -31,9 +33,10 @@
           aria-label="community-help-icon"
           icon="mdi-help-circle"
           @click="openShellhubHelp()"
+          data-test="support-btn"
         />
       </template>
-      <span>Report an issue or make a question for the shellhub team</span>
+      <span>Need assistance? Click here for support.</span>
     </v-tooltip>
 
     <Notification data-test="notification-component" />
@@ -45,10 +48,11 @@
           v-bind="props"
           append-icon="mdi-menu-down"
           class="pl-2 pr-2 mr-4"
+          data-test="user-menu-btn"
         >
           <v-avatar size="x-small" color="primary" class="border">
-            <v-img v-if="!avatarLoadingFailed" :src="avatar" v-on:error="avatarLoadingFailed = true" />
-            <v-icon color="surface" v-if="avatarLoadingFailed">mdi-account</v-icon>
+            <v-img v-if="!avatarLoadingFailed" :src="avatar" v-on:error="avatarLoadingFailed = true" data-test="user-avatar" />
+            <v-icon color="surface" v-if="avatarLoadingFailed" data-test="user-not-found-avatar">mdi-account</v-icon>
           </v-avatar>
         </v-btn>
       </template>
@@ -97,11 +101,13 @@ import {
   ref,
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
-import { computedAsync } from "@vueuse/core";
+import { computedAsync, useEventListener } from "@vueuse/core";
+import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
 import handleError from "../../utils/handleError";
 import Notification from "./Notifications/Notification.vue";
+import { envVariables } from "@/envVariables";
 
 type MenuItem = {
   title: string;
@@ -116,13 +122,21 @@ type BreadcrumbItem = {
   href: string;
 };
 
+const { setUser, setConversationCustomAttributes } = useChatWoot();
+
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
 const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
+const tenant = computed(() => store.getters["auth/tenant"]);
+const userEmail = computed(() => store.getters["auth/email"]);
+const userId = computed(() => store.getters["auth/id"]);
+const identifier = computed(() => store.getters["support/getIdentifier"]);
+const currentUser = computed(() => store.getters["auth/currentUser"]);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
+
 const avatarLoadingFailed = ref(false);
 const avatar = computedAsync(
   async () => {
@@ -166,11 +180,27 @@ const toggleDarkMode = () => {
   store.dispatch("layout/setStatusDarkMode", isDarkMode.value);
 };
 
-const openShellhubHelp = () => {
-  window.open(
-    "https://github.com/shellhub-io/shellhub/issues/new/choose",
-    "_blank",
-  );
+const openShellhubHelp = async () => {
+  if (envVariables.isCloud || envVariables.isEnterprise) {
+    await store.dispatch("support/get", tenant.value);
+  }
+  if (identifier.value.length === 0) {
+    window.open("https://github.com/shellhub-io/shellhub/issues/new/choose", "_blank");
+    return;
+  }
+  setUser(userId.value, {
+    name: currentUser.value,
+    email: userEmail.value,
+    identifier_hash: identifier.value,
+  });
+  useEventListener(window, "chatwoot:on-message", () => {
+    setConversationCustomAttributes({
+      namespace: store.getters["namespaces/get"].name,
+      tenant: tenant.value,
+      domain: window.location.hostname,
+    });
+  });
+  await store.dispatch("support/toggle");
 };
 
 const menu = [
@@ -191,12 +221,10 @@ const menu = [
   },
 ];
 
-// Generate breadcrumb items based on the current route
 const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
   const breadcrumbs: BreadcrumbItem[] = [];
   route.matched.forEach((match) => {
     if (match.name) {
-      // Convert PascalCase to separated words
       const title = (match.name as string).replace(/([a-z])([A-Z])/g, "$1 $2");
       breadcrumbs.push({
         title,
@@ -208,4 +236,6 @@ const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
 };
 
 const breadcrumbItems = computed(() => generateBreadcrumbs(route));
+
+defineExpose({ openShellhubHelp, logout, isDarkMode, breadcrumbItems, currentUser, identifier });
 </script>
