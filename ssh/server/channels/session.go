@@ -1,9 +1,7 @@
 package channels
 
 import (
-	"io"
 	"strings"
-	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -74,17 +72,13 @@ const AuthRequestOpenSSHRequest = "auth-agent-req@openssh.com"
 // https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.2
 const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 
-type DefaultSessionHandlerOptions struct {
-	RecordURL string
-}
-
 // DefaultSessionHandler is the default handler for session's channel.
 //
 // A session is a remote execution of a program.  The program may be a shell, an application, a system command, or some
 // built-in subsystem. It may or may not have a tty, and may or may not involve X11 forwarding.
 //
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
-func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelHandler {
+func DefaultSessionHandler() gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 		sess, _ := session.ObtainSession(ctx)
 
@@ -132,8 +126,9 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 		defer agent.Close()
 
-		var wg sync.WaitGroup
+		go pipe(ctx, sess, client, agent)
 
+		// TODO: Add middleware to block a certain type of requests.
 		for {
 			select {
 			case <-ctx.Done():
@@ -155,15 +150,8 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 				// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
 				// prefix exists and perform the necessary operations.
 				case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
-					wantReply, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload)
-					if err != nil {
+					if _, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
 						logger.Error("failed to send the keepalive request received from agent to client")
-
-						return
-					}
-
-					if err := req.Reply(wantReply, nil); err != nil {
-						logger.WithError(err).Error("failed to send the keepalive response back to agent")
 
 						return
 					}
@@ -172,189 +160,6 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 						logger.WithError(err).Error("failed to send the API request to inform that the session is open")
 
 						return
-					}
-				default:
-					if req.WantReply {
-						if err := req.Reply(false, nil); err != nil {
-							logger.WithError(err).Error(err)
-						}
-					}
-				}
-			case req, ok := <-clientReqs:
-				if !ok {
-					logger.Trace("client requests is closed")
-
-					return
-				}
-
-				logger.Debugf("request from client to agent: %s", req.Type)
-
-				ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from client to agent")
-
-					continue
-				}
-
-				switch req.Type {
-				case ShellRequestType, ExecRequestType, SubsystemRequestType:
-					// Once the session has been set up, a program is started at the remote end.  The program can be a
-					// shell, an application program, or a subsystem with a host-independent name.  **Only one of these
-					// requests can succeed per channel.**
-					//
-					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					if sess.Handled && req.Type == ShellRequestType {
-						logger.Warn("fail to start a new session before ending the previous one")
-
-						if err := req.Reply(false, nil); err != nil {
-							logger.WithError(err).Error("failed to reply the client when data pipe already started")
-						}
-
-						continue
-					}
-
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error("failed to reply the client with right response for pipe request type")
-
-						return
-					}
-
-					logger.Info("session type set")
-
-					if req.Type == ShellRequestType && sess.Pty.Term != "" {
-						if err := sess.Announce(client); err != nil {
-							logger.WithError(err).Warn("failed to get the namespace announcement")
-						}
-					}
-
-					// The server SHOULD NOT halt the execution of the protocol stack when starting a shell or a
-					// program.  All input and output from these SHOULD be redirected to the channel or to the
-					// encrypted tunnel.
-					//
-					// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
-					wg.Add(1)
-					go func() {
-						ch := make(chan bool)
-						go func() {
-							<-ch
-							wg.Done()
-						}()
-
-						pipe(ctx, sess, client, agent, req.Type, opts, ch)
-					}()
-				case PtyRequestType:
-					var pty session.Pty
-
-					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-						reject(nil, "failed to recover the session dimensions")
-					}
-
-					sess.Pty = pty
-
-					if req.WantReply {
-						// req.Reply(ok, nil) //nolint:errcheck
-						if err := req.Reply(ok, nil); err != nil {
-							logger.WithError(err).Error("failed to reply for pty-req")
-
-							return
-						}
-					}
-				case WindowChangeRequestType:
-					var dimensions session.Dimensions
-
-					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-						reject(nil, "failed to recover the session dimensions")
-					}
-
-					sess.Pty.Columns = dimensions.Columns
-					sess.Pty.Rows = dimensions.Rows
-
-					if req.WantReply {
-						if err := req.Reply(ok, nil); err != nil {
-							logger.Error("failed to reply for window-change")
-
-							return
-						}
-					}
-				case AuthRequestOpenSSHRequest:
-					_, err := agent.SendRequest(AuthRequestOpenSSHRequest, req.WantReply, req.Payload)
-					if err != nil {
-						reject(nil, "failed to the auth request to agent")
-
-						return
-					}
-
-					req.Reply(true, nil) //nolint:errcheck
-
-					gliderssh.SetAgentRequested(ctx)
-
-					go func() {
-						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
-						agentChannels := sess.AgentClient.HandleChannelOpen(AuthRequestOpenSSHChannel)
-
-						for {
-							newAgentChannel, ok := <-agentChannels
-							if !ok {
-								reject(nil, "channel for agent forwarding done")
-
-								return
-							}
-
-							agentChannel, reqs, err := newAgentChannel.Accept()
-							if err != nil {
-								reject(nil, "failed to accept the chanel request from agent on auth request")
-
-								return
-							}
-
-							defer agentChannel.Close()
-							go gossh.DiscardRequests(reqs)
-
-							go func() {
-								clientChannel, reqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
-								if err != nil {
-									reject(nil, "failed to open the auth request channel from agent to client")
-
-									return
-								}
-
-								defer clientChannel.Close()
-								go gossh.DiscardRequests(reqs)
-
-								var wg sync.WaitGroup
-
-								wg.Add(1)
-								go func() {
-									defer agentChannel.CloseWrite() //nolint:errcheck
-									defer wg.Done()
-
-									if _, err := io.Copy(agentChannel, clientChannel); err != nil && err != io.EOF {
-										logger.WithError(err).Trace("auth agent forwarding coping from client to agent")
-									}
-								}()
-
-								wg.Add(1)
-								go func() {
-									defer clientChannel.CloseWrite() //nolint:errcheck
-									defer wg.Done()
-
-									if _, err := io.Copy(clientChannel, agentChannel); err != nil && err != io.EOF {
-										logger.WithError(err).Trace("auth agent forwarding coping from agent to client")
-									}
-								}()
-
-								wg.Wait()
-							}()
-							logger.WithError(err).Trace("auth request channel piping done")
-						}
-					}()
-				default:
-					if req.WantReply {
-						if err := req.Reply(ok, nil); err != nil {
-							logger.WithError(err).Error("failed to reply")
-
-							return
-						}
 					}
 				}
 			case req, ok := <-agentReqs:
@@ -366,23 +171,45 @@ func DefaultSessionHandler(opts DefaultSessionHandlerOptions) gliderssh.ChannelH
 
 				logger.Debugf("request from agent to client: %s", req.Type)
 
-				if req.Type == ExitStatusRequest {
-					wg.Wait()
-				}
-
-				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
+				if _, err := client.SendRequest(req.Type, req.WantReply, req.Payload); err != nil {
 					logger.WithError(err).Error("failed to send the request from agent to client")
 
 					continue
 				}
+			case req, ok := <-clientReqs:
+				if !ok {
+					logger.Trace("client requests is closed")
 
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error("failed to reply the agent request")
+					return
+				}
 
-						return
+				switch req.Type {
+				case PtyRequestType:
+					var pty session.Pty
+
+					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
+						reject(nil, "failed to recover the session dimensions")
 					}
+
+					sess.Pty = pty
+
+				case WindowChangeRequestType:
+					var dimensions session.Dimensions
+
+					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
+						reject(nil, "failed to recover the session dimensions")
+					}
+
+					sess.Pty.Columns = dimensions.Columns
+					sess.Pty.Rows = dimensions.Rows
+				}
+
+				logger.Debugf("request from client to agent: %s", req.Type)
+
+				if _, err := agent.SendRequest(req.Type, req.WantReply, req.Payload); err != nil {
+					logger.WithError(err).Error("failed to send the request from client to agent")
+
+					continue
 				}
 			}
 		}
