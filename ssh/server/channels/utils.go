@@ -14,7 +14,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, req string, opts DefaultSessionHandlerOptions, ch chan bool) {
+func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel) {
 	defer func() {
 		ctx.Lock()
 		sess.Handled = false
@@ -30,10 +30,6 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")
 
-	if err := sess.Type(req); err != nil {
-		log.WithError(err).Warn("failed to set the session type")
-	}
-
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 
@@ -43,11 +39,26 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 	go func() {
 		defer wg.Done()
 		defer client.CloseWrite() //nolint:errcheck
-		defer func() {
-			ch <- true
-		}()
 
-		if req == ShellRequestType {
+		// NOTE: As the copy required to record the session seem to be inefficient, if we don't have a record URL
+		// defined, we use an [io.Copy] for the data piping between agent and client.
+		recordURL := ctx.Value("RECORD_URL").(string)
+		if (envs.IsEnterprise() || envs.IsCloud()) && recordURL != "" {
+			// TODO: Should it be a channel of pointers to [models.SessionRecorded], or just the structure, could deliver a
+			// better performance?
+			camera := make(chan *models.SessionRecorded, 100)
+
+			go func() {
+				for {
+					frame, ok := <-camera
+					if !ok {
+						break
+					}
+
+					sess.Record(frame, recordURL) //nolint:errcheck
+				}
+			}()
+
 			buffer := make([]byte, 1024)
 			for {
 				read, err := a.Read(buffer)
@@ -75,25 +86,21 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 					break
 				}
 
-				if envs.IsEnterprise() || envs.IsCloud() {
-					message := string(buffer[:read])
-
-					sess.Record(&models.SessionRecorded{ //nolint:errcheck
-						UID:       sess.UID,
-						Namespace: sess.Lookup["domain"],
-						Message:   message,
-						Width:     int(sess.Pty.Columns),
-						Height:    int(sess.Pty.Rows),
-					}, opts.RecordURL)
+				camera <- &models.SessionRecorded{ //nolint:errcheck
+					UID:       sess.UID,
+					Namespace: sess.Lookup["domain"],
+					Message:   string(buffer[:read]),
+					Width:     int(sess.Pty.Columns),
+					Height:    int(sess.Pty.Rows),
 				}
 			}
 		} else {
 			if _, err := io.Copy(client, a); err != nil && err != io.EOF {
-				log.WithError(err).Error("failed on coping data from agent to client")
+				log.WithError(err).Error("failed on coping data from client to agent")
 			}
-
-			log.Trace("agent channel data copy done")
 		}
+
+		log.Trace("agent channel data copy done")
 	}()
 
 	go func() {
@@ -103,7 +110,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 			// connection to avoid it be hanged after data flow ends.
 			if ver, err := semver.NewVersion(sess.Device.Info.Version); ver != nil && err == nil {
 				// NOTE: We indicate here v0.9.3, but it is not included due the assertion `less than`.
-				if ver.LessThan(semver.MustParse("v0.9.3")) && req == ExecRequestType {
+				if ver.LessThan(semver.MustParse("v0.9.3")) {
 					agent.Close()
 				} else {
 					agent.CloseWrite() //nolint:errcheck
