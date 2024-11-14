@@ -161,6 +161,12 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 						return
 					}
+				default:
+					if req.WantReply {
+						if err := req.Reply(false, nil); err != nil {
+							logger.WithError(err).Error(err)
+						}
+					}
 				}
 			case req, ok := <-agentReqs:
 				if !ok {
@@ -171,10 +177,17 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 				logger.Debugf("request from agent to client: %s", req.Type)
 
-				if _, err := client.SendRequest(req.Type, req.WantReply, req.Payload); err != nil {
+				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
+				if err != nil {
 					logger.WithError(err).Error("failed to send the request from agent to client")
 
 					continue
+				}
+
+				if req.WantReply {
+					if err := req.Reply(ok, nil); err != nil {
+						logger.WithError(err).Error(err)
+					}
 				}
 			case req, ok := <-clientReqs:
 				if !ok {
@@ -206,10 +219,17 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 				logger.Debugf("request from client to agent: %s", req.Type)
 
-				if _, err := agent.SendRequest(req.Type, req.WantReply, req.Payload); err != nil {
+				ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
+				if err != nil {
 					logger.WithError(err).Error("failed to send the request from client to agent")
 
 					continue
+				}
+
+				if req.WantReply {
+					if err := req.Reply(ok, nil); err != nil {
+						logger.WithError(err).Error(err)
+					}
 				}
 			}
 		}
