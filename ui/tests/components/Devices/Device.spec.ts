@@ -2,7 +2,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { VTab } from "vuetify/lib/components/index.mjs";
+import { VBtn } from "vuetify/lib/components/index.mjs";
 import { store, key } from "@/store";
 import Device from "@/components/Devices/Device.vue";
 import { router } from "@/router";
@@ -169,9 +169,9 @@ describe("Device", () => {
   });
 
   it("Contains the correct tabs", () => {
-    const tabs = wrapper.findAllComponents(VTab);
+    const tabs = wrapper.findAllComponents(VBtn);
     expect(tabs).toHaveLength(3); // Three tabs expected
-    expect(tabs[0].text()).toBe("Device List");
+    expect(tabs[0].text()).toBe("Accepted");
     expect(tabs[1].text()).toBe("Pending");
     expect(tabs[2].text()).toBe("Rejected");
   });

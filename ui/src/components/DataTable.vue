@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-v-theme-surface">
-    <v-table class="bg-v-theme-surface">
-      <thead>
+  <div>
+    <v-table class="bg-background border rounded">
+      <thead class="bg-v-theme-background">
         <tr>
           <th v-for="(head, i) in headers" :key="i" :class="head.align ? `text-${head.align}` : 'text-center'">
             <span
@@ -25,7 +25,7 @@
         <p>No data available</p>
       </div>
     </v-table>
-    <v-divider />
+
     <v-progress-linear v-if="loading" indeterminate alt="Data table loading" />
     <div class="d-flex w-100 justify-end align-center" v-if="!itemSelectorDisable == true">
       <span class="text-subtitle-2 mr-4">Items per page:</span>
