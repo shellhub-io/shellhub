@@ -6,7 +6,7 @@ exports[`Devices View > Renders the component 1`] = `
   <div class=\\"v-col-md-6 v-col\\">
     <!--v-if-->
   </div>
-  <div class=\\"d-flex mt-4\\" data-test=\\"device-header-component-group\\">
+  <div class=\\"d-flex\\" data-test=\\"device-header-component-group\\">
     <!--v-if--><button data-v-51a05120=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" tabindex=\\"0\\" aria-label=\\"Dialog Add device\\" data-test=\\"device-add-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
       <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Add Device </span>
       <!---->

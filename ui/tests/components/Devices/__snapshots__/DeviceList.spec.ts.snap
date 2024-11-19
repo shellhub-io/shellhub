@@ -2,12 +2,12 @@
 
 exports[`Device List > Renders the component 1`] = `
 "<div>
-  <div data-v-046d4556=\\"\\" data-v-787abe29=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"device-table\\">
-    <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+  <div data-v-046d4556=\\"\\" data-v-787abe29=\\"\\" data-test=\\"device-table\\">
+    <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-background border rounded\\">
       <!---->
       <div class=\\"v-table__wrapper\\">
         <table>
-          <thead data-v-046d4556=\\"\\">
+          <thead data-v-046d4556=\\"\\" class=\\"bg-v-theme-background\\">
             <tr data-v-046d4556=\\"\\">
               <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-0\\">Online <!----><!--teleport start--><!--teleport end--></span></th>
               <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-1\\">Hostname <!----><!--teleport start--><!--teleport end--></span></th>
@@ -52,12 +52,11 @@ exports[`Device List > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-                <!---->
-                <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-787abe29=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-                <!---->
-                <!----></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><button data-v-787abe29=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                  <!---->
+                  <!---->
+                </button>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -96,12 +95,11 @@ exports[`Device List > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-                <!---->
-                <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-787abe29=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-                <!---->
-                <!----></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><button data-v-787abe29=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                  <!---->
+                  <!---->
+                </button>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -111,7 +109,6 @@ exports[`Device List > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
     <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px;\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
       <!---->
       <div class=\\"v-progress-linear__background\\"></div>

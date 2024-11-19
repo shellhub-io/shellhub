@@ -6,12 +6,12 @@ exports[`Sessions View > Renders the component 1`] = `
 </div>
 <div>
   <div data-v-459ab1b4=\\"\\" data-test=\\"sessions-list\\">
-    <div data-v-046d4556=\\"\\" data-v-459ab1b4=\\"\\" class=\\"bg-v-theme-surface\\" data-test=\\"sessions-list\\">
-      <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+    <div data-v-046d4556=\\"\\" data-v-459ab1b4=\\"\\" data-test=\\"sessions-list\\">
+      <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-background border rounded\\">
         <!---->
         <div class=\\"v-table__wrapper\\">
           <table>
-            <thead data-v-046d4556=\\"\\">
+            <thead data-v-046d4556=\\"\\" class=\\"bg-v-theme-background\\">
               <tr data-v-046d4556=\\"\\">
                 <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Recorded</span></th>
                 <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Device</span></th>
@@ -66,7 +66,6 @@ exports[`Sessions View > Renders the component 1`] = `
         </div>
         <!---->
       </div>
-      <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
       <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px;\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
         <!---->
         <div class=\\"v-progress-linear__background\\"></div>
