@@ -9149,7 +9149,7 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {*} [options] Override http request option.
@@ -9266,13 +9266,13 @@ export const MembersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.leaveNamespace(tenant, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -9322,13 +9322,13 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        leaveNamespace(tenant: string, options?: any): AxiosPromise<void> {
+        leaveNamespace(tenant: string, options?: any): AxiosPromise<UserAuth> {
             return localVarFp.leaveNamespace(tenant, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9380,7 +9380,7 @@ export class MembersApi extends BaseAPI {
     }
 
     /**
-     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
      * @summary Leave Namespace
      * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {*} [options] Override http request option.
@@ -10714,7 +10714,7 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {*} [options] Override http request option.
@@ -11116,13 +11116,13 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.leaveNamespace(tenant, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -11377,13 +11377,13 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.getNamespaces(filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        leaveNamespace(tenant: string, options?: any): AxiosPromise<void> {
+        leaveNamespace(tenant: string, options?: any): AxiosPromise<UserAuth> {
             return localVarFp.leaveNamespace(tenant, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11672,7 +11672,7 @@ export class NamespacesApi extends BaseAPI {
     }
 
     /**
-     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
+     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
      * @summary Leave Namespace
      * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {*} [options] Override http request option.

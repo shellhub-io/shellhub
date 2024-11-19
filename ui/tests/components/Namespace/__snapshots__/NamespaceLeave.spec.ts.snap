@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Namespace Leave > Renders the component 1`] = `
+"<div aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"leave-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Leave Namespace </span>
+    <!---->
+    <!---->
+  </button></div>
+<!--teleport start-->
+<!--teleport end-->"
+`;

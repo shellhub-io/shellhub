@@ -56,6 +56,7 @@ const {
   namespaceRemoveMember,
   namespaceEnableSessionRecord,
   namespaceRemove,
+  NamespaceLeave,
   // Billing
   billingSubscribe,
   billingUnsubscribe,
@@ -111,6 +112,7 @@ export const actions: { [key: string]: any } = {
     removeMember: namespaceRemoveMember,
     enableSessionRecord: namespaceEnableSessionRecord,
     remove: namespaceRemove,
+    leave: NamespaceLeave,
   },
   billing: {
     subscribe: billingSubscribe,
@@ -212,6 +214,7 @@ export const authorizer : { [key: string]: any } = {
       actions.namespace.addMember,
       actions.namespace.editMember,
       actions.namespace.removeMember,
+      actions.namespace.leave,
       actions.namespace.enableSessionRecord,
       // Billing
       // Notification
@@ -238,6 +241,7 @@ export const authorizer : { [key: string]: any } = {
       // Public Key
       // Namespace
       actions.namespace.create,
+      actions.namespace.leave,
       // Billing
       // Notification
     ],
@@ -252,6 +256,7 @@ export const authorizer : { [key: string]: any } = {
       // Public Key
       // Namespace
       actions.namespace.create,
+      actions.namespace.leave,
       // Billing
       // Notification
     ],

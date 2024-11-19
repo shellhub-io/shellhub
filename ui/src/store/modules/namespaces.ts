@@ -141,6 +141,22 @@ export const namespaces: Module<NamespacesState, State> = {
       }
     },
 
+    leave: async (context, tenant) => {
+      try {
+        const res = await apiNamespace.leaveNamespace(tenant);
+
+        localStorage.setItem("token", res.data.token || "");
+
+        if (res.data.tenant) {
+          localStorage.setItem("tenant", res.data.tenant || "");
+          localStorage.setItem("role", res.data.role || "");
+        }
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
     addUser: async (context, data) => {
       try {
         await apiNamespace.addUserToNamespace(data);

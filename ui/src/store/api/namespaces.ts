@@ -13,6 +13,8 @@ export const getNamespace = async (id: string) => namespacesApi.getNamespace(id)
 
 export const removeNamespace = async (id: string) => namespacesApi.deleteNamespace(id);
 
+export const leaveNamespace = async (tenant: string) => namespacesApi.leaveNamespace(tenant);
+
 export const putNamespace = async (data: INamespaceResponse) => namespacesApi.editNamespace(data.id, {
   name: data.name,
   settings: {

@@ -1,0 +1,483 @@
+diff --git a/ui/src/api/client/api.ts b/ui/src/api/client/api.ts
+index 28f1a6fd..22c4fd75 100644
+--- a/ui/src/api/client/api.ts
++++ b/ui/src/api/client/api.ts
+@@ -9149,7 +9149,7 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
+             };
+         },
+         /**
+-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+          * @summary Leave Namespace
+          * @param {string} tenant Namespace\&#39;s tenant ID
+          * @param {*} [options] Override http request option.
+@@ -9266,13 +9266,13 @@ export const MembersApiFp = function(configuration?: Configuration) {
+             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+         },
+         /**
+-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+          * @summary Leave Namespace
+          * @param {string} tenant Namespace\&#39;s tenant ID
+          * @param {*} [options] Override http request option.
+          * @throws {RequiredError}
+          */
+-        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
++        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+             const localVarAxiosArgs = await localVarAxiosParamCreator.leaveNamespace(tenant, options);
+             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+         },
+@@ -9322,13 +9322,13 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
+             return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+         },
+         /**
+-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+          * @summary Leave Namespace
+          * @param {string} tenant Namespace\&#39;s tenant ID
+          * @param {*} [options] Override http request option.
+          * @throws {RequiredError}
+          */
+-        leaveNamespace(tenant: string, options?: any): AxiosPromise<void> {
++        leaveNamespace(tenant: string, options?: any): AxiosPromise<UserAuth> {
+             return localVarFp.leaveNamespace(tenant, options).then((request) => request(axios, basePath));
+         },
+         /**
+@@ -9380,7 +9380,7 @@ export class MembersApi extends BaseAPI {
+     }
+ 
+     /**
+-     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+      * @summary Leave Namespace
+      * @param {string} tenant Namespace\&#39;s tenant ID
+      * @param {*} [options] Override http request option.
+@@ -10714,7 +10714,7 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
+             };
+         },
+         /**
+-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+          * @summary Leave Namespace
+          * @param {string} tenant Namespace\&#39;s tenant ID
+          * @param {*} [options] Override http request option.
+@@ -11116,13 +11116,13 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
+             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+         },
+         /**
+-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+          * @summary Leave Namespace
+          * @param {string} tenant Namespace\&#39;s tenant ID
+          * @param {*} [options] Override http request option.
+          * @throws {RequiredError}
+          */
+-        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
++        async leaveNamespace(tenant: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+             const localVarAxiosArgs = await localVarAxiosParamCreator.leaveNamespace(tenant, options);
+             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+         },
+@@ -11377,13 +11377,13 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
+             return localVarFp.getNamespaces(filter, page, perPage, options).then((request) => request(axios, basePath));
+         },
+         /**
+-         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++         * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+          * @summary Leave Namespace
+          * @param {string} tenant Namespace\&#39;s tenant ID
+          * @param {*} [options] Override http request option.
+          * @throws {RequiredError}
+          */
+-        leaveNamespace(tenant: string, options?: any): AxiosPromise<void> {
++        leaveNamespace(tenant: string, options?: any): AxiosPromise<UserAuth> {
+             return localVarFp.leaveNamespace(tenant, options).then((request) => request(axios, basePath));
+         },
+         /**
+@@ -11672,7 +11672,7 @@ export class NamespacesApi extends BaseAPI {
+     }
+ 
+     /**
+-     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace and must delete it instead. 
++     * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
+      * @summary Leave Namespace
+      * @param {string} tenant Namespace\&#39;s tenant ID
+      * @param {*} [options] Override http request option.
+diff --git a/ui/src/authorizer.ts b/ui/src/authorizer.ts
+index 971ab5b5..94cb9945 100644
+--- a/ui/src/authorizer.ts
++++ b/ui/src/authorizer.ts
+@@ -56,6 +56,7 @@ const {
+   namespaceRemoveMember,
+   namespaceEnableSessionRecord,
+   namespaceRemove,
++  NamespaceLeave,
+   // Billing
+   billingSubscribe,
+   billingUnsubscribe,
+@@ -111,6 +112,7 @@ export const actions: { [key: string]: any } = {
+     removeMember: namespaceRemoveMember,
+     enableSessionRecord: namespaceEnableSessionRecord,
+     remove: namespaceRemove,
++    leave: NamespaceLeave,
+   },
+   billing: {
+     subscribe: billingSubscribe,
+@@ -212,6 +214,7 @@ export const authorizer : { [key: string]: any } = {
+       actions.namespace.addMember,
+       actions.namespace.editMember,
+       actions.namespace.removeMember,
++      actions.namespace.leave,
+       actions.namespace.enableSessionRecord,
+       // Billing
+       // Notification
+@@ -238,6 +241,7 @@ export const authorizer : { [key: string]: any } = {
+       // Public Key
+       // Namespace
+       actions.namespace.create,
++      actions.namespace.leave,
+       // Billing
+       // Notification
+     ],
+@@ -252,6 +256,7 @@ export const authorizer : { [key: string]: any } = {
+       // Public Key
+       // Namespace
+       actions.namespace.create,
++      actions.namespace.leave,
+       // Billing
+       // Notification
+     ],
+diff --git a/ui/src/components/Namespace/NamespaceDelete.vue b/ui/src/components/Namespace/NamespaceDelete.vue
+index f6f3036a..9eae2895 100644
+--- a/ui/src/components/Namespace/NamespaceDelete.vue
++++ b/ui/src/components/Namespace/NamespaceDelete.vue
+@@ -64,8 +64,8 @@
+   </v-dialog>
+ </template>
+ 
+-<script lang="ts">
+-import { defineComponent, ref, computed, onMounted } from "vue";
++<script setup lang="ts">
++import { ref, computed, onMounted } from "vue";
+ import { useRouter } from "vue-router";
+ import axios, { AxiosError } from "axios";
+ import { useStore } from "../../store";
+@@ -73,104 +73,84 @@ import hasPermission from "../../utils/permission";
+ import { actions, authorizer } from "../../authorizer";
+ import { envVariables } from "../../envVariables";
+ import { displayOnlyTenCharacters } from "../../utils/string";
+-import formatCurrency from "@/utils/currency";
+ import {
+   INotificationsError,
+   INotificationsSuccess,
+ } from "../../interfaces/INotifications";
+ import handleError from "@/utils/handleError";
+ 
+-export default defineComponent({
+-  props: {
+-    nsTenant: {
+-      type: String,
+-      required: true,
+-    },
++const props = defineProps({
++  tenant: {
++    type: String,
++    required: true,
+   },
+-  emits: ["billing-in-debt"],
+-  setup(props, ctx) {
+-    const store = useStore();
+-    const router = useRouter();
+-    const dialog = ref(false);
+-    const name = ref("");
+-    const tenant = computed(() => props.nsTenant);
+-    const billingActive = computed(() => store.getters["billing/active"]);
+-    const billing = computed(() => store.getters["billing/get"]);
++});
++const emit = defineEmits(["billing-in-debt"]);
++const store = useStore();
++const router = useRouter();
++const dialog = ref(false);
++const name = ref("");
++const tenant = computed(() => props.tenant);
++const billingActive = computed(() => store.getters["billing/active"]);
+ 
+-    const hasAuthorization = computed(() => {
+-      const role = store.getters["auth/role"];
+-      if (role !== "") {
+-        return hasPermission(
+-          authorizer.role[role],
+-          actions.namespace.remove,
+-        );
+-      }
+-      return false;
+-    });
++const hasAuthorization = computed(() => {
++  const role = store.getters["auth/role"];
++  if (role !== "") {
++    return hasPermission(
++      authorizer.role[role],
++      actions.namespace.remove,
++    );
++  }
++  return false;
++});
+ 
+-    const isBillingEnabled = () => envVariables.billingEnable;
++const isBillingEnabled = () => envVariables.billingEnable;
+ 
+-    const getSubscriptionInfo = async () => {
+-      if (billingActive.value) {
+-        try {
+-          await store.dispatch("billing/getSubscription");
+-        } catch (error: unknown) {
+-          store.dispatch("snackbar/showSnackbarErrorDefault");
+-          handleError(error);
+-        }
+-      }
+-    };
++const getSubscriptionInfo = async () => {
++  if (billingActive.value) {
++    try {
++      await store.dispatch("billing/getSubscription");
++    } catch (error: unknown) {
++      store.dispatch("snackbar/showSnackbarErrorDefault");
++      handleError(error);
++    }
++  }
++};
+ 
+-    onMounted(() => {
+-      if (hasAuthorization.value && isBillingEnabled()) {
+-        getSubscriptionInfo();
+-      }
++onMounted(() => {
++  if (hasAuthorization.value && isBillingEnabled()) {
++    getSubscriptionInfo();
++  }
+ 
+-      name.value = store.getters["namespaces/get"].name;
+-    });
++  name.value = store.getters["namespaces/get"].name;
++});
+ 
+-    const remove = async () => {
+-      try {
+-        dialog.value = !dialog.value;
+-        await store.dispatch("namespaces/remove", tenant.value);
+-        await store.dispatch("auth/logout");
+-        await router.push({ name: "Login" });
+-        store.dispatch(
+-          "snackbar/showSnackbarSuccessAction",
+-          INotificationsSuccess.namespaceDelete,
+-        );
+-      } catch (error: unknown) {
+-        if (axios.isAxiosError(error)) {
+-          const axiosError = error as AxiosError;
+-          switch (axiosError.response?.status) {
+-            case 402:
+-              ctx.emit("billing-in-debt");
+-              break;
+-            default:
+-              break;
+-          }
+-        }
+-        store.dispatch(
+-          "snackbar/showSnackbarErrorAction",
+-          INotificationsError.namespaceDelete,
+-        );
+-        handleError(error);
++const remove = async () => {
++  try {
++    dialog.value = !dialog.value;
++    await store.dispatch("namespaces/remove", tenant.value);
++    await store.dispatch("auth/logout");
++    await router.push({ name: "Login" });
++    store.dispatch(
++      "snackbar/showSnackbarSuccessAction",
++      INotificationsSuccess.namespaceDelete,
++    );
++  } catch (error: unknown) {
++    if (axios.isAxiosError(error)) {
++      const axiosError = error as AxiosError;
++      switch (axiosError.response?.status) {
++        case 402:
++          emit("billing-in-debt");
++          break;
++        default:
++          break;
+       }
+-    };
+-
+-    return {
+-      dialog,
+-      hasAuthorization,
+-      name,
+-      tenant,
+-      billing,
+-      billingActive,
+-      isBillingEnabled,
+-      getSubscriptionInfo,
+-      displayOnlyTenCharacters,
+-      formatCurrency,
+-      remove,
+-    };
+-  },
+-});
++    }
++    store.dispatch(
++      "snackbar/showSnackbarErrorAction",
++      INotificationsError.namespaceDelete,
++    );
++    handleError(error);
++  }
++};
+ </script>
+diff --git a/ui/src/components/Setting/SettingNamespace.vue b/ui/src/components/Setting/SettingNamespace.vue
+index fed84d34..85d22180 100644
+--- a/ui/src/components/Setting/SettingNamespace.vue
++++ b/ui/src/components/Setting/SettingNamespace.vue
+@@ -64,6 +64,8 @@
+               <h3>Api Keys</h3>
+             </v-col>
+ 
++            <v-spacer />
++
+             <v-col md="auto" class="ml-auto">
+               <NamespaceGenerateApiKey @update="refreshApiKeys" data-test="api-key-generate" />
+             </v-col>
+@@ -98,7 +100,7 @@
+             is currently not possible to delete
+             your namespace due to either an outstanding
+             unpaid invoice or an active subscription." />
+-          <v-row class="mt-2 mb-2">
++          <v-row class="mt-2 mb-2" v-if="isOwner">
+             <v-col class="ml-3">
+               <h4>Delete this namespace</h4>
+               <div class="ml-2">
+@@ -109,7 +111,21 @@
+             </v-col>
+ 
+             <v-col md="auto" class="ml-auto mb-4">
+-              <NamespaceDelete :nsTenant="tenant" @billing-in-debt="billingInDebt = true" />
++              <NamespaceDelete :tenant="tenant" @billing-in-debt="billingInDebt = true" />
++            </v-col>
++          </v-row>
++          <v-row class="mt-2 mb-2" v-else>
++            <v-col class="ml-3">
++              <h4>Leave this namespace</h4>
++              <div class="ml-2">
++                <p>
++                  After leaving a namespace, you will need to be invited again to access it.
++                </p>
++              </div>
++            </v-col>
++
++            <v-col md="auto" class="ml-auto mb-4">
++              <NamespaceLeave :tenant="tenant" />
+             </v-col>
+           </v-row>
+         </div>
+@@ -134,10 +150,12 @@ import {
+   INotificationsError,
+ } from "../../interfaces/INotifications";
+ import handleError from "@/utils/handleError";
++import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
+ 
+ const store = useStore();
+ const apiKeyList = ref();
+ const namespace = computed(() => store.getters["namespaces/get"]);
++const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
+ const tenant = computed(() => store.getters["auth/tenant"]);
+ const billingInDebt = ref(false);
+ 
+diff --git a/ui/src/interfaces/INotifications.ts b/ui/src/interfaces/INotifications.ts
+index e373a4f6..4da6eb1a 100644
+--- a/ui/src/interfaces/INotifications.ts
++++ b/ui/src/interfaces/INotifications.ts
+@@ -23,6 +23,7 @@ export enum INotificationsSuccess {
+   namespaceNewMember = "adding new member",
+   namespaceEditMember = "editing member",
+   namespaceDelete = "deleting namespace",
++  namespaceLeave = "leaving namespace",
+   namespaceEdit = "editing namespace",
+   namespaceRemoveUser = "removing member",
+   namespaceReload = "reloading namespace",
+@@ -84,6 +85,7 @@ export enum INotificationsError {
+   namespaceSwitch = "switching namespace",
+   namespaceEdit = "editing namespace",
+   namespaceRemoveUser = "removing user",
++  namespaceLeave = "leaving namespace",
+   namespaceLoad = "loading namespace",
+   privateKeyList = "list of private key",
+   privateKeyCreating = "creating private key",
+diff --git a/ui/src/store/api/namespaces.ts b/ui/src/store/api/namespaces.ts
+index 54bb15cc..318f619a 100755
+--- a/ui/src/store/api/namespaces.ts
++++ b/ui/src/store/api/namespaces.ts
+@@ -13,6 +13,8 @@ export const getNamespace = async (id: string) => namespacesApi.getNamespace(id)
+ 
+ export const removeNamespace = async (id: string) => namespacesApi.deleteNamespace(id);
+ 
++export const leaveNamespace = async (tenant: string) => namespacesApi.leaveNamespace(tenant);
++
+ export const putNamespace = async (data: INamespaceResponse) => namespacesApi.editNamespace(data.id, {
+   name: data.name,
+   settings: {
+diff --git a/ui/src/store/modules/namespaces.ts b/ui/src/store/modules/namespaces.ts
+index 8924b2d4..2961179e 100755
+--- a/ui/src/store/modules/namespaces.ts
++++ b/ui/src/store/modules/namespaces.ts
+@@ -141,6 +141,22 @@ export const namespaces: Module<NamespacesState, State> = {
+       }
+     },
+ 
++    leave: async (context, tenant) => {
++      try {
++        const res = await apiNamespace.leaveNamespace(tenant);
++
++        localStorage.setItem("token", res.data.token || "");
++
++        if (res.data.tenant) {
++          localStorage.setItem("tenant", res.data.tenant || "");
++          localStorage.setItem("role", res.data.role || "");
++        }
++      } catch (error) {
++        console.error(error);
++        throw error;
++      }
++    },
++
+     addUser: async (context, data) => {
+       try {
+         await apiNamespace.addUserToNamespace(data);
+diff --git a/ui/tests/components/Setting/__snapshots__/SettingNamespace.spec.ts.snap b/ui/tests/components/Setting/__snapshots__/SettingNamespace.spec.ts.snap
+index 2bc617eb..fddbb4f3 100644
+--- a/ui/tests/components/Setting/__snapshots__/SettingNamespace.spec.ts.snap
++++ b/ui/tests/components/Setting/__snapshots__/SettingNamespace.spec.ts.snap
+@@ -215,6 +215,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
+           <div data-v-80a16399=\\"\\" class=\\"v-col\\" data-test=\\"api-key-title\\">
+             <h3 data-v-80a16399=\\"\\">Api Keys</h3>
+           </div>
++          <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
+           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
+             <div data-v-80a16399=\\"\\" data-test=\\"api-key-generate\\">
+               <div aria-describedby=\\"v-tooltip-11\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+@@ -367,14 +368,14 @@ exports[`Setting Namespace > Renders the component 1`] = `
+         <!--v-if-->
+         <div data-v-80a16399=\\"\\" class=\\"v-row mt-2 mb-2\\">
+           <div data-v-80a16399=\\"\\" class=\\"v-col ml-3\\">
+-            <h4 data-v-80a16399=\\"\\">Delete this namespace</h4>
++            <h4 data-v-80a16399=\\"\\">Leave this namespace</h4>
+             <div data-v-80a16399=\\"\\" class=\\"ml-2\\">
+-              <p data-v-80a16399=\\"\\"> After deleting a namespace, there is no going back. Be sure. </p>
++              <p data-v-80a16399=\\"\\"> After leaving a namespace, you will need to be invited again to access it. </p>
+             </div>
+           </div>
+           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto mb-4\\">
+-            <div aria-describedby=\\"v-tooltip-23\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete namespace </span>
++            <div aria-describedby=\\"v-tooltip-23\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"leave-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
++                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Leave Namespace </span>
+                 <!---->
+                 <!---->
+               </button></div>
