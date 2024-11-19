@@ -1,14 +1,38 @@
 <template>
-  <v-card class="bg-v-theme-surface">
-    <v-tabs background-color="secondary" stacked color="primary">
-      <v-tab to="/containers"> Container List </v-tab>
-      <v-tab to="/containers/pending"> Pending </v-tab>
-      <v-tab to="/containers/rejected"> Rejected </v-tab>
-    </v-tabs>
-    <v-divider />
-  </v-card>
+  <v-btn-group
+    divided
+    class="mb-4 border"
+  >
+    <v-btn
+      v-for="state in states"
+      :to="state.to"
+      variant="flat"
+      :active="isActive(state.to)"
+      active-color="secondary"
+      class="bg-background"
+      v-bind:key="state.to"
+    >
+      {{ state.title }}
+    </v-btn>
+  </v-btn-group>
 
-  <v-card>
+  <div>
     <router-view />
-  </v-card>
+  </div>
 </template>
+
+<script setup lang="ts">
+import { useRoute } from "vue-router";
+
+const states = [
+  { to: "/containers", title: "Accepted" },
+  { to: "/containers/pending", title: "Pending" },
+  { to: "/containers/rejected", title: "Rejected" },
+];
+
+const isActive = (to: string) => {
+  const route = useRoute();
+  return route.path === to;
+};
+
+</script>
