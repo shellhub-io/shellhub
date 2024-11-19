@@ -80,7 +80,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		CreatedAt: clock.Now(),
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          false,
-			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+			ConnectionAnnouncement: models.CommunityConnectionAnnouncement,
 		},
 	}
 

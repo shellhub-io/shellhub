@@ -1,6 +1,12 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+)
 
 type Namespace struct {
 	Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`
@@ -15,6 +21,52 @@ type Namespace struct {
 	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
 	Billing      *Billing           `json:"billing" bson:"billing,omitempty"`
 	Type         Type               `json:"type" bson:"type"`
+}
+
+const (
+	CommunityNamespaceMaxDevices = -1
+	CloudNamespaceMaxDevices     = 3
+)
+
+func NewNamespace(name string, tenant string, kind string, owner *User) *Namespace {
+	now := clock.Now()
+
+	return &Namespace{
+		Name:  name,
+		Owner: owner.ID,
+		TenantID: func() string {
+			if tenant == "" {
+				return uuid.Generate()
+			}
+
+			return tenant
+		}(),
+		Members: []Member{
+			{
+				ID:      owner.ID,
+				Role:    authorizer.RoleOwner,
+				Status:  MemberStatusAccepted,
+				AddedAt: now,
+			},
+		},
+		Settings: &NamespaceSettings{
+			SessionRecord:          false,
+			ConnectionAnnouncement: CommunityConnectionAnnouncement,
+		},
+		Devices:      0,
+		Sessions:     0,
+		MaxDevices:   CommunityNamespaceMaxDevices,
+		DevicesCount: 0,
+		CreatedAt:    now,
+		Billing:      nil,
+		Type: func() Type {
+			if IsTypeTeam(kind) {
+				return TypeTeam
+			}
+
+			return TypePersonal
+		}(),
+	}
 }
 
 // HasMaxDevices checks if the namespace has a maximum number of devices.
@@ -60,7 +112,7 @@ type NamespaceChanges struct {
 }
 
 // default Announcement Message for the shellhub namespace
-const DefaultAnnouncementMessage = `
+const CommunityConnectionAnnouncement = `
 ******************************************************************
 *                                                                *
 *             Welcome to ShellHub Community Edition!             *

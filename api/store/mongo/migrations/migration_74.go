@@ -27,7 +27,7 @@ var migration74 = migrate.Migration{
 
 		annoucementMsg := ""
 		if envs.IsCommunity() {
-			annoucementMsg = models.DefaultAnnouncementMessage
+			annoucementMsg = models.CommunityConnectionAnnouncement
 		}
 
 		update := bson.M{
@@ -50,7 +50,7 @@ var migration74 = migrate.Migration{
 		}).Info("Reverting migration")
 
 		filter := bson.M{
-			"settings.connection_announcement": models.DefaultAnnouncementMessage,
+			"settings.connection_announcement": models.CommunityConnectionAnnouncement,
 		}
 
 		update := bson.M{

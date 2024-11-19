@@ -6,12 +6,9 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
 type NamespaceService interface {
@@ -30,11 +27,12 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	// When MaxNamespaces is less than zero, it means that the user has no limit
-	// of namespaces. If the value is zero, it means he has no right to create a new namespace
-	if user.MaxNamespaces == 0 {
+	switch {
+	case user.MaxNamespaces == -1:
+		// Infinity?
+	case user.MaxNamespaces == 0:
 		return nil, NewErrNamespaceCreationIsForbidden(user.MaxNamespaces, nil)
-	} else if user.MaxNamespaces > 0 {
+	case user.MaxNamespaces > 0:
 		info, err := s.store.UserGetInfo(ctx, req.UserID)
 		switch {
 		case err != nil:
@@ -42,59 +40,28 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		case len(info.OwnedNamespaces) >= user.MaxNamespaces:
 			return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
 		}
+	default:
+		// Value not allowed.
 	}
 
 	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
 		return nil, NewErrNamespaceDuplicated(err)
 	}
 
-	ns := &models.Namespace{
-		Name:  strings.ToLower(req.Name),
-		Owner: user.ID,
-		Members: []models.Member{
-			{
-				ID:      user.ID,
-				Role:    authorizer.RoleOwner,
-				Status:  models.MemberStatusAccepted,
-				AddedAt: clock.Now(),
-			},
-		},
-		Settings: &models.NamespaceSettings{
-			SessionRecord:          true,
-			ConnectionAnnouncement: "",
-		},
-		TenantID: req.TenantID,
-		Type:     models.NewDefaultType(),
-	}
+	namespace := models.NewNamespace(req.Name, req.TenantID, req.Type, user)
 
-	if envs.IsCommunity() {
-		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
-	}
-
-	if models.IsTypeTeam(req.Type) {
-		ns.Type = models.TypeTeam
-	} else if models.IsTypePersonal(req.Type) {
-		ns.Type = models.TypePersonal
-	}
-
-	if req.TenantID == "" {
-		ns.TenantID = uuid.Generate()
-	}
-
-	// Set limits according to ShellHub instance type
 	if envs.IsCloud() {
-		// cloud free plan is limited only by the max of devices
-		ns.MaxDevices = 3
-	} else {
-		// we don't set limits on enterprise and community instances
-		ns.MaxDevices = -1
+		// NOTE: When creating a namespace in a Cloud instance, the properties below are applied.
+		namespace.MaxDevices = models.CloudNamespaceMaxDevices
+		namespace.Settings.SessionRecord = true
+		namespace.Settings.ConnectionAnnouncement = ""
 	}
 
-	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
+	if _, err := s.store.NamespaceCreate(ctx, namespace); err != nil {
 		return nil, NewErrNamespaceCreateStore(err)
 	}
 
-	return ns, nil
+	return namespace, nil
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {

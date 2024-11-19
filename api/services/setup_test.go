@@ -161,7 +161,7 @@ func TestSetup(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: models.CommunityConnectionAnnouncement,
 					},
 					CreatedAt: now,
 				}
@@ -226,7 +226,7 @@ func TestSetup(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: models.CommunityConnectionAnnouncement,
 					},
 					CreatedAt: now,
 				}
@@ -290,7 +290,7 @@ func TestSetup(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: models.CommunityConnectionAnnouncement,
 					},
 					CreatedAt: now,
 				}
