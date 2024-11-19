@@ -88,7 +88,7 @@
     <v-main data-test="main">
       <slot>
         <v-container
-          class="pa-8 full-width-height"
+          class="pa-8"
           fluid
           data-test="container"
         >
@@ -219,7 +219,8 @@ defineExpose({
 }
 
 .v-container {
-  background-image: linear-gradient(155deg, rgb(102,122,204,0.1) 0%, transparent 30%), url(/bg.svg);
+  min-height: calc(100vh - 64px);
+  background-image: linear-gradient(155deg, rgb(var(--v-theme-primary),0.10) 0%, transparent 30%), url(/bg.svg);
   background-position: 0% 0;
   background-repeat: no-repeat;
   background-size: auto;
