@@ -19,12 +19,12 @@ exports[`Device Chooser List > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div data-v-046d4556=\\"\\" class=\\"bg-v-theme-surface\\" enable-items-per-page=\\"false\\" data-test=\\"devices-dataTable\\">
-    <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-v-theme-surface\\">
+  <div data-v-046d4556=\\"\\" enable-items-per-page=\\"false\\" data-test=\\"devices-dataTable\\">
+    <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-background border rounded\\">
       <!---->
       <div class=\\"v-table__wrapper\\">
         <table>
-          <thead data-v-046d4556=\\"\\">
+          <thead data-v-046d4556=\\"\\" class=\\"bg-v-theme-background\\">
             <tr data-v-046d4556=\\"\\">
               <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\"></span></th>
               <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Hostname</span></th>
@@ -39,7 +39,6 @@ exports[`Device Chooser List > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <hr data-v-046d4556=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
     <!--v-if-->
     <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
       <div data-v-046d4556=\\"\\">
