@@ -8,25 +8,25 @@
       <v-text-field
         v-if="show"
         label="Search by hostname"
-        variant="underlined"
+        variant="outlined"
         color="primary"
         single-line
         hide-details
         v-model.trim="filter"
         v-on:keyup="searchDevices"
-        append-inner-icon="mdi-magnify"
-        density="comfortable"
+        prepend-inner-icon="mdi-magnify"
+        density="compact"
         data-test="search-text"
       />
     </v-col>
 
-    <div class="d-flex mt-4" data-test="device-header-component-group">
+    <div class="d-flex" data-test="device-header-component-group">
       <TagSelector variant="container" v-if="isContainerList" />
     </div>
   </div>
-  <v-card :loading="loading" class="mt-2" v-if="show" data-test="device-table-component">
+  <div class="mt-2" v-if="show" data-test="device-table-component">
     <Containers />
-  </v-card>
+  </div>
 
   <BoxMessage
     v-if="!show"
