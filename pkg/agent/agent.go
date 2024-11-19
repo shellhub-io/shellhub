@@ -47,7 +47,6 @@ import (
 	"net/url"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -505,15 +504,10 @@ func (a *Agent) Listen(ctx context.Context) error {
 			}
 
 			namespace := a.authData.Namespace
-			tenantName := a.authData.Name
+			deviceID := a.authData.UID
 			sshEndpoint := a.serverInfo.Endpoints.SSH
 
-			sshid := strings.NewReplacer(
-				"{namespace}", namespace,
-				"{tenantName}", tenantName,
-				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
-			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
-
+			log.Info(a.authData.Token)
 			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
 			if err != nil {
 				if errors.Is(err, client.ErrDialUnauthorized) {
@@ -522,7 +516,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 						"tenant_id":      a.authData.Namespace,
 						"server_address": a.config.ServerAddress,
 						"ssh_server":     sshEndpoint,
-						"sshid":          sshid,
 					}).Warn("Failed to because authentication data is invalid")
 
 					if err := a.authorize(); err != nil {
@@ -531,7 +524,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 							"tenant_id":      a.authData.Namespace,
 							"server_address": a.config.ServerAddress,
 							"ssh_server":     sshEndpoint,
-							"sshid":          sshid,
 						}).Error("Failed to authenticate the device on the server")
 					}
 				}
@@ -541,7 +533,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"ssh_server":     sshEndpoint,
-					"sshid":          sshid,
 				}).Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
 
 				time.Sleep(time.Second * 10)
@@ -551,10 +542,9 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 			log.WithFields(log.Fields{
 				"namespace":      namespace,
-				"hostname":       tenantName,
+				"device_id":      deviceID,
 				"server_address": a.config.ServerAddress,
 				"ssh_server":     sshEndpoint,
-				"sshid":          sshid,
 			}).Info("Server connection established")
 
 			{
@@ -564,10 +554,9 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 				log.WithError(err).WithFields(log.Fields{
 					"namespace":      namespace,
-					"hostname":       tenantName,
+					"device_id":      deviceID,
 					"server_address": a.config.ServerAddress,
 					"ssh_server":     sshEndpoint,
-					"sshid":          sshid,
 				}).Info("Tunnel listener closed")
 
 				listener.Close() // nolint:errcheck
