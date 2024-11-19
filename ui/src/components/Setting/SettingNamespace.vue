@@ -64,6 +64,8 @@
               <h3>Api Keys</h3>
             </v-col>
 
+            <v-spacer />
+
             <v-col md="auto" class="ml-auto">
               <NamespaceGenerateApiKey @update="refreshApiKeys" data-test="api-key-generate" />
             </v-col>
@@ -98,7 +100,7 @@
             is currently not possible to delete
             your namespace due to either an outstanding
             unpaid invoice or an active subscription." />
-          <v-row class="mt-2 mb-2">
+          <v-row class="mt-2 mb-2" v-if="isOwner">
             <v-col class="ml-3">
               <h4>Delete this namespace</h4>
               <div class="ml-2">
@@ -109,7 +111,21 @@
             </v-col>
 
             <v-col md="auto" class="ml-auto mb-4">
-              <NamespaceDelete :nsTenant="tenant" @billing-in-debt="billingInDebt = true" />
+              <NamespaceDelete :tenant="tenant" @billing-in-debt="billingInDebt = true" />
+            </v-col>
+          </v-row>
+          <v-row class="mt-2 mb-2" v-else>
+            <v-col class="ml-3">
+              <h4>Leave this namespace</h4>
+              <div class="ml-2">
+                <p>
+                  After leaving a namespace, you will need to be invited again to access it.
+                </p>
+              </div>
+            </v-col>
+
+            <v-col md="auto" class="ml-auto mb-4">
+              <NamespaceLeave :tenant="tenant" />
             </v-col>
           </v-row>
         </div>
@@ -134,10 +150,12 @@ import {
   INotificationsError,
 } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 
 const store = useStore();
 const apiKeyList = ref();
 const namespace = computed(() => store.getters["namespaces/get"]);
+const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
 const tenant = computed(() => store.getters["auth/tenant"]);
 const billingInDebt = ref(false);
 

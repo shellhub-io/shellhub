@@ -215,6 +215,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <div data-v-80a16399=\\"\\" class=\\"v-col\\" data-test=\\"api-key-title\\">
             <h3 data-v-80a16399=\\"\\">Api Keys</h3>
           </div>
+          <div data-v-80a16399=\\"\\" class=\\"v-spacer\\"></div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
             <div data-v-80a16399=\\"\\" data-test=\\"api-key-generate\\">
               <div aria-describedby=\\"v-tooltip-11\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
@@ -367,14 +368,14 @@ exports[`Setting Namespace > Renders the component 1`] = `
         <!--v-if-->
         <div data-v-80a16399=\\"\\" class=\\"v-row mt-2 mb-2\\">
           <div data-v-80a16399=\\"\\" class=\\"v-col ml-3\\">
-            <h4 data-v-80a16399=\\"\\">Delete this namespace</h4>
+            <h4 data-v-80a16399=\\"\\">Leave this namespace</h4>
             <div data-v-80a16399=\\"\\" class=\\"ml-2\\">
-              <p data-v-80a16399=\\"\\"> After deleting a namespace, there is no going back. Be sure. </p>
+              <p data-v-80a16399=\\"\\"> After leaving a namespace, you will need to be invited again to access it. </p>
             </div>
           </div>
           <div data-v-80a16399=\\"\\" class=\\"v-col-md-auto v-col ml-auto mb-4\\">
-            <div aria-describedby=\\"v-tooltip-23\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete namespace </span>
+            <div aria-describedby=\\"v-tooltip-23\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" disabled=\\"\\" data-test=\\"leave-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Leave Namespace </span>
                 <!---->
                 <!---->
               </button></div>
