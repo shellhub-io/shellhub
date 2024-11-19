@@ -229,7 +229,7 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 func (a *Agent) Initialize() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress)
+	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithLogger(log.New()))
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
@@ -507,7 +507,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 			deviceID := a.authData.UID
 			sshEndpoint := a.serverInfo.Endpoints.SSH
 
-			log.Info(a.authData.Token)
 			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
 			if err != nil {
 				if errors.Is(err, client.ErrDialUnauthorized) {

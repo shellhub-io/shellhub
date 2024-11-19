@@ -2,12 +2,15 @@ package client
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"net"
 	"net/http"
 	"net/url"
+	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -46,6 +49,12 @@ type client struct {
 
 var ErrParseAddress = fmt.Errorf("could not parse the address to the required format")
 
+const (
+	ClientRetryMinWaitTime     = 5 * time.Second
+	ClientRetryMaxWaitTime     = 30 * time.Second
+	ClientRetryDefaultWaitTime = 10 * time.Second
+)
+
 // NewClient creates a new ShellHub HTTP client.
 //
 // Server address must contain the scheme, the host and the port. For instance: `https://cloud.shellhub.io:443/`.
@@ -65,21 +74,19 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			return true
 		}
 
-		if r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented {
-			log.WithFields(log.Fields{
-				"status_code": r.StatusCode(),
-				"url":         r.Request.URL,
-			}).Warn("failed to achieve the server")
-
-			return true
+		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
+	})
+	client.http.SetRetryWaitTime(ClientRetryMinWaitTime)
+	client.http.SetRetryMaxWaitTime(ClientRetryMaxWaitTime)
+	client.http.SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
+		// NOTE: Waits until 30 seconds for the next retry.
+		b, err := rand.Int(rand.Reader, big.NewInt(30))
+		if err != nil {
+			return ClientRetryDefaultWaitTime, nil //nolint: nilerr
 		}
 
-		return false
+		return time.Duration(b.Int64()) * time.Second, nil
 	})
-
-	if client.logger != nil {
-		client.http.SetLogger(&LeveledLogger{client.logger})
-	}
 
 	client.reverser = NewReverser(client.http.BaseURL)
 
@@ -87,6 +94,10 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		if err := opt(client); err != nil {
 			return nil, err
 		}
+	}
+
+	if client.logger != nil {
+		client.http.SetLogger(client.logger)
 	}
 
 	return client, nil
