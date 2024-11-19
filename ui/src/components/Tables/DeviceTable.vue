@@ -15,8 +15,14 @@
     @clickSortableIcon="sortByItem"
     data-test="items-list"
   >
-    <template v-if="status === 'accepted'" v-slot:rows>
-      <tr v-for="(item, i) in items" :key="i">
+    <template
+      v-if="status === 'accepted'"
+      v-slot:rows
+    >
+      <tr
+        v-for="(item, i) in items"
+        :key="i"
+      >
         <td class="text-center">
           <TerminalDialog
             :enable-connect-button="true"
@@ -27,7 +33,11 @@
         </td>
         <td class="text-center">{{ item.name }}</td>
         <td class="text-center">
-          <DeviceIcon :icon="item.info.id" class="mr-2" data-test="deviceIcon-component" />
+          <DeviceIcon
+            :icon="item.info.id"
+            class="mr-2"
+            data-test="deviceIcon-component"
+          />
           <span>{{ item.info.pretty_name }}</span>
         </td>
         <td class="text-center">
@@ -56,7 +66,13 @@
               :disabled="!showTag(tag)"
             >
               <template #activator="{ props }">
-                <v-chip size="small" v-bind="props" v-on="props" class="mr-1" data-test="tag-chip">
+                <v-chip
+                  size="small"
+                  v-bind="props"
+                  v-on="props"
+                  class="mr-1"
+                  data-test="tag-chip"
+                >
                   {{ displayOnlyTenCharacters(tag) }}
                 </v-chip>
               </template>
@@ -73,12 +89,31 @@
         </td>
 
         <td class="text-center">
-          <v-menu location="bottom" scrim eager data-test="v-menu">
+          <v-menu
+            location="bottom"
+            scrim
+            eager
+            data-test="v-menu"
+          >
             <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" variant="plain" class="border rounded bg-v-theme-background" density="comfortable" size="default" icon="mdi-format-list-bulleted" />
+              <v-btn
+                v-bind="props"
+                variant="plain"
+                class="border rounded bg-v-theme-background"
+                density="comfortable"
+                size="default"
+                icon="mdi-format-list-bulleted"
+              />
             </template>
-            <v-list class="bg-v-theme-surface" lines="two" density="compact">
-              <v-list-item @click="redirectToDevice(item.uid)" data-test="mdi-information-list-item">
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
+            >
+              <v-list-item
+                @click="redirectToDevice(item.uid)"
+                data-test="mdi-information-list-item"
+              >
                 <div class="d-flex align-center">
                   <div class="mr-2">
                     <v-icon> mdi-information </v-icon>
@@ -130,8 +165,14 @@
         </td>
       </tr>
     </template>
-    <template v-else v-slot:rows>
-      <tr v-for="(item, i) in items" :key="i">
+    <template
+      v-else
+      v-slot:rows
+    >
+      <tr
+        v-for="(item, i) in items"
+        :key="i"
+      >
         <td class="text-center">
           <router-link
             :to="{ name: 'DeviceDetails', params: { id: item.uid } }"
@@ -141,7 +182,11 @@
           </router-link>
         </td>
         <td class="text-center">
-          <DeviceIcon :icon="item.info.id" class="mr-2" data-test="device-icon" />
+          <DeviceIcon
+            :icon="item.info.id"
+            class="mr-2"
+            data-test="device-icon"
+          />
           <span>{{ item.info.pretty_name }}</span>
         </td>
         <td class="text-center">
@@ -149,13 +194,25 @@
         </td>
 
         <td class="text-center">
-          <v-menu location="bottom" scrim eager>
+          <v-menu
+            location="bottom"
+            scrim
+            eager
+          >
             <template v-slot:activator="{ props }">
-              <v-chip density="comfortable" size="small" data-test="sshid-chip">
+              <v-chip
+                density="comfortable"
+                size="small"
+                data-test="sshid-chip"
+              >
                 <v-icon v-bind="props">mdi-dots-horizontal</v-icon>
               </v-chip>
             </template>
-            <v-list class="bg-v-theme-surface" lines="two" density="compact">
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
+            >
               <DeviceActionButton
                 :uid="item.uid"
                 :name="item.name"
