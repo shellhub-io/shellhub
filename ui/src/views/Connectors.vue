@@ -20,9 +20,9 @@
       <ConnectorAdd @update="getConnectors()" />
     </div>
   </div>
-  <v-card class="mt-2" data-test="device-table-component">
+  <div class="mt-2" data-test="connector-table-component">
     <ConnectorList />
-  </v-card>
+  </div>
 </template>
 
 <script setup lang="ts">

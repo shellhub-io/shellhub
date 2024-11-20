@@ -200,13 +200,15 @@
             eager
           >
             <template v-slot:activator="{ props }">
-              <v-chip
+              <v-btn
+                v-bind="props"
+                variant="plain"
+                class="border rounded bg-v-theme-background"
                 density="comfortable"
-                size="small"
-                data-test="sshid-chip"
-              >
-                <v-icon v-bind="props">mdi-dots-horizontal</v-icon>
-              </v-chip>
+                size="default"
+                icon="mdi-format-list-bulleted"
+                data-test="device-table-actions"
+              />
             </template>
             <v-list
               class="bg-v-theme-surface"

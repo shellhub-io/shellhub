@@ -26,17 +26,15 @@
             eager
           >
             <template v-slot:activator="{ props }">
-              <v-chip
+              <v-btn
                 v-bind="props"
-                class="bg-v-theme-surface"
-                data-test="privateKey-chip"
+                variant="plain"
+                class="border rounded bg-v-theme-background"
                 density="comfortable"
-                size="small"
-              >
-                <v-icon data-test="privateKey-menu-icon"
-                >mdi-dots-horizontal</v-icon
-                >
-              </v-chip>
+                size="default"
+                icon="mdi-format-list-bulleted"
+                data-test="privateKey-actions"
+              />
             </template>
             <v-list class="bg-v-theme-surface" lines="two" density="compact">
               <PrivateKeyEdit
