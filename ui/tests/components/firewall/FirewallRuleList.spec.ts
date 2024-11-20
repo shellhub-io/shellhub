@@ -129,6 +129,6 @@ describe("Firewall Rule List", () => {
     expect(wrapper.find('[data-test="firewall-rules-source-ip"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-username"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-filter"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="firewall-rules-action-menu"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="firewall-rules-actions"]').exists()).toBe(true);
   });
 });

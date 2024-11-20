@@ -213,6 +213,7 @@ describe("Device List", () => {
     expect(wrapper.findComponent('[data-test="ip-chip"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="secure-icon"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="menu-key-component"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="connector-list-actions"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="mdi-information-list-item"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="no-connector-validate"]').exists()).toBe(false);
   });

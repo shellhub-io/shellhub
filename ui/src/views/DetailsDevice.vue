@@ -18,9 +18,14 @@
       <div>
         <v-menu location="bottom" scrim eager>
           <template v-slot:activator="{ props }">
-            <v-chip density="comfortable" size="small">
-              <v-icon v-bind="props">mdi-dots-horizontal</v-icon>
-            </v-chip>
+            <v-btn
+              v-bind="props"
+              variant="plain"
+              class="border rounded bg-v-theme-background"
+              density="comfortable"
+              size="default"
+              icon="mdi-format-list-bulleted"
+            />
           </template>
           <v-list class="bg-v-theme-surface" lines="two" density="compact">
             <DeviceRename

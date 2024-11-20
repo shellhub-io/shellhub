@@ -28,12 +28,11 @@ exports[`Firewall Rule List > Renders the component 1`] = `
               <td class=\\"text-center\\" data-test=\\"firewall-rules-filter\\">
                 <div>All devices</div>
               </td>
-              <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-                <!---->
-                <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-                <!---->
-                <!----></span>
+              <td class=\\"text-center\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-0\\" data-test=\\"firewall-rules-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                  <!---->
+                  <!---->
+                </button>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -50,12 +49,11 @@ exports[`Firewall Rule List > Renders the component 1`] = `
               <td class=\\"text-center\\" data-test=\\"firewall-rules-filter\\">
                 <div>All devices</div>
               </td>
-              <td class=\\"text-center\\"><span class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\" data-test=\\"firewall-rules-action-menu\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-                <!---->
-                <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-                <!---->
-                <!----></span>
+              <td class=\\"text-center\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\" data-test=\\"firewall-rules-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                  <!---->
+                  <!---->
+                </button>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>

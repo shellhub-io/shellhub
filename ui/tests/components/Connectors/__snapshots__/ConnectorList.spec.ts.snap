@@ -60,12 +60,11 @@ exports[`Device List > Renders the component 1`] = `
               <!----></span>
             </td>
             <td data-v-6fdd6bd6=\\"\\" class=\\"text-center\\"><i data-v-6fdd6bd6=\\"\\" class=\\"mdi-lock-open-alert mdi v-icon notranslate v-theme--light text-grey-darken-2 mr-1\\" style=\\"font-size: 26px; height: 26px; width: 26px;\\" aria-hidden=\\"true\\" data-test=\\"secure-icon\\"></i></td>
-            <td data-v-6fdd6bd6=\\"\\" class=\\"text-center\\" data-test=\\"menu-key-component\\"><span data-v-6fdd6bd6=\\"\\" class=\\"v-chip v-chip--link v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-5\\"><span class=\\"v-chip__overlay\\"></span><span class=\\"v-chip__underlay\\"></span>
-              <!---->
-              <!---->
-              <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-6fdd6bd6=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-              <!---->
-              <!----></span>
+            <td data-v-6fdd6bd6=\\"\\" class=\\"text-center\\" data-test=\\"menu-key-component\\"><button data-v-6fdd6bd6=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-5\\" data-test=\\"connector-list-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                <!---->
+                <!---->
+              </button>
               <!--teleport start-->
               <!--teleport end-->
             </td>

@@ -122,7 +122,6 @@ describe("Private Key List", () => {
     expect(wrapper.find('[data-test="privateKey-thead"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="privateKey-name"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="privateKey-fingerprint"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="privateKey-chip"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="privateKey-menu-icon"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="privateKey-actions"]').exists()).toBe(true);
   });
 });

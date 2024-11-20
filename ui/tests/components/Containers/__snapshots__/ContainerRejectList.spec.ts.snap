@@ -20,12 +20,11 @@ exports[`Container Rejected List > Renders the component 1`] = `
               <td data-v-787abe29=\\"\\" class=\\"text-center\\"><a data-v-787abe29=\\"\\" href=\\"/devices/a582b47a42d\\" class=\\"\\" data-test=\\"a582b47a42d-field\\">39-5e-2a</a></td>
               <td data-v-787abe29=\\"\\" class=\\"text-center\\"><i data-v-787abe29=\\"\\" data-test=\\"device-icon\\" class=\\"fl-linuxmint mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span data-v-787abe29=\\"\\">Linux Mint 19.3</span></td>
               <td data-v-787abe29=\\"\\" class=\\"text-center\\">Wednesday, May 20th 2020, 6:58:53 pm</td>
-              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
-                <!---->
-                <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-787abe29=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"></i></div>
-                <!---->
-                <!----></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><button data-v-787abe29=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\" data-test=\\"device-table-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                  <!---->
+                  <!---->
+                </button>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -34,12 +33,11 @@ exports[`Container Rejected List > Renders the component 1`] = `
               <td data-v-787abe29=\\"\\" class=\\"text-center\\"><a data-v-787abe29=\\"\\" href=\\"/devices/a582b47a42e\\" class=\\"\\" data-test=\\"a582b47a42e-field\\">39-5e-2b</a></td>
               <td data-v-787abe29=\\"\\" class=\\"text-center\\"><i data-v-787abe29=\\"\\" data-test=\\"device-icon\\" class=\\"fl-linuxmint mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span data-v-787abe29=\\"\\">Linux Mint 19.3</span></td>
               <td data-v-787abe29=\\"\\" class=\\"text-center\\">Wednesday, May 20th 2020, 7:58:53 pm</td>
-              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><span data-v-787abe29=\\"\\" class=\\"v-chip v-theme--light v-chip--density-comfortable v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\" data-test=\\"sshid-chip\\"><!----><span class=\\"v-chip__underlay\\"></span>
-                <!---->
-                <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><i data-v-787abe29=\\"\\" class=\\"mdi-dots-horizontal mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\"></i></div>
-                <!---->
-                <!----></span>
+              <td data-v-787abe29=\\"\\" class=\\"text-center\\"><button data-v-787abe29=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\" data-test=\\"device-table-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                  <!---->
+                  <!---->
+                </button>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
