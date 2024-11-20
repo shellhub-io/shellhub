@@ -80,7 +80,7 @@ func TestListNamespaces(t *testing.T) {
 								Name:     "group1",
 								Owner:    "66ffe0745a82ba5c4fe842ac",
 								TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-								Type:     models.TypePersonal,
+								Type:     models.TypeTeam,
 								Members: []models.Member{
 									{
 										ID:    "66ffe0745a82ba5c4fe842ac",
@@ -93,7 +93,7 @@ func TestListNamespaces(t *testing.T) {
 								Name:     "group2",
 								Owner:    "66ffe0745a82ba5c4fe842ac",
 								TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-								Type:     models.TypePersonal,
+								Type:     models.TypeTeam,
 								Members: []models.Member{
 									{
 										ID:    "66ffe0745a82ba5c4fe842ac",
@@ -137,7 +137,7 @@ func TestListNamespaces(t *testing.T) {
 						Name:     "group1",
 						Owner:    "66ffe0745a82ba5c4fe842ac",
 						TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-						Type:     models.TypePersonal,
+						Type:     models.TypeTeam,
 						Members: []models.Member{
 							{
 								ID:    "66ffe0745a82ba5c4fe842ac",
@@ -150,7 +150,7 @@ func TestListNamespaces(t *testing.T) {
 						Name:     "group2",
 						Owner:    "66ffe0745a82ba5c4fe842ac",
 						TenantID: "a736a52b-5777-4f92-b0b8-e359bf48471i4",
-						Type:     models.TypePersonal,
+						Type:     models.TypeTeam,
 						Members: []models.Member{
 							{
 								ID:    "66ffe0745a82ba5c4fe842ac",
@@ -281,7 +281,7 @@ func TestGetNamespace(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds - personal",
+			description: "succeeds - personal (with have changed to team temporarily)",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
 				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
@@ -300,7 +300,7 @@ func TestGetNamespace(t *testing.T) {
 									Email: "john.doe@test.com",
 								},
 							},
-							Type: models.TypePersonal,
+							Type: models.TypeTeam,
 						},
 						nil,
 					).
@@ -318,7 +318,7 @@ func TestGetNamespace(t *testing.T) {
 							Email: "john.doe@test.com",
 						},
 					},
-					Type: models.TypePersonal,
+					Type: models.TypeTeam,
 				},
 				err: nil,
 			},
@@ -556,7 +556,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
-							Type:     models.TypePersonal,
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -633,7 +633,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
-							Type:     models.TypePersonal,
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -654,7 +654,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
-							Type:     models.TypePersonal,
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -678,7 +678,7 @@ func TestCreateNamespace(t *testing.T) {
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
-					Type:     models.TypePersonal,
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
@@ -753,7 +753,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
-							Type:     models.TypePersonal,
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -774,7 +774,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
-							Type:     models.TypePersonal,
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -798,7 +798,7 @@ func TestCreateNamespace(t *testing.T) {
 					TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
-					Type:     models.TypePersonal,
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
@@ -883,7 +883,7 @@ func TestCreateNamespace(t *testing.T) {
 								SessionRecord:          true,
 								ConnectionAnnouncement: "",
 							},
-							MaxDevices: 3,
+							MaxDevices: -1,
 						},
 					).
 					Return(
@@ -928,7 +928,7 @@ func TestCreateNamespace(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: "",
 					},
-					MaxDevices: 3,
+					MaxDevices: -1,
 				},
 				err: nil,
 			},
@@ -1008,7 +1008,7 @@ func TestCreateNamespace(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Name:     "namespace",
 							Owner:    "000000000000000000000000",
-							Type:     models.TypePersonal,
+							Type:     models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",

@@ -1,7 +1,5 @@
 package models
 
-import env "github.com/shellhub-io/shellhub/pkg/envs"
-
 type Type string
 
 const (
@@ -10,11 +8,7 @@ const (
 )
 
 func NewDefaultType() Type {
-	if env.IsCloud() {
-		return TypeTeam
-	}
-
-	return TypePersonal
+	return TypeTeam
 }
 
 func IsTypeTeam(typeNamespace string) bool {
