@@ -102,7 +102,7 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Type:     models.TypePersonal,
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -146,7 +146,7 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Type:     models.TypePersonal,
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -168,7 +168,7 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
-				Type:     models.TypePersonal,
+				Type:     models.TypeTeam,
 				Members: []models.Member{
 					{
 						ID:      "507f191e810c19729de860ea",
@@ -398,7 +398,7 @@ func TestNamespaceCreate(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
-					Type:     models.TypePersonal,
+					Type:     models.TypeTeam,
 					Members: []models.Member{
 						{
 							ID:      "507f191e810c19729de860ea",
@@ -420,7 +420,7 @@ func TestNamespaceCreate(t *testing.T) {
 				Name:     "namespace",
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
-				Type:     models.TypePersonal,
+				Type:     models.TypeTeam,
 				Members: []models.Member{
 					{
 						ID:      "507f191e810c19729de860ea",
