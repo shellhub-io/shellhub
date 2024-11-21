@@ -197,6 +197,12 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				}
 
 				switch req.Type {
+				case ShellRequestType:
+					if sess.Pty.Term != "" {
+						if err := sess.Announce(client); err != nil {
+							logger.WithError(err).Warn("failed to get the namespace announcement")
+						}
+					}
 				case PtyRequestType:
 					var pty session.Pty
 
@@ -205,7 +211,6 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					}
 
 					sess.Pty = pty
-
 				case WindowChangeRequestType:
 					var dimensions session.Dimensions
 
