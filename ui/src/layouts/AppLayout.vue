@@ -47,37 +47,69 @@
       </div>
 
       <v-list density="compact" class="bg-v-theme-surface" data-test="list">
-        <v-list-item
-          v-for="item in visibleItems"
-          :key="item.title"
-          :to="item.path"
-          lines="two"
-          class="mb-2"
-          :disabled="disableItem(item.title)"
-          data-test="list-item"
-        >
-          <template #prepend>
-            <v-icon data-test="icon">
-              {{ item.icon }}
-            </v-icon>
-          </template>
-          <template #append>
-            <v-icon
-              v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
-              color="yellow"
-              size="x-small"
-              icon="mdi-crown"
-              data-test="icon"
-            />
-          </template>
-          <v-list-item-title :data-test="item.icon + '-listItem'">
-            {{ item.title }}
-          </v-list-item-title>
-        </v-list-item>
+        <template v-for="item in visibleItems" :key="item.title">
+          <v-list-group
+            v-if="item.children"
+            prepend-icon="mdi-chevron-down"
+            value="false"
+            data-test="list-group"
+          >
+            <template v-slot:activator="{ props }">
+              <v-list-item v-bind="props">
+                <template #prepend>
+                  <v-icon data-test="icon">
+                    {{ item.icon }}
+                  </v-icon>
+                </template>
+                <v-list-item-title>
+                  {{ item.title }}
+                </v-list-item-title>
+              </v-list-item>
+            </template>
+
+            <v-list-item
+              v-for="child in item.children"
+              :key="child.title"
+              :to="child.path"
+              data-test="list-item"
+            >
+              <v-list-item-title :data-test="child.title + '-listItem'">
+                {{ child.title }}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list-group>
+
+          <v-list-item
+            v-else
+            :to="item.path"
+            lines="two"
+            class="mb-2"
+            :disabled="disableItem(item.title)"
+            data-test="list-item"
+          >
+            <template #prepend>
+              <v-icon data-test="icon">
+                {{ item.icon }}
+              </v-icon>
+            </template>
+            <template #append>
+              <v-icon
+                v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
+                color="yellow"
+                size="x-small"
+                icon="mdi-crown"
+                data-test="icon"
+              />
+            </template>
+            <v-list-item-title :data-test="item.icon + '-listItem'">
+              {{ item.title }}
+            </v-list-item-title>
+          </v-list-item>
+        </template>
+
         <v-col class="d-flex align-end justify-center">
           <QuickConnection />
         </v-col>
-
       </v-list>
     </v-navigation-drawer>
 
@@ -201,6 +233,21 @@ const items = [
     icon: "mdi-cog",
     title: "Settings",
     path: "/settings",
+  },
+  {
+    icon: "mdi-account-group",
+    title: "Team",
+    path: "/team",
+    children: [
+      {
+        title: "Members",
+        path: "/team/members",
+      },
+      {
+        title: "API Keys",
+        path: "/team/api-keys",
+      },
+    ],
   },
 ];
 

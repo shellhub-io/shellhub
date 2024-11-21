@@ -73,6 +73,8 @@ const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue
 const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
 const SettingTags = () => import("@/components/Setting/SettingTags.vue");
 const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
+const TeamMembers = () => import("@/views/TeamMembers.vue");
+const TeamApiKeys = () => import("@/views/TeamApiKeys.vue");
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -378,6 +380,23 @@ export const routes: Array<RouteRecordRaw> = [
           }
         },
         component: SettingBilling,
+      },
+    ],
+  },
+  {
+    path: "/team",
+    name: "Team",
+    redirect: { name: "ApiKeys" },
+    children: [
+      {
+        path: "api-keys",
+        name: "ApiKeys",
+        component: TeamApiKeys,
+      },
+      {
+        path: "members",
+        name: "Members",
+        component: TeamMembers,
       },
     ],
   },

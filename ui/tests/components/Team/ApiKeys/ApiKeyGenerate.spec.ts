@@ -2,7 +2,7 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import NamespaceGenerateApiKey from "@/components/Namespace/NamespaceGenerateApiKey.vue";
+import ApiKeyGenerate from "@/components/Team/ApiKeys/ApiKeyGenerate.vue";
 import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
@@ -14,10 +14,10 @@ const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
-type NamespaceGenerateApiKeyWrapper = VueWrapper<InstanceType<typeof NamespaceGenerateApiKey>>;
+type ApiKeyGenerateWrapper = VueWrapper<InstanceType<typeof ApiKeyGenerate>>;
 
-describe("Namespace Api Key Generate", () => {
-  let wrapper: NamespaceGenerateApiKeyWrapper;
+describe("Api Key Generate", () => {
+  let wrapper: ApiKeyGenerateWrapper;
 
   const vuetify = createVuetify();
 
@@ -110,7 +110,7 @@ describe("Namespace Api Key Generate", () => {
     store.commit("security/setSecurity", session);
     store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
-    wrapper = mount(NamespaceGenerateApiKey, {
+    wrapper = mount(ApiKeyGenerate, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {

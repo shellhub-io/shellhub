@@ -64,14 +64,14 @@ import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import hasPermission from "../../utils/permission";
-import { useStore } from "../../store";
-import { actions, authorizer } from "../../authorizer";
+import hasPermission from "@/utils/permission";
+import { useStore } from "@/store";
+import { actions, authorizer } from "@/authorizer";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 const items = ["administrator", "operator", "observer"];
 

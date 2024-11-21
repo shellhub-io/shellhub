@@ -2,7 +2,7 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import NamespaceEditApiKey from "@/components/Namespace/NamespaceEditApiKey.vue";
+import ApiKeyEdit from "@/components/Team/ApiKeys/ApiKeyEdit.vue";
 import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
@@ -14,10 +14,10 @@ const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
-type NamespaceEditApiKeyWrapper = VueWrapper<InstanceType<typeof NamespaceEditApiKey>>;
+type ApiKeyEditWrapper = VueWrapper<InstanceType<typeof ApiKeyEdit>>;
 
-describe("Namespace Api Key Edit", () => {
-  let wrapper: NamespaceEditApiKeyWrapper;
+describe("Api Key Edit", () => {
+  let wrapper: ApiKeyEditWrapper;
 
   const vuetify = createVuetify();
 
@@ -106,7 +106,7 @@ describe("Namespace Api Key Edit", () => {
     store.commit("security/setSecurity", session);
     store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
-    wrapper = mount(NamespaceEditApiKey, {
+    wrapper = mount(ApiKeyEdit, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {

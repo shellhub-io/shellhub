@@ -18,7 +18,7 @@
     >
       <template v-slot:rows>
         <tr v-for="(item, i) in keyList" :key="i">
-          <td :class="formatKey(item.expires_in) ? 'text-warning' : ''">
+          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'">
             <v-icon class="mr-1" :icon="formatKey(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" />
             {{ item.name }}
           </td>
@@ -48,7 +48,7 @@
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
-                      <NamespaceEditApiKey
+                      <ApiKeyEdit
                         :key-name="item.name"
                         :key-id="item.id"
                         :key-role="item.role"
@@ -68,7 +68,7 @@
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
-                      <NamespaceDeleteApiKey
+                      <ApiKeyDelete
                         :keyId="item.name"
                         :has-authorization="hasAuthorizationRemoveKey()"
                         @update="refresh()"
@@ -90,14 +90,14 @@
 import { computed, onMounted, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import moment from "moment";
-import { useStore } from "../../store";
-import DataTable from "../DataTable.vue";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { useStore } from "@/store";
+import DataTable from "@/components/DataTable.vue";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
-import NamespaceDeleteApiKey from "./NamespaceDeleteApiKey.vue";
-import NamespaceEditApiKey from "./NamespaceEditApiKey.vue";
+import ApiKeyDelete from "./ApiKeyDelete.vue";
+import ApiKeyEdit from "./ApiKeyEdit.vue";
 
 const headers = [
   {

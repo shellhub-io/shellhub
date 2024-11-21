@@ -1,18 +1,18 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
+import TeamMembers from "@/views/TeamMembers.vue";
 import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
-import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { router } from "@/router";
 
-type SettingNamespaceWrapper = VueWrapper<InstanceType<typeof SettingNamespace>>;
+type TeamMembersWrapper = VueWrapper<InstanceType<typeof TeamMembers>>;
 
-describe("Setting Namespace", () => {
-  let wrapper: SettingNamespaceWrapper;
+describe("Team Members", () => {
+  let wrapper: TeamMembersWrapper;
 
   const vuetify = createVuetify();
 
@@ -100,7 +100,7 @@ describe("Setting Namespace", () => {
     store.commit("security/setSecurity", session);
     store.commit("auth/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
-    wrapper = mount(SettingNamespace, {
+    wrapper = mount(TeamMembers, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {
@@ -108,6 +108,12 @@ describe("Setting Namespace", () => {
         },
       },
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
@@ -122,11 +128,9 @@ describe("Setting Namespace", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="editOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tenant-id"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="NamespaceEdit-component"]').exists()).toBe(true);
+  it("Renders the template with data", async () => {
+    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="member-invite"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="member-list"]').exists()).toBe(true);
   });
 });

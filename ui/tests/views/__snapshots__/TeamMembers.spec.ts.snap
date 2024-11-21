@@ -1,0 +1,55 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Team Members > Renders the component 1`] = `
+"<div class=\\"d-flex pa-0 align-center\\" data-test=\\"title\\">
+  <h1>Members</h1>
+  <div class=\\"v-spacer\\"></div>
+  <div class=\\"d-flex\\" data-test=\\"member-invite\\">
+    <div>
+      <div aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"invite-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Invite Member </span>
+          <!---->
+          <!---->
+        </button></div>
+      <!--teleport start-->
+      <!--teleport end-->
+      <!---->
+      <!---->
+    </div>
+  </div>
+</div>
+<div class=\\"mt-2\\" data-test=\\"member-list\\">
+  <div class=\\"v-table v-theme--light v-table--density-default bg-background border rounded\\" data-test=\\"member-table\\">
+    <!---->
+    <div class=\\"v-table__wrapper\\">
+      <table>
+        <thead class=\\"bg-v-theme-background\\">
+          <tr>
+            <th class=\\"text-center\\" data-test=\\"member-table-headers\\"><span>Email</span></th>
+            <th class=\\"text-center\\" data-test=\\"member-table-headers\\"><span>Role</span></th>
+            <th class=\\"text-center\\" data-test=\\"member-table-headers\\"><span>Status</span></th>
+            <th class=\\"text-center\\" data-test=\\"member-table-headers\\"><span>Actions</span></th>
+          </tr>
+        </thead>
+        <tbody data-test=\\"member-table-rows\\">
+          <tr class=\\"text-center\\">
+            <td><i class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i> </td>
+            <td class=\\"text-center\\">owner</td>
+            <td class=\\"text-center\\" aria-describedby=\\"v-tooltip-2\\">
+              <!---->
+              <!--teleport start-->
+              <!--teleport end-->
+            </td>
+            <td class=\\"text-center\\" aria-describedby=\\"v-tooltip-3\\">
+              <!---->
+              <!--teleport start-->
+              <!--teleport end-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!---->
+  </div>
+</div>"
+`;

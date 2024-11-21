@@ -1,11 +1,12 @@
 <template>
-  <v-table class="bg-v-theme-surface">
-    <thead>
+  <v-table class="bg-background border rounded" data-test="member-table">
+    <thead class="bg-v-theme-background">
       <tr>
         <th
           v-for="(head, i) in headers"
           :key="i"
-          :class="head.align ? `text-${head.align}` : 'text-center'"
+          class="text-center"
+          data-test="member-table-headers"
         >
           <span
             v-if="head.sortable"
@@ -25,9 +26,9 @@
         </th>
       </tr>
     </thead>
-    <tbody v-if="members">
+    <tbody v-if="namespace" data-test="member-table-rows">
       <slot name="rows">
-        <tr v-for="(member, i) in members" :key="i">
+        <tr v-for="(member, i) in namespace" :key="i" class="text-center">
           <td>
             <v-icon> mdi-account </v-icon>
             {{ member.email }}
@@ -46,7 +47,7 @@
             >This member was added on {{ formatDate(member.added_at) }}</v-tooltip>
           </td>
 
-          <td class="text-end">
+          <td class="text-center">
             <v-menu
               location="bottom"
               scrim
@@ -72,7 +73,7 @@
                 >
                   <template v-slot:activator="{ props }">
                     <div :v-bind="props">
-                      <NamespaceMemberEdit
+                      <MemberEdit
                         :member="member"
                         @update="refresh"
                         :notHasAuthorization="!hasAuthorizationEditMember()"
@@ -89,7 +90,7 @@
                 >
                   <template v-slot:activator="{ props }">
                     <div :v-bind="props">
-                      <NamespaceMemberDelete
+                      <MemberDelete
                         :member="member"
                         @update="refresh"
                         :hasAuthorization="hasAuthorizationRemoveMember()"
@@ -100,6 +101,11 @@
                 </v-tooltip>
               </v-list>
             </v-menu>
+            <v-tooltip
+              v-else
+              activator="parent"
+              location="top"
+            >No one can modify the owner of this namespace.</v-tooltip>
           </td>
         </tr>
       </slot>
@@ -113,51 +119,42 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import axios, { AxiosError } from "axios";
-import { formatDate } from "../../utils/formateDate";
-import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import NamespaceMemberDelete from "./NamespaceMemberDelete.vue";
-import NamespaceMemberEdit from "./NamespaceMemberEdit.vue";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { formatDate } from "@/utils/formateDate";
+import { useStore } from "@/store";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import MemberDelete from "./MemberDelete.vue";
+import MemberEdit from "./MemberEdit.vue";
+import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
-
-const props = defineProps({
-  namespace: {
-    type: Object,
-    required: true,
-  },
-});
 
 const headers = [
   {
     text: "Email",
     value: "email",
-    align: "start",
     sortable: false,
   },
   {
     text: "Role",
     value: "role",
-    align: "center",
     sortable: false,
   },
   {
     text: "Status",
     value: "status",
-    align: "center",
     sortable: false,
   },
   {
     text: "Actions",
     value: "actions",
-    align: "end",
     sortable: false,
   },
 ];
+
 const store = useStore();
 const tenant = computed(() => store.getters["auth/tenant"]);
-const members = computed(() => props.namespace.members);
+const namespace = computed(() => store.getters["namespaces/get"].members);
+
 const hasAuthorizationEditMember = () => {
   const role = store.getters["auth/role"];
   if (role !== "") {
@@ -202,4 +199,6 @@ const refresh = () => {
 };
 
 const isNamespaceOwner = (role: string) => role === "owner";
+
+defineExpose({ namespace });
 </script>

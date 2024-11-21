@@ -1,18 +1,18 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
-import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
+import TeamApiKeys from "@/views/TeamApiKeys.vue";
+import { namespacesApi, usersApi, apiKeysApi, devicesApi } from "@/api/http";
 import { store, key } from "@/store";
-import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { router } from "@/router";
 
-type SettingNamespaceWrapper = VueWrapper<InstanceType<typeof SettingNamespace>>;
+type TeamApiKeysWrapper = VueWrapper<InstanceType<typeof TeamApiKeys>>;
 
-describe("Setting Namespace", () => {
-  let wrapper: SettingNamespaceWrapper;
+describe("Team Api Keys", () => {
+  let wrapper: TeamApiKeysWrapper;
 
   const vuetify = createVuetify();
 
@@ -20,29 +20,28 @@ describe("Setting Namespace", () => {
 
   let mockUser: MockAdapter;
 
+  let mockDevices: MockAdapter;
+
   let mockApiKeys: MockAdapter;
 
   const members = [
     {
-      id: "507f1f77bcf86cd799439011",
+      id: "xxxxxxxx",
       username: "test",
       role: "owner",
     },
   ];
-
-  const namespaceData = { data: {
+  const namespaceData = {
     name: "test",
     owner: "test",
-    tenant_id: "fake-tenant",
+    tenant_id: "fake-tenant-data",
     members,
     settings: {
       session_record: true,
-      connection_announcement: "",
     },
     max_devices: 3,
     devices_count: 3,
     created_at: "",
-  },
   };
 
   const authData = {
@@ -50,9 +49,9 @@ describe("Setting Namespace", () => {
     token: "",
     user: "test",
     name: "test",
-    tenant: "fake-tenant",
+    tenant: "fake-tenant-data",
     email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
+    id: "xxxxxxxx",
     role: "owner",
     mfa: {
       enable: false,
@@ -62,45 +61,59 @@ describe("Setting Namespace", () => {
 
   const session = true;
 
-  const getKeyResponse = [
-    {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
+  const res = {
+    data: [namespaceData],
+    headers: {
+      "x-total-count": 1,
     },
+  };
+
+  const stats = {
+    data: {
+      registered_devices: 2,
+      online_devices: 1,
+      active_sessions: 0,
+      pending_devices: 24,
+      rejected_devices: 1,
+    },
+  };
+
+  const apiKeys = [
     {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df2",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
+      name: "fake-api-key",
+      tenant_id: "00000000-0000-4000-0000-000000000000",
+      role: "owner",
+      created_by: "xxxxxxxx",
+      created_at: "",
+      updated_at: "",
+      expires_in: "",
     },
   ];
 
   beforeEach(async () => {
     vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant");
+    localStorage.setItem("tenant", "fake-tenant-data");
+
     envVariables.isCloud = true;
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
     mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
+    mockDevices = new MockAdapter(devicesApi.getAxios());
 
+    mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, apiKeys);
+    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getKeyResponse, { "x-total-count": 2 });
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
-    store.commit("auth/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
+    store.commit("namespaces/setNamespaces", res);
+    store.commit("stats/setStats", stats);
 
-    wrapper = mount(SettingNamespace, {
+    wrapper = mount(TeamApiKeys, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {
@@ -108,6 +121,12 @@ describe("Setting Namespace", () => {
         },
       },
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
@@ -122,11 +141,9 @@ describe("Setting Namespace", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="editOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tenant-id"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="NamespaceEdit-component"]').exists()).toBe(true);
+  it("Renders the template with data", async () => {
+    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="api-key-generate"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);
   });
 });
