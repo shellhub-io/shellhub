@@ -40,50 +40,6 @@
           <v-divider class="mb-6" />
         </div>
 
-        <div class="mt-6" data-test="userOperation-div">
-          <v-row>
-            <v-col>
-              <h3>Members</h3>
-            </v-col>
-
-            <v-spacer />
-
-            <v-col md="auto" class="ml-auto">
-              <NamespaceMemberInvite @update="refresh" />
-            </v-col>
-          </v-row>
-
-          <NamespaceMemberList :namespace="namespace" />
-        </div>
-        <v-divider class="mt-6" />
-        <v-divider class="mb-6" />
-
-        <div class="mt-6">
-          <v-row>
-            <v-col data-test="api-key-title">
-              <h3>Api Keys</h3>
-            </v-col>
-
-            <v-spacer />
-
-            <v-col md="auto" class="ml-auto">
-              <NamespaceGenerateApiKey @update="refreshApiKeys" data-test="api-key-generate" />
-            </v-col>
-          </v-row>
-
-          <v-spacer />
-          <v-row class="mt-2 mb-2">
-            <v-col class="ml-3" data-test="api-key-text">
-              Generate a Api Key for quick access to your ShellHub account.
-            </v-col>
-          </v-row>
-
-          <v-row class="mt-2 mb-2">
-            <v-col>
-              <NamespaceApiKeyList ref="apiKeyList" data-test="api-key-list" />
-            </v-col>
-          </v-row>
-        </div>
         <div v-if="true" class="mt-6" data-test="securityOperation-div">
           <SettingSecurity :hasTenant="hasTenant()" />
 
@@ -139,10 +95,6 @@ import { onMounted, computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
-import NamespaceMemberInvite from "../Namespace/NamespaceMemberInvite.vue";
-import NamespaceMemberList from "../Namespace/NamespaceMemberList.vue";
-import NamespaceGenerateApiKey from "../Namespace/NamespaceGenerateApiKey.vue";
-import NamespaceApiKeyList from "../Namespace/NamespaceApiKeyList.vue";
 import SettingSecurity from "./SettingSecurity.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import {
@@ -153,7 +105,6 @@ import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 
 const store = useStore();
-const apiKeyList = ref();
 const namespace = computed(() => store.getters["namespaces/get"]);
 const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
 const tenant = computed(() => store.getters["auth/tenant"]);
@@ -187,13 +138,7 @@ const getNamespace = async () => {
     }
   }
 };
-const refresh = () => {
-  getNamespace();
-};
 
-const refreshApiKeys = () => {
-  apiKeyList.value.refresh();
-};
 onMounted(async () => {
   if (tenant.value) {
     await getNamespace();

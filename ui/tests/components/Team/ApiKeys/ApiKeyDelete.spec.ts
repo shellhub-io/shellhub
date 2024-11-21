@@ -2,7 +2,7 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import NamespaceDeleteApiKey from "@/components/Namespace/NamespaceDeleteApiKey.vue";
+import ApiKeyDelete from "@/components/Team/ApiKeys/ApiKeyDelete.vue";
 import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
@@ -14,10 +14,10 @@ const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
-type NamespaceDeleteApiKeyWrapper = VueWrapper<InstanceType<typeof NamespaceDeleteApiKey>>;
+type ApiKeyDeleteWrapper = VueWrapper<InstanceType<typeof ApiKeyDelete>>;
 
-describe("Namespace Api Key Delete", () => {
-  let wrapper: NamespaceDeleteApiKeyWrapper;
+describe("Api Key Delete", () => {
+  let wrapper: ApiKeyDeleteWrapper;
 
   const vuetify = createVuetify();
 
@@ -105,7 +105,8 @@ describe("Namespace Api Key Delete", () => {
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
     store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
-    wrapper = mount(NamespaceDeleteApiKey, {
+
+    wrapper = mount(ApiKeyDelete, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {

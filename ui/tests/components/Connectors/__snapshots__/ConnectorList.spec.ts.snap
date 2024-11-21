@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Device List > Renders the component 1`] = `
+exports[`Connector List > Renders the component 1`] = `
 "<div data-v-046d4556=\\"\\" data-v-6fdd6bd6=\\"\\" data-test=\\"connector-list\\">
   <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-background border rounded\\">
     <!---->

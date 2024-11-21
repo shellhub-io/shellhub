@@ -113,7 +113,7 @@ import moment from "moment";
 import * as yup from "yup";
 import axios from "axios";
 import { useField } from "vee-validate";
-import hasPermission from "../../utils/permission";
+import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";

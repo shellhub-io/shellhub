@@ -2,22 +2,22 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import NamespaceMemberInvite from "@/components/Namespace/NamespaceMemberInvite.vue";
+import MemberDelete from "@/components/Team/Member/MemberDelete.vue";
 import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
+import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
 
-type NamespaceMemberInviteWrapper = VueWrapper<InstanceType<typeof NamespaceMemberInvite>>;
+type MemberDeleteWrapper = VueWrapper<InstanceType<typeof MemberDelete>>;
 
-describe("Namespace Member Invite", () => {
+describe("Member Delete", () => {
   const node = document.createElement("div");
   node.setAttribute("id", "app");
   document.body.appendChild(node);
 
-  let wrapper: NamespaceMemberInviteWrapper;
+  let wrapper: MemberDeleteWrapper;
 
   const vuetify = createVuetify();
 
@@ -81,12 +81,18 @@ describe("Namespace Member Invite", () => {
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
-    wrapper = mount(NamespaceMemberInvite, {
+
+    wrapper = mount(MemberDelete, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        config: {
+          errorHandler: () => { /* ignore global error handler */ },
+        },
       },
       attachTo: el,
     });
+
+    await wrapper.setProps({ member: members[0], hasAuthorization: true });
   });
 
   it("Is a Vue instance", () => {
@@ -104,64 +110,52 @@ describe("Namespace Member Invite", () => {
   it("Renders components", async () => {
     const dialog = new DOMWrapper(document.body);
 
-    expect(wrapper.findComponent('[data-test="invite-dialog-btn"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="member-delete-dialog-btn"]').exists()).toBe(true);
 
-    await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
 
-    expect(dialog.find('[data-test="namespaceNewMember-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="email-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="role-select"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="invite-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="member-delete-card"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="member-delete-dialog-title"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="member-delete-dialog-text"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="member-delete-close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="member-delete-remove-btn"]').exists()).toBe(true);
   });
 
-  it("Invite Member Error Validation", async () => {
-    mockNamespace.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(409);
+  it("Delete Member Error Validation", async () => {
+    mockNamespace.onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(403);
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="email-text"]').setValue("not-working-mail");
-
-    await wrapper.findComponent('[data-test="role-select"]').setValue("not-right-role");
-
-    await wrapper.findComponent('[data-test="invite-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="member-delete-remove-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/addUser", {
-      email: "not-working-mail",
+    expect(storeSpy).toBeCalledWith("namespaces/removeUser", {
       tenant_id: "fake-tenant-data",
-      role: "not-right-role",
+      user_id: "xxxxxxxx",
     });
 
-    expect(wrapper.vm.emailError).toEqual("This user is already a member of this namespace.");
+    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarErrorAction", INotificationsError.namespaceRemoveUser);
   });
 
-  it("Invite Member Success Validation", async () => {
-    mockNamespace.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(200);
+  it("Delete Member Success Validation", async () => {
+    mockNamespace.onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="email-text"]').setValue("workingmail@mail.com");
-
-    await wrapper.findComponent('[data-test="role-select"]').setValue("administrator");
-
-    await wrapper.findComponent('[data-test="invite-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="member-delete-remove-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/addUser", {
-      email: "workingmail@mail.com",
+    expect(storeSpy).toBeCalledWith("namespaces/removeUser", {
       tenant_id: "fake-tenant-data",
-      role: "administrator",
+      user_id: "xxxxxxxx",
     });
 
-    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarSuccessAction", INotificationsSuccess.namespaceNewMember);
-
-    expect(wrapper.vm.emailError).toBeUndefined();
+    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarSuccessAction", INotificationsSuccess.namespaceRemoveUser);
   });
 });

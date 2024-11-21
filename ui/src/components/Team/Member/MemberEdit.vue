@@ -4,21 +4,22 @@
       @click="showDialog = true"
       v-bind="$props"
       :disabled="notHasAuthorization"
+      data-test="member-edit-btn"
     >
       <div class="d-flex align-center">
-        <div data-test="namespace-edit-icon" class="mr-2">
+        <div class="mr-2">
           <v-icon> mdi-pencil </v-icon>
         </div>
 
-        <v-list-item-title data-test="namespace-edit-title">
+        <v-list-item-title data-test="member-edit-title">
           Edit
         </v-list-item-title>
       </div>
     </v-list-item>
 
     <v-dialog max-width="450" v-model="showDialog">
-      <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-4 bg-primary">
+      <v-card class="bg-v-theme-surface" data-test="member-edit-dialog">
+        <v-card-title class="text-h5 pa-4 bg-primary" data-test="member-edit-dialog-title">
           Update member role
         </v-card-title>
         <v-divider />
@@ -65,10 +66,10 @@ import axios from "axios";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import { IMember } from "../../interfaces/IMember";
-import { useStore } from "../../store";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import { IMember } from "@/interfaces/IMember";
+import { useStore } from "@/store";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   member: {
@@ -76,17 +77,9 @@ const props = defineProps({
     required: false,
     default: {} as IMember,
   },
-  show: {
-    type: Boolean,
-    required: false,
-  },
   notHasAuthorization: {
     type: Boolean,
     default: false,
-  },
-  style: {
-    type: [String, Object],
-    default: undefined,
   },
 });
 const emit = defineEmits(["update"]);
@@ -128,12 +121,12 @@ const handleEditMemberError = (error: unknown) => {
         errorMessage.value = "The username doesn't exist.";
         break;
       default:
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceEditMember,
-        );
         handleError(error);
     }
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.namespaceEditMember,
+    );
   } else {
     store.dispatch(
       "snackbar/showSnackbarErrorAction",

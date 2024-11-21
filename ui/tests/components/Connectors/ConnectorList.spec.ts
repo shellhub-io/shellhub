@@ -11,7 +11,7 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type ConnectorListWrapper = VueWrapper<InstanceType<typeof ConnectorList>>;
 
-describe("Device List", () => {
+describe("Connector List", () => {
   let wrapper: ConnectorListWrapper;
 
   const vuetify = createVuetify();

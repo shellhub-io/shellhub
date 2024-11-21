@@ -3,17 +3,17 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import moment from "moment";
-import NamespaceApiKeyList from "@/components/Namespace/NamespaceApiKeyList.vue";
+import ApiKeyList from "@/components/Team/ApiKeys/ApiKeyList.vue";
 import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type NamespaceApiKeyListWrapper = VueWrapper<InstanceType<typeof NamespaceApiKeyList>>;
+type ApiKeyListWrapper = VueWrapper<InstanceType<typeof ApiKeyList>>;
 
-describe("Namespace Api Key List", () => {
-  let wrapper: NamespaceApiKeyListWrapper;
+describe("Api Key List", () => {
+  let wrapper: ApiKeyListWrapper;
 
   const vuetify = createVuetify();
 
@@ -104,7 +104,7 @@ describe("Namespace Api Key List", () => {
     store.commit("security/setSecurity", session);
     store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
-    wrapper = mount(NamespaceApiKeyList, {
+    wrapper = mount(ApiKeyList, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {
