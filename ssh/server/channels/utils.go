@@ -14,6 +14,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+// pipe pipes data between client and agent, and vise versa, recoding each frame when ShellHub instance are Cloud or
+// Enterprise.
 func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel) {
 	defer func() {
 		ctx.Lock()
@@ -46,7 +48,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		if (envs.IsEnterprise() || envs.IsCloud()) && recordURL != "" {
 			// TODO: Should it be a channel of pointers to [models.SessionRecorded], or just the structure, could deliver a
 			// better performance?
-			camera := make(chan *models.SessionRecorded, 100)
+			camera := make(chan *models.SessionRecorded)
 
 			go func() {
 				for {
@@ -122,6 +124,43 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 
 		if _, err := io.Copy(agent, c); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
+		}
+
+		log.Trace("client channel data copy done")
+	}()
+
+	wg.Wait()
+}
+
+// hose is a generic version of [pipe] function without the record capability.
+func hose(sess *session.Session, agent gossh.Channel, client gossh.Channel) {
+	defer log.
+		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
+		Trace("data pipe between client and agent has done")
+
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+
+	a := io.MultiReader(agent, agent.Stderr())
+	c := io.MultiReader(client, client.Stderr())
+
+	go func() {
+		defer wg.Done()
+		defer agent.CloseWrite() //nolint:errcheck
+
+		if _, err := io.Copy(agent, c); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed on coping data from client to agent")
+		}
+
+		log.Trace("agent channel data copy done")
+	}()
+
+	go func() {
+		defer wg.Done()
+		defer client.CloseWrite() //nolint:errcheck
+
+		if _, err := io.Copy(client, a); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed on coping data from agent to client")
 		}
 
 		log.Trace("client channel data copy done")

@@ -215,6 +215,46 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 					sess.Pty.Columns = dimensions.Columns
 					sess.Pty.Rows = dimensions.Rows
+				case AuthRequestOpenSSHRequest:
+					gliderssh.SetAgentRequested(ctx)
+
+					go func() {
+						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
+						agentChannels := sess.AgentClient.HandleChannelOpen(AuthRequestOpenSSHChannel)
+
+						for {
+							newAgentChannel, ok := <-agentChannels
+							if !ok {
+								reject(nil, "channel for agent forwarding done")
+
+								return
+							}
+
+							agentChannel, agentReqs, err := newAgentChannel.Accept()
+							if err != nil {
+								reject(nil, "failed to accept the chanel request from agent on auth request")
+
+								return
+							}
+
+							defer agentChannel.Close()
+							go gossh.DiscardRequests(agentReqs)
+
+							clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
+							if err != nil {
+								reject(nil, "failed to open the auth request channel from agent to client")
+
+								return
+							}
+
+							defer clientChannel.Close()
+							go gossh.DiscardRequests(clientReqs)
+
+							hose(sess, agentChannel, clientChannel)
+
+							logger.WithError(err).Trace("auth request channel piping done")
+						}
+					}()
 				}
 
 				logger.Debugf("request from client to agent: %s", req.Type)
