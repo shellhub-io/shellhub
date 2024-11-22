@@ -55,7 +55,7 @@
             data-test="list-group"
           >
             <template v-slot:activator="{ props }">
-              <v-list-item v-bind="props">
+              <v-list-item lines="two" v-bind="props">
                 <template #prepend>
                   <v-icon data-test="icon">
                     {{ item.icon }}
@@ -230,11 +230,6 @@ const items = [
     path: "/sshkeys/public-keys",
   },
   {
-    icon: "mdi-cog",
-    title: "Settings",
-    path: "/settings",
-  },
-  {
     icon: "mdi-account-group",
     title: "Team",
     path: "/team",
@@ -248,6 +243,11 @@ const items = [
         path: "/team/api-keys",
       },
     ],
+  },
+  {
+    icon: "mdi-cog",
+    title: "Settings",
+    path: "/settings",
   },
 ];
 

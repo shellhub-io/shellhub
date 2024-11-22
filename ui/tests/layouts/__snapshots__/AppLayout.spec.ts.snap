@@ -117,22 +117,9 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class=\\"v-list-item__spacer\\"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
-            </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
-              <!---->
-              <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings</div>
-            </div>
-            <div class=\\"v-list-item__append\\">
-              <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
-            </div>
           </a>
           <div data-v-e7291ef4=\\"\\" class=\\"v-list-group v-list-group--prepend\\" data-test=\\"list-group\\">
-            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text v-list-group__header\\" tabindex=\\"-2\\" aria-selected=\\"false\\" id=\\"v-list-group--id-false\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header\\" tabindex=\\"-2\\" aria-selected=\\"false\\" id=\\"v-list-group--id-false\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
               <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-account-group mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
                 <div class=\\"v-list-item__spacer\\"></div>
               </div>
@@ -165,7 +152,20 @@ exports[`App Layout Component > Renders the component 1`] = `
                   <!---->
                 </a></div>
             </transition-stub>
-          </div>
+          </div><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings</div>
+            </div>
+            <div class=\\"v-list-item__append\\">
+              <!--v-if-->
+              <div class=\\"v-list-item__spacer\\"></div>
+            </div>
+          </a>
           <div data-v-e7291ef4=\\"\\" class=\\"v-col d-flex align-end justify-center\\">
             <div data-v-136d2a2f=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connect </span>
                 <!---->
