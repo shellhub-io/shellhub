@@ -1,9 +1,12 @@
 package internalclient
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 
+	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -26,8 +29,9 @@ type sessionAPI interface {
 	// It returns a slice of errors encountered during the operation.
 	KeepAliveSession(uid string) []error
 
-	// RecordSession records a session with the provided session information and record URL.
-	RecordSession(session *models.SessionRecorded, recordURL string) error
+	// RecordSession creates a WebSocket client to the URL, and writes each channel request received by it as a
+	// session record. When the context is done, the internal reading loop should return.
+	RecordSession(ctx context.Context, uid string, camera chan *models.SessionRecorded, recordURL string) error
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(uid string, model *models.SessionUpdate) error
@@ -84,13 +88,42 @@ func (c *client) KeepAliveSession(uid string) []error {
 	return errors
 }
 
-func (c *client) RecordSession(session *models.SessionRecorded, recordURL string) error {
-	_, err := c.http.
-		R().
-		SetBody(session).
-		Post(fmt.Sprintf("http://"+recordURL+"/internal/sessions/%s/record", session.UID))
+func (c *client) RecordSession(ctx context.Context, uid string, camera chan *models.SessionRecorded, recordURL string) error {
+	connection, _, err := websocket.
+		DefaultDialer.
+		DialContext(
+			ctx,
+			fmt.Sprintf("ws://%s/internal/sessions/%s/record",
+				recordURL,
+				uid,
+			),
+			nil)
+	if err != nil {
+		return err
+	}
 
-	return err
+	defer connection.Close()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case frame, ok := <-camera:
+			if !ok {
+				// If the camera channel was closed, we stop the writing process.
+				return nil
+			}
+
+			err := connection.WriteJSON(frame)
+			if err == io.EOF {
+				return nil
+			}
+
+			if err != nil {
+				return err
+			}
+		}
+	}
 }
 
 func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {

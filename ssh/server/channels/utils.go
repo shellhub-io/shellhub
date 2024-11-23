@@ -46,20 +46,11 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		// defined, we use an [io.Copy] for the data piping between agent and client.
 		recordURL := ctx.Value("RECORD_URL").(string)
 		if (envs.IsEnterprise() || envs.IsCloud()) && recordURL != "" {
-			// TODO: Should it be a channel of pointers to [models.SessionRecorded], or just the structure, could deliver a
-			// better performance?
-			camera := make(chan *models.SessionRecorded)
+			camera := make(chan *models.SessionRecorded, 100)
 
-			go func() {
-				for {
-					frame, ok := <-camera
-					if !ok {
-						break
-					}
-
-					sess.Record(frame, recordURL) //nolint:errcheck
-				}
-			}()
+			// Starts the session record web socket client, and writing each frame received by camera to it.
+			// While the context exists, the client remains open.
+			go sess.Record(ctx, camera, recordURL) //nolint:errcheck
 
 			buffer := make([]byte, 1024)
 			for {
