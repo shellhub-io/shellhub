@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -404,11 +405,15 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	return nil
 }
 
-// Record records the current session state.
-//
-// It returns an error if any.
-func (s *Session) Record(req *models.SessionRecorded, url string) error {
-	return s.api.RecordSession(req, url)
+func (s *Session) Record(ctx context.Context, camera chan *models.SessionRecorded, url string) error {
+	err := s.api.RecordSession(ctx, s.UID, camera, url)
+	if err != nil {
+		log.WithError(err).Error("failed to start the record session process")
+
+		return err
+	}
+
+	return nil
 }
 
 func (s *Session) KeepAlive() error {
