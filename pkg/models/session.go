@@ -25,6 +25,7 @@ type Session struct {
 	Type          string          `json:"type" bson:"type"`
 	Term          string          `json:"term" bson:"term"`
 	Position      SessionPosition `json:"position" bson:"position"`
+	Events        SessionEvents   `json:"events" bson:"events"`
 }
 
 type ActiveSession struct {
@@ -61,4 +62,22 @@ type SessionRecorded struct {
 type SessionUpdate struct {
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`
+}
+
+// SessionEvent represents a session event.
+type SessionEvent struct {
+	// Type of the session. Normally, it is the SSH request name.
+	Type string `json:"type" bson:"type"`
+	// Timestamp contains the time when the event was logged.
+	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
+	// Data is a generic structure containing data of the event, normally the unmarshaling data of the request.
+	Data any `json:"data" bson:"data"`
+}
+
+// SessionEvents stores the events registered in a session.
+type SessionEvents struct {
+	// Types field is a set of sessions type to simplify the indexing on the database.
+	Types []string `json:"types" bson:"types,omitempty"`
+	// Items contains a list of events happened in a session.
+	Items []SessionEvent `json:"items" bson:"items,omitempty"`
 }

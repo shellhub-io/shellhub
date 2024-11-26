@@ -48,14 +48,18 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.7
 	WindowChangeRequestType = "window-change"
-	// In a defined interval, the Agent sends a keepalive request to maintain the session apoint, even when no data is
-	// send.
+	// It is a custom request type that the Agent sends to maintain the session alive, even when no data is sent.
 	KeepAliveRequestType = KeepAliveRequestTypePrefix + "@shellhub.io"
 	//  When the command running at the other end terminates, the following message can be sent to return the exit
 	//  status of the command. Returning the status is RECOMMENDED.
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.10
 	ExitStatusRequest = "exit-status"
+	//  The remote command may also terminate violently due to a signal. Such a condition can be indicated by the
+	//  following message.  A zero 'exit_status' usually means that the command terminated successfully.
+	//
+	// https://datatracker.ietf.org/doc/html/rfc4254#section-6.10
+	ExitSignalRequest = "exit-signal"
 )
 
 // A client may request agent forwarding for a previously-opened session using the following channel request. This
@@ -175,6 +179,15 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					return
 				}
 
+				switch req.Type {
+				case ExitStatusRequest:
+					session.Event[session.Status](sess, req.Type, req.Payload)
+				case ExitSignalRequest:
+					session.Event[session.Signal](sess, req.Type, req.Payload)
+				default:
+					sess.Event(req.Type, req.Payload)
+				}
+
 				logger.Debugf("request from agent to client: %s", req.Type)
 
 				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
@@ -203,6 +216,10 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							logger.WithError(err).Warn("failed to get the namespace announcement")
 						}
 					}
+
+					sess.Event(req.Type, req.Payload)
+				case ExecRequestType, SubsystemRequestType:
+					session.Event[session.Command](sess, req.Type, req.Payload)
 				case PtyRequestType:
 					var pty session.Pty
 
@@ -211,6 +228,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					}
 
 					sess.Pty = pty
+
+					sess.Event(req.Type, pty) //nolint:errcheck
 				case WindowChangeRequestType:
 					var dimensions session.Dimensions
 
@@ -220,9 +239,12 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 					sess.Pty.Columns = dimensions.Columns
 					sess.Pty.Rows = dimensions.Rows
+
+					sess.Event(req.Type, dimensions) //nolint:errcheck
 				case AuthRequestOpenSSHRequest:
 					gliderssh.SetAgentRequested(ctx)
 
+					sess.Event(req.Type, req.Payload)
 					go func() {
 						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
 						agentChannels := sess.AgentClient.HandleChannelOpen(AuthRequestOpenSSHChannel)
@@ -260,6 +282,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							logger.WithError(err).Trace("auth request channel piping done")
 						}
 					}()
+				default:
+					sess.Event(req.Type, req.Payload)
 				}
 
 				logger.Debugf("request from client to agent: %s", req.Type)

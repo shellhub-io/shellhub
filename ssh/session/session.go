@@ -25,21 +25,40 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-type Dimensions struct {
-	Columns uint32
-	Rows    uint32
-	Width   uint32
-	Height  uint32
+type Command struct {
+	Command string `json:"command"`
 }
 
-// NOTICE: [Pty] cannot use [Dimensions] inside itself ude [ssh.Unmarshal] issues.
+type Subsystem struct {
+	Subsystem string `json:"subsystem"`
+}
+
+type Status struct {
+	Status uint32 `json:"status"`
+}
+
+type Signal struct {
+	Name    uint32 `json:"status"`
+	Dumped  bool   `json:"dumped"`
+	Message string `json:"message"`
+	Lang    string `json:"lang"`
+}
+
+type Dimensions struct {
+	Columns uint32 `json:"columns"`
+	Rows    uint32 `json:"rows"`
+	Width   uint32 `json:"width"`
+	Height  uint32 `json:"height"`
+}
+
+// NOTICE: [Pty] cannot use [Dimensions] inside itself due [ssh.Unmarshal] issues.
 type Pty struct {
-	Term     string
-	Columns  uint32
-	Rows     uint32
-	Width    uint32
-	Height   uint32
-	Modelist string
+	Term     string `json:"term"`
+	Columns  uint32 `json:"columns" `
+	Rows     uint32 `json:"rows"`
+	Width    uint32 `json:"width"`
+	Height   uint32 `json:"height"`
+	Modelist []byte `json:"modelist"`
 }
 
 type Data struct {
@@ -417,6 +436,28 @@ func (s *Session) Record(ctx context.Context, url string) (*websocket.Conn, erro
 	return conn, nil
 }
 
+func Event[D any](sess *Session, t string, data []byte) {
+	d := new(D)
+	if err := gossh.Unmarshal(data, d); err != nil {
+		return
+	}
+
+	go sess.api.EventSession(sess.UID, &models.SessionEvent{ //nolint:errcheck
+		Type:      t,
+		Timestamp: clock.Now(),
+		Data:      d,
+	})
+}
+
+// Events register a event to the session.
+func (s *Session) Event(t string, data any) {
+	go s.api.EventSession(s.UID, &models.SessionEvent{ //nolint:errcheck
+		Type:      t,
+		Timestamp: clock.Now(),
+		Data:      data,
+	})
+}
+
 func (s *Session) KeepAlive() error {
 	if errs := s.api.KeepAliveSession(s.UID); len(errs) > 0 {
 		log.Error(errs[0])
@@ -495,11 +536,4 @@ func (s *Session) Finish() (err error) {
 	})
 
 	return nil
-}
-
-// Type updates the session's type on the database.
-func (s *Session) Type(kind string) error {
-	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
-		Type: &kind,
-	})
 }

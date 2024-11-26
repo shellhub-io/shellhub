@@ -33,6 +33,8 @@ type sessionAPI interface {
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(uid string, model *models.SessionUpdate) error
+
+	EventSession(uid string, log *models.SessionEvent) error
 }
 
 func (c *client) SessionCreate(session requests.SessionCreate) error {
@@ -117,6 +119,25 @@ func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
 
 	if res.StatusCode() != 200 {
 		return errors.New("failed to update the session")
+	}
+
+	return nil
+}
+
+func (c *client) EventSession(uid string, log *models.SessionEvent) error {
+	res, err := c.http.
+		R().
+		SetPathParams(map[string]string{
+			"tenant": uid,
+		}).
+		SetBody(log).
+		Post("/internal/sessions/{tenant}/events")
+	if err != nil {
+		return errors.Join(errors.New("failed to log the event on the session due error"), err)
+	}
+
+	if res.StatusCode() != 200 {
+		return errors.New("failed to send the log event")
 	}
 
 	return nil
