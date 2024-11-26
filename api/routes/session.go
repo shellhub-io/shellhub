@@ -19,6 +19,7 @@ const (
 	KeepAliveSessionURL = "/sessions/:uid/keepalive"
 	RecordSessionURL    = "/sessions/:uid/record"
 	PlaySessionURL      = "/sessions/:uid/play"
+	EventsSessionsURL   = "/sessions/:uid/events"
 )
 
 const (
@@ -132,4 +133,21 @@ func (h *Handler) PlaySession(c gateway.Context) error {
 
 func (h *Handler) DeleteRecordedSession(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) EventSession(c gateway.Context) error {
+	var req requests.SessionEvent
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	return h.service.EventSession(c.Ctx(), models.UID(req.UID), &models.SessionEvent{
+		Type:      req.Type,
+		Timestamp: req.Timestamp,
+		Data:      req.Data,
+	})
 }

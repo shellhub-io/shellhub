@@ -266,3 +266,21 @@ func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session
 
 	return nil
 }
+
+// SessionEvent saves a [models.SessionEvent] into the database.
+//
+// It pushes the event into events type array, and the event type into a separated set. The set is used to improve the
+// performance of indexing when looking for sessions.
+func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
+	if _, err := s.db.Collection("sessions").UpdateOne(ctx,
+		bson.M{"uid": uid},
+		bson.M{
+			"$addToSet": bson.M{"events.types": event.Type},
+			"$push":     bson.M{"events.items": event},
+		},
+	); err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}

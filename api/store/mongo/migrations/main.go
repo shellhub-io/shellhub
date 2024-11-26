@@ -93,6 +93,7 @@ func GenerateMigrations() []migrate.Migration {
 		migration81,
 		migration82,
 		migration83,
+		migration84,
 	}
 }
 

@@ -1,5 +1,7 @@
 package requests
 
+import "time"
+
 // SessionIDParam is a structure to represent and validate a session UID as path param.
 type SessionIDParam struct {
 	// UID is the session's UID.
@@ -41,4 +43,11 @@ type SessionUpdate struct {
 	SessionIDParam
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`
+}
+
+type SessionEvent struct {
+	SessionIDParam
+	Type      string    `json:"type" validate:"required"`
+	Timestamp time.Time `json:"timestamp" validate:"required"`
+	Data      any       `json:"data" validate:"required"`
 }

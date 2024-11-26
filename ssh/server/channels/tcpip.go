@@ -30,10 +30,10 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 	}).Trace("handling direct-tcpip channel")
 
 	type channelData struct {
-		DestAddr   string
-		DestPort   uint32
-		OriginAddr string
-		OriginPort uint32
+		DestAddr   string `json:"dest_addr"`
+		DestPort   uint32 `json:"dest_port"`
+		OriginAddr string `json:"origin_addr"`
+		OriginPort uint32 `json:"origin_port"`
 	}
 
 	data := new(channelData)
@@ -64,6 +64,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 
 		return
 	}
+
+	sess.Event(DirectTCPIPChannel, data) //nolint:errcheck
 
 	dest := net.JoinHostPort(data.DestAddr, strconv.FormatInt(int64(data.DestPort), 10))
 

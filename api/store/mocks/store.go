@@ -1500,6 +1500,20 @@ func (_m *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error
 	return r0
 }
 
+// SessionEvent provides a mock function with given fields: ctx, uid, event
+func (_m *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
+	ret := _m.Called(ctx, uid, event)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.SessionEvent) error); ok {
+		r0 = rf(ctx, uid, event)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SessionGet provides a mock function with given fields: ctx, uid
 func (_m *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session, error) {
 	ret := _m.Called(ctx, uid)

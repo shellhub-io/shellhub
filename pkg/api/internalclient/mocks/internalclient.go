@@ -182,6 +182,20 @@ func (_m *Client) EvaluateKey(fingerprint string, dev *models.Device, username s
 	return r0, r1
 }
 
+// EventSession provides a mock function with given fields: uid, log
+func (_m *Client) EventSession(uid string, log *models.SessionEvent) error {
+	ret := _m.Called(uid, log)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *models.SessionEvent) error); ok {
+		r0 = rf(uid, log)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FinishSession provides a mock function with given fields: uid
 func (_m *Client) FinishSession(uid string) []error {
 	ret := _m.Called(uid)
