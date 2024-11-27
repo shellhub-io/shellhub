@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -29,9 +28,8 @@ type sessionAPI interface {
 	// It returns a slice of errors encountered during the operation.
 	KeepAliveSession(uid string) []error
 
-	// RecordSession creates a WebSocket client to the URL, and writes each channel request received by it as a
-	// session record. When the context is done, the internal reading loop should return.
-	RecordSession(ctx context.Context, uid string, camera chan *models.SessionRecorded, recordURL string) error
+	// RecordSession creates a WebSocket client connection to the URL.
+	RecordSession(ctx context.Context, uid string, recordURL string) (*websocket.Conn, error)
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(uid string, model *models.SessionUpdate) error
@@ -88,7 +86,7 @@ func (c *client) KeepAliveSession(uid string) []error {
 	return errors
 }
 
-func (c *client) RecordSession(ctx context.Context, uid string, camera chan *models.SessionRecorded, recordURL string) error {
+func (c *client) RecordSession(ctx context.Context, uid string, recordURL string) (*websocket.Conn, error) {
 	connection, _, err := websocket.
 		DefaultDialer.
 		DialContext(
@@ -99,31 +97,10 @@ func (c *client) RecordSession(ctx context.Context, uid string, camera chan *mod
 			),
 			nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	defer connection.Close()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case frame, ok := <-camera:
-			if !ok {
-				// If the camera channel was closed, we stop the writing process.
-				return nil
-			}
-
-			err := connection.WriteJSON(frame)
-			if err == io.EOF {
-				return nil
-			}
-
-			if err != nil {
-				return err
-			}
-		}
-	}
+	return connection, nil
 }
 
 func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {

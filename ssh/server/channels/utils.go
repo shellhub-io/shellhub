@@ -46,11 +46,20 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		// defined, we use an [io.Copy] for the data piping between agent and client.
 		recordURL := ctx.Value("RECORD_URL").(string)
 		if (envs.IsEnterprise() || envs.IsCloud()) && recordURL != "" {
-			camera := make(chan *models.SessionRecorded, 100)
+			// NOTE: Recoding variable is used to control if the frames will be recorded. If something wrong happens in
+			// this process, to spare resources, we don't send frames anymore for this session.
+			recording := true
 
-			// Starts the session record web socket client, and writing each frame received by camera to it.
-			// While the context exists, the client remains open.
-			go sess.Record(ctx, camera, recordURL) //nolint:errcheck
+			camera, err := sess.Record(ctx, recordURL)
+			if err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID, "record_url": recordURL}).
+					Warning("failed to connect to session record endpoint")
+
+				recording = false
+			}
+
+			defer camera.Close()
 
 			buffer := make([]byte, 1024)
 			for {
@@ -79,12 +88,22 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 					break
 				}
 
-				camera <- &models.SessionRecorded{ //nolint:errcheck
-					UID:       sess.UID,
-					Namespace: sess.Lookup["domain"],
-					Message:   string(buffer[:read]),
-					Width:     int(sess.Pty.Columns),
-					Height:    int(sess.Pty.Rows),
+				if recording {
+					if err := camera.WriteJSON(&models.SessionRecorded{ //nolint:errcheck
+						UID:       sess.UID,
+						Namespace: sess.Lookup["domain"],
+						Message:   string(buffer[:read]),
+						Width:     int(sess.Pty.Columns),
+						Height:    int(sess.Pty.Rows),
+					}); err != nil {
+						log.WithError(err).
+							WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
+							Warning("failed to send the session frame to record")
+
+						recording = false
+
+						continue
+					}
 				}
 			}
 		} else {
