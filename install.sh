@@ -3,8 +3,6 @@
 # Overridden variables from Go template: {{.Overrides}}
 
 docker_install() {
-    echo "🐳 Installing ShellHub using docker method..."
-
     [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
     [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
     [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
@@ -40,8 +38,6 @@ docker_install() {
 }
 
 snap_install() {
-    echo "📦 Installing ShellHub using snap method..."
-
     if ! type snap > /dev/null 2>&1; then
         echo "❌ Snap is not installed or not supported on this system."
         exit 1
@@ -61,8 +57,6 @@ snap_install() {
 }
 
 standalone_install() {
-    echo "🐧 Installing ShellHub using standalone method..."
-
     INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 
     if [ "$(id -u)" -ne 0 ]; then
@@ -115,6 +109,26 @@ standalone_install() {
     $SUDO rm -rf $INSTALL_DIR
     $SUDO mv $TMP_DIR $INSTALL_DIR
     $SUDO rm -rf $TMP_DIR
+}
+
+wsl_install() {
+    if ! systemctl show-environment > /dev/null 2>&1 ; then
+        printf "❌ ERROR: This install method requires systemd to be enabled.\n"
+        printf "Please refer to the following link for instructions on how to enable systemd:\n"
+        printf "https://learn.microsoft.com/en-us/windows/wsl/wsl-config#systemd-support\n"
+        printf "Once systemd is enabled, run this script again to complete the installation.\n"
+        exit 1
+    fi
+
+    if [ "$(wslinfo --networking-mode)" != "mirrored" ]; then
+        printf "❌ ERROR: WSL networking mode must be set to mirrored.\n"
+        printf "Please refer to the following link for instructions on how to set the networking mode:\n"
+        printf "https://learn.microsoft.com/en-us/windows/wsl/networking#mirrored-mode-networking\n"
+        printf "Once the networking mode is set to mirrored, run this script again to complete the installation.\n"
+        exit 1
+    fi
+
+    standalone_install
 }
 
 download() {
@@ -174,6 +188,19 @@ if [ -z "$INSTALL_METHOD" ] && type snap > /dev/null 2>&1; then
     INSTALL_METHOD="snap"
 fi
 
+# Check if running on WSL
+if [ -e /proc/sys/fs/binfmt_misc/WSLInterop ]; then
+  WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
+  WSL_VERSION=$($WSL_EXE -l -v | tr -d '\0' | grep  ${WSL_DISTRO_NAME} | awk '{print $NF}' | tr -d -c '0-9')
+
+  if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
+    echo "❌ ERROR: WSL version 2 is required to run ShellHub."
+    exit 1
+  fi
+
+  INSTALL_METHOD="wsl"
+fi
+
 INSTALL_METHOD="${INSTALL_METHOD:-standalone}"
 
 # Auto detect arch if it has not already been set
@@ -208,13 +235,20 @@ echo
 
 case "$INSTALL_METHOD" in
     docker)
+        echo "🐳 Installing ShellHub using docker method..."
         docker_install
         ;;
     snap)
+        echo "📦 Installing ShellHub using snap method..."
         snap_install
         ;;
     standalone)
+        echo "🐧 Installing ShellHub using standalone method..."
         standalone_install
+        ;;
+    wsl)
+        echo "🪟 Installing ShellHub using WSL method..."
+        wsl_install
         ;;
     *)
         echo "❌ Install method not supported."
