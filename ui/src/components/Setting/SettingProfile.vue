@@ -1,244 +1,214 @@
 <template>
-  <v-container>
-    <v-row align="center" justify="center">
-      <v-col sm="8">
-        <v-row>
-          <v-col data-test="account-header">
-            <h3>Account</h3>
-          </v-col>
+  <v-container
+    fluid
+    data-test="account-profile-container"
+  >
+    <UserDelete v-model:show="showDeleteAccountDialog" data-test="delete-user-dialog" />
+    <v-card
+      variant="flat"
+      class="bg-transparent"
+      data-test="account-profile-card"
+    >
+      <v-card-item>
+        <v-list-item
+          class="pa-0"
+          data-test="profile-header"
+        >
+          <template v-slot:prepend>
+            <UserIcon size="4rem" data-test="user-icon" />
+          </template>
 
-          <v-spacer />
-
-          <v-col md="auto" class="ml-auto">
-            <v-btn
-              v-if="!editDataStatus"
-              color="primary"
-              data-test="change-data-btn"
-              @click="editDataStatus = !editDataStatus"
-            >
-              Change Data
-            </v-btn>
-
-            <div v-if="editDataStatus" class="d-flex align-center">
-              <v-btn data-test="cancel-btn" class="mr-2" color="primary" @click="cancel('data')">
-                Cancel
-              </v-btn>
-
-              <v-btn data-test="update-user-btn" color="primary" @click="updateUserData"> Save </v-btn>
-            </div>
-          </v-col>
-        </v-row>
-
-        <div class="mt-4 pl-4 pr-4">
-          <v-text-field
-            v-model="name"
-            label="Name"
-            :error-messages="nameError"
-            :disabled="!editDataStatus"
-            required
-            variant="underlined"
-            data-test="name-text"
-          />
-
-          <v-text-field
-            v-model="username"
-            label="Username"
-            :error-messages="usernameError"
-            :disabled="!editDataStatus"
-            required
-            variant="underlined"
-            data-test="username-text"
-          />
-
-          <v-text-field
-            v-model="email"
-            label="Email"
-            :error-messages="emailError"
-            :disabled="!editDataStatus"
-            required
-            variant="underlined"
-            data-test="email-text"
-          />
-
-          <v-text-field
-            v-if="envVariables.isCloud"
-            v-model="recoveryEmail"
-            label="Recovery Email"
-            :error-messages="recoveryEmailError"
-            :disabled="!editDataStatus"
-            variant="underlined"
-            data-test="recovery-email-text"
-          />
-        </div>
-
-        <v-divider class="mt-6" />
-        <v-divider class="mb-6" />
-
-        <v-row>
-          <v-col data-test="password-header">
-            <h3>Password</h3>
-          </v-col>
-
-          <v-spacer />
-
-          <v-col md="auto" class="ml-auto">
-            <v-btn
-              v-if="!editPasswordStatus"
-              color="primary"
-              @click="editPasswordStatus = !editPasswordStatus"
-              data-test="change-password-btn"
-            >
-              Change Password
-            </v-btn>
-
-            <div v-if="editPasswordStatus" class="d-flex align-center">
-              <v-btn data-test="cancel-password-btn" class="mr-2" color="primary" @click="cancel('password')">
-                Cancel
-              </v-btn>
-
+          <template v-slot:title>
+            <h1 data-test="profile-title">Account Profile</h1>
+          </template>
+          <template v-slot:subtitle>
+            <span data-test="profile-subtitle">Manage your account profile</span>
+          </template>
+          <template v-slot:append>
+            <div class="mr-4">
               <v-btn
+                v-if="!editDataStatus"
+                @click="editDataStatus = !editDataStatus"
                 color="primary"
-                data-test="update-password-btn"
-                @click="updatePassword"
-                :disabled="hasUpdatePasswordError"
-              > Save </v-btn>
+                variant="text"
+                class="bg-secondary border"
+                data-test="edit-profile-button"
+              >Edit Profile</v-btn>
+              <template v-else>
+                <v-btn
+                  @click="cancel('data')"
+                  color="primary"
+                  variant="text"
+                  class="mr-2"
+                  data-test="cancel-edit-button"
+                >Cancel</v-btn>
+                <v-btn
+                  @click="updateUserData"
+                  color="primary"
+                  variant="flat"
+                  data-test="save-changes-button"
+                >Save Changes</v-btn>
+              </template>
             </div>
-          </v-col>
-        </v-row>
+          </template>
+        </v-list-item>
 
-        <div class="mt-4 pl-4 pr-4">
-          <v-text-field
-            v-model="currentPassword"
-            label="Current password"
-            :append-icon="showCurrentPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showCurrentPassword ? 'text' : 'password'"
-            class="mb-4"
-            variant="underlined"
-            :error-messages="currentPasswordError"
-            required
-            :disabled="!editPasswordStatus"
-            data-test="password-text"
-            @click:append="showCurrentPassword = !showCurrentPassword"
-          />
-
-          <v-text-field
-            v-model="newPassword"
-            label="New password"
-            :append-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showNewPassword ? 'text' : 'password'"
-            class="mb-4"
-            :error-messages="newPasswordError"
-            required
-            variant="underlined"
-            :disabled="!editPasswordStatus"
-            data-test="newPassword-text"
-            @click:append="showNewPassword = !showNewPassword"
-          />
-
-          <v-text-field
-            v-model="newPasswordConfirm"
-            label="Confirm new password"
-            :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showConfirmPassword ? 'text' : 'password'"
-            class="mb-4"
-            variant="underlined"
-            :error-messages="newPasswordConfirmError"
-            required
-            :disabled="!editPasswordStatus"
-            data-test="confirmNewPassword-text"
-            @click:append="showConfirmPassword = !showConfirmPassword"
-          />
-        </div>
-
-        <v-divider class="mt-6" />
-        <v-divider class="mb-6" />
-        <div v-if="isEnterprise">
-          <v-row>
-            <v-col>
-              <h3>
+      </v-card-item>
+      <v-card-text class="pt-4">
+        <v-list
+          border
+          rounded
+          class="bg-background pa-0"
+          data-test="profile-details-list"
+        >
+          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+            <template #prepend>
+              <v-icon>mdi-badge-account</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="name-field">Name</span>
+            </template>
+            <template #append>
+              <v-text-field
+                v-model="name"
+                :error-messages="nameError"
+                :disabled="!editDataStatus"
+                :readonly="!editDataStatus"
+                required
+                :hide-details="!nameError"
+                density="compact"
+                :variant="editDataStatus ? 'outlined' : ''"
+                data-test="name-input"
+              />
+            </template>
+          </v-card-item>
+          <v-divider />
+          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+            <template #prepend>
+              <v-icon>mdi-account</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="username-field">Username</span>
+            </template>
+            <template #append>
+              <v-text-field
+                v-model="username"
+                :error-messages="usernameError"
+                :disabled="!editDataStatus"
+                :readonly="!editDataStatus"
+                density="compact"
+                :variant="editDataStatus ? 'outlined' : ''"
+                required
+                :hide-details="!usernameError"
+                data-test="username-input"
+              />
+            </template>
+          </v-card-item>
+          <v-divider />
+          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+            <template #prepend>
+              <v-icon>mdi-email</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="email-field">Email</span>
+            </template>
+            <template #append>
+              <v-text-field
+                v-model="email"
+                :error-messages="emailError"
+                :disabled="!editDataStatus"
+                :readonly="!editDataStatus"
+                density="compact"
+                :variant="editDataStatus ? 'outlined' : ''"
+                required
+                :hide-details="!emailError"
+                data-test="email-input"
+              />
+            </template>
+          </v-card-item>
+          <v-divider />
+          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+            <template #prepend>
+              <v-icon>mdi-email-lock</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="recovery-email-field">Recovery Email</span>
+            </template>
+            <template #append>
+              <v-text-field
+                v-model="recoveryEmail"
+                :error-messages="recoveryEmailError"
+                :disabled="!editDataStatus"
+                :readonly="!editDataStatus"
+                density="compact"
+                :variant="editDataStatus ? 'outlined' : ''"
+                required
+                :hide-details="!recoveryEmailError"
+                data-test="recovery-email-input"
+              />
+            </template>
+          </v-card-item>
+          <v-divider />
+          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+            <template #prepend>
+              <v-icon>mdi-key</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1">Password</span>
+            </template>
+            <template #append>
+              <v-btn variant="text" color="aprimary" @click="showChangePassword = true">Change Password</v-btn>
+              <ChangePassword v-model="showChangePassword" />
+            </template>
+          </v-card-item>
+          <v-divider />
+          <div class="d-flex mr-4">
+            <v-card
+              flat
+              class="bg-background"
+              prepend-icon="mdi-fingerprint"
+              data-test="mfa-card"
+            >
+              <template v-slot:title>
                 Multi-factor Authentication
-              </h3>
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col>
-              <p class="mb-4">Multi-factor authentication (MFA) requires users to enter a one-time verification code sent
-                using your favorite TOPT Provider in order to access your ShellHub account.</p>
-            </v-col>
-            <v-col md="auto" v-if="mfaEnabled === 'true'">
-              <mfa-disable @success="() => mfaEnabled = 'false'" />
-            </v-col>
-            <v-col md="auto" v-else>
-              <mfa-settings @enabled="showCongratulationsModal" @reset-form="setRecoveryEmail()" />
-            </v-col>
-          </v-row>
-          <v-row justify="center">
-            <v-dialog v-model="dialog" width="auto" scrollable transition="dialog-bottom-transition" data-test="dialog">
-              <v-card class="bg-v-theme-surface content" width="650" data-test="card-first-page">
-                <v-container>
-                  <v-row>
-                    <v-col align="center" data-test="congratulation-text">
-                      <h2>Congratulations! You've successfully verified your code.</h2>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col align="center">
-                      <v-icon
-                        end
-                        icon="mdi-cloud-lock-outline"
-                        color="green"
-                        size="100"
-                        class="green-cloud"
-                        data-test="green-cloud-icon" />
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col align="start" class="ml-5 pb-0" data-test="title-bp">
-                      <h4>Your account is now more secure with:</h4>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col class="ml-5 pt-0" data-test="congratulation-bullet-point">
-                      <ul>
-                        <li>Two-step verification adding an extra layer of protection.</li>
-                        <li>Reduced risk of unauthorized access even if your password is compromised.</li>
-                        <li>Enhanced security against phishing attacks and identity theft.</li>
-                      </ul>
-                    </v-col>
-                  </v-row>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn variant="text" data-test="close-btn" @keyup.enter="close()" @click="close()">
-                      Close
-                    </v-btn>
-                  </v-card-actions>
-                </v-container>
-              </v-card>
-            </v-dialog>
-          </v-row>
-        </div>
-
-        <div class="mt-6 mb-4" data-test="deleteOperation-div" v-if="envVariables.isCloud">
-          <h3 class="mb-2">Danger Zone</h3>
-          <v-row class="mt-2 mb-2">
-            <v-col class="ml-3">
-              <h4>Delete this account</h4>
-              <div class="ml-2">
-                <p>
-                  Deleting your account is permanent. This action will erase all your data and cannot be undone.
-                  Please be sure before proceeding.
-                </p>
+              </template>
+              <div class="d-flex flex-no-wrap justify-space-between">
+                <div>
+                  <v-card-text class="pt-0" data-test="mfa-text">
+                    Enable multi-factor authentication (MFA) to add an extra layer of security to your account.
+                    You'll need to enter a one-time verification code from your preferred TOTP provider to log in.
+                  </v-card-text>
+                </div>
               </div>
-            </v-col>
-
-            <v-col md="auto" class="ml-auto">
-              <UserDelete />
-            </v-col>
-          </v-row>
-        </div>
-      </v-col>
-    </v-row>
+            </v-card>
+            <div class="d-flex align-center bg-background pr-4" v-if="isCloud || isEnterprise">
+              <v-switch
+                hide-details
+                inset
+                color="primary"
+                v-model="mfaEnabled"
+                @click="toggleMfa()"
+                data-test="switch-mfa"
+              />
+              <MfaSettings v-model="dialogMfaSettings" />
+              <MfaDisable v-model="dialogMfaDisable" />
+            </div>
+          </div>
+          <v-divider />
+          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+            <template #prepend>
+              <v-icon>mdi-delete</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="delete-account">Delete Account</span>
+            </template>
+            <template #append>
+              <v-btn variant="text" color="error" @click="showDeleteAccountDialog = true" data-test="delete-account-btn">Delete</v-btn>
+            </template>
+          </v-card-item>
+        </v-list>
+      </v-card-text>
+    </v-card>
   </v-container>
 </template>
 
@@ -254,22 +224,22 @@ import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
 import UserDelete from "../User/UserDelete.vue";
+import UserIcon from "../User/UserIcon.vue";
 import { envVariables } from "../../envVariables";
+import ChangePassword from "../User/ChangePassword.vue";
+
+type ErrorResponseData = { field: string; message: string }[];
 
 const store = useStore();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
-const showCurrentPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
-const dialog = ref(false);
-const mfaEnabled = ref(computed(() => localStorage.getItem("mfa")).value);
+const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
 const isEnterprise = computed(() => envVariables.isEnterprise);
-
-const showCongratulationsModal = () => {
-  mfaEnabled.value = "true";
-  dialog.value = true;
-};
+const isCloud = computed(() => envVariables.isCloud);
+const dialogMfaSettings = ref(false);
+const dialogMfaDisable = ref(false);
+const showChangePassword = ref(false);
+const showDeleteAccountDialog = ref(false);
 
 const {
   value: name,
@@ -334,51 +304,6 @@ const {
   },
 );
 
-const {
-  value: currentPassword,
-  errorMessage: currentPasswordError,
-  resetField: resetCurrentPassword,
-} = useField<string>("currentPassword", yup.string().required(), {
-  initialValue: "",
-});
-
-const {
-  value: newPassword,
-  errorMessage: newPasswordError,
-  setErrors: setNewPasswordError,
-  resetField: resetNewPassword,
-} = useField<string>(
-  "newPassword",
-  yup
-    .string()
-    .required()
-    .min(5, "Your password should be 5-32 characters long")
-    .max(32, "Your password should be 5-32 characters long"),
-  {
-    initialValue: "",
-  },
-);
-
-const {
-  value: newPasswordConfirm,
-  errorMessage: newPasswordConfirmError,
-  setErrors: setNewPasswordConfirmError,
-  resetField: resetNewPasswordConfirm,
-} = useField<string>(
-  "newPasswordConfirm",
-  yup
-    .string()
-    .required()
-    .test(
-      "passwords-match",
-      "Passwords do not match",
-      (value) => newPassword.value === value,
-    ),
-  {
-    initialValue: "",
-  },
-);
-
 const setUserData = () => {
   name.value = store.getters["auth/currentName"];
   username.value = store.getters["auth/currentUser"];
@@ -386,14 +311,13 @@ const setUserData = () => {
   recoveryEmail.value = store.getters["auth/recoveryEmail"];
 };
 
-const setRecoveryEmail = async () => {
-  recoveryEmail.value = store.getters["auth/recoveryEmail"];
+const toggleMfa = () => {
+  if (mfaEnabled.value) {
+    dialogMfaDisable.value = true;
+  } else {
+    dialogMfaSettings.value = true;
+  }
 };
-
-onMounted(async () => {
-  await store.dispatch("auth/getUserInfo");
-  setUserData();
-});
 
 const hasUserDataError = computed(() => nameError.value || usernameError.value || emailError.value);
 
@@ -402,6 +326,40 @@ const enableEdit = (form: string) => {
     editDataStatus.value = !editDataStatus.value;
   } else if (form === "password") {
     editPasswordStatus.value = !editPasswordStatus.value;
+  }
+};
+
+const handleUpdateUserDataError = (
+  error: unknown,
+  setFieldError: Record<string, (msg: string) => void>,
+) => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ data: ErrorResponseData }>;
+    const responseStatus = axiosError.response?.status;
+
+    if (responseStatus === 409 || responseStatus === 400) {
+      const errorMessages = axiosError.response?.data;
+      if (Array.isArray(errorMessages)) {
+        errorMessages.forEach((field) => {
+          const setError = setFieldError[field];
+          if (setError) {
+            setError(
+              responseStatus === 409
+                ? `This ${field} already exists`
+                : `This ${field} is invalid!`,
+            );
+          } else {
+            console.warn(`No error handler defined for field: ${field}`);
+          }
+        });
+      }
+    } else {
+      store.dispatch("snackbar/showSnackbarErrorDefault");
+      handleError(error);
+    }
+  } else {
+    store.dispatch("snackbar/showSnackbarErrorDefault");
+    handleError(error);
   }
 };
 
@@ -423,80 +381,15 @@ const updateUserData = async () => {
       );
       enableEdit("data");
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
-      switch (axios.isAxiosError(error)) {
-        case axiosError.response?.status === 409:
-          // @ts-expect-error axiosError.response.data is an array
-          axiosError.response.data.forEach((field: string) => {
-            if (field === "username") setUsernameError("This username already exists");
-            else if (field === "name") setNameError("This name already exists");
-            else if (field === "email") setEmailError("This email already exists");
-            else if (field === "recovery_email") setRecoveryEmailError("This recovery email already exists");
-          });
-          break;
-        case axiosError.response?.status === 400:
-          // @ts-expect-error axiosError.response.data is an array
-          axiosError.response.data.forEach((field: string) => {
-            if (field === "username") setUsernameError("This username is invalid !");
-            else if (field === "name") setNameError("This name is invalid !");
-            else if (field === "email") setEmailError("This email is invalid !");
-            else if (field === "recovery_email") setRecoveryEmailError("This recovery email is invalid !");
-          });
-          break;
-        default:
-          store.dispatch("snackbar/showSnackbarErrorDefault");
-          handleError(error);
-      }
-    }
-  }
-};
-
-const hasUpdatePasswordError = computed(() => (
-  Boolean(currentPasswordError.value)
-        || Boolean(newPasswordError.value)
-        || Boolean(newPasswordConfirmError.value)
-        || newPassword.value === ""
-        || newPasswordConfirm.value === ""
-        || currentPassword.value === ""
-));
-
-const resetPasswordFields = () => {
-  resetCurrentPassword();
-  resetNewPassword();
-  resetNewPasswordConfirm();
-};
-
-const updatePassword = async () => {
-  if (!hasUpdatePasswordError.value) {
-    const data = {
-      name: name.value,
-      username: username.value,
-      email: email.value,
-      recovery_email: recoveryEmail.value,
-      currentPassword: currentPassword.value,
-      newPassword: newPassword.value,
-    };
-
-    try {
-      await store.dispatch("users/patchPassword", data);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.profilePassword,
+      handleUpdateUserDataError(
+        error,
+        {
+          username: setUsernameError,
+          name: setNameError,
+          email: setEmailError,
+          recovery_email: setRecoveryEmailError,
+        },
       );
-      enableEdit("password");
-      resetPasswordFields();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response?.status === 403) {
-          // failed password
-          setNewPasswordError("Your password doesn't match");
-          setNewPasswordConfirmError("Your password doesn't match");
-        }
-      } else {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
-        handleError(error);
-      }
     }
   }
 };
@@ -505,19 +398,20 @@ const cancel = (type: string) => {
   if (type === "data") {
     setUserData();
     editDataStatus.value = !editDataStatus.value;
-  } else if (type === "password") {
-    resetPasswordFields();
-    editPasswordStatus.value = !editPasswordStatus.value;
   }
 };
 
-const close = () => {
-  dialog.value = false;
-};
+onMounted(async () => {
+  await store.dispatch("auth/getUserInfo");
+  setUserData();
+});
+
 </script>
 
-<style scoped>
-.green-cloud {
-  filter: drop-shadow(0px 0px 30px rgba(43, 255, 10, 0.444))
+<style lang="scss" scoped>
+.v-container {
+  max-width: 960px;
+  margin-left: 0;
+  padding: 0;
 }
 </style>

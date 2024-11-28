@@ -102,7 +102,8 @@ describe("MfaDisable", () => {
 
   it("Dialog opens", async () => {
     // Test if the dialog opens when the button is clicked
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
+    await flushPromises();
     // Check if the dialog element is not null
     expect(document.querySelector('[data-test="dialog"]')).not.toBeNull();
   });
@@ -110,10 +111,9 @@ describe("MfaDisable", () => {
   it("Renders the components", async () => {
     const dialog = new DOMWrapper(document.body);
 
-    // Test if the component's expected elements are rendered
-    expect(wrapper.find('[data-test="disable-dialog-btn"]').exists()).toBe(true);
     // Open the dialog
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
+    await flushPromises();
 
     expect(dialog.find('[data-test="title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="sub-title"]').exists()).toBe(true);
@@ -137,7 +137,8 @@ describe("MfaDisable", () => {
   it("Disable MFA Authentication using TOPT Code", async () => {
     const dialog = new DOMWrapper(document.body);
     // Test the scenario where MFA authentication is successfully disabled
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
+    await flushPromises();
     // Spy on Vuex store dispatch
     const mfaSpy = vi.spyOn(store, "dispatch");
     // Mock the API response for MFA disable
@@ -155,7 +156,8 @@ describe("MfaDisable", () => {
     const dialog = new DOMWrapper(document.body);
 
     // Test the scenario where MFA authentication is successfully disabled
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
+    await flushPromises();
     // Spy on Vuex store dispatch
     const mfaSpy = vi.spyOn(store, "dispatch");
     // Mock the API response for MFA disable
@@ -171,7 +173,7 @@ describe("MfaDisable", () => {
 
   it("Disable MFA Authentication using Recovery Code", async () => {
     // Test the scenario where MFA authentication is successfully disabled
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     // Spy on Vuex store dispatch
@@ -191,7 +193,7 @@ describe("MfaDisable", () => {
     const dialog = new DOMWrapper(document.body);
 
     // Test the scenario where MFA authentication is successfully disabled
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     // Spy on Vuex store dispatch
@@ -210,7 +212,7 @@ describe("MfaDisable", () => {
   it("Send the disable codes on the users mail", async () => {
     localStorage.setItem("email", "test@test.com");
     // Test the scenario where MFA authentication is successfully disabled
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     // Spy on Vuex store dispatch
@@ -228,7 +230,7 @@ describe("MfaDisable", () => {
 
     localStorage.setItem("email", "test@test.com");
     // Test the scenario where MFA authentication is successfully disabled
-    await wrapper.findComponent('[data-test="disable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     // Spy on Vuex store dispatch

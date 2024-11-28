@@ -61,6 +61,17 @@ describe("Settings Namespace", () => {
   const session = true;
 
   beforeEach(async () => {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
@@ -99,22 +110,35 @@ describe("Settings Namespace", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="account-header"]').exists());
-    expect(wrapper.find('[data-test="change-data-btn"]').exists());
-    expect(wrapper.find('[data-test="cancel-btn"]').exists());
-    expect(wrapper.find('[data-test="update-user-btn"]').exists());
-    expect(wrapper.find('[data-test="name-text"]').exists());
-    expect(wrapper.find('[data-test="username-text"]').exists());
-    expect(wrapper.find('[data-test="email-text"]').exists());
-    expect(wrapper.find('[data-test="recovery-email-text"]').exists());
-    expect(wrapper.find('[data-test="password-header"]').exists());
-    expect(wrapper.find('[data-test="change-password-btn"]').exists());
-    expect(wrapper.find('[data-test="cancel-password-btn"]').exists());
-    expect(wrapper.find('[data-test="update-password-btn"]').exists());
-    expect(wrapper.find('[data-test="password-text"]').exists());
-    expect(wrapper.find('[data-test="newPassword-text"]').exists());
-    expect(wrapper.find('[data-test="confirmNewPassword-text"]').exists());
+  it("Renders all data-test elements", () => {
+    const dataTests = [
+      "account-profile-container",
+      "account-profile-card",
+      "profile-header",
+      "user-icon",
+      "profile-title",
+      "profile-subtitle",
+      "edit-profile-button",
+      "profile-details-list",
+      "name-field",
+      "name-input",
+      "username-field",
+      "username-input",
+      "email-field",
+      "email-input",
+      "recovery-email-field",
+      "recovery-email-input",
+      "mfa-card",
+      "mfa-text",
+      "switch-mfa",
+      "delete-account",
+      "delete-account-btn",
+    ];
+
+    dataTests.forEach((dataTest) => {
+      const element = wrapper.find(`[data-test="${dataTest}"]`);
+      expect(element.exists()).toBe(true);
+    });
   });
 
   it("Successfully changes user data", async () => {
@@ -127,48 +151,20 @@ describe("Settings Namespace", () => {
 
     mockUser.onPatch("http://localhost:3000/api/users").reply(200);
 
-    await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test2@test.com");
+    await wrapper.findComponent('[data-test="edit-profile-button"]').trigger("click");
+    await wrapper.findComponent('[data-test="name-input"]').setValue("test");
+    await wrapper.findComponent('[data-test="username-input"]').setValue("test");
+    await wrapper.findComponent('[data-test="email-input"]').setValue("test@test.com");
+    await wrapper.findComponent('[data-test="recovery-email-input"]').setValue("test2@test.com");
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="update-user-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="save-changes-button"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
     await nextTick();
     await flushPromises();
     expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
-  });
-
-  it("Successfully changes user password", async () => {
-    const changePasswordData = {
-      recovery_email: "",
-      email: "",
-      name: "",
-      username: "",
-      currentPassword: "test",
-      newPassword: "test123",
-    };
-
-    await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
-
-    mockUser.onPatch("http://localhost:3000/api/users").reply(200);
-
-    const changePasswordSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="password-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="newPassword-text"]').setValue("test123");
-    await wrapper.findComponent('[data-test="confirmNewPassword-text"]').setValue("test123");
-
-    await wrapper.findComponent('[data-test="update-password-btn"]').trigger("click");
-
-    vi.runOnlyPendingTimers();
-
-    await nextTick();
-    await flushPromises();
-    expect(changePasswordSpy).toHaveBeenCalledWith("users/patchPassword", changePasswordData);
   });
 
   it("Fails changes user data", async () => {
@@ -182,47 +178,19 @@ describe("Settings Namespace", () => {
     mockUser.onPatch("http://localhost:3000/api/users").reply(401);
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="change-data-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test2@test.com");
+    await wrapper.findComponent('[data-test="edit-profile-button"]').trigger("click");
+    await wrapper.findComponent('[data-test="name-input"]').setValue("test");
+    await wrapper.findComponent('[data-test="username-input"]').setValue("test");
+    await wrapper.findComponent('[data-test="email-input"]').setValue("test@test.com");
+    await wrapper.findComponent('[data-test="recovery-email-input"]').setValue("test2@test.com");
     await flushPromises();
 
-    await wrapper.findComponent('[data-test="update-user-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="save-changes-button"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
     await nextTick();
     await flushPromises();
     expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
-  });
-
-  it("Fails changes user password", async () => {
-    const changePasswordData = {
-      recovery_email: "",
-      email: "",
-      name: "",
-      username: "",
-      currentPassword: "test",
-      newPassword: "test123",
-    };
-
-    await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
-
-    mockUser.onPatch("http://localhost:3000/api/users").reply(401);
-
-    const changePasswordSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="password-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="newPassword-text"]').setValue("test123");
-    await wrapper.findComponent('[data-test="confirmNewPassword-text"]').setValue("test123");
-
-    await wrapper.findComponent('[data-test="update-password-btn"]').trigger("click");
-
-    vi.runOnlyPendingTimers();
-
-    await nextTick();
-    await flushPromises();
-    expect(changePasswordSpy).toHaveBeenCalledWith("users/patchPassword", changePasswordData);
   });
 });

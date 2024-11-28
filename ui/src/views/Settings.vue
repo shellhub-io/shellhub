@@ -1,24 +1,9 @@
 <template>
   <SettingDrawer v-model="showNavigationDrawer" />
 
-  <v-card
-    flat
-    border
-    class="bg-v-theme-surface"
-  >
-    <v-toolbar
-      density="compact"
-      class="bg-v-theme-surface"
-    >
-      <v-app-bar-nav-icon
-        class="hidden-lg-and-up"
-        @click.stop="showNavigationDrawer = !showNavigationDrawer"
-        aria-label="Toggle Menu"
-        density="comfortable"
-      />
-    </v-toolbar>
+  <div>
     <router-view />
-  </v-card>
+  </div>
 </template>
 
 <script setup lang="ts">
