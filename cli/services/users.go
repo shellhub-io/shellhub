@@ -51,6 +51,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 	}
 
 	user := &models.User{
+		Origin:        models.UserOriginLocal,
 		UserData:      userData,
 		Password:      password,
 		Status:        models.UserStatusConfirmed,

@@ -94,6 +94,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{
@@ -130,6 +131,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{
@@ -195,6 +197,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{
@@ -259,6 +262,7 @@ func TestSetup(t *testing.T) {
 					Once()
 
 				user := &models.User{
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
 					UserData: models.UserData{

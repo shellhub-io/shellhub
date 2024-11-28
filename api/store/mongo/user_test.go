@@ -291,6 +291,7 @@ func TestStore_UserCreateInvited(t *testing.T) {
 					"_id":             objID,
 					"created_at":      primitive.NewDateTimeFromTime(now),
 					"last_login":      primitive.NewDateTimeFromTime(time.Time{}),
+					"origin":          nil,
 					"status":          models.UserStatusInvited.String(),
 					"max_namespaces":  nil,
 					"name":            nil,

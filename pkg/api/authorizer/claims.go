@@ -2,7 +2,8 @@ package authorizer
 
 // UserClaims represents the attributes needed to authenticate a user.
 type UserClaims struct {
-	ID string `json:"id"`
+	ID     string `json:"id"`
+	Origin string `json:"origin"`
 	// TenantID is the identifier of the tenant to which the claims belongs.
 	// It's optional.
 	TenantID string `json:"tenant"`

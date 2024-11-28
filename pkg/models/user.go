@@ -27,8 +27,22 @@ func (s UserStatus) String() string {
 	return string(s)
 }
 
+type UserOrigin string
+
+const (
+	// UserOriginLocal indicates that the user was created through the standard signup process, without
+	// using third-party integrations like SSO IdPs.
+	UserOriginLocal UserOrigin = "local"
+)
+
+func (o UserOrigin) String() string {
+	return string(o)
+}
+
 type User struct {
-	ID     string     `json:"id,omitempty" bson:"_id,omitempty"`
+	ID string `json:"id,omitempty" bson:"_id,omitempty"`
+	// Origin specifies the the user's signup method.
+	Origin UserOrigin `json:"-" bson:"origin"`
 	Status UserStatus `json:"status" bson:"status"`
 	// MaxNamespaces represents the count of namespaces that the user can owns.
 	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
@@ -115,6 +129,7 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 type UserAuthResponse struct {
 	Token         string `json:"token"`
 	User          string `json:"user"`
+	Origin        string `json:"string"`
 	Name          string `json:"name"`
 	ID            string `json:"id"`
 	Tenant        string `json:"tenant"`
