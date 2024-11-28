@@ -1,6 +1,6 @@
 <template>
-  <v-table class="bg-v-theme-surface">
-    <thead data-test="privateKey-thead">
+  <v-table class="bg-background border rounded mx-4">
+    <thead class="bg-v-theme-background" data-test="privateKey-thead">
       <tr>
         <th
           v-for="(head, i) in headers"
@@ -51,8 +51,8 @@
         </td>
       </tr>
     </tbody>
-    <div v-else sm="12" class="text-start mt-2 text-medium-emphasis" data-test="no-private-key-warning">
-      <span>No data avaliable</span>
+    <div v-else sm="12" class="text-start mt-2 mb-3" data-test="no-private-key-warning">
+      <span class="ml-4">No data avaliable</span>
     </div>
   </v-table>
 </template>

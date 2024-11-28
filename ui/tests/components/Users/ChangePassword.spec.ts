@@ -2,22 +2,21 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import UserDelete from "@/components/User/UserDelete.vue";
+import ChangePassword from "@/components/User/ChangePassword.vue";
 import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
-type UserDeleteWrapper = VueWrapper<InstanceType<typeof UserDelete>>;
+type ChangePasswordWrapper = VueWrapper<InstanceType<typeof ChangePassword>>;
 
-describe("User Delete", () => {
-  let wrapper: UserDeleteWrapper;
+describe("Change Password", () => {
+  let wrapper: ChangePasswordWrapper;
 
   const vuetify = createVuetify();
 
@@ -57,7 +56,7 @@ describe("User Delete", () => {
     store.commit("auth/changeData", authData);
     store.commit("security/setSecurity", session);
 
-    wrapper = mount(UserDelete, {
+    wrapper = mount(ChangePassword, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {
@@ -83,40 +82,63 @@ describe("User Delete", () => {
     wrapper.vm.show = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
-    expect(dialog.find('[data-test="user-delete-dialog"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="password-change-card"]').exists()).toBe(true);
     expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="subtitle"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="password-input"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="new-password-input"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="confirm-new-password-input"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="delete-user-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="change-password-btn"]').exists()).toBe(true);
   });
 
-  it("Successfully Delete User", async () => {
-    mockUser.onDelete("http://localhost:3000/api/user").reply(200);
+  it("Successfully Change Password", async () => {
+    mockUser.onPatch("http://localhost:3000/api/users").reply(200);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
     wrapper.vm.show = true;
     await flushPromises();
 
-    await wrapper.findComponent('[data-test="delete-user-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="password-input"]').setValue("xxxxxx");
+    await wrapper.findComponent('[data-test="new-password-input"]').setValue("x1x2x3");
+    await wrapper.findComponent('[data-test="confirm-new-password-input"]').setValue("x1x2x3");
+    await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
 
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("auth/deleteUser");
+    expect(StoreSpy).toHaveBeenCalledWith("users/patchPassword", {
+      name: "test",
+      username: undefined,
+      email: "test@test.com",
+      recovery_email: undefined,
+      currentPassword: "xxxxxx",
+      newPassword: "x1x2x3",
+    });
   });
 
-  it("Fails to add Delete User", async () => {
-    mockUser.onDelete("http://localhost:3000/api/user").reply(400);
+  it("Fails to Change Password", async () => {
+    mockUser.onPatch("http://localhost:3000/api/users").reply(403);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
     wrapper.vm.show = true;
     await flushPromises();
 
-    await wrapper.findComponent('[data-test="delete-user-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="password-input"]').setValue("xxxxxx");
+    await wrapper.findComponent('[data-test="new-password-input"]').setValue("x1x2x3");
+    await wrapper.findComponent('[data-test="confirm-new-password-input"]').setValue("x1x2x3");
+
+    await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deleteAccount,
-    );
+
+    expect(StoreSpy).toHaveBeenCalledWith("users/patchPassword", {
+      name: "test",
+      username: undefined,
+      email: "test@test.com",
+      recovery_email: undefined,
+      currentPassword: "xxxxxx",
+      newPassword: "x1x2x3",
+    });
+
+    expect(StoreSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
   });
 });

@@ -1,5 +1,5 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
@@ -12,6 +12,10 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 import { INotificationsError } from "@/interfaces/INotifications";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
+
+const node = document.createElement("div");
+node.setAttribute("id", "app");
+document.body.appendChild(node);
 
 describe("Namespace Edit", () => {
   let wrapper: NamespaceEditWrapper;
@@ -62,6 +66,8 @@ describe("Namespace Edit", () => {
   const session = true;
 
   beforeEach(async () => {
+    const el = document.createElement("div");
+    document.body.appendChild(el);
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
@@ -100,67 +106,26 @@ describe("Namespace Edit", () => {
   });
 
   it("Renders components", async () => {
-    expect(wrapper.find('[data-test="namespace-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="edit-btn"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-    expect(wrapper.find('[data-test="save-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="name-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="connectionAnnouncement-text"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    wrapper.vm.show = true;
+    await flushPromises();
+    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="change-connection-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="connectionAnnouncement-text"]').exists()).toBe(true);
   });
 
   it("Successfully changes connection_announcement data", async () => {
-    const changeNamespaceData = {
-      name: "test",
-      id: "fake-tenant-data",
-      settings: {
-        connection_announcement: "test",
-      },
-    };
-    const response = {
-      name: "test",
-      owner: "test",
-      tenant_id: "fake-tenant-data",
-      members: [
-        {
-          id: "test",
-          role: "owner",
-        },
-      ],
-      settings: {
-        session_record: true,
-        connection_announcement: "test",
-      },
-      max_devices: 3,
-      device_count: 3,
-      created_at: "",
-      billing: null,
-    };
-    mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, response);
-
-    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="connectionAnnouncement-text"]').setValue("test");
-
-    const changeDataSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
-
-    vi.runOnlyPendingTimers();
-
-    await nextTick();
+    wrapper.vm.show = true;
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("namespaces/put", changeNamespaceData);
-  });
-
-  it("Successfully changes namespace name", async () => {
     const changeNamespaceData = {
-      name: "test-2",
       id: "fake-tenant-data",
       settings: {
         connection_announcement: "test",
       },
     };
     const response = {
-      name: "test-2",
+      name: "test",
       owner: "test",
       tenant_id: "fake-tenant-data",
       members: [
@@ -180,12 +145,10 @@ describe("Namespace Edit", () => {
     };
     mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, response);
 
-    await wrapper.findComponent('[data-test="name-text"]').setValue("test-2");
     await wrapper.findComponent('[data-test="connectionAnnouncement-text"]').setValue("test");
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
@@ -195,11 +158,12 @@ describe("Namespace Edit", () => {
   });
 
   it("Fails to change namespace data", async () => {
+    wrapper.vm.show = true;
+    await flushPromises();
     mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 

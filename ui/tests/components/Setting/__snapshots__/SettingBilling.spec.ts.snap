@@ -1,46 +1,85 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Billing Settings Free Mode > Renders the component 1`] = `
-"<div data-v-d7a09f69=\\"\\" class=\\"v-container v-locale--is-ltr\\">
-  <div data-v-d7a09f69=\\"\\" class=\\"v-container v-locale--is-ltr\\">
-    <div data-v-d7a09f69=\\"\\" class=\\"v-row align-center justify-center mt-4 mb-4\\">
-      <div data-v-d7a09f69=\\"\\" class=\\"v-col-sm-8 v-col\\">
-        <!--v-if-->
-        <!--v-if-->
-        <div data-v-d7a09f69=\\"\\" data-test=\\"content-div\\">
-          <div data-v-d7a09f69=\\"\\" class=\\"v-row mt-4 justify-center align-center\\">
-            <div data-v-d7a09f69=\\"\\" class=\\"v-col\\">
-              <h3 data-v-d7a09f69=\\"\\">Subscription info</h3>
-            </div>
-            <div data-v-d7a09f69=\\"\\" class=\\"v-spacer\\"></div>
-            <div data-v-d7a09f69=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
-              <div data-v-d7a09f69=\\"\\" class=\\"v-col\\" align=\\"left\\"><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none text-uppercase\\" data-test=\\"subscribe-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default mr-2\\" aria-hidden=\\"true\\"></i> Subscribe </span>
-                  <!---->
-                  <!---->
-                </button></div>
-            </div>
+"<div data-v-d7a09f69=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr\\">
+  <!--v-if-->
+  <div data-v-d7a09f69=\\"\\" class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"billing-card\\">
+    <!---->
+    <div class=\\"v-card__loader\\">
+      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+        <!---->
+        <div class=\\"v-progress-linear__background\\"></div>
+        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <div class=\\"v-progress-linear__indeterminate\\">
+            <div class=\\"v-progress-linear__indeterminate long\\"></div>
+            <div class=\\"v-progress-linear__indeterminate short\\"></div>
           </div>
-          <div data-v-d7a09f69=\\"\\" class=\\"mt-6 pl-4 pr-4\\">
-            <div data-v-d7a09f69=\\"\\" data-test=\\"freePlan-div\\">
-              <p data-v-d7a09f69=\\"\\">Plan: <b data-v-d7a09f69=\\"\\">Free</b></p>
-              <p data-v-d7a09f69=\\"\\"> Description: You can add up to 3 devices while using the 'Free' plan. </p>
-            </div>
-            <div data-v-d7a09f69=\\"\\" class=\\"mt-4 mb-4\\" data-test=\\"billing-portal-text\\">
-              <h4 data-v-d7a09f69=\\"\\">Billing Portal</h4>
-              <p data-v-d7a09f69=\\"\\"> ShellHub patterns with Stripe payment and invoicing. To update your payment method or download previous invoices, click on the button below. </p><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mt-2 text-none text-uppercase\\" data-test=\\"portal-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default mr-2\\" aria-hidden=\\"true\\"></i> Open Billing Portal </span>
-                <!---->
-                <!---->
-              </button>
-            </div>
-          </div>
-          <!--v-if-->
-        </div>
+        </transition-stub>
+        <!---->
       </div>
     </div>
+    <!---->
+    <!---->
+    <div data-v-d7a09f69=\\"\\" class=\\"v-card-item\\">
+      <!---->
+      <div class=\\"v-card-item__content\\">
+        <!---->
+        <!---->
+        <div data-v-d7a09f69=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" aria-selected=\\"false\\" data-test=\\"billing-header\\">
+          <!----><span class=\\"v-list-item__underlay\\"></span>
+          <!---->
+          <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item-title\\">
+              <h1 data-v-d7a09f69=\\"\\" data-test=\\"billing-title\\">Billing</h1>
+            </div>
+            <div class=\\"v-list-item-subtitle\\"><span data-v-d7a09f69=\\"\\" data-test=\\"billing-subtitle\\">Manage your subscription info</span></div>
+            <!---->
+          </div>
+          <div class=\\"v-list-item__append\\"><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary align-content-lg-center text-none text-uppercase\\" data-test=\\"subscribe-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Subscribe </span>
+              <!---->
+              <!---->
+            </button>
+            <div class=\\"v-list-item__spacer\\"></div>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </div>
+    <div data-v-d7a09f69=\\"\\" class=\\"v-card-text pt-4\\">
+      <div data-v-d7a09f69=\\"\\" class=\\"v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"billing-details-list\\">
+        <div data-v-d7a09f69=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\" data-test=\\"billing-portal-section\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"billing-portal-icon\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-d7a09f69=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"billing-portal-title\\">Billing Portal</span></div>
+            <!---->
+            <div data-v-d7a09f69=\\"\\" data-test=\\"billing-portal-description\\"> Update your ShellHub payment method or download invoices. </div>
+          </div>
+          <div class=\\"v-card-item__append\\"><button data-v-d7a09f69=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mt-2 text-none text-uppercase\\" data-test=\\"billing-portal-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Open Billing Portal </span>
+              <!---->
+              <!---->
+            </button></div>
+        </div>
+        <hr data-v-d7a09f69=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\" data-test=\\"billing-divider\\">
+        <div data-v-d7a09f69=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\" data-test=\\"billing-plan-section\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-d7a09f69=\\"\\" class=\\"mdi-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"billing-plan-icon\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-d7a09f69=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"billing-plan-title\\">Plan</span></div>
+            <!---->
+            <div data-v-d7a09f69=\\"\\" data-test=\\"billing-plan-description-free\\"> You can add up to 3 devices while using the 'Free' plan. </div>
+          </div>
+          <div class=\\"v-card-item__append\\">
+            <h3 data-v-d7a09f69=\\"\\" data-test=\\"billing-plan-free\\"> Free </h3>
+          </div>
+        </div>
+        <hr data-v-d7a09f69=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\" data-test=\\"billing-divider\\">
+        <!--v-if-->
+      </div>
+    </div>
+    <!---->
+    <!----><span class=\\"v-card__underlay\\"></span>
   </div>
-  <!---->
-  <!---->
 </div>"
 `;

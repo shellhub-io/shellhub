@@ -1,203 +1,148 @@
 <template>
-  <v-container>
-    <v-container>
-      <v-row align="center" justify="center" class="mt-4 mb-4">
-        <v-col sm="8">
-          <SettingOwnerInfo :is-owner="hasAuthorization" data-test="settingOwnerInfo-component" />
-          <v-alert
-            v-if="message"
-            :text="message"
-            :type="messageType"
-            variant="tonal"
-            data-test="message-alert"
-          />
-          <div v-if="hasAuthorization" data-test="content-div">
-            <v-row class="mt-4 justify-center align-center">
-              <v-col>
-                <h3>Subscription info</h3>
-              </v-col>
-              <v-spacer />
-              <v-col v-if="!active" md="auto" class="ml-auto">
-                <v-col align="left">
-                  <v-btn
-                    color="primary"
-                    class="text-none text-uppercase"
-                    :disabled="status === ''"
-                    @click="checkout"
-                    data-test="subscribe-button"
-                  >
-                    <v-icon class="mr-2">mdi-credit-card</v-icon>
-                    Subscribe
-                  </v-btn>
-                </v-col>
-              </v-col>
-            </v-row>
-
-            <div class="mt-6 pl-4 pr-4">
-              <div v-if="!active" data-test="freePlan-div">
-                <p>Plan: <b>Free</b></p>
-                <p>
-                  Description: You can add up to 3 devices while using the 'Free' plan.
-                </p>
-              </div>
-
-              <div v-else data-test="premiumPlan-div">
-                <p>Plan: <b>Premium usage</b></p>
-                <p>
-                  Description: In this plan, the amount is charged according to the number of devices used.
-                </p>
-              </div>
-
-              <div class="mt-4 mb-4" data-test="billing-portal-text">
-                <h4>Billing Portal</h4>
-                <p>
-                  ShellHub patterns with Stripe payment and invoicing. To update your payment method or download previous invoices,
-                  click on the button below.
-                </p>
-                <v-btn
-                  :disabled="noCustomer.value"
-                  color="primary"
-                  class="mt-2 text-none text-uppercase"
-                  @click="portal"
-                  data-test="portal-button"
-                >
-                  <v-icon class="mr-2">mdi-account</v-icon>
-                  Open Billing Portal
-                </v-btn>
-              </div>
+  <BillingDialog v-model="dialogCheckout" @reload="reload" />
+  <v-container fluid>
+    <SettingOwnerInfo :is-owner="hasAuthorization" data-test="settings-owner-info-component" />
+    <v-card
+      variant="flat"
+      class="bg-transparent"
+      data-test="billing-card"
+    >
+      <v-card-item>
+        <v-list-item
+          class="pa-0"
+          data-test="billing-header"
+        >
+          <template v-slot:title>
+            <h1 data-test="billing-title">Billing</h1>
+          </template>
+          <template v-slot:subtitle>
+            <span data-test="billing-subtitle">Manage your subscription info</span>
+          </template>
+          <template v-slot:append>
+            <v-btn
+              color="primary"
+              variant="text"
+              class="bg-secondary align-content-lg-center text-none text-uppercase"
+              :disabled="status === ''"
+              @click="dialogCheckout = true"
+              data-test="subscribe-button"
+            >
+              Subscribe
+            </v-btn>
+          </template>
+        </v-list-item>
+      </v-card-item>
+      <v-card-text class="pt-4">
+        <v-list
+          border
+          rounded
+          class="bg-background pa-0"
+          data-test="billing-details-list"
+        >
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
+            v-if="hasAuthorization"
+            data-test="billing-portal-section"
+          >
+            <template #prepend>
+              <v-icon data-test="billing-portal-icon">mdi-account</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="billing-portal-title">Billing Portal</span>
+            </template>
+            <div data-test="billing-portal-description">
+              Update your ShellHub payment method or download invoices.
             </div>
-
-            <div v-if="hasAuthorization && active" class="mt-4 mb-4" data-test="subscriptionActive-div">
-              <v-divider />
-              <v-divider />
-              <div class="mt-6 mb-6">
-                <v-row>
-                  <v-col>
-                    <h3>Current billing cycle</h3>
-                  </v-col>
-                </v-row>
-
-                <div class="mt-6 pl-4 pr-4">
-                  <p>
-                    Ends at:
-                    <b>
-                      {{ formattedDate }}
-                    </b>
-                  </p>
-                  <p>
-                    Estimated total:
-                    <b>
-                      {{ formattedCurrency }}
-                    </b>
-                  </p>
-                </div>
-              </div>
-              <v-divider />
-              <v-divider />
+            <template #append>
+              <v-btn
+                :disabled="noCustomer.value"
+                color="primary"
+                class="mt-2 text-none text-uppercase"
+                @click="portal"
+                data-test="billing-portal-button"
+              >
+                Open Billing Portal
+              </v-btn>
+            </template>
+          </v-card-item>
+          <v-divider data-test="billing-divider" />
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
+            data-test="billing-plan-section"
+          >
+            <template #prepend>
+              <v-icon data-test="billing-plan-icon">mdi-credit-card</v-icon>
+            </template>
+            <template #title>
+              <span class="text-subtitle-1" data-test="billing-plan-title">Plan</span>
+            </template>
+            <div v-if="!active" data-test="billing-plan-description-free">
+              You can add up to 3 devices while using the 'Free' plan.
             </div>
+            <div v-else data-test="billing-plan-description-premium">
+              In this plan, the amount is charged according to the number of devices used.
+            </div>
+            <template #append>
+              <h3 v-if="!active" data-test="billing-plan-free">
+                Free
+              </h3>
+              <h3 v-else data-test="billing-plan-premium">
+                Premium usage
+              </h3>
+            </template>
+          </v-card-item>
+          <v-divider data-test="billing-divider" />
+          <div v-if="hasAuthorization && active" data-test="billing-active-section">
+            <v-card-item
+              style="grid-template-columns: max-content 1.5fr 2fr"
+              v-if="message"
+              data-test="billing-status-section"
+            >
+              <template #prepend>
+                <v-icon data-test="billing-status-icon">mdi-invoice-text-remove</v-icon>
+              </template>
+              <template #title>
+                <span class="text-subtitle-1" data-test="billing-status-title">Billing Status</span>
+              </template>
+              <template #append>
+                <h3 :class="`text-${messageType}`" data-test="billing-status-message">{{ message }}</h3>
+              </template>
+            </v-card-item>
+            <v-divider data-test="billing-divider" />
+            <v-card-item
+              style="grid-template-columns: max-content 1.5fr 2fr"
+              data-test="billing-total-section"
+            >
+              <template #prepend>
+                <v-icon data-test="billing-total-icon">mdi-invoice-text</v-icon>
+              </template>
+              <template #title>
+                <span class="text-subtitle-1" data-test="billing-total-title">Billing estimated total</span>
+              </template>
+              <template #append>
+                <h3 data-test="billing-total-amount">{{ formattedCurrency }}</h3>
+              </template>
+            </v-card-item>
+            <v-divider data-test="billing-divider" />
+            <v-card-item
+              style="grid-template-columns: max-content 1.5fr 2fr"
+              data-test="billing-end-date-section"
+            >
+              <template #prepend>
+                <v-icon data-test="billing-end-date-icon">mdi-invoice-text-clock</v-icon>
+              </template>
+              <template #title>
+                <span class="text-subtitle-1" data-test="billing-end-date-title">Current billing ends at</span>
+              </template>
+              <template #append>
+                <h3 data-test="billing-end-date">{{ formattedDate }}</h3>
+              </template>
+            </v-card-item>
+            <v-divider data-test="billing-divider" />
           </div>
-        </v-col>
-      </v-row>
-    </v-container>
-    <v-dialog v-model="dialogCheckout" persistent width="600" transition="dialog-bottom-transition" data-test="dialog-checkout">
-      <v-window v-model="el">
-        <v-window-item :value="1">
-          <v-card class="bg-v-theme-surface content" data-test="card-first-page">
-            <v-container>
-              <v-card-subtitle class="mb-1" style="font-size: 12px;"><b>Welcome</b> > Payment Details > Checkout</v-card-subtitle>
-              <BillingLetter />
-              <v-row>
-                <v-col>
-                  <v-card-actions>
-                    <v-btn color="primary" @click="close()" data-test="payment-letter-close-button">Close</v-btn>
-                  </v-card-actions>
-                </v-col>
-                <v-col>
-                  <v-card-actions class="justify-end">
-                    <v-btn
-                      color="primary"
-                      @click="goToNextStep"
-                      data-test="payment-letter-next-button"
-                    >
-                      Next
-                    </v-btn>
-                  </v-card-actions>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card>
-        </v-window-item>
-        <v-window-item :value="2">
-          <v-card class="bg-v-theme-surface content" data-test="card-second-page">
-            <v-container>
-              <v-card-subtitle class="mb-1" style="font-size: 12px;">Welcome > <b>Payment Details</b> > Checkout</v-card-subtitle>
-              <v-card-title align="center" class="mb-1" data-test="billing-payment-details">Payment Details</v-card-title>
-              <BillingPayment
-                @no-payment-methods="existingDefaultCard = false"
-                @has-default-payment="existingDefaultCard = true"
-                @customer-id-created="noCustomer.value = false"
-              />
-              <v-row>
-                <v-col>
-                  <v-card-actions>
-                    <v-btn color="primary" @click="goToPreviousStep" data-test="payment-details-back-button">Back</v-btn>
-                  </v-card-actions>
-                </v-col>
-                <v-col class="d-flex flex-column align-end">
-                  <v-card-actions>
-                    <v-btn
-                      :disabled="!existingDefaultCard"
-                      color="primary"
-                      @click="goToNextStep"
-                      data-test="payment-details-next-button"
-                    >
-                      Next
-                    </v-btn>
-                  </v-card-actions>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card>
-        </v-window-item>
-        <v-window-item :value="3">
-          <v-card class="bg-v-theme-surface content" data-test="card-third-page">
-            <v-container>
-              <v-card-subtitle class="mb-1" style="font-size: 12px;">Welcome > Payment Details > <b>Checkout</b></v-card-subtitle>
-              <BillingCheckout :key="componentKey" />
-              <v-row>
-                <v-col>
-                  <v-alert v-if="alertRender" icon="$error" :text="errorMessage" type="error" data-test="checkout-error-alert" />
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col>
-                  <v-card-actions>
-                    <v-btn color="primary" @click="goToPreviousStep" data-test="checkout-back-button">Back</v-btn>
-                  </v-card-actions>
-                </v-col>
-                <v-col class="d-flex flex-column align-end">
-                  <v-btn @click="subscribe()" color="primary" data-test="checkout-button">Subscribe now</v-btn>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card>
-        </v-window-item>
-        <v-window-item :value="4">
-          <v-card class="bg-v-theme-surface content" data-test="card-fourth-page">
-            <v-container>
-              <BillingSuccesful />
-              <v-row>
-                <v-col>
-                  <v-card-actions>
-                    <v-btn @click="reload()" data-test="successful-close-button">Close</v-btn>
-                  </v-card-actions>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card>
-        </v-window-item>
-      </v-window>
-    </v-dialog>
+        </v-list>
+      </v-card-text>
+    </v-card>
   </v-container>
 </template>
 
@@ -213,14 +158,11 @@ import axios from "axios";
 import { useStore } from "../../store";
 import hasPermission from "../../utils/permission";
 import { actions, authorizer } from "../../authorizer";
+import BillingDialog from "../Billing/BillingDialog.vue";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
-import BillingPayment from "@/components/Billing/BillingPayment.vue";
 import formatCurrency from "@/utils/currency";
 import { formatDateWithoutDayAndHours } from "../../utils/formateDate";
 import handleError from "@/utils/handleError";
-import BillingCheckout from "../Billing/BillingCheckout.vue";
-import BillingSuccesful from "../Billing/BillingSuccessful.vue";
-import BillingLetter from "../Billing/BillingLetter.vue";
 
 const store = useStore();
 const billing = computed(() => store.getters["billing/get"]);
@@ -229,11 +171,7 @@ const status = computed(() => store.getters["billing/status"]);
 const namespace = computed(() => store.getters["namespaces/get"]);
 const el = ref<number>(1);
 const dialogCheckout = ref(false);
-const alertRender = ref(false);
-const errorMessage = ref("");
 const noCustomer = reactive({ value: false });
-const existingDefaultCard = ref(true);
-const componentKey = ref(0);
 const message = ref("");
 const messageType = ref();
 const formattedDate = ref();
@@ -313,38 +251,6 @@ onMounted(async () => {
   await errorTreatment();
 });
 
-const subscribe = async () => {
-  try {
-    await store.dispatch("customer/createSubscription");
-    el.value = 4;
-  } catch (status) {
-    switch (status) {
-      case 402:
-        alertRender.value = true;
-        // eslint-disable-next-line vue/max-len
-        errorMessage.value = "Before attempting to subscribe again, please ensure that all your invoices have been paid or closed by checking the billing portal.";
-        break;
-      default:
-        alertRender.value = true;
-        errorMessage.value = "An error occurred during the payment process. Please try again later or contact the ShellHub team";
-    }
-    handleError(status);
-  }
-};
-
-const checkout = async () => {
-  el.value = 1;
-  dialogCheckout.value = true;
-};
-
-const close = () => {
-  dialogCheckout.value = false;
-};
-
-const reload = () => {
-  window.location.reload();
-};
-
 const portal = async () => {
   try {
     const res = await axios.post("/api/billing/portal", {}, {
@@ -359,19 +265,8 @@ const portal = async () => {
   }
 };
 
-const goToPreviousStep = () => {
-  el.value--;
-};
-
-const forceRerender = () => {
-  componentKey.value += 1;
-};
-
-const goToNextStep = () => {
-  el.value++;
-  if (el.value === 3) {
-    forceRerender();
-  }
+const reload = () => {
+  window.location.reload();
 };
 
 defineExpose({
@@ -384,5 +279,19 @@ defineExpose({
 p {
   text-align: justify;
   overflow: auto;
+}
+
+.hover-text {
+  cursor: pointer;
+}
+
+.hover-text:hover {
+  text-decoration: underline;
+}
+
+.v-container {
+  max-width: 960px;
+  margin-left: 0;
+  padding: 0;
 }
 </style>

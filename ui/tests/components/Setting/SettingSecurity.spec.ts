@@ -59,6 +59,17 @@ describe("Setting Security", () => {
   const session = true;
 
   beforeEach(async () => {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
@@ -94,8 +105,7 @@ describe("Setting Security", () => {
   });
 
   it("Renders components", async () => {
-    expect(wrapper.find('[data-test="security-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="security-checkbox"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="security-switch"]').exists()).toBe(true);
   });
 
   it("Changes session record when session record is mutated", async () => {

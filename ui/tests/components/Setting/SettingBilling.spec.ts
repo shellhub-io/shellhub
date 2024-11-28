@@ -120,58 +120,38 @@ describe("Billing Settings Free Mode", () => {
   });
 
   it("Renders the free plan section", () => {
-    expect(wrapper.find('[data-test="freePlan-div"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="portal-button"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="subscribe-button"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-portal-text"]').exists()).toBe(true);
-  });
-
-  it("Dialog pops up on free mode", async () => {
-    await wrapper.findComponent('[data-test="subscribe-button"]').trigger("click");
-    expect(document.querySelector('[data-test="dialog-checkout"]')).not.toBeNull();
-  });
-
-  it("Renders dialog text", async () => {
-    expect(wrapper.find('[data-test="card-first-page"]').exists());
-    expect(wrapper.find('[data-test="card-second-page"]').exists());
-    expect(wrapper.find('[data-test="card-third-page"]').exists());
-    expect(wrapper.find('[data-test="card-fourth-page"]').exists());
-  });
-
-  it("Render pagination", () => {
-    expect(wrapper.findComponent('[data-test="payment-letter-next-button"]').exists());
-    expect(wrapper.findComponent('[data-test="payment-letter-close-button"]').exists());
-    expect(wrapper.findComponent('[data-test="payment-details-back-button"]').exists());
-    expect(wrapper.findComponent('[data-test="payment-details-next-button"]').exists());
-    expect(wrapper.findComponent('[data-test="checkout-back-button"]').exists());
-    expect(wrapper.findComponent('[data-test="checkout-button"]').exists());
-    expect(wrapper.findComponent('[data-test="successful-close-button"]').exists());
-  });
-
-  it("Pagination logic test", async () => {
-    await wrapper.findComponent('[data-test="subscribe-button"]').trigger("click");
-    expect(wrapper.vm.el).toEqual(1);
-    await wrapper.findComponent('[data-test="payment-letter-next-button"]').trigger("click");
-    expect(wrapper.vm.el).toEqual(2);
-    await wrapper.findComponent('[data-test="payment-details-back-button"]').trigger("click");
-    expect(wrapper.vm.el).toEqual(1);
-  });
-
-  it("Subscribe to Premium", async () => {
-    await wrapper.findComponent('[data-test="subscribe-button"]').trigger("click");
-    wrapper.vm.el = 3;
-
-    await nextTick();
-    await flushPromises();
-
-    mockBilling.onPost("http://localhost:3000/api/billing/subscription").reply(200);
-
-    const subscribeSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent('[data-test="checkout-button"]').trigger("click");
-
-    vi.runOnlyPendingTimers();
-
-    expect(subscribeSpy).toHaveBeenCalledWith("customer/createSubscription");
+    expect(wrapper.find('[data-test="billing-card"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-header"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-subtitle"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="subscribe-button"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-details-list"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-portal-section"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-portal-icon"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-portal-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-portal-description"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-portal-button"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-divider"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-section"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-icon"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-description-free"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-description-premium"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-plan-free"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-premium"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-active-section"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-status-section"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-status-icon"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-status-title"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-status-message"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-total-section"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-total-icon"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-total-title"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-total-amount"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-end-date-section"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-end-date-icon"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-end-date-title"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-end-date"]').exists()).toBe(false);
   });
 });
 
@@ -279,13 +259,26 @@ describe("Billing Settings Premium Usage", () => {
   });
 
   it("Does not render free mode component", () => {
-    expect(wrapper.find('[data-test="freePlan-div"]').exists()).toBe(false);
-    expect(wrapper.findComponent('[data-test="subscribe-button"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-plan-description-free"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="billing-plan-free"]').exists()).toBe(false);
   });
 
   it("Render premium usage component", () => {
-    expect(wrapper.find('[data-test="premiumPlan-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="subscriptionActive-div"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-description-premium"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-plan-premium"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-active-section"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-status-section"]').exists());
+    expect(wrapper.find('[data-test="billing-status-icon"]').exists());
+    expect(wrapper.find('[data-test="billing-status-title"]').exists());
+    expect(wrapper.find('[data-test="billing-status-message"]').exists());
+    expect(wrapper.find('[data-test="billing-total-section"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-total-icon"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-total-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-total-amount"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-end-date-section"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-end-date-icon"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-end-date-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="billing-end-date"]').exists()).toBe(true);
   });
 
   it("Render alerts for status", async () => {
@@ -310,6 +303,6 @@ describe("Billing Settings Premium Usage", () => {
     store.commit("billing/setSubscription", billingData);
     await nextTick();
     await flushPromises();
-    expect(wrapper.find('[data-test="message-alert"]')).toBeTruthy();
+    expect(wrapper.find('[data-test="billing-status-message"]')).toBeTruthy();
   });
 });

@@ -50,10 +50,7 @@
           class="pl-2 pr-2 mr-4"
           data-test="user-menu-btn"
         >
-          <v-avatar size="x-small" color="primary" class="border">
-            <v-img v-if="!avatarLoadingFailed" :src="avatar" v-on:error="avatarLoadingFailed = true" data-test="user-avatar" />
-            <v-icon color="surface" v-if="avatarLoadingFailed" data-test="user-not-found-avatar">mdi-account</v-icon>
-          </v-avatar>
+          <UserIcon size="1.5rem" :email="userEmail" data-test="user-icon" />
         </v-btn>
       </template>
       <v-list class="bg-v-theme-surface">
@@ -101,11 +98,12 @@ import {
   ref,
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
-import { computedAsync, useEventListener } from "@vueuse/core";
+import { useEventListener } from "@vueuse/core";
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import { useStore } from "../../store";
 import { createNewClient } from "../../api/http";
 import handleError from "../../utils/handleError";
+import UserIcon from "../User/UserIcon.vue";
 import Notification from "./Notifications/Notification.vue";
 import { envVariables } from "@/envVariables";
 
@@ -137,17 +135,6 @@ const identifier = computed(() => store.getters["support/getIdentifier"]);
 const currentUser = computed(() => store.getters["auth/currentUser"]);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
 
-const avatarLoadingFailed = ref(false);
-const avatar = computedAsync(
-  async () => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(store.getters["auth/email"]);
-    const hash = await crypto.subtle.digest("SHA-256", data);
-    const digest = Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-    return `https://gravatar.com/avatar/${digest}?d=404`;
-  },
-  "",
-);
 const showNavigationDrawer = defineModel<boolean>();
 
 const triggerClick = (item: MenuItem): void => {

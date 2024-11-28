@@ -1,25 +1,8 @@
 <template>
-  <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
-    <template v-slot:activator="{ props }">
-      <div v-bind="props">
-        <v-btn
-          :disabled="!hasAuthorization"
-          color="red darken-1"
-          variant="outlined"
-          data-test="delete-btn"
-          @click="dialog = !dialog"
-        >
-          Delete namespace
-        </v-btn>
-      </div>
-    </template>
-    <span> You don't have this kind of authorization. </span>
-  </v-tooltip>
-
   <v-dialog v-model="dialog" max-width="540">
     <v-card data-test="namespaceDelete-dialog" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary">
-        Namespace Deletion Restriction
+        Namespace Deletion
       </v-card-title>
 
       <v-card-text class="mt-4 mb-3 pb-1">
@@ -55,7 +38,7 @@
           variant="text"
           data-test="remove-btn"
           @click="remove()"
-          :disabled="billingActive"
+          :disabled="billingActive || hasAuthorization"
         >
           Remove
         </v-btn>
@@ -88,7 +71,7 @@ const props = defineProps({
 const emit = defineEmits(["billing-in-debt"]);
 const store = useStore();
 const router = useRouter();
-const dialog = ref(false);
+const dialog = defineModel({ default: false });
 const name = ref("");
 const tenant = computed(() => props.tenant);
 const billingActive = computed(() => store.getters["billing/active"]);
@@ -96,7 +79,7 @@ const billingActive = computed(() => store.getters["billing/active"]);
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
   if (role !== "") {
-    return hasPermission(
+    return !hasPermission(
       authorizer.role[role],
       actions.namespace.remove,
     );

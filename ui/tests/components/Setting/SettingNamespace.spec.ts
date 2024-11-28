@@ -80,6 +80,17 @@ describe("Setting Namespace", () => {
   ];
 
   beforeEach(async () => {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
@@ -122,11 +133,46 @@ describe("Setting Namespace", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="editOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="securityOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deleteOperation-div"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tenant-id"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="NamespaceEdit-component"]').exists()).toBe(true);
+  it("Data is defined", () => {
+    expect(wrapper.vm.$data).toBeDefined();
+  });
+
+  const dataTests = [
+    "card",
+    "card-header",
+    "card-title",
+    "card-subtitle",
+    "edit-namespace-btn",
+    "profile-details-list",
+    "profile-details-item",
+    "name-icon",
+    "name-title",
+    "name-input",
+    "tenant-details-item",
+    "tenant-icon",
+    "tenant-title",
+    "tenant-copy-btn",
+    "announcement-item",
+    "announcement-icon",
+    "announcement-title",
+    "announcement-subtitle",
+    "edit-announcement-btn",
+    "record-item",
+    "record-icon",
+    "record-title",
+    "record-description",
+    "security-setting-component",
+    "delete-leave-item",
+    "delete-leave-icon",
+    "delete-leave-title",
+    "leave-description",
+    "leave-namespace-btn",
+  ];
+
+  dataTests.forEach((dataTest) => {
+    it(`should render the element with data-test="${dataTest}"`, () => {
+      const element = wrapper.find(`[data-test="${dataTest}"]`);
+      expect(element.exists()).toBe(true);
+    });
   });
 });

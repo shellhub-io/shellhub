@@ -426,9 +426,6 @@ router.beforeEach(
     const layout = to.meta.layout || "AppLayout";
     await store.dispatch("layout/setLayout", layout);
 
-    // if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
-    //   return next({ name: "Setup" });
-    // }
     if (!isLoggedIn) {
       if (requiresAuth) {
         return next({
@@ -441,10 +438,3 @@ router.beforeEach(
     return next();
   },
 );
-// if (requiresAuth) {
-//   return next({
-//     name: "Login",
-//     query: { redirect: to.fullPath },
-//   });
-// }
-// return next();

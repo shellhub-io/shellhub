@@ -1,6 +1,6 @@
 <template>
-  <v-table v-bind="$attrs" data-test="tagListList-dataTable" class="bg-v-theme-surface">
-    <thead>
+  <v-table data-test="tagListList-dataTable" class="bg-background border rounded mx-4">
+    <thead class="bg-v-theme-background">
       <tr>
         <th
           v-for="(head, i) in headers"
@@ -58,14 +58,14 @@
         </td>
       </tr>
     </tbody>
-    <div v-else class="text-start mt-2 text-medium-emphasis">
-      <p>No data avaliable</p>
+    <div v-else class="text-start mt-2 mb-3">
+      <span class="ml-4">No data avaliable</span>
     </div>
   </v-table>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import { useStore } from "../../store";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
@@ -74,64 +74,54 @@ import TagEdit from "./TagEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  inheritAttrs: true,
-  setup() {
-    const store = useStore();
-    const tags = computed(() => store.getters["tags/list"]);
-    const hasAuthorizationEdit = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.tag.edit);
-      }
-      return false;
-    };
-    const hasAuthorizationRemove = () => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(authorizer.role[role], actions.tag.remove);
-      }
-      return false;
-    };
-    const getTags = async () => {
-      try {
-        await store.dispatch("tags/fetch");
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.deviceTagList,
-        );
-        handleError(error);
-      }
-    };
-    onMounted(() => {
-      getTags();
-    });
-    const updateTags = () => {
-      getTags();
-    };
-    return {
-      headers: [
-        {
-          text: "Name",
-          value: "name",
-          align: "center",
-          sortable: false,
-        },
-        {
-          text: "Actions",
-          value: "actions",
-          align: "center",
-          sortable: false,
-        },
-      ],
-      tags,
-      hasAuthorizationEdit,
-      hasAuthorizationRemove,
-      updateTags,
-      getTags,
-    };
+const store = useStore();
+
+const headers = ref([
+  {
+    text: "Name",
+    value: "name",
+    align: "center",
+    sortable: false,
   },
-  components: { TagRemove, TagEdit },
+  {
+    text: "Actions",
+    value: "actions",
+    align: "center",
+    sortable: false,
+  },
+]);
+
+const tags = computed(() => store.getters["tags/list"]);
+
+const hasAuthorizationEdit = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(authorizer.role[role], actions.tag.edit);
+  }
+  return false;
+};
+
+const hasAuthorizationRemove = () => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(authorizer.role[role], actions.tag.remove);
+  }
+  return false;
+};
+
+const getTags = async () => {
+  try {
+    await store.dispatch("tags/fetch");
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.deviceTagList,
+    );
+    handleError(error);
+  }
+};
+
+onMounted(() => {
+  getTags();
 });
 </script>

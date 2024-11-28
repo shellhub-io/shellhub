@@ -1,30 +1,22 @@
 <template>
-  <div>
-    <v-tooltip v-bind="$attrs" class="text-center" location="bottom">
-      <template v-slot:activator="{ props }">
-        <div v-bind="props">
-          <v-btn
-            @click="dialog = !dialog"
-            color="primary"
-            tabindex="0"
-            variant="elevated"
-            aria-label="Dialog Add Private Key"
-            @keypress.enter="dialog = !dialog"
-            data-test="private-key-dialog-btn"
-          >
-            Add Private Key
-          </v-btn>
-        </div>
-      </template>
-    </v-tooltip>
-
-    <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+  <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+    <v-container>
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary" data-test="card-title">
           New Private Key
         </v-card-title>
-        <form @submit.prevent="create" class="mt-3">
+        <form @submit.prevent="create" class="mt-1">
           <v-card-text>
+
+            <v-alert
+              class="text-subtitle-2 mb-2"
+              title="ShellHub never stores your private keys."
+              text="They stay secure in your browser's local storage and are not shared with ShellHub's servers."
+              color="primary"
+              density="compact"
+              variant="tonal"
+              data-test="privacy-policy-alert"
+            />
             <v-text-field
               v-model="name"
               :error-messages="nameError"
@@ -67,8 +59,8 @@
           </v-card-actions>
         </form>
       </v-card>
-    </v-dialog>
-  </div>
+    </v-container>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -86,7 +78,7 @@ import handleError from "../../utils/handleError";
 
 const emit = defineEmits(["update"]);
 const store = useStore();
-const dialog = ref(false);
+const dialog = defineModel({ default: false });
 const supportedKeys = ref(
   "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
 );
@@ -194,5 +186,5 @@ const create = async () => {
   }
 };
 
-defineExpose({ privateKeyDataError, nameError });
+defineExpose({ privateKeyDataError, nameError, dialog });
 </script>
