@@ -72,12 +72,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI := e.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
-	publicAPI.GET(AuthUserURLV2, gateway.Handler(handler.CreateUserToken))                                        // TODO: method POST
+	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(AuthUserURL, gateway.Handler(handler.AuthUser))
-	publicAPI.POST(AuthUserURLV2, gateway.Handler(handler.AuthUser))
+	publicAPI.POST(AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser))
+	publicAPI.POST(AuthLocalUserURLV2, gateway.Handler(handler.AuthLocalUser))
 	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
 
 	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyCreate))

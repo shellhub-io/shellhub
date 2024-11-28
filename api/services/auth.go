@@ -30,9 +30,9 @@ type AuthService interface {
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
 
-	// AuthUser attempts to authenticate a user using the provided credentials. Users can be blocked from
-	// authentications when they makes 3 password mistakes or when they have MFA enabled (which is a cloud-only
-	// feature).
+	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
+	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
+	// they have MFA enabled (which is a cloud-only feature).
 	//
 	// It will try to use the user's preferred namespace or the first one to which the user was added. As the
 	// authentication key is a JWT, in these cases, the response does not contain the member role to avoid creating
@@ -41,7 +41,7 @@ type AuthService interface {
 	//
 	// It returns a timestamp when the block ends if the user is locked out, a token to be used with the OTP code if the MFA
 	// is enabled and an error, if any
-	AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
+	AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
 	//
 	// It accepts an optional tenant ID to associate the token with a namespace. If the tenant ID is empty, it uses the user's
@@ -170,7 +170,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
 	var err error
 	var user *models.User
 
@@ -181,6 +181,10 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 	}
 
 	if err != nil {
+		return nil, 0, "", NewErrAuthUnathorized(nil)
+	}
+
+	if user.Origin != models.UserOriginLocal {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
@@ -253,6 +257,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 
 	claims := authorizer.UserClaims{
 		ID:       user.ID,
+		Origin:   user.Origin.String(),
 		TenantID: tenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
@@ -284,6 +289,7 @@ func (s *service) AuthUser(ctx context.Context, req *requests.UserAuth, sourceIP
 
 	res := &models.UserAuthResponse{
 		ID:            user.ID,
+		Origin:        user.Origin.String(),
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
@@ -349,6 +355,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 
 	claims := authorizer.UserClaims{
 		ID:       user.ID,
+		Origin:   user.Origin.String(),
 		TenantID: tenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
@@ -365,6 +372,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 
 	return &models.UserAuthResponse{
 		ID:            user.ID,
+		Origin:        user.Origin.String(),
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,

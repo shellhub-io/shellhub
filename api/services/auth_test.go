@@ -115,7 +115,7 @@ func TestAuthDevice(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestAuthUser(t *testing.T) {
+func TestService_AuthLocalUser(t *testing.T) {
 	mock := new(mocks.Store)
 	cacheMock := new(mockcache.Cache)
 
@@ -130,7 +130,7 @@ func TestAuthUser(t *testing.T) {
 
 	tests := []struct {
 		description   string
-		req           *requests.UserAuth
+		req           *requests.AuthLocalUser
 		sourceIP      string
 		requiredMocks func()
 		expected      Expected
@@ -138,7 +138,7 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when username is not found",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
@@ -158,7 +158,7 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when email is not found",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john.doe@test.com",
 				Password:   "secret",
 			},
@@ -176,15 +176,53 @@ func TestAuthUser(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when user is not confirmed",
+			description: "fails when user's origin isn't 'local'",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOrigin("other"),
+					Status:    models.UserStatusNotConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
+				}
+
+				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
+			},
+		},
+		{
+			description: "fails when user is not confirmed",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusNotConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -214,7 +252,7 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when user is 'invited'",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john.doe@test.com",
 				Password:   "secret",
 			},
@@ -224,6 +262,7 @@ func TestAuthUser(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "65fdd16b5f62f93184ec8a39",
+							Origin:    models.UserOriginLocal,
 							Status:    models.UserStatusInvited,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -254,13 +293,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when an account lockout occurs",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -297,13 +337,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when input password is wrong",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -348,13 +389,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when user has MFA enable",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -408,13 +450,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "fails when can not update the last_login field",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -474,6 +517,7 @@ func TestAuthUser(t *testing.T) {
 				mfaToken: "",
 				err: NewErrUserUpdate(&models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					UserData: models.UserData{
@@ -489,13 +533,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "succeeds to authenticate without a namespace",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -553,6 +598,7 @@ func TestAuthUser(t *testing.T) {
 			expected: Expected{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
+					Origin: models.UserOriginLocal.String(),
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
@@ -567,13 +613,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "succeeds to authenticate with a namespace",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -642,6 +689,7 @@ func TestAuthUser(t *testing.T) {
 			expected: Expected{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
+					Origin: models.UserOriginLocal.String(),
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
@@ -657,13 +705,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "succeeds to authenticate with a namespace (and member status 'pending')",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -733,6 +782,7 @@ func TestAuthUser(t *testing.T) {
 			expected: Expected{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
+					Origin: models.UserOriginLocal.String(),
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
@@ -748,13 +798,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "succeeds to authenticate with a namespace (and empty preferred namespace)",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -823,6 +874,7 @@ func TestAuthUser(t *testing.T) {
 			expected: Expected{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
+					Origin: models.UserOriginLocal.String(),
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
@@ -838,13 +890,14 @@ func TestAuthUser(t *testing.T) {
 		{
 			description: "succeeds to authenticate and update non-bcypt hashes",
 			sourceIP:    "127.0.0.1",
-			req: &requests.UserAuth{
+			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -911,6 +964,7 @@ func TestAuthUser(t *testing.T) {
 			expected: Expected{
 				res: &models.UserAuthResponse{
 					ID:     "65fdd16b5f62f93184ec8a39",
+					Origin: models.UserOriginLocal.String(),
 					Name:   "john doe",
 					User:   "john_doe",
 					Email:  "john.doe@test.com",
@@ -933,7 +987,7 @@ func TestAuthUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			res, lockout, mfaToken, err := service.AuthUser(ctx, tc.req, tc.sourceIP)
+			res, lockout, mfaToken, err := service.AuthLocalUser(ctx, tc.req, tc.sourceIP)
 			// Since the resulting token is not crucial for the assertion and
 			// difficult to mock, it is safe to ignore this field.
 			if res != nil {

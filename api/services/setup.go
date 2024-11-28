@@ -51,6 +51,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	}
 
 	user := &models.User{
+		Origin:   models.UserOriginLocal,
 		UserData: data,
 		Password: password,
 		// NOTE: user's created from the setup screen doesn't need to be confirmed.
