@@ -107,12 +107,10 @@ describe("Namespace Leave", () => {
 
   it("Renders components", async () => {
     const dialog = new DOMWrapper(document.body);
-
-    expect(wrapper.find('[data-test="leave-dialog-btn"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="leave-dialog-btn"]').trigger("click");
-
+    wrapper.vm.dialog = true;
     await flushPromises();
 
+    expect(dialog.find('[data-test="namespace-leave-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="subtitle"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
@@ -120,11 +118,12 @@ describe("Namespace Leave", () => {
   });
 
   it("Successfully leaves namespace", async () => {
+    wrapper.vm.dialog = true;
+    await flushPromises();
+
     mockNamespace.onDelete("http://localhost/api/namespaces/fake-tenant/members").reply(200);
 
     const storeSpy = vi.spyOn(store, "dispatch");
-
-    await wrapper.findComponent('[data-test="leave-dialog-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
 
@@ -134,11 +133,12 @@ describe("Namespace Leave", () => {
   });
 
   it("Fails to Edit Api Key", async () => {
+    wrapper.vm.dialog = true;
+    await flushPromises();
+
     mockNamespace.onDelete("http://localhost/api/namespaces/fake-tenant/members").reply(400);
 
     const storeSpy = vi.spyOn(store, "dispatch");
-
-    await wrapper.findComponent('[data-test="leave-dialog-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
 

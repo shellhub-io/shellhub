@@ -101,11 +101,10 @@ describe("Setting Private Keys", () => {
   });
 
   it("Renders components", async () => {
+    wrapper.vm.dialog = true;
+    await flushPromises();
     const dialog = new DOMWrapper(document.body);
 
-    await wrapper.findComponent('[data-test="private-key-dialog-btn"]').trigger("click");
-
-    expect(wrapper.findComponent('[data-test="private-key-dialog-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="card-title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="name-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="private-key-field"]').exists()).toBe(true);
@@ -114,7 +113,8 @@ describe("Setting Private Keys", () => {
   });
 
   it("Sets private key data error message", async () => {
-    await wrapper.findComponent('[data-test="private-key-dialog-btn"]').trigger("click");
+    wrapper.vm.dialog = true;
+    await flushPromises();
 
     await wrapper.findComponent('[data-test="name-field"]').setValue("not-working-name");
 
@@ -126,7 +126,8 @@ describe("Setting Private Keys", () => {
   });
 
   it("Sets private key data error message", async () => {
-    await wrapper.findComponent('[data-test="private-key-dialog-btn"]').trigger("click");
+    wrapper.vm.dialog = true;
+    await flushPromises();
 
     await wrapper.findComponent('[data-test="private-key-field"]').setValue("not-working-key");
 

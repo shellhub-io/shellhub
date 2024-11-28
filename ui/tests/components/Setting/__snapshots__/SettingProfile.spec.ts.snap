@@ -1,381 +1,374 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Settings Namespace > Renders the component 1`] = `
-"<div data-v-b3fa301d=\\"\\" class=\\"v-container v-locale--is-ltr\\">
-  <div data-v-b3fa301d=\\"\\" class=\\"v-row align-center justify-center\\">
-    <div data-v-b3fa301d=\\"\\" class=\\"v-col-sm-8 v-col\\">
-      <div data-v-b3fa301d=\\"\\" class=\\"v-row\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-col\\" data-test=\\"account-header\\">
-          <h3 data-v-b3fa301d=\\"\\">Account</h3>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-spacer\\"></div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"change-data-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Change Data </span>
-            <!---->
-            <!---->
-          </button>
-          <!--v-if-->
-        </div>
+"<div data-v-b3fa301d=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr\\" data-test=\\"account-profile-container\\">
+  <!---->
+  <!---->
+  <div data-v-b3fa301d=\\"\\" class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"account-profile-card\\">
+    <!---->
+    <div class=\\"v-card__loader\\">
+      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+        <!---->
+        <div class=\\"v-progress-linear__background\\"></div>
+        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <div class=\\"v-progress-linear__indeterminate\\">
+            <div class=\\"v-progress-linear__indeterminate long\\"></div>
+            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+          </div>
+        </transition-stub>
+        <!---->
       </div>
-      <div data-v-b3fa301d=\\"\\" class=\\"mt-4 pl-4 pr-4\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined\\" data-test=\\"name-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    </div>
+    <!---->
+    <!---->
+    <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\">
+      <!---->
+      <div class=\\"v-card-item__content\\">
+        <!---->
+        <!---->
+        <div data-v-b3fa301d=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" aria-selected=\\"false\\" data-test=\\"profile-header\\">
+          <!----><span class=\\"v-list-item__underlay\\"></span>
+          <div class=\\"v-list-item__prepend\\">
+            <div data-v-09753bb1=\\"\\" data-v-b3fa301d=\\"\\" class=\\"v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border\\" style=\\"width: 4rem; height: 4rem;\\" data-test=\\"user-icon\\">
+              <div data-v-09753bb1=\\"\\" class=\\"v-responsive v-img v-img--booting\\" data-test=\\"gravatar-image\\">
+                <div class=\\"v-responsive__sizer\\"></div>
+                <!---->
+                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
                   <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
-                  <!---->Name
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-1\\" aria-describedby=\\"input-1-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                </transition-stub>
+                <!---->
+                <!---->
+                <!---->
                 <!---->
               </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-1\\">
-                  <!---->Name
-                </label>
-              </div>
+              <!----><span class=\\"v-avatar__underlay\\"></span>
             </div>
+            <div class=\\"v-list-item__spacer\\"></div>
           </div>
-          <!---->
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-1-messages\\">
-              <!---->
-            </transition-group-stub>
-            <!---->
-          </div>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined\\" data-test=\\"username-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-                  <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\">
-                  <!---->Username
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-3\\" aria-describedby=\\"input-3-messages\\" required=\\"\\" class=\\"v-field__input\\">
-                <!---->
-              </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-3\\">
-                  <!---->Username
-                </label>
-              </div>
+          <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class=\\"v-list-item-title\\">
+              <h1 data-v-b3fa301d=\\"\\" data-test=\\"profile-title\\">Account Profile</h1>
             </div>
-          </div>
-          <!---->
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-3-messages\\">
-              <!---->
-            </transition-group-stub>
+            <div class=\\"v-list-item-subtitle\\"><span data-v-b3fa301d=\\"\\" data-test=\\"profile-subtitle\\">Manage your account profile</span></div>
             <!---->
           </div>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined\\" data-test=\\"email-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-                  <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\">
-                  <!---->Email
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-5\\" aria-describedby=\\"input-5-messages\\" required=\\"\\" class=\\"v-field__input\\">
-                <!---->
-              </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-5\\">
-                  <!---->Email
-                </label>
-              </div>
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-5-messages\\">
-              <!---->
-            </transition-group-stub>
-            <!---->
-          </div>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined\\" data-test=\\"recovery-email-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-                  <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-7\\">
-                  <!---->Recovery Email
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-7\\" aria-describedby=\\"input-7-messages\\" class=\\"v-field__input\\">
-                <!---->
-              </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-7\\">
-                  <!---->Recovery Email
-                </label>
-              </div>
-            </div>
-          </div>
-          <!---->
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-7-messages\\">
-              <!---->
-            </transition-group-stub>
-            <!---->
-          </div>
-        </div>
-      </div>
-      <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-      <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-      <div data-v-b3fa301d=\\"\\" class=\\"v-row\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-col\\" data-test=\\"password-header\\">
-          <h3 data-v-b3fa301d=\\"\\">Password</h3>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-spacer\\"></div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"change-password-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Change Password </span>
-            <!---->
-            <!---->
-          </button>
-          <!--v-if-->
-        </div>
-      </div>
-      <div data-v-b3fa301d=\\"\\" class=\\"mt-4 pl-4 pr-4\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined mb-4\\" data-test=\\"password-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-                  <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-10\\">
-                  <!---->Current password
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-10\\" aria-describedby=\\"input-10-messages\\" required=\\"\\" class=\\"v-field__input\\">
-                <!---->
-              </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-10\\">
-                  <!---->Current password
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class=\\"v-input__append\\"><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Current password appended action\\"></i>
-            <!---->
-          </div>
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-10-messages\\">
-              <!---->
-            </transition-group-stub>
-            <!---->
-          </div>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined mb-4\\" data-test=\\"newPassword-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-                  <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-12\\">
-                  <!---->New password
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-12\\" aria-describedby=\\"input-12-messages\\" required=\\"\\" class=\\"v-field__input\\">
-                <!---->
-              </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-12\\">
-                  <!---->New password
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class=\\"v-input__append\\"><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"New password appended action\\"></i>
-            <!---->
-          </div>
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-12-messages\\">
-              <!---->
-            </transition-group-stub>
-            <!---->
-          </div>
-        </div>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-text-field v-input--plain-underlined mb-4\\" data-test=\\"confirmNewPassword-text\\">
-          <!---->
-          <div class=\\"v-input__control\\">
-            <div class=\\"v-field v-field--disabled v-field--variant-underlined v-theme--light v-locale--is-ltr\\">
-              <div class=\\"v-field__overlay\\"></div>
-              <div class=\\"v-field__loader\\">
-                <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
-                  <!---->
-                  <div class=\\"v-progress-linear__background\\"></div>
-                  <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                  <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                    <div class=\\"v-progress-linear__indeterminate\\">
-                      <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                      <div class=\\"v-progress-linear__indeterminate short\\"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <!---->
-              <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                <!----><label class=\\"v-label v-field-label\\" for=\\"input-14\\">
-                  <!---->Confirm new password
-                </label>
-                <!----><input disabled=\\"\\" size=\\"1\\" type=\\"password\\" id=\\"input-14\\" aria-describedby=\\"input-14-messages\\" required=\\"\\" class=\\"v-field__input\\">
-                <!---->
-              </div>
-              <!---->
-              <!---->
-              <div class=\\"v-field__outline\\">
-                <!----><label class=\\"v-label v-field-label v-field-label--floating\\" aria-hidden=\\"true\\" for=\\"input-14\\">
-                  <!---->Confirm new password
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class=\\"v-input__append\\"><i class=\\"mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-label=\\"Confirm new password appended action\\"></i>
-            <!---->
-          </div>
-          <div class=\\"v-input__details\\">
-            <transition-group-stub name=\\"slide-y-transition\\" tag=\\"div\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\" class=\\"v-messages\\" role=\\"alert\\" aria-live=\\"polite\\" id=\\"input-14-messages\\">
-              <!---->
-            </transition-group-stub>
-            <!---->
-          </div>
-        </div>
-      </div>
-      <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mt-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-      <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light mb-6\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-      <!--v-if-->
-      <div data-v-b3fa301d=\\"\\" class=\\"mt-6 mb-4\\" data-test=\\"deleteOperation-div\\">
-        <h3 data-v-b3fa301d=\\"\\" class=\\"mb-2\\">Danger Zone</h3>
-        <div data-v-b3fa301d=\\"\\" class=\\"v-row mt-2 mb-2\\">
-          <div data-v-b3fa301d=\\"\\" class=\\"v-col ml-3\\">
-            <h4 data-v-b3fa301d=\\"\\">Delete this account</h4>
-            <div data-v-b3fa301d=\\"\\" class=\\"ml-2\\">
-              <p data-v-b3fa301d=\\"\\"> Deleting your account is permanent. This action will erase all your data and cannot be undone. Please be sure before proceeding. </p>
-            </div>
-          </div>
-          <div data-v-b3fa301d=\\"\\" class=\\"v-col-md-auto v-col ml-auto\\">
-            <div aria-describedby=\\"v-tooltip-16\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-red darken-1 v-btn--density-default v-btn--size-default v-btn--variant-outlined\\" data-test=\\"delete-dialog-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Delete Account </span>
+          <div class=\\"v-list-item__append\\">
+            <div data-v-b3fa301d=\\"\\" class=\\"mr-4\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border\\" data-test=\\"edit-profile-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Edit Profile</span>
                 <!---->
                 <!---->
               </button></div>
-            <!--teleport start-->
-            <!--teleport end-->
+            <div class=\\"v-list-item__spacer\\"></div>
+          </div>
+        </div>
+      </div>
+      <!---->
+    </div>
+    <div data-v-b3fa301d=\\"\\" class=\\"v-card-text pt-4\\">
+      <div data-v-b3fa301d=\\"\\" class=\\"v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"profile-details-list\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-badge-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"name-field\\">Name</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class=\\"v-card-item__append\\">
+            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field\\" data-test=\\"name-input\\">
+              <!---->
+              <div class=\\"v-input__control\\">
+                <div class=\\"v-field v-field--center-affix v-field--disabled v-field--no-label v-field--variant- v-theme--light v-locale--is-ltr\\">
+                  <div class=\\"v-field__overlay\\"></div>
+                  <div class=\\"v-field__loader\\">
+                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                      <!---->
+                      <div class=\\"v-progress-linear__background\\"></div>
+                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                        <div class=\\"v-progress-linear__indeterminate\\">
+                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                        </div>
+                      </transition-stub>
+                      <!---->
+                    </div>
+                  </div>
+                  <!---->
+                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
+                      <!---->
+                      <!---->
+                    </label>
+                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!---->
+                  </div>
+                  <!---->
+                  <!---->
+                  <div class=\\"v-field__outline\\">
+                    <!---->
+                    <!---->
+                  </div>
+                </div>
+              </div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"username-field\\">Username</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class=\\"v-card-item__append\\">
+            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field\\" data-test=\\"username-input\\">
+              <!---->
+              <div class=\\"v-input__control\\">
+                <div class=\\"v-field v-field--center-affix v-field--disabled v-field--no-label v-field--variant- v-theme--light v-locale--is-ltr\\">
+                  <div class=\\"v-field__overlay\\"></div>
+                  <div class=\\"v-field__loader\\">
+                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                      <!---->
+                      <div class=\\"v-progress-linear__background\\"></div>
+                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                        <div class=\\"v-progress-linear__indeterminate\\">
+                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                        </div>
+                      </transition-stub>
+                      <!---->
+                    </div>
+                  </div>
+                  <!---->
+                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
+                      <!---->
+                      <!---->
+                    </label>
+                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!---->
+                  </div>
+                  <!---->
+                  <!---->
+                  <div class=\\"v-field__outline\\">
+                    <!---->
+                    <!---->
+                  </div>
+                </div>
+              </div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"email-field\\">Email</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class=\\"v-card-item__append\\">
+            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field\\" data-test=\\"email-input\\">
+              <!---->
+              <div class=\\"v-input__control\\">
+                <div class=\\"v-field v-field--center-affix v-field--disabled v-field--no-label v-field--variant- v-theme--light v-locale--is-ltr\\">
+                  <div class=\\"v-field__overlay\\"></div>
+                  <div class=\\"v-field__loader\\">
+                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                      <!---->
+                      <div class=\\"v-progress-linear__background\\"></div>
+                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                        <div class=\\"v-progress-linear__indeterminate\\">
+                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                        </div>
+                      </transition-stub>
+                      <!---->
+                    </div>
+                  </div>
+                  <!---->
+                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-6\\">
+                      <!---->
+                      <!---->
+                    </label>
+                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-6\\" aria-describedby=\\"input-6-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!---->
+                  </div>
+                  <!---->
+                  <!---->
+                  <div class=\\"v-field__outline\\">
+                    <!---->
+                    <!---->
+                  </div>
+                </div>
+              </div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-email-lock mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"recovery-email-field\\">Recovery Email</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class=\\"v-card-item__append\\">
+            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field\\" data-test=\\"recovery-email-input\\">
+              <!---->
+              <div class=\\"v-input__control\\">
+                <div class=\\"v-field v-field--center-affix v-field--disabled v-field--no-label v-field--variant- v-theme--light v-locale--is-ltr\\">
+                  <div class=\\"v-field__overlay\\"></div>
+                  <div class=\\"v-field__loader\\">
+                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                      <!---->
+                      <div class=\\"v-progress-linear__background\\"></div>
+                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                        <div class=\\"v-progress-linear__indeterminate\\">
+                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                        </div>
+                      </transition-stub>
+                      <!---->
+                    </div>
+                  </div>
+                  <!---->
+                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
+                      <!---->
+                      <!---->
+                    </label>
+                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!---->
+                  </div>
+                  <!---->
+                  <!---->
+                  <div class=\\"v-field__outline\\">
+                    <!---->
+                    <!---->
+                  </div>
+                </div>
+              </div>
+              <!---->
+              <!---->
+            </div>
+          </div>
+        </div>
+        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\">Password</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class=\\"v-card-item__append\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-aprimary v-btn--density-default v-btn--size-default v-btn--variant-text\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Change Password</span>
+              <!---->
+              <!---->
+            </button>
             <!---->
             <!---->
           </div>
         </div>
+        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"d-flex mr-4\\">
+          <div data-v-b3fa301d=\\"\\" class=\\"v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background\\" data-test=\\"mfa-card\\">
+            <!---->
+            <div class=\\"v-card__loader\\">
+              <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+                <!---->
+                <div class=\\"v-progress-linear__background\\"></div>
+                <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
+                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                  <div class=\\"v-progress-linear__indeterminate\\">
+                    <div class=\\"v-progress-linear__indeterminate long\\"></div>
+                    <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <div class=\\"v-card-item\\">
+              <div class=\\"v-card-item__prepend\\">
+                <!----><i class=\\"mdi-fingerprint mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" density=\\"default\\"></i>
+              </div>
+              <div class=\\"v-card-item__content\\">
+                <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\">Multi-factor Authentication</span></div>
+                <!---->
+                <!---->
+              </div>
+              <!---->
+            </div>
+            <!---->
+            <div data-v-b3fa301d=\\"\\" class=\\"d-flex flex-no-wrap justify-space-between\\">
+              <div data-v-b3fa301d=\\"\\">
+                <div data-v-b3fa301d=\\"\\" class=\\"v-card-text pt-0\\" data-test=\\"mfa-text\\"> Enable multi-factor authentication (MFA) to add an extra layer of security to your account. You'll need to enter a one-time verification code from your preferred TOTP provider to log in. </div>
+              </div>
+            </div>
+            <!---->
+            <!----><span class=\\"v-card__underlay\\"></span>
+          </div>
+          <div data-v-b3fa301d=\\"\\" class=\\"d-flex align-center bg-background pr-4\\">
+            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset\\" data-test=\\"switch-mfa\\">
+              <!---->
+              <div class=\\"v-input__control\\">
+                <div class=\\"v-selection-control v-selection-control--density-default\\">
+                  <div class=\\"v-selection-control__wrapper\\">
+                    <div class=\\"v-switch__track\\">
+                      <!---->
+                      <!---->
+                    </div>
+                    <div class=\\"v-selection-control__input\\"><input id=\\"switch-11\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"switch-11-messages\\" value=\\"true\\">
+                      <div class=\\"v-switch__thumb\\">
+                        <transition-stub name=\\"scale-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                          <!---->
+                        </transition-stub>
+                      </div>
+                    </div>
+                  </div>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <!---->
+            </div>
+            <!---->
+            <!---->
+            <!---->
+            <!---->
+          </div>
+        </div>
+        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
+          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
+          <div class=\\"v-card-item__content\\">
+            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"delete-account\\">Delete Account</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class=\\"v-card-item__append\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text\\" data-test=\\"delete-account-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Delete</span>
+              <!---->
+              <!---->
+            </button></div>
+        </div>
       </div>
     </div>
+    <!---->
+    <!----><span class=\\"v-card__underlay\\"></span>
   </div>
 </div>"
 `;

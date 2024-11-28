@@ -1,27 +1,12 @@
 <template>
-  <v-form>
-    <v-row>
-      <v-col class="mb-3">
-        <h3 class="mb-3" data-test="security-title">Security</h3>
-
-        <div class="ml-3">
-          <v-checkbox
-            v-model="sessionRecord"
-            :disabled="!hasAuthorization"
-            color="primary"
-            hide-details
-            label="Enable session record"
-            data-test="security-checkbox"
-          />
-
-          <p>
-            Session record is a feature that allows you to check logged activity
-            when connecting to a device.
-          </p>
-        </div>
-      </v-col>
-    </v-row>
-  </v-form>
+  <v-switch
+    hide-details
+    inset
+    v-model="sessionRecord"
+    :disabled="!hasAuthorization"
+    color="primary"
+    data-test="security-switch"
+  />
 </template>
 
 <script setup lang="ts">

@@ -108,6 +108,7 @@ describe("AppBar Component", () => {
     expect(wrapper.find('[data-test="breadcrumbs"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="support-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="user-menu-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="user-icon"]').exists()).toBe(true);
   });
 
   it("Opens the ShellHub help page when the support button is clicked", async () => {
@@ -143,18 +144,6 @@ describe("AppBar Component", () => {
     breadcrumbItems.forEach((item, index) => {
       expect(item.text()).toBe(expectedBreadcrumbs[index].title);
     });
-  });
-
-  it("Displays default user if currentUser is not set", () => {
-    const drawer = wrapper.findComponent(AppBar);
-
-    const { currentUser } = drawer.vm;
-
-    if (!currentUser) {
-      expect(drawer.find('[data-test="user-avatar"]').exists()).toBe(true);
-    } else {
-      expect(drawer.find('[data-test="user-not-found-avatar"]').exists()).toBe(true);
-    }
   });
 
   it("Opens the default ShellHub support URL if identifier is not set", async () => {

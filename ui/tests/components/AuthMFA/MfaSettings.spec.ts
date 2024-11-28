@@ -113,22 +113,14 @@ describe("MfaSettings", () => {
 
   it("Dialog opens", async () => {
     // Test if the dialog opens when a button is clicked
-    await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     await flushPromises();
     expect(document.querySelector('[data-test="dialog"]')).not.toBeNull();
   });
 
-  it("Renders the components (first-window)", async () => {
-    // Test if the components in the first window are rendered as expected
-    expect(wrapper.find('[data-test="enable-dialog-btn"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
-    await flushPromises();
-    // Add more expectations for the first window components as needed
-  });
-
   it("Renders the components (second-window)", async () => {
     // Test if the components in the second window are rendered as expected
-    await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     await flushPromises();
     await wrapper.vm.goToNextStep();
     // Add more expectations for the second window components as needed
@@ -136,7 +128,7 @@ describe("MfaSettings", () => {
 
   it("Renders the components (third-window)", async () => {
     // Test if the components in the third window are rendered as expected
-    await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
+    wrapper.vm.showDialog = true;
     await flushPromises();
     await wrapper.vm.goToNextStep();
     await wrapper.vm.goToNextStep();
@@ -155,10 +147,10 @@ describe("MfaSettings", () => {
     // Spy on the Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
-    wrapper.vm.el = 2;
+    wrapper.vm.showDialog = true;
     await flushPromises();
-    await wrapper.vm.goToNextStep();
+    wrapper.vm.el = 3;
+    await flushPromises();
 
     await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
     await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
@@ -183,10 +175,10 @@ describe("MfaSettings", () => {
     // Spy on the Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="enable-dialog-btn"]').trigger("click");
-    wrapper.vm.el = 2;
+    wrapper.vm.showDialog = true;
     await flushPromises();
-    await wrapper.vm.goToNextStep();
+    wrapper.vm.el = 3;
+    await flushPromises();
 
     await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
     await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");

@@ -95,7 +95,11 @@ describe("Setting Private Keys", () => {
   });
 
   it("Renders components", async () => {
-    expect(wrapper.find('[data-test="privateKeyFormDialogFirst-component"]').exists());
-    expect(wrapper.find('[data-test="privacy-policy-alert"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="card"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="card-header"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="card-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="card-subtitle"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="card-button"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="private-key-list"]').exists()).toBe(true);
   });
 });

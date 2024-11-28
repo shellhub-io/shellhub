@@ -1,11 +1,4 @@
 <template>
-  <v-btn
-    @click="openDialog"
-    color="primary"
-    tabindex="0"
-    variant="elevated"
-    data-test="disable-dialog-btn"
-  >Disable MFA</v-btn>
   <v-dialog
     max-width="400px"
     scrollable
@@ -52,22 +45,6 @@
               @keyup.enter="verificationCode ? mfaValidate() : false"
               label="Verification Code"
               variant="underlined" />
-            <v-card-actions class="justify-center pa-0">
-              <v-row class="ml-4 mr-4">
-                <v-col>
-                  <v-btn
-                    :disabled="!verificationCode"
-                    data-test="verify-btn"
-                    color="primary"
-                    variant="tonal"
-                    block
-                    @click="mfaValidate()"
-                  >
-                    Verify
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-card-actions>
             <v-row>
               <v-col class="text-subtitle-2 mt-2">
                 If you lost your MFA TOPT Provider, and want to use your recovery code,
@@ -83,6 +60,22 @@
                 </v-btn>
               </v-col>
             </v-row>
+            <v-card-actions class="justify-center pa-0">
+              <v-row class="ml-4 mr-4 mt-2">
+                <v-col>
+                  <v-btn
+                    :disabled="!verificationCode"
+                    data-test="verify-btn"
+                    color="primary"
+                    variant="tonal"
+                    block
+                    @click="mfaValidate()"
+                  >
+                    Verify
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card-actions>
           </v-window-item>
           <v-window-item :value="2">
             <v-slide-y-reverse-transition v-if="showAlert">
@@ -174,15 +167,13 @@ import handleError from "@/utils/handleError";
 import Logo from "@/assets/logo-inverted.png";
 import { INotificationsSuccess } from "@/interfaces/INotifications";
 
-const emits = defineEmits(["success"]);
-
 const store = useStore();
 const verificationCode = ref("");
 const recoveryCode = ref("");
 const el = ref<number>(1);
 const showAlert = ref(false);
 const alertMessage = ref("");
-const showDialog = ref(false);
+const showDialog = defineModel({ default: false });
 const userMail = computed(() => localStorage.getItem("email"));
 
 const mfaValidate = async () => {
@@ -201,7 +192,7 @@ const mfaValidate = async () => {
       "snackbar/showSnackbarSuccessAction",
       INotificationsSuccess.cancelMfa,
     );
-    emits("success");
+    showDialog.value = false;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -248,9 +239,5 @@ const close = () => {
   el.value = 1;
 };
 
-const openDialog = () => {
-  showDialog.value = true;
-};
-
-defineExpose({ el });
+defineExpose({ el, showDialog });
 </script>
