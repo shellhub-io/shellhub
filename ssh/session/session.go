@@ -11,7 +11,6 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -425,7 +424,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	return nil
 }
 
-func (s *Session) Record(ctx context.Context, url string) (*websocket.Conn, error) {
+func (s *Session) Record(ctx context.Context, url string) (*Camera, error) {
 	conn, err := s.api.RecordSession(ctx, s.UID, url)
 	if err != nil {
 		log.WithError(err).Error("failed to start the record session process")
@@ -433,7 +432,7 @@ func (s *Session) Record(ctx context.Context, url string) (*websocket.Conn, erro
 		return nil, err
 	}
 
-	return conn, nil
+	return NewCamera(conn), nil
 }
 
 func Event[D any](sess *Session, t string, data []byte) {
