@@ -89,7 +89,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 				}
 
 				if recording {
-					if err := camera.WriteJSON(&models.SessionRecorded{ //nolint:errcheck
+					if err := camera.WriteFrame(&models.SessionRecorded{ //nolint:errcheck
 						UID:       sess.UID,
 						Namespace: sess.Lookup["domain"],
 						Message:   string(buffer[:read]),
