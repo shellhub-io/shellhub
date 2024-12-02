@@ -42,7 +42,6 @@ var migration86 = migrate.Migration{
 			Options: options.Index().SetName("tenant_id").SetUnique(false),
 		}
 
-
 		_, err2 := db.Collection("tags",
 			options.Collection().SetWriteConcern(writeconcern.Majority()),
 		).Indexes().CreateOne(ctx, indexTenant)
@@ -62,7 +61,6 @@ var migration86 = migrate.Migration{
 		_, err := db.Collection("tags",
 			options.Collection().SetWriteConcern(writeconcern.Majority()),
 		).Indexes().DropOne(ctx, "names")
-
 		if err != nil {
 			return err
 		}
