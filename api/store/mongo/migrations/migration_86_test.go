@@ -28,8 +28,8 @@ func TestMigration86(t *testing.T) {
 			description: "Apply up on migration 83 when there is at least one user",
 			setup: func(t *testing.T) {
 				_, err := c.Database("test").Collection("tags").InsertOne(ctx, models.Tags{
-					Name: "red",
-					Color: "#ff0000",
+					Name:   "red",
+					Color:  "#ff0000",
 					Tenant: "00000000-0000-4000-0000-000000000000",
 				})
 				require.NoError(t, err)
@@ -56,7 +56,7 @@ func TestMigration86(t *testing.T) {
 				assert.NoError(tt, srv.Reset())
 			})
 
-			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[86 - 1])
+			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[86-1])
 			require.NoError(tt, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			test.setup(tt)

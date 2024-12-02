@@ -2,9 +2,11 @@ package mongo_test
 
 import (
 	"context"
+	// "errors"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	// mongo "github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,14 +23,14 @@ func TestDevicePushTag(t *testing.T) {
 			description: "fails when device doesn't exist",
 			uid:         models.UID("nonexistent"),
 			tag:         "tag4",
-			fixtures:    []string{fixtureDevices},
+			fixtures:    []string{fixtureTags, fixtureDevices},
 			expected:    store.ErrNoDocuments,
 		},
 		{
 			description: "successfully creates single tag for an existing device",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tag:         "tag4",
-			fixtures:    []string{fixtureDevices},
+			fixtures:    []string{fixtureTags, fixtureDevices},
 			expected:    nil,
 		},
 	}

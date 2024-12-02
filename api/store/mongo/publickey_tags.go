@@ -5,16 +5,45 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"go.mongodb.org/mongo-driver/bson"
+	mongodriver "go.mongodb.org/mongo-driver/mongo"
 )
 
 func (s *Store) PublicKeyPushTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	result, err := s.db.Collection("public_keys").UpdateOne(ctx, bson.M{"tenant_id": tenant, "fingerprint": fingerprint}, bson.M{"$addToSet": bson.M{"filter.tags": tag}})
+	session, err := s.db.Client().StartSession()
 	if err != nil {
-		return err
+		return FromMongoError(err)
 	}
+	defer session.EndSession(ctx)
 
-	if result.ModifiedCount < 1 {
-		return store.ErrNoDocuments
+	_, erro := session.WithTransaction(ctx, func(sessCtx mongodriver.SessionContext) (interface{}, error) {
+		exist, err := s.VerifyTagExist(sessCtx, tag, tenant)
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if !exist {
+			err := s.TagsPushTag(sessCtx, tag, tenant)
+			if err != nil {
+				return nil, FromMongoError(err)
+			}
+		}
+
+		result, err := s.db.Collection("public_keys").
+			UpdateOne(sessCtx, bson.M{"tenant_id": tenant, "fingerprint": fingerprint},
+				bson.M{"$addToSet": bson.M{"filter.tags": tag}})
+		if err != nil {
+			return nil, err
+		}
+
+		if result.ModifiedCount < 1 {
+			return nil, store.ErrNoDocuments
+		}
+
+		return nil, nil
+	})
+
+	if erro != nil {
+		return erro
 	}
 
 	return nil

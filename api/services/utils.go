@@ -5,6 +5,7 @@ import (
 	"os"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -29,6 +30,16 @@ func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	}
 
 	return privKey, pubKey, nil
+}
+
+func containsTags(list []models.Tags, item string) bool {
+	for _, i := range list {
+		if i.Name == item {
+			return true
+		}
+	}
+
+	return false
 }
 
 func contains(list []string, item string) bool {
