@@ -82,13 +82,23 @@ func TestAddPublicKeyTag(t *testing.T) {
 				namespace := &models.Namespace{
 					TenantID: "tenant",
 				}
-				tags := []string{"tag1", "tag2"}
+				tagsNames := []string{
+					"tag-1", "tag-2",
+				}
+				tags := []models.Tags{
+					{
+						Name: "tag-1",
+					},
+					{
+						Name: "tag-2",
+					},
+				}
 				key := &models.PublicKey{
 					TenantID:    "tenant",
 					Fingerprint: "fingerprint",
 					PublicKeyFields: models.PublicKeyFields{
 						Filter: models.PublicKeyFilter{
-							Tags: tags,
+							Tags: tagsNames,
 						},
 					},
 				}
@@ -108,7 +118,24 @@ func TestAddPublicKeyTag(t *testing.T) {
 				namespace := &models.Namespace{
 					TenantID: "tenant",
 				}
-				tags := []string{"tag", "tag3", "tag6"}
+				// tagsNames := []string{"tag", "tag3", "tag6"}
+				tags := []models.Tags{
+					{
+						Name: "tag",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag3",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag6",
+						Color: "",
+						Tenant: "tenant",
+					},
+				}
 				key := &models.PublicKey{
 					TenantID:    "tenant",
 					Fingerprint: "fingerprint",
@@ -134,7 +161,23 @@ func TestAddPublicKeyTag(t *testing.T) {
 				namespace := &models.Namespace{
 					TenantID: "tenant",
 				}
-				tags := []string{"tag", "tag3", "tag6"}
+				tags := []models.Tags{
+					{
+						Name: "tag",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag3",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag6",
+						Color: "",
+						Tenant: "tenant",
+					},
+				}
 				key := &models.PublicKey{
 					TenantID:    "tenant",
 					Fingerprint: "fingerprint",
@@ -360,7 +403,23 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				namespace := &models.Namespace{
 					TenantID: "tenant",
 				}
-				tags := []string{"tag4", "tag5", "tag7", "tag5"}
+				tags := []models.Tags{
+					{
+						Name: "tag4",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag5",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag7",
+						Color: "",
+						Tenant: "tenant",
+					},
+				}
 				key := &models.PublicKey{
 					TenantID:    "tenant",
 					Fingerprint: "fingerprint",
@@ -386,7 +445,28 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				namespace := &models.Namespace{
 					TenantID: "tenant",
 				}
-				tags := []string{"tag1", "tag2", "tag3", "tag4"}
+				tags := []models.Tags{
+					{
+						Name: "tag1",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag2",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag3",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag4",
+						Color: "",
+						Tenant: "tenant",
+					},
+				}
 				key := &models.PublicKey{
 					TenantID:    "tenant",
 					Fingerprint: "fingerprint",
@@ -413,7 +493,28 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 				namespace := &models.Namespace{
 					TenantID: "tenant",
 				}
-				tags := []string{"tag1", "tag2", "tag3", "tag4"}
+				tags := []models.Tags{
+					{
+						Name: "tag1",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag2",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag3",
+						Color: "",
+						Tenant: "tenant",
+					},
+					{
+						Name: "tag4",
+						Color: "",
+						Tenant: "tenant",
+					},
+				}
 				key := &models.PublicKey{
 					TenantID:    "tenant",
 					Fingerprint: "fingerprint",
