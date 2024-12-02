@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub
 
-go 1.21
+go 1.22.4
 
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
@@ -22,6 +22,7 @@ require (
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
+	github.com/openwall/yescrypt-go v1.0.0
 	github.com/oschwald/geoip2-golang v1.8.0
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.5
