@@ -92,29 +92,31 @@ func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, er
 }
 
 func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
-	log.WithFields(log.Fields{
+	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
 		"cols":   dim.Cols,
 		"rows":   dim.Rows,
-	}).Info("handling web client request started")
+		"ip":     info.IP,
+	})
 
-	defer log.WithFields(log.Fields{
-		"user":   creds.Username,
-		"device": creds.Device,
-		"cols":   dim.Cols,
-		"rows":   dim.Rows,
-	}).Info("handling web client request end")
+	logger.Info("handling web client request started")
+
+	defer logger.Info("handling web client request end")
 
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
 	auth, err := getAuth(creds, magickey.GetRerefence())
 	if err != nil {
+		logger.WithError(err).Debug("failed to get the credentials")
+
 		return ErrGetAuth
 	}
 
 	if err := cache.Set(ctx, "web-ip/"+user, fmt.Sprintf("%s:%s", creds.Device, info.IP), 1*time.Minute); err != nil {
+		logger.WithError(err).Debug("failed to set the session IP on the cache")
+
 		return err
 	}
 
@@ -140,6 +142,8 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 			return e
 		}
 
+		logger.WithError(err).Debug("failed to receive the connection banner")
+
 		return ErrAuthentication
 	}
 
@@ -147,6 +151,8 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 	agent, err := connection.NewSession()
 	if err != nil {
+		logger.WithError(err).Debug("failed to create a new session")
+
 		return ErrSession
 	}
 
@@ -154,16 +160,22 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 	stdin, err := agent.StdinPipe()
 	if err != nil {
+		logger.WithError(err).Debug("failed to create the stdin pipe")
+
 		return err
 	}
 
 	stdout, err := agent.StdoutPipe()
 	if err != nil {
+		logger.WithError(err).Debug("failed to create the stdout pipe")
+
 		return err
 	}
 
 	stderr, err := agent.StderrPipe()
 	if err != nil {
+		logger.WithError(err).Debug("failed to create the stderr pipe")
+
 		return err
 	}
 
@@ -172,10 +184,14 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
 	}); err != nil {
+		logger.WithError(err).Debug("failed to request the pty on session")
+
 		return ErrPty
 	}
 
 	if err := agent.Shell(); err != nil {
+		logger.WithError(err).Debug("failed to request the shell on session")
+
 		return ErrShell
 	}
 
@@ -190,12 +206,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 					return
 				}
 
-				log.WithFields(
-					log.Fields{
-						"user":   creds.Username,
-						"device": creds.Device,
-						"ip":     info.IP,
-					}).WithError(err).Error("failed to read the message from the client")
+				logger.WithError(err).Error("failed to read the message from the client")
 
 				return
 			}
@@ -205,7 +216,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 				buffer := message.Data.([]byte)
 
 				if _, err := stdin.Write(buffer); err != nil {
-					log.WithError(err).Error("failed to write the message data on the SSH session")
+					logger.WithError(err).Error("failed to write the message data on the SSH session")
 
 					return
 				}
@@ -213,15 +224,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 				dim := message.Data.(Dimensions)
 
 				if err := agent.WindowChange(dim.Rows, dim.Cols); err != nil {
-					log.WithFields(
-						log.Fields{
-							"user":   creds.Username,
-							"device": creds.Device,
-							"ip":     info.IP,
-							"cols":   dim.Cols,
-							"rows":   dim.Rows,
-						},
-					).WithError(err).Error("failed to change the size of window for terminal session")
+					logger.WithError(err).Error("failed to change the size of window for terminal session")
 
 					return
 				}
@@ -233,7 +236,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	go io.Copy(conn, stderr)   //nolint:errcheck
 
 	if err := agent.Wait(); err != nil {
-		log.WithError(err).Warning("client remote command returned a error")
+		logger.WithError(err).Warning("client remote command returned a error")
 	}
 
 	return nil
