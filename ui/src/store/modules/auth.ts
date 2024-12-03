@@ -5,6 +5,10 @@ import * as apiAuth from "../api/auth";
 import * as apiNamespace from "../api/namespaces";
 import { IUserLogin } from "@/interfaces/IUserLogin";
 import { State } from "..";
+import {
+  configuration as apiConfiguration,
+  reloadConfiguration as reloadApiConfiguration,
+} from "@/api/http";
 
 const { reset, toggle } = useChatWoot();
 export interface AuthState {
@@ -211,7 +215,8 @@ export const auth: Module<AuthState, State> = {
     async loginToken(context, token) {
       context.commit("authRequest");
 
-      localStorage.setItem("token", token);
+      apiConfiguration.accessToken = token;
+      reloadApiConfiguration();
 
       try {
         const resp = await apiAuth.info();
