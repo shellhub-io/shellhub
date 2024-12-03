@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -32,6 +33,10 @@ type deviceAPI interface {
 
 	// DeviceLookup performs a lookup operation based on the provided parameters.
 	DeviceLookup(lookup map[string]string) (*models.Device, []error)
+
+	// LookupTunnel gets a tunnel from its addrss.
+	// TODO: Create a API interface for Tunnel routes.
+	LookupTunnel(address string) (*Tunnel, error)
 }
 
 func (c *client) DevicesOffline(uid string) error {
@@ -137,6 +142,37 @@ func (c *client) GetDeviceByPublicURLAddress(address string) (*models.Device, er
 		return nil, ErrNotFound
 	case 200:
 		return device, nil
+	default:
+		return nil, ErrUnknown
+	}
+}
+
+type Tunnel struct {
+	Address   string    `json:"address"`
+	Namespace string    `json:"namespace"`
+	Device    string    `json:"device"`
+	Host      string    `json:"host"`
+	Port      int       `json:"port"`
+	CreatedAt time.Time `json:"time" bson:"time"`
+}
+
+func (c *client) LookupTunnel(address string) (*Tunnel, error) {
+	var tunnel *Tunnel
+	resp, err := c.http.
+		R().
+		SetResult(&tunnel).
+		Get(fmt.Sprintf("http://cloud-api:8080/internal/tunnels/%s", address))
+	if err != nil {
+		return nil, ErrConnectionFailed
+	}
+
+	switch resp.StatusCode() {
+	case 404:
+		return nil, ErrNotFound
+	case 403:
+		return nil, ErrForbidden
+	case 200:
+		return tunnel, nil
 	default:
 		return nil, ErrUnknown
 	}

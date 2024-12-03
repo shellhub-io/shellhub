@@ -18,13 +18,13 @@ import (
 )
 
 var (
-	ErrDeviceHTTPPublicURLForbidden = errors.New("device public url not allowed")
-	ErrDeviceHTTPDial               = errors.New("failed to connect to device")
-	ErrDeviceHTTPWriteRequest       = errors.New("failed to send data to the device")
-	ErrDeviceHTTPReadResponse       = errors.New("failed to write the response back to the client")
-	ErrDeviceHTTPHijackRequest      = errors.New("failed to capture the request")
-	ErrDeviceHTTPParsePath          = errors.New("failed to parse the path")
-	ErrDeviceHTTPConnect            = errors.New("failed to connect to HTTP port on device")
+	ErrDeviceTunnelForbidden     = errors.New("device tunnel not found")
+	ErrDeviceTunnelDial          = errors.New("failed to connect to device")
+	ErrDeviceTunnelWriteRequest  = errors.New("failed to send data to the device")
+	ErrDeviceTunnelReadResponse  = errors.New("failed to write the response back to the client")
+	ErrDeviceTunnelHijackRequest = errors.New("failed to capture the request")
+	ErrDeviceTunnelParsePath     = errors.New("failed to parse the path")
+	ErrDeviceTunnelConnect       = errors.New("failed to connect to the port on device")
 )
 
 type Message struct {
@@ -159,78 +159,62 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		return c.NoContent(http.StatusOK)
 	})
 
+	// TODO: Change this path.
 	tunnel.router.Any("/ssh/http", func(c echo.Context) error {
 		requestID := c.Request().Header.Get("X-Request-ID")
 
-		namespace := c.Request().Header.Get("X-Namespace")
+		address := c.Request().Header.Get("X-Address")
 		log.WithFields(log.Fields{
 			"request-id": requestID,
-			"namespace":  namespace,
-		}).Debug("namespace name")
-
-		device := c.Request().Header.Get("X-Device")
-		log.WithFields(log.Fields{
-			"request-id": requestID,
-			"device":     device,
-		}).Debug("device name")
+			"address":    address,
+		}).Debug("address value")
 
 		path := c.Request().Header.Get("X-Path")
 		log.WithFields(log.Fields{
 			"request-id": requestID,
-			"device":     device,
+			"address":    address,
 		}).Debug("path")
 
-		dev, errs := tunnel.API.DeviceLookup(map[string]string{
-			"domain": namespace,
-			"name":   device,
-		})
-		if len(errs) > 0 {
-			log.WithError(errs[0]).Error("failed to get the public url")
+		tun, err := tunnel.API.LookupTunnel(address)
+		if err != nil {
+			log.WithError(err).Error("failed to get the tunnel")
 
-			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPPublicURLForbidden))
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelForbidden))
 		}
 
 		logger := log.WithFields(log.Fields{
 			"request-id": requestID,
-			"uid":        dev.UID,
-			"device":     device,
-			"namespace":  namespace,
-			"tenant":     dev.TenantID,
+			"namespace":  tun.Namespace,
+			"device":     tun.Device,
 		})
 
-		if !dev.PublicURL {
-			logger.Warn("device doesn't allow public url access")
-
-			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPPublicURLForbidden))
-		}
-
-		in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", dev.TenantID, dev.UID))
+		in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", tun.Namespace, tun.Device))
 		if err != nil {
 			logger.WithError(err).Error("failed to dial to device")
 
-			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceHTTPDial))
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelDial))
 		}
 
 		defer in.Close()
 
-		logger.Trace("new HTTP connection initialized")
-		defer logger.Trace("HTTP connection doned")
+		logger.Trace("new tunnel connection initialized")
+		defer logger.Trace("tunnel connection doned")
 
 		// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
 		// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
 		// connections for any port, but this route should only connect to the HTTP server.
-		req, _ := http.NewRequest(http.MethodConnect, "/ssh/proxy/:80", nil)
+		req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/ssh/proxy/%s:%d", tun.Host, tun.Port), nil)
 
 		if err := req.Write(in); err != nil {
 			logger.WithError(err).Error("failed to write the request to the agent")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPWriteRequest))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
 		}
 
 		if resp, err := http.ReadResponse(bufio.NewReader(in), req); err != nil || resp.StatusCode != http.StatusOK {
 			logger.WithError(err).Error("failed to connect to HTTP port on device")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPConnect))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
 		}
 
 		req = c.Request()
@@ -238,13 +222,13 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		if err != nil {
 			logger.WithError(err).Error("failed to parse the path")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPReadResponse))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
 		}
 
 		if err := req.Write(in); err != nil {
 			logger.WithError(err).Error("failed to write the request to the agent")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPWriteRequest))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
 		}
 
 		ctr := http.NewResponseController(c.Response())
@@ -252,7 +236,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		if err != nil {
 			logger.WithError(err).Error("failed to hijact the http request")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPHijackRequest))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelHijackRequest))
 		}
 
 		defer out.Close()
@@ -260,7 +244,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
 			logger.WithError(err).Error("failed to copy the response to the client")
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceHTTPReadResponse))
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
 		}
 
 		return nil

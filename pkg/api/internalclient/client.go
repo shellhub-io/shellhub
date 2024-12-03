@@ -33,6 +33,7 @@ const (
 var (
 	ErrConnectionFailed = errors.New("connection failed")
 	ErrNotFound         = errors.New("not found")
+	ErrForbidden        = errors.New("forbidden")
 	ErrUnknown          = errors.New("unknown error")
 )
 
