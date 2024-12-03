@@ -193,6 +193,8 @@ onMounted(async () => {
   await store.dispatch("namespaces/clearNamespaceList");
   await store.dispatch("auth/logout");
   await store.dispatch("auth/loginToken", route.query.token);
+
+  window.location.href = "/";
 });
 
 const login = async () => {

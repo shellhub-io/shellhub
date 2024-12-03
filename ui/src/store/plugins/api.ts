@@ -1,9 +1,10 @@
-import { configuration } from "@/api/http";
+import { configuration, reloadConfiguration } from "@/api/http";
 
 const apiPlugin = (store) => {
   store.subscribe((mutation, state) => {
     if (mutation.type === "auth/authSuccess") {
       configuration.accessToken = state.auth.token;
+      reloadConfiguration();
     }
   });
 };

@@ -100,6 +100,8 @@ export const createNewClient = () => Function;
 declare module "./client/base" {
   interface BaseAPI {
     getAxios(): AxiosInstance;
+    getConfiguration(): Configuration | undefined;
+    setConfiguration(configuration: Configuration): void;
   }
 }
 
@@ -108,8 +110,39 @@ BaseAPI.prototype.getAxios = function getAxios(this: BaseAPI): AxiosInstance {
   return this.axios;
 };
 
+/** Returns the configuration */
+BaseAPI.prototype.getConfiguration = function getConfiguration(this: BaseAPI): Configuration | undefined {
+  return this.configuration;
+};
+
+/** Sets the configuration */
+BaseAPI.prototype.setConfiguration = function setConfiguration(this: BaseAPI, configuration: Configuration): void {
+  this.configuration = configuration;
+};
+
+// Reloads the configuration for all APIs
+const reloadConfiguration = () => {
+  [
+    sessionsApi,
+    devicesApi,
+    containersApi,
+    systemApi,
+    namespacesApi,
+    apiKeysApi,
+    sshApi,
+    tagsApi,
+    usersApi,
+    mfaApi,
+    billingApi,
+    rulesApi,
+  ].forEach((api) => {
+    api.setConfiguration(configuration);
+  });
+};
+
 export {
   configuration,
+  reloadConfiguration,
   sessionsApi,
   devicesApi,
   containersApi,
