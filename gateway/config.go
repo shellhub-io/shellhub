@@ -13,8 +13,7 @@ import (
 type GatewayConfig struct {
 	Env                  string `env:"SHELLHUB_ENV"`
 	Domain               string `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
-	PublicUrl            bool   `env:"SHELLHUB_PUBLIC_URL"`
-	PublicUrlDomain      string `env:"SHELLHUB_PUBLIC_URL_DOMAIN"`
+	Tunnels              bool   `env:"SHELLHUB_TUNNELS,default=false"`
 	WorkerProcesses      string `env:"WORKER_PROCESSES,default=auto"`
 	MaxWorkerOpenFiles   int    `env:"MAX_WORKER_OPEN_FILES,default=0"`
 	MaxWorkerConnections int    `env:"MAX_WORKER_CONNECTIONS,default=16384"`

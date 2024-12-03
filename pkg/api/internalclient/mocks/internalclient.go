@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 
+	internalclient "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	mock "github.com/stretchr/testify/mock"
 
 	models "github.com/shellhub-io/shellhub/pkg/models"
@@ -381,6 +382,32 @@ func (_m *Client) Lookup(lookup map[string]string) (string, []error) {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]error)
 		}
+	}
+
+	return r0, r1
+}
+
+// LookupTunnel provides a mock function with given fields: address
+func (_m *Client) LookupTunnel(address string) (*internalclient.Tunnel, error) {
+	ret := _m.Called(address)
+
+	var r0 *internalclient.Tunnel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*internalclient.Tunnel, error)); ok {
+		return rf(address)
+	}
+	if rf, ok := ret.Get(0).(func(string) *internalclient.Tunnel); ok {
+		r0 = rf(address)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*internalclient.Tunnel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(address)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

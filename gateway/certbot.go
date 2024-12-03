@@ -34,7 +34,7 @@ func (cb *CertBot) generateCertificate() {
 	fmt.Println("Generating SSL certificate")
 
 	challengeDir := fmt.Sprintf("%s/.well-known/acme-challenge", cb.rootDir)
-	if err := os.MkdirAll(challengeDir, 0755); err != nil {
+	if err := os.MkdirAll(challengeDir, 0o755); err != nil {
 		log.Fatal(err)
 	}
 
@@ -51,7 +51,7 @@ func (cb *CertBot) generateCertificate() {
 		"--preferred-challenges", "http",
 		"-n",
 		"-d",
-		cb.domain,
+		fmt.Sprintf("*.%s", cb.domain),
 	)
 	if cb.staging {
 		cmd.Args = append(cmd.Args, "--staging")
