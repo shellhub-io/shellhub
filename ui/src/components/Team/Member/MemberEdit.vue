@@ -2,7 +2,6 @@
   <div>
     <v-list-item
       @click="showDialog = true"
-      v-bind="$props"
       :disabled="notHasAuthorization"
       data-test="member-edit-btn"
     >
