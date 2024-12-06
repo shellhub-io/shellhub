@@ -23,9 +23,8 @@ func (h *Handler) GetStats(c gateway.Context) error {
 }
 
 func (h *Handler) GetSystemInfo(c gateway.Context) error {
-	var req requests.SystemGetInfo
-
-	if err := c.Bind(&req); err != nil {
+	req := new(requests.GetSystemInfo)
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
@@ -33,7 +32,7 @@ func (h *Handler) GetSystemInfo(c gateway.Context) error {
 		req.Host = c.Request().Host
 	}
 
-	info, err := h.service.SystemGetInfo(c.Ctx(), req)
+	info, err := h.service.GetSystemInfo(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

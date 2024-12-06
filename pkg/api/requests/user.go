@@ -26,8 +26,8 @@ type UserPasswordUpdate struct {
 	NewPassword     string `json:"new_password" validate:"required,password,nefield=CurrentPassword"`
 }
 
-// AuthLocalUser is the structure to represent the request body for the user auth endpoint.
-type AuthLocalUser struct {
+// AuthManualUser is the structure to represent the request body for the user auth endpoint.
+type AuthManualUser struct {
 	// Identifier represents an username or email.
 	//
 	// TODO: change json tag from username to identifier and update the OpenAPI.

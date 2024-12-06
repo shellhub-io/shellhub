@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func TestMigration83Up(t *testing.T) {
+func TestMigration88Up(t *testing.T) {
 	ctx := context.Background()
 
 	mock := &envmock.Backend{}
@@ -24,13 +24,14 @@ func TestMigration83Up(t *testing.T) {
 		test        func() error
 	}{
 		{
-			description: "Success to apply up on migration 83",
+			description: "Success to apply up on migration 88",
 			setup: func() error {
 				_, err := c.
 					Database("test").
 					Collection("users").
 					InsertOne(ctx, map[string]interface{}{
-						"name": "john doe",
+						"name":        "john doe",
+						"preferences": map[string]string{},
 					})
 
 				return err
@@ -47,7 +48,7 @@ func TestMigration83Up(t *testing.T) {
 
 			assert.NoError(tt, tc.setup())
 
-			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[82])
+			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[87])
 			require.NoError(tt, migrates.Up(context.Background(), migrate.AllAvailable))
 
 			query := c.
@@ -58,14 +59,14 @@ func TestMigration83Up(t *testing.T) {
 			user := make(map[string]interface{})
 			require.NoError(tt, query.Decode(&user))
 
-			v, ok := user["origin"]
+			v, ok := user["preferences"].(map[string]string)["auth_method"]
 			require.Equal(tt, true, ok)
-			require.Equal(tt, v, "local")
+			require.Equal(tt, []string{"manual"}, v)
 		})
 	}
 }
 
-func TestMigration83Down(t *testing.T) {
+func TestMigration88Down(t *testing.T) {
 	ctx := context.Background()
 
 	mock := &envmock.Backend{}
@@ -77,14 +78,16 @@ func TestMigration83Down(t *testing.T) {
 		test        func() error
 	}{
 		{
-			description: "Success to apply down on migration 83",
+			description: "Success to apply up on migration 88",
 			setup: func() error {
 				_, err := c.
 					Database("test").
 					Collection("users").
 					InsertOne(ctx, map[string]interface{}{
-						"name":   "john doe",
-						"origin": "local",
+						"name": "john doe",
+						"preferences": map[string]interface{}{
+							"auth_methods": []string{"manual"},
+						},
 					})
 
 				return err
@@ -101,7 +104,7 @@ func TestMigration83Down(t *testing.T) {
 
 			assert.NoError(t, tc.setup())
 
-			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[82])
+			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[87])
 			require.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 			require.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
@@ -113,7 +116,7 @@ func TestMigration83Down(t *testing.T) {
 			user := make(map[string]interface{})
 			require.NoError(t, query.Decode(&user))
 
-			_, ok := user["origin"]
+			_, ok := user["preferences"].(map[string]string)["auth_method"]
 			require.Equal(t, false, ok)
 		})
 	}

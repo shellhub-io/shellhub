@@ -1,16 +1,46 @@
 package models
 
-type SystemInfo struct {
-	Version   string               `json:"version"`
-	Endpoints *SystemInfoEndpoints `json:"endpoints"`
-	Setup     bool                 `json:"setup"`
-}
-
-type SystemInfoEndpoints struct {
-	API string `json:"api"`
-	SSH string `json:"ssh"`
-}
-
 type System struct {
-	Setup bool `json:"setup" bson:"setup"`
+	Setup bool `json:"setup"`
+	// Authentication manages the settings for available authentication methods, such as manual
+	// username/password authentication and SAML authentication. Each authentication method
+	// can be individually enabled or disabled.
+	Authentication *SystemAuthentication `json:"authentication" bson:"authentication"`
+}
+
+type SystemAuthentication struct {
+	Manual *SystemAuthenticationManual `json:"manual" bson:"manual"`
+
+	// SAML contains the configuration settings for SAML authentication. [SAML.Enabled] indicates
+	// whether SAML authentication is enabled or not.
+	SAML *SystemAuthenticationSAML `json:"saml" bson:"saml"`
+}
+
+type SystemAuthenticationManual struct {
+	// Enabled indicates whether manual authentication using a username and password is enabled or
+	// not.
+	Enabled bool `json:"enabled" bool:"enabled"`
+}
+
+type SystemAuthenticationSAML struct {
+	// Enabled indicates whether SAML authentication is enabled.
+	Enabled bool           `json:"enabled" bson:"enabled"`
+	Idp     *SystemIdpSAML `json:"idp" bson:"idp"`
+	Sp      *SystemSpSAML  `json:"sp" bson:"sp"`
+}
+
+type SystemIdpSAML struct {
+	EntityID  string `json:"entity_id" bson:"entity_id"`
+	SignonURL string `json:"signon_url" bson:"signon_url"`
+	// Certificates is a list of X.509 certificates provided by the IdP. These certificates are used
+	// by the SP to validate the digital signatures of SAML assertions issued by the IdP.
+	Certificates []string `json:"certificates" bson:"certificate"`
+}
+
+type SystemSpSAML struct {
+	// SignRequests indicates whether ShellHub should sign authentication requests.
+	// If enabled, an X509 certificate is used to sign the request, and the IdP must authenticate
+	// the request using the corresponding public certificate. Enabling this option disables
+	// the "IdP-initiated" authentication pipeline.
+	SignAuthRequests bool `json:"sign_auth_requests" bson:"sign_auth_requests"`
 }

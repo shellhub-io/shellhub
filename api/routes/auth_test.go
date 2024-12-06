@@ -143,7 +143,7 @@ func TestAuthDevice(t *testing.T) {
 	}
 }
 
-func TestAuthLocalUser(t *testing.T) {
+func TestAuthManualUser(t *testing.T) {
 	mock := new(mocks.Service)
 
 	type Expected struct {
@@ -154,13 +154,13 @@ func TestAuthLocalUser(t *testing.T) {
 
 	cases := []struct {
 		description string
-		req         *requests.AuthLocalUser
+		req         *requests.AuthManualUser
 		mocks       func()
 		expected    Expected
 	}{
 		{
 			description: "fails when the identifier is empty",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "",
 				Password:   "secret",
 			},
@@ -173,7 +173,7 @@ func TestAuthLocalUser(t *testing.T) {
 		},
 		{
 			description: "fails when the password is empty",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "john_doe",
 				Password:   "",
 			},
@@ -186,13 +186,13 @@ func TestAuthLocalUser(t *testing.T) {
 		},
 		{
 			description: "fails when the user is not found",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
 			mocks: func() {
 				mock.
-					On("AuthLocalUser", gomock.Anything, &requests.AuthLocalUser{
+					On("AuthManualUser", gomock.Anything, &requests.AuthManualUser{
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
@@ -207,13 +207,13 @@ func TestAuthLocalUser(t *testing.T) {
 		},
 		{
 			description: "fails when the password is wrong",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
 			mocks: func() {
 				mock.
-					On("AuthLocalUser", gomock.Anything, &requests.AuthLocalUser{
+					On("AuthManualUser", gomock.Anything, &requests.AuthManualUser{
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
@@ -231,13 +231,13 @@ func TestAuthLocalUser(t *testing.T) {
 		},
 		{
 			description: "fails when reaching the attempt limits",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
 			mocks: func() {
 				mock.
-					On("AuthLocalUser", gomock.Anything, &requests.AuthLocalUser{
+					On("AuthManualUser", gomock.Anything, &requests.AuthManualUser{
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
@@ -255,13 +255,13 @@ func TestAuthLocalUser(t *testing.T) {
 		},
 		{
 			description: "fails when mfa is enable",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "john_doe",
 				Password:   "wrong_password",
 			},
 			mocks: func() {
 				mock.
-					On("AuthLocalUser", gomock.Anything, &requests.AuthLocalUser{
+					On("AuthManualUser", gomock.Anything, &requests.AuthManualUser{
 						Identifier: "john_doe",
 						Password:   "wrong_password",
 					}, gomock.Anything).
@@ -279,13 +279,13 @@ func TestAuthLocalUser(t *testing.T) {
 		},
 		{
 			description: "success when try to auth a user",
-			req: &requests.AuthLocalUser{
+			req: &requests.AuthManualUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			mocks: func() {
 				mock.
-					On("AuthLocalUser", gomock.Anything, &requests.AuthLocalUser{
+					On("AuthManualUser", gomock.Anything, &requests.AuthManualUser{
 						Identifier: "john_doe",
 						Password:   "secret",
 					}, gomock.Anything).

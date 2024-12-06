@@ -9,23 +9,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration83 = migrate.Migration{
-	Version:     83,
-	Description: "Set the user's 'origin' attribute to 'local' if it does not already exist.",
+var migration86 = migrate.Migration{
+	Version:     86,
+	Description: "Set the user's 'origin' attribute to 'manual' if it's 'local'.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   86,
 			"action":    "Up",
 		}).Info("Applying migration")
 
 		filter := bson.M{
-			"origin": bson.M{"$exists": false},
+			"origin": "local",
 		}
 
 		update := bson.M{
 			"$set": bson.M{
-				"origin": "local",
+				"origin": "manual",
 			},
 		}
 
@@ -36,17 +36,17 @@ var migration83 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   86,
 			"action":    "Down",
 		}).Info("Reverting migration")
 
 		filter := bson.M{
-			"origin": "local",
+			"origin": "manual",
 		}
 
 		update := bson.M{
-			"$unset": bson.M{
-				"origin": "",
+			"$set": bson.M{
+				"origin": "local",
 			},
 		}
 

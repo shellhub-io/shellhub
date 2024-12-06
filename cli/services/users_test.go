@@ -131,7 +131,7 @@ func TestUserCreate(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Origin: models.UserOriginLocal,
+					Origin: models.UserOriginManual,
 					UserData: models.UserData{
 						Name:     "john_doe",
 						Email:    "john.doe@test.com",
@@ -144,6 +144,9 @@ func TestUserCreate(t *testing.T) {
 					Status:        models.UserStatusConfirmed,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodManual},
+					},
 				}
 				mock.On("UserCreate", ctx, user).Return("", errors.New("error")).Once()
 			},
@@ -165,7 +168,7 @@ func TestUserCreate(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Origin: models.UserOriginLocal,
+					Origin: models.UserOriginManual,
 					UserData: models.UserData{
 						Name:     "john_doe",
 						Email:    "john.doe@test.com",
@@ -178,12 +181,15 @@ func TestUserCreate(t *testing.T) {
 					Status:        models.UserStatusConfirmed,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodManual},
+					},
 				}
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
 				mock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
 			},
 			expected: Expected{&models.User{
-				Origin: models.UserOriginLocal,
+				Origin: models.UserOriginManual,
 				UserData: models.UserData{
 					Name:     "john_doe",
 					Email:    "john.doe@test.com",
@@ -196,6 +202,9 @@ func TestUserCreate(t *testing.T) {
 				Status:        models.UserStatusConfirmed,
 				CreatedAt:     clock.Now(),
 				MaxNamespaces: MaxNumberNamespacesCommunity,
+				Preferences: models.UserPreferences{
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodManual},
+				},
 			}, nil},
 		},
 	}

@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"net"
 	"strings"
 	"time"
@@ -30,7 +31,7 @@ type AuthService interface {
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
 
-	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
+	// AuthManualUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginManual]
 	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
 	// they have MFA enabled (which is a cloud-only feature).
 	//
@@ -41,7 +42,7 @@ type AuthService interface {
 	//
 	// It returns a timestamp when the block ends if the user is locked out, a token to be used with the OTP code if the MFA
 	// is enabled and an error, if any
-	AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
+	AuthManualUser(ctx context.Context, req *requests.AuthManualUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
 	//
 	// It accepts an optional tenant ID to associate the token with a namespace. If the tenant ID is empty, it uses the user's
@@ -170,7 +171,11 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}, nil
 }
 
-func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+func (s *service) AuthManualUser(ctx context.Context, req *requests.AuthManualUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Manual.Enabled {
+		return nil, 0, "", errors.New("TODO")
+	}
+
 	var err error
 	var user *models.User
 
@@ -184,7 +189,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	if user.Origin != models.UserOriginLocal {
+	if user.Origin != models.UserOriginManual {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
@@ -287,9 +292,15 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 			Warn("unable to cache the authentication token")
 	}
 
+	authMethods := make([]string, 0)
+	for _, method := range user.Preferences.AuthMethods {
+		authMethods = append(authMethods, method.String())
+	}
+
 	res := &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
+		AuthMethods:   authMethods,
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
@@ -370,9 +381,15 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		log.WithError(err).Warn("unable to cache the user's auth token")
 	}
 
+	authMethods := make([]string, 0)
+	for _, method := range user.Preferences.AuthMethods {
+		authMethods = append(authMethods, method.String())
+	}
+
 	return &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
+		AuthMethods:   authMethods,
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,

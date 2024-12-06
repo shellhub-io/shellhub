@@ -125,6 +125,16 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User,
 	return user, nil
 }
 
+func (s *Store) UserGetByExternalID(ctx context.Context, id string) (*models.User, error) {
+	user := new(models.User)
+
+	if err := s.db.Collection("users").FindOne(ctx, bson.M{"external_id": id}).Decode(&user); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return user, nil
+}
+
 func (s *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error) {
 	user := new(models.User)
 	objID, err := primitive.ObjectIDFromHex(id)
