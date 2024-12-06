@@ -18,6 +18,7 @@ variables can be accessed directly through `process.env` object.
 export const envVariables = {
   isEnterprise: (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === "true",
   hasConnector: (window.env || process.env).VUE_APP_SHELLHUB_CONNECTOR === "true",
+  hasTunnels: (window.env || process.env).VUE_APP_SHELLHUB_TUNNELS === "true",
   isCloud: (window.env || process.env).VUE_APP_SHELLHUB_CLOUD === "true",
   isCommunity: (window.env || process.env).VUE_APP_SHELLHUB_CLOUD === "false" && (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === "false",
   premiumPaywall: (window.env || process.env).VUE_APP_SHELLHUB_PAYWALL === "true",

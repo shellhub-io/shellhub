@@ -109,7 +109,7 @@ describe("Details Device", () => {
       routes,
     });
 
-    router.push("/device/123456");
+    router.push("/devices/123456");
 
     await router.isReady();
 
@@ -170,6 +170,7 @@ describe("Details Device", () => {
     expect(wrapper.find('[data-test="deviceTags-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="deviceConvertDate-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="tunnel-list"]').exists()).toBe(false);
   });
 
   it("Renders the component when deviceIsEmpty is true", async () => {

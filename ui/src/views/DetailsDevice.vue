@@ -35,6 +35,12 @@
               data-test="deviceRename-component"
             />
 
+            <TunnelCreate
+              v-if="envVariables.hasTunnels && envVariables.isEnterprise"
+              :uid="device.uid"
+              @update="getTunnels"
+            />
+
             <TagFormUpdate
               :device-uid="device.uid"
               :tagsList="device.tags"
@@ -108,13 +114,17 @@
           </v-tooltip>
         </div>
       </div>
-
       <div>
         <div class="text-overline mt-3">Last Seen:</div>
         <div data-test="deviceConvertDate-field">
           <p>{{ formatDate(device.last_seen) }}</p>
         </div>
       </div>
+      <div v-if="envVariables.hasTunnels && envVariables.isEnterprise">
+        <div class="text-overline mt-3" data-test="tunnel-list">Tunnel List:</div>
+        <TunnelList />
+      </div>
+
     </v-card-text>
   </v-card>
   <v-card class="mt-2 pa-4 bg-v-theme-surface" v-else>
@@ -130,12 +140,15 @@ import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
+import TunnelList from "../components/Tunnels/TunnelList.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
 import { formatDate } from "@/utils/formateDate";
 import handleError from "@/utils/handleError";
+import { envVariables } from "@/envVariables";
+import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";
 
 const store = useStore();
 const route = useRoute();
@@ -153,14 +166,23 @@ onMounted(async () => {
     handleError(error);
   }
 });
+
 const deviceIsEmpty = computed(
   () => store.getters["devices/get"]
         && Object.keys(store.getters["devices/get"]).length === 0,
 );
 
+const getTunnels = async () => {
+  await store.dispatch("tunnels/get", deviceId.value);
+};
+
 const refreshUsers = async () => {
   try {
     await store.dispatch("devices/get", deviceId.value);
+    if (envVariables.isEnterprise) {
+      await store.dispatch("tunnels/get", deviceId.value);
+      return;
+    }
   } catch (error: unknown) {
     store.dispatch(
       "snackbar/showSnackbarErrorAction",
