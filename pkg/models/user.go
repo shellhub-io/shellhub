@@ -33,6 +33,9 @@ const (
 	// UserOriginManual indicates that the user was created through the standard signup process, without
 	// using third-party integrations like SSO IdPs.
 	UserOriginManual UserOrigin = "local"
+
+	// UserOriginSAML indicates that the user was created using a SAML authentication method.
+	UserOriginSAML UserOrigin = "SSO"
 )
 
 func (o UserOrigin) String() string {
@@ -44,6 +47,9 @@ type UserAuthMethod string
 const (
 	// UserAuthMethodManual indicates that the user can authenticate using an email and password.
 	UserAuthMethodManual UserAuthMethod = "manual"
+
+	// UserAuthMethodManual indicates that the user can authenticate using a third-party SAML application.
+	UserAuthMethodSAML UserAuthMethod = "saml"
 )
 
 func (lm UserAuthMethod) String() string {

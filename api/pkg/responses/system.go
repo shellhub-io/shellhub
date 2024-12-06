@@ -9,6 +9,7 @@ type SystemInfo struct {
 
 type SystemAuthenticationInfo struct {
 	Manual bool `json:"manual"`
+	SAML   bool `json:"saml"`
 }
 
 type SystemEndpointsInfo struct {
