@@ -35,11 +35,12 @@
           color="primary"
           variant="text"
           data-test="change-connection-btn"
-          :disabled="connectionAnnouncementError"
+          :disabled="!!connectionAnnouncementError"
           @click="updateAnnouncement()"
         >
           Save Announcement
         </v-btn>
+
       </v-card-actions>
     </v-card>
   </v-dialog>

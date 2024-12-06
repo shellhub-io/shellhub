@@ -76,7 +76,7 @@
                 required
                 :hide-details="!nameError"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : ''"
+                :variant="editDataStatus ? 'outlined' : 'flat'"
                 data-test="name-input"
               />
             </template>
@@ -96,7 +96,7 @@
                 :disabled="!editDataStatus"
                 :readonly="!editDataStatus"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : ''"
+                :variant="editDataStatus ? 'outlined' : 'flat'"
                 required
                 :hide-details="!usernameError"
                 data-test="username-input"
@@ -118,7 +118,7 @@
                 :disabled="!editDataStatus"
                 :readonly="!editDataStatus"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : ''"
+                :variant="editDataStatus ? 'outlined' : 'flat'"
                 required
                 :hide-details="!emailError"
                 data-test="email-input"
@@ -140,7 +140,7 @@
                 :disabled="!editDataStatus"
                 :readonly="!editDataStatus"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : ''"
+                :variant="editDataStatus ? 'outlined' : 'flat'"
                 required
                 :hide-details="!recoveryEmailError"
                 data-test="recovery-email-input"
