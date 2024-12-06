@@ -110,6 +110,8 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.ConnectorDelete,
 				authorizer.ConnectorUpdate,
 				authorizer.ConnectorSet,
+				authorizer.TunnelsCreate,
+				authorizer.TunnelsDelete,
 			},
 		},
 		{
@@ -155,6 +157,8 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.ConnectorDelete,
 				authorizer.ConnectorUpdate,
 				authorizer.ConnectorSet,
+				authorizer.TunnelsCreate,
+				authorizer.TunnelsDelete,
 			},
 		},
 		{

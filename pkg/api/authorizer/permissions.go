@@ -59,6 +59,9 @@ const (
 	ConnectorDelete
 	ConnectorUpdate
 	ConnectorSet
+
+	TunnelsCreate
+	TunnelsDelete
 )
 
 var observerPermissions = []Permission{
@@ -130,6 +133,9 @@ var adminPermissions = []Permission{
 	ConnectorDelete,
 	ConnectorUpdate,
 	ConnectorSet,
+
+	TunnelsCreate,
+	TunnelsDelete,
 }
 
 var ownerPermissions = []Permission{
@@ -188,4 +194,7 @@ var ownerPermissions = []Permission{
 	ConnectorDelete,
 	ConnectorUpdate,
 	ConnectorSet,
+
+	TunnelsCreate,
+	TunnelsDelete,
 }
