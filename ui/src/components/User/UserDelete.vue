@@ -44,7 +44,7 @@ import handleError from "@/utils/handleError";
 
 const store = useStore();
 const router = useRouter();
-const show = defineModel("show");
+const show = defineModel<boolean>({ default: false });
 
 const deleteAccount = async () => {
   try {

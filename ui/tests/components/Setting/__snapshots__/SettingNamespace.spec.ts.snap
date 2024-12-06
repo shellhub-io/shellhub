@@ -66,7 +66,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <div data-v-80a16399=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-input--readonly v-text-field\\" data-test=\\"name-input\\">
               <!---->
               <div class=\\"v-input__control\\">
-                <div class=\\"v-field v-field--active v-field--center-affix v-field--disabled v-field--dirty v-field--no-label v-field--variant- v-theme--light v-locale--is-ltr\\">
+                <div class=\\"v-field v-field--active v-field--center-affix v-field--disabled v-field--dirty v-field--no-label v-field--variant-flat v-theme--light v-locale--is-ltr\\">
                   <div class=\\"v-field__overlay\\"></div>
                   <div class=\\"v-field__loader\\">
                     <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">

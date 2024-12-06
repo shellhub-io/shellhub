@@ -43,7 +43,7 @@
                   color="primary"
                   variant="flat"
                   data-test="save-changes-btn"
-                  :disabled="nameError"
+                  :disabled="!!nameError"
                 >Save Changes</v-btn>
               </template>
             </div>
@@ -73,7 +73,7 @@
                 required
                 :hide-details="!nameError"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : ''"
+                :variant="editDataStatus ? 'outlined' : 'flat'"
                 data-test="name-input"
               />
             </template>
