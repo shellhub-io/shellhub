@@ -39,6 +39,17 @@ func (o UserOrigin) String() string {
 	return string(o)
 }
 
+type UserAuthMethod string
+
+const (
+	// UserAuthMethodManual indicates that the user can authenticate using an email and password.
+	UserAuthMethodManual UserAuthMethod = "manual"
+)
+
+func (lm UserAuthMethod) String() string {
+	return string(lm)
+}
+
 type User struct {
 	ID string `json:"id,omitempty" bson:"_id,omitempty"`
 	// Origin specifies the the user's signup method.
@@ -86,6 +97,8 @@ type UserMFA struct {
 type UserPreferences struct {
 	// PreferredNamespace represents the namespace the user most recently authenticated with.
 	PreferredNamespace string `json:"-" bson:"preferred_namespace"`
+	// AuthMethods indicates the authentication methods that the user can use to authenticate.
+	AuthMethods []UserAuthMethod `json:"-" bson:"auth_methods"`
 }
 
 type UserPassword struct {
@@ -130,17 +143,18 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 }
 
 type UserAuthResponse struct {
-	Token         string `json:"token"`
-	User          string `json:"user"`
-	Origin        string `json:"string"`
-	Name          string `json:"name"`
-	ID            string `json:"id"`
-	Tenant        string `json:"tenant"`
-	Email         string `json:"email"`
-	RecoveryEmail string `json:"recovery_email"`
-	Role          string `json:"role"`
-	MFA           bool   `json:"mfa"`
-	MaxNamespaces int    `json:"max_namespaces"`
+	Token         string   `json:"token"`
+	User          string   `json:"user"`
+	Origin        string   `json:"string"`
+	AuthMethods   []string `json:"auth_methods"`
+	Name          string   `json:"name"`
+	ID            string   `json:"id"`
+	Tenant        string   `json:"tenant"`
+	Email         string   `json:"email"`
+	RecoveryEmail string   `json:"recovery_email"`
+	Role          string   `json:"role"`
+	MFA           bool     `json:"mfa"`
+	MaxNamespaces int      `json:"max_namespaces"`
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;

@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"net"
 	"strings"
 	"time"
@@ -171,6 +172,10 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 }
 
 func (s *service) AuthManualUser(ctx context.Context, req *requests.AuthManualUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Manual.Enabled {
+		return nil, 0, "", errors.New("TODO")
+	}
+
 	var err error
 	var user *models.User
 
@@ -287,9 +292,15 @@ func (s *service) AuthManualUser(ctx context.Context, req *requests.AuthManualUs
 			Warn("unable to cache the authentication token")
 	}
 
+	authMethods := make([]string, 0)
+	for _, method := range user.Preferences.AuthMethods {
+		authMethods = append(authMethods, method.String())
+	}
+
 	res := &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
+		AuthMethods:   authMethods,
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
@@ -370,9 +381,15 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		log.WithError(err).Warn("unable to cache the user's auth token")
 	}
 
+	authMethods := make([]string, 0)
+	for _, method := range user.Preferences.AuthMethods {
+		authMethods = append(authMethods, method.String())
+	}
+
 	return &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
+		AuthMethods:   authMethods,
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,

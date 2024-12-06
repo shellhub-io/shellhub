@@ -200,6 +200,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -277,6 +278,7 @@ func TestService_AuthManualUser(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						nil,
@@ -315,6 +317,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -359,6 +362,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -411,6 +415,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -472,6 +477,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -527,6 +533,9 @@ func TestService_AuthManualUser(t *testing.T) {
 					Password: models.UserPassword{
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodManual},
+					},
 				}, errors.New("error", "", 0)),
 			},
 		},
@@ -556,6 +565,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -597,13 +607,14 @@ func TestService_AuthManualUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginManual.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -636,6 +647,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -688,14 +700,15 @@ func TestService_AuthManualUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginManual.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "00000000-0000-4000-0000-000000000000",
+					Role:        "owner",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -728,6 +741,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -781,14 +795,15 @@ func TestService_AuthManualUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginManual.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Role:   "",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Role:        "",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -821,6 +836,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -873,14 +889,15 @@ func TestService_AuthManualUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginManual.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "00000000-0000-4000-0000-000000000000",
+					Role:        "owner",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -913,6 +930,7 @@ func TestService_AuthManualUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 					},
 				}
 
@@ -963,13 +981,14 @@ func TestService_AuthManualUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginManual.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -1039,6 +1058,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
+							Origin:    models.UserOriginManual,
 							Status:    models.UserStatusConfirmed,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -1054,6 +1074,7 @@ func TestCreateUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						0,
@@ -1079,6 +1100,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
+							Origin:    models.UserOriginManual,
 							Status:    models.UserStatusConfirmed,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -1094,6 +1116,7 @@ func TestCreateUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						0,
@@ -1125,6 +1148,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
+							Origin:    models.UserOriginManual,
 							Status:    models.UserStatusConfirmed,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -1140,6 +1164,7 @@ func TestCreateUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						0,
@@ -1177,6 +1202,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
+							Origin:    models.UserOriginManual,
 							Status:    models.UserStatusConfirmed,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -1192,6 +1218,7 @@ func TestCreateUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						0,
@@ -1229,13 +1256,15 @@ func TestCreateUserToken(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "000000000000000000000000",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
-					Token:  "must ignore",
+					ID:          "000000000000000000000000",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "00000000-0000-4000-0000-000000000000",
+					Role:        "owner",
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
@@ -1249,6 +1278,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
+							Origin:    models.UserOriginManual,
 							Status:    models.UserStatusConfirmed,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -1264,6 +1294,7 @@ func TestCreateUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						0,
@@ -1296,13 +1327,15 @@ func TestCreateUserToken(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "000000000000000000000000",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
-					Token:  "must ignore",
+					ID:          "000000000000000000000000",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "00000000-0000-4000-0000-000000000000",
+					Role:        "owner",
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
@@ -1316,6 +1349,7 @@ func TestCreateUserToken(t *testing.T) {
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
+							Origin:    models.UserOriginManual,
 							Status:    models.UserStatusConfirmed,
 							LastLogin: now,
 							MFA: models.UserMFA{
@@ -1331,6 +1365,7 @@ func TestCreateUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodManual},
 							},
 						},
 						0,
@@ -1351,13 +1386,15 @@ func TestCreateUserToken(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "000000000000000000000000",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Role:   "",
-					Token:  "must ignore",
+					ID:          "000000000000000000000000",
+					Origin:      models.UserOriginManual.String(),
+					AuthMethods: []string{models.UserAuthMethodManual.String()},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Role:        "",
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
