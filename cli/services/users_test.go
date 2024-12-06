@@ -131,7 +131,7 @@ func TestUserCreate(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Origin: models.UserOriginLocal,
+					Origin: models.UserOriginManual,
 					UserData: models.UserData{
 						Name:     "john_doe",
 						Email:    "john.doe@test.com",
@@ -165,7 +165,7 @@ func TestUserCreate(t *testing.T) {
 					Once()
 
 				user := &models.User{
-					Origin: models.UserOriginLocal,
+					Origin: models.UserOriginManual,
 					UserData: models.UserData{
 						Name:     "john_doe",
 						Email:    "john.doe@test.com",
@@ -183,7 +183,7 @@ func TestUserCreate(t *testing.T) {
 				mock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
 			},
 			expected: Expected{&models.User{
-				Origin: models.UserOriginLocal,
+				Origin: models.UserOriginManual,
 				UserData: models.UserData{
 					Name:     "john_doe",
 					Email:    "john.doe@test.com",

@@ -30,9 +30,9 @@ func (s UserStatus) String() string {
 type UserOrigin string
 
 const (
-	// UserOriginLocal indicates that the user was created through the standard signup process, without
+	// UserOriginManual indicates that the user was created through the standard signup process, without
 	// using third-party integrations like SSO IdPs.
-	UserOriginLocal UserOrigin = "local"
+	UserOriginManual UserOrigin = "local"
 )
 
 func (o UserOrigin) String() string {
