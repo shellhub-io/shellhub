@@ -1207,6 +1207,25 @@ export interface CreatePublicKey200Response {
 /**
  * 
  * @export
+ * @interface CreateTunnelRequest
+ */
+export interface CreateTunnelRequest {
+    /**
+     * The host address by the tunnel.
+     * @type {string}
+     * @memberof CreateTunnelRequest
+     */
+    'host'?: string;
+    /**
+     * The port number used by the tunnel.
+     * @type {number}
+     * @memberof CreateTunnelRequest
+     */
+    'port'?: number;
+}
+/**
+ * 
+ * @export
  * @interface Device
  */
 export interface Device {
@@ -2171,6 +2190,12 @@ export interface NamespaceMembersInner {
      */
     'role'?: NamespaceMemberRole;
     /**
+     * this field, on majority of cases is default \'personal\', if the running instance of shellhub is cloud, the default value is \'team\'.  This field requires a valid input of either \'personal\' or \'team\'. the default will match the current Shellhub instance type. When a \"type\" field value is specified, it will override the default, but must be either \'personal\' or \'team\'. Any other input will be rejected. 
+     * @type {string}
+     * @memberof NamespaceMembersInner
+     */
+    'type'?: NamespaceMembersInnerTypeEnum;
+    /**
      * 
      * @type {string}
      * @memberof NamespaceMembersInner
@@ -2184,6 +2209,12 @@ export interface NamespaceMembersInner {
     'email'?: string;
 }
 
+export const NamespaceMembersInnerTypeEnum = {
+    Personal: 'personal',
+    Team: 'team'
+} as const;
+
+export type NamespaceMembersInnerTypeEnum = typeof NamespaceMembersInnerTypeEnum[keyof typeof NamespaceMembersInnerTypeEnum];
 export const NamespaceMembersInnerStatusEnum = {
     Accepted: 'accepted',
     Pending: 'pending'
@@ -2728,6 +2759,43 @@ export interface Support {
 /**
  * 
  * @export
+ * @interface Tunnel
+ */
+export interface Tunnel {
+    /**
+     * The unique address associated with the tunnel
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'address'?: string;
+    /**
+     * Namespace\'s tenant ID
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'namespace'?: string;
+    /**
+     * Device\'s UID
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'device'?: string;
+    /**
+     * The host address by the tunnel.
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'host'?: string;
+    /**
+     * The port number used by the tunnel.
+     * @type {number}
+     * @memberof Tunnel
+     */
+    'port'?: number;
+}
+/**
+ * 
+ * @export
  * @interface UpdateDeviceRequest
  */
 export interface UpdateDeviceRequest {
@@ -2939,6 +3007,12 @@ export interface UserAuth {
      */
     'id'?: string;
     /**
+     * 
+     * @type {UserOrigin}
+     * @memberof UserAuth
+     */
+    'origin'?: UserOrigin;
+    /**
      * User\'s username.
      * @type {string}
      * @memberof UserAuth
@@ -2987,6 +3061,19 @@ export interface UserAuth {
      */
     'max_namespaces'?: number;
 }
+/**
+ * Specifies the method the user employed to register with ShellHub.
+ * @export
+ * @enum {string}
+ */
+
+export const UserOrigin = {
+    Local: 'local'
+} as const;
+
+export type UserOrigin = typeof UserOrigin[keyof typeof UserOrigin];
+
+
 
 /**
  * AnnouncementsApi - axios parameter creator
@@ -7675,6 +7762,50 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Creates a new tunnel for a device.
+         * @summary Create a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {CreateTunnelRequest} createTunnelRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTunnel: async (uid: string, createTunnelRequest: CreateTunnelRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('createTunnel', 'uid', uid)
+            // verify required parameter 'createTunnelRequest' is not null or undefined
+            assertParamExists('createTunnel', 'createTunnelRequest', createTunnelRequest)
+            const localVarPath = `/api/devices/{uid}/tunnels`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createTunnelRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Delete a device.
          * @summary Delete device
          * @param {string} uid Device\&#39;s UID
@@ -7728,6 +7859,48 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/api/devices/{uid}/tags/{tag}`
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
                 .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes a tunnel for a specific device and port.
+         * @summary Delete a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteTunnel: async (uid: string, address: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('deleteTunnel', 'uid', uid)
+            // verify required parameter 'address' is not null or undefined
+            assertParamExists('deleteTunnel', 'address', address)
+            const localVarPath = `/api/devices/{uid}/tunnels/{address}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"address"}}`, encodeURIComponent(String(address)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7864,6 +8037,44 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
          */
         getStatusDevices: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/stats`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List the tunnels per devices.
+         * @summary List tunnels
+         * @param {string} uid Device\&#39;s UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTunnels: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('listTunnels', 'uid', uid)
+            const localVarPath = `/api/devices/{uid}/tunnels`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -8112,6 +8323,18 @@ export const DevicesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Creates a new tunnel for a device.
+         * @summary Create a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {CreateTunnelRequest} createTunnelRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tunnel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTunnel(uid, createTunnelRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Delete a device.
          * @summary Delete device
          * @param {string} uid Device\&#39;s UID
@@ -8132,6 +8355,18 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          */
         async deleteDeviceTag(uid: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteDeviceTag(uid, tag, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Deletes a tunnel for a specific device and port.
+         * @summary Delete a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteTunnel(uid: string, address: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTunnel(uid, address, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -8169,6 +8404,17 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          */
         async getStatusDevices(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetStatusDevices200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getStatusDevices(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List the tunnels per devices.
+         * @summary List tunnels
+         * @param {string} uid Device\&#39;s UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listTunnels(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTunnels(uid, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -8272,6 +8518,17 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.createDeviceTag(uid, createDeviceTagRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Creates a new tunnel for a device.
+         * @summary Create a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {CreateTunnelRequest} createTunnelRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: any): AxiosPromise<Tunnel> {
+            return localVarFp.createTunnel(uid, createTunnelRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Delete a device.
          * @summary Delete device
          * @param {string} uid Device\&#39;s UID
@@ -8291,6 +8548,17 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          */
         deleteDeviceTag(uid: string, tag: string, options?: any): AxiosPromise<void> {
             return localVarFp.deleteDeviceTag(uid, tag, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes a tunnel for a specific device and port.
+         * @summary Delete a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteTunnel(uid: string, address: string, options?: any): AxiosPromise<void> {
+            return localVarFp.deleteTunnel(uid, address, options).then((request) => request(axios, basePath));
         },
         /**
          * Get a device.
@@ -8325,6 +8593,16 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          */
         getStatusDevices(options?: any): AxiosPromise<GetStatusDevices200Response> {
             return localVarFp.getStatusDevices(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List the tunnels per devices.
+         * @summary List tunnels
+         * @param {string} uid Device\&#39;s UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTunnels(uid: string, options?: any): AxiosPromise<Array<Tunnel>> {
+            return localVarFp.listTunnels(uid, options).then((request) => request(axios, basePath));
         },
         /**
          * Update device\'s data.
@@ -8431,6 +8709,19 @@ export class DevicesApi extends BaseAPI {
     }
 
     /**
+     * Creates a new tunnel for a device.
+     * @summary Create a tunnel
+     * @param {string} uid Device\&#39;s UID
+     * @param {CreateTunnelRequest} createTunnelRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DevicesApi
+     */
+    public createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).createTunnel(uid, createTunnelRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Delete a device.
      * @summary Delete device
      * @param {string} uid Device\&#39;s UID
@@ -8453,6 +8744,19 @@ export class DevicesApi extends BaseAPI {
      */
     public deleteDeviceTag(uid: string, tag: string, options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).deleteDeviceTag(uid, tag, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes a tunnel for a specific device and port.
+     * @summary Delete a tunnel
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} address Tunnel\&#39;s address
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DevicesApi
+     */
+    public deleteTunnel(uid: string, address: string, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).deleteTunnel(uid, address, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8493,6 +8797,18 @@ export class DevicesApi extends BaseAPI {
      */
     public getStatusDevices(options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).getStatusDevices(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List the tunnels per devices.
+     * @summary List tunnels
+     * @param {string} uid Device\&#39;s UID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DevicesApi
+     */
+    public listTunnels(uid: string, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).listTunnels(uid, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8589,7 +8905,7 @@ export const ExternalApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+         * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -8644,7 +8960,7 @@ export const ExternalApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+         * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -8675,7 +8991,7 @@ export const ExternalApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.authUser(loginRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+         * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -8707,7 +9023,7 @@ export class ExternalApi extends BaseAPI {
     }
 
     /**
-     * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+     * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
      * @summary Login
      * @param {LoginRequest} [loginRequest] 
      * @param {*} [options] Override http request option.
@@ -14793,6 +15109,273 @@ export class TagsApi extends BaseAPI {
 
 
 /**
+ * TunnelsApi - axios parameter creator
+ * @export
+ */
+export const TunnelsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Creates a new tunnel for a device.
+         * @summary Create a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {CreateTunnelRequest} createTunnelRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTunnel: async (uid: string, createTunnelRequest: CreateTunnelRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('createTunnel', 'uid', uid)
+            // verify required parameter 'createTunnelRequest' is not null or undefined
+            assertParamExists('createTunnel', 'createTunnelRequest', createTunnelRequest)
+            const localVarPath = `/api/devices/{uid}/tunnels`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createTunnelRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes a tunnel for a specific device and port.
+         * @summary Delete a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteTunnel: async (uid: string, address: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('deleteTunnel', 'uid', uid)
+            // verify required parameter 'address' is not null or undefined
+            assertParamExists('deleteTunnel', 'address', address)
+            const localVarPath = `/api/devices/{uid}/tunnels/{address}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"address"}}`, encodeURIComponent(String(address)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List the tunnels per devices.
+         * @summary List tunnels
+         * @param {string} uid Device\&#39;s UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTunnels: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('listTunnels', 'uid', uid)
+            const localVarPath = `/api/devices/{uid}/tunnels`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TunnelsApi - functional programming interface
+ * @export
+ */
+export const TunnelsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TunnelsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Creates a new tunnel for a device.
+         * @summary Create a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {CreateTunnelRequest} createTunnelRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tunnel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTunnel(uid, createTunnelRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Deletes a tunnel for a specific device and port.
+         * @summary Delete a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteTunnel(uid: string, address: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTunnel(uid, address, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List the tunnels per devices.
+         * @summary List tunnels
+         * @param {string} uid Device\&#39;s UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listTunnels(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTunnels(uid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * TunnelsApi - factory interface
+ * @export
+ */
+export const TunnelsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TunnelsApiFp(configuration)
+    return {
+        /**
+         * Creates a new tunnel for a device.
+         * @summary Create a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {CreateTunnelRequest} createTunnelRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: any): AxiosPromise<Tunnel> {
+            return localVarFp.createTunnel(uid, createTunnelRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes a tunnel for a specific device and port.
+         * @summary Delete a tunnel
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteTunnel(uid: string, address: string, options?: any): AxiosPromise<void> {
+            return localVarFp.deleteTunnel(uid, address, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List the tunnels per devices.
+         * @summary List tunnels
+         * @param {string} uid Device\&#39;s UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTunnels(uid: string, options?: any): AxiosPromise<Array<Tunnel>> {
+            return localVarFp.listTunnels(uid, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TunnelsApi - object-oriented interface
+ * @export
+ * @class TunnelsApi
+ * @extends {BaseAPI}
+ */
+export class TunnelsApi extends BaseAPI {
+    /**
+     * Creates a new tunnel for a device.
+     * @summary Create a tunnel
+     * @param {string} uid Device\&#39;s UID
+     * @param {CreateTunnelRequest} createTunnelRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TunnelsApi
+     */
+    public createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: AxiosRequestConfig) {
+        return TunnelsApiFp(this.configuration).createTunnel(uid, createTunnelRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes a tunnel for a specific device and port.
+     * @summary Delete a tunnel
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} address Tunnel\&#39;s address
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TunnelsApi
+     */
+    public deleteTunnel(uid: string, address: string, options?: AxiosRequestConfig) {
+        return TunnelsApiFp(this.configuration).deleteTunnel(uid, address, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List the tunnels per devices.
+     * @summary List tunnels
+     * @param {string} uid Device\&#39;s UID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TunnelsApi
+     */
+    public listTunnels(uid: string, options?: AxiosRequestConfig) {
+        return TunnelsApiFp(this.configuration).listTunnels(uid, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
  * UsersApi - axios parameter creator
  * @export
  */
@@ -15167,7 +15750,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+         * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -15728,7 +16311,7 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+         * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -15976,7 +16559,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.getValidateAccount(email, token, options).then((request) => request(axios, basePath));
         },
         /**
-         * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+         * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
          * @summary Login
          * @param {LoginRequest} [loginRequest] 
          * @param {*} [options] Override http request option.
@@ -16232,7 +16815,7 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * Authenticate a user, returning the session\'s JWT token and user data.  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
+     * Authenticate a \"local\" user by returning the session\'s JWT token and user data. Local users are those registered via the ShellHub form without relying on external Identity Providers (IdPs).  Authentication may result in an account lockout after N consecutive incorrect login attempts. The lockout applies specifically to a particular source and user combination. Check for the presence of the `X-Account-Lockout` header to determine the account lockout status. When it\'s 0, there are no active lockouts.  Users with MFA enabled cannot authenticate via this route. In such cases, the API will respond with a status `401` and an `X-MFA-Token` header with a UUID. Authentication must be med to `/api/mfa/auth` with this token in these instances. 
      * @summary Login
      * @param {LoginRequest} [loginRequest] 
      * @param {*} [options] Override http request option.

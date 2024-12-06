@@ -69,6 +69,11 @@ const mfaApi = new axiosTs.MfaApi(
   undefined,
   newAxiosInstance(),
 );
+const tunnelApi = new axiosTs.TunnelsApi(
+  configuration,
+  undefined,
+  newAxiosInstance(),
+);
 const billingApi = new axiosTs.BillingApi(
   configuration,
   undefined,
@@ -133,6 +138,7 @@ const reloadConfiguration = () => {
     tagsApi,
     usersApi,
     mfaApi,
+    tunnelApi,
     billingApi,
     rulesApi,
   ].forEach((api) => {
@@ -153,6 +159,7 @@ export {
   tagsApi,
   usersApi,
   mfaApi,
+  tunnelApi,
   billingApi,
   rulesApi,
   announcementApi,

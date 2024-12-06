@@ -21,6 +21,7 @@ import { devices, DevicesState } from "./modules/devices";
 import { container, ContainerState } from "./modules/container";
 import { box, BoxState } from "./modules/box";
 import { namespaces, NamespacesState } from "./modules/namespaces";
+import { tunnels, TunnelsState } from "./modules/tunnels";
 import { billing } from "./modules/billing";
 import { customer, CustomerState } from "./modules/customer";
 import { announcement, AnnouncementState } from "./modules/announcement";
@@ -40,6 +41,7 @@ export interface State {
   layout: LayoutState;
   modal: ModalState;
   namespaces: NamespacesState;
+  tunnels: TunnelsState;
   notifications: NotificationsState;
   privateKey: PrivateKeyState;
   publicKeys: PublicKeysState;
@@ -70,6 +72,7 @@ export const store = createStore<State>({
     layout,
     modal,
     namespaces,
+    tunnels,
     notifications,
     privateKey,
     publicKeys,
