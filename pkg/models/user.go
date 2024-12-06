@@ -43,7 +43,10 @@ type User struct {
 	ID string `json:"id,omitempty" bson:"_id,omitempty"`
 	// Origin specifies the the user's signup method.
 	Origin UserOrigin `json:"-" bson:"origin"`
-	Status UserStatus `json:"status" bson:"status"`
+	// ExternalID represents the user's identifier in an external system. It is always empty when [User.Origin]
+	// is [UserOriginManual].
+	ExternalID string     `json:"-" bson:"external_id"`
+	Status     UserStatus `json:"status" bson:"status"`
 	// MaxNamespaces represents the count of namespaces that the user can owns.
 	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
