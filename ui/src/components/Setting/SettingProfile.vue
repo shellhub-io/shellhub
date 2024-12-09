@@ -76,7 +76,7 @@
                 required
                 :hide-details="!nameError"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : 'flat'"
+                :variant="editDataStatus ? 'outlined' : 'plain'"
                 data-test="name-input"
               />
             </template>
@@ -96,7 +96,7 @@
                 :disabled="!editDataStatus"
                 :readonly="!editDataStatus"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : 'flat'"
+                :variant="editDataStatus ? 'outlined' : 'plain'"
                 required
                 :hide-details="!usernameError"
                 data-test="username-input"
@@ -118,7 +118,7 @@
                 :disabled="!editDataStatus"
                 :readonly="!editDataStatus"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : 'flat'"
+                :variant="editDataStatus ? 'outlined' : 'plain'"
                 required
                 :hide-details="!emailError"
                 data-test="email-input"
@@ -140,7 +140,7 @@
                 :disabled="!editDataStatus"
                 :readonly="!editDataStatus"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : 'flat'"
+                :variant="editDataStatus ? 'outlined' : 'plain'"
                 required
                 :hide-details="!recoveryEmailError"
                 data-test="recovery-email-input"
@@ -412,5 +412,11 @@ onMounted(async () => {
   max-width: 960px;
   margin-left: 0;
   padding: 0;
+}
+
+:deep(.v-field--variant-plain) {
+  --v-field-padding-start: 16px;
+  --v-field-padding-end: 16px;
+  --v-field-padding-bottom: 8px;
 }
 </style>

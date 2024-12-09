@@ -73,7 +73,7 @@
                 required
                 :hide-details="!nameError"
                 density="compact"
-                :variant="editDataStatus ? 'outlined' : 'flat'"
+                :variant="editDataStatus ? 'outlined' : 'plain'"
                 data-test="name-input"
               />
             </template>
@@ -346,5 +346,11 @@ const hasTenant = () => tenant.value !== "";
   max-width: 960px;
   margin-left: 0;
   padding: 0;
+}
+
+:deep(.v-field--variant-plain) {
+  --v-field-padding-start: 16px;
+  --v-field-padding-end: 16px;
+  --v-field-padding-bottom: 8px;
 }
 </style>
