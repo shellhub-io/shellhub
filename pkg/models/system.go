@@ -34,7 +34,7 @@ type SystemIdpSAML struct {
 	SignonURL string `json:"signon_url" bson:"signon_url"`
 	// Certificates is a list of X.509 certificates provided by the IdP. These certificates are used
 	// by the SP to validate the digital signatures of SAML assertions issued by the IdP.
-	Certificates []string `json:"certificates" bson:"certificate"`
+	Certificates []string `json:"certificates" bson:"certificates"`
 }
 
 type SystemSpSAML struct {
