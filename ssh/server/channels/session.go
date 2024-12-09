@@ -2,6 +2,7 @@ package channels
 
 import (
 	"strings"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -130,7 +131,11 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		defer agent.Close()
 
-		go pipe(ctx, sess, client, agent)
+		wg := new(sync.WaitGroup)
+		go pipe(ctx, sess, client, agent, wg)
+
+		wg.Add(1)
+		defer wg.Wait()
 
 		// TODO: Add middleware to block a certain type of requests.
 		for {

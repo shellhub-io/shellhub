@@ -16,7 +16,7 @@ import (
 
 // pipe pipes data between client and agent, and vise versa, recoding each frame when ShellHub instance are Cloud or
 // Enterprise.
-func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel) {
+func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, wg *sync.WaitGroup) {
 	defer func() {
 		ctx.Lock()
 		sess.Handled = false
@@ -32,7 +32,6 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")
 
-	wg := new(sync.WaitGroup)
 	wg.Add(2)
 
 	c := io.MultiReader(client, client.Stderr())
@@ -138,8 +137,6 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 
 		log.Trace("client channel data copy done")
 	}()
-
-	wg.Wait()
 }
 
 // hose is a generic version of [pipe] function without the record capability.
