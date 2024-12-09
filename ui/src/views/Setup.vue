@@ -119,6 +119,7 @@
             >
               Create Account
             </v-btn>
+
           </v-card-actions>
         </v-window-item>
       </v-window>
@@ -162,7 +163,11 @@ const {
 const {
   value: username,
   errorMessage: usernameError,
-} = useField<string>("username", yup.string().required().min(3).max(32), {
+} = useField<string>("username", yup.string()
+  .required("Username is required")
+  .min(3, "Username must be at least 3 characters")
+  .max(32, "Username must not exceed 32 characters")
+  .matches(/^[a-z0-9-_.@]+$/, "Username can only contain lowercase letters, numbers, and certain symbols"), {
   initialValue: "",
 });
 
@@ -176,7 +181,9 @@ const {
 const {
   value: password,
   errorMessage: passwordError,
-} = useField<string>("password", yup.string().required().min(5).max(32), {
+} = useField<string>("password", yup.string().required()
+  .min(5, "Password must be at least 5 characters long")
+  .max(32, "Password must not exceed 32 characters"), {
   initialValue: "",
 });
 
@@ -188,7 +195,7 @@ const {
   initialValue: "",
 });
 
-const hasSign = computed(() => (sign.value));
+const hasSign = computed(() => !!sign.value);
 
 const isFormValid = computed(() => (
   name.value
@@ -223,10 +230,11 @@ const setupAccount = async () => {
       await store.dispatch("users/setup", setupData);
 
       alertType.value = "success";
-      alertMessage.value = "Successfully created your first account, you will be redirected to the login page in 3 seconds";
+      alertMessage.value = "Successfully created your account. Redirecting to login...";
       setTimeout(() => router.push({ name: "Login" }), 3000);
     } catch (error) {
-      alertMessage.value = "Something has gone wrong in your request, please check if the sign matches the same in ./bin/setup return";
+      alertType.value = "error";
+      alertMessage.value = "An error occurred. please check if the sign matches the same in ./bin/setup and try again.";
     }
   }
 };
