@@ -15,7 +15,6 @@ describe("Settings View", () => {
   beforeEach(async () => {
     wrapper = mount(Settings, {
       global: {
-        stubs: ["SettingDrawer"],
         plugins: [[store, key], vuetify, router],
         config: {
           errorHandler: () => { /* ignore global error handler */ },

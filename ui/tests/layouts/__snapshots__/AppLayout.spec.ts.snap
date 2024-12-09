@@ -118,8 +118,8 @@ exports[`App Layout Component > Renders the component 1`] = `
               <div class=\\"v-list-item__spacer\\"></div>
             </div>
           </a>
-          <div data-v-e7291ef4=\\"\\" class=\\"v-list-group v-list-group--prepend\\" data-test=\\"list-group\\">
-            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header\\" tabindex=\\"-2\\" aria-selected=\\"false\\" id=\\"v-list-group--id-false\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+          <div data-v-e7291ef4=\\"\\" class=\\"v-list-group v-list-group--prepend\\" modelvalue=\\"false\\" data-test=\\"list-group\\">
+            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header\\" tabindex=\\"-2\\" aria-selected=\\"false\\" id=\\"v-list-group--id-Symbol(7)\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
               <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-account-group mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
                 <div class=\\"v-list-item__spacer\\"></div>
               </div>
@@ -134,7 +134,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <transition-stub name=\\"\\" appear=\\"false\\" persisted=\\"false\\" css=\\"false\\">
-              <div class=\\"v-list-group__items\\" role=\\"group\\" aria-labelledby=\\"v-list-group--id-false\\" style=\\"display: none;\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/team/members\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+              <div class=\\"v-list-group__items\\" role=\\"group\\" aria-labelledby=\\"v-list-group--id-Symbol(7)\\" style=\\"display: none;\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/team/members\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
                   <!---->
                   <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
                     <!---->
@@ -152,20 +152,66 @@ exports[`App Layout Component > Renders the component 1`] = `
                   <!---->
                 </a></div>
             </transition-stub>
-          </div><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+          </div>
+          <div data-v-e7291ef4=\\"\\" class=\\"v-list-group v-list-group--prepend\\" modelvalue=\\"false\\" data-test=\\"list-group\\">
+            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header\\" tabindex=\\"-2\\" aria-selected=\\"false\\" id=\\"v-list-group--id-Symbol(11)\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+              <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
+                <div class=\\"v-list-item__spacer\\"></div>
+              </div>
+              <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                <!---->
+                <!---->
+                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\">Settings</div>
+              </div>
+              <div class=\\"v-list-item__append\\"><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" density=\\"compact\\"></i>
+                <!---->
+                <div class=\\"v-list-item__spacer\\"></div>
+              </div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
-              <!---->
-              <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cog-listItem\\">Settings</div>
-            </div>
-            <div class=\\"v-list-item__append\\">
-              <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
-            </div>
-          </a>
+            <transition-stub name=\\"\\" appear=\\"false\\" persisted=\\"false\\" css=\\"false\\">
+              <div class=\\"v-list-group__items\\" role=\\"group\\" aria-labelledby=\\"v-list-group--id-Symbol(11)\\" style=\\"display: none;\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings/profile\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                  <!---->
+                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Profile-listItem\\">Profile</div>
+                  </div>
+                  <!---->
+                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings/namespace\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                  <!---->
+                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Namespace-listItem\\">Namespace</div>
+                  </div>
+                  <!---->
+                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings/private-keys\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                  <!---->
+                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Private Keys-listItem\\">Private Keys</div>
+                  </div>
+                  <!---->
+                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings/tags\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                  <!---->
+                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Tags-listItem\\">Tags</div>
+                  </div>
+                  <!---->
+                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" aria-selected=\\"false\\" href=\\"/settings/billing\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                  <!---->
+                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Billing-listItem\\">Billing</div>
+                  </div>
+                  <!---->
+                </a></div>
+            </transition-stub>
+          </div>
           <div data-v-e7291ef4=\\"\\" class=\\"v-col d-flex align-end justify-center\\">
             <div data-v-136d2a2f=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connect </span>
                 <!---->
@@ -204,14 +250,14 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </ul>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text\\" aria-describedby=\\"v-tooltip-16\\" aria-label=\\"community-help-icon\\" data-test=\\"support-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text\\" aria-describedby=\\"v-tooltip-22\\" aria-label=\\"community-help-icon\\" data-test=\\"support-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-18\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-19\\" data-test=\\"user-menu-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
+        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-24\\" aria-label=\\"notifications-icon\\"></i>
+        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-25\\" data-test=\\"user-menu-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
           <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><div data-v-09753bb1=\\"\\" class=\\"v-avatar v-theme--dark bg-primary v-avatar--density-default v-avatar--variant-flat border\\" style=\\"width: 1.5rem; height: 1.5rem;\\" email=\\"\\" data-test=\\"user-icon\\"><div data-v-09753bb1=\\"\\" class=\\"v-responsive v-img v-img--booting\\" data-test=\\"gravatar-image\\"><div class=\\"v-responsive__sizer\\"></div><!----><transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class=\\"v-avatar__underlay\\"></span>
       </div></span><span class=\\"v-btn__append\\"><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
       <!----></button>

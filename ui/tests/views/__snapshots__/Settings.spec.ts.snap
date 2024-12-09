@@ -1,8 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Settings View > Renders the component 1`] = `
-"<setting-drawer-stub></setting-drawer-stub>
-<div>
+"<div>
   <!---->
 </div>"
 `;

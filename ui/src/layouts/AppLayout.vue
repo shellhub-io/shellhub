@@ -51,7 +51,7 @@
           <v-list-group
             v-if="item.children"
             prepend-icon="mdi-chevron-down"
-            value="false"
+            v-model="subMenuState[item.title]"
             data-test="list-group"
           >
             <template v-slot:activator="{ props }">
@@ -149,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, reactive, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
@@ -189,6 +189,9 @@ onMounted(() => {
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
 const showConnector = computed(() => (envVariables.isCommunity && !envVariables.premiumPaywall) || !envVariables.hasConnector);
 const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
+const namespacedInstance = computed(() => localStorage.getItem("tenant") !== "");
+const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
+
 const items = [
   {
     icon: "mdi-home",
@@ -248,8 +251,45 @@ const items = [
     icon: "mdi-cog",
     title: "Settings",
     path: "/settings",
+    children: [
+      {
+        title: "Profile",
+        path: "/settings/profile",
+      },
+      {
+        title: "Namespace",
+        path: "/settings/namespace",
+        hidden: !namespacedInstance.value,
+      },
+      {
+        title: "Private Keys",
+        path: "/settings/private-keys",
+      },
+      {
+        title: "Tags",
+        path: "/settings/tags",
+        hidden: !namespacedInstance.value,
+      },
+      {
+        title: "Billing",
+        path: "/settings/billing",
+        hidden: !(
+          envVariables.billingEnable
+          && envVariables.isCloud
+          && hasNamespace.value
+        ),
+      },
+    ],
   },
 ];
+
+const subMenuState = reactive({});
+
+items.forEach((item) => {
+  if (item.children) {
+    subMenuState[item.title] = false;
+  }
+});
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
 
