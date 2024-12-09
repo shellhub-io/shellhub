@@ -111,15 +111,16 @@
 
       <v-card-actions class="justify-center">
         <v-btn
-          :disabled="!acceptPrivacyPolicy"
+          :disabled="hasErrors()"
           type="submit"
           data-test="create-account-btn"
           color="primary"
-          :variant="acceptPrivacyPolicy ? 'elevated' : 'tonal'"
+          :variant="!hasErrors() ? 'elevated' : 'tonal'"
           block
         >
           SignUp
         </v-btn>
+
       </v-card-actions>
 
       <v-card-subtitle
@@ -186,9 +187,18 @@ const {
   value: username,
   errorMessage: usernameError,
   setErrors: setUsernameError,
-} = useField<string>("username", yup.string().required().min(3).max(32), {
-  initialValue: "",
-});
+} = useField<string>(
+  "username",
+  yup
+    .string()
+    .required("Username is required")
+    .min(3, "Username must be at least 3 characters")
+    .max(32, "Username must not exceed 32 characters")
+    .matches(/^[a-z0-9-_.@]+$/, "Username can only contain lowercase letters and numbers"),
+  {
+    initialValue: "",
+  },
+);
 
 const {
   value: email,
@@ -230,6 +240,7 @@ const hasErrors = () => !!(
   || emailError.value
   || passwordError.value
   || passwordConfirmError.value
+  || !acceptPrivacyPolicy.value
 );
 
 const handleAxiosError = (error: AxiosError) => {
