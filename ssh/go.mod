@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/ssh
 
-go 1.21
+go 1.22.4
 
 require (
 	github.com/Masterminds/semver v1.5.0
