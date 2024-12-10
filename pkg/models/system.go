@@ -10,7 +10,6 @@ type System struct {
 
 type SystemAuthentication struct {
 	Manual *SystemAuthenticationManual `json:"manual" bson:"manual"`
-
 	// SAML contains the configuration settings for SAML authentication. [SAML.Enabled] indicates
 	// whether SAML authentication is enabled or not.
 	SAML *SystemAuthenticationSAML `json:"saml" bson:"saml"`
@@ -52,4 +51,8 @@ type SystemSpSAML struct {
 	// The IdP verifies the signature using the [SystemSpSAML.Certificate]. It is only populated
 	// when [SystemSpSAML.SignAuthRequests] is true.
 	PrivateKey string `json:"-" bson:"private_key"`
+	// PrivateKeySum is a checksum of the encrypted private key stored in [SystemSpSAML.PrivateKey].
+	// It is used to verify the integrity of the private key data before decryption. This field is
+	// only populated when [SystemSpSAML.SignAuthRequests] is true.
+	PrivateKeySum string `json:"-" bson:"private_key_sum"`
 }
