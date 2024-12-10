@@ -51,7 +51,7 @@ func (cb *CertBot) generateCertificate() {
 		"--preferred-challenges", "http",
 		"-n",
 		"-d",
-		fmt.Sprintf("*.%s", cb.domain),
+		cb.domain,
 	)
 	if cb.staging {
 		cmd.Args = append(cmd.Args, "--staging")
