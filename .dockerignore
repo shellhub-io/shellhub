@@ -4,3 +4,4 @@
 ./*.md
 ./bin
 ./ui/node_modules
+./agent/tmp
