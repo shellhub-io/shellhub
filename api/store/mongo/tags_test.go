@@ -5,12 +5,13 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTagsGet(t *testing.T) {
 	type Expected struct {
-		tags []string
+		tags []models.Tags
 		len  int
 		err  error
 	}
@@ -24,20 +25,45 @@ func TestTagsGet(t *testing.T) {
 		{
 			description: "succeeds when tag is found",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
+			fixtures:    []string{fixtureTags, fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
 			expected: Expected{
-				tags: []string{"tag-1"},
-				len:  1,
-				err:  nil,
+				tags: []models.Tags{
+					{
+						ID:     "67519c0c31490629a1fc612c",
+						Name:   "red",
+						Color:  "",
+						Tenant: "00000000-0000-4000-0000-000000000000",
+					},
+					{
+						ID:     "67519e4231490629a1fc6130",
+						Name:   "blue",
+						Color:  "#0000ff",
+						Tenant: "00000000-0000-4000-0000-000000000000",
+					},
+					{
+						ID:     "6751a03431490629a1fc6131",
+						Name:   "tag-1",
+						Color:  "#a25f36",
+						Tenant: "00000000-0000-4000-0000-000000000000",
+					},
+					{
+						ID:     "6751b1a93592db0deea3fd97",
+						Name:   "green",
+						Tenant: "00000000-0000-4000-0000-000000000000",
+						Color:  "green",
+					},
+				},
+				len: 4,
+				err: nil,
 			},
 		},
 	}
 
 	// Due to the non-deterministic order of applying fixtures when dealing with multiple datasets,
 	// we ensure that both the expected and result arrays are correctly sorted.
-	sort := func(tags []string) {
+	sort := func(tags []models.Tags) {
 		sort.Slice(tags, func(i, j int) bool {
-			return tags[i] < tags[j]
+			return tags[i].Name < tags[j].Name
 		})
 	}
 
@@ -79,7 +105,7 @@ func TestTagsRename(t *testing.T) {
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			oldTag:      "tag-1",
 			newTag:      "edited-tag",
-			fixtures:    []string{fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
+			fixtures:    []string{fixtureTags, fixturePublicKeys, fixtureFirewallRules, fixtureDevices},
 			expected: Expected{
 				count: 6,
 				err:   nil,
