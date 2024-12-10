@@ -133,17 +133,18 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 		go pipe(ctx, sess, client, agent)
 
 		// TODO: Add middleware to block a certain type of requests.
+	main:
 		for {
 			select {
 			case <-ctx.Done():
 				logger.Info("context has done")
 
-				return
+				break main
 			case req, ok := <-sess.AgentGlobalReqs:
 				if !ok {
 					logger.Trace("global requests is closed")
 
-					return
+					continue
 				}
 
 				logger.Debugf("global request from agent: %s", req.Type)
@@ -157,13 +158,13 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					if _, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
 						logger.Error("failed to send the keepalive request received from agent to client")
 
-						return
+						continue
 					}
 
 					if err := sess.KeepAlive(); err != nil {
 						logger.WithError(err).Error("failed to send the API request to inform that the session is open")
 
-						return
+						continue
 					}
 				default:
 					if req.WantReply {
@@ -176,7 +177,9 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				if !ok {
 					logger.Trace("agent requests is closed")
 
-					return
+					client.Close()
+
+					continue
 				}
 
 				switch req.Type {
@@ -206,7 +209,9 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				if !ok {
 					logger.Trace("client requests is closed")
 
-					return
+					agent.Close()
+
+					continue
 				}
 
 				switch req.Type {
