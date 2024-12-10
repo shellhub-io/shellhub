@@ -14,6 +14,7 @@ type GatewayConfig struct {
 	Env                  string `env:"SHELLHUB_ENV"`
 	Domain               string `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
 	Tunnels              bool   `env:"SHELLHUB_TUNNELS,default=false"`
+	TunnelsDomain        string `env:"SHELLHUB_TUNNELS_DOMAIN"`
 	WorkerProcesses      string `env:"WORKER_PROCESSES,default=auto"`
 	MaxWorkerOpenFiles   int    `env:"MAX_WORKER_OPEN_FILES,default=0"`
 	MaxWorkerConnections int    `env:"MAX_WORKER_CONNECTIONS,default=16384"`
