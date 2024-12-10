@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/gliderlabs/ssh v0.3.7
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.13.0
 	github.com/pires/go-proxyproto v0.8.0
