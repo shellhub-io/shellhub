@@ -17,8 +17,8 @@ const (
 	AuthRequestURL           = "/auth"
 	AuthDeviceURL            = "/devices/auth"
 	AuthDeviceURLV2          = "/auth/device"
-	AuthLocalUserURL         = "/login"
-	AuthLocalUserURLV2       = "/auth/user"
+	AuthManualUserURL         = "/login"
+	AuthManualUserURLV2       = "/auth/user"
 	AuthUserTokenInternalURL = "/auth/token/:id"     //nolint:gosec
 	AuthUserTokenPublicURL   = "/auth/token/:tenant" //nolint:gosec
 	AuthPublicKeyURL         = "/auth/ssh"
@@ -114,8 +114,8 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthLocalUser(c gateway.Context) error {
-	req := new(requests.AuthLocalUser)
+func (h *Handler) AuthManualUser(c gateway.Context) error {
+	req := new(requests.AuthManualUser)
 
 	if err := c.Bind(req); err != nil {
 		return err
@@ -125,7 +125,7 @@ func (h *Handler) AuthLocalUser(c gateway.Context) error {
 		return err
 	}
 
-	res, lockout, mfaToken, err := h.service.AuthLocalUser(c.Ctx(), req, c.RealIP())
+	res, lockout, mfaToken, err := h.service.AuthManualUser(c.Ctx(), req, c.RealIP())
 	c.Response().Header().Set("X-Account-Lockout", strconv.FormatInt(lockout, 10))
 	c.Response().Header().Set("X-MFA-Token", mfaToken)
 

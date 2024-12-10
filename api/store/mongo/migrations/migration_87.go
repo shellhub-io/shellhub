@@ -9,48 +9,52 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration83 = migrate.Migration{
-	Version:     83,
-	Description: "Set the user's 'origin' attribute to 'local' if it does not already exist.",
+var migration87 = migrate.Migration{
+	Version:     87,
+	Description: "Adding an external ID attribute to users collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   87,
 			"action":    "Up",
 		}).Info("Applying migration")
 
 		filter := bson.M{
-			"origin": bson.M{"$exists": false},
+			"external_id": bson.M{"$exists": false},
 		}
 
 		update := bson.M{
 			"$set": bson.M{
-				"origin": "local",
+				"external_id": "",
 			},
 		}
 
-		_, err := db.Collection("users").UpdateMany(ctx, filter, update)
+		_, err := db.
+			Collection("users").
+			UpdateMany(ctx, filter, update)
 
 		return err
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   87,
 			"action":    "Down",
 		}).Info("Reverting migration")
 
 		filter := bson.M{
-			"origin": "local",
+			"external_id": bson.M{"$exists": true},
 		}
 
 		update := bson.M{
 			"$unset": bson.M{
-				"origin": "",
+				"external_id": "",
 			},
 		}
 
-		_, err := db.Collection("users").UpdateMany(ctx, filter, update)
+		_, err := db.
+			Collection("users").
+			UpdateMany(ctx, filter, update)
 
 		return err
 	}),

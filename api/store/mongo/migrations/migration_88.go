@@ -9,48 +9,52 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var migration83 = migrate.Migration{
-	Version:     83,
-	Description: "Set the user's 'origin' attribute to 'local' if it does not already exist.",
+var migration88 = migrate.Migration{
+	Version:     88,
+	Description: "Adding an 'auth_methods' attributes to user collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   88,
 			"action":    "Up",
 		}).Info("Applying migration")
 
 		filter := bson.M{
-			"origin": bson.M{"$exists": false},
+			"preferences.auth_methods": bson.M{"$exists": false},
 		}
 
 		update := bson.M{
 			"$set": bson.M{
-				"origin": "local",
+				"preferences.auth_methods": []string{"manual"},
 			},
 		}
 
-		_, err := db.Collection("users").UpdateMany(ctx, filter, update)
+		_, err := db.
+			Collection("users").
+			UpdateMany(ctx, filter, update)
 
 		return err
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   88,
 			"action":    "Down",
 		}).Info("Reverting migration")
 
 		filter := bson.M{
-			"origin": "local",
+			"prefenrences.auth_methods": bson.M{"$exists": true},
 		}
 
 		update := bson.M{
 			"$unset": bson.M{
-				"origin": "",
+				"preferences.auth_methods": "",
 			},
 		}
 
-		_, err := db.Collection("users").UpdateMany(ctx, filter, update)
+		_, err := db.
+			Collection("users").
+			UpdateMany(ctx, filter, update)
 
 		return err
 	}),

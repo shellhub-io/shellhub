@@ -154,18 +154,18 @@ func (_m *Service) AuthIsCacheToken(ctx context.Context, tenant string, id strin
 	return r0, r1
 }
 
-// AuthLocalUser provides a mock function with given fields: ctx, req, sourceIP
-func (_m *Service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+// AuthManualUser provides a mock function with given fields: ctx, req, sourceIP
+func (_m *Service) AuthManualUser(ctx context.Context, req *requests.AuthManualUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
 	ret := _m.Called(ctx, req, sourceIP)
 
 	var r0 *models.UserAuthResponse
 	var r1 int64
 	var r2 string
 	var r3 error
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.AuthLocalUser, string) (*models.UserAuthResponse, int64, string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.AuthManualUser, string) (*models.UserAuthResponse, int64, string, error)); ok {
 		return rf(ctx, req, sourceIP)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.AuthLocalUser, string) *models.UserAuthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.AuthManualUser, string) *models.UserAuthResponse); ok {
 		r0 = rf(ctx, req, sourceIP)
 	} else {
 		if ret.Get(0) != nil {
@@ -173,19 +173,19 @@ func (_m *Service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUse
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *requests.AuthLocalUser, string) int64); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.AuthManualUser, string) int64); ok {
 		r1 = rf(ctx, req, sourceIP)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *requests.AuthLocalUser, string) string); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.AuthManualUser, string) string); ok {
 		r2 = rf(ctx, req, sourceIP)
 	} else {
 		r2 = ret.Get(2).(string)
 	}
 
-	if rf, ok := ret.Get(3).(func(context.Context, *requests.AuthLocalUser, string) error); ok {
+	if rf, ok := ret.Get(3).(func(context.Context, *requests.AuthManualUser, string) error); ok {
 		r3 = rf(ctx, req, sourceIP)
 	} else {
 		r3 = ret.Error(3)

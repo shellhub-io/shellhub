@@ -21,9 +21,10 @@ type UserStore interface {
 	// It returns the inserted ID or an error, if any.
 	UserCreateInvited(ctx context.Context, email string) (insertedID string, err error)
 
-	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
-	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
 	UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error)
+	UserGetByExternalID(ctx context.Context, id string) (*models.User, error)
+	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
+	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
 
 	// UserConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
