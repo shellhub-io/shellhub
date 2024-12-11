@@ -1,9 +1,9 @@
 # base stage
-FROM golang:1.22.6-alpine3.19 AS base
+FROM golang:1.22.6-alpine3.20 AS base
 
 ARG GOPROXY
 
-RUN apk add --no-cache git ca-certificates libgcc certbot certbot-nginx curl
+RUN apk add --no-cache git ca-certificates libgcc curl certbot certbot-nginx certbot-dns certbot-dns-digitalocean
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -58,7 +58,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.21.0 AS production
 
-RUN apk add libgcc curl certbot certbot-nginx
+RUN apk add libgcc curl certbot certbot-nginx certbot-dns certbot-dns-digitalocean
 
 COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
 

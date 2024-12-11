@@ -13,12 +13,24 @@ import (
 	"github.com/pkg/errors"
 )
 
+// DNSProvider represents a DNS provider to generate certificates.
+type DNSProvider string
+
+// DigitalOceanDNSProvider represents the Digital Ocean DNS provider.
+const DigitalOceanDNSProvider = "digitalocean"
+
+type tunnels struct {
+	domain string
+	token  string
+}
+
 // CertBot handles the generation and renewal of SSL certificates.
 type CertBot struct {
 	rootDir         string
 	domain          string
 	staging         bool
 	renewedCallback func()
+	tunnels         *tunnels
 }
 
 // ensureCertificates checks if the SSL certificate exists and generates it if not.
@@ -26,6 +38,13 @@ func (cb *CertBot) ensureCertificates() {
 	certPath := fmt.Sprintf("%s/live/%s/fullchain.pem", cb.rootDir, cb.domain)
 	if _, err := os.Stat(certPath); os.IsNotExist(err) {
 		cb.generateCertificate()
+	}
+
+	if cb.tunnels != nil {
+		certPath := fmt.Sprintf("%s/live/*.%s/fullchain.pem", cb.rootDir, cb.tunnels.domain)
+		if _, err := os.Stat(certPath); os.IsNotExist(err) {
+			cb.generateCertificateFromDNS(DigitalOceanDNSProvider)
+		}
 	}
 }
 
@@ -63,6 +82,37 @@ func (cb *CertBot) generateCertificate() {
 	}
 
 	cb.stopACMEServer(acmeServer)
+}
+
+func (cb *CertBot) generateCertificateFromDNS(provider DNSProvider) {
+	fmt.Println("Generating SSL certificate with DNS")
+
+	token := fmt.Sprintf("dns_%s_token = %s", provider, cb.tunnels.token)
+	file, _ := os.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(provider)))
+	file.Write([]byte(token))
+
+	cmd := exec.Command(
+		"certbot",
+		"certonly",
+		"--non-interactive",
+		"--agree-tos",
+		"--register-unsafely-without-email",
+		"--cert-name",
+		fmt.Sprintf("*.%s", cb.tunnels.domain),
+		fmt.Sprintf("--dns-%s", provider),
+		fmt.Sprintf("--dns-%s-credentials", provider),
+		file.Name(),
+		"-d",
+		fmt.Sprintf("*.%s", cb.tunnels.domain),
+	)
+	if cb.staging {
+		cmd.Args = append(cmd.Args, "--staging")
+	}
+	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		log.Fatal("Failed to generate SSL certificate")
+	}
 }
 
 // startACMEServer starts a local HTTP server for the ACME challenge.

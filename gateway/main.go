@@ -22,6 +22,20 @@ func main() {
 			rootDir:         "/etc/letsencrypt",
 			renewedCallback: nginxController.reload,
 		}
+
+		if config.Tunnels {
+			domain := config.Domain
+
+			if config.TunnelsDomain != "" {
+				domain = config.TunnelsDomain
+			}
+
+			certBot.tunnels = &tunnels{
+				domain: domain,
+				token:  config.TunnelsDNSProviderToken,
+			}
+		}
+
 		certBot.ensureCertificates()
 		go certBot.renewCertificates()
 	}
