@@ -6,48 +6,46 @@ import (
 	"os"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type SystemService interface {
-	SystemGetInfo(ctx context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error)
+	// GetSystemInfo retrieves the instance's information
+	GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses.SystemInfo, error)
+
 	SystemDownloadInstallScript(ctx context.Context) (string, error)
 }
 
-// SystemGetInfo returns system instance information.
-// It receives a context (ctx) and requests.SystemGetInfo, what contains a host (host) which is used to determine the
-// API and SSH host of the system, and a port (port) that can be specified to override the API port from the host.
-func (s *service) SystemGetInfo(ctx context.Context, req requests.SystemGetInfo) (*models.SystemInfo, error) {
+func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses.SystemInfo, error) {
+	system, err := s.store.SystemGet(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	apiHost := strings.Split(req.Host, ":")[0]
 	sshPort := envs.DefaultBackend.Get("SHELLHUB_SSH_PORT")
 
-	info := &models.SystemInfo{
+	resp := &responses.SystemInfo{
 		Version: envs.DefaultBackend.Get("SHELLHUB_VERSION"),
-		Endpoints: &models.SystemInfoEndpoints{
+		Setup:   system.Setup,
+		Endpoints: &responses.SystemEndpointsInfo{
 			API: apiHost,
 			SSH: fmt.Sprintf("%s:%s", apiHost, sshPort),
+		},
+		Authentication: &responses.SystemAuthenticationInfo{
+			Local: system.Authentication.Local.Enabled,
 		},
 	}
 
 	if req.Port > 0 {
-		info.Endpoints.API = fmt.Sprintf("%s:%d", apiHost, req.Port)
+		resp.Endpoints.API = fmt.Sprintf("%s:%d", apiHost, req.Port)
 	} else {
-		info.Endpoints.API = req.Host
+		resp.Endpoints.API = req.Host
 	}
 
-	info.Setup = true
-	if envs.IsCommunity() {
-		system, err := s.store.SystemGet(ctx)
-		if err != nil {
-			return nil, NewErrSetupForbidden(err)
-		}
-
-		info.Setup = system.Setup
-	}
-
-	return info, nil
+	return resp, nil
 }
 
 func (s *service) SystemDownloadInstallScript(_ context.Context) (string, error) {
