@@ -265,6 +265,10 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 			return nil, FromMongoError(err)
 		}
 
+		if _, err := s.db.Collection("tunnels").DeleteMany(ctx, bson.M{"device": uid}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
 		return nil, nil
 	})
 
