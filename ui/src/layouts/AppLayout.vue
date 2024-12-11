@@ -55,7 +55,10 @@
             data-test="list-group"
           >
             <template v-slot:activator="{ props }">
-              <v-list-item lines="two" v-bind="props">
+              <v-list-item
+                lines="two"
+                v-bind="props"
+                :disabled="disableItem(item.title)">
                 <template #prepend>
                   <v-icon data-test="icon">
                     {{ item.icon }}
@@ -68,9 +71,10 @@
             </template>
 
             <v-list-item
-              v-for="child in item.children"
+              v-for="child in getFilteredChildren(item.children)"
               :key="child.title"
               :to="child.path"
+              :disabled="disableItem(item.title)"
               data-test="list-item"
             >
               <v-list-item-title :data-test="child.title + '-listItem'">
@@ -190,9 +194,8 @@ const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings
 const showConnector = computed(() => (envVariables.isCommunity && !envVariables.premiumPaywall) || !envVariables.hasConnector);
 const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
 const namespacedInstance = computed(() => localStorage.getItem("tenant") !== "");
-const hasNamespace = computed(() => store.getters["namespaces/getNumberNamespaces"] !== 0);
 
-const items = [
+const items = reactive([
   {
     icon: "mdi-home",
     title: "Home",
@@ -273,15 +276,11 @@ const items = [
       {
         title: "Billing",
         path: "/settings/billing",
-        hidden: !(
-          envVariables.billingEnable
-          && envVariables.isCloud
-          && hasNamespace.value
-        ),
+        hidden: !(envVariables.billingEnable && envVariables.isCloud && namespacedInstance.value),
       },
     ],
   },
-];
+]);
 
 const subMenuState = reactive({});
 
@@ -290,6 +289,10 @@ items.forEach((item) => {
     subMenuState[item.title] = false;
   }
 });
+
+function getFilteredChildren(children) {
+  return children.filter((child) => !child.hidden);
+}
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
 
