@@ -40,6 +40,7 @@ func TestUserList(t *testing.T) {
 				users: []models.User{
 					{
 						ID:             "507f1f77bcf86cd799439011",
+						ExternalID:     "01JEVPB55XVSK890Z2MYKMWXXY",
 						CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 						EmailMarketing: true,
@@ -289,6 +290,7 @@ func TestStore_UserCreateInvited(t *testing.T) {
 				tt,
 				map[string]interface{}{
 					"_id":             objID,
+					"external_id":     nil,
 					"created_at":      primitive.NewDateTimeFromTime(now),
 					"last_login":      primitive.NewDateTimeFromTime(time.Time{}),
 					"origin":          nil,
@@ -337,6 +339,7 @@ func TestUserGetByUsername(t *testing.T) {
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
+					ExternalID:     "01JEVPB55XVSK890Z2MYKMWXXY",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					EmailMarketing: true,
@@ -399,6 +402,7 @@ func TestUserGetByEmail(t *testing.T) {
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
+					ExternalID:     "01JEVPB55XVSK890Z2MYKMWXXY",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					EmailMarketing: true,
@@ -465,6 +469,7 @@ func TestUserGetByID(t *testing.T) {
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
+					ExternalID:     "01JEVPB55XVSK890Z2MYKMWXXY",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					EmailMarketing: true,
@@ -491,6 +496,7 @@ func TestUserGetByID(t *testing.T) {
 			expected: Expected{
 				user: &models.User{
 					ID:             "507f1f77bcf86cd799439011",
+					ExternalID:     "01JEVPB55XVSK890Z2MYKMWXXY",
 					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					EmailMarketing: true,
@@ -522,6 +528,74 @@ func TestUserGetByID(t *testing.T) {
 
 			user, ns, err := s.UserGetByID(ctx, tc.id, tc.ns)
 			assert.Equal(t, tc.expected, Expected{user: user, ns: ns, err: err})
+		})
+	}
+}
+
+func TestUserGetByExternalID(t *testing.T) {
+	type Expected struct {
+		user *models.User
+		ns   int
+		err  error
+	}
+
+	cases := []struct {
+		description string
+		externalID  string
+		ns          bool
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "fails when user is not found",
+			externalID:  "invalid",
+			fixtures:    []string{fixtureUsers},
+			expected: Expected{
+				user: nil,
+				ns:   0,
+				err:  store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds when user is found with ns equal false",
+			externalID:  "01JEVPB55XVSK890Z2MYKMWXXY",
+			ns:          false,
+			fixtures:    []string{fixtureUsers},
+			expected: Expected{
+				user: &models.User{
+					ID:             "507f1f77bcf86cd799439011",
+					ExternalID:     "01JEVPB55XVSK890Z2MYKMWXXY",
+					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					EmailMarketing: true,
+					Status:         models.UserStatusConfirmed,
+					UserData: models.UserData{
+						Name:     "john doe",
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					MaxNamespaces: 0,
+					Password: models.UserPassword{
+						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					},
+				},
+				ns:  0,
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			user, err := s.UserGetByExternalID(ctx, tc.externalID)
+			assert.Equal(t, tc.expected, Expected{user: user, err: err})
 		})
 	}
 }
