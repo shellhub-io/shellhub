@@ -2,7 +2,8 @@
 
 exports[`Billing Settings Free Mode > Renders the component 1`] = `
 "<div data-v-d7a09f69=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr\\">
-  <!--v-if-->
+  <!---->
+  <!---->
   <div data-v-d7a09f69=\\"\\" class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"billing-card\\">
     <!---->
     <div class=\\"v-card__loader\\">

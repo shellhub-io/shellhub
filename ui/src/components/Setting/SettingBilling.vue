@@ -1,7 +1,7 @@
 <template>
-  <BillingDialog v-model="dialogCheckout" @reload="reload" />
-  <v-container fluid>
-    <SettingOwnerInfo :is-owner="hasAuthorization" data-test="settings-owner-info-component" />
+  <SettingOwnerInfo :is-owner="hasAuthorization" v-if="!hasAuthorization" data-test="settings-owner-info-component" />
+  <v-container fluid v-else>
+    <BillingDialog v-model="dialogCheckout" @reload="reload" />
     <v-card
       variant="flat"
       class="bg-transparent"
