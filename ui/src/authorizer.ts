@@ -257,6 +257,7 @@ export const authorizer : { [key: string]: any } = {
       actions.namespace.leave,
       // Billing
       // Notification
+      actions.notification.view,
     ],
     observer: [
       // Device
