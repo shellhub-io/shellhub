@@ -21,7 +21,7 @@
         <v-card-title class="bg-primary"> Invite member </v-card-title>
 
         <v-card-text>
-          <p class="text-caption text-grey-lighten-4 mb-1">
+          <p class="text-caption text-grey-lighten-4 mb-1" v-if="envVariables.isCloud">
             If this email isn't associated with an existing account, we'll send  an email to sign-up.
           </p>
           <v-text-field
@@ -72,6 +72,7 @@ import {
   INotificationsSuccess,
 } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import { envVariables } from "@/envVariables";
 
 const items = ["administrator", "operator", "observer"];
 
@@ -154,18 +155,21 @@ const addMember = async () => {
       update();
       resetFields();
     } catch (error: unknown) {
+      store.dispatch(
+        "snackbar/showSnackbarErrorAction",
+        INotificationsError.namespaceNewMember,
+      );
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
-        if (axiosError.response?.status === 409) {
-          setEmailError(
-            "This user is already a member of this namespace.",
-          );
-        } else {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.namespaceNewMember,
-          );
-          handleError(error);
+        switch (axiosError.response?.status) {
+          case 409:
+            setEmailError("This user is already a member of this namespace.");
+            break;
+          case 404:
+            setEmailError("This user does not exist.");
+            break;
+          default:
+            handleError(error);
         }
       }
     }
