@@ -139,7 +139,8 @@ const successKey = ref(false);
 const failKey = ref(false);
 const errorMessage = ref("");
 const keyResponse = computed(() => store.getters["apiKeys/apiKey"]);
-const isOwner = computed(() => store.getters["auth/role"] === "owner");
+const isAdmin = computed(() => ["administrator", "owner"].includes(store.getters["auth/role"]));
+
 const {
   value: keyName,
   errorMessage: keyInputError,
@@ -195,7 +196,7 @@ const itemsRoles = [
   {
     title: "administrator",
     value: "administrator",
-    disabled: !hasAuthorization.value || !isOwner.value,
+    disabled: !hasAuthorization.value || !isAdmin.value,
   },
 ];
 

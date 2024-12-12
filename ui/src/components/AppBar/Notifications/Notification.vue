@@ -101,9 +101,8 @@
   </v-menu>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import {
-  defineComponent,
   ref,
   computed,
   watch,
@@ -116,92 +115,70 @@ import { INotificationsError } from "../../../interfaces/INotifications";
 import DeviceActionButton from "../../../components/Devices/DeviceActionButton.vue";
 import handleError from "../../../utils/handleError";
 
-export default defineComponent({
-  name: "Notification",
-  inheritAttrs: false,
-  components: {
-    DeviceActionButton,
-  },
-  props: {
-    style: {
-      type: [String, Object],
-      default: undefined,
-    },
-  },
-  setup() {
-    const store = useStore();
-    const show = ref(false);
-    const inANamespace = ref(false);
-    const defaultSize = ref(24);
+const store = useStore();
+const show = ref(false);
+const inANamespace = ref(false);
 
-    const listNotifications = computed(
-      () => store.getters["notifications/list"],
+const listNotifications = computed(
+  () => store.getters["notifications/list"],
+);
+
+const getNumberNotifications = computed(
+  () => store.getters["notifications/getNumberNotifications"],
+);
+
+const showNumberNotifications = computed(() => {
+  const numberNotifications = getNumberNotifications.value;
+  const pendingDevices = store.getters["stats/stats"].pending_devices;
+  if (numberNotifications === 0 && pendingDevices !== undefined) {
+    return store.getters["stats/stats"].pending_devices;
+  }
+  return numberNotifications;
+});
+
+const getStatusNotifications = computed(() => {
+  if (getNumberNotifications.value === 0) return true;
+  return false;
+});
+
+const hasNamespace = computed(
+  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
+);
+
+const hasAuthorization = computed(() => {
+  const role = store.getters["auth/role"];
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.notification.view,
     );
+  }
+  return false;
+});
 
-    const getNumberNotifications = computed(
-      () => store.getters["notifications/getNumberNotifications"],
-    );
+watch(hasNamespace, (status) => {
+  inANamespace.value = status;
+});
 
-    const showNumberNotifications = computed(() => {
-      const numberNotifications = getNumberNotifications.value;
-      const pendingDevices = store.getters["stats/stats"].pending_devices;
-      if (numberNotifications === 0 && pendingDevices !== undefined) {
-        return store.getters["stats/stats"].pending_devices;
-      }
-      return numberNotifications;
-    });
-
-    const getStatusNotifications = computed(() => {
-      if (getNumberNotifications.value === 0) return true;
-      return false;
-    });
-
-    const hasNamespace = computed(
-      () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-    );
-
-    const hasAuthorization = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.notification.view,
-        );
-      }
-      return false;
-    });
-
-    watch(hasNamespace, (status) => {
-      inANamespace.value = status;
-    });
-
-    const getNotifications = async () => {
-      if (hasNamespace.value) {
-        try {
-          await store.dispatch("notifications/fetch");
-          show.value = true;
-        } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError;
-            switch (true) {
-              case !inANamespace.value && axiosError.response?.status === 403: {
-                // dialog pops
-                break;
-              }
-              case axiosError.response?.status === 403: {
-                store.dispatch("snackbar/showSnackbarErrorAssociation");
-                handleError(error);
-                break;
-              }
-              default: {
-                store.dispatch(
-                  "snackbar/showSnackbarErrorLoading",
-                  INotificationsError.notificationList,
-                );
-                handleError(error);
-              }
-            }
-          } else {
+const getNotifications = async () => {
+  if (hasNamespace.value) {
+    try {
+      await store.dispatch("notifications/fetch");
+      show.value = true;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        switch (true) {
+          case !inANamespace.value && axiosError.response?.status === 403: {
+            // dialog pops
+            break;
+          }
+          case axiosError.response?.status === 403: {
+            store.dispatch("snackbar/showSnackbarErrorAssociation");
+            handleError(error);
+            break;
+          }
+          default: {
             store.dispatch(
               "snackbar/showSnackbarErrorLoading",
               INotificationsError.notificationList,
@@ -209,27 +186,23 @@ export default defineComponent({
             handleError(error);
           }
         }
+      } else {
+        store.dispatch(
+          "snackbar/showSnackbarErrorLoading",
+          INotificationsError.notificationList,
+        );
+        handleError(error);
       }
-    };
+    }
+  }
+};
 
-    const refresh = () => {
-      if (hasNamespace.value) {
-        getNotifications();
-        if (getNumberNotifications.value === 0) {
-          store.dispatch("stats/get");
-        }
-      }
-    };
-    return {
-      showNumberNotifications,
-      getNotifications,
-      defaultSize,
-      getStatusNotifications,
-      listNotifications,
-      hasAuthorization,
-      refresh,
-      show,
-    };
-  },
-});
+const refresh = () => {
+  if (hasNamespace.value) {
+    getNotifications();
+    if (getNumberNotifications.value === 0) {
+      store.dispatch("stats/get");
+    }
+  }
+};
 </script>
