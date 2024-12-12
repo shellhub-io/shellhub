@@ -133,6 +133,7 @@ var (
 	ErrRoleInvalid                  = errors.New("role is invalid", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                   = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
 	ErrSetupForbidden               = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
+	ErrAuthMethodNotAllowed         = errors.New("auth method not allowed", ErrLayer, ErrCodeForbidden)
 )
 
 func NewErrRoleInvalid() error {
@@ -142,6 +143,10 @@ func NewErrRoleInvalid() error {
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
 func NewErrNoContentChange(err error, next error) error {
 	return errors.Wrap(err, next)
+}
+
+func NewErrAuthMethodNotAllowed() error {
+	return ErrAuthMethodNotAllowed
 }
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.

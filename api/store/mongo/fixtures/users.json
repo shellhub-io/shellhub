@@ -1,6 +1,7 @@
 {
     "users": {
         "507f1f77bcf86cd799439011": {
+            "external_id": "01JEVPB55XVSK890Z2MYKMWXXY",
             "status": "confirmed",
             "created_at": "2023-01-01T12:00:00.000Z",
             "last_login": "2023-01-01T12:00:00.000Z",
@@ -12,6 +13,7 @@
             "username": "john_doe"
         },
         "608f32a2c7351f001f6475e0": {
+            "external_id": "",
             "status": "confirmed",
             "created_at": "2023-01-02T12:00:00.000Z",
             "last_login": "2023-01-02T12:00:00.000Z",
@@ -23,6 +25,7 @@
             "username": "jane_smith"
         },
         "709f45b5e812c1002f3a67e7": {
+            "external_id": "",
             "status": "confirmed",
             "created_at": "2023-01-03T12:00:00.000Z",
             "last_login": "2023-01-03T12:00:00.000Z",
@@ -34,6 +37,7 @@
             "username": "bob_johnson"
         },
         "80fdcea1d7299c002f3a67e8": {
+            "external_id": "",
             "status": "not-confirmed",
             "created_at": "2023-01-04T12:00:00.000Z",
             "last_login": null,
@@ -45,6 +49,7 @@
             "username": "alex_rodriguez"
         },
         "6509e169ae6144b2f56bf288": {
+            "external_id": "",
             "status": "confirmed",
             "created_at": "2023-01-05T12:00:00.000Z",
             "last_login": "2023-01-05T12:00:00.000Z",
