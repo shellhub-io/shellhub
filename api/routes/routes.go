@@ -92,10 +92,10 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
 	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
-	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
-	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceRename))
-	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceAccept)) // TODO: DeviceWrite
-	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
+	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
+	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRename))
+	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), routesmiddleware.RequiresPermission(authorizer.DeviceAccept)) // TODO: DeviceWrite
+	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
 
 	publicAPI.POST(CreateTagURL, gateway.Handler(handler.CreateDeviceTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceCreateTag))
 	publicAPI.PUT(UpdateTagURL, gateway.Handler(handler.UpdateDeviceTag), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceUpdateTag))
