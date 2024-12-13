@@ -122,7 +122,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 			// connection to avoid it be hanged after data flow ends.
 			if ver, err := semver.NewVersion(sess.Device.Info.Version); ver != nil && err == nil {
 				// NOTE: We indicate here v0.9.3, but it is not included due the assertion `less than`.
-				if ver.LessThan(semver.MustParse("v0.9.3")) {
+				if ver.LessThan(semver.MustParse("v0.9.3")) && sess.Type == ExecRequestType {
 					agent.Close()
 				} else {
 					agent.CloseWrite() //nolint:errcheck

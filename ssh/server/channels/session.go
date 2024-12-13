@@ -220,6 +220,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					sess.Event(req.Type, req.Payload)
 				case ExecRequestType, SubsystemRequestType:
 					session.Event[session.Command](sess, req.Type, req.Payload)
+
+					sess.Type = ExecRequestType
 				case PtyRequestType:
 					var pty session.Pty
 
