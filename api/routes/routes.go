@@ -48,7 +48,14 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		}
 	}
 
-	// Internal routes only accessible by other services in the local container network
+	APIInternalRoutes(e, handler)
+	APIPublicRoutes(e, handler)
+
+	return e
+}
+
+// APIInternalRoutes sets to echo instance all internal routes for the service.
+func APIInternalRoutes(e *echo.Echo, handler *Handler) {
 	internalAPI := e.Group("/internal")
 
 	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest))
@@ -68,8 +75,10 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
 	internalAPI.POST(EventsSessionsURL, gateway.Handler(handler.EventSession))
+}
 
-	// Public routes for external access through API gateway
+// APIPublicRoutes sets to echo instance all public routes for the service.
+func APIPublicRoutes(e *echo.Echo, handler *Handler) {
 	publicAPI := e.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
@@ -147,6 +156,4 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		"/api/containers?*": "/api/devices?$1&connector=true",
 		"/api/containers/*": "/api/devices/$1",
 	}))
-
-	return e
 }

@@ -1,13 +1,17 @@
 package routes
 
 import (
-	svc "github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/api/services"
 )
 
 type Handler struct {
-	service svc.Service
+	service services.Service
 }
 
-func NewHandler(s svc.Service) *Handler {
+func (h *Handler) GetService() any {
+	return h.service
+}
+
+func NewHandler(s services.Service) *Handler {
 	return &Handler{service: s}
 }

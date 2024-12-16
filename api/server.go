@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/getsentry/sentry-go"
+	"github.com/shellhub-io/shellhub/api/pkg/server"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -71,7 +70,7 @@ var serverCmd = &cobra.Command{
 			cancel()
 		}()
 
-		return startServer(ctx, cfg, store, cache)
+		return Server(ctx, cfg, store, cache)
 	},
 }
 
@@ -122,33 +121,7 @@ type config struct {
 	GeoipMaxmindLicense string `env:"MAXMIND_LICENSE,default="`
 }
 
-// startSentry initializes the Sentry client.
-//
-// The Sentry client is used to report errors to the Sentry server, and is initialized only if the `SHELLHUB_SENTRY_DSN`
-// environment variable is set. Else, the function returns a error with a not initialized Sentry client.
-func startSentry(dsn string) (*sentry.Client, error) {
-	if dsn != "" {
-		var err error
-		reporter, err := sentry.NewClient(sentry.ClientOptions{ //nolint:exhaustruct
-			Dsn:              dsn,
-			Release:          os.Getenv("SHELLHUB_VERSION"),
-			EnableTracing:    true,
-			TracesSampleRate: 1,
-		})
-		if err != nil {
-			log.WithError(err).Error("Failed to create Sentry client")
-
-			return nil, err
-		}
-		log.Info("Sentry client started")
-
-		return reporter, nil
-	}
-
-	return nil, errors.New("sentry DSN not provided")
-}
-
-func startServer(ctx context.Context, cfg *config, store store.Store, cache storecache.Cache) error {
+func Server(ctx context.Context, cfg *config, store store.Store, cache storecache.Cache) error {
 	log.Info("Starting API server")
 
 	apiClient, err := internalclient.NewClient(internalclient.WithAsynqWorker(cfg.RedisURI))
@@ -181,21 +154,6 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)
 
-	routerOptions := []routes.Option{}
-
-	if cfg.SentryDSN != "" {
-		log.Info("Sentry report is enabled")
-
-		reporter, err := startSentry(cfg.SentryDSN)
-		if err != nil {
-			log.WithField("DSN", cfg.SentryDSN).WithError(err).Warn("Failed to start Sentry")
-		} else {
-			log.Info("Sentry client started")
-		}
-
-		routerOptions = append(routerOptions, routes.WithReporter(reporter))
-	}
-
 	worker := asynq.NewServer(
 		cfg.RedisURI,
 		asynq.BatchConfig(cfg.AsynqGroupMaxSize, cfg.AsynqGroupMaxDelay, int(cfg.AsynqGroupGracePeriod)),
@@ -209,19 +167,29 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 			Fatal("failed to start the worker")
 	}
 
-	router := routes.NewRouter(service, routerOptions...)
-
 	go func() {
 		<-ctx.Done()
 
 		log.Debug("Closing HTTP server due context cancellation")
 
 		worker.Shutdown()
-		router.Close()
 	}()
 
-	err = router.Start(":8080") //nolint:errcheck
-	log.WithError(err).Info("HTTP server closed")
+	handler := routes.NewHandler(service)
 
-	return nil
+	routes := []server.Route[*routes.Handler]{
+		routes.APIInternalRoutes,
+		routes.APIPublicRoutes,
+	}
+
+	options := []server.Option{
+		// NOTE: Now, when something was customized on the HTTP server based on some configuration, a new closure
+		// should be created on this slice, simplifying and centralizing the HTTP options. In this case, when
+		// Sentry monitoring is enabled, we set a "reporter" for the global error handler.
+		server.SentryOption(cfg.SentryDSN),
+	}
+
+	return server.
+		NewDefaultServer(ctx, handler, nil, routes, options).
+		Listen()
 }
