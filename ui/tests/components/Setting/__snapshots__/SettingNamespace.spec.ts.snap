@@ -31,7 +31,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
       <div class=\\"v-card-item__content\\">
         <!---->
         <!---->
-        <div data-v-80a16399=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" aria-selected=\\"false\\" data-test=\\"card-header\\">
+        <div data-v-80a16399=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" data-test=\\"card-header\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
@@ -84,10 +84,8 @@ exports[`Setting Namespace > Renders the component 1`] = `
                   </div>
                   <!---->
                   <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
-                      <!---->
-                      <!---->
-                    </label>
+                    <!---->
+                    <!---->
                     <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
                     <!---->
                   </div>
