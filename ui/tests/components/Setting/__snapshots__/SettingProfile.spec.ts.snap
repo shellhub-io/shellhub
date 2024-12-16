@@ -27,7 +27,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
       <div class=\\"v-card-item__content\\">
         <!---->
         <!---->
-        <div data-v-b3fa301d=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" aria-selected=\\"false\\" data-test=\\"profile-header\\">
+        <div data-v-b3fa301d=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" data-test=\\"profile-header\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <div class=\\"v-list-item__prepend\\">
             <div data-v-09753bb1=\\"\\" data-v-b3fa301d=\\"\\" class=\\"v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border\\" style=\\"width: 4rem; height: 4rem;\\" data-test=\\"user-icon\\">
@@ -96,10 +96,8 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   </div>
                   <!---->
                   <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
-                      <!---->
-                      <!---->
-                    </label>
+                    <!---->
+                    <!---->
                     <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
                     <!---->
                   </div>
@@ -146,10 +144,8 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   </div>
                   <!---->
                   <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
-                      <!---->
-                      <!---->
-                    </label>
+                    <!---->
+                    <!---->
                     <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\" class=\\"v-field__input\\">
                     <!---->
                   </div>
@@ -196,10 +192,8 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   </div>
                   <!---->
                   <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-6\\">
-                      <!---->
-                      <!---->
-                    </label>
+                    <!---->
+                    <!---->
                     <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-6\\" aria-describedby=\\"input-6-messages\\" required=\\"\\" class=\\"v-field__input\\">
                     <!---->
                   </div>
@@ -246,10 +240,8 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   </div>
                   <!---->
                   <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                    <!----><label class=\\"v-label v-field-label\\" for=\\"input-8\\">
-                      <!---->
-                      <!---->
-                    </label>
+                    <!---->
+                    <!---->
                     <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
                     <!---->
                   </div>

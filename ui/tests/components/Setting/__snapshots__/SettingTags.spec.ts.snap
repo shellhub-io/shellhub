@@ -27,7 +27,7 @@ exports[`Setting Owner Info > Renders the component 1`] = `
       <div class=\\"v-card-item__content\\">
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2\\" aria-selected=\\"false\\" data-test=\\"profile-header\\">
+        <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2\\" data-test=\\"profile-header\\">
           <!----><span class=\\"v-list-item__underlay\\"></span>
           <!---->
           <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">

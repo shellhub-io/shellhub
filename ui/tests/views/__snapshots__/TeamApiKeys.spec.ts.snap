@@ -87,10 +87,8 @@ exports[`Team Api Keys > Renders the component 1`] = `
                 </div>
                 <!---->
                 <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-                  <!----><label class=\\"v-label v-field-label\\" for=\\"input-10\\">
-                    <!---->
-                    <!---->
-                  </label>
+                  <!---->
+                  <!---->
                   <!---->
                   <div class=\\"v-field__input\\" data-no-activator=\\"\\">
                     <!---->

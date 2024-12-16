@@ -34,10 +34,8 @@ exports[`MfaLogin > Renders the component 1`] = `
         </div>
         <!---->
         <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-          <!----><label class=\\"v-label v-field-label\\" for=\\"input-0\\">
-            <!---->
-            <!---->
-          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+          <!---->
+          <!----><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
         <!---->
@@ -65,10 +63,8 @@ exports[`MfaLogin > Renders the component 1`] = `
         </div>
         <!---->
         <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-          <!----><label class=\\"v-label v-field-label\\" for=\\"input-1\\">
-            <!---->
-            <!---->
-          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+          <!---->
+          <!----><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
         <!---->
@@ -96,10 +92,8 @@ exports[`MfaLogin > Renders the component 1`] = `
         </div>
         <!---->
         <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-          <!----><label class=\\"v-label v-field-label\\" for=\\"input-2\\">
-            <!---->
-            <!---->
-          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+          <!---->
+          <!----><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
         <!---->
@@ -127,10 +121,8 @@ exports[`MfaLogin > Renders the component 1`] = `
         </div>
         <!---->
         <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-          <!----><label class=\\"v-label v-field-label\\" for=\\"input-3\\">
-            <!---->
-            <!---->
-          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+          <!---->
+          <!----><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
         <!---->
@@ -158,10 +150,8 @@ exports[`MfaLogin > Renders the component 1`] = `
         </div>
         <!---->
         <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-          <!----><label class=\\"v-label v-field-label\\" for=\\"input-4\\">
-            <!---->
-            <!---->
-          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+          <!---->
+          <!----><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
         <!---->
@@ -189,10 +179,8 @@ exports[`MfaLogin > Renders the component 1`] = `
         </div>
         <!---->
         <div class=\\"v-field__field\\" data-no-activator=\\"\\">
-          <!----><label class=\\"v-label v-field-label\\" for=\\"input-5\\">
-            <!---->
-            <!---->
-          </label><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
+          <!---->
+          <!----><input aria-label=\\"Verification Code\\" autocomplete=\\"one-time-code\\" class=\\"v-otp-input__field\\" inputmode=\\"numeric\\" min=\\"0\\" maxlength=\\"1\\" type=\\"text\\">
         </div>
         <!---->
         <!---->
