@@ -116,6 +116,12 @@ import DeviceActionButton from "../../../components/Devices/DeviceActionButton.v
 import handleError from "../../../utils/handleError";
 
 const store = useStore();
+defineProps({
+  style: {
+    type: [String, Object],
+    default: undefined,
+  },
+});
 const show = ref(false);
 const inANamespace = ref(false);
 
