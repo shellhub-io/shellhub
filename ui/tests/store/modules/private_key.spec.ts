@@ -4,6 +4,7 @@ import { store } from "@/store";
 describe("PrivateKey Vuex Module", () => {
   afterEach(() => {
     localStorage.clear();
+    store.commit("privateKey/fetchPrivateKey", []);
   });
 
   it("Returns private keys with default variables", () => {
@@ -21,7 +22,8 @@ describe("PrivateKey Vuex Module", () => {
   it("Commits setPrivateKey mutation", async () => {
     const privateKey = { id: 2, data: "data2", name: "name2" };
     store.commit("privateKey/setPrivateKey", privateKey);
-    expect(store.getters["privateKey/list"]).toContain(privateKey);
+    console.log(store.getters["privateKey/list"]);
+    expect(store.getters["privateKey/list"]).toContainEqual(privateKey);
     expect(store.getters["privateKey/getNumberPrivateKeys"]).toEqual(store.getters["privateKey/list"].length);
   });
 

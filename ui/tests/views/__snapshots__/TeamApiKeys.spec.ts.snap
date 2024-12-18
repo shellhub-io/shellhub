@@ -1,13 +1,13 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Team Api Keys > Renders the component 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\" data-test=\\"title\\">
+"<div class="d-flex pa-0 align-center" data-test="title">
   <h1>Api Keys</h1>
-  <div class=\\"v-spacer\\"></div>
-  <div class=\\"d-flex\\" data-test=\\"api-key-generate\\">
+  <div class="v-spacer"></div>
+  <div class="d-flex" data-test="api-key-generate">
     <div>
-      <div aria-describedby=\\"v-tooltip-0\\"><button type=\\"button\\" class=\\"v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated\\" data-test=\\"namespace-generate-main-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Generate key </span>
+      <div aria-describedby="v-tooltip-0"><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="namespace-generate-main-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""> Generate key </span>
           <!---->
           <!---->
         </button></div>
@@ -18,28 +18,28 @@ exports[`Team Api Keys > Renders the component 1`] = `
     </div>
   </div>
 </div>
-<div class=\\"mt-2\\" data-test=\\"api-key-list\\">
+<div class="mt-2" data-test="api-key-list">
   <div>
-    <div data-v-046d4556=\\"\\" data-test=\\"api-key-list\\">
-      <div data-v-046d4556=\\"\\" class=\\"v-table v-theme--light v-table--density-default bg-background border rounded\\">
+    <div data-v-046d4556="" data-test="api-key-list">
+      <div data-v-046d4556="" class="v-table v-theme--light v-table--density-default bg-background border rounded">
         <!---->
-        <div class=\\"v-table__wrapper\\">
+        <div class="v-table__wrapper">
           <table>
-            <thead data-v-046d4556=\\"\\" class=\\"bg-v-theme-background\\">
-              <tr data-v-046d4556=\\"\\">
-                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-2\\">Key Name <!----><!--teleport start--><!--teleport end--></span></th>
-                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Role</span></th>
-                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\" tabindex=\\"0\\" class=\\"hover\\" aria-describedby=\\"v-tooltip-3\\">Expiration Date <!----><!--teleport start--><!--teleport end--></span></th>
-                <th data-v-046d4556=\\"\\" class=\\"text-center\\"><span data-v-046d4556=\\"\\">Actions</span></th>
+            <thead data-v-046d4556="" class="bg-v-theme-background">
+              <tr data-v-046d4556="">
+                <th data-v-046d4556="" class="text-center"><span data-v-046d4556="" tabindex="0" class="hover" aria-describedby="v-tooltip-2">Key Name <!----><!--teleport start--><!--teleport end--></span></th>
+                <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Role</span></th>
+                <th data-v-046d4556="" class="text-center"><span data-v-046d4556="" tabindex="0" class="hover" aria-describedby="v-tooltip-3">Expiration Date <!----><!--teleport start--><!--teleport end--></span></th>
+                <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Actions</span></th>
               </tr>
             </thead>
-            <tbody data-v-046d4556=\\"\\">
+            <tbody data-v-046d4556="">
               <tr>
-                <td class=\\"text-warning text-center\\"><i class=\\"mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1\\" aria-hidden=\\"true\\"></i> fake-api-key</td>
-                <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">owner</td>
-                <td class=\\"text-warning text-center\\" data-test=\\"key-name\\">Expired on Jan 1 1970.</td>
-                <td class=\\"text-center\\" data-test=\\"menu-key-component\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-4\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+                <td class="text-warning text-center"><i class="mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1" aria-hidden="true"></i> fake-api-key</td>
+                <td class="text-warning text-center" data-test="key-name">owner</td>
+                <td class="text-warning text-center" data-test="key-name">Expired on Jan 1 1970.</td>
+                <td class="text-center" data-test="menu-key-component"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-4"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
                   </button>
@@ -52,57 +52,57 @@ exports[`Team Api Keys > Renders the component 1`] = `
         </div>
         <!---->
       </div>
-      <div data-v-046d4556=\\"\\" class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 4px; --v-progress-linear-height: 4px;\\" role=\\"progressbar\\" aria-hidden=\\"false\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Data table loading\\">
+      <div data-v-046d4556="" class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading">
         <!---->
-        <div class=\\"v-progress-linear__background\\"></div>
-        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-          <div class=\\"v-progress-linear__indeterminate\\">
-            <div class=\\"v-progress-linear__indeterminate long\\"></div>
-            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
           </div>
         </transition-stub>
         <!---->
       </div>
-      <div data-v-046d4556=\\"\\" class=\\"d-flex w-100 justify-end align-center\\"><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2 mr-4\\">Items per page:</span>
-        <div data-v-046d4556=\\"\\">
-          <div data-v-046d4556=\\"\\" class=\\"v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4\\">
+      <div data-v-046d4556="" class="d-flex w-100 justify-end align-center"><span data-v-046d4556="" class="text-subtitle-2 mr-4">Items per page:</span>
+        <div data-v-046d4556="">
+          <div data-v-046d4556="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
             <!---->
-            <div class=\\"v-input__control\\">
-              <div class=\\"v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr\\" role=\\"combobox\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-12\\">
-                <div class=\\"v-field__overlay\\"></div>
-                <div class=\\"v-field__loader\\">
-                  <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class="v-input__control">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-12">
+                <div class="v-field__overlay"></div>
+                <div class="v-field__loader">
+                  <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                     <!---->
-                    <div class=\\"v-progress-linear__background\\"></div>
-                    <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                      <div class=\\"v-progress-linear__indeterminate\\">
-                        <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                        <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                    <div class="v-progress-linear__background"></div>
+                    <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                    <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                      <div class="v-progress-linear__indeterminate">
+                        <div class="v-progress-linear__indeterminate long"></div>
+                        <div class="v-progress-linear__indeterminate short"></div>
                       </div>
                     </transition-stub>
                     <!---->
                   </div>
                 </div>
                 <!---->
-                <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                <div class="v-field__field" data-no-activator="">
                   <!---->
                   <!---->
                   <!---->
-                  <div class=\\"v-field__input\\" data-no-activator=\\"\\">
+                  <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class=\\"v-combobox__selection\\"><span class=\\"v-combobox__selection-text\\">10<!----></span></div><input size=\\"1\\" type=\\"text\\" id=\\"input-10\\" aria-describedby=\\"input-10-messages\\" outlined=\\"\\">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-10" aria-describedby="input-10-messages" outlined="" value="10">
                   </div>
                   <!---->
                 </div>
                 <!---->
-                <div class=\\"v-field__append-inner\\">
-                  <!----><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"-1\\" aria-label=\\"Open\\" title=\\"Open\\"></i>
+                <div class="v-field__append-inner">
+                  <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="false" tabindex="-1" aria-label="Open" title="Open"></i>
                   <!---->
                 </div>
-                <div class=\\"v-field__outline\\">
+                <div class="v-field__outline">
                   <!---->
                   <!---->
                 </div>
@@ -112,12 +112,12 @@ exports[`Team Api Keys > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div data-v-046d4556=\\"\\" class=\\"d-flex align-center\\"><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+        <div data-v-046d4556="" class="d-flex align-center"><button data-v-046d4556="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
-          </button><span data-v-046d4556=\\"\\" class=\\"text-subtitle-2\\">1 of NaN</span><button data-v-046d4556=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-            <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+          </button><span data-v-046d4556="" class="text-subtitle-2">1 of NaN</span><button data-v-046d4556="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
           </button></div>

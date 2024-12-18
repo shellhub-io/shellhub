@@ -1,20 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Details Device > Renders the component 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\">
+"<div class="d-flex pa-0 align-center">
   <h1>Device Details</h1>
 </div>
-<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
   <!---->
-  <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
       <!---->
-      <div class=\\"v-progress-linear__background\\"></div>
-      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <div class=\\"v-progress-linear__indeterminate\\">
-          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
         </div>
       </transition-stub>
       <!---->
@@ -22,19 +22,19 @@ exports[`Details Device > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\">
-      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
+    <div class="d-flex align-center">
+      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator="">Connect</span>
           <!---->
           <!---->
         </button>
         <!---->
         <!---->
-      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+      </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
       </button>
@@ -42,60 +42,60 @@ exports[`Details Device > Renders the component 1`] = `
       <!--teleport end-->
     </div>
   </div>
-  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-  <div class=\\"v-card-text pa-4 pt-0\\">
+  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div class="v-card-text pa-4 pt-0">
     <div>
-      <div class=\\"text-overline mt-3\\">uid:</div>
-      <div data-test=\\"deviceUid-field\\">
+      <div class="text-overline mt-3">uid:</div>
+      <div data-test="deviceUid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">mac:</div>
-      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+      <div class="text-overline mt-3">mac:</div>
+      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+      <div class="text-overline mt-3">Operating System:</div>
+      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Agent Version:</div>
-      <div data-test=\\"deviceVersion-field\\">
+      <div class="text-overline mt-3">Agent Version:</div>
+      <div data-test="deviceVersion-field">
         <p>latest</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"></div>
+      <div class="text-overline mt-3">Tags:</div>
+      <div data-test="deviceTags-field"></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Last Seen:</div>
-      <div data-test=\\"deviceConvertDate-field\\">
+      <div class="text-overline mt-3">Last Seen:</div>
+      <div data-test="deviceConvertDate-field">
         <p></p>
       </div>
     </div>
     <!--v-if-->
   </div>
   <!---->
-  <!----><span class=\\"v-card__underlay\\"></span>
+  <!----><span class="v-card__underlay"></span>
 </div>"
 `;
 
 exports[`Details Device > Renders the component when device has no last seen date 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\">
+"<div class="d-flex pa-0 align-center">
   <h1>Device Details</h1>
 </div>
-<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
   <!---->
-  <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
       <!---->
-      <div class=\\"v-progress-linear__background\\"></div>
-      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <div class=\\"v-progress-linear__indeterminate\\">
-          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
         </div>
       </transition-stub>
       <!---->
@@ -103,19 +103,19 @@ exports[`Details Device > Renders the component when device has no last seen dat
   </div>
   <!---->
   <!---->
-  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\">
-      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
+    <div class="d-flex align-center">
+      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator="">Connect</span>
           <!---->
           <!---->
         </button>
         <!---->
         <!---->
-      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+      </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
       </button>
@@ -123,60 +123,60 @@ exports[`Details Device > Renders the component when device has no last seen dat
       <!--teleport end-->
     </div>
   </div>
-  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-  <div class=\\"v-card-text pa-4 pt-0\\">
+  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div class="v-card-text pa-4 pt-0">
     <div>
-      <div class=\\"text-overline mt-3\\">uid:</div>
-      <div data-test=\\"deviceUid-field\\">
+      <div class="text-overline mt-3">uid:</div>
+      <div data-test="deviceUid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">mac:</div>
-      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+      <div class="text-overline mt-3">mac:</div>
+      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+      <div class="text-overline mt-3">Operating System:</div>
+      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Agent Version:</div>
-      <div data-test=\\"deviceVersion-field\\">
+      <div class="text-overline mt-3">Agent Version:</div>
+      <div data-test="deviceVersion-field">
         <p>latest</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"></div>
+      <div class="text-overline mt-3">Tags:</div>
+      <div data-test="deviceTags-field"></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Last Seen:</div>
-      <div data-test=\\"deviceConvertDate-field\\">
+      <div class="text-overline mt-3">Last Seen:</div>
+      <div data-test="deviceConvertDate-field">
         <p></p>
       </div>
     </div>
     <!--v-if-->
   </div>
   <!---->
-  <!----><span class=\\"v-card__underlay\\"></span>
+  <!----><span class="v-card__underlay"></span>
 </div>"
 `;
 
 exports[`Details Device > Renders the component when device has no tags 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\">
+"<div class="d-flex pa-0 align-center">
   <h1>Device Details</h1>
 </div>
-<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
   <!---->
-  <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
       <!---->
-      <div class=\\"v-progress-linear__background\\"></div>
-      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <div class=\\"v-progress-linear__indeterminate\\">
-          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
         </div>
       </transition-stub>
       <!---->
@@ -184,19 +184,19 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
   </div>
   <!---->
   <!---->
-  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\">
-      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Connect</span>
+  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
+    <div class="d-flex align-center">
+      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator="">Connect</span>
           <!---->
           <!---->
         </button>
         <!---->
         <!---->
-      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+      </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
       </button>
@@ -204,60 +204,60 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
       <!--teleport end-->
     </div>
   </div>
-  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-  <div class=\\"v-card-text pa-4 pt-0\\">
+  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div class="v-card-text pa-4 pt-0">
     <div>
-      <div class=\\"text-overline mt-3\\">uid:</div>
-      <div data-test=\\"deviceUid-field\\">
+      <div class="text-overline mt-3">uid:</div>
+      <div data-test="deviceUid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">mac:</div>
-      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+      <div class="text-overline mt-3">mac:</div>
+      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+      <div class="text-overline mt-3">Operating System:</div>
+      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Agent Version:</div>
-      <div data-test=\\"deviceVersion-field\\">
+      <div class="text-overline mt-3">Agent Version:</div>
+      <div data-test="deviceVersion-field">
         <p>latest</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"></div>
+      <div class="text-overline mt-3">Tags:</div>
+      <div data-test="deviceTags-field"></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Last Seen:</div>
-      <div data-test=\\"deviceConvertDate-field\\">
+      <div class="text-overline mt-3">Last Seen:</div>
+      <div data-test="deviceConvertDate-field">
         <p></p>
       </div>
     </div>
     <!--v-if-->
   </div>
   <!---->
-  <!----><span class=\\"v-card__underlay\\"></span>
+  <!----><span class="v-card__underlay"></span>
 </div>"
 `;
 
 exports[`Details Device > Renders the component when device is offline 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\">
+"<div class="d-flex pa-0 align-center">
   <h1>Device Details</h1>
 </div>
-<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
   <!---->
-  <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
       <!---->
-      <div class=\\"v-progress-linear__background\\"></div>
-      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <div class=\\"v-progress-linear__indeterminate\\">
-          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
         </div>
       </transition-stub>
       <!---->
@@ -265,19 +265,19 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
   </div>
   <!---->
   <!---->
-  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\">
-      <div data-test=\\"terminalDialog-component\\"><button type=\\"button\\" class=\\"v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined\\" data-test=\\"connect-btn\\" disabled=\\"\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Offline</span>
+  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
+    <div class="d-flex align-center">
+      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator="">Offline</span>
           <!---->
           <!---->
         </button>
         <!---->
         <!---->
-      </div><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+      </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
       </button>
@@ -285,60 +285,60 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
       <!--teleport end-->
     </div>
   </div>
-  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-  <div class=\\"v-card-text pa-4 pt-0\\">
+  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div class="v-card-text pa-4 pt-0">
     <div>
-      <div class=\\"text-overline mt-3\\">uid:</div>
-      <div data-test=\\"deviceUid-field\\">
+      <div class="text-overline mt-3">uid:</div>
+      <div data-test="deviceUid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">mac:</div>
-      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+      <div class="text-overline mt-3">mac:</div>
+      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+      <div class="text-overline mt-3">Operating System:</div>
+      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Agent Version:</div>
-      <div data-test=\\"deviceVersion-field\\">
+      <div class="text-overline mt-3">Agent Version:</div>
+      <div data-test="deviceVersion-field">
         <p>latest</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"></div>
+      <div class="text-overline mt-3">Tags:</div>
+      <div data-test="deviceTags-field"></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Last Seen:</div>
-      <div data-test=\\"deviceConvertDate-field\\">
+      <div class="text-overline mt-3">Last Seen:</div>
+      <div data-test="deviceConvertDate-field">
         <p></p>
       </div>
     </div>
     <!--v-if-->
   </div>
   <!---->
-  <!----><span class=\\"v-card__underlay\\"></span>
+  <!----><span class="v-card__underlay"></span>
 </div>"
 `;
 
 exports[`Details Device > Renders the component when device status is not accepted 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\">
+"<div class="d-flex pa-0 align-center">
   <h1>Device Details</h1>
 </div>
-<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface\\">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
   <!---->
-  <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
       <!---->
-      <div class=\\"v-progress-linear__background\\"></div>
-      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <div class=\\"v-progress-linear__indeterminate\\">
-          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
         </div>
       </transition-stub>
       <!---->
@@ -346,12 +346,12 @@ exports[`Details Device > Renders the component when device status is not accept
   </div>
   <!---->
   <!---->
-  <div class=\\"v-card-title pa-4 d-flex align-center justify-space-between\\">
-    <div class=\\"d-flex align-center\\">
-      <!--v-if--><span class=\\"ml-2\\">00-00-00-00-00-01</span>
+  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
+    <div class="d-flex align-center">
+      <!--v-if--><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-        <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
       </button>
@@ -359,60 +359,60 @@ exports[`Details Device > Renders the component when device status is not accept
       <!--teleport end-->
     </div>
   </div>
-  <hr class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-  <div class=\\"v-card-text pa-4 pt-0\\">
+  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div class="v-card-text pa-4 pt-0">
     <div>
-      <div class=\\"text-overline mt-3\\">uid:</div>
-      <div data-test=\\"deviceUid-field\\">
+      <div class="text-overline mt-3">uid:</div>
+      <div data-test="deviceUid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">mac:</div>
-      <div data-test=\\"deviceMac-field\\"><code>00-00-00-00-00-01</code></div>
+      <div class="text-overline mt-3">mac:</div>
+      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Operating System:</div>
-      <div data-test=\\"devicePrettyName-field\\"><i data-test=\\"type-icon\\" class=\\"fl-tux mr-1 mr-2\\" style=\\"font-size: 20px;\\"></i><span>linux</span></div>
+      <div class="text-overline mt-3">Operating System:</div>
+      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Agent Version:</div>
-      <div data-test=\\"deviceVersion-field\\">
+      <div class="text-overline mt-3">Agent Version:</div>
+      <div data-test="deviceVersion-field">
         <p>latest</p>
       </div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Tags:</div>
-      <div data-test=\\"deviceTags-field\\"></div>
+      <div class="text-overline mt-3">Tags:</div>
+      <div data-test="deviceTags-field"></div>
     </div>
     <div>
-      <div class=\\"text-overline mt-3\\">Last Seen:</div>
-      <div data-test=\\"deviceConvertDate-field\\">
+      <div class="text-overline mt-3">Last Seen:</div>
+      <div data-test="deviceConvertDate-field">
         <p></p>
       </div>
     </div>
     <!--v-if-->
   </div>
   <!---->
-  <!----><span class=\\"v-card__underlay\\"></span>
+  <!----><span class="v-card__underlay"></span>
 </div>"
 `;
 
 exports[`Details Device > Renders the component when deviceIsEmpty is true 1`] = `
-"<div class=\\"d-flex pa-0 align-center\\">
+"<div class="d-flex pa-0 align-center">
   <h1>Device Details</h1>
 </div>
-<div class=\\"v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface\\">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface">
   <!---->
-  <div class=\\"v-card__loader\\">
-    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
       <!---->
-      <div class=\\"v-progress-linear__background\\"></div>
-      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-        <div class=\\"v-progress-linear__indeterminate\\">
-          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
         </div>
       </transition-stub>
       <!---->
@@ -420,8 +420,8 @@ exports[`Details Device > Renders the component when deviceIsEmpty is true 1`] =
   </div>
   <!---->
   <!---->
-  <p class=\\"text-center\\">Something is wrong, try again !</p>
+  <p class="text-center">Something is wrong, try again !</p>
   <!---->
-  <!----><span class=\\"v-card__underlay\\"></span>
+  <!----><span class="v-card__underlay"></span>
 </div>"
 `;
