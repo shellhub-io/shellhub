@@ -159,24 +159,29 @@ func startServer(ctx context.Context, cfg *config, store store.Store, cache stor
 
 	servicesOptions := []services.Option{}
 
-	if cfg.GeoipMirror != "" {
+	if cfg.GeoipMirror != "" || cfg.GeoipMaxmindLicense != "" {
 		log.Info("GeoIP feature is enable")
 
-		locator, err := geolite2.NewLocator(ctx, geolite2.FetchFromMirror(cfg.GeoipMirror))
+		var fetcher geolite2.GeoliteFetcher
+
+		switch {
+		case cfg.GeoipMirror != "":
+			fetcher = geolite2.FetchFromMirror(cfg.GeoipMirror)
+		case cfg.GeoipMaxmindLicense != "":
+			fetcher = geolite2.FetchFromLicenseKey(cfg.GeoipMaxmindLicense)
+		default:
+			log.WithError(err).Fatal("Failed to init GeoIP because no valid value was set")
+		}
+
+		locator, err := geolite2.NewLocator(ctx, fetcher)
+
 		if err != nil {
 			log.WithError(err).Fatal("Failed to init GeoIP")
 		} else {
 			servicesOptions = append(servicesOptions, services.WithLocator(locator))
 		}
-	} else if cfg.GeoipMaxmindLicense != "" {
-		log.Info("GeoIP feature is enable")
 
-		locator, err := geolite2.NewLocator(ctx, geolite2.FetchFromLicenseKey(cfg.GeoipMaxmindLicense))
-		if err != nil {
-			log.WithError(err).Fatal("Failed to init GeoIP")
-		} else {
-			servicesOptions = append(servicesOptions, services.WithLocator(locator))
-		}
+		log.Info("GeoIP feature is enable")
 	}
 
 	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)
