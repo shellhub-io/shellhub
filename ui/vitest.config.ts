@@ -11,13 +11,21 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  css: {
+    preprocessorOptions: {
+      sass: {
+        api: "modern-compiler",
+        silenceDeprecations: ["legacy-js-api"],
+      },
+    },
+  },
   // plugins
   plugins: [
     vue() as any,
-    vuetify({ 
+    vuetify({
       autoImport: true,
       styles: { configFile: "./src/styles/variables.scss" },
-     }),
+    }),
     {
       name: "vitest-plugin-beforeall",
       config: () => ({
@@ -35,11 +43,12 @@ export default defineConfig({
     globalSetup: [fileURLToPath(new URL("./vitest/setup.ts", import.meta.url))],
     setupFiles: ["./vitest/vitest-canvas-mock.ts"],
     environment: "jsdom",
-    deps: {
-      inline: ["vuetify"],
+    server: {
+      deps: {
+        inline: ["vuetify"],
+      },
     },
     exclude: ["**/node_modules/**"],
     update: false,
-    threads: true,
   },
 });

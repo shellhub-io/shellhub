@@ -1,20 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Setting Owner Info > Renders the component 1`] = `
-"<div class=\\"v-container v-container--fluid v-locale--is-ltr\\">
+"<div class="v-container v-container--fluid v-locale--is-ltr">
   <!---->
   <!---->
-  <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"account-profile-card\\">
+  <div class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="account-profile-card">
     <!---->
-    <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class="v-card__loader">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
         <!---->
-        <div class=\\"v-progress-linear__background\\"></div>
-        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-          <div class=\\"v-progress-linear__indeterminate\\">
-            <div class=\\"v-progress-linear__indeterminate long\\"></div>
-            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
           </div>
         </transition-stub>
         <!---->
@@ -22,19 +22,19 @@ exports[`Setting Owner Info > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div class=\\"v-card-item\\">
+    <div class="v-card-item">
       <!---->
-      <div class=\\"v-card-item__content\\">
+      <div class="v-card-item__content">
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2\\" data-test=\\"profile-header\\">
-          <!----><span class=\\"v-list-item__underlay\\"></span>
+        <div class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2" data-test="profile-header">
+          <!----><span class="v-list-item__underlay"></span>
           <!---->
-          <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
-            <div class=\\"v-list-item-title\\">
+          <div class="v-list-item__content" data-no-activator="">
+            <div class="v-list-item-title">
               <h1>Tags</h1>
             </div>
-            <div class=\\"v-list-item-subtitle\\"><span data-test=\\"profile-subtitle\\">Manage your device and connector tags</span></div>
+            <div class="v-list-item-subtitle"><span data-test="profile-subtitle">Manage your device and connector tags</span></div>
             <!---->
           </div>
           <!---->
@@ -42,21 +42,21 @@ exports[`Setting Owner Info > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <div class=\\"v-table v-theme--light v-table--density-default bg-background border rounded mx-4\\" data-test=\\"tagListList-dataTable\\">
+    <div class="v-table v-theme--light v-table--density-default bg-background border rounded mx-4" data-test="tagListList-dataTable">
       <!---->
-      <div class=\\"v-table__wrapper\\">
+      <div class="v-table__wrapper">
         <table>
-          <thead class=\\"bg-v-theme-background\\">
+          <thead class="bg-v-theme-background">
             <tr>
-              <th class=\\"text-center\\"><span>Name</span></th>
-              <th class=\\"text-center\\"><span>Actions</span></th>
+              <th class="text-center"><span>Name</span></th>
+              <th class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class=\\"text-center\\">1</td>
-              <td class=\\"text-center\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-1\\" data-test=\\"tag-list-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+              <td class="text-center">1</td>
+              <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1" data-test="tag-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                   <!---->
                   <!---->
                 </button>
@@ -65,9 +65,9 @@ exports[`Setting Owner Info > Renders the component 1`] = `
               </td>
             </tr>
             <tr>
-              <td class=\\"text-center\\">2</td>
-              <td class=\\"text-center\\"><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-7\\" data-test=\\"tag-list-actions\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                  <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+              <td class="text-center">2</td>
+              <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-7" data-test="tag-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                   <!---->
                   <!---->
                 </button>
@@ -81,7 +81,7 @@ exports[`Setting Owner Info > Renders the component 1`] = `
       <!---->
     </div>
     <!---->
-    <!----><span class=\\"v-card__underlay\\"></span>
+    <!----><span class="v-card__underlay"></span>
   </div>
 </div>"
 `;
