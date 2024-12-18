@@ -1,20 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Settings Namespace > Renders the component 1`] = `
-"<div data-v-b3fa301d=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr\\" data-test=\\"account-profile-container\\">
+"<div data-v-b3fa301d="" class="v-container v-container--fluid v-locale--is-ltr" data-test="account-profile-container">
   <!---->
   <!---->
-  <div data-v-b3fa301d=\\"\\" class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"account-profile-card\\">
+  <div data-v-b3fa301d="" class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="account-profile-card">
     <!---->
-    <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class="v-card__loader">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
         <!---->
-        <div class=\\"v-progress-linear__background\\"></div>
-        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-          <div class=\\"v-progress-linear__indeterminate\\">
-            <div class=\\"v-progress-linear__indeterminate long\\"></div>
-            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
           </div>
         </transition-stub>
         <!---->
@@ -22,19 +22,19 @@ exports[`Settings Namespace > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\">
+    <div data-v-b3fa301d="" class="v-card-item">
       <!---->
-      <div class=\\"v-card-item__content\\">
+      <div class="v-card-item__content">
         <!---->
         <!---->
-        <div data-v-b3fa301d=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" data-test=\\"profile-header\\">
-          <!----><span class=\\"v-list-item__underlay\\"></span>
-          <div class=\\"v-list-item__prepend\\">
-            <div data-v-09753bb1=\\"\\" data-v-b3fa301d=\\"\\" class=\\"v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border\\" style=\\"width: 4rem; height: 4rem;\\" data-test=\\"user-icon\\">
-              <div data-v-09753bb1=\\"\\" class=\\"v-responsive v-img v-img--booting\\" data-test=\\"gravatar-image\\">
-                <div class=\\"v-responsive__sizer\\"></div>
+        <div data-v-b3fa301d="" class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0" data-test="profile-header">
+          <!----><span class="v-list-item__underlay"></span>
+          <div class="v-list-item__prepend">
+            <div data-v-09753bb1="" data-v-b3fa301d="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 4rem; height: 4rem;" data-test="user-icon">
+              <div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image">
+                <div class="v-responsive__sizer"></div>
                 <!---->
-                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
                   <!---->
                 </transition-stub>
                 <!---->
@@ -42,68 +42,68 @@ exports[`Settings Namespace > Renders the component 1`] = `
                 <!---->
                 <!---->
               </div>
-              <!----><span class=\\"v-avatar__underlay\\"></span>
+              <!----><span class="v-avatar__underlay"></span>
             </div>
-            <div class=\\"v-list-item__spacer\\"></div>
+            <div class="v-list-item__spacer"></div>
           </div>
-          <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
-            <div class=\\"v-list-item-title\\">
-              <h1 data-v-b3fa301d=\\"\\" data-test=\\"profile-title\\">Account Profile</h1>
+          <div class="v-list-item__content" data-no-activator="">
+            <div class="v-list-item-title">
+              <h1 data-v-b3fa301d="" data-test="profile-title">Account Profile</h1>
             </div>
-            <div class=\\"v-list-item-subtitle\\"><span data-v-b3fa301d=\\"\\" data-test=\\"profile-subtitle\\">Manage your account profile</span></div>
+            <div class="v-list-item-subtitle"><span data-v-b3fa301d="" data-test="profile-subtitle">Manage your account profile</span></div>
             <!---->
           </div>
-          <div class=\\"v-list-item__append\\">
-            <div data-v-b3fa301d=\\"\\" class=\\"mr-4\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border\\" data-test=\\"edit-profile-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Edit Profile</span>
+          <div class="v-list-item__append">
+            <div data-v-b3fa301d="" class="mr-4"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border" data-test="edit-profile-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <!----><span class="v-btn__content" data-no-activator="">Edit Profile</span>
                 <!---->
                 <!---->
               </button></div>
-            <div class=\\"v-list-item__spacer\\"></div>
+            <div class="v-list-item__spacer"></div>
           </div>
         </div>
       </div>
       <!---->
     </div>
-    <div data-v-b3fa301d=\\"\\" class=\\"v-card-text pt-4\\">
-      <div data-v-b3fa301d=\\"\\" class=\\"v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"profile-details-list\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-badge-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"name-field\\">Name</span></div>
+    <div data-v-b3fa301d="" class="v-card-text pt-4">
+      <div data-v-b3fa301d="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="listbox" data-test="profile-details-list">
+        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
+          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-badge-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="name-field">Name</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\">
-            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined\\" data-test=\\"name-input\\">
+          <div class="v-card-item__append">
+            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="name-input">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr\\">
-                  <div class=\\"v-field__overlay\\"></div>
-                  <div class=\\"v-field__loader\\">
-                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <div class="v-input__control">
+                <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field__overlay"></div>
+                  <div class="v-field__loader">
+                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                       <!---->
-                      <div class=\\"v-progress-linear__background\\"></div>
-                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                        <div class=\\"v-progress-linear__indeterminate\\">
-                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      <div class="v-progress-linear__background"></div>
+                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                        <div class="v-progress-linear__indeterminate">
+                          <div class="v-progress-linear__indeterminate long"></div>
+                          <div class="v-progress-linear__indeterminate short"></div>
                         </div>
                       </transition-stub>
                       <!---->
                     </div>
                   </div>
                   <!---->
-                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-2" aria-describedby="input-2-messages" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
                   <!---->
-                  <div class=\\"v-field__outline\\">
+                  <div class="v-field__outline">
                     <!---->
                     <!---->
                   </div>
@@ -114,44 +114,44 @@ exports[`Settings Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"username-field\\">Username</span></div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
+          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="username-field">Username</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\">
-            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined\\" data-test=\\"username-input\\">
+          <div class="v-card-item__append">
+            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="username-input">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr\\">
-                  <div class=\\"v-field__overlay\\"></div>
-                  <div class=\\"v-field__loader\\">
-                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <div class="v-input__control">
+                <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field__overlay"></div>
+                  <div class="v-field__loader">
+                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                       <!---->
-                      <div class=\\"v-progress-linear__background\\"></div>
-                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                        <div class=\\"v-progress-linear__indeterminate\\">
-                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      <div class="v-progress-linear__background"></div>
+                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                        <div class="v-progress-linear__indeterminate">
+                          <div class="v-progress-linear__indeterminate long"></div>
+                          <div class="v-progress-linear__indeterminate short"></div>
                         </div>
                       </transition-stub>
                       <!---->
                     </div>
                   </div>
                   <!---->
-                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-4\\" aria-describedby=\\"input-4-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-4" aria-describedby="input-4-messages" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
                   <!---->
-                  <div class=\\"v-field__outline\\">
+                  <div class="v-field__outline">
                     <!---->
                     <!---->
                   </div>
@@ -162,44 +162,44 @@ exports[`Settings Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"email-field\\">Email</span></div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
+          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="email-field">Email</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\">
-            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined\\" data-test=\\"email-input\\">
+          <div class="v-card-item__append">
+            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="email-input">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr\\">
-                  <div class=\\"v-field__overlay\\"></div>
-                  <div class=\\"v-field__loader\\">
-                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <div class="v-input__control">
+                <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field__overlay"></div>
+                  <div class="v-field__loader">
+                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                       <!---->
-                      <div class=\\"v-progress-linear__background\\"></div>
-                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                        <div class=\\"v-progress-linear__indeterminate\\">
-                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      <div class="v-progress-linear__background"></div>
+                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                        <div class="v-progress-linear__indeterminate">
+                          <div class="v-progress-linear__indeterminate long"></div>
+                          <div class="v-progress-linear__indeterminate short"></div>
                         </div>
                       </transition-stub>
                       <!---->
                     </div>
                   </div>
                   <!---->
-                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-6\\" aria-describedby=\\"input-6-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-6" aria-describedby="input-6-messages" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
                   <!---->
-                  <div class=\\"v-field__outline\\">
+                  <div class="v-field__outline">
                     <!---->
                     <!---->
                   </div>
@@ -210,44 +210,44 @@ exports[`Settings Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-email-lock mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"recovery-email-field\\">Recovery Email</span></div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
+          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-email-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="recovery-email-field">Recovery Email</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\">
-            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined\\" data-test=\\"recovery-email-input\\">
+          <div class="v-card-item__append">
+            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="recovery-email-input">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr\\">
-                  <div class=\\"v-field__overlay\\"></div>
-                  <div class=\\"v-field__loader\\">
-                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <div class="v-input__control">
+                <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field__overlay"></div>
+                  <div class="v-field__loader">
+                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                       <!---->
-                      <div class=\\"v-progress-linear__background\\"></div>
-                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                        <div class=\\"v-progress-linear__indeterminate\\">
-                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      <div class="v-progress-linear__background"></div>
+                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                        <div class="v-progress-linear__indeterminate">
+                          <div class="v-progress-linear__indeterminate long"></div>
+                          <div class="v-progress-linear__indeterminate short"></div>
                         </div>
                       </transition-stub>
                       <!---->
                     </div>
                   </div>
                   <!---->
-                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-8\\" aria-describedby=\\"input-8-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-8" aria-describedby="input-8-messages" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
                   <!---->
-                  <div class=\\"v-field__outline\\">
+                  <div class="v-field__outline">
                     <!---->
                     <!---->
                   </div>
@@ -258,16 +258,16 @@ exports[`Settings Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\">Password</span></div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
+          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1">Password</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-aprimary v-btn--density-default v-btn--size-default v-btn--variant-text\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Change Password</span>
+          <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-aprimary v-btn--density-default v-btn--size-default v-btn--variant-text"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator="">Change Password</span>
               <!---->
               <!---->
             </button>
@@ -275,57 +275,57 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"d-flex mr-4\\">
-          <div data-v-b3fa301d=\\"\\" class=\\"v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background\\" data-test=\\"mfa-card\\">
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="d-flex mr-4">
+          <div data-v-b3fa301d="" class="v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background" data-test="mfa-card">
             <!---->
-            <div class=\\"v-card__loader\\">
-              <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                 <!---->
-                <div class=\\"v-progress-linear__background\\"></div>
-                <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                  <div class=\\"v-progress-linear__indeterminate\\">
-                    <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                    <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
                   </div>
                 </transition-stub>
                 <!---->
               </div>
             </div>
-            <div class=\\"v-card-item\\">
-              <div class=\\"v-card-item__prepend\\">
-                <!----><i class=\\"mdi-fingerprint mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" density=\\"default\\"></i>
+            <div class="v-card-item">
+              <div class="v-card-item__prepend">
+                <!----><i class="mdi-fingerprint mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i>
               </div>
-              <div class=\\"v-card-item__content\\">
-                <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\">Multi-factor Authentication</span></div>
+              <div class="v-card-item__content">
+                <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1">Multi-factor Authentication</span></div>
                 <!---->
                 <!---->
               </div>
               <!---->
             </div>
             <!---->
-            <div data-v-b3fa301d=\\"\\" class=\\"d-flex flex-no-wrap justify-space-between\\">
-              <div data-v-b3fa301d=\\"\\">
-                <div data-v-b3fa301d=\\"\\" class=\\"v-card-text pt-0\\" data-test=\\"mfa-text\\"> Enable multi-factor authentication (MFA) to add an extra layer of security to your account. You'll need to enter a one-time verification code from your preferred TOTP provider to log in. </div>
+            <div data-v-b3fa301d="" class="d-flex flex-no-wrap justify-space-between">
+              <div data-v-b3fa301d="">
+                <div data-v-b3fa301d="" class="v-card-text pt-0" data-test="mfa-text"> Enable multi-factor authentication (MFA) to add an extra layer of security to your account. You'll need to enter a one-time verification code from your preferred TOTP provider to log in. </div>
               </div>
             </div>
             <!---->
-            <!----><span class=\\"v-card__underlay\\"></span>
+            <!----><span class="v-card__underlay"></span>
           </div>
-          <div data-v-b3fa301d=\\"\\" class=\\"d-flex align-center bg-background pr-4\\">
-            <div data-v-b3fa301d=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset\\" data-test=\\"switch-mfa\\">
+          <div data-v-b3fa301d="" class="d-flex align-center bg-background pr-4">
+            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset" data-test="switch-mfa">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-selection-control v-selection-control--density-default\\">
-                  <div class=\\"v-selection-control__wrapper\\">
-                    <div class=\\"v-switch__track\\">
+              <div class="v-input__control">
+                <div class="v-selection-control v-selection-control--density-default">
+                  <div class="v-selection-control__wrapper">
+                    <div class="v-switch__track">
                       <!---->
                       <!---->
                     </div>
-                    <div class=\\"v-selection-control__input\\"><input id=\\"switch-11\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"switch-11-messages\\" value=\\"true\\">
-                      <div class=\\"v-switch__thumb\\">
-                        <transition-stub name=\\"scale-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class="v-selection-control__input"><input id="switch-11" aria-disabled="false" type="checkbox" aria-describedby="switch-11-messages" value="true">
+                      <div class="v-switch__thumb">
+                        <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->
                         </transition-stub>
                       </div>
@@ -343,16 +343,16 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <hr data-v-b3fa301d=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-b3fa301d=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-b3fa301d=\\"\\" class=\\"mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-b3fa301d=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"delete-account\\">Delete Account</span></div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
+          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="delete-account">Delete Account</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\"><button data-v-b3fa301d=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text\\" data-test=\\"delete-account-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Delete</span>
+          <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="delete-account-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator="">Delete</span>
               <!---->
               <!---->
             </button></div>
@@ -360,7 +360,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
       </div>
     </div>
     <!---->
-    <!----><span class=\\"v-card__underlay\\"></span>
+    <!----><span class="v-card__underlay"></span>
   </div>
 </div>"
 `;

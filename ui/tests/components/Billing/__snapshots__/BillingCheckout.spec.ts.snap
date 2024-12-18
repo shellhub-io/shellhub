@@ -1,29 +1,29 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Billing Checkout > Renders the component 1`] = `
-"<div class=\\"v-container v-locale--is-ltr\\">
-  <div class=\\"v-row\\">
-    <div class=\\"v-col\\">
-      <h2 data-test=\\"title\\">Payment Method:</h2>
+"<div class="v-container v-locale--is-ltr">
+  <div class="v-row">
+    <div class="v-col">
+      <h2 data-test="title">Payment Method:</h2>
     </div>
   </div>
-  <div class=\\"v-row\\">
-    <div class=\\"v-col\\">
-      <p data-test=\\"sub-title\\">This is the payment method you have selected for your ShellHub Cloud subscription</p>
+  <div class="v-row">
+    <div class="v-col">
+      <p data-test="sub-title">This is the payment method you have selected for your ShellHub Cloud subscription</p>
     </div>
   </div>
-  <div class=\\"v-col\\">
-    <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-v-theme-card\\" align=\\"center\\" data-test=\\"card\\">
+  <div class="v-col">
+    <div class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-v-theme-card" align="center" data-test="card">
       <!---->
-      <div class=\\"v-card__loader\\">
-        <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+      <div class="v-card__loader">
+        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
           <!---->
-          <div class=\\"v-progress-linear__background\\"></div>
-          <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-          <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-            <div class=\\"v-progress-linear__indeterminate\\">
-              <div class=\\"v-progress-linear__indeterminate long\\"></div>
-              <div class=\\"v-progress-linear__indeterminate short\\"></div>
+          <div class="v-progress-linear__background"></div>
+          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+            <div class="v-progress-linear__indeterminate">
+              <div class="v-progress-linear__indeterminate long"></div>
+              <div class="v-progress-linear__indeterminate short"></div>
             </div>
           </transition-stub>
           <!---->
@@ -31,21 +31,21 @@ exports[`Billing Checkout > Renders the component 1`] = `
       </div>
       <!---->
       <!---->
-      <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pl-0 pr-0\\">
-        <!----><span class=\\"v-list-item__underlay\\"></span>
+      <div class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pl-0 pr-0">
+        <!----><span class="v-list-item__underlay"></span>
         <!---->
-        <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+        <div class="v-list-item__content" data-no-activator="">
           <!---->
           <!---->
-          <div class=\\"v-row align-center pa-0 pa-2\\" cols=\\"12\\">
-            <div class=\\"v-col v-col-1\\"><i class=\\"fa:far fa-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default\\" style=\\"font-size: 1.5rem;\\" aria-hidden=\\"true\\" data-test=\\"default-icon\\"></i></div>
-            <div class=\\"v-col v-col-4\\"><b></b></div>
-            <div class=\\"v-col v-col-2\\">0/0</div>
-            <div class=\\"v-col v-col-2 d-flex flex-column align-end\\"></div>
-            <div class=\\"v-col v-col-3 d-flex flex-column align-end\\"><span class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal\\" draggable=\\"false\\" aria-describedby=\\"v-tooltip-2\\"><!----><span class=\\"v-chip__underlay\\"></span>
+          <div class="v-row align-center pa-0 pa-2" cols="12">
+            <div class="v-col v-col-1"><i class="fa:far fa-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default" style="font-size: 1.5rem;" aria-hidden="true" data-test="default-icon"></i></div>
+            <div class="v-col v-col-4"><b></b></div>
+            <div class="v-col v-col-2">0/0</div>
+            <div class="v-col v-col-2 d-flex flex-column align-end"></div>
+            <div class="v-col v-col-3 d-flex flex-column align-end"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-2"><!----><span class="v-chip__underlay"></span>
               <!---->
               <!---->
-              <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><b>default</b>
+              <div class="v-chip__content" data-no-activator=""><b>default</b>
                 <!---->
                 <!--teleport start-->
                 <!--teleport end-->
@@ -58,15 +58,15 @@ exports[`Billing Checkout > Renders the component 1`] = `
         <!---->
       </div>
       <!---->
-      <!----><span class=\\"v-card__underlay\\"></span>
+      <!----><span class="v-card__underlay"></span>
     </div>
   </div>
-  <div class=\\"v-spacer mb-5\\"></div>
-  <div class=\\"v-row\\">
-    <div class=\\"v-col\\">
-      <h3 data-test=\\"additional-information\\">Additional Information:</h3>
-      <div class=\\"v-spacer mb-2\\"></div>
-      <ul data-test=\\"additional-information-list\\">
+  <div class="v-spacer mb-5"></div>
+  <div class="v-row">
+    <div class="v-col">
+      <h3 data-test="additional-information">Additional Information:</h3>
+      <div class="v-spacer mb-2"></div>
+      <ul data-test="additional-information-list">
         <li>
           <p>Your selected payment method will be charged automatically on a monthly basis</p>
         </li>
