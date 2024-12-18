@@ -1,24 +1,24 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Setting Namespace > Renders the component 1`] = `
-"<div data-v-80a16399=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr\\">
+"<div data-v-80a16399="" class="v-container v-container--fluid v-locale--is-ltr">
   <!---->
   <!---->
   <!---->
   <!---->
   <!---->
   <!---->
-  <div data-v-80a16399=\\"\\" class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"card\\">
+  <div data-v-80a16399="" class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="card">
     <!---->
-    <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class="v-card__loader">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
         <!---->
-        <div class=\\"v-progress-linear__background\\"></div>
-        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-          <div class=\\"v-progress-linear__indeterminate\\">
-            <div class=\\"v-progress-linear__indeterminate long\\"></div>
-            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
           </div>
         </transition-stub>
         <!---->
@@ -26,72 +26,72 @@ exports[`Setting Namespace > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div data-v-80a16399=\\"\\" class=\\"v-card-item\\">
+    <div data-v-80a16399="" class="v-card-item">
       <!---->
-      <div class=\\"v-card-item__content\\">
+      <div class="v-card-item__content">
         <!---->
         <!---->
-        <div data-v-80a16399=\\"\\" class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0\\" data-test=\\"card-header\\">
-          <!----><span class=\\"v-list-item__underlay\\"></span>
+        <div data-v-80a16399="" class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0" data-test="card-header">
+          <!----><span class="v-list-item__underlay"></span>
           <!---->
-          <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
-            <div class=\\"v-list-item-title\\">
-              <h1 data-v-80a16399=\\"\\" data-test=\\"card-title\\">Namespace</h1>
+          <div class="v-list-item__content" data-no-activator="">
+            <div class="v-list-item-title">
+              <h1 data-v-80a16399="" data-test="card-title">Namespace</h1>
             </div>
-            <div class=\\"v-list-item-subtitle\\"><span data-v-80a16399=\\"\\" data-test=\\"card-subtitle\\">Manage the namespace settings</span></div>
+            <div class="v-list-item-subtitle"><span data-v-80a16399="" data-test="card-subtitle">Manage the namespace settings</span></div>
             <!---->
           </div>
-          <div class=\\"v-list-item__append\\">
-            <div data-v-80a16399=\\"\\" class=\\"mr-4\\"><button data-v-80a16399=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border\\" data-test=\\"edit-namespace-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-                <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Edit Namespace</span>
+          <div class="v-list-item__append">
+            <div data-v-80a16399="" class="mr-4"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border" data-test="edit-namespace-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <!----><span class="v-btn__content" data-no-activator="">Edit Namespace</span>
                 <!---->
                 <!---->
               </button></div>
-            <div class=\\"v-list-item__spacer\\"></div>
+            <div class="v-list-item__spacer"></div>
           </div>
         </div>
       </div>
       <!---->
     </div>
-    <div data-v-80a16399=\\"\\" class=\\"v-card-text pt-4\\">
-      <div data-v-80a16399=\\"\\" class=\\"v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"profile-details-list\\">
-        <div data-v-80a16399=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\" data-test=\\"profile-details-item\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-80a16399=\\"\\" class=\\"mdi-cloud-braces mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"name-icon\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-80a16399=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"name-title\\">Name</span></div>
+    <div data-v-80a16399="" class="v-card-text pt-4">
+      <div data-v-80a16399="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="listbox" data-test="profile-details-list">
+        <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="profile-details-item">
+          <div class="v-card-item__prepend"><i data-v-80a16399="" class="mdi-cloud-braces mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="name-icon"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-80a16399="" class="text-subtitle-1" data-test="name-title">Name</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\">
-            <div data-v-80a16399=\\"\\" class=\\"v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-input--readonly v-text-field v-input--plain-underlined\\" data-test=\\"name-input\\">
+          <div class="v-card-item__append">
+            <div data-v-80a16399="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="name-input">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-field v-field--active v-field--disabled v-field--dirty v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr\\">
-                  <div class=\\"v-field__overlay\\"></div>
-                  <div class=\\"v-field__loader\\">
-                    <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+              <div class="v-input__control">
+                <div class="v-field v-field--active v-field--disabled v-field--dirty v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field__overlay"></div>
+                  <div class="v-field__loader">
+                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                       <!---->
-                      <div class=\\"v-progress-linear__background\\"></div>
-                      <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                      <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                        <div class=\\"v-progress-linear__indeterminate\\">
-                          <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                          <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                      <div class="v-progress-linear__background"></div>
+                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                        <div class="v-progress-linear__indeterminate">
+                          <div class="v-progress-linear__indeterminate long"></div>
+                          <div class="v-progress-linear__indeterminate short"></div>
                         </div>
                       </transition-stub>
                       <!---->
                     </div>
                   </div>
                   <!---->
-                  <div class=\\"v-field__field\\" data-no-activator=\\"\\">
+                  <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly=\\"\\" disabled=\\"\\" size=\\"1\\" type=\\"text\\" id=\\"input-2\\" aria-describedby=\\"input-2-messages\\" required=\\"\\" class=\\"v-field__input\\">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-2" aria-describedby="input-2-messages" required="" class="v-field__input" value="test">
                     <!---->
                   </div>
                   <!---->
                   <!---->
-                  <div class=\\"v-field__outline\\">
+                  <div class="v-field__outline">
                     <!---->
                     <!---->
                   </div>
@@ -102,18 +102,18 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-80a16399=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\" data-test=\\"tenant-details-item\\">
-          <div class=\\"v-card-item__prepend\\"><i data-v-80a16399=\\"\\" class=\\"mdi-identifier mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"tenant-icon\\"></i></div>
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><span data-v-80a16399=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"tenant-title\\">Tenant ID</span></div>
+        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="tenant-details-item">
+          <div class="v-card-item__prepend"><i data-v-80a16399="" class="mdi-identifier mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="tenant-icon"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-80a16399="" class="text-subtitle-1" data-test="tenant-title">Tenant ID</span></div>
             <!---->
             <!---->
           </div>
-          <div class=\\"v-card-item__append\\"><span data-v-80a16399=\\"\\" class=\\"v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal ml-1\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+          <div class="v-card-item__append"><span data-v-80a16399="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal ml-1" draggable="false"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
-            <div class=\\"v-chip__content\\" data-no-activator=\\"\\"><span data-v-80a16399=\\"\\" aria-describedby=\\"v-tooltip-5\\" class=\\"hover-text\\" data-test=\\"tenant-copy-btn\\">fake-tenant <i data-v-80a16399=\\"\\" class=\\"mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+            <div class="v-chip__content" data-no-activator=""><span data-v-80a16399="" aria-describedby="v-tooltip-5" class="hover-text" data-test="tenant-copy-btn">fake-tenant <i data-v-80a16399="" class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
               <!--teleport start-->
               <!--teleport end-->
             </div>
@@ -121,43 +121,43 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <!----></span>
           </div>
         </div>
-        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-80a16399=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\" data-test=\\"announcement-item\\">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="announcement-item">
           <!---->
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><i data-v-80a16399=\\"\\" class=\\"mdi-bullhorn-variant-outline mdi v-icon notranslate v-theme--light pl-1 mr-3\\" style=\\"font-size: 18px; height: 18px; width: 18px;\\" aria-hidden=\\"true\\" data-test=\\"announcement-icon\\"></i><span data-v-80a16399=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"announcement-title\\">Connection Announcement</span></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><i data-v-80a16399="" class="mdi-bullhorn-variant-outline mdi v-icon notranslate v-theme--light pl-1 mr-3" style="font-size: 18px; height: 18px; width: 18px;" aria-hidden="true" data-test="announcement-icon"></i><span data-v-80a16399="" class="text-subtitle-1" data-test="announcement-title">Connection Announcement</span></div>
             <!---->
-            <div data-v-80a16399=\\"\\" class=\\"v-card-text pt-1 pl-0\\"><span data-v-80a16399=\\"\\" data-test=\\"announcement-subtitle\\">A connection announcement is a custom message written during a session when a connection is established on a device within the namespace.</span></div>
+            <div data-v-80a16399="" class="v-card-text pt-1 pl-0"><span data-v-80a16399="" data-test="announcement-subtitle">A connection announcement is a custom message written during a session when a connection is established on a device within the namespace.</span></div>
           </div>
-          <div class=\\"v-card-item__append\\"><button data-v-80a16399=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-aprimary v-btn--density-default v-btn--size-default v-btn--variant-text ml-4\\" data-test=\\"edit-announcement-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Edit Announcement </span>
+          <div class="v-card-item__append"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-aprimary v-btn--density-default v-btn--size-default v-btn--variant-text ml-4" data-test="edit-announcement-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator="">Edit Announcement </span>
               <!---->
               <!---->
             </button></div>
         </div>
-        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-80a16399=\\"\\" class=\\"v-row ma-0\\">
-          <div data-v-80a16399=\\"\\" class=\\"v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background\\" data-test=\\"record-item\\">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-80a16399="" class="v-row ma-0">
+          <div data-v-80a16399="" class="v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background" data-test="record-item">
             <!---->
-            <div class=\\"v-card__loader\\">
-              <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                 <!---->
-                <div class=\\"v-progress-linear__background\\"></div>
-                <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-                  <div class=\\"v-progress-linear__indeterminate\\">
-                    <div class=\\"v-progress-linear__indeterminate long\\"></div>
-                    <div class=\\"v-progress-linear__indeterminate short\\"></div>
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
                   </div>
                 </transition-stub>
                 <!---->
               </div>
             </div>
-            <div class=\\"v-card-item\\">
+            <div class="v-card-item">
               <!---->
-              <div class=\\"v-card-item__content\\">
-                <div class=\\"v-card-title\\"><i data-v-80a16399=\\"\\" class=\\"mdi-play-box-outline mdi v-icon notranslate v-theme--light pl-1 mr-3\\" style=\\"font-size: 18px; height: 18px; width: 18px;\\" aria-hidden=\\"true\\" data-test=\\"record-icon\\"></i><span data-v-80a16399=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"record-title\\">Session Record</span>
-                  <div data-v-80a16399=\\"\\" class=\\"v-card-text pl-0 pt-1\\" data-test=\\"record-description\\"> Session record is a feature that allows you to check logged activity when connecting to a device. </div>
+              <div class="v-card-item__content">
+                <div class="v-card-title"><i data-v-80a16399="" class="mdi-play-box-outline mdi v-icon notranslate v-theme--light pl-1 mr-3" style="font-size: 18px; height: 18px; width: 18px;" aria-hidden="true" data-test="record-icon"></i><span data-v-80a16399="" class="text-subtitle-1" data-test="record-title">Session Record</span>
+                  <div data-v-80a16399="" class="v-card-text pl-0 pt-1" data-test="record-description"> Session record is a feature that allows you to check logged activity when connecting to a device. </div>
                 </div>
                 <!---->
                 <!---->
@@ -167,21 +167,21 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <!---->
             <!---->
             <!---->
-            <!----><span class=\\"v-card__underlay\\"></span>
+            <!----><span class="v-card__underlay"></span>
           </div>
-          <div data-v-80a16399=\\"\\" class=\\"v-col d-flex align-center justify-end bg-background\\">
-            <div data-v-80a16399=\\"\\" class=\\"v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset\\" data-test=\\"security-setting-component\\">
+          <div data-v-80a16399="" class="v-col d-flex align-center justify-end bg-background">
+            <div data-v-80a16399="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset" data-test="security-setting-component">
               <!---->
-              <div class=\\"v-input__control\\">
-                <div class=\\"v-selection-control v-selection-control--dirty v-selection-control--density-default\\">
-                  <div class=\\"v-selection-control__wrapper text-primary\\">
-                    <div class=\\"v-switch__track bg-primary\\">
+              <div class="v-input__control">
+                <div class="v-selection-control v-selection-control--dirty v-selection-control--density-default">
+                  <div class="v-selection-control__wrapper text-primary">
+                    <div class="v-switch__track bg-primary">
                       <!---->
                       <!---->
                     </div>
-                    <div class=\\"v-selection-control__input\\"><input id=\\"switch-7\\" aria-disabled=\\"false\\" type=\\"checkbox\\" aria-describedby=\\"switch-7-messages\\" value=\\"true\\">
-                      <div class=\\"v-switch__thumb\\">
-                        <transition-stub name=\\"scale-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+                    <div class="v-selection-control__input"><input checked="" id="switch-7" aria-disabled="false" type="checkbox" aria-describedby="switch-7-messages" value="true">
+                      <div class="v-switch__thumb">
+                        <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->
                         </transition-stub>
                       </div>
@@ -195,16 +195,16 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-80a16399=\\"\\" class=\\"v-divider v-theme--light\\" aria-orientation=\\"horizontal\\" role=\\"separator\\">
-        <div data-v-80a16399=\\"\\" class=\\"v-card-item\\" style=\\"grid-template-columns: max-content 1.5fr 2fr;\\" data-test=\\"delete-leave-item\\">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="delete-leave-item">
           <!---->
-          <div class=\\"v-card-item__content\\">
-            <div class=\\"v-card-title\\"><i data-v-80a16399=\\"\\" class=\\"mdi-delete mdi v-icon notranslate v-theme--light pl-1 mr-3\\" style=\\"font-size: 18px; height: 18px; width: 18px;\\" aria-hidden=\\"true\\" data-test=\\"delete-leave-icon\\"></i><span data-v-80a16399=\\"\\" class=\\"text-subtitle-1\\" data-test=\\"delete-leave-title\\">Leave Namespace</span></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><i data-v-80a16399="" class="mdi-delete mdi v-icon notranslate v-theme--light pl-1 mr-3" style="font-size: 18px; height: 18px; width: 18px;" aria-hidden="true" data-test="delete-leave-icon"></i><span data-v-80a16399="" class="text-subtitle-1" data-test="delete-leave-title">Leave Namespace</span></div>
             <!---->
-            <div data-v-80a16399=\\"\\" class=\\"v-card-text pt-1 pl-0\\"><span data-v-80a16399=\\"\\" data-test=\\"leave-description\\">After leaving a namespace, you will need to be invited again to access it.</span></div>
+            <div data-v-80a16399="" class="v-card-text pt-1 pl-0"><span data-v-80a16399="" data-test="leave-description">After leaving a namespace, you will need to be invited again to access it.</span></div>
           </div>
-          <div class=\\"v-card-item__append\\"><button data-v-80a16399=\\"\\" type=\\"button\\" class=\\"v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text\\" data-test=\\"leave-namespace-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Leave</span>
+          <div class="v-card-item__append"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="leave-namespace-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator="">Leave</span>
               <!---->
               <!---->
             </button></div>
@@ -212,7 +212,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
       </div>
     </div>
     <!---->
-    <!----><span class=\\"v-card__underlay\\"></span>
+    <!----><span class="v-card__underlay"></span>
   </div>
 </div>"
 `;

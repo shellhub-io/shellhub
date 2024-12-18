@@ -2,15 +2,15 @@
 
 exports[`Namespace Invite Dialog > Renders the component 1`] = `
 "<!--v-if-->
-<div class=\\"v-card-title d-flex justify-center mb-1 text-h6\\" data-test=\\"title\\">Namespace Invitation</div>
-<div class=\\"text-subtitle-1 ml-3\\" data-test=\\"message\\">Accepting this invitation will allow you to collaborate with the Namespace collaborators.</div>
-<div class=\\"v-card-actions\\" data-test=\\"actions\\"><button type=\\"button\\" class=\\"v-btn v-btn--slim v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text\\" data-test=\\"decline-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Decline Invitation</span>
+<div class="v-card-title d-flex justify-center mb-1 text-h6" data-test="title">Namespace Invitation</div>
+<div class="text-subtitle-1 ml-3" data-test="message">Accepting this invitation will allow you to collaborate with the Namespace collaborators.</div>
+<div class="v-card-actions" data-test="actions"><button type="button" class="v-btn v-btn--slim v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="decline-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <!----><span class="v-btn__content" data-no-activator="">Decline Invitation</span>
     <!---->
     <!---->
   </button>
-  <div class=\\"v-spacer\\" data-test=\\"spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text\\" data-test=\\"accept-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-    <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Accept Invitation </span>
+  <div class="v-spacer" data-test="spacer"></div><button type="button" class="v-btn v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="accept-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <!----><span class="v-btn__content" data-no-activator=""> Accept Invitation </span>
     <!---->
     <!---->
   </button>
