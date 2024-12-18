@@ -73,9 +73,6 @@ describe("AppBar Component", () => {
     wrapper = mount(Component, {
       global: {
         plugins: [[store, key], vuetify, router],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
         components: {
           "v-layout": VLayout,
           AppBar,

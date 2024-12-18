@@ -82,9 +82,6 @@ describe("Namespace Edit", () => {
     wrapper = mount(NamespaceEdit, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
     store.commit("auth/authSuccess", authData);
