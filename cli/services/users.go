@@ -57,6 +57,9 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		Status:        models.UserStatusConfirmed,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: MaxNumberNamespacesCommunity,
+		Preferences: models.UserPreferences{
+			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+		},
 	}
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {
