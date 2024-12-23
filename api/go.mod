@@ -8,7 +8,7 @@ require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/getsentry/sentry-go v0.30.0
 	github.com/golang-jwt/jwt/v4 v4.5.1
-	github.com/labstack/echo/v4 v4.13.2
+	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/mongotest v0.0.0-20230928124937-e33b07010742
@@ -119,7 +119,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.26.0 // indirect
 	go.opentelemetry.io/otel/trace v1.26.0 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
