@@ -204,6 +204,8 @@ const (
 func (s *Server) sessionRequestCallback(session gliderssh.Session, requestType string) bool {
 	session.Context().SetValue("request_type", requestType)
 
+	go s.startKeepAliveLoop(session)
+
 	return true
 }
 
