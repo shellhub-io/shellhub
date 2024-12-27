@@ -13,9 +13,9 @@ func TestNewTarget(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		sshid       string
-		expected    Expected
 	}{
 		{
 			description: "fails when could not split the target",
@@ -48,8 +48,8 @@ func TestNewTarget(t *testing.T) {
 
 func TestIsSSHID(t *testing.T) {
 	cases := []struct {
-		description string
 		target      *Target
+		description string
 		expected    bool
 	}{
 		{
@@ -80,15 +80,15 @@ func TestIsSSHID(t *testing.T) {
 
 func TestSplitSSHID(t *testing.T) {
 	type Expected struct {
+		err       error
 		namespace string
 		hostname  string
-		err       error
 	}
 
 	cases := []struct {
-		description string
-		target      *Target
 		expected    Expected
+		target      *Target
+		description string
 	}{
 		{
 			description: "fails when when Data does not contain a dot",

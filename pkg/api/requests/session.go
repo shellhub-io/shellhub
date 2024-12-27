@@ -40,14 +40,14 @@ type SessionKeepAlive struct {
 }
 
 type SessionUpdate struct {
-	SessionIDParam
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`
+	SessionIDParam
 }
 
 type SessionEvent struct {
-	SessionIDParam
-	Type      string    `json:"type" validate:"required"`
 	Timestamp time.Time `json:"timestamp" validate:"required"`
 	Data      any       `json:"data" validate:"required"`
+	SessionIDParam
+	Type string `json:"type" validate:"required"`
 }

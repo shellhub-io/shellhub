@@ -20,9 +20,9 @@ var (
 
 // Rule is a struct that contains a validation rule.
 type Rule struct {
-	Tag     string
-	Handler func(field validator.FieldLevel) bool
 	Error   error
+	Handler func(field validator.FieldLevel) bool
+	Tag     string
 }
 
 // Tag is the rule used to validate a variable or a structure's field.

@@ -18,11 +18,11 @@ func TestPublicKeyGet(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		fingerprint string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when public key is not found due to fingerprint",
@@ -85,15 +85,15 @@ func TestPublicKeyGet(t *testing.T) {
 
 func TestPublicKeyList(t *testing.T) {
 	type Expected struct {
+		err    error
 		pubKey []models.PublicKey
 		len    int
-		err    error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when public key list is empty",
@@ -146,10 +146,10 @@ func TestPublicKeyList(t *testing.T) {
 
 func TestPublicKeyCreate(t *testing.T) {
 	cases := []struct {
-		description string
-		key         *models.PublicKey
-		fixtures    []string
 		expected    error
+		key         *models.PublicKey
+		description string
+		fixtures    []string
 	}{
 		{
 			description: "succeeds when data is valid",
@@ -186,12 +186,12 @@ func TestPublicKeyUpdate(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
+		key         *models.PublicKeyUpdate
 		description string
 		fingerprint string
 		tenant      string
-		key         *models.PublicKeyUpdate
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when public key is not found due to fingerprint",
@@ -275,11 +275,11 @@ func TestPublicKeyUpdate(t *testing.T) {
 
 func TestPublicKeyDelete(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		fingerprint string
 		tenant      string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",

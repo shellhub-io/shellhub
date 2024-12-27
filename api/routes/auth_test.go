@@ -538,8 +538,8 @@ func TestAuthPublicKey(t *testing.T) {
 
 func TestHandler_AuthRequest_with_authorization_header(t *testing.T) {
 	type Expected struct {
-		status  int
 		headers map[string]string
+		status  int
 	}
 
 	svcMock := new(mocks.Service)
@@ -547,10 +547,10 @@ func TestHandler_AuthRequest_with_authorization_header(t *testing.T) {
 	require.NoError(t, err)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		token         func() (string, error)
 		requiredMocks func()
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "failed when token is invalid",

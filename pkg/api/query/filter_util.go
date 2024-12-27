@@ -18,14 +18,9 @@ const (
 // A FilterProperty with Operator "gt", Name "count", and Value 12 will filter documents with the attribute "count" greater than 12.
 // Another FilterProperty with Operator "eq", Name "alias", and Value "foobar" will filter documents with the attribute "alias" equal to "foobar".
 type FilterProperty struct {
-	// Name is the attribute to be observed in the operation.
-	Name string `json:"name"`
-
-	// Operator is the operation (e.g., "eq" for equal).
-	Operator string `json:"operator"`
-
-	// Value is the value used in the operation. (e.g., "eq" operations use Value to determine the value to be equal).
-	Value interface{} `json:"value"`
+	Value    interface{} `json:"value"`
+	Name     string      `json:"name"`
+	Operator string      `json:"operator"`
 }
 
 // FilterOperator represents a JSON representation of a filter operator in a query (e.g., "and", "or" in MongoDB queries).

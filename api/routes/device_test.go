@@ -96,9 +96,9 @@ func TestDeleteDevice(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func()
 		title          string
 		uid            string
-		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
@@ -146,10 +146,10 @@ func TestRenameDevice(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
-		renamePayload  requests.DeviceRename
-		tenant         string
 		requiredMocks  func(req requests.DeviceRename)
+		renamePayload  requests.DeviceRename
+		title          string
+		tenant         string
 		expectedStatus int
 	}{
 		{
@@ -372,9 +372,9 @@ func TestOfflineDevice(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func()
 		title          string
 		uid            string
-		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
@@ -511,9 +511,9 @@ func TestRemoveDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
-		updatePayload  requests.DeviceRemoveTag
 		requiredMocks  func(req requests.DeviceRemoveTag)
+		updatePayload  requests.DeviceRemoveTag
+		title          string
 		expectedStatus int
 	}{
 		{
@@ -617,9 +617,9 @@ func TestCreateDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
-		updatePayload  requests.DeviceCreateTag
 		requiredMocks  func(req requests.DeviceCreateTag)
+		updatePayload  requests.DeviceCreateTag
+		title          string
 		expectedStatus int
 	}{
 		{
@@ -734,9 +734,9 @@ func TestUpdateDeviceTag(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func(req requests.DeviceUpdateTag)
 		title          string
 		updatePayload  requests.DeviceUpdateTag
-		requiredMocks  func(req requests.DeviceUpdateTag)
 		expectedStatus int
 	}{
 		{
@@ -856,9 +856,9 @@ func TestUpdateDevice(t *testing.T) {
 	url := true
 
 	cases := []struct {
-		title          string
 		updatePayload  requests.DeviceUpdate
 		requiredMocks  func(req requests.DeviceUpdate)
+		title          string
 		expectedStatus int
 	}{
 		{

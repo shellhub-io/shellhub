@@ -31,16 +31,16 @@ func TestEvaluateKeyFilter(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
-		bool
 		error
+		bool
 	}
 
 	cases := []struct {
-		description   string
-		key           *models.PublicKey
-		device        models.Device
-		requiredMocks func()
 		expected      Expected
+		key           *models.PublicKey
+		requiredMocks func()
+		description   string
+		device        models.Device
 	}{
 		{
 			description: "fail to evaluate when filter hostname no match",
@@ -148,17 +148,17 @@ func TestListPublicKeys(t *testing.T) {
 	}
 
 	type Expected struct {
+		err          error
 		returnedKeys []models.PublicKey
 		count        int
-		err          error
 	}
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		keys          []models.PublicKey
 		paginator     query.Paginator
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "Fails when the query is invalid",
@@ -205,12 +205,12 @@ func TestGetPublicKeys(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		ctx           context.Context
+		requiredMocks func()
+		description   string
 		fingerprint   string
 		tenantID      string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: invalidTenantIDStr,
@@ -278,12 +278,12 @@ func TestUpdatePublicKeys(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		fingerprint   string
 		tenantID      string
 		keyUpdate     requests.PublicKeyUpdate
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "fail update the key when filter tags is empty",
@@ -458,12 +458,12 @@ func TestDeletePublicKeys(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
 		ctx           context.Context
+		expected      Expected
+		requiredMocks func()
+		description   string
 		fingerprint   string
 		tenantID      string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: invalidTenantIDStr,
@@ -563,11 +563,11 @@ func TestCreatePublicKeys(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
+		req           requests.PublicKeyCreate
 		description   string
 		tenantID      string
-		req           requests.PublicKeyCreate
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "fail to create the key when filter tags is empty",

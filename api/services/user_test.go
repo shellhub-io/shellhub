@@ -15,17 +15,17 @@ import (
 
 func TestUpdateUser(t *testing.T) {
 	type Expected struct {
-		conflicts []string
 		err       error
+		conflicts []string
 	}
 
 	storeMock := new(mocks.Store)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.UpdateUser
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "Fail when user is not found",
@@ -316,12 +316,12 @@ func TestUpdatePasswordUser(t *testing.T) {
 	ctx := context.Background()
 
 	cases := []struct {
+		expected        error
+		requiredMocks   func()
 		description     string
 		id              string
 		currentPassword string
 		newPassword     string
-		requiredMocks   func()
-		expected        error
 	}{
 		{
 			description: "fails when user is not found",

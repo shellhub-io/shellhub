@@ -95,8 +95,8 @@ func TestMigration75Down(t *testing.T) {
 	envs.DefaultBackend = mock
 
 	cases := []struct {
-		description string
 		setup       func(primitive.ObjectID) error
+		description string
 		expected    bool
 	}{
 		{

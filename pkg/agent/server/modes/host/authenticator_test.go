@@ -29,11 +29,11 @@ func TestPublicKey(t *testing.T) {
 
 	tests := []struct {
 		ctx           gliderssh.Context
+		key           gliderssh.PublicKey
 		authenticator *Authenticator
+		requiredMocs  func(apiMock *clientMocks.Client)
 		name          string
 		user          string
-		key           gliderssh.PublicKey
-		requiredMocs  func(apiMock *clientMocks.Client)
 		expected      bool
 	}{
 		{
@@ -216,10 +216,10 @@ func TestPassword(t *testing.T) {
 	tests := []struct {
 		ctx           gliderssh.Context
 		authenticator *Authenticator
+		requiredMocks func()
 		name          string
 		user          string
 		password      string
-		requiredMocks func()
 		expected      bool
 	}{
 		{

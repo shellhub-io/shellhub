@@ -13,9 +13,9 @@ import (
 
 func TestTenantFromContext(t *testing.T) {
 	cases := []struct {
-		description string
 		headers     map[string]string
 		expected    *models.Tenant
+		description string
 	}{
 		{
 			description: "verify if given value returns from header",
@@ -62,9 +62,9 @@ func TestTenantFromContext(t *testing.T) {
 
 func TestUsernameFromContext(t *testing.T) {
 	cases := []struct {
-		description string
 		headers     map[string]string
 		expected    *models.Username
+		description string
 	}{
 		{
 			description: "verify if given value returns from header",
@@ -111,9 +111,9 @@ func TestUsernameFromContext(t *testing.T) {
 
 func TestIDFromContext(t *testing.T) {
 	cases := []struct {
-		description string
 		headers     map[string]string
 		expected    *models.ID
+		description string
 	}{
 		{
 			description: "verify if given value returns from header",

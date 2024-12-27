@@ -10,14 +10,10 @@ type Data interface{}
 
 // Error is a custom error that carry attributes to specify error's message, resource, layer, code and data.
 type Error struct {
-	// message is the error message.
+	Data    Data   `json:"data,omitempty"`
 	Message string `json:"message"`
-	// Layer is the error layer.
-	Layer string `json:"layer,omitempty"`
-	// Code is the error code.
-	Code int `json:"code,omitempty"`
-	// Data is the error metadata.
-	Data Data `json:"data,omitempty"`
+	Layer   string `json:"layer,omitempty"`
+	Code    int    `json:"code,omitempty"`
 }
 
 // New creates a new [Error].

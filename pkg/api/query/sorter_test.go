@@ -8,9 +8,9 @@ import (
 
 func TestSortNormalize(t *testing.T) {
 	cases := []struct {
-		description string
 		order       *Sorter
 		expected    *Sorter
+		description string
 	}{
 		{
 			description: "sets By to desc when old By is invalid",

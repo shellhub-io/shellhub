@@ -17,8 +17,8 @@ func TestMigration55(t *testing.T) {
 	fieldNameTimestamp := "timestamp_1"
 
 	cases := []struct {
-		description string
 		test        func() error
+		description string
 	}{
 		{
 			"Success to apply up on migration 55",

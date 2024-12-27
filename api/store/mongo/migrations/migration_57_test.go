@@ -18,27 +18,27 @@ func TestMigration57(t *testing.T) {
 	})
 
 	type PaymentFailed struct {
-		Status  bool      `json:"status" bson:"status,omitempty"`
-		Amount  float64   `json:"amount" bson:"amount,omitempty"`
 		Date    time.Time `json:"date" bson:"date,omitempty"`
 		Details string    `json:"details" bson:"details,omitempty"`
+		Amount  float64   `json:"amount" bson:"amount,omitempty"`
+		Status  bool      `json:"status" bson:"status,omitempty"`
 	}
 
 	type Billing struct {
-		SubscriptionID   string         `json:"subscription_id" bson:"subscription_id,omitempty"`
 		CurrentPeriodEnd time.Time      `json:"current_period_end" bson:"current_period_end,omitempty"`
+		PaymentFailed    *PaymentFailed `json:"payment_failed" bson:"payment_failed,omitempty"`
+		SubscriptionID   string         `json:"subscription_id" bson:"subscription_id,omitempty"`
 		PriceID          string         `json:"price_id" bson:"price_id,omitempty"`
 		CustomerID       string         `json:"customer_id" bson:"customer_id,omitempty"`
 		PaymentMethodID  string         `json:"payment_method_id" bson:"payment_method_id,omitempty"`
-		PaymentFailed    *PaymentFailed `json:"payment_failed" bson:"payment_failed,omitempty"`
 		State            string         `json:"state" bson:"state,omitempty"`
-		Active           bool           `json:"active" bson:"active,omitempty"`
 		SubItem          string         `json:"sub_item_id" bson:"sub_item_id,omitempty"`
+		Active           bool           `json:"active" bson:"active,omitempty"`
 	}
 
 	type Namespace struct {
-		TenantID string   `json:"tenant_id" bson:"tenant_id"`
 		Billing  *Billing `json:"billing" bson:"billing,omitempty"`
+		TenantID string   `json:"tenant_id" bson:"tenant_id"`
 	}
 
 	cases := []struct {

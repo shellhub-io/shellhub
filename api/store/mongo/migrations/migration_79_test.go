@@ -23,9 +23,9 @@ func TestMigration79(t *testing.T) {
 	mock.On("Get", "SHELLHUB_ENTERPRISE").Return("false")
 
 	tests := []struct {
-		description string
 		setup       func(t *testing.T)
 		run         func(t *testing.T)
+		description string
 	}{
 		{
 			description: "Apply up on migration 79 when there is no user",

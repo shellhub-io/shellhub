@@ -21,17 +21,10 @@ var _ modes.Authenticator = (*Authenticator)(nil)
 
 // Authenticator implements the Authenticator interface when the server is running in host mode.
 type Authenticator struct {
-	// api is a client to communicate with the ShellHub's API.
-	api client.Client
-	// authData is the authentication data received from the API to authenticate the device.
-	authData *models.DeviceAuthResponse
-	// singleUserPassword is the password of the single user.
-	// When it is empty, it means that the single user is disabled.
+	api                client.Client
+	authData           *models.DeviceAuthResponse
+	deviceName         *string
 	singleUserPassword string
-	// deviceName is the device name.
-	//
-	// NOTICE: Uses a pointer for later assignment.
-	deviceName *string
 }
 
 // NewAuthenticator creates a new instance of Authenticator for the host mode.

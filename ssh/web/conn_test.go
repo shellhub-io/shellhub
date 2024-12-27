@@ -15,15 +15,15 @@ func TestConnReadMessage_input(t *testing.T) {
 	conn := NewConn(socket)
 
 	type Expected struct {
+		err     error
 		message *Message
 		read    int
-		err     error
 	}
 
 	tests := []struct {
-		description   string
-		requiredMocks func()
 		expect        Expected
+		requiredMocks func()
+		description   string
 	}{
 		{
 			description: "fail when socket reading fail",
@@ -95,15 +95,15 @@ func TestConnReadMessage_resize(t *testing.T) {
 	conn := NewConn(socket)
 
 	type Expected struct {
+		err     error
 		message *Message
 		read    int
-		err     error
 	}
 
 	tests := []struct {
-		description   string
-		requiredMocks func()
 		expect        Expected
+		requiredMocks func()
+		description   string
 	}{
 		{
 			description: "fail when socket reading fail",

@@ -40,23 +40,17 @@ func (o UserOrigin) String() string {
 }
 
 type User struct {
-	ID string `json:"id,omitempty" bson:"_id,omitempty"`
-	// Origin specifies the the user's signup method.
-	Origin UserOrigin `json:"-" bson:"origin"`
-	Status UserStatus `json:"status" bson:"status"`
-	// MaxNamespaces represents the count of namespaces that the user can owns.
-	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
-	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
 	UserData       `bson:",inline"`
-	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
-	// check if MFA is active for the user.
-	//
-	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
-	MFA         UserMFA         `json:"mfa" bson:"mfa"`
-	Preferences UserPreferences `json:"-" bson:"preferences"`
-	Password    UserPassword    `bson:",inline"`
+	Password       UserPassword    `bson:",inline"`
+	ID             string          `json:"id,omitempty" bson:"_id,omitempty"`
+	Origin         UserOrigin      `json:"-" bson:"origin"`
+	Status         UserStatus      `json:"status" bson:"status"`
+	Preferences    UserPreferences `json:"-" bson:"preferences"`
+	MFA            UserMFA         `json:"mfa" bson:"mfa"`
+	MaxNamespaces  int             `json:"max_namespaces" bson:"max_namespaces"`
+	EmailMarketing bool            `json:"email_marketing" bson:"email_marketing"`
 }
 
 type UserData struct {
@@ -72,12 +66,9 @@ type UserData struct {
 
 // UserMFA represents the attributes related to MFA for a user.
 type UserMFA struct {
-	// Enabled reports whether MFA is enabled for the user.
-	Enabled bool `json:"enabled" bson:"enabled"`
-	// Secret is the key used for authenticating with the OTP server.
-	Secret string `json:"-" bson:"secret"`
-	// RecoveryCodes are recovery tokens that the user can use to regain account access if they lose their MFA device.
+	Secret        string   `json:"-" bson:"secret"`
 	RecoveryCodes []string `json:"-" bson:"recovery_codes"`
+	Enabled       bool     `json:"enabled" bson:"enabled"`
 }
 
 type UserPreferences struct {
@@ -145,24 +136,24 @@ type UserAuthResponse struct {
 // here ensure everything continues to function as expected.
 // TODO: Remove this struct when it is no longer needed for migrations.
 type UserTokenRecover struct {
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
 // UserChanges specifies the attributes that can be updated for a user. Any zero values in this
 // struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
 type UserChanges struct {
 	LastLogin          time.Time  `bson:"last_login,omitempty"`
+	PreferredNamespace *string    `bson:"preferences.preferred_namespace,omitempty"`
+	MaxNamespaces      *int       `bson:"max_namespaces,omitempty"`
+	EmailMarketing     *bool      `bson:"email_marketing,omitempty"`
 	Name               string     `bson:"name,omitempty"`
 	Username           string     `bson:"username,omitempty"`
 	Email              string     `bson:"email,omitempty"`
 	RecoveryEmail      string     `bson:"recovery_email,omitempty"`
 	Password           string     `bson:"password,omitempty"`
 	Status             UserStatus `bson:"status,omitempty"`
-	PreferredNamespace *string    `bson:"preferences.preferred_namespace,omitempty"`
-	MaxNamespaces      *int       `bson:"max_namespaces,omitempty"`
-	EmailMarketing     *bool      `bson:"email_marketing,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries

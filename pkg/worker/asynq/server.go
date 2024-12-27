@@ -44,16 +44,15 @@ func UniquenessTimeout(timeout int) ServerOption {
 }
 
 type server struct {
-	redisURI          string
 	asynqSrv          *asynq.Server
 	asynqMux          *asynq.ServeMux
 	asynqSch          *asynq.Scheduler
 	batchConfig       *batchConfig
+	queues            queues
+	redisURI          string
+	tasks             []worker.Task
+	cronjobs          []worker.Cronjob
 	uniquenessTimeout int
-
-	queues   queues
-	tasks    []worker.Task
-	cronjobs []worker.Cronjob
 }
 
 func NewServer(redisURI string, opts ...ServerOption) worker.Server {

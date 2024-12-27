@@ -10,22 +10,22 @@ type SessionPosition struct {
 }
 
 type Session struct {
-	UID           string          `json:"uid"`
-	DeviceUID     UID             `json:"device_uid,omitempty" bson:"device_uid"`
-	Device        *Device         `json:"device" bson:"-"`
-	TenantID      string          `json:"tenant_id" bson:"tenant_id"`
-	Username      string          `json:"username"`
-	IPAddress     string          `json:"ip_address" bson:"ip_address"`
 	StartedAt     time.Time       `json:"started_at" bson:"started_at"`
 	LastSeen      time.Time       `json:"last_seen" bson:"last_seen"`
+	Device        *Device         `json:"device" bson:"-"`
+	Type          string          `json:"type" bson:"type"`
+	Username      string          `json:"username"`
+	IPAddress     string          `json:"ip_address" bson:"ip_address"`
+	TenantID      string          `json:"tenant_id" bson:"tenant_id"`
+	DeviceUID     UID             `json:"device_uid,omitempty" bson:"device_uid"`
+	UID           string          `json:"uid"`
+	Term          string          `json:"term" bson:"term"`
+	Events        SessionEvents   `json:"events" bson:"events"`
+	Position      SessionPosition `json:"position" bson:"position"`
 	Active        bool            `json:"active" bson:"active"`
 	Closed        bool            `json:"-" bson:"closed"`
 	Authenticated bool            `json:"authenticated" bson:"authenticated"`
 	Recorded      bool            `json:"recorded" bson:"recorded"`
-	Type          string          `json:"type" bson:"type"`
-	Term          string          `json:"term" bson:"term"`
-	Position      SessionPosition `json:"position" bson:"position"`
-	Events        SessionEvents   `json:"events" bson:"events"`
 }
 
 type ActiveSession struct {
@@ -39,10 +39,10 @@ type ActiveSession struct {
 // here ensure everything continues to function as expected.
 // TODO: Remove this struct when it is no longer needed for migrations.
 type RecordedSession struct {
+	Time     time.Time `json:"time" bson:"time,omitempty"`
 	UID      UID       `json:"uid"`
 	Message  string    `json:"message" bson:"message"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id,omitempty"`
-	Time     time.Time `json:"time" bson:"time,omitempty"`
 	Width    int       `json:"width" bson:"width,omitempty"`
 	Height   int       `json:"height" bson:"height,omitempty"`
 }
@@ -66,12 +66,9 @@ type SessionUpdate struct {
 
 // SessionEvent represents a session event.
 type SessionEvent struct {
-	// Type of the session. Normally, it is the SSH request name.
-	Type string `json:"type" bson:"type"`
-	// Timestamp contains the time when the event was logged.
 	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
-	// Data is a generic structure containing data of the event, normally the unmarshaling data of the request.
-	Data any `json:"data" bson:"data"`
+	Data      any       `json:"data" bson:"data"`
+	Type      string    `json:"type" bson:"type"`
 }
 
 // SessionEvents stores the events registered in a session.

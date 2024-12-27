@@ -46,11 +46,11 @@ func TestMigration50(t *testing.T) {
 	}
 
 	cases := []struct {
-		description string
 		before      func()
 		test        func() (int, error)
-		expected    int
 		after       func()
+		description string
+		expected    int
 	}{
 		{
 			"Success to apply up on migration 50 when it is a ShellHub Cloud instance",

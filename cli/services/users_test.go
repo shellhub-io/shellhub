@@ -34,12 +34,12 @@ func TestUserCreate(t *testing.T) {
 	mockClock.On("Now").Return(now)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		requiredMocks func()
+		description   string
 		username      string
 		password      string
 		email         string
-		expected      Expected
 	}{
 		{
 			description: "fails when email is invalid",
@@ -219,10 +219,10 @@ func TestUserDelete(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		username      string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not find a user",
@@ -353,11 +353,11 @@ func TestUserResetPassword(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		username      string
 		password      string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not find a user",

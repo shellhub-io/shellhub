@@ -27,11 +27,11 @@ func TestCreateNamespace(t *testing.T) {
 		expectedStatus  int
 	}
 	cases := []struct {
+		requiredMocks func()
 		title         string
 		userID        string
 		req           string
 		expected      Expected
-		requiredMocks func()
 	}{
 		{
 			title:  "fails when try to creating a namespace",
@@ -93,11 +93,11 @@ func TestGetNamespace(t *testing.T) {
 		expectedStatus  int
 	}
 	cases := []struct {
+		requiredMocks func()
 		title         string
 		uid           string
 		req           string
 		expected      Expected
-		requiredMocks func()
 	}{
 		{
 			title: "fails when validate because the tenant does not have a min of 3 characters",
@@ -168,10 +168,10 @@ func TestDeleteNamespace(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func()
 		title          string
 		uid            string
 		req            string
-		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
@@ -246,9 +246,9 @@ func TestGetSessionRecord(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func()
 		name           string
 		tenant         string
-		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
@@ -293,10 +293,10 @@ func TestEditNamespace(t *testing.T) {
 	svcMock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
 		headers       map[string]string
 		body          map[string]interface{}
 		requiredMocks func()
+		description   string
 		expected      int
 	}{
 		{
@@ -400,10 +400,10 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 	svcMock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		tenantID      string
 		headers       map[string]string
 		requiredMocks func()
+		description   string
+		tenantID      string
 		expected      int
 	}{
 		{

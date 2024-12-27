@@ -1,8 +1,8 @@
 package models
 
 type SystemInfo struct {
-	Version   string               `json:"version"`
 	Endpoints *SystemInfoEndpoints `json:"endpoints"`
+	Version   string               `json:"version"`
 	Setup     bool                 `json:"setup"`
 }
 

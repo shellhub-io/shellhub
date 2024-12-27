@@ -122,18 +122,18 @@ func TestService_AuthLocalUser(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
-		res      *models.UserAuthResponse
-		lockout  int64
-		mfaToken string
 		err      error
+		res      *models.UserAuthResponse
+		mfaToken string
+		lockout  int64
 	}
 
 	tests := []struct {
-		description   string
-		req           *requests.AuthLocalUser
-		sourceIP      string
-		requiredMocks func()
 		expected      Expected
+		req           *requests.AuthLocalUser
+		requiredMocks func()
+		description   string
+		sourceIP      string
 	}{
 		{
 			description: "fails when username is not found",
@@ -1011,10 +1011,10 @@ func TestCreateUserToken(t *testing.T) {
 	}
 
 	tests := []struct {
-		description   string
+		expected      Expected
 		req           *requests.CreateUserToken
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when user is not found",
@@ -1398,10 +1398,10 @@ func TestAuthAPIKey(t *testing.T) {
 	cacheMock := new(mockcache.Cache)
 
 	tests := []struct {
+		expected      Expected
+		requiredMocks func(context.Context)
 		description   string
 		key           string
-		requiredMocks func(context.Context)
-		expected      Expected
 	}{
 		{
 			description: "fails when could not get the api key from store",

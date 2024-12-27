@@ -14,14 +14,14 @@ import (
 
 func TestAPIKeyCreate(t *testing.T) {
 	type Expected struct {
-		insertedID string
 		err        error
+		insertedID string
 	}
 
 	cases := []struct {
-		description string
-		apiKey      *models.APIKey
 		expected    Expected
+		apiKey      *models.APIKey
+		description string
 	}{
 		{
 			description: "succeeds",
@@ -59,10 +59,10 @@ func TestAPIKeyGet(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		id          string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when name and tenant id does not exists",
@@ -113,11 +113,11 @@ func TestAPIKeyGetByName(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		name        string
 		tenantID    string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when name and tenant id does not exists",
@@ -185,17 +185,17 @@ func TestAPIKeyGetByName(t *testing.T) {
 
 func TestAPIKeyConflicts(t *testing.T) {
 	type Expected struct {
+		err       error
 		conflicts []string
 		ok        bool
-		err       error
 	}
 
 	cases := []struct {
+		expected    Expected
+		target      *models.APIKeyConflicts
 		description string
 		tenantID    string
-		target      *models.APIKeyConflicts
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "no conflicts when target is empty",
@@ -249,18 +249,18 @@ func TestAPIKeyConflicts(t *testing.T) {
 
 func TestAPIKeyList(t *testing.T) {
 	type Expected struct {
+		err     error
 		apiKeys []models.APIKey
 		count   int
-		err     error
 	}
 
 	cases := []struct {
+		expected    Expected
+		sorter      query.Sorter
 		description string
 		tenantID    string
-		paginator   query.Paginator
-		sorter      query.Sorter
 		fixtures    []string
-		expected    Expected
+		paginator   query.Paginator
 	}{
 		{
 			description: "succeeds when there are no api keys",
@@ -380,17 +380,17 @@ func TestAPIKeyList(t *testing.T) {
 
 func TestAPIKeyUpdate(t *testing.T) {
 	type Expected struct {
-		name string
 		err  error
+		name string
 	}
 
 	cases := []struct {
+		expected    Expected
+		changes     *models.APIKeyChanges
 		description string
 		tenantID    string
 		name        string
-		changes     *models.APIKeyChanges
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when name and tenant id does not exists",
@@ -478,11 +478,11 @@ func TestAPIKeyUpdate(t *testing.T) {
 
 func TestDeleteAPIKey(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		tenantID    string
 		name        string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when name and tenant id does not exists",

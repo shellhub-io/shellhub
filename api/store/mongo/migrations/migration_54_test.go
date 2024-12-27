@@ -14,8 +14,8 @@ func TestMigration54(t *testing.T) {
 	const Name string = "tenant_id_1_status_1"
 
 	cases := []struct {
-		description string
 		test        func() error
+		description string
 	}{
 		{
 			"Success to apply up on migration 54",

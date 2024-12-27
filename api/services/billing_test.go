@@ -13,17 +13,17 @@ import (
 
 func TestBillingEvaluate(t *testing.T) {
 	type Expected struct {
-		canAccept bool
 		err       error
+		canAccept bool
 	}
 
 	mock := new(mocks.Store)
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		tenant        string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "succeeds when client method succeeds",
@@ -60,11 +60,11 @@ func TestBillingReport(t *testing.T) {
 	mock := new(mocks.Store)
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		tenant        string
 		action        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "succeeds when client response status is 200",

@@ -56,9 +56,9 @@ func TestRole(t *testing.T) {
 
 func TestTenant(t *testing.T) {
 	cases := []struct {
-		description string
 		headers     map[string]string
 		expected    *models.Tenant
+		description string
 	}{
 		{
 			description: "verify if given value returns from header",
@@ -103,9 +103,9 @@ func TestTenant(t *testing.T) {
 
 func TestUsername(t *testing.T) {
 	cases := []struct {
-		description string
 		headers     map[string]string
 		expected    *models.Username
+		description string
 	}{
 		{
 			description: "verify if given value returns from header",
@@ -150,9 +150,9 @@ func TestUsername(t *testing.T) {
 
 func TestID(t *testing.T) {
 	cases := []struct {
-		description string
 		headers     map[string]string
 		expected    *models.ID
+		description string
 	}{
 		{
 			description: "verify if given value returns from header",

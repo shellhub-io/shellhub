@@ -18,8 +18,8 @@ func TestGetTags(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
 		requiredMocks  func()
+		title          string
 		expectedStatus int
 	}{
 		{
@@ -58,11 +58,11 @@ func TestRenameTag(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
-		tag           string
 		headers       map[string]string
 		body          map[string]interface{}
 		requiredMocks func()
+		description   string
+		tag           string
 		expected      Expected
 	}{
 		{
@@ -226,10 +226,10 @@ func TestDeleteTag(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
-		tag           string
 		headers       map[string]string
 		requiredMocks func()
+		description   string
+		tag           string
 		expected      Expected
 	}{
 		{

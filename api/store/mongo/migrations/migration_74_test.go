@@ -22,10 +22,10 @@ func TestMigration74(t *testing.T) {
 	envs.DefaultBackend = envMock
 
 	cases := []struct {
-		description  string
 		setup        func() error
 		requireMocks func()
 		test         func() error
+		description  string
 	}{
 		{
 			description: "Success to apply up on migration 74, without message on cloud",

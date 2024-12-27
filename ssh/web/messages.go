@@ -11,6 +11,6 @@ const (
 )
 
 type Message struct {
-	Kind messageKind `json:"kind"`
 	Data any         `json:"data"`
+	Kind messageKind `json:"kind"`
 }

@@ -42,9 +42,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 
 	tests := []struct {
-		description   string
-		requiredMocks func()
 		expected      expected
+		requiredMocks func()
+		description   string
 	}{
 		{
 			description: "fail to load the environment variables when required ones are not set",
@@ -159,10 +159,10 @@ func TestNewAgentWithConfig(t *testing.T) {
 	}
 
 	tests := []struct {
-		description string
-		config      *Config
-		mode        Mode
 		expected    expected
+		mode        Mode
+		config      *Config
+		description string
 	}{
 		{
 			description: "fail when server address is empty",
@@ -265,9 +265,9 @@ func TestAgent_GetInfo(t *testing.T) {
 	err := errors.New("")
 
 	tests := []struct {
-		description   string
-		requiredMocks func()
 		expected      expected
+		requiredMocks func()
+		description   string
 	}{
 		{
 			description: "fail to get the server info",

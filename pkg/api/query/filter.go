@@ -41,8 +41,8 @@ func (fs *Filters) Unmarshal() error {
 }
 
 type Filter struct {
-	Type   string      `json:"type,omitempty"`
 	Params interface{} `json:"params,omitempty"`
+	Type   string      `json:"type,omitempty"`
 }
 
 func (f *Filter) UnmarshalJSON(data []byte) error {

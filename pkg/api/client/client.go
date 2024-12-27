@@ -35,13 +35,12 @@ type Client interface {
 }
 
 type client struct {
-	scheme string
-	host   string
-	port   int
-	http   *resty.Client
-	logger *log.Logger
-	// reverser is used to create a reverse listener to Agent from ShellHub's SSH server.
 	reverser IReverser
+	http     *resty.Client
+	logger   *log.Logger
+	scheme   string
+	host     string
+	port     int
 }
 
 var ErrParseAddress = fmt.Errorf("could not parse the address to the required format")

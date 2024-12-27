@@ -23,16 +23,16 @@ func TestListDevices(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	type Expected struct {
+		err     error
 		devices []models.Device
 		count   int
-		err     error
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.DeviceList
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails to list devices",
@@ -97,16 +97,16 @@ func TestListDevices_status_removed(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	type Expected struct {
+		err     error
 		devices []models.Device
 		count   int
-		err     error
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.DeviceList
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when could not list the removed devices",
@@ -177,16 +177,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
+		err     error
 		devices []models.Device
 		count   int
-		err     error
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.DeviceList
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when the namespace does not exists",
@@ -540,10 +540,10 @@ func TestGetDevice(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
-		requiredMocks func()
-		uid           models.UID
 		expected      Expected
+		requiredMocks func()
+		description   string
+		uid           models.UID
 	}{
 		{
 			description: "fails when the store get device fails",
@@ -593,11 +593,11 @@ func TestDeleteDevice(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
-		description   string
+		expected      error
 		requiredMocks func()
+		description   string
 		uid           models.UID
 		tenant        string
-		expected      error
 	}{
 		{
 			description: "fails when the store device get by uid fails",
@@ -875,13 +875,13 @@ func TestRenameDevice(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
-		description   string
+		expected      error
 		requiredMocks func(device *models.Device)
-		uid           models.UID
 		device        *models.Device
+		description   string
+		uid           models.UID
 		deviceNewName string
 		tenant        string
-		expected      error
 	}{
 		{
 			description: "fails when store device get fails",
@@ -992,11 +992,11 @@ func TestLookupDevice(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
-		namespace     string
+		expected      Expected
 		device        *models.Device
 		requiredMocks func(device *models.Device, namespace string)
-		expected      Expected
+		description   string
+		namespace     string
 	}{
 		{
 			description: "fails when store device lookup fails",
@@ -1054,10 +1054,10 @@ func TestOfflineDevice(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
+		expected error
+		mocks    func(context.Context)
 		name     string
 		uid      models.UID
-		mocks    func(context.Context)
-		expected error
 	}{
 		{
 			name: "fails when operation does not succeeds",
@@ -1115,12 +1115,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		status        models.DeviceStatus
 		tenant        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not get the namespace",
@@ -1619,12 +1619,12 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		status        models.DeviceStatus
 		tenant        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not get the namespace",
@@ -1957,12 +1957,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		status        models.DeviceStatus
 		tenant        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not get the namespace",
@@ -2326,12 +2326,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		status        models.DeviceStatus
 		tenant        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not get the namespace",
@@ -3233,13 +3233,13 @@ func TestDeviceUpdate(t *testing.T) {
 	other := toPointer("other")
 
 	cases := []struct {
-		description   string
-		uid           string
-		tenant        string
+		expected      error
 		name          *string
 		publicKey     *bool
 		requiredMocks func(ctx context.Context)
-		expected      error
+		description   string
+		uid           string
+		tenant        string
 	}{
 		{
 			description: "fails when could not get the device by UID",
@@ -3399,12 +3399,12 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		status        models.DeviceStatus
 		tenant        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not get the namespace",

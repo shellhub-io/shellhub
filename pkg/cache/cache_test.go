@@ -23,10 +23,10 @@ func TestGet(t *testing.T) {
 	}
 
 	tests := []struct {
+		expected    Expected
+		setup       func()
 		description string
 		key         string
-		setup       func()
-		expected    Expected
 	}{
 		{
 			description: "fail to get the cache due a error",

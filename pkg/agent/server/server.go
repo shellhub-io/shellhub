@@ -35,22 +35,15 @@ func (c *sshConn) Close() error {
 }
 
 type Server struct {
-	sshd              *gliderssh.Server
 	api               client.Client
+	mode              modes.Mode
+	sshd              *gliderssh.Server
 	cmds              map[string]*exec.Cmd
+	Sessions          sync.Map
 	deviceName        string
 	containerID       string
-	mu                sync.Mutex
 	keepAliveInterval uint
-
-	// mode is the mode of the server, identifing where and how the SSH's server is running.
-	//
-	// For example, the [modes.HostMode] means that the SSH's server runs in the host machine, using the host
-	// `/etc/passwd`, `/etc/shadow`, redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
-	//
-	// Check the [modes] package for more information.
-	mode     modes.Mode
-	Sessions sync.Map
+	mu                sync.Mutex
 }
 
 // SSH channels supported by the SSH server.

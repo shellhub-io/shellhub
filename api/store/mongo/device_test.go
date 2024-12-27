@@ -15,18 +15,18 @@ import (
 
 func TestDeviceList(t *testing.T) {
 	type Expected struct {
+		err error
 		dev []models.Device
 		len int
-		err error
 	}
 	cases := []struct {
-		description string
-		paginator   query.Paginator
-		sorter      query.Sorter
-		filters     query.Filters
-		status      models.DeviceStatus
-		fixtures    []string
 		expected    Expected
+		sorter      query.Sorter
+		description string
+		status      models.DeviceStatus
+		filters     query.Filters
+		fixtures    []string
+		paginator   query.Paginator
 	}{
 		{
 			description: "succeeds when no devices are found",
@@ -531,15 +531,15 @@ func TestDeviceList(t *testing.T) {
 
 func TestDeviceListByUsage(t *testing.T) {
 	type Expected struct {
+		err error
 		uid []models.UID
 		len int
-		err error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "returns an empty list when tenant not exist",
@@ -584,10 +584,10 @@ func TestDeviceGet(t *testing.T) {
 		err error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		uid         models.UID
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when namespace is not found",
@@ -667,12 +667,12 @@ func TestDeviceGetByMac(t *testing.T) {
 		err error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		mac         string
 		tenant      string
 		status      models.DeviceStatus
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when device is not found due to mac",
@@ -777,12 +777,12 @@ func TestDeviceGetByName(t *testing.T) {
 		err error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		hostname    string
 		tenant      string
 		status      models.DeviceStatus
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when device is not found due to name",
@@ -858,11 +858,11 @@ func TestDeviceGetByUID(t *testing.T) {
 		err error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		uid         models.UID
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when device is not found due to UID",
@@ -935,11 +935,11 @@ func TestDeviceLookup(t *testing.T) {
 		err error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		namespace   string
 		hostname    string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when namespace does not exist",
@@ -1028,11 +1028,11 @@ func TestDeviceLookup(t *testing.T) {
 
 func TestDeviceCreate(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		hostname    string
 		device      models.Device
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "succeeds when all data is valid",
@@ -1067,11 +1067,11 @@ func TestDeviceCreate(t *testing.T) {
 
 func TestDeviceRename(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
 		hostname    string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when the device is not found",
@@ -1106,11 +1106,11 @@ func TestDeviceRename(t *testing.T) {
 
 func TestDeviceUpdateStatus(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
 		status      string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when the device is not found",
@@ -1145,11 +1145,11 @@ func TestDeviceUpdateStatus(t *testing.T) {
 
 func TestDeviceUpdateOnline(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
-		online      bool
 		fixtures    []string
-		expected    error
+		online      bool
 	}{
 		{
 			description: "fails when the device is not found",
@@ -1184,11 +1184,11 @@ func TestDeviceUpdateOnline(t *testing.T) {
 
 func TestDeviceUpdateLastSeen(t *testing.T) {
 	cases := []struct {
+		now         time.Time
+		expected    error
 		description string
 		uid         models.UID
-		now         time.Time
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when the device is not found",
@@ -1223,10 +1223,10 @@ func TestDeviceUpdateLastSeen(t *testing.T) {
 
 func TestDeviceSetOnline(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		devices     []models.ConnectedDevice
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "succeeds",
@@ -1258,10 +1258,10 @@ func TestDeviceSetOnline(t *testing.T) {
 
 func TestDeviceSetOffline(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when connected_device is not found",
@@ -1293,11 +1293,11 @@ func TestDeviceSetOffline(t *testing.T) {
 
 func TestDeviceSetPosition(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
-		position    models.DevicePosition
 		fixtures    []string
-		expected    error
+		position    models.DevicePosition
 	}{
 		{
 			description: "fails when the device is not found",
@@ -1338,11 +1338,11 @@ func TestDeviceSetPosition(t *testing.T) {
 
 func TestDeviceChooser(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		tenant      string
 		chosen      []string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "",
@@ -1370,10 +1370,10 @@ func TestDeviceChooser(t *testing.T) {
 
 func TestDeviceDelete(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when device is not found",

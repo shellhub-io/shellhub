@@ -12,12 +12,12 @@ import (
 
 func TestMigration43(t *testing.T) {
 	type FirewallRuleFields struct {
-		Priority int    `json:"priority"`
 		Action   string `json:"action" validate:"required,oneof=allow deny"`
-		Active   bool   `json:"active"`
 		SourceIP string `json:"source_ip" bson:"source_ip" validate:"required,regexp"`
 		Username string `json:"username" validate:"required,regexp"`
 		Hostname string `json:"hostname" validate:"required,regexp"`
+		Priority int    `json:"priority"`
+		Active   bool   `json:"active"`
 	}
 
 	type FirewallRule struct {
@@ -27,8 +27,8 @@ func TestMigration43(t *testing.T) {
 	}
 
 	cases := []struct {
-		description string
 		Test        func(t *testing.T)
+		description string
 	}{
 		{
 			"Success to apply up on migration 43",

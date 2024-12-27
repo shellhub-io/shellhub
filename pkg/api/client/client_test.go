@@ -12,11 +12,11 @@ func TestNewClient(t *testing.T) {
 	ErrFromOption := errors.New("error from option")
 
 	tests := []struct {
+		err           error
+		requiredMocks func(client *http.Client)
 		description   string
 		address       string
 		opts          []Opt
-		requiredMocks func(client *http.Client)
-		err           error
 	}{
 		{
 			description:   "failed to create when address is invalid",

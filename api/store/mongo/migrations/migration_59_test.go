@@ -21,10 +21,10 @@ func TestMigration59(t *testing.T) {
 	}
 
 	cases := []struct {
-		description string
+		expected    Expected
 		setup       func() (func() error, error)
 		check       func() (*models.User, error)
-		expected    Expected
+		description string
 	}{
 		{
 			description: "Success to apply up on migration 59",

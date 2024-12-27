@@ -29,17 +29,17 @@ func TestListNamespaces(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
+		err        error
 		namespaces []models.Namespace
 		count      int
-		err        error
 	}
 
 	cases := []struct {
-		description   string
-		req           *requests.NamespaceList
-		ctx           context.Context
-		requiredMocks func()
 		expected      Expected
+		ctx           context.Context
+		req           *requests.NamespaceList
+		requiredMocks func()
+		description   string
 	}{
 		{
 			description: "fail when could not get the namespace list",
@@ -216,10 +216,10 @@ func TestGetNamespace(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		tenantID      string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "fails when could not get the namespace",
@@ -358,10 +358,10 @@ func TestCreateNamespace(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		requiredMocks func()
 		req           *requests.NamespaceCreate
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when store user get has no documents",
@@ -1079,11 +1079,11 @@ func TestEditNamespace(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		requiredMocks func()
+		description   string
 		tenantID      string
 		namespaceName string
-		expected      Expected
 	}{
 		{
 			description:   "fails when namespace does not exist",
@@ -1201,10 +1201,10 @@ func TestDeleteNamespace(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		tenantID      string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when namespace does not exist",
@@ -1288,16 +1288,16 @@ func TestGetSessionRecord(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
-		status bool
 		err    error
+		status bool
 	}
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		requiredMocks func(namespace *models.Namespace)
 		namespace     *models.Namespace
+		description   string
 		tenantID      string
-		expected      Expected
 	}{
 		{
 			description: "fails when the namespace document is not found",
@@ -1357,12 +1357,12 @@ func TestEditSessionRecord(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
-		description   string
+		expected      error
 		namespace     *models.Namespace
 		requiredMocks func()
-		sessionRecord bool
+		description   string
 		tenantID      string
-		expected      error
+		sessionRecord bool
 	}{
 		{
 			description: "fails when namespace set session record fails",

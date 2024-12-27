@@ -37,10 +37,10 @@ func TestSetup(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
-		description   string
-		req           requests.Setup
-		requiredMocks func()
 		expected      error
+		requiredMocks func()
+		req           requests.Setup
+		description   string
 	}{
 		{
 			description: "Fail when setup isn't allowed",

@@ -11,10 +11,10 @@ type PublicKeyFilter struct {
 
 // PublicKeyCreate is the structure to represent the request data for create public key endpoint.
 type PublicKeyCreate struct {
-	Data        []byte          `json:"data"`
-	Filter      PublicKeyFilter `json:"filter"`
 	Name        string          `json:"name"`
 	Username    string          `json:"username"`
 	TenantID    string          `json:"tenant_id"`
 	Fingerprint string          `json:"fingerprint"`
+	Filter      PublicKeyFilter `json:"filter"`
+	Data        []byte          `json:"data"`
 }

@@ -17,9 +17,9 @@ func TestEvaluateHealth(t *testing.T) {
 	h := NewHandler(mock)
 
 	cases := []struct {
-		title         string
-		requiredMocks func()
 		expectedErr   error
+		requiredMocks func()
+		title         string
 	}{
 		{
 			title:       "success when try to make a evaluate health",

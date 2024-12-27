@@ -27,7 +27,7 @@ type Member struct {
 }
 
 type MemberChanges struct {
+	ExpiresAt *time.Time      `bson:"expires_at,omitempty"`
 	Role      authorizer.Role `bson:"role,omitempty"`
 	Status    MemberStatus    `bson:"status,omitempty"`
-	ExpiresAt *time.Time      `bson:"expires_at,omitempty"`
 }

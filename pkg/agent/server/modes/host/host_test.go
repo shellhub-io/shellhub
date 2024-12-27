@@ -10,15 +10,14 @@ import (
 
 type testSSHContext struct {
 	context.Context
+	remoteAddr net.Addr
+	localAddr  net.Addr
 	*sync.Mutex
-
+	permissions   *gliderssh.Permissions
 	user          string
 	sessionID     string
 	clientVersion string
 	serverVersion string
-	remoteAddr    net.Addr
-	localAddr     net.Addr
-	permissions   *gliderssh.Permissions
 }
 
 func (ctx *testSSHContext) SetValue(key, value interface{}) {

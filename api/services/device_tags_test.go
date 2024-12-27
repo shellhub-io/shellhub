@@ -23,11 +23,11 @@ func TestCreateTag(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		deviceName    string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "Fails to find the device invalid uid",
@@ -92,11 +92,11 @@ func TestRemoveTag(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		deviceName    string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: invalidUID,
@@ -175,11 +175,11 @@ func TestDeviceUpdateTag(t *testing.T) {
 	storemock := new(mocks.Store)
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		uid           models.UID
 		tags          []string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when tags exceeds the limit",

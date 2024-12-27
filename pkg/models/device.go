@@ -16,31 +16,30 @@ const (
 )
 
 type Device struct {
-	// UID is the unique identifier for a device.
-	UID              string          `json:"uid"`
-	Name             string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
+	LastSeen         time.Time       `json:"last_seen" bson:"last_seen"`
+	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
+	StatusUpdatedAt  time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
+	Position         *DevicePosition `json:"position" bson:"position"`
 	Identity         *DeviceIdentity `json:"identity"`
 	Info             *DeviceInfo     `json:"info"`
-	PublicKey        string          `json:"public_key" bson:"public_key"`
-	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen         time.Time       `json:"last_seen" bson:"last_seen"`
-	Online           bool            `json:"online" bson:",omitempty"`
 	Namespace        string          `json:"namespace" bson:",omitempty"`
+	UID              string          `json:"uid"`
 	Status           DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
-	StatusUpdatedAt  time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
-	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
+	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
+	PublicKey        string          `json:"public_key" bson:"public_key"`
 	RemoteAddr       string          `json:"remote_addr" bson:"remote_addr"`
-	Position         *DevicePosition `json:"position" bson:"position"`
-	Tags             []string        `json:"tags" bson:"tags,omitempty"`
-	PublicURL        bool            `json:"public_url" bson:"public_url,omitempty"`
+	Name             string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
 	PublicURLAddress string          `json:"public_url_address" bson:"public_url_address,omitempty"`
+	Tags             []string        `json:"tags" bson:"tags,omitempty"`
+	Online           bool            `json:"online" bson:",omitempty"`
+	PublicURL        bool            `json:"public_url" bson:"public_url,omitempty"`
 	Acceptable       bool            `json:"acceptable" bson:"acceptable,omitempty"`
 }
 
 type DeviceAuthRequest struct {
-	Info     *DeviceInfo `json:"info"`
-	Sessions []string    `json:"sessions,omitempty"`
+	Info *DeviceInfo `json:"info"`
 	*DeviceAuth
+	Sessions []string `json:"sessions,omitempty"`
 }
 
 type DeviceAuth struct {
@@ -70,9 +69,9 @@ type DeviceInfo struct {
 }
 
 type ConnectedDevice struct {
+	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
 	UID      string    `json:"uid"`
 	TenantID string    `json:"tenant_id" bson:"tenant_id"`
-	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
 }
 
 type DevicePosition struct {

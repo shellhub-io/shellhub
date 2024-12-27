@@ -33,10 +33,8 @@ func (tp TaskPattern) Queue() string {
 type TaskHandler func(ctx context.Context, payload []byte) error
 
 type Task struct {
-	// Pattern is a string to which the task can listen to message/events.
-	Pattern TaskPattern
-	// Handler is the callback that the task will execute when receiving messages/events.
 	Handler TaskHandler
+	Pattern TaskPattern
 }
 
 type TaskOption func(t *Task)

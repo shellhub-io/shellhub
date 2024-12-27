@@ -92,13 +92,13 @@ func TestFromSorter(t *testing.T) {
 
 func TestFromFilters(t *testing.T) {
 	type Expected struct {
-		data []bson.M
 		err  error
+		data []bson.M
 	}
 	cases := []struct {
-		description string
-		filters     *query.Filters
 		expected    Expected
+		filters     *query.Filters
+		description string
 	}{
 		{
 			description: "Fail when filter type is not valid",

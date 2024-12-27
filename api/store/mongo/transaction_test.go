@@ -13,9 +13,9 @@ import (
 
 func TestWithTransaction(t *testing.T) {
 	cases := []struct {
-		description string
-		callback    store.TransactionCb
 		expected    error
+		callback    store.TransactionCb
+		description string
 	}{
 		{
 			description: "should abort changes",

@@ -18,12 +18,12 @@ func TestAddPublicKeyTag(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		tenant        string
 		fingerprint   string
 		tag           string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fail when namespace was not found",
@@ -172,12 +172,12 @@ func TestRemovePublicKeyTag(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		tenant        string
 		fingerprint   string
 		tag           string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fail when namespace was not found",
@@ -297,12 +297,12 @@ func TestUpdatePublicKeyTags(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		tenant        string
 		fingerprint   string
 		tags          []string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fail when namespace was not found",

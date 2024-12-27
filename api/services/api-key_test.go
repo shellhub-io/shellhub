@@ -29,10 +29,10 @@ func TestCreateAPIKey(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.CreateAPIKey
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when namespace does not exists invalid",
@@ -397,19 +397,19 @@ func TestCreateAPIKey(t *testing.T) {
 
 func TestListAPIKey(t *testing.T) {
 	type Expected struct {
+		err     error
 		apiKeys []models.APIKey
 		count   int
-		err     error
 	}
 
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
-		description   string
-		tenantID      string
+		expected      Expected
 		req           *requests.ListAPIKey
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
+		tenantID      string
 	}{
 		{
 			description: "fails",
@@ -487,10 +487,10 @@ func TestUpdateAPIKey(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
-		description   string
+		expected      error
 		req           *requests.UpdateAPIKey
 		requiredMocks func(context.Context)
-		expected      error
+		description   string
 	}{
 		{
 			description: "fails when namespaces does not exists",
@@ -621,11 +621,11 @@ func TestDeleteAPIKey(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
-		description   string
-		tenantID      string
+		expected      error
 		req           *requests.DeleteAPIKey
 		requiredMocks func(context.Context)
-		expected      error
+		description   string
+		tenantID      string
 	}{
 		{
 			description: "fails when api key does not exists",

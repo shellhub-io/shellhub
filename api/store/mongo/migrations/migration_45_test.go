@@ -80,8 +80,8 @@ func TestMigration45(t *testing.T) {
 	assert.NoError(t, err)
 
 	cases := []struct {
-		description string
 		Test        func(t *testing.T)
+		description string
 	}{
 		{
 			"Success to apply up on migration 45 when firewall rule tags are duplicated",
