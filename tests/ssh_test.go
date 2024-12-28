@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -49,10 +50,12 @@ func NewAgentContainerWithIdentity(identity string) NewAgentContainerOption {
 
 func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	envs := map[string]string{
-		"SHELLHUB_SERVER_ADDRESS": fmt.Sprintf("http://localhost:%s", port),
-		"SHELLHUB_TENANT_ID":      "00000000-0000-4000-0000-000000000000",
-		"SHELLHUB_PRIVATE_KEY":    "/tmp/shellhub.key",
-		"SHELLHUB_LOG_FORMAT":     "json",
+		"SHELLHUB_SERVER_ADDRESS":     fmt.Sprintf("http://localhost:%s", port),
+		"SHELLHUB_TENANT_ID":          "00000000-0000-4000-0000-000000000000",
+		"SHELLHUB_PRIVATE_KEY":        "/tmp/shellhub.key",
+		"SHELLHUB_LOG_FORMAT":         "json",
+		"SHELLHUB_KEEPALIVE_INTERVAL": "1",
+		"SHELLHUB_LOG_LEVEL":          "trace",
 	}
 
 	for _, opt := range opts {
@@ -271,6 +274,45 @@ func TestSSH(t *testing.T) {
 
 				_, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
 				require.Error(t, err)
+			},
+		},
+		{
+			name: "connection keepalive when session is requested",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				var globalConn ssh.Conn
+
+				require.EventuallyWithT(t, func(tt *assert.CollectT) {
+					var err error
+
+					dialed, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config.Timeout)
+					assert.NoError(tt, err)
+
+					conn, _, _, err := ssh.NewClientConn(dialed, fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					assert.NoError(tt, err)
+
+					globalConn = conn
+				}, 30*time.Second, 1*time.Second)
+
+				ch, reqs, err := globalConn.OpenChannel("session", nil)
+				assert.NoError(t, err)
+
+				ok, err := ch.SendRequest("shell", true, nil)
+				assert.True(t, ok)
+				assert.NoError(t, err)
+
+				req := <-reqs
+				assert.True(t, strings.HasPrefix(req.Type, "keepalive"))
+
+				ch.Close()
+				globalConn.Close()
 			},
 		},
 		{

@@ -33,6 +33,7 @@ func New(t *testing.T) *DockerComposeConfigurator {
 	envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
 	envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
 	envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
+	envs["SHELLHUB_LOG_LEVEL"] = "trace"
 
 	return &DockerComposeConfigurator{
 		envs: envs,
