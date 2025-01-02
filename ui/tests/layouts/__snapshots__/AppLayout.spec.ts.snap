@@ -1,22 +1,22 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`App Layout Component > Renders the component 1`] = `
-"<div data-v-e7291ef4=\\"\\" class=\\"v-application v-theme--dark v-layout v-layout--full-height v-locale--is-ltr\\">
-  <div class=\\"v-application__wrap\\">
-    <nav class=\\"v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface\\" style=\\"left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; transition: none; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;\\" data-v-e7291ef4=\\"\\" app=\\"\\" data-test=\\"navigation-drawer\\">
+"<div data-v-e7291ef4="" class="v-application v-theme--dark v-layout v-layout--full-height v-locale--is-ltr">
+  <div class="v-application__wrap">
+    <nav class="v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface" style="left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; transition: none; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;" data-v-e7291ef4="" app="" data-test="navigation-drawer">
       <!---->
       <!---->
-      <div class=\\"v-navigation-drawer__content\\">
-        <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--density-default v-theme--dark v-locale--is-ltr bg-v-theme-surface\\" data-test=\\"drawer-toolbar\\">
+      <div class="v-navigation-drawer__content">
+        <header data-v-e7291ef4="" class="v-toolbar v-toolbar--density-default v-theme--dark v-locale--is-ltr bg-v-theme-surface" data-test="drawer-toolbar">
           <!---->
-          <div class=\\"v-toolbar__content\\" style=\\"height: 64px;\\">
+          <div class="v-toolbar__content" style="height: 64px;">
             <!---->
             <!---->
-            <div data-v-e7291ef4=\\"\\" class=\\"v-spacer\\"></div><a data-v-e7291ef4=\\"\\" href=\\"/\\" class=\\"text-decoration-none\\">
-              <div data-v-e7291ef4=\\"\\" class=\\"v-responsive v-img v-img--booting\\" style=\\"min-width: 140px;\\" aria-label=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" role=\\"img\\" data-test=\\"logo\\">
-                <div class=\\"v-responsive__sizer\\"></div>
-                <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\"><img class=\\"v-img__img v-img__img--contain\\" src=\\"/src/assets/logo-inverted.png\\" alt=\\"Shell logo, a cloud with the writing 'ShellHub' on the right side\\" style=\\"display: none;\\"></transition-stub>
-                <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+            <div data-v-e7291ef4="" class="v-spacer"></div><a data-v-e7291ef4="" href="/" class="text-decoration-none">
+              <div data-v-e7291ef4="" class="v-responsive v-img v-img--booting" style="min-width: 140px;" aria-label="Shell logo, a cloud with the writing 'ShellHub' on the right side" role="img" data-test="logo">
+                <div class="v-responsive__sizer"></div>
+                <transition-stub name="fade-transition" appear="true" persisted="false" css="true"><img class="v-img__img v-img__img--contain" src="/src/assets/logo-inverted.png" alt="Shell logo, a cloud with the writing 'ShellHub' on the right side" style="display: none;"></transition-stub>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
                   <!---->
                 </transition-stub>
                 <!---->
@@ -25,198 +25,198 @@ exports[`App Layout Component > Renders the component 1`] = `
                 <!---->
               </div>
             </a>
-            <div data-v-e7291ef4=\\"\\" class=\\"v-spacer\\"></div>
+            <div data-v-e7291ef4="" class="v-spacer"></div>
             <!---->
           </div>
-          <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+          <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
             <!---->
           </transition-stub>
         </header>
         <!--v-if-->
-        <div data-v-e7291ef4=\\"\\" class=\\"v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface\\" tabindex=\\"0\\" role=\\"listbox\\" data-test=\\"list\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+        <div data-v-e7291ef4="" class="v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface" tabindex="0" role="listbox" data-test="list"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-home-listItem\\">Home</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-home-listItem">Home</div>
             </div>
-            <div class=\\"v-list-item__append\\">
+            <div class="v-list-item__append">
               <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
+              <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/devices\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cellphone-link mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/devices" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-cellphone-link mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-cellphone-link-listItem\\">Devices</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-cellphone-link-listItem">Devices</div>
             </div>
-            <div class=\\"v-list-item__append\\">
+            <div class="v-list-item__append">
               <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
+              <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/containers\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-server mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/containers" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-server mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-server-listItem\\">Containers</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-server-listItem">Containers</div>
             </div>
-            <div class=\\"v-list-item__append\\">
+            <div class="v-list-item__append">
               <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
+              <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sessions\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/sessions" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-history-listItem\\">Sessions</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-history-listItem">Sessions</div>
             </div>
-            <div class=\\"v-list-item__append\\">
+            <div class="v-list-item__append">
               <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
+              <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/firewall/rules\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-security mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/firewall/rules" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-security mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-security-listItem\\">Firewall Rules</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-security-listItem">Firewall Rules</div>
             </div>
-            <div class=\\"v-list-item__append\\">
+            <div class="v-list-item__append">
               <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
+              <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2\\" href=\\"/sshkeys/public-keys\\" data-test=\\"list-item\\">
-            <!----><span class=\\"v-list-item__underlay\\"></span>
-            <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-              <div class=\\"v-list-item__spacer\\"></div>
+          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/sshkeys/public-keys" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
             </div>
-            <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+            <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"mdi-key-listItem\\">Public Keys</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-key-listItem">Public Keys</div>
             </div>
-            <div class=\\"v-list-item__append\\">
+            <div class="v-list-item__append">
               <!--v-if-->
-              <div class=\\"v-list-item__spacer\\"></div>
+              <div class="v-list-item__spacer"></div>
             </div>
           </a>
-          <div data-v-e7291ef4=\\"\\" class=\\"v-list-group v-list-group--prepend\\" modelvalue=\\"false\\" data-test=\\"list-group\\">
-            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header\\" id=\\"v-list-group--id-Symbol(7)\\">
-              <!----><span class=\\"v-list-item__underlay\\"></span>
-              <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-account-group mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-                <div class=\\"v-list-item__spacer\\"></div>
+          <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
+            <div data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" id="v-list-group--id-Symbol(7)">
+              <!----><span class="v-list-item__underlay"></span>
+              <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-account-group mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+                <div class="v-list-item__spacer"></div>
               </div>
-              <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <div class="v-list-item__content" data-no-activator="">
                 <!---->
                 <!---->
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\">Team</div>
+                <div data-v-e7291ef4="" class="v-list-item-title">Team</div>
               </div>
-              <div class=\\"v-list-item__append\\"><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" density=\\"compact\\"></i>
+              <div class="v-list-item__append"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" density="compact"></i>
                 <!---->
-                <div class=\\"v-list-item__spacer\\"></div>
+                <div class="v-list-item__spacer"></div>
               </div>
             </div>
-            <transition-stub name=\\"\\" appear=\\"false\\" persisted=\\"false\\" css=\\"false\\">
-              <div class=\\"v-list-group__items\\" role=\\"group\\" aria-labelledby=\\"v-list-group--id-Symbol(7)\\" style=\\"display: none;\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" href=\\"/team/members\\" data-test=\\"list-item\\">
-                  <!----><span class=\\"v-list-item__underlay\\"></span>
+            <transition-stub name="" appear="false" persisted="false" css="false">
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(7)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" href="/team/members" data-test="list-item">
+                  <!----><span class="v-list-item__underlay"></span>
                   <!---->
-                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                  <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
-                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Members-listItem\\">Members</div>
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Members-listItem">Members</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" href=\\"/team/api-keys\\" data-test=\\"list-item\\">
-                  <!----><span class=\\"v-list-item__underlay\\"></span>
+                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" href="/team/api-keys" data-test="list-item">
+                  <!----><span class="v-list-item__underlay"></span>
                   <!---->
-                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                  <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
-                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"API Keys-listItem\\">API Keys</div>
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="API Keys-listItem">API Keys</div>
                   </div>
                   <!---->
                 </a></div>
             </transition-stub>
           </div>
-          <div data-v-e7291ef4=\\"\\" class=\\"v-list-group v-list-group--prepend\\" modelvalue=\\"false\\" data-test=\\"list-group\\">
-            <div data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header\\" tabindex=\\"-2\\" id=\\"v-list-group--id-Symbol(11)\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
-              <div class=\\"v-list-item__prepend\\"><i data-v-e7291ef4=\\"\\" class=\\"mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" data-test=\\"icon\\"></i>
-                <div class=\\"v-list-item__spacer\\"></div>
+          <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
+            <div data-v-e7291ef4="" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" tabindex="-2" id="v-list-group--id-Symbol(11)"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+              <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+                <div class="v-list-item__spacer"></div>
               </div>
-              <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+              <div class="v-list-item__content" data-no-activator="">
                 <!---->
                 <!---->
-                <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\">Settings</div>
+                <div data-v-e7291ef4="" class="v-list-item-title">Settings</div>
               </div>
-              <div class=\\"v-list-item__append\\"><i class=\\"mdi-chevron-down mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\" density=\\"compact\\"></i>
+              <div class="v-list-item__append"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" density="compact"></i>
                 <!---->
-                <div class=\\"v-list-item__spacer\\"></div>
+                <div class="v-list-item__spacer"></div>
               </div>
             </div>
-            <transition-stub name=\\"\\" appear=\\"false\\" persisted=\\"false\\" css=\\"false\\">
-              <div class=\\"v-list-group__items\\" role=\\"group\\" aria-labelledby=\\"v-list-group--id-Symbol(11)\\" style=\\"display: none;\\"><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" href=\\"/settings/profile\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+            <transition-stub name="" appear="false" persisted="false" css="false">
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(11)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/profile" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
-                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                  <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
-                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Profile-listItem\\">Profile</div>
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Profile-listItem">Profile</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" href=\\"/settings/namespace\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/namespace" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
-                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                  <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
-                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Namespace-listItem\\">Namespace</div>
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Namespace-listItem">Namespace</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" href=\\"/settings/private-keys\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/private-keys" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
-                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                  <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
-                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Private Keys-listItem\\">Private Keys</div>
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Private Keys-listItem">Private Keys</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4=\\"\\" class=\\"v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text\\" tabindex=\\"-2\\" href=\\"/settings/tags\\" data-test=\\"list-item\\"><span class=\\"v-list-item__overlay\\"></span><span class=\\"v-list-item__underlay\\"></span>
+                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/tags" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
-                  <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
+                  <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
-                    <div data-v-e7291ef4=\\"\\" class=\\"v-list-item-title\\" data-test=\\"Tags-listItem\\">Tags</div>
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Tags-listItem">Tags</div>
                   </div>
                   <!---->
                 </a></div>
             </transition-stub>
           </div>
-          <div data-v-e7291ef4=\\"\\" class=\\"v-col d-flex align-end justify-center\\">
-            <div data-v-136d2a2f=\\"\\" data-v-e7291ef4=\\"\\"><button data-v-136d2a2f=\\"\\" type=\\"button\\" class=\\"v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat\\" tabindex=\\"0\\" aria-label=\\"Dialog Quick Connection\\" data-test=\\"quick-connection-open-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span><span class=\\"v-btn__prepend\\"><i class=\\"mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span><span class=\\"v-btn__content\\" data-no-activator=\\"\\"> Quick Connect </span>
+          <div data-v-e7291ef4="" class="v-col d-flex align-end justify-center">
+            <div data-v-136d2a2f="" data-v-e7291ef4=""><button data-v-136d2a2f="" type="button" class="v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat" tabindex="0" aria-label="Dialog Quick Connection" data-test="quick-connection-open-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Quick Connect </span>
                 <!---->
                 <!---->
               </button>
-              <div data-v-136d2a2f=\\"\\">
-                <p data-v-136d2a2f=\\"\\" class=\\"text-caption text-md font-weight-bold text-grey-darken-1 ma-1\\" data-test=\\"quick-connect-instructions\\"> Press <span data-v-136d2a2f=\\"\\" class=\\"v-chip v-chip--label v-theme--dark v-chip--density-compact v-chip--size-small v-chip--variant-tonal\\" draggable=\\"false\\"><!----><span class=\\"v-chip__underlay\\"></span>
+              <div data-v-136d2a2f="">
+                <p data-v-136d2a2f="" class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1" data-test="quick-connect-instructions"> Press <span data-v-136d2a2f="" class="v-chip v-chip--label v-theme--dark v-chip--density-compact v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
                   <!---->
                   <!---->
-                <div class=\\"v-chip__content\\" data-no-activator=\\"\\">Ctrl+K</div>
+                <div class="v-chip__content" data-no-activator="">Ctrl+K</div>
                 <!---->
                 <!----></span> to Quick Connect! </p>
               </div>
@@ -228,57 +228,57 @@ exports[`App Layout Component > Renders the component 1`] = `
       </div>
       <!---->
     </nav>
-    <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+    <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
       <!---->
     </transition-stub>
-    <snackbarcomponent data-v-e7291ef4=\\"\\"></snackbarcomponent>
-    <header data-v-e7291ef4=\\"\\" class=\\"v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background border-b-thin\\" style=\\"top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);\\" data-test=\\"app-bar\\">
+    <snackbarcomponent data-v-e7291ef4=""></snackbarcomponent>
+    <header data-v-e7291ef4="" class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--dark v-locale--is-ltr v-app-bar bg-background border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
       <!---->
-      <div class=\\"v-toolbar__content\\" style=\\"height: 64px;\\">
+      <div class="v-toolbar__content" style="height: 64px;">
         <!---->
-        <!----><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark v-btn--density-default v-btn--size-default v-btn--variant-text hidden-lg-and-up v-app-bar-nav-icon\\" aria-label=\\"Toggle Menu\\" data-test=\\"menu-toggle\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-menu mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+        <!----><button type="button" class="v-btn v-btn--icon v-theme--dark v-btn--density-default v-btn--size-default v-btn--variant-text hidden-lg-and-up v-app-bar-nav-icon" aria-label="Toggle Menu" data-test="menu-toggle"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-menu mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
-        </button><i class=\\"mdi-server-network mdi v-icon notranslate v-theme--dark v-icon--size-default ml-4 hidden-md-and-down\\" aria-hidden=\\"true\\"></i>
-        <ul class=\\"v-breadcrumbs v-breadcrumbs--density-default hidden-md-and-down\\" data-test=\\"breadcrumbs\\">
+        </button><i class="mdi-server-network mdi v-icon notranslate v-theme--dark v-icon--size-default ml-4 hidden-md-and-down" aria-hidden="true"></i>
+        <ul class="v-breadcrumbs v-breadcrumbs--density-default hidden-md-and-down" data-test="breadcrumbs">
           <!---->
           <!---->
         </ul>
-        <div class=\\"v-spacer\\"></div><button type=\\"button\\" class=\\"v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text\\" aria-describedby=\\"v-tooltip-21\\" aria-label=\\"community-help-icon\\" data-test=\\"support-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><i class=\\"mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+        <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-21" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class=\\"mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2\\" role=\\"button\\" aria-hidden=\\"false\\" tabindex=\\"0\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-23\\" aria-label=\\"notifications-icon\\"></i>
-        <!----><button type=\\"button\\" class=\\"v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4\\" aria-haspopup=\\"menu\\" aria-expanded=\\"false\\" aria-owns=\\"v-menu-24\\" data-test=\\"user-menu-btn\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-          <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\"><div data-v-09753bb1=\\"\\" class=\\"v-avatar v-theme--dark bg-primary v-avatar--density-default v-avatar--variant-flat border\\" style=\\"width: 1.5rem; height: 1.5rem;\\" email=\\"\\" data-test=\\"user-icon\\"><div data-v-09753bb1=\\"\\" class=\\"v-responsive v-img v-img--booting\\" data-test=\\"gravatar-image\\"><div class=\\"v-responsive__sizer\\"></div><!----><transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class=\\"v-avatar__underlay\\"></span>
-      </div></span><span class=\\"v-btn__append\\"><i class=\\"mdi-menu-down mdi v-icon notranslate v-theme--dark v-icon--size-default\\" aria-hidden=\\"true\\"></i></span>
+        <!--teleport end--><i class="mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-23" aria-label="notifications-icon"></i>
+        <!----><button type="button" class="v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-24" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--dark bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
+      </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span>
       <!----></button>
       <!---->
       <!---->
   </div>
-  <transition-stub name=\\"expand-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
+  <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
     <!---->
   </transition-stub>
   </header>
-  <main data-v-e7291ef4=\\"\\" class=\\"v-main\\" style=\\"--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px; transition: none;\\" data-test=\\"main\\">
-    <div data-v-e7291ef4=\\"\\" class=\\"v-container v-container--fluid v-locale--is-ltr pa-8\\" data-test=\\"container\\">
+  <main data-v-e7291ef4="" class="v-main" style="--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px; transition: none;" data-test="main">
+    <div data-v-e7291ef4="" class="v-container v-container--fluid v-locale--is-ltr pa-8" data-test="container">
       <!---->
     </div>
   </main>
   <!---->
   <!--teleport start-->
-  <div class=\\"v-overlay v-overlay--absolute v-overlay--active v-overlay--contained v-theme--dark v-locale--is-ltr align-center justify-center w-100 h-100\\" style=\\"z-index: 2000;\\" data-v-e7291ef4=\\"\\" data-test=\\"overlay\\">
-    <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"false\\" css=\\"true\\">
+  <div class="v-overlay v-overlay--absolute v-overlay--active v-overlay--contained v-theme--dark v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
+    <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
       <!---->
     </transition-stub>
-    <transition-stub name=\\"fade-transition\\" appear=\\"true\\" persisted=\\"true\\" css=\\"true\\">
-      <div class=\\"v-overlay__content\\">
-        <div data-v-e7291ef4=\\"\\" class=\\"v-progress-circular v-progress-circular--indeterminate v-theme--dark\\" style=\\"width: 64px; height: 64px;\\" role=\\"progressbar\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\" alt=\\"Request loading\\" data-test=\\"progress-circular\\"><svg style=\\"transform: rotate(calc(-90deg + 0deg));\\" xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 42.666666666666664 42.666666666666664\\">
-            <circle class=\\"v-progress-circular__underlay\\" fill=\\"transparent\\" cx=\\"50%\\" cy=\\"50%\\" r=\\"20\\" stroke-width=\\"2.6666666666666665\\" stroke-dasharray=\\"125.66370614359172\\" stroke-dashoffset=\\"0\\"></circle>
-            <circle class=\\"v-progress-circular__overlay\\" fill=\\"transparent\\" cx=\\"50%\\" cy=\\"50%\\" r=\\"20\\" stroke-width=\\"2.6666666666666665\\" stroke-dasharray=\\"125.66370614359172\\" stroke-dashoffset=\\"125.66370614359172px\\"></circle>
+    <transition-stub name="fade-transition" appear="true" persisted="true" css="true">
+      <div class="v-overlay__content">
+        <div data-v-e7291ef4="" class="v-progress-circular v-progress-circular--indeterminate v-theme--dark" style="width: 64px; height: 64px;" role="progressbar" aria-valuemin="0" aria-valuemax="100" alt="Request loading" data-test="progress-circular"><svg style="transform: rotate(calc(-90deg + 0deg));" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42.666666666666664 42.666666666666664">
+            <circle class="v-progress-circular__underlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="0"></circle>
+            <circle class="v-progress-circular__overlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="125.66370614359172px"></circle>
           </svg>
           <!---->
         </div>

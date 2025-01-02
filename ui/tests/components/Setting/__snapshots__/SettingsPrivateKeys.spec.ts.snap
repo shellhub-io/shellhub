@@ -1,20 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Setting Private Keys > Renders the component 1`] = `
-"<div class=\\"v-container v-container--fluid v-locale--is-ltr\\">
+"<div class="v-container v-container--fluid v-locale--is-ltr">
   <!---->
   <!---->
-  <div class=\\"v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent\\" data-test=\\"card\\">
+  <div class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="card">
     <!---->
-    <div class=\\"v-card__loader\\">
-      <div class=\\"v-progress-linear v-theme--light v-locale--is-ltr\\" style=\\"top: 0px; height: 0px; --v-progress-linear-height: 2px;\\" role=\\"progressbar\\" aria-hidden=\\"true\\" aria-valuemin=\\"0\\" aria-valuemax=\\"100\\">
+    <div class="v-card__loader">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
         <!---->
-        <div class=\\"v-progress-linear__background\\"></div>
-        <div class=\\"v-progress-linear__buffer\\" style=\\"width: 0%;\\"></div>
-        <transition-stub name=\\"fade-transition\\" appear=\\"false\\" persisted=\\"false\\" css=\\"true\\">
-          <div class=\\"v-progress-linear__indeterminate\\">
-            <div class=\\"v-progress-linear__indeterminate long\\"></div>
-            <div class=\\"v-progress-linear__indeterminate short\\"></div>
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
           </div>
         </transition-stub>
         <!---->
@@ -22,50 +22,50 @@ exports[`Setting Private Keys > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div class=\\"v-card-item\\">
+    <div class="v-card-item">
       <!---->
-      <div class=\\"v-card-item__content\\">
+      <div class="v-card-item__content">
         <!---->
         <!---->
-        <div class=\\"v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2\\" data-test=\\"card-header\\">
-          <!----><span class=\\"v-list-item__underlay\\"></span>
+        <div class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2" data-test="card-header">
+          <!----><span class="v-list-item__underlay"></span>
           <!---->
-          <div class=\\"v-list-item__content\\" data-no-activator=\\"\\">
-            <div class=\\"v-list-item-title\\">
-              <h1 data-test=\\"card-title\\">Private Keys</h1>
+          <div class="v-list-item__content" data-no-activator="">
+            <div class="v-list-item-title">
+              <h1 data-test="card-title">Private Keys</h1>
             </div>
-            <div class=\\"v-list-item-subtitle\\"><span data-test=\\"card-subtitle\\"> Manage your private keys securely with ShellHub </span></div>
+            <div class="v-list-item-subtitle"><span data-test="card-subtitle"> Manage your private keys securely with ShellHub </span></div>
             <!---->
           </div>
-          <div class=\\"v-list-item__append\\"><button type=\\"button\\" class=\\"v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border\\" data-test=\\"card-button\\"><span class=\\"v-btn__overlay\\"></span><span class=\\"v-btn__underlay\\"></span>
-              <!----><span class=\\"v-btn__content\\" data-no-activator=\\"\\">Add Private Key</span>
+          <div class="v-list-item__append"><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border" data-test="card-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator="">Add Private Key</span>
               <!---->
               <!---->
             </button>
-            <div class=\\"v-list-item__spacer\\"></div>
+            <div class="v-list-item__spacer"></div>
           </div>
         </div>
       </div>
       <!---->
     </div>
-    <div class=\\"v-table v-theme--light v-table--density-default bg-background border rounded mx-4\\" data-test=\\"private-key-list\\">
+    <div class="v-table v-theme--light v-table--density-default bg-background border rounded mx-4" data-test="private-key-list">
       <!---->
-      <div class=\\"v-table__wrapper\\">
+      <div class="v-table__wrapper">
         <table>
-          <thead class=\\"bg-v-theme-background\\" data-test=\\"privateKey-thead\\">
+          <thead class="bg-v-theme-background" data-test="privateKey-thead">
             <tr>
-              <th class=\\"text-center\\"><span>Name</span></th>
-              <th class=\\"text-center\\"><span>Fingerprint</span></th>
-              <th class=\\"text-center\\"><span>Actions</span></th>
+              <th class="text-center"><span>Name</span></th>
+              <th class="text-center"><span>Fingerprint</span></th>
+              <th class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
-          <div sm=\\"12\\" class=\\"text-start mt-2 mb-3\\" data-test=\\"no-private-key-warning\\"><span class=\\"ml-4\\">No data avaliable</span></div>
+          <div sm="12" class="text-start mt-2 mb-3" data-test="no-private-key-warning"><span class="ml-4">No data avaliable</span></div>
         </table>
       </div>
       <!---->
     </div>
     <!---->
-    <!----><span class=\\"v-card__underlay\\"></span>
+    <!----><span class="v-card__underlay"></span>
   </div>
 </div>"
 `;
