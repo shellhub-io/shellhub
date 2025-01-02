@@ -88,9 +88,6 @@ describe("Public Key Edit", () => {
     wrapper = mount(PublicKeyEdit, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
