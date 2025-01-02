@@ -28,7 +28,7 @@ func TestBinder(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.description, func(_ *testing.T) {
 		})
 	}
 }

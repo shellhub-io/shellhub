@@ -132,10 +132,10 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 
 			return &sshConn{conn, closeCallback, ctx}
 		},
-		LocalPortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
+		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&LocalPortForwardFeature > 0
 		},
-		ReversePortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
+		ReversePortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&ReversePortForwardFeature > 0
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{

@@ -11,7 +11,7 @@ import (
 var migration2 = migrate.Migration{
 	Version:     2,
 	Description: "Rename the column device to device_uid",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   2,
@@ -20,7 +20,7 @@ var migration2 = migrate.Migration{
 
 		return renameField(db, "sessions", "device", "device_uid")
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   2,

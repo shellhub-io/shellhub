@@ -12,7 +12,7 @@ import (
 var migration61 = migrate.Migration{
 	Version:     61,
 	Description: "delete devices with empty name",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   61,
@@ -27,7 +27,7 @@ var migration61 = migrate.Migration{
 
 		return nil
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		// This migration is not reversible.
 		return nil
 	}),

@@ -12,7 +12,7 @@ import (
 var migration57 = migrate.Migration{
 	Version:     57,
 	Description: "update billing state to status and its values",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   57,
@@ -86,7 +86,7 @@ var migration57 = migrate.Migration{
 
 		return nil
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   57,

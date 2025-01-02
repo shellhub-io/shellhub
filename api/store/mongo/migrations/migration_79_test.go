@@ -29,7 +29,7 @@ func TestMigration79(t *testing.T) {
 	}{
 		{
 			description: "Apply up on migration 79 when there is no user",
-			setup:       func(t *testing.T) {},
+			setup:       func(_ *testing.T) {},
 			run: func(t *testing.T) {
 				result := c.Database("test").Collection("system").FindOne(ctx, bson.M{})
 				require.NoError(t, result.Err())

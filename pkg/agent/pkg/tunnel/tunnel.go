@@ -60,13 +60,13 @@ func NewTunnel() *Tunnel {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
-		ConnHandler: func(e echo.Context) error {
+		ConnHandler: func(_ echo.Context) error {
 			panic("ConnHandler can not be nil")
 		},
-		CloseHandler: func(e echo.Context) error {
+		CloseHandler: func(_ echo.Context) error {
 			panic("CloseHandler can not be nil")
 		},
-		ProxyHandler: func(e echo.Context) error {
+		ProxyHandler: func(_ echo.Context) error {
 			panic("ProxyHandler can not be nil")
 		},
 	}

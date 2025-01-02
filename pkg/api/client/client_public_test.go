@@ -329,7 +329,7 @@ func TestAuthPublicKey(t *testing.T) {
 				Fingerprint: "cd:8a:1b:73:03:47:15:3c:7c:2b:df:5d:b9:64:63:77",
 				Data:        `{"Username":"test","Namespace":"namespace"}`,
 			},
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := mock.NewJsonResponder(401, nil)
 
 				mock.RegisterResponder("POST", "/api/auth/ssh", responder)
@@ -345,7 +345,7 @@ func TestAuthPublicKey(t *testing.T) {
 			request: &models.PublicKeyAuthRequest{
 				Fingerprint: "cd:8a:1b:73:03:47:15:3c:7c:2b:df:5d:b9:64:63:77",
 			},
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := mock.NewJsonResponder(400, nil)
 
 				mock.RegisterResponder("POST", "/api/auth/ssh", responder)
@@ -362,7 +362,7 @@ func TestAuthPublicKey(t *testing.T) {
 				Fingerprint: "cd:8a:1b:73:03:47:15:3c:7c:2b:df:5d:b9:64:63:77",
 				Data:        `{"Username":"test","Namespace":"namespace"}`,
 			},
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := mock.NewJsonResponder(404, nil)
 
 				mock.RegisterResponder("POST", "/api/auth/ssh", responder)
@@ -379,7 +379,7 @@ func TestAuthPublicKey(t *testing.T) {
 				Fingerprint: "cd:8a:1b:73:03:47:15:3c:7c:2b:df:5d:b9:64:63:77",
 				Data:        `{"Username":"test","Namespace":"namespace"}`,
 			},
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := mock.NewJsonResponder(200, models.PublicKeyAuthResponse{
 					Signature: "hgihFKUWAr1QB87Eb7FiBu9pMjTLLBgLXEqNIYd4S+UoOZ7xqozEMds9EvwB1TwCjMa+uAmZsB7qtARVvoVPrUNp/OBQ7iKzV2+GpIpRFfEqa0ugQBf+XQBfo/irDnH/wAixgoqC3KUyIk+nQxwz7wvgVDB0WTxD2eK9TzyD3WIOSVGlPWNytx7HTP0TTN5EJ0tjj/H4v1F9t+8Nd3ZGUz0z73rZ3qKbzXBJBkRyyDDtWo9lGIOcz5e4LcgojNVxznsHDXJ/2gBnRL6JHZQm6v3gCpzZRRXA+cagSSuJzWQwwDmwydfiAJsbSPeen4+X+IEkfrXBW1KHMRsZh1AtTw==",
 				})

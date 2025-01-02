@@ -13,7 +13,7 @@ import (
 var migration56 = migrate.Migration{
 	Version:     56,
 	Description: "create index for public url address on devices",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   56,
@@ -38,7 +38,7 @@ var migration56 = migrate.Migration{
 
 		return nil
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   56,
