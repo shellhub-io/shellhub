@@ -99,9 +99,9 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           working-directory: ${{ matrix.project }}
-          version: v1.54
+          version: v1.63.2
           args: --timeout 2m ${{ matrix.lint_args }} ./...
-          skip-pkg-cache: true
+          skip-cache: true
 
       - name: Unit test [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
