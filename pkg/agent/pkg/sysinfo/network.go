@@ -20,7 +20,7 @@ func PrimaryInterface() (*net.Interface, error) {
 	}
 
 	var ifdev *net.Interface
-	min := uint64(math.MaxUint16)
+	minValue := uint64(math.MaxUint16)
 
 	for i, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
@@ -51,8 +51,8 @@ func PrimaryInterface() (*net.Interface, error) {
 			continue
 		}
 
-		if ifindex < min {
-			min = ifindex
+		if ifindex < minValue {
+			minValue = ifindex
 			ifdev = &interfaces[i]
 		}
 	}
