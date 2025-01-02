@@ -31,7 +31,7 @@ func main() {
 	// Default command.
 	rootCmd := &cobra.Command{ // nolint: exhaustruct
 		Use: "agent",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
 
 			cfg, fields, err := agent.LoadConfigFromEnv()
@@ -185,7 +185,7 @@ func main() {
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "connector",
 		Short: "Starts the ShellHub Agent in Connector mode",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			cfg, fields, err := connector.LoadConfigFromEnv()
 			if err != nil {
 				log.WithError(err).
@@ -223,7 +223,7 @@ func main() {
 	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
 		Use:   "info",
 		Short: "Show information about the agent",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
 
 			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
@@ -265,7 +265,7 @@ func main() {
 		Short: "Starts the SFTP server",
 		Long: `Starts the SFTP server. This command is used internally by the agent and should not be used directly.
 It is initialized by the agent when a new SFTP session is created.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			agent.NewSFTPServer(command.SFTPServerMode(args[0]))
 		},
 	})

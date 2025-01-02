@@ -330,7 +330,7 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 	}
 	defer session.EndSession(ctx)
 
-	fn := func(sessCtx mongo.SessionContext) (interface{}, error) {
+	fn := func(_ mongo.SessionContext) (interface{}, error) {
 		res, err := s.db.
 			Collection("namespaces").
 			UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$pull": bson.M{"members": bson.M{"id": memberID}}})

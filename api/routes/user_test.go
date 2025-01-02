@@ -166,7 +166,7 @@ func TestUpdateUserPassword(t *testing.T) {
 					ID: "123",
 				},
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -179,7 +179,7 @@ func TestUpdateUserPassword(t *testing.T) {
 				CurrentPassword: "fail",
 				NewPassword:     "new_password",
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -192,7 +192,7 @@ func TestUpdateUserPassword(t *testing.T) {
 				CurrentPassword: "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
 				NewPassword:     "new_password",
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -205,7 +205,7 @@ func TestUpdateUserPassword(t *testing.T) {
 				CurrentPassword: "new_password",
 				NewPassword:     "fail",
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -218,7 +218,7 @@ func TestUpdateUserPassword(t *testing.T) {
 				CurrentPassword: "new_password",
 				NewPassword:     "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -231,7 +231,7 @@ func TestUpdateUserPassword(t *testing.T) {
 				NewPassword:     "duplicate",
 				CurrentPassword: "duplicate",
 			},
-			requiredMocks:  func(updatePayloadMock requests.UserPasswordUpdate) {},
+			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{

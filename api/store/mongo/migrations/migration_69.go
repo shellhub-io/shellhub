@@ -74,7 +74,7 @@ var migration69 = migrate.Migration{
 			}
 			defer mongoSession.EndSession(ctx)
 
-			_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
+			_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (interface{}, error) {
 				if _, err := db.Collection("api_keys").BulkWrite(ctx, updateModels); err != nil {
 					return nil, err
 				}
@@ -91,7 +91,7 @@ var migration69 = migrate.Migration{
 
 		return nil
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		log.
 			WithFields(log.Fields{
 				"component": "migration",

@@ -47,7 +47,7 @@ func TestPublicKey(t *testing.T) {
 			name:         "return false when user is not found",
 			user:         "",
 			key:          nil,
-			requiredMocs: func(apiMock *clientMocks.Client) {},
+			requiredMocs: func(_ *clientMocks.Client) {},
 			expected:     false,
 		},
 		{

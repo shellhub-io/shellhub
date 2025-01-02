@@ -23,7 +23,7 @@ import (
 
 var serverCmd = &cobra.Command{
 	Use: "server",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		ctx, cancel := context.WithCancel(cmd.Context())
 
 		sigs := make(chan os.Signal, 1)

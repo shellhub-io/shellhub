@@ -51,7 +51,7 @@ func NewSFTPServer(mode command.SFTPServerMode) {
 		return
 	}
 
-	toInt := func(s string, ok bool) (int, error) {
+	toInt := func(s string, _ bool) (int, error) {
 		i, err := strconv.Atoi(s)
 		if err != nil {
 			return 0, err

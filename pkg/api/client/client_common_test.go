@@ -24,7 +24,7 @@ func TestListDevices(t *testing.T) {
 	}{
 		{
 			description: "success to list devices when its list is empty",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := httpmock.NewJsonResponder(200, []models.Device{{}})
 				httpmock.RegisterResponder("GET", "/api/devices", responder)
 			},
@@ -35,7 +35,7 @@ func TestListDevices(t *testing.T) {
 		},
 		{
 			description: "success to list devices when its list is not empty",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := httpmock.NewJsonResponder(200, []models.Device{
 					{
 						UID: "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
@@ -60,7 +60,7 @@ func TestListDevices(t *testing.T) {
 		},
 		{
 			description: "success to list devices after retry",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				fail := httpmock.NewErrorResponder(errors.New("error on request"))
 				success, _ := httpmock.NewJsonResponder(200, []models.Device{
 					{
@@ -91,7 +91,7 @@ func TestListDevices(t *testing.T) {
 		},
 		{
 			description: "failed when resource is not found",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := httpmock.NewJsonResponder(404, nil)
 				httpmock.RegisterResponder("GET", "/api/devices", responder)
 			},
@@ -102,7 +102,7 @@ func TestListDevices(t *testing.T) {
 		},
 		{
 			description: "failed when request is missformated",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := httpmock.NewJsonResponder(400, nil)
 				httpmock.RegisterResponder("GET", "/api/devices", responder)
 			},
@@ -113,7 +113,7 @@ func TestListDevices(t *testing.T) {
 		},
 		{
 			description: "failed when request return an unmaped status code",
-			requiredMocks: func(client *http.Client) {
+			requiredMocks: func(_ *http.Client) {
 				responder, _ := httpmock.NewJsonResponder(418, nil)
 				httpmock.RegisterResponder("GET", "/api/devices", responder)
 			},
