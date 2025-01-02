@@ -36,6 +36,7 @@ func getDimensions(req *http.Request) (int, int, error) {
 		return 0, 0, errors.Join(ErrGetDimensions, err)
 	}
 
+	// nolint: gosec // cols and rows are uint8, so we can safely convert them to int.
 	return int(cols), int(rows), nil
 }
 
