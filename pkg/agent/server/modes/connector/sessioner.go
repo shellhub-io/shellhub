@@ -49,7 +49,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		return ErrUserNotFound
 	}
 
-	resp, id, err := attachShellToContainer(session.Context(), s.docker, container, user, [2]uint{uint(sspty.Window.Height), uint(sspty.Window.Width)})
+	resp, id, err := attachShellToContainer(session.Context(), s.docker, container, user, [2]int{sspty.Window.Height, sspty.Window.Width})
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return ErrUserNotFound
 	}
 
-	resp, id, err := attachExecToContainer(session.Context(), s.docker, container, user, isPty, session.Command(), [2]uint{uint(sspty.Window.Height), uint(sspty.Window.Width)})
+	resp, id, err := attachExecToContainer(session.Context(), s.docker, container, user, isPty, session.Command(), [2]int{sspty.Window.Height, sspty.Window.Width})
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		return ErrUserNotFound
 	}
 
-	resp, id, err := attachHereDocToContainer(session.Context(), s.docker, container, user, [2]uint{uint(sspty.Window.Height), uint(sspty.Window.Width)})
+	resp, id, err := attachHereDocToContainer(session.Context(), s.docker, container, user, [2]int{sspty.Window.Height, sspty.Window.Width})
 	if err != nil {
 		return err
 	}

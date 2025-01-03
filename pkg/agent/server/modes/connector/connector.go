@@ -19,27 +19,32 @@ type Mode struct {
 	Sessioner
 }
 
-func attachShellToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]uint) (*types.HijackedResponse, string, error) {
+func attachShellToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]int) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "shell", container, user, true, []string{}, size)
 }
 
-func attachExecToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, isPty bool, commands []string, size [2]uint) (*types.HijackedResponse, string, error) {
+func attachExecToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "exec", container, user, isPty, commands, size)
 }
 
-func attachHereDocToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]uint) (*types.HijackedResponse, string, error) {
+func attachHereDocToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]int) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "heredoc", container, user, false, []string{}, size)
 }
 
-func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestType string, container string, user *osauth.User, isPty bool, commands []string, size [2]uint) (*types.HijackedResponse, string, error) {
+func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestType string, container string, user *osauth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
 	if user.Shell == "" {
 		user.Shell = "/bin/sh"
+	}
+
+	s := &[2]uint{
+		uint(size[0]), //nolint:gosec
+		uint(size[1]), //nolint:gosec
 	}
 
 	id, err := cli.ContainerExecCreate(ctx, container, dockercontainer.ExecOptions{
 		User:         user.Username,
 		Tty:          isPty,
-		ConsoleSize:  &size,
+		ConsoleSize:  s,
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -68,7 +73,7 @@ func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestT
 
 	res, err := cli.ContainerExecAttach(ctx, id.ID, dockercontainer.ExecStartOptions{
 		Tty:         isPty,
-		ConsoleSize: &size,
+		ConsoleSize: s,
 	})
 
 	return &res, id.ID, err

@@ -41,7 +41,7 @@ type Server struct {
 	deviceName        string
 	containerID       string
 	mu                sync.Mutex
-	keepAliveInterval uint
+	keepAliveInterval uint32
 
 	// mode is the mode of the server, identifing where and how the SSH's server is running.
 	//
@@ -92,7 +92,7 @@ type Config struct {
 	// PrivateKey is the path for the SSH server private key.
 	PrivateKey string
 	// KeepAliveInterval stores the time between each SSH keep alive request.
-	KeepAliveInterval uint
+	KeepAliveInterval uint32
 	// Features list of featues on SSH server.
 	Features Feature
 }
