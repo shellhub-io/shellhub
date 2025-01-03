@@ -19,18 +19,12 @@ var _ Connector = new(DockerConnector)
 
 // DockerConnector is a struct that represents a connector that uses Docker as the container runtime.
 type DockerConnector struct {
-	mu sync.Mutex
-	// server is the ShellHub address of the server that the agent will connect to.
-	server string
-	// tenant is the tenant ID of the namespace that the agent belongs to.
-	tenant string
-	// cli is the Docker client.
-	cli *dockerclient.Client
-	// privateKeys is the path to the directory that contains the private keys for the containers.
+	cli         *dockerclient.Client
+	cancels     map[string]context.CancelFunc
+	server      string
+	tenant      string
 	privateKeys string
-	// cancels is a map that contains the cancel functions for each container.
-	// This is used to stop the agent for a container, marking as done its context and closing the agent.
-	cancels map[string]context.CancelFunc
+	mu          sync.Mutex
 }
 
 // Config provides the configuration for the agent connector service.

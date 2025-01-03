@@ -31,15 +31,10 @@ func (cs CronSpec) MustValidate() {
 type CronHandler func(ctx context.Context) error
 
 type Cronjob struct {
-	// Identifier is a UUID for the cron job, used internally to register the task with the
-	// scheduler.
+	Handler    CronHandler
 	Identifier string
-	// Spec is the cron expression that defines the schedule for the cron job.
-	Spec CronSpec
-	// Handler is the callback function that will be executed when the cron specification is met.
-	Handler CronHandler
-	// Unique defines whether the task cannot be perfomed concurrently.
-	Unique bool
+	Spec       CronSpec
+	Unique     bool
 }
 
 type CronjobOption func(c *Cronjob)

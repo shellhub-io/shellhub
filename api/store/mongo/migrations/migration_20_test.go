@@ -17,9 +17,9 @@ func TestMigration20(t *testing.T) {
 	})
 
 	type firewallRule struct {
-		ID                        primitive.ObjectID `json:"id" bson:"_id"`
-		TenantID                  string             `json:"tenant_id" bson:"tenant_id"`
+		TenantID                  string `json:"tenant_id" bson:"tenant_id"`
 		models.FirewallRuleFields `bson:",inline"`
+		ID                        primitive.ObjectID `json:"id" bson:"_id"`
 	}
 
 	fRule := firewallRule{

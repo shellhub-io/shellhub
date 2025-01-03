@@ -37,16 +37,16 @@ func TestMigration17(t *testing.T) {
 	}
 
 	type Namespace struct {
+		CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+		Settings     *NamespaceSettings `json:"settings"`
 		Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
 		Owner        string             `json:"owner"`
 		TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
 		Members      []Member           `json:"members" bson:"members"`
-		Settings     *NamespaceSettings `json:"settings"`
 		Devices      int                `json:"devices" bson:",omitempty"`
 		Sessions     int                `json:"sessions" bson:",omitempty"`
 		MaxDevices   int                `json:"max_devices" bson:"max_devices"`
 		DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
-		CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
 	}
 
 	namespace := Namespace{

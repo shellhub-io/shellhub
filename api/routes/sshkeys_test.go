@@ -27,10 +27,10 @@ func TestGetPublicKeys(t *testing.T) {
 		expectedStatus  int
 	}
 	cases := []struct {
-		description   string
-		paginator     query.Paginator
 		requiredMocks func(query query.Paginator)
+		description   string
 		expected      Expected
+		paginator     query.Paginator
 	}{
 		{
 			description: "success when try to list a publics keys exists",
@@ -181,10 +181,10 @@ func TestDeletePublicKey(t *testing.T) {
 	svcMock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		fingerprint   string
 		headers       map[string]string
 		requiredMocks func()
+		description   string
+		fingerprint   string
 		expected      Expected
 	}{
 		{
@@ -293,11 +293,11 @@ func TestRemovePublicKeyTag(t *testing.T) {
 	svcMock := new(mocks.Service)
 
 	cases := []struct {
+		headers       map[string]string
+		requiredMocks func()
 		description   string
 		tag           string
 		fingerprint   string
-		headers       map[string]string
-		requiredMocks func()
 		expected      Expected
 	}{
 		{
@@ -437,11 +437,11 @@ func TestAddPublicKeyTag(t *testing.T) {
 	svcMock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
-		fingerprint   string
 		headers       map[string]string
 		body          map[string]interface{}
 		requiredMocks func()
+		description   string
+		fingerprint   string
 		expected      Expected
 	}{
 		{
@@ -599,8 +599,8 @@ func TestCreatePrivateKey(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
 		requiredMocks  func()
+		title          string
 		expectedStatus int
 	}{
 		{

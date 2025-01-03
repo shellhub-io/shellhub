@@ -23,13 +23,13 @@ const (
 )
 
 type Adapter struct {
-	conn       *websocket.Conn
-	readMutex  sync.Mutex
-	writeMutex sync.Mutex
 	reader     io.Reader
+	conn       *websocket.Conn
 	stopPingCh chan struct{}
 	pongCh     chan bool
 	Logger     *log.Entry
+	readMutex  sync.Mutex
+	writeMutex sync.Mutex
 }
 
 func (a *Adapter) WithID(requestID string) *Adapter {

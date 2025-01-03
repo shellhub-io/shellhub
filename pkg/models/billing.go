@@ -49,33 +49,13 @@ const (
 
 // Billing contains information about the ShellHub's subscription.
 type Billing struct {
-	// Active indicates if the subscription is active.
-	// IT IS THE SOURCE OF TRUTH THAT DEFINES WHETHER A SUBSCRIPTION IS ACTIVE OR NOT and change due to the status of
-	// the subscription.
-	//
-	// A subscription is active if its status is `active`, `trailing`, `past_due` or `to_cancel_at_end_of_period`.
-	// `past_due` is a temporary status that occurs when a payment to renew the subscription fails, but the subscription
-	// has not been canceled yet.
-	// `to_cancel_at_end_of_period` is a custom status used by this package to indicate that the subscription is set to
-	// cancel at the end of the period.
-	// A subscription is not active if its status is `incomplete`, `incomplete_expired`, `canceled`, `unpaid` or `paused`.
-	// TODO: evaluate if `paused` should be considered active.
-	Active bool `json:"active" bson:"active"`
-	// Status is the current status of the subscription.
-	Status BillingStatus `json:"status" bson:"status"`
-	// Customer is the ID of the customer the subscription belongs to.
-	// Customer string `json:"customer" bson:"customer"`
-	CustomerID string `json:"customer_id" bson:"customer_id"`
-	// SubscriptionID is the ID of the subscription.
-	SubscriptionID string `json:"subscription_id" bson:"subscription_id"`
-	// CurrentPeriodEnd is the end of the current period.
-	CurrentPeriodEnd int64 `json:"current_period_end" bson:"current_period_end"`
-	// CreatedAt is the time at which this billing was created.
-	// It must follow the RFC 3339 format.
-	CreatedAt string `json:"created_at" bson:"created_at"`
-	// UpdatedAt is the time at which this billing was last updated.
-	// It must follow the RFC 3339 format.
-	UpdatedAt string `json:"updated_at" bson:"updated_at"`
+	Status           BillingStatus `json:"status" bson:"status"`
+	CustomerID       string        `json:"customer_id" bson:"customer_id"`
+	SubscriptionID   string        `json:"subscription_id" bson:"subscription_id"`
+	CreatedAt        string        `json:"created_at" bson:"created_at"`
+	UpdatedAt        string        `json:"updated_at" bson:"updated_at"`
+	CurrentPeriodEnd int64         `json:"current_period_end" bson:"current_period_end"`
+	Active           bool          `json:"active" bson:"active"`
 }
 
 func NewBilling(status BillingStatus, customer, subscription string, currentPeridoEnd int64) *Billing {

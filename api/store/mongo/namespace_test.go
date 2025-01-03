@@ -20,17 +20,17 @@ import (
 
 func TestNamespaceList(t *testing.T) {
 	type Expected struct {
+		err   error
 		ns    []models.Namespace
 		count int
-		err   error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
-		page        query.Paginator
 		filters     query.Filters
 		fixtures    []string
-		expected    Expected
+		page        query.Paginator
 	}{
 		{
 			description: "succeeds when namespaces list is not empty",
@@ -154,10 +154,10 @@ func TestNamespaceGet(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -223,10 +223,10 @@ func TestNamespaceGetByName(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		name        string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when namespace is not found",
@@ -291,10 +291,10 @@ func TestNamespaceGetPreferred(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		memberID    string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when member is not found",
@@ -365,10 +365,10 @@ func TestNamespaceCreate(t *testing.T) {
 	}
 
 	cases := []struct {
-		description string
-		ns          *models.Namespace
-		fixtures    []string
 		expected    Expected
+		ns          *models.Namespace
+		description string
+		fixtures    []string
 	}{
 		{
 			description: "succeeds when data is valid",
@@ -423,11 +423,11 @@ func TestNamespaceCreate(t *testing.T) {
 
 func TestNamespaceEdit(t *testing.T) {
 	cases := []struct {
+		expected    error
+		changes     *models.NamespaceChanges
 		description string
 		tenant      string
-		changes     *models.NamespaceChanges
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -466,11 +466,11 @@ func TestNamespaceEdit(t *testing.T) {
 
 func TestNamespaceUpdate(t *testing.T) {
 	cases := []struct {
+		expected    error
+		ns          *models.Namespace
 		description string
 		tenant      string
-		ns          *models.Namespace
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -513,10 +513,10 @@ func TestNamespaceUpdate(t *testing.T) {
 
 func TestNamespaceDelete(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		tenant      string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when namespace is not found",
@@ -553,11 +553,11 @@ func TestNamespaceAddMember(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
+		member      *models.Member
 		description string
 		tenantID    string
-		member      *models.Member
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -620,12 +620,12 @@ func TestNamespaceUpdateMember(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
+		changes     *models.MemberChanges
 		description string
 		tenantID    string
 		memberID    string
-		changes     *models.MemberChanges
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
@@ -682,11 +682,11 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenantID    string
 		memberID    string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -735,11 +735,11 @@ func TestNamespaceRemoveMember(t *testing.T) {
 
 func TestNamespaceSetSessionRecord(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		tenant      string
-		sessionRec  bool
 		fixtures    []string
-		expected    error
+		sessionRec  bool
 	}{
 		{
 			description: "fails when tenant is not found",
@@ -774,15 +774,15 @@ func TestNamespaceSetSessionRecord(t *testing.T) {
 
 func TestNamespaceGetSessionRecord(t *testing.T) {
 	type Expected struct {
-		set bool
 		err error
+		set bool
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when tenant is not found",

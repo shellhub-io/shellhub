@@ -24,16 +24,16 @@ func TestListSessions(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
+		err      error
 		sessions []models.Session
 		count    int
-		err      error
 	}
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func(paginator query.Paginator)
 		description   string
 		paginator     query.Paginator
-		requiredMocks func(paginator query.Paginator)
-		expected      Expected
 	}{
 		{
 			description: "fails",
@@ -100,11 +100,11 @@ func TestGetSession(t *testing.T) {
 	}
 
 	cases := []struct {
-		name          string
-		ctx           context.Context
-		uid           models.UID
-		requiredMocks func()
 		expected      Expected
+		ctx           context.Context
+		requiredMocks func()
+		name          string
+		uid           models.UID
 	}{
 		{
 			name: "fails when session is not found",
@@ -168,10 +168,10 @@ func TestCreateSession(t *testing.T) {
 	Err := goerrors.New("error")
 
 	cases := []struct {
-		name          string
-		session       requests.SessionCreate
-		requiredMocks func()
 		expected      Expected
+		requiredMocks func()
+		session       requests.SessionCreate
+		name          string
 	}{
 		{
 			name:    "fails",
@@ -222,10 +222,10 @@ func TestDeactivateSession(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		name          string
 		uid           models.UID
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			name: "fails when session is not found",
@@ -277,11 +277,11 @@ func TestUpdateSession(t *testing.T) {
 	theTrue := true
 
 	cases := []struct {
+		model         models.SessionUpdate
+		expected      error
+		requiredMocks func()
 		name          string
 		uid           models.UID
-		model         models.SessionUpdate
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			name:  "fails when cannot get the session",

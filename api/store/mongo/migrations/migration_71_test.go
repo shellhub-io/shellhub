@@ -19,9 +19,9 @@ func TestMigration71Up(t *testing.T) {
 	envs.DefaultBackend = mock
 
 	cases := []struct {
-		description string
 		setup       func() error
 		test        func() error
+		description string
 	}{
 		{
 			description: "Success to apply up on migration 71",
@@ -73,9 +73,9 @@ func TestMigration71Down(t *testing.T) {
 	envs.DefaultBackend = mock
 
 	cases := []struct {
-		description string
 		setup       func() error
 		test        func() error
+		description string
 	}{
 		{
 			description: "Success to apply up on migration 71",

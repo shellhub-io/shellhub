@@ -6,8 +6,8 @@ import (
 
 func TestBinder(t *testing.T) {
 	cases := []struct {
-		description string
 		expected    error
+		description string
 	}{
 		{
 			description: "succeeds to bind json body",

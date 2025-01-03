@@ -13,8 +13,8 @@ import (
 
 func TestMigration49(t *testing.T) {
 	cases := []struct {
-		description string
 		Test        func(t *testing.T)
+		description string
 	}{
 		{
 			"Success to apply up on migration 49",

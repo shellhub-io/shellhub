@@ -37,10 +37,10 @@ type Status struct {
 }
 
 type Signal struct {
-	Name    uint32 `json:"status"`
-	Dumped  bool   `json:"dumped"`
 	Message string `json:"message"`
 	Lang    string `json:"lang"`
+	Name    uint32 `json:"status"`
+	Dumped  bool   `json:"dumped"`
 }
 
 type Dimensions struct {
@@ -53,11 +53,11 @@ type Dimensions struct {
 // NOTICE: [Pty] cannot use [Dimensions] inside itself due [ssh.Unmarshal] issues.
 type Pty struct {
 	Term     string `json:"term"`
+	Modelist []byte `json:"modelist"`
 	Columns  uint32 `json:"columns" `
 	Rows     uint32 `json:"rows"`
 	Width    uint32 `json:"width"`
 	Height   uint32 `json:"height"`
-	Modelist []byte `json:"modelist"`
 }
 
 type Data struct {

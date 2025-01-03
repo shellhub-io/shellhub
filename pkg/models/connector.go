@@ -31,11 +31,8 @@ type ConnectorData struct {
 }
 
 type Connector struct {
-	// UID is the unique identifier of Connector.
-	UID string `json:"uid" bson:"uid"`
-	// TenantID indicate which namespace this connector is related.
-	TenantID string `json:"tenant_id" bson:"tenant_id"`
-	// Status shows the connection status for the connector.
-	Status        ConnectorStatus `json:"status" bson:"-"`
 	ConnectorData `bson:",inline"`
+	Status        ConnectorStatus `json:"status" bson:"-"`
+	UID           string          `json:"uid" bson:"uid"`
+	TenantID      string          `json:"tenant_id" bson:"tenant_id"`
 }

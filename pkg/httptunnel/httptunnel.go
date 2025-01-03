@@ -30,14 +30,14 @@ const (
 )
 
 type Tunnel struct {
-	ConnectionPath    string
-	DialerPath        string
 	ConnectionHandler func(*http.Request) (string, error)
 	CloseHandler      func(string)
 	KeepAliveHandler  func(string)
 	connman           *connman.ConnectionManager
 	id                chan string
 	online            chan bool
+	ConnectionPath    string
+	DialerPath        string
 }
 
 func NewTunnel(connectionPath, dialerPath string) *Tunnel {

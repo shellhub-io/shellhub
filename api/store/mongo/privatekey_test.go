@@ -12,10 +12,10 @@ import (
 
 func TestPrivateKeyCreate(t *testing.T) {
 	cases := []struct {
-		description string
-		priKey      *models.PrivateKey
-		fixtures    []string
 		expected    error
+		priKey      *models.PrivateKey
+		description string
+		fixtures    []string
 	}{
 		{
 			description: "succeeds when data is valid",
@@ -51,10 +51,10 @@ func TestPrivateKeyGet(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		fingerprint string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when private key is not found",

@@ -26,11 +26,11 @@ func TestMigration19(t *testing.T) {
 	}
 
 	type PublicKey struct {
-		Data            []byte    `json:"data"`
-		Fingerprint     string    `json:"fingerprint"`
 		CreatedAt       time.Time `json:"created_at" bson:"created_at"`
-		TenantID        string    `json:"tenant_id" bson:"tenant_id"`
 		PublicKeyFields `bson:",inline"`
+		Fingerprint     string `json:"fingerprint"`
+		TenantID        string `json:"tenant_id" bson:"tenant_id"`
+		Data            []byte `json:"data"`
 	}
 
 	pk := PublicKey{

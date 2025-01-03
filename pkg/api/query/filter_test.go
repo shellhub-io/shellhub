@@ -9,10 +9,10 @@ import (
 
 func TestFilterUnmarshalJSON(t *testing.T) {
 	cases := []struct {
-		description string
-		filter      *Filter
-		data        string
 		expected    error
+		filter      *Filter
+		description string
+		data        string
 	}{
 		{
 			description: "",

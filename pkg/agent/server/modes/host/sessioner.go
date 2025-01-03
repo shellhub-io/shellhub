@@ -24,12 +24,9 @@ var _ modes.Sessioner = (*Sessioner)(nil)
 
 // Sessioner implements the Sessioner interface when the server is running in host mode.
 type Sessioner struct {
-	mu   sync.Mutex
-	cmds map[string]*exec.Cmd
-	// deviceName is the device name.
-	//
-	// NOTICE: It's a pointer because when the server is created, we don't know the device name yet, that is set later.
+	cmds       map[string]*exec.Cmd
 	deviceName *string
+	mu         sync.Mutex
 }
 
 func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {

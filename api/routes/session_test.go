@@ -30,10 +30,10 @@ func TestGetSessionList(t *testing.T) {
 		expectedStatus  int
 	}
 	cases := []struct {
-		description   string
-		paginator     query.Paginator
 		requiredMocks func(paginator query.Paginator)
+		description   string
 		expected      Expected
+		paginator     query.Paginator
 	}{
 		{
 			description: "fails when try to searching a session list of a existing session",
@@ -172,9 +172,9 @@ func TestCreateSession(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
-		request        requests.SessionCreate
 		requiredMocks  func()
+		request        requests.SessionCreate
+		title          string
 		expectedStatus int
 	}{
 		{
@@ -265,9 +265,9 @@ func TestFinishSession(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func()
 		title          string
 		uid            string
-		requiredMocks  func()
 		expectedStatus int
 	}{
 		{

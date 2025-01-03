@@ -20,17 +20,17 @@ func TestGetTags(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
+		Error error
 		Tags  []string
 		Count int
-		Error error
 	}
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		name          string
 		uid           models.UID
 		tenantID      string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			name:     "fail when namespace is not found",
@@ -104,12 +104,12 @@ func TestRenameTag(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		name          string
 		tenantID      string
 		currentTag    string
 		newTag        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			name:          "fail when tag is invalid",
@@ -246,11 +246,11 @@ func TestDeleteTag(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		name          string
 		tag           string
 		tenant        string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			name:   "fail when tag is invalid",

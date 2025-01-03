@@ -16,10 +16,10 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 	storeMock := new(storemocks.Store)
 
 	cases := []struct {
+		expected      error
+		requiredMocks func(context.Context)
 		description   string
 		payload       []byte
-		requiredMocks func(context.Context)
-		expected      error
 	}{
 		{
 			description: "fails when cannot set the status",

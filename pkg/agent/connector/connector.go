@@ -10,19 +10,12 @@ var ConnectorVersion string
 
 // Container is a struct that represents a container that will be managed by the connector.
 type Container struct {
-	// ID is the container ID.
-	ID string
-	// Name is the container name.
-	Name string
-	// ServerAddress is the ShellHub address of the server that the agent will connect to.
+	Cancel        context.CancelFunc
+	ID            string
+	Name          string
 	ServerAddress string
-	// Tenant is the tenant ID of the namespace that the agent belongs to.
-	Tenant string
-	// PrivateKey is the private key of the device. Specify the path to store the container private key. If not
-	// provided, the agent will generate a new one. This is required.
-	PrivateKey string
-	// Cancel is a function that is used to stop the goroutine that is running the agent for this container.
-	Cancel context.CancelFunc
+	Tenant        string
+	PrivateKey    string
 }
 
 // Connector is an interface that defines the methods that a connector must implement.

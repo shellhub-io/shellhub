@@ -26,10 +26,10 @@ func TestSetup(t *testing.T) {
 	servicesMock := new(serviceMocks.Service)
 
 	tests := []struct {
+		requiredMocks func()
 		description   string
 		queries       string
 		body          string
-		requiredMocks func()
 		expected      int
 	}{
 		{

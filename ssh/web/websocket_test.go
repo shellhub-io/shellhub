@@ -9,14 +9,14 @@ import (
 
 func TestGetToken(t *testing.T) {
 	type Expected struct {
-		token string
 		err   error
+		token string
 	}
 
 	tests := []struct {
+		expected    Expected
 		description string
 		uri         string
-		expected    Expected
 	}{
 		{
 			description: "fail when token is not set",
@@ -58,15 +58,15 @@ func TestGetToken(t *testing.T) {
 
 func TestGetDimensions(t *testing.T) {
 	type Expected struct {
+		err  error
 		cols int
 		rows int
-		err  error
 	}
 
 	tests := []struct {
+		expected    Expected
 		description string
 		uri         string
-		expected    Expected
 	}{
 		{
 			description: "fail when cols and rows is not set",
@@ -167,14 +167,14 @@ func TestGetDimensions(t *testing.T) {
 
 func TestGetIP(t *testing.T) {
 	type Expected struct {
-		ip  string
 		err error
+		ip  string
 	}
 
 	tests := []struct {
-		description string
-		req         *http.Request
 		expected    Expected
+		req         *http.Request
+		description string
 	}{
 		{
 			description: "fail when IP is not set",

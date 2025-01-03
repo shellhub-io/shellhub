@@ -10,16 +10,16 @@ import (
 
 func TestTagsGet(t *testing.T) {
 	type Expected struct {
+		err  error
 		tags []string
 		len  int
-		err  error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when tag is found",
@@ -62,17 +62,17 @@ func TestTagsGet(t *testing.T) {
 
 func TestTagsRename(t *testing.T) {
 	type Expected struct {
-		count int64
 		err   error
+		count int64
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when tag is found",
@@ -104,16 +104,16 @@ func TestTagsRename(t *testing.T) {
 
 func TestTagsDelete(t *testing.T) {
 	type Expected struct {
-		count int64
 		err   error
+		count int64
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when tag is found",

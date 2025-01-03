@@ -8,9 +8,9 @@ import (
 
 func TestPaginatorNormalize(t *testing.T) {
 	cases := []struct {
-		description string
 		paginator   *Paginator
 		expected    *Paginator
+		description string
 	}{
 		{
 			description: "set Page to MinParge when Page is lower than 1",

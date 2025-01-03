@@ -22,10 +22,10 @@ func TestGetInfo(t *testing.T) {
 	}
 
 	tests := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		version       string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "success to get info",
@@ -150,10 +150,10 @@ func TestAuthDevice(t *testing.T) {
 	}
 
 	tests := []struct {
-		description   string
+		expected      Expected
 		request       *models.DeviceAuthRequest
 		requiredMocks func()
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "success to auth device",
@@ -316,11 +316,11 @@ func TestAuthPublicKey(t *testing.T) {
 	}
 
 	tests := []struct {
-		description   string
-		request       *models.PublicKeyAuthRequest
-		token         string
-		requiredMocks func(client *http.Client)
 		expected      Expected
+		request       *models.PublicKeyAuthRequest
+		requiredMocks func(client *http.Client)
+		description   string
+		token         string
 	}{
 		{
 			description: "fail to auth public key when token is empty",
@@ -418,10 +418,10 @@ func TestReverseListener(t *testing.T) {
 	mock := new(reversermock.IReverser)
 
 	tests := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		token         string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description:   "fail when token is empty",

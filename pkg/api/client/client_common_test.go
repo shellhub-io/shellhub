@@ -13,14 +13,14 @@ import (
 
 func TestListDevices(t *testing.T) {
 	type Expected struct {
-		devices []models.Device
 		err     error
+		devices []models.Device
 	}
 
 	tests := []struct {
-		description   string
-		requiredMocks func(client *http.Client)
 		expected      Expected
+		requiredMocks func(client *http.Client)
+		description   string
 	}{
 		{
 			description: "success to list devices when its list is empty",
@@ -150,10 +150,10 @@ func TestGetDevice(t *testing.T) {
 	}
 
 	tests := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		uid           string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "success to get device",

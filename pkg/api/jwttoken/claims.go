@@ -23,9 +23,9 @@ type (
 	// into [github.com/shellhub-io/shellhub/pkg/api/authorizer.UserClaims] to convert it into
 	// [github.com/golang-jwt/jwt/v4.Claims] for use in an [encode] call.
 	userClaims struct {
+		jwt.RegisteredClaims
 		Kind claimKind `json:"claims"`
 		authorizer.UserClaims
-		jwt.RegisteredClaims
 	}
 
 	// deviceClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v4.RegisteredClaims]

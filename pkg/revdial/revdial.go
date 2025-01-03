@@ -50,17 +50,16 @@ const dialerKeepAliveTimeout = 35 * time.Second
 
 // The Dialer can create new connections.
 type Dialer struct {
-	conn       net.Conn // hijacked client conn
-	path       string   // e.g. "/revdial"
-	uniqID     string
-	pickupPath string // path + uniqID: "/revdial?revdial.dialer="+uniqID
-
+	conn         net.Conn
 	incomingConn chan net.Conn
 	pickupFailed chan error
 	connReady    chan bool
 	donec        chan struct{}
-	closeOnce    sync.Once
 	logger       *log.Entry
+	path         string
+	uniqID       string
+	pickupPath   string
+	closeOnce    sync.Once
 }
 
 var dialers = sync.Map{}
@@ -293,14 +292,13 @@ var _ net.Listener = (*Listener)(nil)
 // Listener is a net.Listener, returning new connections which arrive
 // from a corresponding Dialer.
 type Listener struct {
-	sc     net.Conn
-	connc  chan net.Conn
-	donec  chan struct{}
-	dial   func(context.Context, string) (*websocket.Conn, *http.Response, error)
-	writec chan<- []byte
-
-	mu      sync.Mutex // guards below, closing connc, and writing to rw
+	sc      net.Conn
 	readErr error
+	connc   chan net.Conn
+	donec   chan struct{}
+	dial    func(context.Context, string) (*websocket.Conn, *http.Response, error)
+	writec  chan<- []byte
+	mu      sync.Mutex
 	closed  bool
 }
 

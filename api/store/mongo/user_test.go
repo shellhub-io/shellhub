@@ -19,17 +19,17 @@ import (
 
 func TestUserList(t *testing.T) {
 	type Expected struct {
+		err   error
 		users []models.User
 		count int
-		err   error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
-		page        query.Paginator
 		filters     query.Filters
 		fixtures    []string
-		expected    Expected
+		page        query.Paginator
 	}{
 		{
 			description: "succeeds when users are found",
@@ -208,10 +208,10 @@ func TestUserList(t *testing.T) {
 
 func TestUserCreate(t *testing.T) {
 	cases := []struct {
-		description string
-		user        *models.User
-		fixtures    []string
 		expected    error
+		user        *models.User
+		description string
+		fixtures    []string
 	}{
 		{
 			description: "succeeds when data is valid",
@@ -250,10 +250,10 @@ func TestStore_UserCreateInvited(t *testing.T) {
 	now := time.Now()
 
 	cases := []struct {
+		mocks       func()
 		description string
 		email       string
 		fixtures    []string
-		mocks       func()
 	}{
 		{
 			description: "succeeds",
@@ -316,10 +316,10 @@ func TestUserGetByUsername(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		username    string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
@@ -378,10 +378,10 @@ func TestUserGetByEmail(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		email       string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when email is not found",
@@ -435,17 +435,17 @@ func TestUserGetByEmail(t *testing.T) {
 
 func TestUserGetByID(t *testing.T) {
 	type Expected struct {
+		err  error
 		user *models.User
 		ns   int
-		err  error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		id          string
-		ns          bool
 		fixtures    []string
-		expected    Expected
+		ns          bool
 	}{
 		{
 			description: "fails when user is not found",
@@ -528,16 +528,16 @@ func TestUserGetByID(t *testing.T) {
 
 func TestUserConflicts(t *testing.T) {
 	type Expected struct {
+		err       error
 		conflicts []string
 		ok        bool
-		err       error
 	}
 
 	cases := []struct {
-		description string
-		target      *models.UserConflicts
-		fixtures    []string
 		expected    Expected
+		target      *models.UserConflicts
+		description string
+		fixtures    []string
 	}{
 		{
 			description: "no conflicts when target is empty",
@@ -603,11 +603,11 @@ func TestUserUpdate(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
+		changes     *models.UserChanges
 		description string
 		id          string
-		changes     *models.UserChanges
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
@@ -693,10 +693,10 @@ func TestUserUpdate(t *testing.T) {
 
 func TestUserDelete(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		id          string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when user is not found",

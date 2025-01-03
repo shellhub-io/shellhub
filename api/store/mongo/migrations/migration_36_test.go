@@ -27,11 +27,11 @@ func TestMigration36(t *testing.T) {
 	assert.Equal(t, uint64(35), version)
 
 	cases := []struct {
-		description       string
-		isCloud           bool
 		toBeMigrated      models.Namespace
 		migratedNamespace models.Namespace
+		description       string
 		expected          int
+		isCloud           bool
 	}{
 		{
 			description: "migrate cloud instance",

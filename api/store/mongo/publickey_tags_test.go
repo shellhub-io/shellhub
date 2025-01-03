@@ -10,12 +10,12 @@ import (
 
 func TestPublicKeyPushTag(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		fingerprint string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
@@ -60,12 +60,12 @@ func TestPublicKeyPushTag(t *testing.T) {
 
 func TestPublicKeyPullTag(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		fingerprint string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
@@ -118,18 +118,18 @@ func TestPublicKeyPullTag(t *testing.T) {
 
 func TestPublicKeySetTags(t *testing.T) {
 	type Expected struct {
+		err          error
 		matchedCount int64
 		updatedCount int64
-		err          error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		fingerprint string
 		tenant      string
 		tags        []string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
@@ -198,18 +198,18 @@ func TestPublicKeySetTags(t *testing.T) {
 
 func TestPublicKeyBulkRenameTag(t *testing.T) {
 	type Expected struct {
-		count int64
 		err   error
+		count int64
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		fingerprint string
 		tenant      string
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when public key is not found due to tenant",
@@ -264,16 +264,16 @@ func TestPublicKeyBulkRenameTag(t *testing.T) {
 
 func TestPublicKeyBulkDeleteTag(t *testing.T) {
 	type Expected struct {
-		count int64
 		err   error
+		count int64
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when public key is not found due to tenant",
@@ -324,16 +324,16 @@ func TestPublicKeyBulkDeleteTag(t *testing.T) {
 
 func TestPublicKeyGetTags(t *testing.T) {
 	type Expected struct {
+		err  error
 		tags []string
 		len  int
-		err  error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when tags list is greater than 1",

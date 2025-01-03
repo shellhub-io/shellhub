@@ -14,8 +14,8 @@ func TestMigration56(t *testing.T) {
 	const field string = "public_url_address"
 
 	cases := []struct {
-		description string
 		test        func() error
+		description string
 	}{
 		{
 			"Success to apply up on migration 56",

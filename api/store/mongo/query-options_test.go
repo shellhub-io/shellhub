@@ -12,16 +12,16 @@ import (
 
 func TestCountAcceptedDevices(t *testing.T) {
 	type Expected struct {
-		count int
 		err   error
+		count int
 	}
 
 	cases := []struct {
+		expected    Expected
+		ctx         func() context.Context
 		description string
 		tenant      string
-		ctx         func() context.Context
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when context does not have db in values",
@@ -61,16 +61,16 @@ func TestCountAcceptedDevices(t *testing.T) {
 
 func TestEnrichMembersData(t *testing.T) {
 	type Expected struct {
-		emails []string
 		err    error
+		emails []string
 	}
 
 	cases := []struct {
+		expected    Expected
+		ctx         func() context.Context
 		description string
 		tenant      string
-		ctx         func() context.Context
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when context does not have db in values",

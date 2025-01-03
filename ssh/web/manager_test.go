@@ -9,10 +9,10 @@ import (
 
 func TestManagerSave(t *testing.T) {
 	tests := []struct {
+		data        *Credentials
 		description string
 		id          string
 		waitFor     time.Duration
-		data        *Credentials
 	}{
 		{
 			description: "insert credential on manager and delete after 1 second",

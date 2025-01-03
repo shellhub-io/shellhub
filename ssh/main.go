@@ -21,13 +21,10 @@ func init() {
 }
 
 type Envs struct {
-	ConnectTimeout time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
-	RedisURI       string        `env:"REDIS_URI,default=redis://redis:6379"`
-	RecordURL      string        `env:"RECORD_URL,default=cloud-api:8080"`
-	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
-	// Agents 0.5.x or earlier do not validate the public key request and may panic.
-	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
-	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	RedisURI                     string        `env:"REDIS_URI,default=redis://redis:6379"`
+	RecordURL                    string        `env:"RECORD_URL,default=cloud-api:8080"`
+	ConnectTimeout               time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
+	AllowPublickeyAccessBelow060 bool          `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
 }
 
 func main() {

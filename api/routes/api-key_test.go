@@ -550,11 +550,11 @@ func TestUpdateAPIKey(t *testing.T) {
 	svcMock := new(servicemock.Service)
 
 	cases := []struct {
-		description   string
-		name          string
 		headers       map[string]string
 		body          map[string]string
 		requiredMocks func()
+		description   string
+		name          string
 		expected      Expected
 	}{
 		{
@@ -721,10 +721,10 @@ func TestDeleteAPIKey(t *testing.T) {
 	svcMock := new(servicemock.Service)
 
 	cases := []struct {
-		description   string
-		name          string
 		headers       map[string]string
 		requiredMocks func()
+		description   string
+		name          string
 		expected      Expected
 	}{
 		{

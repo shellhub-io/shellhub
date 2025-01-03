@@ -6,11 +6,11 @@ import (
 )
 
 type DeviceList struct {
-	TenantID     string              `header:"X-Tenant-ID"`
-	DeviceStatus models.DeviceStatus `query:"status"` //  TODO: validate
-	query.Paginator
 	query.Sorter
+	TenantID     string              `header:"X-Tenant-ID"`
+	DeviceStatus models.DeviceStatus `query:"status"`
 	query.Filters
+	query.Paginator
 }
 
 // DeviceParam is a structure to represent and validate a device UID as path param.
@@ -86,11 +86,11 @@ type DeviceInfo struct {
 // DeviceAuth is the structure to represent the request data for device auth endpoint.
 type DeviceAuth struct {
 	Info      *DeviceInfo     `json:"info" validate:"required"`
-	Sessions  []string        `json:"sessions,omitempty"`
-	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
+	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
 	PublicKey string          `json:"public_key" validate:"required"`
 	TenantID  string          `json:"tenant_id" validate:"required"`
+	Sessions  []string        `json:"sessions,omitempty"`
 }
 
 type DeviceGetPublicURL struct {
@@ -98,10 +98,9 @@ type DeviceGetPublicURL struct {
 }
 
 type DeviceUpdate struct {
-	DeviceParam
-	// NOTICE: the pointers here help to distinguish between the zero value and the absence of the field.
 	Name      *string `json:"name"`
 	PublicURL *bool   `json:"public_url"`
+	DeviceParam
 }
 
 type DevicePublicURLAddress struct {

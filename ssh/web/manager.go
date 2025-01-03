@@ -7,9 +7,8 @@ import (
 
 // manager is used to store credentials for a time period.
 type manager struct {
-	// ttl is the time that each credial live in the map.
-	ttl         time.Duration
 	credentials *sync.Map
+	ttl         time.Duration
 }
 
 // newManager creates a new [Manager] to store the credentials for a time period.

@@ -31,8 +31,8 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 
 	type channelData struct {
 		DestAddr   string `json:"dest_addr"`
-		DestPort   uint32 `json:"dest_port"`
 		OriginAddr string `json:"origin_addr"`
+		DestPort   uint32 `json:"dest_port"`
 		OriginPort uint32 `json:"origin_port"`
 	}
 

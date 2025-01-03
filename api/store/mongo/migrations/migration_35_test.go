@@ -16,10 +16,10 @@ func TestMigration35(t *testing.T) {
 	})
 
 	type User struct {
+		UserData      models.UserData `bson:",inline"`
 		ID            string          `json:"id,omitempty" bson:"_id,omitempty"`
 		Namespaces    int             `json:"namespaces" bson:"namespaces,omitempty"`
 		Authenticated bool            `json:"authenticated"`
-		UserData      models.UserData `bson:",inline"`
 	}
 
 	user := User{

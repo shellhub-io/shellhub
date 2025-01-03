@@ -8,9 +8,9 @@ import (
 
 func TestNewHost(t *testing.T) {
 	cases := []struct {
+		expected    *Host
 		description string
 		address     string
-		expected    *Host
 	}{
 		{
 			description: "fails when address is empty",
@@ -59,8 +59,8 @@ func TestNewHost(t *testing.T) {
 
 func TestIsLocalHost(t *testing.T) {
 	cases := []struct {
-		description string
 		host        *Host
+		description string
 		expected    bool
 	}{
 		{

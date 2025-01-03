@@ -19,9 +19,9 @@ func TestGetSystemInfo(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks  func(updatePayloadMock requests.SystemGetInfo)
 		title          string
 		request        requests.SystemGetInfo
-		requiredMocks  func(updatePayloadMock requests.SystemGetInfo)
 		expectedStatus int
 	}{
 		{
@@ -69,10 +69,10 @@ func TestGetStats(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
-		title          string
 		reqStats       *models.Stats
-		expectedStatus int
 		requiredMocks  func()
+		title          string
+		expectedStatus int
 	}{
 		{
 			title: "success when try to get an stats",

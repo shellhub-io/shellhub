@@ -14,8 +14,8 @@ func TestSetLevels(t *testing.T) {
 	envs.DefaultBackend = mocks
 
 	cases := []struct {
-		description   string
 		requiredMocks func()
+		description   string
 		expected      logrus.Level
 	}{
 		{

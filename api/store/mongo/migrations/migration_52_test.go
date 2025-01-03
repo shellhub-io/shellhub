@@ -14,8 +14,8 @@ func TestMigration52(t *testing.T) {
 	user := models.User{}
 
 	cases := []struct {
-		description string
 		Test        func(t *testing.T)
+		description string
 	}{
 		{
 			"Success to apply up on migration 52",

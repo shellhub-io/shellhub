@@ -19,11 +19,11 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 	}
 
 	tests := []struct {
-		description string
-		prefix      string
+		expected    Expected
 		before      func()
 		after       func()
-		expected    Expected
+		description string
+		prefix      string
 	}{
 		{
 			description: "parse envs with prefix empty",
@@ -136,11 +136,11 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 	}
 
 	tests := []struct {
-		description string
-		prefix      string
+		expected    Expected
 		before      func()
 		after       func()
-		expected    Expected
+		description string
+		prefix      string
 	}{
 		{
 			description: "parse envs with a prefix and no prefixed",
@@ -223,10 +223,10 @@ func TestParse_with_default(t *testing.T) {
 	}
 
 	tests := []struct {
-		description string
+		expected    Expected
 		before      func()
 		after       func()
-		expected    Expected
+		description string
 	}{
 		{
 			description: "parse envs",
@@ -301,10 +301,10 @@ func TestParse_with_required(t *testing.T) {
 	}
 
 	tests := []struct {
-		description string
+		expected    Expected
 		before      func()
 		after       func()
-		expected    Expected
+		description string
 	}{
 		{
 			description: "parse envs",

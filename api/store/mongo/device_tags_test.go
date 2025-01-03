@@ -11,11 +11,11 @@ import (
 
 func TestDevicePushTag(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
 		tag         string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when device doesn't exist",
@@ -50,11 +50,11 @@ func TestDevicePushTag(t *testing.T) {
 
 func TestDevicePullTag(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		uid         models.UID
 		tag         string
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when device doesn't exist",
@@ -96,16 +96,16 @@ func TestDevicePullTag(t *testing.T) {
 
 func TestDeviceSetTags(t *testing.T) {
 	type Expected struct {
+		err          error
 		matchedCount int64
 		updatedCount int64
-		err          error
 	}
 	cases := []struct {
+		expected    Expected
 		description string
 		uid         models.UID
 		tags        []string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "successfully when device doesn't exist",
@@ -159,17 +159,17 @@ func TestDeviceSetTags(t *testing.T) {
 
 func TestDeviceBulkRenameTag(t *testing.T) {
 	type Expected struct {
-		count int64
 		err   error
+		count int64
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		oldTag      string
 		newTag      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when tenant doesn't exist",
@@ -223,16 +223,16 @@ func TestDeviceBulkRenameTag(t *testing.T) {
 
 func TestDeviceBulkDeleteTag(t *testing.T) {
 	type Expected struct {
-		count int64
 		err   error
+		count int64
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		tag         string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when tenant doesn't exist",
@@ -283,16 +283,16 @@ func TestDeviceBulkDeleteTag(t *testing.T) {
 
 func TestDeviceGetTags(t *testing.T) {
 	type Expected struct {
+		err  error
 		tags []string
 		len  int
-		err  error
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		tenant      string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds when tags list is greater than 1",

@@ -25,10 +25,10 @@ func TestUpdateUser(t *testing.T) {
 	svcMock := new(mocks.Service)
 
 	cases := []struct {
-		description   string
 		headers       map[string]string
-		body          requests.UpdateUser
 		requiredMocks func()
+		body          requests.UpdateUser
+		description   string
 		expected      Expected
 	}{
 		{
@@ -152,10 +152,10 @@ func TestUpdateUserPassword(t *testing.T) {
 	mock := new(mocks.Service)
 
 	cases := []struct {
+		requiredMocks     func(updatePayloadMock requests.UserPasswordUpdate)
+		updatePayloadMock requests.UserPasswordUpdate
 		title             string
 		uid               string
-		updatePayloadMock requests.UserPasswordUpdate
-		requiredMocks     func(updatePayloadMock requests.UserPasswordUpdate)
 		expectedStatus    int
 	}{
 		{

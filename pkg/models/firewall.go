@@ -15,12 +15,12 @@ type FirewallFilter struct {
 }
 
 type FirewallRuleFields struct {
-	Priority int            `json:"priority"`
 	Action   string         `json:"action" validate:"required,oneof=allow deny"`
-	Active   bool           `json:"active"`
 	SourceIP string         `json:"source_ip" bson:"source_ip" validate:"required,regexp"`
 	Username string         `json:"username" validate:"required,regexp"`
 	Filter   FirewallFilter `json:"filter" bson:"filter" validate:"required"`
+	Priority int            `json:"priority"`
+	Active   bool           `json:"active"`
 }
 
 func (f *FirewallRuleFields) Validate() error {

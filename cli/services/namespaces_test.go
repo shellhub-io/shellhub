@@ -33,13 +33,13 @@ func TestNamespaceCreate(t *testing.T) {
 	mockClock.On("Now").Return(now)
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		namespace     string
 		username      string
 		tenant        string
 		typeNamespace string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description:   "fails when namespace is not valid",
@@ -464,12 +464,12 @@ func TestNamespaceAddMember(t *testing.T) {
 	now := time.Now()
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		username      string
 		namespace     string
 		role          authorizer.Role
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "fails when could not find a user",
@@ -566,11 +566,11 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	now := time.Now()
 
 	cases := []struct {
+		expected      Expected
+		requiredMocks func()
 		description   string
 		username      string
 		namespace     string
-		requiredMocks func()
-		expected      Expected
 	}{
 		{
 			description: "fails when could not find a user",
@@ -687,10 +687,10 @@ func TestNamespaceDelete(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := []struct {
+		expected      error
+		requiredMocks func()
 		description   string
 		namespace     string
-		requiredMocks func()
-		expected      error
 	}{
 		{
 			description: "fails when could not find a namespace",

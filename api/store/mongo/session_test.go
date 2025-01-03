@@ -14,16 +14,16 @@ import (
 
 func TestSessionList(t *testing.T) {
 	type Expected struct {
+		err   error
 		s     []models.Session
 		count int
-		err   error
 	}
 
 	cases := []struct {
-		description string
-		paginator   query.Paginator
-		fixtures    []string
 		expected    Expected
+		description string
+		fixtures    []string
+		paginator   query.Paginator
 	}{
 		{
 			description: "succeeds when sessions are found",
@@ -222,10 +222,10 @@ func TestSessionGet(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		UID         models.UID
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "fails when session is not found",
@@ -311,10 +311,10 @@ func TestSessionGet(t *testing.T) {
 
 func TestSessionCreate(t *testing.T) {
 	cases := []struct {
-		description string
-		fixtures    []string
-		session     models.Session
 		expected    error
+		description string
+		session     models.Session
+		fixtures    []string
 	}{
 		{
 			description: "",
@@ -349,11 +349,11 @@ func TestSessionCreate(t *testing.T) {
 
 func TestSessionUpdateDeviceUID(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		oldUID      models.UID
 		newUID      models.UID
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when device is not found",
@@ -388,11 +388,11 @@ func TestSessionUpdateDeviceUID(t *testing.T) {
 
 func TestSessionUpdate(t *testing.T) {
 	cases := []struct {
+		expected     error
 		description  string
 		UID          models.UID
-		authenticate bool
 		fixtures     []string
-		expected     error
+		authenticate bool
 	}{
 		{
 			description:  "fails when session is not found",
@@ -427,11 +427,11 @@ func TestSessionUpdate(t *testing.T) {
 
 func TestSessionSetRecorded(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		UID         models.UID
-		recorded    bool
 		fixtures    []string
-		expected    error
+		recorded    bool
 	}{
 		{
 			description: "fails when session is not found",
@@ -463,10 +463,10 @@ func TestSessionSetRecorded(t *testing.T) {
 
 func TestSessionSetLastSeen(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		UID         models.UID
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when session is not found",
@@ -499,10 +499,10 @@ func TestSessionSetLastSeen(t *testing.T) {
 
 func TestSessionDeleteActives(t *testing.T) {
 	cases := []struct {
+		expected    error
 		description string
 		UID         models.UID
 		fixtures    []string
-		expected    error
 	}{
 		{
 			description: "fails when session is not found",

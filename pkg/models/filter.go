@@ -7,11 +7,8 @@ import (
 // Filter is a helper struct to filter results from the database.
 // TODO: Gives a better explanation about the filter and how to use it.
 type Filter struct {
-	// Type os the filter. Type can be "property" or "operator". When Type is "property", the Params field must is set
-	// to PropertyParams structure and when set "operator", the Params field must be set to OperatorParams structure.
-	Type string `json:"type,omitempty"`
-	// Params is the filter params. Params can be either PropertyParams or OperatorParams.
 	Params interface{} `json:"params,omitempty"`
+	Type   string      `json:"type,omitempty"`
 }
 
 func (f *Filter) UnmarshalJSON(data []byte) error {
@@ -47,9 +44,9 @@ func (f *Filter) UnmarshalJSON(data []byte) error {
 }
 
 type PropertyParams struct {
+	Value    interface{} `json:"value"`
 	Name     string      `json:"name"`
 	Operator string      `json:"operator"`
-	Value    interface{} `json:"value"`
 }
 
 type OperatorParams struct {

@@ -10,15 +10,15 @@ type CreateAPIKey struct {
 	TenantID  string          `header:"X-Tenant-ID"`
 	Role      authorizer.Role `header:"X-Role"`
 	Name      string          `json:"name" validate:"required,api-key_name"`
-	ExpiresAt int             `json:"expires_at" validate:"required,api-key_expires-at"`
 	Key       string          `json:"key" validate:"omitempty,uuid"`
 	OptRole   authorizer.Role `json:"role" validate:"omitempty,member_role"`
+	ExpiresAt int             `json:"expires_at" validate:"required,api-key_expires-at"`
 }
 
 type ListAPIKey struct {
+	query.Sorter
 	TenantID string `header:"X-Tenant-ID"`
 	query.Paginator
-	query.Sorter
 }
 
 type UpdateAPIKey struct {

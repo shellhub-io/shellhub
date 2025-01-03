@@ -38,10 +38,10 @@ func TestAddNamespaceMember(t *testing.T) {
 	clockMock.On("Now").Return(now)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.NamespaceAddMember
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when the namespace was not found",
@@ -776,11 +776,11 @@ func TestService_addMember(t *testing.T) {
 	clockMock.On("Now").Return(now)
 
 	cases := []struct {
-		description   string
-		memberID      string
+		expected      error
 		req           *requests.NamespaceAddMember
 		requiredMocks func(context.Context)
-		expected      error
+		description   string
+		memberID      string
 	}{
 		{
 			description: "fails cannot add the member",
@@ -942,11 +942,11 @@ func TestService_resendMemberInvite(t *testing.T) {
 	clockMock.On("Now").Return(now)
 
 	cases := []struct {
-		description   string
-		memberID      string
+		expected      error
 		req           *requests.NamespaceAddMember
 		requiredMocks func(context.Context)
-		expected      error
+		description   string
+		memberID      string
 	}{
 		{
 			description: "fails cannot update the member",
@@ -1030,10 +1030,10 @@ func TestUpdateNamespaceMember(t *testing.T) {
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
-		description   string
+		expected      error
 		req           *requests.NamespaceUpdateMember
 		requiredMocks func(context.Context)
-		expected      error
+		description   string
 	}{
 		{
 			description: "fails when the namespace was not found",
@@ -1278,10 +1278,10 @@ func TestRemoveNamespaceMember(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.NamespaceRemoveMember
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when the namespace was not found",
@@ -1570,10 +1570,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 	cacheMock := new(cachemock.Cache)
 
 	cases := []struct {
-		description   string
+		expected      Expected
 		req           *requests.LeaveNamespace
 		requiredMocks func(context.Context)
-		expected      Expected
+		description   string
 	}{
 		{
 			description: "fails when the namespace was not found",

@@ -15,9 +15,9 @@ func TestGetStats(t *testing.T) {
 	}
 
 	cases := []struct {
+		expected    Expected
 		description string
 		fixtures    []string
-		expected    Expected
 	}{
 		{
 			description: "succeeds",
