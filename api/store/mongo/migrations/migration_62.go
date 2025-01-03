@@ -13,7 +13,7 @@ import (
 var migration62 = migrate.Migration{
 	Version:     62,
 	Description: "create index for tenant_id on recorded_sessions",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
 			"version":   62,
@@ -47,7 +47,7 @@ var migration62 = migrate.Migration{
 
 		return nil
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
 			"version":   62,

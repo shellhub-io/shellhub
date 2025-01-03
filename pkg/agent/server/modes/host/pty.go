@@ -52,7 +52,7 @@ func startPty(c *exec.Cmd, out io.ReadWriter, winCh <-chan glidderssh.Window) (*
 
 	go func() {
 		for win := range winCh {
-			_ = creackpty.Setsize(f, &creackpty.Winsize{uint16(win.Height), uint16(win.Width), 0, 0})
+			_ = creackpty.Setsize(f, &creackpty.Winsize{Rows: uint16(win.Height), Cols: uint16(win.Width), X: 0, Y: 0}) //nolint:gosec
 		}
 	}()
 
@@ -100,7 +100,7 @@ func initPty(c *exec.Cmd, sess io.ReadWriter, winCh <-chan glidderssh.Window) (*
 	// listen for window size changes from the SSH client and update the PTY's dimensions.
 	go func() {
 		for win := range winCh {
-			_ = creackpty.Setsize(pty, &creackpty.Winsize{uint16(win.Height), uint16(win.Width), 0, 0})
+			_ = creackpty.Setsize(pty, &creackpty.Winsize{Rows: uint16(win.Height), Cols: uint16(win.Width), X: 0, Y: 0}) //nolint:gosec
 		}
 	}()
 

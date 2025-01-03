@@ -43,8 +43,7 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx { //nolint:revive
 	var u Utmpx
 
 	u.Type = UserProcess
-	u.Pid = int32(os.Getpid())
-
+	u.Pid = os.Getpid()
 	// There are two versions of the utmpSetTime function
 	// defined in utmp_timeval_time??.go, one for systems
 	// that write the time fields as 32-bit values and one
@@ -130,7 +129,7 @@ func updUtmp(u Utmpx, id string) {
 	// Lock the file
 	lk := unix.Flock_t{
 		Type: int16(unix.F_WRLCK),
-		Pid:  int32(os.Getpid()),
+		Pid:  int32(os.Getpid()), //nolint:gosec // The maximum value of a pid in Linux and FreeBSD systems fits inside a int32.
 	}
 
 	err = unix.FcntlFlock(file.Fd(), unix.F_SETLKW, &lk)
@@ -179,7 +178,7 @@ func updUtmp(u Utmpx, id string) {
 		}
 	}
 
-	err = binary.Write(file, binary.LittleEndian, &u)
+	err = binary.Write(file, binary.LittleEndian, &u) //nolint:staticcheck
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
@@ -207,7 +206,7 @@ func updWtmp(u Utmpx) {
 
 	lk := unix.Flock_t{
 		Type: int16(unix.F_WRLCK),
-		Pid:  int32(os.Getpid()),
+		Pid:  int32(os.Getpid()), //nolint:gosec // The maximum value of a pid in Linux and FreeBSD systems fits inside a int32.
 	}
 
 	err = unix.FcntlFlock(file.Fd(), unix.F_SETLKW, &lk)
@@ -245,8 +244,7 @@ func updWtmp(u Utmpx) {
 		}
 	}
 
-	err = binary.Write(file, binary.LittleEndian, &u)
-
+	err = binary.Write(file, binary.LittleEndian, &u) //nolint:staticcheck
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,

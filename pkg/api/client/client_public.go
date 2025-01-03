@@ -31,7 +31,7 @@ func (c *client) AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthRe
 	var res *models.DeviceAuthResponse
 
 	response, err := c.http.R().
-		AddRetryCondition(func(r *resty.Response, err error) bool {
+		AddRetryCondition(func(r *resty.Response, _ error) bool {
 			identity := func(mac, hostname string) string {
 				if mac != "" {
 					return mac

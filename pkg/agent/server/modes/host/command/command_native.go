@@ -21,8 +21,8 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 	// Supplementary groups for the user
 	groups := make([]uint32, 0)
 	for _, sgid := range userGroups {
-		igid, _ := strconv.Atoi(sgid)
-		groups = append(groups, uint32(igid))
+		igid, _ := strconv.ParseUint(sgid, 10, 32)
+		groups = append(groups, uint32(igid)) //nolint:gosec // The value of igid fits inside a uint32.
 	}
 	if len(groups) == 0 {
 		groups = append(groups, u.GID)

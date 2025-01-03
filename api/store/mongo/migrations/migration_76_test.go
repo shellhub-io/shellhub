@@ -40,7 +40,6 @@ func TestMigration76Up(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.description, func(tt *testing.T) {
 			tt.Cleanup(func() {
 				assert.NoError(tt, srv.Reset())
@@ -124,7 +123,6 @@ func TestMigration76Down(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.description, func(tt *testing.T) {
 			tt.Cleanup(func() {
 				assert.NoError(tt, srv.Reset())

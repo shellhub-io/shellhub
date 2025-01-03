@@ -51,7 +51,7 @@ var migration66 = migrate.Migration{
 
 		return err
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		log.
 			WithFields(log.Fields{
 				"component": "migration",

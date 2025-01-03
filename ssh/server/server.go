@@ -92,10 +92,10 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 			channels.SessionChannel:     channels.DefaultSessionHandler(),
 			channels.DirectTCPIPChannel: channels.DefaultDirectTCPIPHandler,
 		},
-		LocalPortForwardingCallback: func(ctx gliderssh.Context, dhost string, dport uint32) bool {
+		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return true
 		},
-		ReversePortForwardingCallback: func(ctx gliderssh.Context, bindHost string, bindPort uint32) bool {
+		ReversePortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return false
 		},
 	}

@@ -158,7 +158,7 @@ func TestRenameDevice(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: ""},
 			},
 			tenant:         "tenant-id",
-			requiredMocks:  func(req requests.DeviceRename) {},
+			requiredMocks:  func(_ requests.DeviceRename) {},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
@@ -438,7 +438,7 @@ func TestLookupDevice(t *testing.T) {
 				Username:  "user1",
 				IPAddress: "192.168.1.100",
 			},
-			requiredMocks: func(req requests.DeviceLookup) {},
+			requiredMocks: func(_ requests.DeviceLookup) {},
 			expected: Expected{
 				expectedSession: nil,
 				expectedStatus:  http.StatusBadRequest,
@@ -522,7 +522,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: ""},
 				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			requiredMocks:  func(_ requests.DeviceRemoveTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -531,7 +531,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 				TagBody: requests.TagBody{Tag: "tg"},
 			},
 			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			requiredMocks:  func(_ requests.DeviceRemoveTag) {},
 		},
 		{
 			title: "fails when validate because the tag does not have a max of 255 characters",
@@ -539,7 +539,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 				TagBody: requests.TagBody{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
 			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			requiredMocks:  func(_ requests.DeviceRemoveTag) {},
 		},
 		{
 			title: "fails when validate because have a '/' with in your characters",
@@ -547,7 +547,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 				TagBody: requests.TagBody{Tag: "test/"},
 			},
 			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			requiredMocks:  func(_ requests.DeviceRemoveTag) {},
 		},
 		{
 			title: "fails when validate because have a '&' with in your characters",
@@ -555,7 +555,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 				TagBody: requests.TagBody{Tag: "test&"},
 			},
 			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			requiredMocks:  func(_ requests.DeviceRemoveTag) {},
 		},
 		{
 			title: "fails when validate because have a '@' with in your characters",
@@ -563,7 +563,7 @@ func TestRemoveDeviceTag(t *testing.T) {
 				TagBody: requests.TagBody{Tag: "test@"},
 			},
 			expectedStatus: http.StatusBadRequest,
-			requiredMocks:  func(req requests.DeviceRemoveTag) {},
+			requiredMocks:  func(_ requests.DeviceRemoveTag) {},
 		},
 		{
 			title: "fails when try to remove a non-existing device tag",
@@ -628,7 +628,7 @@ func TestCreateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: ""},
 				TagBody:     requests.TagBody{Tag: "tag"},
 			},
-			requiredMocks: func(req requests.DeviceCreateTag) {
+			requiredMocks: func(_ requests.DeviceCreateTag) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -638,7 +638,7 @@ func TestCreateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				TagBody:     requests.TagBody{Tag: "tg"},
 			},
-			requiredMocks: func(req requests.DeviceCreateTag) {
+			requiredMocks: func(_ requests.DeviceCreateTag) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -648,7 +648,7 @@ func TestCreateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				TagBody:     requests.TagBody{Tag: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
-			requiredMocks: func(req requests.DeviceCreateTag) {
+			requiredMocks: func(_ requests.DeviceCreateTag) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -658,7 +658,7 @@ func TestCreateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				TagBody:     requests.TagBody{Tag: "test@"},
 			},
-			requiredMocks: func(req requests.DeviceCreateTag) {
+			requiredMocks: func(_ requests.DeviceCreateTag) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -668,7 +668,7 @@ func TestCreateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				TagBody:     requests.TagBody{Tag: "test/"},
 			},
-			requiredMocks: func(req requests.DeviceCreateTag) {
+			requiredMocks: func(_ requests.DeviceCreateTag) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -678,7 +678,7 @@ func TestCreateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				TagBody:     requests.TagBody{Tag: "test&"},
 			},
-			requiredMocks: func(req requests.DeviceCreateTag) {
+			requiredMocks: func(_ requests.DeviceCreateTag) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -745,7 +745,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: ""},
 				Tags:        []string{"tag1", "tag2"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -754,7 +754,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Tags:        []string{"tagduplicated", "tagduplicated"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -763,7 +763,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Tags:        []string{"test@"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -772,7 +772,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Tags:        []string{"test/"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -781,7 +781,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Tags:        []string{"test&"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -790,7 +790,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Tags:        []string{"tg"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -799,7 +799,7 @@ func TestUpdateDeviceTag(t *testing.T) {
 				DeviceParam: requests.DeviceParam{UID: "1234"},
 				Tags:        []string{"BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
-			requiredMocks:  func(req requests.DeviceUpdateTag) {},
+			requiredMocks:  func(_ requests.DeviceUpdateTag) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{

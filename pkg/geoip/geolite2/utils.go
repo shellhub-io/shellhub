@@ -60,7 +60,7 @@ func fetchDB(ctx context.Context, url string) func() error {
 // saveDB saves extracted GeoLite2 database files to [dbPath].
 // Only files with the expected [dbExtension] will be saved.
 func saveDB() archiver.FileHandler {
-	return func(ctx context.Context, f archiver.File) error {
+	return func(_ context.Context, f archiver.File) error {
 		if !strings.HasSuffix(f.Name(), dbExtension) {
 			return nil
 		}

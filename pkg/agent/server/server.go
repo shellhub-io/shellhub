@@ -41,7 +41,7 @@ type Server struct {
 	deviceName        string
 	containerID       string
 	mu                sync.Mutex
-	keepAliveInterval uint
+	keepAliveInterval uint32
 
 	// mode is the mode of the server, identifing where and how the SSH's server is running.
 	//
@@ -92,7 +92,7 @@ type Config struct {
 	// PrivateKey is the path for the SSH server private key.
 	PrivateKey string
 	// KeepAliveInterval stores the time between each SSH keep alive request.
-	KeepAliveInterval uint
+	KeepAliveInterval uint32
 	// Features list of featues on SSH server.
 	Features Feature
 }
@@ -132,10 +132,10 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 
 			return &sshConn{conn, closeCallback, ctx}
 		},
-		LocalPortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
+		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&LocalPortForwardFeature > 0
 		},
-		ReversePortForwardingCallback: func(ctx gliderssh.Context, destinationHost string, destinationPort uint32) bool {
+		ReversePortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&ReversePortForwardFeature > 0
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{

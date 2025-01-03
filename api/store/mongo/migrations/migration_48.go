@@ -76,7 +76,7 @@ func invertFirewallRulePriority(db *mongo.Database) error {
 var migration48 = migrate.Migration{
 	Version:     48,
 	Description: "invert Firewall priority",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   48,
@@ -85,7 +85,7 @@ var migration48 = migrate.Migration{
 
 		return invertFirewallRulePriority(db)
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   48,

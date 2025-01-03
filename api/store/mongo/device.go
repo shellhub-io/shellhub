@@ -243,7 +243,7 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	}
 	defer mongoSession.EndSession(ctx)
 
-	_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
+	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (interface{}, error) {
 		dev, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid})
 		if err != nil {
 			return nil, FromMongoError(err)

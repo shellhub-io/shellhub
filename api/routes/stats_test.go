@@ -30,7 +30,7 @@ func TestGetSystemInfo(t *testing.T) {
 				Host: "example.com",
 				Port: 0,
 			},
-			requiredMocks: func(updatePayloadMock requests.SystemGetInfo) {
+			requiredMocks: func(_ requests.SystemGetInfo) {
 				mock.On("SystemGetInfo", gomock.Anything, requests.SystemGetInfo{
 					Host: "example.com",
 					Port: 0,

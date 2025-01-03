@@ -95,7 +95,7 @@ func TestGetPublicKey(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: "00000000-0000-4000-0000-000000000000"},
 			},
 			expected:      Expected{expectedStatus: http.StatusBadRequest},
-			requiredMocks: func(req requests.PublicKeyGet) {},
+			requiredMocks: func(_ requests.PublicKeyGet) {},
 		},
 		{
 			title: "fails when validate because the tag does not have a max of 255 characters",
@@ -103,7 +103,7 @@ func TestGetPublicKey(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: "BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9BCD3821E12F7A6D89295D86E277F2C365D7A4C3FCCD75D8A2F46C0A556A8EBAAF0845C85D50241FC2F9806D8668FF75D262FDA0A055784AD36D8CA7D2BB600C9"},
 			},
 			expected:      Expected{expectedStatus: http.StatusBadRequest},
-			requiredMocks: func(req requests.PublicKeyGet) {},
+			requiredMocks: func(_ requests.PublicKeyGet) {},
 		},
 		{
 			title: "fails when validate because have a '/' with in your characters",
@@ -111,7 +111,7 @@ func TestGetPublicKey(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: "test/"},
 			},
 			expected:      Expected{expectedStatus: http.StatusBadRequest},
-			requiredMocks: func(req requests.PublicKeyGet) {},
+			requiredMocks: func(_ requests.PublicKeyGet) {},
 		},
 		{
 			title: "fails when validate because have a '&' with in your characters",
@@ -119,7 +119,7 @@ func TestGetPublicKey(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: "test&"},
 			},
 			expected:      Expected{expectedStatus: http.StatusBadRequest},
-			requiredMocks: func(req requests.PublicKeyGet) {},
+			requiredMocks: func(_ requests.PublicKeyGet) {},
 		},
 		{
 			title: "fails when validate because have a '@' with in your characters",
@@ -127,7 +127,7 @@ func TestGetPublicKey(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: "test@"},
 			},
 			expected:      Expected{expectedStatus: http.StatusBadRequest},
-			requiredMocks: func(req requests.PublicKeyGet) {},
+			requiredMocks: func(_ requests.PublicKeyGet) {},
 		},
 		{
 			title: "success when try to get a public key exists",

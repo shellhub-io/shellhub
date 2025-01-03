@@ -223,7 +223,7 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	}
 	defer mongoSession.EndSession(ctx)
 
-	_, err = mongoSession.WithTransaction(ctx, func(mongoctx mongo.SessionContext) (interface{}, error) {
+	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (interface{}, error) {
 		session := new(models.Session)
 
 		query := bson.M{"uid": uid}

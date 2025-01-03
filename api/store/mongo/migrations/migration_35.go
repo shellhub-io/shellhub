@@ -11,7 +11,7 @@ import (
 var migration35 = migrate.Migration{
 	Version:     35,
 	Description: "Rename the column authenticated to confirmed",
-	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   35,
@@ -20,7 +20,7 @@ var migration35 = migrate.Migration{
 
 		return renameField(db, "users", "authenticated", "confirmed")
 	}),
-	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   35,

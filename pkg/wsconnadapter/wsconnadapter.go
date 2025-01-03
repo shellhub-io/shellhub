@@ -79,7 +79,7 @@ func (a *Adapter) Ping() chan bool {
 		_ = a.Close()
 	})
 
-	a.conn.SetPongHandler(func(data string) error {
+	a.conn.SetPongHandler(func(_ string) error {
 		timeout.Reset(pongTimeout)
 		a.Logger.Trace("pong timeout")
 

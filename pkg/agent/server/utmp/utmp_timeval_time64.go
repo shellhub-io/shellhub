@@ -29,7 +29,7 @@ type TimeVal struct {
 type Utmpx struct {
 	Type     int16      // UserProcess or DeadProcess
 	Padding1 [2]byte    // Padding to align rest of struct
-	Pid      int32      // PID of the ShellHub agent
+	Pid      int        // PID of the ShellHub agent
 	Line     [32]byte   // tty associated with the process
 	ID       [4]byte    // Index, last 4 characters of Line
 	User     [32]byte   // Username
@@ -49,7 +49,7 @@ func utmpSetTime(u Utmpx) Utmpx {
 		logrus.Warn(err)
 	}
 
-	u.Tv.Sec, u.Tv.Usec = a.Sec, a.Usec
+	u.Tv.Sec, u.Tv.Usec = a.Sec, int64(a.Usec)
 
 	return u
 }

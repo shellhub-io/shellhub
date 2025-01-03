@@ -19,7 +19,7 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	Subprotocols:    []string{"binary"},
-	CheckOrigin: func(r *http.Request) bool {
+	CheckOrigin: func(_ *http.Request) bool {
 		return true
 	},
 }
@@ -44,7 +44,7 @@ func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 	tunnel := &Tunnel{
 		ConnectionPath: connectionPath,
 		DialerPath:     dialerPath,
-		ConnectionHandler: func(r *http.Request) (string, error) {
+		ConnectionHandler: func(_ *http.Request) (string, error) {
 			panic("ConnectionHandler not implemented")
 		},
 		CloseHandler: func(string) {

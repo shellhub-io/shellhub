@@ -26,7 +26,7 @@ func FuzzVerify(f *testing.F) {
 		f.Add(string(password), string(hash))
 	}
 
-	f.Fuzz(func(t *testing.T, a string, b string) {
+	f.Fuzz(func(_ *testing.T, a string, b string) {
 		assert.True(f, Verify(a, b))
 	})
 }

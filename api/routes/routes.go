@@ -16,7 +16,7 @@ import (
 type Option func(e *echo.Echo, handler *Handler) error
 
 func WithReporter(reporter *sentry.Client) Option {
-	return func(e *echo.Echo, handler *Handler) error {
+	return func(e *echo.Echo, _ *Handler) error {
 		e.HTTPErrorHandler = handlers.NewErrors(reporter)
 
 		return nil

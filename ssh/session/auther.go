@@ -127,7 +127,7 @@ func (*passwordAuth) Method() authMethod {
 }
 
 func (p *passwordAuth) Auth() authFunc {
-	return func(session *Session, config *gossh.ClientConfig) error {
+	return func(_ *Session, config *gossh.ClientConfig) error {
 		config.Auth = []gossh.AuthMethod{
 			gossh.Password(p.pwd),
 		}
