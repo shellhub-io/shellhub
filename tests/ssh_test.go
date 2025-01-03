@@ -781,9 +781,9 @@ func TestSSH(t *testing.T) {
 
 				data := Data{
 					DestAddr:   "0.0.0.0",
-					DestPort:   uint32(dest),
+					DestPort:   uint32(dest), //nolint:gosec
 					OriginAddr: "127.0.0.1",
-					OriginPort: uint32(orig),
+					OriginPort: uint32(orig), //nolint:gosec
 				}
 
 				ch, _, err := conn.OpenChannel("direct-tcpip", ssh.Marshal(data))
