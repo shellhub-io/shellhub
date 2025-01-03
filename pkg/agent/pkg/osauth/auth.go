@@ -234,24 +234,34 @@ func parseIntString(value string) int {
 	return number
 }
 
+func parseUint32(value string) (uint32, error) {
+	// NOTE: [strconv.Atoi] uses the [strconv.ParseInt] under the hood to do the conversion.
+	parsed, err := strconv.ParseUint(value, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(parsed), nil //nolint:gosec // ParseUint with the parameters specified guarantee the parsing of only 32 bits.
+}
+
 func singleUser() *User {
-	var uid, gid int
+	var uid, gid uint32
 	var username, name, homeDir, shell string
 	u, err := user.Current()
-	uid, _ = strconv.Atoi(os.Getenv("UID"))
+	uid, _ = parseUint32(os.Getenv("UID"))
 	homeDir = os.Getenv("HOME")
 	shell = os.Getenv("SHELL")
 	if err == nil {
-		uid, _ = strconv.Atoi(u.Uid)
-		gid, _ = strconv.Atoi(u.Gid)
+		uid, _ = parseUint32(u.Uid)
+		gid, _ = parseUint32(u.Gid)
 		username = u.Username
 		name = u.Name
 		homeDir = u.HomeDir
 	}
 
 	return &User{
-		UID:      uint32(uid),
-		GID:      uint32(gid),
+		UID:      uid,
+		GID:      gid,
 		Username: username,
 		Name:     name,
 		HomeDir:  homeDir,
@@ -292,17 +302,17 @@ func parsePasswdLine(line string) (User, error) {
 	result.Username = strings.TrimSpace(parts[0])
 	result.Password = strings.TrimSpace(parts[1])
 
-	uid, err := strconv.Atoi(parts[2])
+	uid, err := parseUint32(parts[2])
 	if err != nil {
 		return result, fmt.Errorf("passwd line had badly formatted uid %s", parts[2])
 	}
-	result.UID = uint32(uid)
+	result.UID = uid
 
-	gid, err := strconv.Atoi(parts[3])
+	gid, err := parseUint32(parts[3])
 	if err != nil {
 		return result, fmt.Errorf("passwd line had badly formatted gid %s", parts[3])
 	}
-	result.GID = uint32(gid)
+	result.GID = gid
 
 	result.Name = strings.TrimSpace(parts[4])
 	result.HomeDir = strings.TrimSpace(parts[5])

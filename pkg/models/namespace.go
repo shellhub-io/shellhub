@@ -27,7 +27,7 @@ func (n *Namespace) HasMaxDevices() bool {
 
 // HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
 func (n *Namespace) HasMaxDevicesReached() bool {
-	return uint64(n.DevicesCount) >= uint64(n.MaxDevices)
+	return n.DevicesCount >= n.MaxDevices
 }
 
 // HasLimitDevicesReached checks if the namespace limit was reached using the removed devices collection.
