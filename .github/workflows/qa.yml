@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     outputs:
-      backend: ${{ steps.filter.outputs.go }}
-      frontend: ${{ steps.filter.outputs.ui }}
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
