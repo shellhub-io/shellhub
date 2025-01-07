@@ -92,7 +92,7 @@ jobs:
 
       - name: Run tests
         working-directory: ${{ matrix.service }}
-        run: go test -v ${{ matrix.extra_args || '' }} -timeout 25m -parallel 4 ./...
+        run: go test -v ${{ matrix.extra_args || '' }} -timeout 25m -parallel 4 -cover ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
