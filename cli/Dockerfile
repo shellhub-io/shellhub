@@ -34,7 +34,7 @@ FROM builder AS development
 
 RUN apk add --update openssl build-base docker-cli
 RUN go install github.com/cosmtrek/air@v1.51.0 && \
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.2
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
