@@ -9,51 +9,21 @@ on:
     types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
 
 jobs:
-  validate:
-    name: validate
-    if: ${{ github.event.pull_request.draft == false }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        project: [api, agent, pkg, ssh, ui, cli]
-        include:
-          - project: api
-            extra_args: ""
-            lint_args: ""
-          - project: agent
-            extra_args: "-tags docker"
-            lint_args: "--build-tags docker"
-          - project: pkg
-            extra_args: ""
-            lint_args: ""
-          - project: ssh
-            extra_args: "-tags internal_api"
-            lint_args: "--build-tags internal_api"
-          - project: ui
-            extra_args: ""
-            lint_args: ""
-          - project: cli
-            extra_args: ""
-            lint_args: ""
-          - project: tests
-            extra_args: ""
-            lint_args: ""
-
+  filter:
     runs-on: ubuntu-latest
-
+    if: github.event.pull_request.draft == false
+    outputs:
+      backend: ${{ steps.filter.outputs.go }}
+      frontend: ${{ steps.filter.outputs.ui }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
         with:
-          # inline YAML or path to separate file (e.g.: .github/filters.yaml)
           filters: |
-            ui:
+            frontend:
               - 'ui/**'
-            go:
+            backend:
               - 'api/**'
               - 'agent/**'
               - 'pkg/**'
@@ -61,84 +31,97 @@ jobs:
               - 'cli/**'
               - 'tests/**'
 
-      - name: Set up Go 1.x [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+  backend:
+    needs: filter
+    if: needs.filter.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api, agent, pkg, ssh, cli, tests]
+        include:
+          - service: agent
+            extra_args: "-tags docker"
+            lint_args: "--build-tags docker"
+          - service: ssh
+            extra_args: "-tags internal_api"
+            lint_args: "--build-tags internal_api"
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.21"
-        id: go
 
-      - name: Cache Go files [Go]
+      - name: Cache Go dependencies
         uses: actions/cache@v3
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
-      - name: Get Go dependencies [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: go mod download
-
-      - name: Ensure Go dependencies are complete [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
+      - name: Install & verify dependencies
+        working-directory: ${{ matrix.service }}
         run: |
+          go mod download
           ../devscripts/prepare-release
           if [ -n "$(git status --porcelain)" ]; then
-              echo "Missing dependencies on 'go.mod'"
-              exit 1
+            echo "Missing dependencies in 'go.mod'"
+            exit 1
           fi
 
-      - name: Code format [Go]
-        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
-        if: matrix.os == 'ubuntu-latest' && github.event.pull_request.draft == false
+      - name: Check formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Code formatting issues found"
+            exit 1
+          fi
 
-      - name: Code linting [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+      - name: Lint code
         uses: golangci/golangci-lint-action@v6
         with:
-          working-directory: ${{ matrix.project }}
+          working-directory: ${{ matrix.service }}
           version: v1.63.2
-          args: --timeout 2m ${{ matrix.lint_args }} ./...
+          args: --timeout 2m ${{ matrix.lint_args || '' }} ./...
           skip-cache: true
 
-      - name: Unit test [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: go test -v ${{ matrix.extra_args }} -timeout 25m ./...
+      - name: Build
+        if: matrix.service != 'tests'
+        working-directory: ${{ matrix.service }}
+        run: go build -v ${{ matrix.extra_args || '' }} ./...
+
+      - name: Run tests
+        working-directory: ${{ matrix.service }}
+        run: go test -v ${{ matrix.extra_args || '' }} -timeout 25m -parallel 4 ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
-      - name: Go build [Go]
-        if: matrix.project != 'ui' && matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: go build -v ${{ matrix.extra_args }} ./...
+  frontend:
+    needs: filter
+    if: needs.filter.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.JS 21.4.0 [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "21.4.0"
 
-      - name: Cache node modules [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
+      - name: Cache Node modules
         uses: actions/cache@v3
         with:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Install Node Dependencies [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
+      - name: Install dependencies
+        working-directory: ui
         run: npm install
 
-      - name: Unit test [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
+      - name: Run tests
+        working-directory: ui
         run: npm run test
 
-      - name: Save Code Linting Report JSON [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
+      - name: Run linting
+        working-directory: ui
         run: npm run lint
