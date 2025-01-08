@@ -33,6 +33,9 @@ const (
 	// UserOriginLocal indicates that the user was created through the standard signup process, without
 	// using third-party integrations like SSO IdPs.
 	UserOriginLocal UserOrigin = "local"
+
+	// UserOriginSAML indicates that the user was created using a SAML method.
+	UserOriginSAML UserOrigin = "SAML"
 )
 
 func (o UserOrigin) String() string {
@@ -44,6 +47,9 @@ type UserAuthMethod string
 const (
 	// UserAuthMethodLocal indicates that the user can authenticate using an email and password.
 	UserAuthMethodLocal UserAuthMethod = "local"
+
+	// UserAuthMethodManual indicates that the user can authenticate using a third-party SAML application.
+	UserAuthMethodSAML UserAuthMethod = "saml"
 )
 
 func (a UserAuthMethod) String() string {
@@ -54,6 +60,11 @@ type User struct {
 	ID string `json:"id,omitempty" bson:"_id,omitempty"`
 	// Origin specifies the the user's signup method.
 	Origin UserOrigin `json:"-" bson:"origin"`
+
+	// ExternalID represents the user's identifier in an external system. It is always empty when [User.Origin]
+	// is [UserOriginLocal].
+	ExternalID string `json:"-" bson:"external_id"`
+
 	Status UserStatus `json:"status" bson:"status"`
 	// MaxNamespaces represents the count of namespaces that the user can owns.
 	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
@@ -175,6 +186,7 @@ type UserChanges struct {
 	RecoveryEmail      string           `bson:"recovery_email,omitempty"`
 	Password           string           `bson:"password,omitempty"`
 	Status             UserStatus       `bson:"status,omitempty"`
+	ExternalID         *string          `bson:"external_id,omitempty"`
 	PreferredNamespace *string          `bson:"preferences.preferred_namespace,omitempty"`
 	MaxNamespaces      *int             `bson:"max_namespaces,omitempty"`
 	EmailMarketing     *bool            `bson:"email_marketing,omitempty"`
