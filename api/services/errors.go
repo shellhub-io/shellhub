@@ -1,6 +1,7 @@
 package services
 
 import (
+	stderrors "errors"
 	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -34,6 +35,8 @@ const (
 	ErrCodeNoContentChange
 	// ErrCodeCreated is the error code to be used when the resource was created, but the following operations failed.
 	ErrCodeCreated
+	// ErrCodeNotImplemented is the error code to be used when the resource is not yet implemented.
+	ErrCodeNotImplemented
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -133,6 +136,7 @@ var (
 	ErrRoleInvalid                  = errors.New("role is invalid", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                   = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
 	ErrSetupForbidden               = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
+	ErrAuthMethodNotAllowed         = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 )
 
 func NewErrRoleInvalid() error {
@@ -142,6 +146,10 @@ func NewErrRoleInvalid() error {
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
 func NewErrNoContentChange(err error, next error) error {
 	return errors.Wrap(err, next)
+}
+
+func NewErrAuthMethodNotAllowed(method string) error {
+	return errors.Wrap(ErrAuthMethodNotAllowed, stderrors.New("method"+method+"not allowed"))
 }
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.

@@ -39,6 +39,17 @@ func (o UserOrigin) String() string {
 	return string(o)
 }
 
+type UserAuthMethod string
+
+const (
+	// UserAuthMethodLocal indicates that the user can authenticate using an email and password.
+	UserAuthMethodLocal UserAuthMethod = "local"
+)
+
+func (a UserAuthMethod) String() string {
+	return string(a)
+}
+
 type User struct {
 	ID string `json:"id,omitempty" bson:"_id,omitempty"`
 	// Origin specifies the the user's signup method.
@@ -83,6 +94,9 @@ type UserMFA struct {
 type UserPreferences struct {
 	// PreferredNamespace represents the namespace the user most recently authenticated with.
 	PreferredNamespace string `json:"-" bson:"preferred_namespace"`
+
+	// AuthMethods indicates the authentication methods that the user can use to authenticate.
+	AuthMethods []UserAuthMethod `json:"-" bson:"auth_methods"`
 }
 
 type UserPassword struct {
@@ -127,17 +141,18 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 }
 
 type UserAuthResponse struct {
-	Token         string `json:"token"`
-	User          string `json:"user"`
-	Origin        string `json:"string"`
-	Name          string `json:"name"`
-	ID            string `json:"id"`
-	Tenant        string `json:"tenant"`
-	Email         string `json:"email"`
-	RecoveryEmail string `json:"recovery_email"`
-	Role          string `json:"role"`
-	MFA           bool   `json:"mfa"`
-	MaxNamespaces int    `json:"max_namespaces"`
+	Token         string           `json:"token"`
+	User          string           `json:"user"`
+	Origin        string           `json:"origin"`
+	AuthMethods   []UserAuthMethod `json:"auth_methods"`
+	Name          string           `json:"name"`
+	ID            string           `json:"id"`
+	Tenant        string           `json:"tenant"`
+	Email         string           `json:"email"`
+	RecoveryEmail string           `json:"recovery_email"`
+	Role          string           `json:"role"`
+	MFA           bool             `json:"mfa"`
+	MaxNamespaces int              `json:"max_namespaces"`
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;
@@ -153,16 +168,17 @@ type UserTokenRecover struct {
 // UserChanges specifies the attributes that can be updated for a user. Any zero values in this
 // struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
 type UserChanges struct {
-	LastLogin          time.Time  `bson:"last_login,omitempty"`
-	Name               string     `bson:"name,omitempty"`
-	Username           string     `bson:"username,omitempty"`
-	Email              string     `bson:"email,omitempty"`
-	RecoveryEmail      string     `bson:"recovery_email,omitempty"`
-	Password           string     `bson:"password,omitempty"`
-	Status             UserStatus `bson:"status,omitempty"`
-	PreferredNamespace *string    `bson:"preferences.preferred_namespace,omitempty"`
-	MaxNamespaces      *int       `bson:"max_namespaces,omitempty"`
-	EmailMarketing     *bool      `bson:"email_marketing,omitempty"`
+	LastLogin          time.Time        `bson:"last_login,omitempty"`
+	Name               string           `bson:"name,omitempty"`
+	Username           string           `bson:"username,omitempty"`
+	Email              string           `bson:"email,omitempty"`
+	RecoveryEmail      string           `bson:"recovery_email,omitempty"`
+	Password           string           `bson:"password,omitempty"`
+	Status             UserStatus       `bson:"status,omitempty"`
+	PreferredNamespace *string          `bson:"preferences.preferred_namespace,omitempty"`
+	MaxNamespaces      *int             `bson:"max_namespaces,omitempty"`
+	EmailMarketing     *bool            `bson:"email_marketing,omitempty"`
+	AuthMethods        []UserAuthMethod `bson:"preferences.auth_methods,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries

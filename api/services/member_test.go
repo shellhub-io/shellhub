@@ -1753,6 +1753,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 						&models.User{
 							ID:        "000000000000000000000000",
 							Status:    models.UserStatusConfirmed,
+							Origin:    models.UserOriginLocal,
 							LastLogin: now,
 							MFA: models.UserMFA{
 								Enabled: false,
@@ -1767,6 +1768,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
 						0,
@@ -1787,13 +1789,15 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "000000000000000000000000",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Role:   "",
-					Token:  "must ignore",
+					ID:          "000000000000000000000000",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Role:        "",
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
