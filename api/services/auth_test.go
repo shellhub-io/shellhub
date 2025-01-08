@@ -136,6 +136,55 @@ func TestService_AuthLocalUser(t *testing.T) {
 		expected      Expected
 	}{
 		{
+			description: "fails when could not retrieve the system",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String()),
+			},
+		},
+		{
+			description: "fails when local authentication is not allowed",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: false,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String()),
+			},
+		},
+		{
 			description: "fails when username is not found",
 			sourceIP:    "127.0.0.1",
 			req: &requests.AuthLocalUser{
@@ -143,6 +192,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserGetByUsername", ctx, "john_doe").
 					Return(nil, store.ErrNoDocuments).
@@ -164,6 +226,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			requiredMocks: func() {
 				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				mock.
 					On("UserGetByEmail", ctx, "john.doe@test.com").
 					Return(nil, store.ErrNoDocuments).
 					Once()
@@ -176,16 +251,29 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when user's origin isn't 'local'",
+			description: "fails when user does not have local as authentication method",
 			sourceIP:    "127.0.0.1",
 			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOrigin("other"),
+					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusNotConfirmed,
 					LastLogin: now,
 					MFA: models.UserMFA{
@@ -200,6 +288,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{},
 					},
 				}
 
@@ -220,6 +309,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -237,6 +339,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -258,6 +361,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			requiredMocks: func() {
 				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				mock.
 					On("UserGetByEmail", ctx, "john.doe@test.com").
 					Return(
 						&models.User{
@@ -277,6 +393,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
 						nil,
@@ -298,6 +415,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "wrong_password",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -315,6 +445,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -342,6 +473,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "wrong_password",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -359,6 +503,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -394,6 +539,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -411,6 +569,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -455,6 +614,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -472,6 +644,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -515,19 +688,25 @@ func TestService_AuthLocalUser(t *testing.T) {
 				res:      nil,
 				lockout:  0,
 				mfaToken: "",
-				err: NewErrUserUpdate(&models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
+				err: NewErrUserUpdate(
+					&models.User{
+						ID:        "65fdd16b5f62f93184ec8a39",
+						Origin:    models.UserOriginLocal,
+						Status:    models.UserStatusConfirmed,
+						LastLogin: now,
+						UserData: models.UserData{
+							Username: "john_doe",
+							Email:    "john.doe@test.com",
+						},
+						Password: models.UserPassword{
+							Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+						},
+						Preferences: models.UserPreferences{
+							AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+						},
 					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-				}, errors.New("error", "", 0)),
+					errors.New("error", "", 0),
+				),
 			},
 		},
 		{
@@ -538,6 +717,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -556,6 +748,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -597,13 +790,14 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginLocal.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -618,6 +812,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -636,6 +843,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -688,14 +896,15 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginLocal.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "00000000-0000-4000-0000-000000000000",
+					Role:        "owner",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -710,6 +919,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -728,6 +950,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -781,14 +1004,15 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginLocal.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Role:   "",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Role:        "",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -803,6 +1027,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -821,6 +1058,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -873,14 +1111,15 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginLocal.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "00000000-0000-4000-0000-000000000000",
-					Role:   "owner",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "00000000-0000-4000-0000-000000000000",
+					Role:        "owner",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",
@@ -895,6 +1134,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -913,6 +1165,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -963,13 +1216,14 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "65fdd16b5f62f93184ec8a39",
-					Origin: models.UserOriginLocal.String(),
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: "",
-					Token:  "must ignore",
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Token:       "must ignore",
 				},
 				lockout:  0,
 				mfaToken: "",

@@ -1,6 +1,6 @@
 package requests
 
-type SystemGetInfo struct {
+type GetSystemInfo struct {
 	Host string `header:"X-Forwarded-Host"`
 	Port int    `header:"X-Forwarded-Port"`
 }

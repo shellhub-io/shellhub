@@ -144,6 +144,9 @@ func TestUserCreate(t *testing.T) {
 					Status:        models.UserStatusConfirmed,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 				mock.On("UserCreate", ctx, user).Return("", errors.New("error")).Once()
 			},
@@ -178,6 +181,9 @@ func TestUserCreate(t *testing.T) {
 					Status:        models.UserStatusConfirmed,
 					CreatedAt:     clock.Now(),
 					MaxNamespaces: MaxNumberNamespacesCommunity,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
 				mock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
@@ -196,6 +202,9 @@ func TestUserCreate(t *testing.T) {
 				Status:        models.UserStatusConfirmed,
 				CreatedAt:     clock.Now(),
 				MaxNamespaces: MaxNumberNamespacesCommunity,
+				Preferences: models.UserPreferences{
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+				},
 			}, nil},
 		},
 	}

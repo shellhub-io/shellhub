@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -20,22 +21,25 @@ func TestGetSystemInfo(t *testing.T) {
 
 	cases := []struct {
 		title          string
-		request        requests.SystemGetInfo
-		requiredMocks  func(updatePayloadMock requests.SystemGetInfo)
+		request        requests.GetSystemInfo
+		requiredMocks  func(updatePayloadMock requests.GetSystemInfo)
 		expectedStatus int
 	}{
 		{
 			title: "success when try to get infos of a existing system",
-			request: requests.SystemGetInfo{
+			request: requests.GetSystemInfo{
 				Host: "example.com",
 				Port: 0,
 			},
-			requiredMocks: func(_ requests.SystemGetInfo) {
-				mock.On("SystemGetInfo", gomock.Anything, requests.SystemGetInfo{
-					Host: "example.com",
-					Port: 0,
-				},
-				).Return(&models.SystemInfo{}, nil)
+			requiredMocks: func(_ requests.GetSystemInfo) {
+				mock.
+					On(
+						"GetSystemInfo",
+						gomock.Anything,
+						&requests.GetSystemInfo{Host: "example.com", Port: 0},
+					).
+					Return(&responses.SystemInfo{}, nil).
+					Once()
 			},
 			expectedStatus: http.StatusOK,
 		},

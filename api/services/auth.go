@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -171,6 +172,10 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
+		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
+	}
+
 	var err error
 	var user *models.User
 
@@ -184,7 +189,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	if user.Origin != models.UserOriginLocal {
+	if !slices.Contains(user.Preferences.AuthMethods, models.UserAuthMethodLocal) {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
@@ -290,6 +295,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	res := &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
+		AuthMethods:   user.Preferences.AuthMethods,
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
@@ -373,6 +379,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	return &models.UserAuthResponse{
 		ID:            user.ID,
 		Origin:        user.Origin.String(),
+		AuthMethods:   user.Preferences.AuthMethods,
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
