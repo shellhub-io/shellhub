@@ -48,6 +48,10 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		}
 	}
 
+	// NOTE: It allows the access to `/info` without the prefix `/api`. It going to be used for internal communication,
+	// and avoid unnecessary gateway communication.
+	e.GET(GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
+
 	// Internal routes only accessible by other services in the local container network
 	internalAPI := e.Group("/internal")
 
