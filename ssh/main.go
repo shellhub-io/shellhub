@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"runtime"
 	"time"
@@ -14,6 +15,8 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
+
+const ListenAddress = ":8080"
 
 func init() {
 	loglevel.SetLogLevel()
@@ -60,11 +63,39 @@ func main() {
 		log.Info("Profiling enabled at http://0.0.0.0:8080/debug/pprof/")
 	}
 
-	go http.ListenAndServe(":8080", router) // nolint:errcheck,gosec
+	errs := make(chan error)
 
-	log.Fatal(server.NewServer(&server.Options{
-		ConnectTimeout:               env.ConnectTimeout,
-		RecordURL:                    env.RecordURL,
-		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
-	}, tun.Tunnel, cache).ListenAndServe())
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Debugf("listen for HTTP server on %s paniced", ListenAddress)
+
+				errs <- fmt.Errorf("listen for HTTP on %s paniced", ListenAddress)
+			}
+		}()
+
+		errs <- http.ListenAndServe(ListenAddress, router) //nolint:gosec
+	}()
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Debugf("listen for SSH server paniced")
+
+				errs <- fmt.Errorf("listen for SSH server paniced")
+			}
+		}()
+
+		errs <- server.NewServer(&server.Options{
+			ConnectTimeout:               env.ConnectTimeout,
+			RecordURL:                    env.RecordURL,
+			AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
+		}, tun.Tunnel, cache).ListenAndServe()
+	}()
+
+	if err := <-errs; err != nil {
+		log.WithError(err).Fatal("a fatal error was send from HTTP or SSH server")
+	}
+
+	log.Warn("ssh service is closed")
 }
