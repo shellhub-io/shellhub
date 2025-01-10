@@ -77,7 +77,7 @@ type User struct {
 	//
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
 	MFA         UserMFA         `json:"mfa" bson:"mfa"`
-	Preferences UserPreferences `json:"-" bson:"preferences"`
+	Preferences UserPreferences `json:"preferences" bson:"preferences"`
 	Password    UserPassword    `bson:",inline"`
 }
 
@@ -107,7 +107,7 @@ type UserPreferences struct {
 	PreferredNamespace string `json:"-" bson:"preferred_namespace"`
 
 	// AuthMethods indicates the authentication methods that the user can use to authenticate.
-	AuthMethods []UserAuthMethod `json:"-" bson:"auth_methods"`
+	AuthMethods []UserAuthMethod `json:"auth_methods" bson:"auth_methods"`
 }
 
 type UserPassword struct {
