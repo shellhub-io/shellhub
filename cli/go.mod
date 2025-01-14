@@ -6,7 +6,7 @@ toolchain go1.22.8
 
 require (
 	github.com/shellhub-io/shellhub v0.13.4
-	github.com/shellhub-io/shellhub/api v0.13.4
+	github.com/shellhub-io/shellhub/api v0.16.3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
