@@ -30,9 +30,16 @@ local function resolve_dns(hostname)
         return
     end
 
+    ngx.log(ngx.INFO, "DNS resolution for ", hostname, " returned ", #answers, " answers")
+
     for _, ans in ipairs(answers) do
         if ans.address then
-            dns_cache:set(hostname, ans.address)
+            local ok, err = dns_cache:set(hostname, ans.address)
+            if not ok then
+                ngx.log(ngx.ERR, "Failed to set ", hostname, " in cache: ", err)
+                return
+            end
+
             ngx.log(ngx.INFO, "Resolved ", hostname, " to ", ans.address)
             return ans.address
         end
@@ -45,20 +52,11 @@ local function resolve_all_dns()
     end
 end
 
-local function schedule()
-    local ok, err = ngx.timer.at(10, function(premature)
-        if not premature then
-            resolve_all_dns()
-            schedule()
-        end
-    end)
+function _M.init_worker()
+    local ok, err = ngx.timer.every(10, resolve_all_dns)
     if not ok then
         ngx.log(ngx.ERR, "failed to create the timer: ", err)
     end
-end
-
-function _M.init_worker()
-    schedule()
 end
 
 function _M.balance()
