@@ -148,12 +148,14 @@ func (c *client) GetDeviceByPublicURLAddress(address string) (*models.Device, er
 }
 
 type Tunnel struct {
-	Address   string    `json:"address"`
-	Namespace string    `json:"namespace"`
-	Device    string    `json:"device"`
-	Host      string    `json:"host"`
-	Port      int       `json:"port"`
-	CreatedAt time.Time `json:"time" bson:"time"`
+	Address    string    `json:"address"`
+	Namespace  string    `json:"namespace"`
+	Device     string    `json:"device"`
+	Host       string    `json:"host"`
+	Port       int       `json:"port"`
+	TimeToLive int       `json:"ttl"`
+	ExpiresIn  time.Time `json:"expires_in"`
+	CreatedAt  time.Time `json:"time" bson:"time"`
 }
 
 func (c *client) LookupTunnel(address string) (*Tunnel, error) {
