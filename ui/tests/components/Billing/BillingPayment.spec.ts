@@ -58,20 +58,20 @@ describe("Billing Payment", () => {
     payment_methods: [
       {
         id: "pm_test123",
-        number: "**** **** **** 1234",
+        number: "1234 1234 1234 1234",
         brand: "visa",
         exp_month: 12,
-        exp_year: 2024,
-        cvc: "***",
+        exp_year: 2999,
+        cvc: "123",
         default: false,
       },
       {
         id: "pm_test456",
-        number: "**** **** **** 5678",
+        number: "1234 1234 1234 5678",
         brand: "mastercard",
-        exp_month: 9,
-        exp_year: 2026,
-        cvc: "***",
+        exp_month: 12,
+        exp_year: 2999,
+        cvc: "123",
         default: true,
       },
     ],
@@ -88,8 +88,7 @@ describe("Billing Payment", () => {
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockCustomer.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
 
-    store.commit("namespace/setNamespace", namespaceData);
-    store.commit("customer/setCustomer", customerData);
+    store.commit("namespaces/setNamespace", namespaceData);
 
     wrapper = mount(BillingPayment, {
       global: {
@@ -110,12 +109,15 @@ describe("Billing Payment", () => {
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
+
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+
   it("Data is defined", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
+
   it("Renders the correct html", async () => {
     await flushPromises();
     expect(wrapper.findComponent('[data-test="customer-name"]').exists()).toBe(true);
