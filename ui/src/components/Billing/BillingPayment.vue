@@ -253,9 +253,9 @@ onMounted(async () => {
   await fetchData();
 });
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
   const stripePromise = loadStripe(stripeKey.value);
-  stripePromise.then(() => {
+  await stripePromise.then(() => {
     stripeLoaded.value = true;
   });
 });

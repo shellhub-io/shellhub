@@ -22,7 +22,7 @@ export interface PaymentMethod {
   exp_year: number;
   cvc: string;
   id: string;
-  default:boolean;
+  default: boolean;
 }
 
 export interface Customer {
