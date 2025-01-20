@@ -9,7 +9,8 @@ export interface ITunnel {
 export interface ITunnelCreate {
   uid: string,
   host: string,
-  port: number
+  port: number,
+  ttl: number
 }
 
 export interface ITunnelDelete{

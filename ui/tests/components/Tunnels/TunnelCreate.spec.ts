@@ -165,6 +165,7 @@ describe("Tunnel Create", async () => {
     expect(dialog.find('[data-test="create-dialog-title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="tunnel-create-alert"]').exists()).toBe(false);
     expect(dialog.find('[data-test="tunnel-create-text"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="timeout-combobox"]').exists()).toBe(true);
     expect(dialog.find('[data-test="address-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="port-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
@@ -181,6 +182,7 @@ describe("Tunnel Create", async () => {
 
     await wrapper.findComponent('[data-test="address-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue(8080);
+    await wrapper.findComponent('[data-test="timeout-combobox"]').setValue(-1);
 
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
 
@@ -189,6 +191,7 @@ describe("Tunnel Create", async () => {
     expect(StoreSpy).toHaveBeenCalledWith("tunnels/create", {
       uid: "fake-uid",
       host: "127.0.0.1",
+      ttl: -1,
       port: 8080,
     });
   });
@@ -201,6 +204,7 @@ describe("Tunnel Create", async () => {
 
     await wrapper.findComponent('[data-test="address-text"]').setValue("bad-address");
     await wrapper.findComponent('[data-test="port-text"]').setValue("bad-port");
+    await wrapper.findComponent('[data-test="timeout-combobox"]').setValue(-1);
 
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
 

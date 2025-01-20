@@ -37,8 +37,8 @@ export const tunnels: Module<TunnelsState, State> = {
     },
 
     async create(_, data: ITunnelCreate) {
-      const { uid, host, port } = data;
-      const res = await apiTunnel.createTunnel(uid, host, port);
+      const { uid, host, port, ttl } = data;
+      const res = await apiTunnel.createTunnel(uid, host, port, ttl);
       return res;
     },
   },

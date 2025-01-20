@@ -18,6 +18,7 @@
           v-for="(tunnel, i) in tunnelList"
           :key="i"
           :data-test="`device-tunnel-row-${i}`"
+          :class="formatKey(tunnel.expires_in) ? 'text-warning' : ''"
         >
           <td class="text-center" data-test="device-tunnel-url">
             <a
@@ -36,6 +37,13 @@
 
           <td class="text-center" data-test="device-tunnel-port">
             {{ tunnel.port }}
+          </td>
+
+          <td
+            class="text-center"
+            data-test="device-tunnel-expiration-date"
+          >
+            {{ formatDate(tunnel.expires_in) }}
           </td>
 
           <td class="text-center" data-test="device-tunnel-actions">
@@ -58,6 +66,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import moment from "moment";
 import { useStore } from "@/store";
 import TunnelDelete from "./TunnelDelete.vue";
 import { envVariables } from "@/envVariables";
@@ -93,10 +102,35 @@ const headers = [
     value: "port",
   },
   {
+    text: "Expiration Date",
+    value: "expires_in",
+  },
+  {
     text: "Actions",
     value: "actions",
   },
 ];
+
+const now = moment().utc();
+
+const formatKey = (date: string) => {
+  if (date === "0001-01-01T00:00:00Z") return false;
+
+  const expiryDate = moment(date);
+
+  return now.isAfter(expiryDate);
+};
+
+const formatDate = (expiresIn: string) => {
+  if (expiresIn === "0001-01-01T00:00:00Z") return "Never Expires";
+
+  const expirationDate = moment(expiresIn);
+  const format = "MMM D YYYY, h:mm:s";
+
+  return now.isAfter(expirationDate)
+    ? `Expired on ${expirationDate.format(format)}.`
+    : `Expires on ${expirationDate.format(format)}.`;
+};
 
 defineExpose({ getTunnels });
 </script>

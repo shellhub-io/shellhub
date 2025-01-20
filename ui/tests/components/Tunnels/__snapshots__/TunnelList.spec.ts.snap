@@ -10,7 +10,8 @@ exports[`Tunnel List > Renders the component 1`] = `
           <th class="text-center" data-test="device-tunnels-header-0"><span>Address</span></th>
           <th class="text-center" data-test="device-tunnels-header-1"><span>Host</span></th>
           <th class="text-center" data-test="device-tunnels-header-2"><span>Port</span></th>
-          <th class="text-center" data-test="device-tunnels-header-3"><span>Actions</span></th>
+          <th class="text-center" data-test="device-tunnels-header-3"><span>Expiration Date</span></th>
+          <th class="text-center" data-test="device-tunnels-header-4"><span>Actions</span></th>
         </tr>
       </thead>
       <div class="pa-4 text-subtitle-2" data-test="device-tunnels-empty">
