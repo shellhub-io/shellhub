@@ -2,11 +2,12 @@ import { tunnelApi } from "../../api/http";
 
 const getTunnels = (uid: string) => tunnelApi.listTunnels(uid);
 
-const createTunnel = (uid: string, host: string, port: number) => tunnelApi.createTunnel(
+const createTunnel = (uid: string, host: string, port: number, ttl: number) => tunnelApi.createTunnel(
   uid,
   {
     host,
     port,
+    ttl,
   },
 );
 

@@ -1211,17 +1211,23 @@ export interface CreatePublicKey200Response {
  */
 export interface CreateTunnelRequest {
     /**
-     * The host address by the tunnel.
+     * Tunnel\'s agent host address
      * @type {string}
      * @memberof CreateTunnelRequest
      */
-    'host'?: string;
+    'host': string;
     /**
-     * The port number used by the tunnel.
+     * Tunnel\'s agent port number
      * @type {number}
      * @memberof CreateTunnelRequest
      */
-    'port'?: number;
+    'port': number;
+    /**
+     * Tunnel\'s time to live in seconds
+     * @type {number}
+     * @memberof CreateTunnelRequest
+     */
+    'ttl': number;
 }
 /**
  * 
@@ -2658,6 +2664,12 @@ export interface Session {
      * @memberof Session
      */
     'position'?: SessionPosition;
+    /**
+     * 
+     * @type {SessionEvents}
+     * @memberof Session
+     */
+    'events'?: SessionEvents;
 }
 
 export const SessionTypeEnum = {
@@ -2667,6 +2679,50 @@ export const SessionTypeEnum = {
 
 export type SessionTypeEnum = typeof SessionTypeEnum[keyof typeof SessionTypeEnum];
 
+/**
+ * Session\'s events
+ * @export
+ * @interface SessionEvents
+ */
+export interface SessionEvents {
+    /**
+     * Session\'s set of types
+     * @type {Array<string>}
+     * @memberof SessionEvents
+     */
+    'types'?: Array<string>;
+    /**
+     * Session\'s list of events
+     * @type {Array<SessionEventsItemsInner>}
+     * @memberof SessionEvents
+     */
+    'items'?: Array<SessionEventsItemsInner>;
+}
+/**
+ * 
+ * @export
+ * @interface SessionEventsItemsInner
+ */
+export interface SessionEventsItemsInner {
+    /**
+     * The type of the event
+     * @type {string}
+     * @memberof SessionEventsItemsInner
+     */
+    'type'?: string;
+    /**
+     * The time the event occurred in ISO 8601 format
+     * @type {string}
+     * @memberof SessionEventsItemsInner
+     */
+    'timestamp'?: string;
+    /**
+     * Additional data related to the event
+     * @type {object}
+     * @memberof SessionEventsItemsInner
+     */
+    'data'?: object;
+}
 /**
  * Session\'s geolocation position
  * @export
@@ -2763,7 +2819,7 @@ export interface Support {
  */
 export interface Tunnel {
     /**
-     * The unique address associated with the tunnel
+     * Tunnel\'s unique address
      * @type {string}
      * @memberof Tunnel
      */
@@ -2781,17 +2837,35 @@ export interface Tunnel {
      */
     'device'?: string;
     /**
-     * The host address by the tunnel.
+     * Tunnel\'s agent host address
      * @type {string}
      * @memberof Tunnel
      */
     'host'?: string;
     /**
-     * The port number used by the tunnel.
+     * Tunnel\'s agent port number
      * @type {number}
      * @memberof Tunnel
      */
     'port'?: number;
+    /**
+     * Tunnel\'s time to live in seconds
+     * @type {number}
+     * @memberof Tunnel
+     */
+    'ttl'?: number;
+    /**
+     * Tunnel\'s expiration date
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'expires_in'?: string;
+    /**
+     * Tunnel\'s creation date
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'created_at'?: string;
 }
 /**
  * 
@@ -8067,10 +8141,12 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
          * List the tunnels per devices.
          * @summary List tunnels
          * @param {string} uid Device\&#39;s UID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTunnels: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listTunnels: async (uid: string, page?: number, perPage?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('listTunnels', 'uid', uid)
             const localVarPath = `/api/devices/{uid}/tunnels`
@@ -8089,6 +8165,14 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             // authentication jwt required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
 
 
     
@@ -8410,11 +8494,13 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          * List the tunnels per devices.
          * @summary List tunnels
          * @param {string} uid Device\&#39;s UID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listTunnels(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listTunnels(uid, options);
+        async listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTunnels(uid, page, perPage, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -8598,11 +8684,13 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          * List the tunnels per devices.
          * @summary List tunnels
          * @param {string} uid Device\&#39;s UID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTunnels(uid: string, options?: any): AxiosPromise<Array<Tunnel>> {
-            return localVarFp.listTunnels(uid, options).then((request) => request(axios, basePath));
+        listTunnels(uid: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Tunnel>> {
+            return localVarFp.listTunnels(uid, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * Update device\'s data.
@@ -8803,12 +8891,14 @@ export class DevicesApi extends BaseAPI {
      * List the tunnels per devices.
      * @summary List tunnels
      * @param {string} uid Device\&#39;s UID
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DevicesApi
      */
-    public listTunnels(uid: string, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).listTunnels(uid, options).then((request) => request(this.axios, this.basePath));
+    public listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).listTunnels(uid, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -15204,10 +15294,12 @@ export const TunnelsApiAxiosParamCreator = function (configuration?: Configurati
          * List the tunnels per devices.
          * @summary List tunnels
          * @param {string} uid Device\&#39;s UID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTunnels: async (uid: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listTunnels: async (uid: string, page?: number, perPage?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('listTunnels', 'uid', uid)
             const localVarPath = `/api/devices/{uid}/tunnels`
@@ -15226,6 +15318,14 @@ export const TunnelsApiAxiosParamCreator = function (configuration?: Configurati
             // authentication jwt required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
 
 
     
@@ -15276,11 +15376,13 @@ export const TunnelsApiFp = function(configuration?: Configuration) {
          * List the tunnels per devices.
          * @summary List tunnels
          * @param {string} uid Device\&#39;s UID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listTunnels(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listTunnels(uid, options);
+        async listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTunnels(uid, page, perPage, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -15319,11 +15421,13 @@ export const TunnelsApiFactory = function (configuration?: Configuration, basePa
          * List the tunnels per devices.
          * @summary List tunnels
          * @param {string} uid Device\&#39;s UID
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTunnels(uid: string, options?: any): AxiosPromise<Array<Tunnel>> {
-            return localVarFp.listTunnels(uid, options).then((request) => request(axios, basePath));
+        listTunnels(uid: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Tunnel>> {
+            return localVarFp.listTunnels(uid, page, perPage, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -15365,12 +15469,14 @@ export class TunnelsApi extends BaseAPI {
      * List the tunnels per devices.
      * @summary List tunnels
      * @param {string} uid Device\&#39;s UID
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TunnelsApi
      */
-    public listTunnels(uid: string, options?: AxiosRequestConfig) {
-        return TunnelsApiFp(this.configuration).listTunnels(uid, options).then((request) => request(this.axios, this.basePath));
+    public listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig) {
+        return TunnelsApiFp(this.configuration).listTunnels(uid, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

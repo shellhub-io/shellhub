@@ -159,11 +159,12 @@ describe("Tunnel List", () => {
 
   it("Renders table headers", () => {
     const headers = wrapper.findAll('[data-test^="device-tunnels-header-"]');
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
     expect(headers[0].text()).toBe("Address");
     expect(headers[1].text()).toBe("Host");
     expect(headers[2].text()).toBe("Port");
-    expect(headers[3].text()).toBe("Actions");
+    expect(headers[3].text()).toBe("Expiration Date");
+    expect(headers[4].text()).toBe("Actions");
   });
 
   it("Renders table rows", async () => {

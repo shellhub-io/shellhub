@@ -49,6 +49,22 @@
               />
             </v-col>
           </v-row>
+          <v-row>
+            <v-col>
+              <v-combobox
+                v-model.number="timeout"
+                :items="predefinedTimeouts"
+                item-title="text"
+                item-value="value"
+                :rules="[validateTimeout]"
+                label="Timeout (in seconds)"
+                variant="outlined"
+                data-test="timeout-combobox"
+                @update:model-value="onTimeoutChange"
+              />
+
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-container>
       <v-card-actions>
@@ -117,6 +133,48 @@ const {
   },
 );
 
+interface Timeout {
+  value: number,
+  text: string,
+}
+
+const predefinedTimeouts = ref<Array<Timeout>>([
+  { value: -1, text: "Unlimited Timeout" },
+  { value: 60, text: "1 minute" },
+  { value: 300, text: "5 minutes" },
+  { value: 900, text: "15 minutes" },
+  { value: 3600, text: "1 hour" },
+  { value: 86400, text: "1 day" },
+  { value: 604800, text: "1 week" },
+  { value: 2624016, text: "1 month" },
+]);
+
+const {
+  value: timeout,
+} = useField<number>(
+  "timeout",
+  yup
+    .number()
+    .integer()
+    .min(1, "Value must be 1 or greater")
+    .max(2624016, "Value cannot exceed 1 month in seconds")
+    .required("Timeout is required"),
+  { initialValue: -1 },
+);
+
+const onTimeoutChange = (newValue: Timeout | number) => {
+  switch (typeof newValue) {
+    case "object": timeout.value = newValue.value; break;
+    case "number": timeout.value = newValue; break;
+    default: timeout.value = predefinedTimeouts.value[0].value; break;
+  }
+};
+
+const validateTimeout = (value: number) => {
+  if (Number.isNaN(value)) return "Value must be a number";
+  return true;
+};
+
 const hasAuthorizationCreateTunnel = () => {
   const role = store.getters["auth/role"];
   if (role !== "") {
@@ -135,6 +193,8 @@ const hasErrors = () => !!(
   || hostError.value
   || !port.value
   || !host.value
+  || !timeout.value
+  || !validateTimeout
 );
 
 const resetFields = () => {
@@ -159,6 +219,7 @@ const addTunnel = async () => {
         uid: props.uid,
         host: host.value,
         port: port.value,
+        ttl: timeout.value,
       });
 
       store.dispatch(
