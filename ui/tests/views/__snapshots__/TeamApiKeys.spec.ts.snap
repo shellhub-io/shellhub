@@ -2,7 +2,7 @@
 
 exports[`Team Api Keys > Renders the component 1`] = `
 "<div class="d-flex pa-0 align-center" data-test="title">
-  <h1>Api Keys</h1>
+  <h1>API Keys</h1>
   <div class="v-spacer"></div>
   <div class="d-flex" data-test="api-key-generate">
     <div>

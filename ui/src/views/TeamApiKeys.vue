@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex pa-0 align-center" data-test="title">
-    <h1>Api Keys</h1>
+    <h1>API Keys</h1>
 
     <v-spacer />
 
