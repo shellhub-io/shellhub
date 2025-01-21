@@ -13,7 +13,36 @@ docker_install() {
         docker pull -q shellhubio/agent:$AGENT_VERSION
     } || { echo "❌ Failed to download shellhub container image."; exit 1; }
 
-    echo "🚀 Starting ShellHub container..."
+    MODE=""
+    DEFAULT_CONTAINER_NAME="shellhub"
+
+    if [ "$1" = "-s" ]; then
+        case "$2" in
+            "agent")
+                shift 2
+                ;;
+            "connector")
+                MODE="connector"
+                DEFAULT_CONTAINER_NAME="shellhub-connector"
+                ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
+
+                echo "🚀 Starting ShellHub container in Docker Connector mode..."
+                shift 2
+                ;;
+            *)
+                echo "❌ Invalid mode: $2"
+                exit 1
+                ;;
+        esac
+    fi
+
+    if [ -z "$MODE" ]; then
+        ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+
+        echo "🚀 Starting ShellHub container in Agent mode..."
+    fi
+
+    CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
 
     docker run -d \
        --name=$CONTAINER_NAME \
@@ -31,10 +60,11 @@ docker_install() {
        -v /var/log:/var/log \
        -v /tmp:/tmp \
        -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
-       -e SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key \
        -e SHELLHUB_TENANT_ID=$TENANT_ID \
        $ARGS \
-       shellhubio/agent:$AGENT_VERSION
+       shellhubio/agent:$AGENT_VERSION \
+       $MODE
+
 }
 
 snap_install() {
@@ -167,7 +197,6 @@ TENANT_ID="${TENANT_ID}"
 INSTALL_METHOD="$INSTALL_METHOD"
 AGENT_VERSION="${AGENT_VERSION:-$(http_get $SERVER_ADDRESS/info | sed -E 's/.*"version":\s?"?([^,"]*)"?.*/\1/')}"
 AGENT_ARCH="$AGENT_ARCH"
-CONTAINER_NAME="${CONTAINER_NAME:-shellhub}"
 RUNC_VERSION=${RUNC_VERSION:-v1.1.3}
 RUNC_ARCH=$RUNC_ARCH
 INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
@@ -236,7 +265,7 @@ echo
 case "$INSTALL_METHOD" in
     docker)
         echo "🐳 Installing ShellHub using docker method..."
-        docker_install
+        docker_install "$@"
         ;;
     snap)
         echo "📦 Installing ShellHub using snap method..."
