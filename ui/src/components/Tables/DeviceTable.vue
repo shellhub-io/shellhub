@@ -305,7 +305,7 @@ const headers = [
     sortable: true,
   },
   {
-    text: "Operating System",
+    text: props.variant === "device" ? "Operating System" : "Image",
     value: "operating_system",
   },
   {
@@ -329,7 +329,7 @@ const headersSecondary = [
     sortable: true,
   },
   {
-    text: "Operating System",
+    text: props.variant === "device" ? "Operating System" : "Image",
     value: "operating_system",
   },
   {

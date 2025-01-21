@@ -10,7 +10,7 @@ exports[`Container Rejected List > Renders the component 1`] = `
           <thead data-v-046d4556="" class="bg-v-theme-background">
             <tr data-v-046d4556="">
               <th data-v-046d4556="" class="text-center"><span data-v-046d4556="" tabindex="0" class="hover" aria-describedby="v-tooltip-0">Hostname <!----><!--teleport start--><!--teleport end--></span></th>
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Operating System</span></th>
+              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Image</span></th>
               <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Request Time</span></th>
               <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Actions</span></th>
             </tr>
