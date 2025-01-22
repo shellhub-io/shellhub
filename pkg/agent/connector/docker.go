@@ -6,10 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
@@ -202,6 +204,28 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 			}
 		}
 	}
+}
+
+func (d *DockerConnector) CheckUpdate() (*semver.Version, error) {
+	api, err := client.NewClient(d.server)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"version": ConnectorVersion,
+		}).Error("Failed to create HTTP client to check agent version")
+
+		return nil, err
+	}
+
+	info, err := api.GetInfo(ConnectorVersion)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"version": ConnectorVersion,
+		}).Error("Failed to get info from ShellHub's server")
+
+		return nil, err
+	}
+
+	return semver.NewVersion(info.Version)
 }
 
 // initContainerAgent initializes the agent for a container.
