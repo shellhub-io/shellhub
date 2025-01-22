@@ -78,14 +78,12 @@
                 label="Tags"
                 :rules="[validateLength]"
                 :error-messages="errMsg"
-                variant="underlined"
                 multiple
               />
               <v-text-field
                 v-if="choiceFilter === 'hostname'"
                 v-model="hostname"
                 label="Hostname"
-                variant="underlined"
                 :error-messages="hostnameError"
                 data-test="hostname-field"
               />
@@ -98,7 +96,6 @@
               :error-messages="publicKeyDataError"
               required
               :messages="supportedKeys"
-              variant="underlined"
               data-test="data-field"
               rows="2"
             />

@@ -62,7 +62,6 @@
           :rules="rules"
           required
           label="Username or email address"
-          variant="underlined"
           data-test="username-text"
         />
 
@@ -74,7 +73,6 @@
           :rules="rules"
           label="Password"
           required
-          variant="underlined"
           data-test="password-text"
           :type="showPassword ? 'text' : 'password'"
           @click:append-inner="showPassword = !showPassword"
@@ -88,7 +86,7 @@
             block
             type="submit"
           >
-            LOGIN
+            Login
           </v-btn>
         </v-card-actions>
 

@@ -30,7 +30,6 @@
                 v-model="memberLocal.selectedRole"
                 :items="items"
                 label="Role"
-                variant="underlined"
                 :error-messages="errorMessage"
                 require
                 data-test="role-select"
