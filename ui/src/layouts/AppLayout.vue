@@ -124,7 +124,7 @@
     <v-main data-test="main">
       <slot>
         <v-container
-          class="pa-8"
+          :class="{ 'pa-8': true, 'container-light-bg': getStatusDarkMode == 'light' }"
           fluid
           data-test="container"
         >
@@ -308,11 +308,15 @@ defineExpose({
   height: 100vh !important;
 }
 
-.v-container {
+:deep(.v-container) {
   min-height: calc(100vh - 64px);
   background-image: linear-gradient(155deg, rgb(var(--v-theme-primary),0.10) 0%, transparent 30%), url(/bg.svg);
   background-position: 0% 0;
   background-repeat: no-repeat;
   background-size: auto;
+}
+
+.container-light-bg {
+  background-image: linear-gradient(155deg, rgb(var(--v-theme-primary),0.10) 0%, transparent 0%), url(/bg-inverted.svg);
 }
 </style>
