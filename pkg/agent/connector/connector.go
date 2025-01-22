@@ -2,6 +2,8 @@ package connector
 
 import (
 	"context"
+
+	"github.com/Masterminds/semver"
 )
 
 // ConnectorVersion stores the version of the ShellHub Instane that is running the connector.
@@ -35,4 +37,6 @@ type Connector interface {
 	Stop(ctx context.Context, id string)
 	// Listen listens for events and starts or stops the agent for the container that was created or removed.
 	Listen(ctx context.Context) error
+	// Checks for Connector's update.
+	CheckUpdate() (*semver.Version, error)
 }

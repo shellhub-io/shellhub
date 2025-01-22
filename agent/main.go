@@ -186,6 +186,26 @@ func main() {
 		Use:   "connector",
 		Short: "Starts the ShellHub Agent in Connector mode",
 		Run: func(cmd *cobra.Command, _ []string) {
+			updater, err := selfupdater.NewUpdater(AgentVersion)
+			if err != nil {
+				log.Panic(err)
+			}
+
+			err = updater.CompleteUpdate()
+			if err != nil {
+				log.Warning(err)
+				os.Exit(0)
+			}
+
+			currentVersion := new(semver.Version)
+
+			if AgentVersion != "latest" {
+				currentVersion, err = updater.CurrentVersion()
+				if err != nil {
+					log.Panic(err)
+				}
+			}
+
 			cfg, fields, err := connector.LoadConfigFromEnv()
 			if err != nil {
 				log.WithError(err).
@@ -210,6 +230,41 @@ func main() {
 			connector, err := connector.NewDockerConnector(cfg.ServerAddress, cfg.TenantID, cfg.PrivateKeys)
 			if err != nil {
 				logger.Fatal("Failed to create ShellHub Agent Connector")
+			}
+
+			if AgentVersion != "latest" {
+				go func() {
+					for {
+						nextVersion, err := connector.CheckUpdate()
+						if err != nil {
+							log.WithError(err).WithFields(log.Fields{
+								"version": AgentVersion,
+							}).Error("Failed to check update")
+
+							goto sleep
+						}
+
+						if nextVersion.GreaterThan(currentVersion) {
+							if err := updater.ApplyUpdate(nextVersion); err != nil {
+								log.WithError(err).WithFields(log.Fields{
+									"version": AgentVersion,
+								}).Error("Failed to apply update")
+							}
+
+							log.WithFields(log.Fields{
+								"version":      currentVersion,
+								"next_version": nextVersion.String(),
+							}).Info("Update successfully applied")
+						}
+
+					sleep:
+						log.WithFields(log.Fields{
+							"version": AgentVersion,
+						}).Info("Sleeping for 24 hours")
+
+						time.Sleep(time.Hour * 24)
+					}
+				}()
 			}
 
 			if err := connector.Listen(cmd.Context()); err != nil {
