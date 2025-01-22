@@ -38,9 +38,8 @@
             v-model="keyName"
             :error-messages="keyInputError"
             label="Key Name"
-            prepend-icon="mdi-key-outline"
+            prepend-inner-icon="mdi-key-outline"
             required
-            variant="underlined"
             data-test="key-name-text"
             messages="Provide a distinct name for this key,
             which might be visible to resource owners or individuals in possession of the key."
@@ -56,7 +55,6 @@
                 :items="itemsDate"
                 :item-props="true"
                 :hint="expirationHint"
-                variant="outlined"
                 return-object
                 data-test="namespace-generate-date"
               />
@@ -68,7 +66,6 @@
                 label="Key Role"
                 :items="itemsRoles"
                 :item-props="true"
-                variant="outlined"
                 return-object
                 data-test="namespace-generate-role"
               />

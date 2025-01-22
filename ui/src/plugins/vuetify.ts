@@ -46,6 +46,22 @@ export default createVuetify({
       light,
     },
   },
+  defaults: {
+    global: {
+
+    },
+    VTextField: {
+      variant: "outlined",
+      density: "comfortable",
+    },
+    VSelect: {
+      variant: "outlined",
+      density: "comfortable",
+    },
+    VTextarea: {
+      variant: "outlined",
+    },
+  },
   icons: {
     faAliases,
     sets: {

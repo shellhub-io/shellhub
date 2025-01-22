@@ -33,7 +33,6 @@
               :error-messages="nameError"
               label="Name"
               placeholder="Name used to identify the public key"
-              variant="underlined"
               data-test="name-field"
             />
 
@@ -42,7 +41,6 @@
                 v-model="choiceUsername"
                 label="Device username access restriction"
                 :items="usernameList"
-                variant="underlined"
                 item-title="filterText"
                 item-value="filterName"
                 data-test="username-restriction-field"
@@ -53,7 +51,6 @@
               v-if="choiceUsername === 'username'"
               v-model="username"
               label="Rule username"
-              variant="underlined"
               :error-messages="usernameError"
               data-test="rule-field"
             />
@@ -63,7 +60,6 @@
                 v-model="choiceFilter"
                 label="Device access restriction"
                 :items="filterList"
-                variant="underlined"
                 item-title="filterText"
                 item-value="filterName"
                 data-test="filter-restriction-field"
@@ -81,14 +77,12 @@
                 label="Tags"
                 :rules="[validateLength]"
                 :error-messages="errMsg"
-                variant="underlined"
                 multiple
               />
               <v-text-field
                 v-if="choiceFilter === 'hostname'"
                 v-model="hostname"
                 label="Hostname"
-                variant="underlined"
                 :error-messages="hostnameError"
                 data-test="hostname-field"
               />
@@ -101,7 +95,6 @@
               :error-messages="publicKeyDataError"
               required
               :messages="supportedKeys"
-              variant="underlined"
               data-test="data-field"
               rows="2"
             />

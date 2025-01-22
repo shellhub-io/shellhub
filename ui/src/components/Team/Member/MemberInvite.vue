@@ -83,7 +83,6 @@
             label="Email"
             :error-messages="emailError"
             required
-            variant="underlined"
             data-test="email-text"
           />
         </v-card-text>
@@ -95,7 +94,6 @@
             label="Role"
             :error-messages="selectedRoleError"
             required
-            variant="underlined"
             data-test="role-select"
           />
         </v-card-text>
