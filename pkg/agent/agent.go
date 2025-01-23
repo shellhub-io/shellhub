@@ -41,10 +41,12 @@ package agent
 import (
 	"context"
 	"crypto/rsa"
+	"fmt"
 	"io"
 	"math/rand"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"os"
 	"runtime"
@@ -54,6 +56,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
+	dockerclient "github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/keygen"
@@ -392,7 +395,7 @@ func connHandler(serv *server.Server) func(c echo.Context) error {
 }
 
 // proxyHandler handlers proxy connections to the required address.
-func proxyHandler() func(c echo.Context) error {
+func proxyHandler(agent *Agent) func(c echo.Context) error {
 	const ProxyHandlerNetwork = "tcp"
 
 	return func(c echo.Context) error {
@@ -409,9 +412,69 @@ func proxyHandler() func(c echo.Context) error {
 			return c.String(code, msg)
 		}
 
+		host, port, err := net.SplitHostPort(c.Param("addr"))
+		if err != nil {
+			return errorResponse(err, "failed because address is invalid", http.StatusInternalServerError)
+		}
+
+		if _, ok := agent.mode.(*ConnectorMode); ok {
+			cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
+			if err != nil {
+				return errorResponse(err, "failed to connect to the Docker Engine", http.StatusInternalServerError)
+			}
+
+			container, err := cli.ContainerInspect(context.Background(), agent.server.ContainerID)
+			if err != nil {
+				return errorResponse(err, "failed to inspect the container", http.StatusInternalServerError)
+			}
+
+			var target string
+
+			addr, err := netip.ParseAddr(host)
+			if err != nil {
+				return errorResponse(err, "failed to parse the for lookback checkage", http.StatusInternalServerError)
+			}
+
+			if addr.IsLoopback() {
+				for _, network := range container.NetworkSettings.Networks {
+					target = network.IPAddress
+
+					break
+				}
+			} else {
+				for _, network := range container.NetworkSettings.Networks {
+					subnet, err := netip.ParsePrefix(fmt.Sprintf("%s/%d", network.Gateway, network.IPPrefixLen))
+					if err != nil {
+						logger.WithError(err).Trace("Failed to parse the gateway on proxy")
+
+						continue
+					}
+
+					ip, err := netip.ParseAddr(host)
+					if err != nil {
+						logger.WithError(err).Trace("Failed to parse the address on proxy")
+
+						continue
+					}
+
+					if subnet.Contains(ip) {
+						target = ip.String()
+
+						break
+					}
+				}
+			}
+
+			if target == "" {
+				return errorResponse(nil, "address not found on the device", http.StatusInternalServerError)
+			}
+
+			host = target
+		}
+
 		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
 		// localhost:8080.
-		addr := c.Param("addr")
+		addr := fmt.Sprintf("%s:%s", host, port)
 
 		in, err := net.Dial(ProxyHandlerNetwork, addr)
 		if err != nil {
@@ -492,7 +555,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 	a.tunnel = tunnel.NewBuilder().
 		WithConnHandler(connHandler(a.server)).
 		WithCloseHandler(closeHandler(a, a.server)).
-		WithProxyHandler(proxyHandler()).
+		WithProxyHandler(proxyHandler(a)).
 		Build()
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
