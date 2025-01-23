@@ -32,7 +32,14 @@ exports[`App Layout Component > Renders the component 1`] = `
             <!---->
           </transition-stub>
         </header>
-        <!--v-if-->
+        <div data-v-e7291ef4="" class="d-flex justify-center"><button data-v-e7291ef4="" type="button" class="v-btn v-btn--elevated v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="save-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""> Add Namespace </span>
+            <!---->
+            <!---->
+          </button>
+          <!---->
+          <!---->
+        </div>
         <div data-v-e7291ef4="" class="v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface" tabindex="0" role="listbox" data-test="list"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
@@ -119,7 +126,7 @@ exports[`App Layout Component > Renders the component 1`] = `
             </div>
           </a>
           <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
-            <div data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" id="v-list-group--id-Symbol(7)">
+            <div data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" id="v-list-group--id-Symbol(8)">
               <!----><span class="v-list-item__underlay"></span>
               <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-account-group mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
                 <div class="v-list-item__spacer"></div>
@@ -135,7 +142,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <transition-stub name="" appear="false" persisted="false" css="false">
-              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(7)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" href="/team/members" data-test="list-item">
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(8)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" href="/team/members" data-test="list-item">
                   <!----><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
@@ -157,7 +164,7 @@ exports[`App Layout Component > Renders the component 1`] = `
             </transition-stub>
           </div>
           <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
-            <div data-v-e7291ef4="" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" tabindex="-2" id="v-list-group--id-Symbol(11)"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+            <div data-v-e7291ef4="" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" tabindex="-2" id="v-list-group--id-Symbol(12)"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
               <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
                 <div class="v-list-item__spacer"></div>
               </div>
@@ -172,7 +179,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <transition-stub name="" appear="false" persisted="false" css="false">
-              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(11)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/profile" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(12)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/profile" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
@@ -245,14 +252,14 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </ul>
-        <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-21" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--dark text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-22" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class="mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-23" aria-label="notifications-icon"></i>
-        <!----><button type="button" class="v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-24" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!--teleport end--><i class="mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-2" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-24" aria-label="notifications-icon"></i>
+        <!----><button type="button" class="v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-25" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--dark bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
       </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span>
       <!----></button>

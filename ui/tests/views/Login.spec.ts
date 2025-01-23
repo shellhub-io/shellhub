@@ -51,13 +51,40 @@ describe("Login", () => {
     expect(wrapper.find('[data-test="forgotPassword-card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="loadingToken-alert"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="sso-btn"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="or-divider-sso"]').exists()).toBe(false);
   });
 
-  it("disables submit button when the form is invalid", async () => {
-    await wrapper.findComponent('[data-test="username-text"]').setValue("");
-    await wrapper.findComponent('[data-test="password-text"]').setValue("");
+  it("Renders enterprise only fragments", async () => {
+    envVariables.isEnterprise = true;
 
-    expect(wrapper.find('[data-test="login-btn"]').attributes().disabled).toBeDefined();
+    store.commit("users/setSystemInfo", {
+      authentication: { local: true, saml: true },
+    });
+
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="sso-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="or-divider-sso"]').exists()).toBe(true);
+  });
+
+  it("disables fields and login button when envVariables.isEnterprise is true", async () => {
+    envVariables.isCloud = false;
+    envVariables.isEnterprise = true;
+
+    store.commit("users/setSystemInfo", {
+      authentication: { local: false, saml: true },
+    });
+
+    await flushPromises();
+
+    const usernameField = wrapper.find('[data-test="username-text"]').attributes().class;
+    const passwordField = wrapper.find('[data-test="password-text"]').attributes().class;
+    const loginButton = wrapper.find('[data-test="login-btn"]').attributes().class;
+
+    expect(usernameField).toContain("v-input--disabled");
+    expect(passwordField).toContain("v-input--disabled");
+    expect(loginButton).toContain("v-btn--disabled");
   });
 
   it("calls the login action when the form is submitted", async () => {

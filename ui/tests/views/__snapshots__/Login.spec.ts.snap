@@ -114,8 +114,9 @@ exports[`Login > Renders the component 1`] = `
     </div>
   </form>
   <div class="v-col">
-    <div class="v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0" data-test="forgotPassword-card"> Did you <a href="/forgot-pass" class="ml-1"> Forgot your Password? </a></div>
+    <div class="v-card-subtitle d-flex align-center justify-center pa-4 mx-auto pt-0 pb-0" data-test="forgotPassword-card"> Did you <a href="/forgot-pass" class="ml-1"> Forgot your Password? </a></div>
     <div class="v-card-subtitle d-flex align-center justify-center pa-4 mx-auto" data-test="isCloud-card"> Don't have an account? <a href="/sign-up" class="ml-1"> Sign up here </a></div>
   </div>
+  <!--v-if-->
 </div>"
 `;

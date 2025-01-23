@@ -51,6 +51,7 @@ describe("Settings Namespace", () => {
     email: "test@test.com",
     recovery_email: "test2@test.com",
     id: "xxxxxxxx",
+    auth_methods: ["local", "saml"],
     role: "owner",
     mfa: {
       enable: false,
@@ -142,13 +143,6 @@ describe("Settings Namespace", () => {
   });
 
   it("Successfully changes user data", async () => {
-    const changeUserData = {
-      recovery_email: "test2@test.com",
-      email: "test@test.com",
-      name: "test",
-      username: "test",
-    };
-
     mockUser.onPatch("http://localhost:3000/api/users").reply(200);
 
     await wrapper.findComponent('[data-test="edit-profile-button"]').trigger("click");
@@ -156,6 +150,7 @@ describe("Settings Namespace", () => {
     await wrapper.findComponent('[data-test="username-input"]').setValue("test");
     await wrapper.findComponent('[data-test="email-input"]').setValue("test@test.com");
     await wrapper.findComponent('[data-test="recovery-email-input"]').setValue("test2@test.com");
+    await flushPromises();
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="save-changes-button"]').trigger("click");
@@ -164,7 +159,12 @@ describe("Settings Namespace", () => {
 
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
+    expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", {
+      email: "test@test.com",
+      name: "test",
+      recovery_email: "test2@test.com",
+      username: "test",
+    });
   });
 
   it("Fails changes user data", async () => {

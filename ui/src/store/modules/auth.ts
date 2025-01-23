@@ -20,17 +20,19 @@ export interface AuthState {
   email: string;
   id: string;
   role: string;
+  auth_methods: Array<string>,
   recoveryEmail: string,
   secret: string;
   linkMfa: string;
   mfa: boolean;
   recoveryCode: string,
-  recoveryCodes: Array<number>;
-  showRecoveryModal: boolean;
+  recoveryCodes: Array<number>,
+  showRecoveryModal: boolean,
   loginTimeout: number,
   disableTimeout: number,
   mfaToken: string,
 }
+
 export const auth: Module<AuthState, State> = {
   namespaced: true,
   state: {
@@ -46,6 +48,7 @@ export const auth: Module<AuthState, State> = {
     secret: "",
     linkMfa: "",
     mfa: false,
+    auth_methods: ["local"],
     recoveryCode: "",
     recoveryCodes: [],
     showRecoveryModal: false,
@@ -75,6 +78,7 @@ export const auth: Module<AuthState, State> = {
     getLoginTimeout: (state) => state.loginTimeout,
     getDisableTokenTimeout: (state) => state.disableTimeout,
     showForceRecoveryMail: (state) => !state.recoveryEmail && state.mfa,
+    getAuthMethods: (state) => state.auth_methods,
   },
 
   mutations: {
@@ -108,6 +112,7 @@ export const auth: Module<AuthState, State> = {
       state.role = data.role;
       state.mfa = data.mfa;
       state.recoveryEmail = data.recovery_email;
+      state.auth_methods = data.auth_methods;
       localStorage.setItem("recovery_email", data.recovery_email);
     },
 
@@ -159,6 +164,9 @@ export const auth: Module<AuthState, State> = {
       state.role = data.role;
       state.mfa = data.mfa;
       state.recoveryEmail = data.recovery_email;
+      if (data.auth_methods !== null && data.auth_methods) {
+        state.auth_methods = data.auth_methods;
+      }
       localStorage.setItem("recovery_email", data.recovery_email);
     },
 

@@ -17,7 +17,12 @@ export interface UsersState {
       api: string;
     };
     setup: boolean;
-  }
+    authentication: {
+      local: boolean,
+      saml: boolean
+    }
+  },
+  samlUrl: string,
 }
 
 export const users: Module<UsersState, State> = {
@@ -36,7 +41,12 @@ export const users: Module<UsersState, State> = {
         api: "",
       },
       setup: false,
+      authentication: {
+        local: false,
+        saml: false,
+      },
     },
+    samlUrl: "",
   },
 
   getters: {
@@ -49,6 +59,7 @@ export const users: Module<UsersState, State> = {
     getPremiumContent: (state) => state.premiumContent,
     getSignToken: (state) => state.signUpToken,
     getSystemInfo: (state) => state.info,
+    getSamlURL: (state) => state.samlUrl,
   },
 
   mutations: {
@@ -75,8 +86,12 @@ export const users: Module<UsersState, State> = {
       state.premiumContent = data;
     },
 
-    setSystemInfo(state, payload) {
-      state.info = payload;
+    setSystemInfo(state, data) {
+      state.info = data;
+    },
+
+    setSamlUrl(state, url) {
+      state.samlUrl = url;
     },
   },
 
@@ -183,6 +198,11 @@ export const users: Module<UsersState, State> = {
       } catch (error) {
         console.error(error);
       }
+    },
+
+    async fetchSamlUrl({ commit }) {
+      const response = await apiUser.getSamlLink();
+      commit("setSamlUrl", response.data.url);
     },
 
     setStatusUpdateAccountDialog(context, status) {
