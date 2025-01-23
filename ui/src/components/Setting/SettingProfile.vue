@@ -51,8 +51,8 @@
             </div>
           </template>
         </v-list-item>
-
       </v-card-item>
+
       <v-card-text class="pt-4">
         <v-list
           border
@@ -82,28 +82,30 @@
             </template>
           </v-card-item>
           <v-divider />
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
-            <template #prepend>
-              <v-icon>mdi-account</v-icon>
-            </template>
-            <template #title>
-              <span class="text-subtitle-1" data-test="username-field">Username</span>
-            </template>
-            <template #append>
-              <v-text-field
-                v-model="username"
-                :error-messages="usernameError"
-                :disabled="!editDataStatus"
-                :readonly="!editDataStatus"
-                density="compact"
-                :variant="editDataStatus ? 'outlined' : 'plain'"
-                required
-                :hide-details="!usernameError"
-                data-test="username-input"
-              />
-            </template>
-          </v-card-item>
-          <v-divider />
+          <div v-if="isLocalAuth || envVariables.isCloud">
+            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+              <template #prepend>
+                <v-icon>mdi-account</v-icon>
+              </template>
+              <template #title>
+                <span class="text-subtitle-1" data-test="username-field">Username</span>
+              </template>
+              <template #append>
+                <v-text-field
+                  v-model="username"
+                  :error-messages="usernameError"
+                  :disabled="!editDataStatus"
+                  :readonly="!editDataStatus"
+                  density="compact"
+                  :variant="editDataStatus ? 'outlined' : 'plain'"
+                  required
+                  :hide-details="!usernameError"
+                  data-test="username-input"
+                />
+              </template>
+            </v-card-item>
+            <v-divider />
+          </div>
           <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
             <template #prepend>
               <v-icon>mdi-email</v-icon>
@@ -126,72 +128,76 @@
             </template>
           </v-card-item>
           <v-divider />
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
-            <template #prepend>
-              <v-icon>mdi-email-lock</v-icon>
-            </template>
-            <template #title>
-              <span class="text-subtitle-1" data-test="recovery-email-field">Recovery Email</span>
-            </template>
-            <template #append>
-              <v-text-field
-                v-model="recoveryEmail"
-                :error-messages="recoveryEmailError"
-                :disabled="!editDataStatus"
-                :readonly="!editDataStatus"
-                density="compact"
-                :variant="editDataStatus ? 'outlined' : 'plain'"
-                required
-                :hide-details="!recoveryEmailError"
-                data-test="recovery-email-input"
-              />
-            </template>
-          </v-card-item>
-          <v-divider />
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
-            <template #prepend>
-              <v-icon>mdi-key</v-icon>
-            </template>
-            <template #title>
-              <span class="text-subtitle-1">Password</span>
-            </template>
-            <template #append>
-              <v-btn variant="text" color="aprimary" @click="showChangePassword = true">Change Password</v-btn>
-              <ChangePassword v-model="showChangePassword" />
-            </template>
-          </v-card-item>
-          <v-divider />
-          <div class="d-flex mr-4">
-            <v-card
-              flat
-              class="bg-background"
-              prepend-icon="mdi-fingerprint"
-              data-test="mfa-card"
-            >
-              <template #title>
-                <span class="text-subtitle-1">Multi-factor Authentication</span>
+
+          <div v-if="isLocalAuth || envVariables.isCloud">
+            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
+              <template #prepend>
+                <v-icon>mdi-email-lock</v-icon>
               </template>
-              <div class="d-flex flex-no-wrap justify-space-between">
-                <div>
-                  <v-card-text class="pt-0" data-test="mfa-text">
-                    Enable multi-factor authentication (MFA) to add an extra layer of security to your account.
-                    You'll need to enter a one-time verification code from your preferred TOTP provider to log in.
-                  </v-card-text>
+              <template #title>
+                <span class="text-subtitle-1" data-test="recovery-email-field">Recovery Email</span>
+              </template>
+              <template #append>
+                <v-text-field
+                  v-model="recoveryEmail"
+                  :error-messages="recoveryEmailError"
+                  :disabled="!editDataStatus"
+                  :readonly="!editDataStatus"
+                  density="compact"
+                  :variant="editDataStatus ? 'outlined' : 'plain'"
+                  required
+                  :hide-details="!recoveryEmailError"
+                  data-test="recovery-email-input"
+                />
+              </template>
+            </v-card-item>
+            <v-divider />
+            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || envVariables.isCloud">
+              <template #prepend>
+                <v-icon>mdi-key</v-icon>
+              </template>
+              <template #title>
+                <span class="text-subtitle-1">Password</span>
+              </template>
+              <template #append>
+                <v-btn variant="text" color="aprimary" @click="showChangePassword = true">Change Password</v-btn>
+                <ChangePassword v-model="showChangePassword" />
+              </template>
+            </v-card-item>
+            <v-divider />
+            <div class="d-flex mr-4">
+              <v-card
+                flat
+                class="bg-background"
+                prepend-icon="mdi-fingerprint"
+                data-test="mfa-card"
+              >
+                <template #title>
+                  <span class="text-subtitle-1">Multi-factor Authentication</span>
+                </template>
+                <div class="d-flex flex-no-wrap justify-space-between">
+                  <div>
+                    <v-card-text class="pt-0" data-test="mfa-text">
+                      Enable multi-factor authentication (MFA) to add an extra layer of security to your account.
+                      You'll need to enter a one-time verification code from your preferred TOTP provider to log in.
+                    </v-card-text>
+                  </div>
                 </div>
+              </v-card>
+              <div class="d-flex align-center bg-background pr-4" v-if="isCloud || isEnterprise">
+                <v-switch
+                  hide-details
+                  inset
+                  color="primary"
+                  v-model="mfaEnabled"
+                  @click="toggleMfa()"
+                  data-test="switch-mfa"
+                />
+                <MfaSettings v-model="dialogMfaSettings" />
+                <MfaDisable v-model="dialogMfaDisable" />
               </div>
-            </v-card>
-            <div class="d-flex align-center bg-background pr-4" v-if="isCloud || isEnterprise">
-              <v-switch
-                hide-details
-                inset
-                color="primary"
-                v-model="mfaEnabled"
-                @click="toggleMfa()"
-                data-test="switch-mfa"
-              />
-              <MfaSettings v-model="dialogMfaSettings" />
-              <MfaDisable v-model="dialogMfaDisable" />
             </div>
+
           </div>
           <v-divider />
           <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
@@ -239,6 +245,8 @@ const dialogMfaSettings = ref(false);
 const dialogMfaDisable = ref(false);
 const showChangePassword = ref(false);
 const showDeleteAccountDialog = ref(false);
+const getAuthMethods = computed(() => store.getters["auth/getAuthMethods"]);
+const isLocalAuth = computed(() => getAuthMethods.value.includes("local"));
 
 const {
   value: name,
@@ -400,11 +408,10 @@ const cancel = (type: string) => {
   }
 };
 
-onMounted(async () => {
-  await store.dispatch("auth/getUserInfo");
+onMounted(() => {
+  store.dispatch("auth/getUserInfo");
   setUserData();
 });
-
 </script>
 
 <style lang="scss" scoped>

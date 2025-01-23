@@ -1725,6 +1725,19 @@ export interface GetCustomer400ResponseOneOf {
 /**
  * 
  * @export
+ * @interface GetSamlAuthUrl200Response
+ */
+export interface GetSamlAuthUrl200Response {
+    /**
+     * The complete URL to the Identity Provider\'s login page
+     * @type {string}
+     * @memberof GetSamlAuthUrl200Response
+     */
+    'url': string;
+}
+/**
+ * 
+ * @export
  * @interface GetSessionData401Response
  */
 export interface GetSessionData401Response {
@@ -1893,7 +1906,7 @@ export type GetSubscription200ResponseInvoicesInnerCurrencyEnum = typeof GetSubs
  */
 export interface Info {
     /**
-     * ShellHub version.
+     * The current version of ShellHub.
      * @type {string}
      * @memberof Info
      */
@@ -1905,26 +1918,51 @@ export interface Info {
      */
     'endpoints'?: InfoEndpoints;
     /**
-     * Setup instance status.
+     * Indicates whether the instance setup is complete.
      * @type {boolean}
      * @memberof Info
      */
     'setup'?: boolean;
+    /**
+     * 
+     * @type {InfoAuthentication}
+     * @memberof Info
+     */
+    'authentication'?: InfoAuthentication;
 }
 /**
- * 
+ * Authentication methods available for the ShellHub instance.
+ * @export
+ * @interface InfoAuthentication
+ */
+export interface InfoAuthentication {
+    /**
+     * Indicates if local authentication using email and password is enabled.
+     * @type {boolean}
+     * @memberof InfoAuthentication
+     */
+    'local'?: boolean;
+    /**
+     * Indicates if SAML-based single sign-on (SSO) is enabled.
+     * @type {boolean}
+     * @memberof InfoAuthentication
+     */
+    'saml'?: boolean;
+}
+/**
+ * Network endpoints for the ShellHub instance.
  * @export
  * @interface InfoEndpoints
  */
 export interface InfoEndpoints {
     /**
-     * SSH endpoint.
+     * The SSH endpoint where devices connect.
      * @type {string}
      * @memberof InfoEndpoints
      */
     'ssh'?: string;
     /**
-     * API endpoint.
+     * The API endpoint for managing ShellHub configurations.
      * @type {string}
      * @memberof InfoEndpoints
      */
@@ -15708,6 +15746,36 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Retrieves the Identity Provider (IdP) URL for authentication within ShellHub. After successful authentication, users are automatically redirected to the ShellHub dashboard.  To access this endpoint, SAML authentication must be enabled and the instance must be running the Enterprise edition. If not, the endpoint returns a `501 Not Implemented` status code. 
+         * @summary Get SAML authentication URL
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSamlAuthUrl: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/user/saml/auth`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get status from if `session record` feature is enable.
          * @summary Get session record
          * @param {*} [options] Override http request option.
@@ -16374,6 +16442,16 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Retrieves the Identity Provider (IdP) URL for authentication within ShellHub. After successful authentication, users are automatically redirected to the ShellHub dashboard.  To access this endpoint, SAML authentication must be enabled and the instance must be running the Enterprise edition. If not, the endpoint returns a `501 Not Implemented` status code. 
+         * @summary Get SAML authentication URL
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getSamlAuthUrl(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetSamlAuthUrl200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSamlAuthUrl(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get status from if `session record` feature is enable.
          * @summary Get session record
          * @param {*} [options] Override http request option.
@@ -16626,6 +16704,15 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.enableMFA(mfaEnable, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieves the Identity Provider (IdP) URL for authentication within ShellHub. After successful authentication, users are automatically redirected to the ShellHub dashboard.  To access this endpoint, SAML authentication must be enabled and the instance must be running the Enterprise edition. If not, the endpoint returns a `501 Not Implemented` status code. 
+         * @summary Get SAML authentication URL
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSamlAuthUrl(options?: any): AxiosPromise<GetSamlAuthUrl200Response> {
+            return localVarFp.getSamlAuthUrl(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get status from if `session record` feature is enable.
          * @summary Get session record
          * @param {*} [options] Override http request option.
@@ -16871,6 +16958,17 @@ export class UsersApi extends BaseAPI {
      */
     public enableMFA(mfaEnable?: MfaEnable, options?: AxiosRequestConfig) {
         return UsersApiFp(this.configuration).enableMFA(mfaEnable, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves the Identity Provider (IdP) URL for authentication within ShellHub. After successful authentication, users are automatically redirected to the ShellHub dashboard.  To access this endpoint, SAML authentication must be enabled and the instance must be running the Enterprise edition. If not, the endpoint returns a `501 Not Implemented` status code. 
+     * @summary Get SAML authentication URL
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public getSamlAuthUrl(options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).getSamlAuthUrl(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -47,6 +47,8 @@ export const premiumContent = async () => {
   return data;
 };
 
+export const getSamlLink = async () => usersApi.getSamlAuthUrl();
+
 export const setup = async (data: IUserSetup) => systemApi.setup(data.sign, {
   name: data.name,
   username: data.username,

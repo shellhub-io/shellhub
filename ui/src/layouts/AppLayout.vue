@@ -32,7 +32,7 @@
         <Namespace data-test="namespace-component" />
       </div>
 
-      <div class="d-flex justify-center" v-else-if="envVariables.isCloud">
+      <div class="d-flex justify-center" v-else>
         <v-btn
           color="primary"
           @click="showNamespaceAdd = true"
