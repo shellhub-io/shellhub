@@ -39,7 +39,7 @@ type Server struct {
 	api               client.Client
 	cmds              map[string]*exec.Cmd
 	deviceName        string
-	containerID       string
+	ContainerID       string
 	mu                sync.Mutex
 	keepAliveInterval uint32
 
@@ -218,7 +218,7 @@ func (s *Server) SetDeviceName(name string) {
 }
 
 func (s *Server) SetContainerID(id string) {
-	s.containerID = id
+	s.ContainerID = id
 }
 
 func (s *Server) CloseSession(id string) {
