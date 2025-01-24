@@ -10,11 +10,11 @@ import (
 )
 
 type Tunnel struct {
-	router       *echo.Echo
-	srv          *http.Server
-	ProxyHandler func(e echo.Context) error
-	ConnHandler  func(e echo.Context) error
-	CloseHandler func(e echo.Context) error
+	router           *echo.Echo
+	srv              *http.Server
+	HTTPProxyHandler func(e echo.Context) error
+	SSHHandler       func(e echo.Context) error
+	SSHCloseHandler  func(e echo.Context) error
 }
 
 type Builder struct {
@@ -27,20 +27,20 @@ func NewBuilder() *Builder {
 	}
 }
 
-func (t *Builder) WithProxyHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.ProxyHandler = handler
+func (t *Builder) WithHTTPProxyHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.HTTPProxyHandler = handler
 
 	return t
 }
 
-func (t *Builder) WithConnHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.ConnHandler = handler
+func (t *Builder) WithSSHHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.SSHHandler = handler
 
 	return t
 }
 
-func (t *Builder) WithCloseHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.CloseHandler = handler
+func (t *Builder) WithSSHCloseHandler(handler func(e echo.Context) error) *Builder {
+	t.tunnel.SSHCloseHandler = handler
 
 	return t
 }
@@ -60,21 +60,21 @@ func NewTunnel() *Tunnel {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
-		ConnHandler: func(_ echo.Context) error {
+		SSHHandler: func(_ echo.Context) error {
 			panic("ConnHandler can not be nil")
 		},
-		CloseHandler: func(_ echo.Context) error {
+		SSHCloseHandler: func(_ echo.Context) error {
 			panic("CloseHandler can not be nil")
 		},
-		ProxyHandler: func(_ echo.Context) error {
+		HTTPProxyHandler: func(_ echo.Context) error {
 			panic("ProxyHandler can not be nil")
 		},
 	}
 	e.GET("/ssh/:id", func(e echo.Context) error {
-		return t.ConnHandler(e)
+		return t.SSHHandler(e)
 	})
 	e.GET("/ssh/close/:id", func(e echo.Context) error {
-		return t.CloseHandler(e)
+		return t.SSHCloseHandler(e)
 	})
 	e.CONNECT("/ssh/proxy/:addr", func(e echo.Context) error {
 		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
@@ -82,7 +82,7 @@ func NewTunnel() *Tunnel {
 		//
 		// https://en.wikipedia.org/wiki/HTTP_tunnel
 		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
-		return t.ProxyHandler(e)
+		return t.HTTPProxyHandler(e)
 	})
 
 	return t

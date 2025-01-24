@@ -371,7 +371,7 @@ func (a *Agent) Close() error {
 	return a.tunnel.Close()
 }
 
-func connHandler(serv *server.Server) func(c echo.Context) error {
+func sshHandler(serv *server.Server) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		hj, ok := c.Response().Writer.(http.Hijacker)
 		if !ok {
@@ -394,8 +394,8 @@ func connHandler(serv *server.Server) func(c echo.Context) error {
 	}
 }
 
-// proxyHandler handlers proxy connections to the required address.
-func proxyHandler(agent *Agent) func(c echo.Context) error {
+// httpProxyHandler handlers proxy connections to the required address.
+func httpProxyHandler(agent *Agent) func(c echo.Context) error {
 	const ProxyHandlerNetwork = "tcp"
 
 	return func(c echo.Context) error {
@@ -530,7 +530,7 @@ func proxyHandler(agent *Agent) func(c echo.Context) error {
 	}
 }
 
-func closeHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
+func sshCloseHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		id := c.Param("id")
 		serv.CloseSession(id)
@@ -553,9 +553,9 @@ func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
 	a.tunnel = tunnel.NewBuilder().
-		WithConnHandler(connHandler(a.server)).
-		WithCloseHandler(closeHandler(a, a.server)).
-		WithProxyHandler(proxyHandler(a)).
+		WithSSHHandler(sshHandler(a.server)).
+		WithSSHCloseHandler(sshCloseHandler(a, a.server)).
+		WithHTTPProxyHandler(httpProxyHandler(a)).
 		Build()
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
