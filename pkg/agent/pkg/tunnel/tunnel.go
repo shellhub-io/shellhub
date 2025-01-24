@@ -76,7 +76,7 @@ func NewTunnel() *Tunnel {
 	e.GET("/ssh/close/:id", func(e echo.Context) error {
 		return t.SSHCloseHandler(e)
 	})
-	e.CONNECT("/ssh/proxy/:addr", func(e echo.Context) error {
+	e.CONNECT("/http/proxy/:addr", func(e echo.Context) error {
 		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
 		// successful, blindly forward data in both directions until the tunnel is closed.
 		//

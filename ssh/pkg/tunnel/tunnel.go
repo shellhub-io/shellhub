@@ -159,8 +159,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		return c.NoContent(http.StatusOK)
 	})
 
-	// TODO: Change this path.
-	tunnel.router.Any("/ssh/http", func(c echo.Context) error {
+	tunnel.router.Any("/http/proxy", func(c echo.Context) error {
 		requestID := c.Request().Header.Get("X-Request-ID")
 
 		address := c.Request().Header.Get("X-Address")
