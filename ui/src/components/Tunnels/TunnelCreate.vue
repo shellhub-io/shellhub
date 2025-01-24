@@ -24,7 +24,7 @@
           data-test="tunnel-create-alert"
         />
         <v-card-text>
-          <p class="text-grey-lighten-4 mb-2" data-test="tunnel-create-text">
+          <p class="mb-2" data-test="tunnel-create-text">
             Configure the address and port to create a tunnel to your device.
           </p>
           <v-row>

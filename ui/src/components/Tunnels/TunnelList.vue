@@ -26,6 +26,7 @@
               target="_blank"
               rel="noopener noreferrer"
               :data-test="`device-tunnel-link-${i}`"
+              @click="handleTunnelLinkClick"
             >
               {{ `${urlProtocol}//${tunnel.address}.${url}` }}
             </a>
@@ -125,11 +126,17 @@ const formatDate = (expiresIn: string) => {
   if (expiresIn === "0001-01-01T00:00:00Z") return "Never Expires";
 
   const expirationDate = moment(expiresIn);
-  const format = "MMM D YYYY, h:mm:s";
+  const format = "MMM D YYYY, h:mm:ss";
 
   return now.isAfter(expirationDate)
     ? `Expired on ${expirationDate.format(format)}.`
     : `Expires on ${expirationDate.format(format)}.`;
+};
+
+const handleTunnelLinkClick = () => {
+  setTimeout(() => {
+    getTunnels();
+  }, 30000);
 };
 
 defineExpose({ getTunnels });
