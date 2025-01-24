@@ -85,7 +85,7 @@ func main() {
 				"mode":    mode,
 			}).Info("Starting ShellHub")
 
-			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostMode))
+			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostInfoMode))
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,

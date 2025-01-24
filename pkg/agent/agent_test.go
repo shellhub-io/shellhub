@@ -18,14 +18,14 @@ func ExampleNewAgentWithConfig() {
 		ServerAddress: "http://localhost:80",
 		TenantID:      "00000000-0000-4000-0000-000000000000",
 		PrivateKey:    "./shellhub.key",
-	}, new(HostMode))
+	}, new(HostInfoMode))
 	if err != nil {
 		panic(err)
 	}
 }
 
 func ExampleNewAgent() {
-	_, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key", new(HostMode))
+	_, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key", new(HostInfoMode))
 	if err != nil {
 		panic(err)
 	}
@@ -161,7 +161,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 	tests := []struct {
 		description string
 		config      *Config
-		mode        Mode
+		mode        InfoMode
 		expected    expected
 	}{
 		{
@@ -169,7 +169,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 			config: &Config{
 				ServerAddress: "",
 			},
-			mode: new(HostMode),
+			mode: new(HostInfoMode),
 			expected: expected{
 				agent: nil,
 				err:   ErrNewAgentWithConfigEmptyServerAddress,
@@ -180,7 +180,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 			config: &Config{
 				ServerAddress: "invalid_url",
 			},
-			mode: new(HostMode),
+			mode: new(HostInfoMode),
 			expected: expected{
 				agent: nil,
 				err:   ErrNewAgentWithConfigInvalidServerAddress,
@@ -192,7 +192,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 				ServerAddress: "http://localhost",
 				TenantID:      "",
 			},
-			mode: new(HostMode),
+			mode: new(HostInfoMode),
 			expected: expected{
 				agent: nil,
 				err:   ErrNewAgentWithConfigEmptyTenant,
@@ -205,7 +205,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 				TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
 				PrivateKey:    "",
 			},
-			mode: new(HostMode),
+			mode: new(HostInfoMode),
 			expected: expected{
 				agent: nil,
 				err:   ErrNewAgentWithConfigEmptyPrivateKey,
@@ -227,11 +227,11 @@ func TestNewAgentWithConfig(t *testing.T) {
 		{
 			description: "success to create agent with config",
 			config:      config,
-			mode:        new(HostMode),
+			mode:        new(HostInfoMode),
 			expected: expected{
 				agent: &Agent{
 					config: config,
-					mode:   new(HostMode),
+					mode:   new(HostInfoMode),
 				},
 				err: nil,
 			},
@@ -259,7 +259,7 @@ func TestAgent_GetInfo(t *testing.T) {
 	}
 
 	agent := &Agent{
-		cli: clientMocks,
+		API: clientMocks,
 	}
 
 	err := errors.New("")
