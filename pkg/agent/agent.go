@@ -23,7 +23,7 @@
 //	    }
 //
 //	    ctx := context.Background()
-//	    ag, err := NewAgentWithConfig(&cfg)
+//	    ag, err := NewAgentWithConfig(&cfg, new(HostInfoMode))
 //	    if err != nil {
 //	        panic(err)
 //	    }
@@ -41,24 +41,16 @@ package agent
 import (
 	"context"
 	"crypto/rsa"
-	"fmt"
-	"io"
 	"math/rand"
-	"net"
-	"net/http"
-	"net/netip"
 	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/Masterminds/semver"
-	dockerclient "github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
@@ -171,9 +163,12 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 }
 
 type Agent struct {
-	config   *Config
-	pubKey   *rsa.PublicKey
+	config *Config
+	pubKey *rsa.PublicKey
+	// Identity defines the device's identity. Essentially, the identity is the MAC address of the network interface
+	// that connects to ShellHub server.
 	Identity *models.DeviceIdentity
+	// Info contains information about the device.
 	Info     *models.DeviceInfo
 	authData *models.DeviceAuthResponse
 	// API is the API client for ShellHub's server.
@@ -183,216 +178,6 @@ type Agent struct {
 	listening  chan bool
 	closed     atomic.Bool
 	mode       InfoMode
-}
-
-type SSHTunnelHandler struct {
-	server *ssh.Server
-}
-
-func NewSSHHandler(server *ssh.Server) tunnel.Handler {
-	return &SSHTunnelHandler{
-		server: server,
-	}
-}
-
-func (h *SSHTunnelHandler) Prefix() string {
-	return "/ssh"
-}
-
-func (h *SSHTunnelHandler) Callback(g *echo.Group) {
-	g.GET("/:id", func(c echo.Context) error {
-		hj, ok := c.Response().Writer.(http.Hijacker)
-		if !ok {
-			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
-		}
-
-		conn, _, err := hj.Hijack()
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "failed to hijack connection")
-		}
-
-		id := c.Param("id")
-		httpConn := c.Request().Context().Value(tunnel.HTTPConnContextKey).(net.Conn)
-
-		h.server.Sessions.Store(id, httpConn)
-		h.server.HandleConn(httpConn)
-
-		conn.Close()
-
-		return nil
-	})
-
-	g.GET("/close/:id", func(c echo.Context) error {
-		id := c.Param("id")
-		h.server.CloseSession(id)
-
-		log.WithFields(
-			log.Fields{
-				"id":      id,
-				"version": AgentVersion,
-				// "tenant_id":      a.authData.Namespace,
-				// "server_address": a.config.ServerAddress,
-			},
-		).Info("A tunnel connection was closed")
-
-		return nil
-	})
-}
-
-type HTTPProxyTunnelHandler struct {
-	mode   InfoMode
-	server *ssh.Server
-}
-
-func NewHTTPProxyHandler(server *ssh.Server, mode InfoMode) tunnel.Handler {
-	return &HTTPProxyTunnelHandler{
-		mode:   mode,
-		server: server,
-	}
-}
-
-func (h *HTTPProxyTunnelHandler) Prefix() string {
-	return "/http/proxy"
-}
-
-func (h *HTTPProxyTunnelHandler) Callback(g *echo.Group) {
-	g.CONNECT("/:addr", func(c echo.Context) error {
-		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
-		// successful, blindly forward data in both directions until the tunnel is closed.
-		//
-		// https://en.wikipedia.org/wiki/HTTP_tunnel
-		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
-		const ProxyHandlerNetwork = "tcp"
-
-		logger := log.WithFields(log.Fields{
-			"remote":    c.Request().RemoteAddr,
-			"namespace": c.Request().Header.Get("X-Namespace"),
-			"path":      c.Request().Header.Get("X-Path"),
-			"version":   AgentVersion,
-		})
-
-		errorResponse := func(err error, msg string, code int) error {
-			logger.WithError(err).Debug(msg)
-
-			return c.String(code, msg)
-		}
-
-		host, port, err := net.SplitHostPort(c.Param("addr"))
-		if err != nil {
-			return errorResponse(err, "failed because address is invalid", http.StatusInternalServerError)
-		}
-
-		if _, ok := h.mode.(*ConnectorInfoMode); ok {
-			cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
-			if err != nil {
-				return errorResponse(err, "failed to connect to the Docker Engine", http.StatusInternalServerError)
-			}
-
-			container, err := cli.ContainerInspect(context.Background(), h.server.ContainerID)
-			if err != nil {
-				return errorResponse(err, "failed to inspect the container", http.StatusInternalServerError)
-			}
-
-			var target string
-
-			addr, err := netip.ParseAddr(host)
-			if err != nil {
-				return errorResponse(err, "failed to parse the for lookback checkage", http.StatusInternalServerError)
-			}
-
-			if addr.IsLoopback() {
-				for _, network := range container.NetworkSettings.Networks {
-					target = network.IPAddress
-
-					break
-				}
-			} else {
-				for _, network := range container.NetworkSettings.Networks {
-					subnet, err := netip.ParsePrefix(fmt.Sprintf("%s/%d", network.Gateway, network.IPPrefixLen))
-					if err != nil {
-						logger.WithError(err).Trace("Failed to parse the gateway on proxy")
-
-						continue
-					}
-
-					ip, err := netip.ParseAddr(host)
-					if err != nil {
-						logger.WithError(err).Trace("Failed to parse the address on proxy")
-
-						continue
-					}
-
-					if subnet.Contains(ip) {
-						target = ip.String()
-
-						break
-					}
-				}
-			}
-
-			if target == "" {
-				return errorResponse(nil, "address not found on the device", http.StatusInternalServerError)
-			}
-
-			host = target
-		}
-
-		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
-		// localhost:8080.
-		addr := fmt.Sprintf("%s:%s", host, port)
-
-		in, err := net.Dial(ProxyHandlerNetwork, addr)
-		if err != nil {
-			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
-		}
-
-		defer in.Close()
-
-		// NOTE: Inform to the connection that the dial was successfully.
-		if err := c.NoContent(http.StatusOK); err != nil {
-			return errorResponse(err, "failed to send the ok status code back to server", http.StatusInternalServerError)
-		}
-
-		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
-		// depend upon anything externally, only the data.
-		out, _, err := c.Response().Hijack()
-		if err != nil {
-			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
-		}
-
-		defer out.Close() // nolint:errcheck
-
-		wg := new(sync.WaitGroup)
-		done := sync.OnceFunc(func() {
-			defer in.Close()
-			defer out.Close()
-
-			logger.Trace("close called on in and out connections")
-		})
-
-		wg.Add(1)
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			io.Copy(in, out) //nolint:errcheck
-		}()
-
-		wg.Add(1)
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			io.Copy(out, in) //nolint:errcheck
-		}()
-
-		logger.WithError(err).Trace("proxy handler waiting for data pipe")
-		wg.Wait()
-
-		logger.WithError(err).Trace("proxy handler done")
-
-		return nil
-	})
 }
 
 var (
@@ -481,8 +266,8 @@ func NewAgentWithConfig(config *Config, mode InfoMode) (*Agent, error) {
 
 	agent.tunnel = tunnel.NewTunnel()
 
-	agent.tunnel.Register(NewSSHHandler(server))
-	agent.tunnel.Register(NewHTTPProxyHandler(server, mode))
+	agent.tunnel.Register(NewSSHModule(server))
+	agent.tunnel.Register(NewHTTPProxyModule(server, mode))
 
 	return agent, nil
 }
@@ -637,183 +422,6 @@ func (a *Agent) Close() error {
 
 	return a.tunnel.Close()
 }
-
-/*func sshHandler(serv *ssh.Server) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		hj, ok := c.Response().Writer.(http.Hijacker)
-		if !ok {
-			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
-		}
-
-		conn, _, err := hj.Hijack()
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "failed to hijack connection")
-		}
-
-		id := c.Param("id")
-		httpConn := c.Request().Context().Value("http-conn").(net.Conn)
-		serv.Sessions.Store(id, httpConn)
-		serv.HandleConn(httpConn)
-
-		conn.Close()
-
-		return nil
-	}
-}*/
-
-// httpProxyHandler handlers proxy connections to the required address.
-/*func httpProxyHandler(agent *Agent) func(c echo.Context) error {
-	const ProxyHandlerNetwork = "tcp"
-
-	return func(c echo.Context) error {
-		logger := log.WithFields(log.Fields{
-			"remote":    c.Request().RemoteAddr,
-			"namespace": c.Request().Header.Get("X-Namespace"),
-			"path":      c.Request().Header.Get("X-Path"),
-			"version":   AgentVersion,
-		})
-
-		errorResponse := func(err error, msg string, code int) error {
-			logger.WithError(err).Debug(msg)
-
-			return c.String(code, msg)
-		}
-
-		host, port, err := net.SplitHostPort(c.Param("addr"))
-		if err != nil {
-			return errorResponse(err, "failed because address is invalid", http.StatusInternalServerError)
-		}
-
-		if _, ok := agent.mode.(*ConnectorInfoMode); ok {
-			cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
-			if err != nil {
-				return errorResponse(err, "failed to connect to the Docker Engine", http.StatusInternalServerError)
-			}
-
-			container, err := cli.ContainerInspect(context.Background(), agent.server.ContainerID)
-			if err != nil {
-				return errorResponse(err, "failed to inspect the container", http.StatusInternalServerError)
-			}
-
-			var target string
-
-			addr, err := netip.ParseAddr(host)
-			if err != nil {
-				return errorResponse(err, "failed to parse the for lookback checkage", http.StatusInternalServerError)
-			}
-
-			if addr.IsLoopback() {
-				for _, network := range container.NetworkSettings.Networks {
-					target = network.IPAddress
-
-					break
-				}
-			} else {
-				for _, network := range container.NetworkSettings.Networks {
-					subnet, err := netip.ParsePrefix(fmt.Sprintf("%s/%d", network.Gateway, network.IPPrefixLen))
-					if err != nil {
-						logger.WithError(err).Trace("Failed to parse the gateway on proxy")
-
-						continue
-					}
-
-					ip, err := netip.ParseAddr(host)
-					if err != nil {
-						logger.WithError(err).Trace("Failed to parse the address on proxy")
-
-						continue
-					}
-
-					if subnet.Contains(ip) {
-						target = ip.String()
-
-						break
-					}
-				}
-			}
-
-			if target == "" {
-				return errorResponse(nil, "address not found on the device", http.StatusInternalServerError)
-			}
-
-			host = target
-		}
-
-		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
-		// localhost:8080.
-		addr := fmt.Sprintf("%s:%s", host, port)
-
-		in, err := net.Dial(ProxyHandlerNetwork, addr)
-		if err != nil {
-			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
-		}
-
-		defer in.Close()
-
-		// NOTE: Inform to the connection that the dial was successfully.
-		if err := c.NoContent(http.StatusOK); err != nil {
-			return errorResponse(err, "failed to send the ok status code back to server", http.StatusInternalServerError)
-		}
-
-		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
-		// depend upon anything externally, only the data.
-		out, _, err := c.Response().Hijack()
-		if err != nil {
-			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
-		}
-
-		defer out.Close() // nolint:errcheck
-
-		wg := new(sync.WaitGroup)
-		done := sync.OnceFunc(func() {
-			defer in.Close()
-			defer out.Close()
-
-			logger.Trace("close called on in and out connections")
-		})
-
-		wg.Add(1)
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			io.Copy(in, out) //nolint:errcheck
-		}()
-
-		wg.Add(1)
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			io.Copy(out, in) //nolint:errcheck
-		}()
-
-		logger.WithError(err).Trace("proxy handler waiting for data pipe")
-		wg.Wait()
-
-		logger.WithError(err).Trace("proxy handler done")
-
-		return nil
-	}
-}*/
-
-/*func sshCloseHandler(a *Agent, serv *ssh.Server) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		id := c.Param("id")
-		serv.CloseSession(id)
-
-		log.WithFields(
-			log.Fields{
-				"id":             id,
-				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
-				"server_address": a.config.ServerAddress,
-			},
-		).Info("A tunnel connection was closed")
-
-		return nil
-	}
-}*/
 
 // Listen creates the SSH server and listening for connections.
 func (a *Agent) Listen(ctx context.Context) error {
@@ -979,7 +587,7 @@ func (a *Agent) CheckUpdate() (*semver.Version, error) {
 	return semver.NewVersion(info.Version)
 }
 
-// GetInfo gets the ShellHub's server information like version and endpoints, and updates the Agent's server's info.
+// GetInfo gets the ShellHub's server version and endpoints, and updates the Agent's server's info.
 func (a *Agent) GetInfo() (*models.Info, error) {
 	if a.serverInfo != nil {
 		return a.serverInfo, nil
@@ -995,7 +603,7 @@ func (a *Agent) GetInfo() (*models.Info, error) {
 	return info, nil
 }
 
-// GetInfo gets information like the version and the enpoints for HTTP and SSH to ShellHub server.
+// GetInfo gets the version and the endpoints for HTTP and SSH to ShellHub server.
 func GetInfo(cfg *Config) (*models.Info, error) {
 	cli, err := api.NewClient(cfg.ServerAddress)
 	if err != nil {

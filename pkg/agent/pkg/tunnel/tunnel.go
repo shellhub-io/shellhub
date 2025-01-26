@@ -32,15 +32,10 @@ func NewTunnel() *Tunnel {
 	return tunnel
 }
 
-type Handler interface {
-	Prefix() string
-	Callback(*echo.Group)
-}
-
-func (t *Tunnel) Register(handler Handler) {
+func (t *Tunnel) Register(handler Module) {
 	group := t.router.Group(handler.Prefix())
 
-	handler.Callback(group)
+	handler.Register(group)
 }
 
 // Listen to reverse listener.
