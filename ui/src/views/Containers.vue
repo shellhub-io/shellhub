@@ -22,7 +22,9 @@
 
     <div class="d-flex" data-test="device-header-component-group">
       <TagSelector variant="container" v-if="isContainerList" />
+      <ContainerAdd />
     </div>
+
   </div>
   <div class="mt-2" v-if="show" data-test="device-table-component">
     <Containers />
@@ -51,6 +53,7 @@ import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import handleError from "@/utils/handleError";
+import ContainerAdd from "../components/Containers/ContainerAdd.vue";
 
 const store = useStore();
 const router = useRouter();
