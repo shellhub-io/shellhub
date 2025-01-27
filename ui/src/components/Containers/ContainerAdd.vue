@@ -1,0 +1,103 @@
+<template>
+  <v-btn
+    @click="dialog = !dialog"
+    color="primary"
+    tabindex="0"
+    variant="elevated"
+    aria-label="Dialog Add Container"
+    @keypress.enter="dialog = !dialog"
+    data-test="device-add-btn"
+    :size="props.size"
+  >
+    Add Container
+  </v-btn>
+
+  <v-dialog v-model="dialog" width="800" transition="dialog-bottom-transition" data-test="dialog">
+    <v-card class="bg-v-theme-surface">
+      <v-card-title class="text-h5 pa-4 bg-primary" data-test="dialog-title">
+        Registering a container
+      </v-card-title>
+
+      <v-card-text class="mt-4 mb-0 pb-1" data-test="dialog-text">
+        <p class="text-body-2 mb-2">
+          In order to register a container on ShellHub, you need to install
+          ShellHub agent onto it.
+        </p>
+
+        <p class="text-body-2 mb-2">
+          The easiest way to install ShellHub agent is with our automatic
+          one-line installation script, which works in any Docker container properly set up.
+        </p>
+
+        <p class="text-body-2 font-weight-bold mt-4">
+          Run the following command on your container:
+        </p>
+
+        <v-text-field
+          :model-value="command()"
+          @click:append="copyCommand"
+          class="code mt-1"
+          variant="outlined"
+          append-icon="mdi-content-copy"
+          readonly
+          active
+          data-test="command-field"
+          density="compact"
+        />
+
+        <v-divider />
+
+        <p class="text-caption mt-2 mb-0">
+          Check the
+          <a
+            :href="'https://docs.shellhub.io/overview/supported-platforms/docker'"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-test="documentation-link"
+          >documentation</a
+          >
+          for more information about integration with Docker containers.
+        </p>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
+          Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import { useStore } from "../../store";
+import { INotificationsCopy } from "@/interfaces/INotifications";
+
+const props = defineProps({
+  size: {
+    type: String,
+    default: "default",
+    required: false,
+  },
+});
+const store = useStore();
+
+const dialog = ref(false);
+
+const command = () => "TODO";
+
+const copyCommand = () => {
+  navigator.clipboard.writeText(command());
+  store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.command);
+};
+</script>
+
+<style lang="scss" scoped>
+.code {
+  font-family: monospace;
+  font-size: 85%;
+  font-weight: normal;
+}
+</style>
