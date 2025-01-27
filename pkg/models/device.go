@@ -17,24 +17,32 @@ const (
 
 type Device struct {
 	// UID is the unique identifier for a device.
-	UID              string          `json:"uid"`
-	Name             string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
-	Identity         *DeviceIdentity `json:"identity"`
-	Info             *DeviceInfo     `json:"info"`
-	PublicKey        string          `json:"public_key" bson:"public_key"`
-	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen         time.Time       `json:"last_seen" bson:"last_seen"`
-	Online           bool            `json:"online" bson:",omitempty"`
-	Namespace        string          `json:"namespace" bson:",omitempty"`
-	Status           DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
-	StatusUpdatedAt  time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
-	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
-	RemoteAddr       string          `json:"remote_addr" bson:"remote_addr"`
-	Position         *DevicePosition `json:"position" bson:"position"`
-	Tags             []string        `json:"tags" bson:"tags,omitempty"`
-	PublicURL        bool            `json:"public_url" bson:"public_url,omitempty"`
-	PublicURLAddress string          `json:"public_url_address" bson:"public_url_address,omitempty"`
-	Acceptable       bool            `json:"acceptable" bson:"acceptable,omitempty"`
+	UID             string          `json:"uid" bson:"uid"`
+	Name            string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
+	Identity        *DeviceIdentity `json:"identity"`
+	Info            *DeviceInfo     `json:"info"`
+	PublicKey       string          `json:"public_key" bson:"public_key"`
+	TenantID        string          `json:"tenant_id" bson:"tenant_id"`
+	LastSeen        time.Time       `json:"last_seen" bson:"last_seen"`
+	Online          bool            `json:"online" bson:",omitempty"`
+	Namespace       string          `json:"namespace" bson:",omitempty"`
+	Status          DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
+	StatusUpdatedAt time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
+	CreatedAt       time.Time       `json:"created_at" bson:"created_at,omitempty"`
+	RemoteAddr      string          `json:"remote_addr" bson:"remote_addr"`
+	Position        *DevicePosition `json:"position" bson:"position"`
+
+	// TagsID contains the IDs of associated tags. It is only used internally for database storage and
+	// relationships, and is not exposed in JSON responses.
+	TagsID []string `json:"-" bson:"tags,omitempty"`
+	// Tags represents the full tag objects associated with this device. This field is populated from
+	// [Device.TagsID] when retrieving from the database and is only used for JSON serialization. It is
+	// not stored directly in the database as it is.
+	Tags []Tag `json:"tags,omitempty" bson:"-"`
+
+	PublicURL        bool   `json:"public_url" bson:"public_url,omitempty"`
+	PublicURLAddress string `json:"public_url_address" bson:"public_url_address,omitempty"`
+	Acceptable       bool   `json:"acceptable" bson:"acceptable,omitempty"`
 }
 
 type DeviceAuthRequest struct {
