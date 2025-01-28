@@ -123,7 +123,7 @@ import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import multiavatar from "@multiavatar/multiavatar/esm";
+import multiavatar from "@multiavatar/multiavatar";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
