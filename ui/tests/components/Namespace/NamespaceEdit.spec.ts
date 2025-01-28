@@ -86,7 +86,6 @@ describe("Namespace Edit", () => {
     });
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
   });
 
@@ -157,7 +156,10 @@ describe("Namespace Edit", () => {
   it("Fails to change namespace data", async () => {
     wrapper.vm.show = true;
     await flushPromises();
+
     mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
+
+    await wrapper.findComponent('[data-test="connectionAnnouncement-text"]').setValue("test");
 
     const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
