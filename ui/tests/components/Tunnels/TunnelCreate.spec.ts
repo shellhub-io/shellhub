@@ -131,9 +131,6 @@ describe("Tunnel Create", async () => {
     wrapper = mount(TunnelCreate, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: "fake-uid",
