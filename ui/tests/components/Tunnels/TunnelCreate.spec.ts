@@ -131,9 +131,6 @@ describe("Tunnel Create", async () => {
     wrapper = mount(TunnelCreate, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: "fake-uid",
@@ -168,6 +165,7 @@ describe("Tunnel Create", async () => {
     expect(dialog.find('[data-test="timeout-combobox"]').exists()).toBe(true);
     expect(dialog.find('[data-test="address-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="port-text"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="custom-timeout"]').exists()).toBe(false);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="create-tunnel-btn"]').exists()).toBe(true);
   });
@@ -192,6 +190,32 @@ describe("Tunnel Create", async () => {
       uid: "fake-uid",
       host: "127.0.0.1",
       ttl: -1,
+      port: 8080,
+    });
+  });
+
+  it("Successfully added tunnel (custom expiration)", async () => {
+    mockTunnels.onPost("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, tunnelResponse);
+
+    const StoreSpy = vi.spyOn(store, "dispatch");
+
+    await wrapper.findComponent('[data-test="tunnel-create-dialog-btn"]').trigger("click");
+
+    await flushPromises();
+
+    await wrapper.findComponent('[data-test="address-text"]').setValue("127.0.0.1");
+    await wrapper.findComponent('[data-test="port-text"]').setValue(8080);
+    await wrapper.findComponent('[data-test="timeout-combobox"]').setValue("custom");
+    await wrapper.findComponent('[data-test="custom-timeout"]').setValue(6000);
+
+    await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
+
+    await flushPromises();
+
+    expect(StoreSpy).toHaveBeenCalledWith("tunnels/create", {
+      uid: "fake-uid",
+      host: "127.0.0.1",
+      ttl: 6000,
       port: 8080,
     });
   });
