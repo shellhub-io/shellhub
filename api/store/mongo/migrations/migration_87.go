@@ -19,6 +19,12 @@ var migration87 = migrate.Migration{
 			"action":    "Up",
 		}).Info("Applying migration")
 
+		if count, _ := db.Collection("system").CountDocuments(ctx, bson.M{}); count == 0 {
+			if _, err := db.Collection("system").InsertOne(ctx, bson.M{"setup": true}); err != nil {
+				return err
+			}
+		}
+
 		filter := bson.M{
 			"authentication": bson.M{"$exists": false},
 		}
