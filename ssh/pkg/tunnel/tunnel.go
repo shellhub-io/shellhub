@@ -202,7 +202,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
 		// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
 		// connections for any port, but this route should only connect to the HTTP server.
-		req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/ssh/proxy/%s:%d", tun.Host, tun.Port), nil)
+		req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", tun.Host, tun.Port), nil)
 
 		if err := req.Write(in); err != nil {
 			logger.WithError(err).Error("failed to write the request to the agent")
