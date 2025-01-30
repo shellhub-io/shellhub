@@ -307,7 +307,7 @@ defineExpose({
   height: 100vh !important;
 }
 
-:deep(.v-container) {
+.v-container {
   min-height: calc(100vh - 64px);
   background-image: linear-gradient(155deg, rgb(var(--v-theme-primary),0.10) 0%, transparent 30%), url(/bg.svg);
   background-position: 0% 0;
