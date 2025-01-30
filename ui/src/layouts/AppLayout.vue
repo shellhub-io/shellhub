@@ -191,7 +191,6 @@ onMounted(() => {
 });
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
-const showConnector = computed(() => (envVariables.isCommunity && !envVariables.premiumPaywall) || !envVariables.hasConnector);
 const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
 const namespacedInstance = computed(() => localStorage.getItem("tenant") !== "");
 
@@ -207,16 +206,16 @@ const items = reactive([
     path: "/devices",
   },
   {
-    icon: "mdi-server",
+    icon: "mdi-docker",
     title: "Containers",
     path: "/containers",
   },
   {
-    icon: "mdi-docker",
+    icon: "mdi-server",
     title: "Connectors",
     path: "/connectors",
     isPremium: true,
-    hidden: showConnector.value,
+    hidden: true,
   },
   {
     icon: "mdi-history",
