@@ -27,7 +27,7 @@ exports[`Sessions View > Renders the component 1`] = `
               <tr data-v-459ab1b4="">
                 <td data-v-459ab1b4="" class="text-center">
                   <div data-v-459ab1b4="" aria-describedby="v-tooltip-0">
-                    <div data-v-459ab1b4="" device="[object Object]" data-test="sessionPlay-component"><button type="button" class="v-btn v-theme--light text-primary v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-play mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Play </span>
+                    <div data-v-b535dca5="" data-v-459ab1b4="" device="[object Object]" data-test="sessionPlay-component"><button data-v-b535dca5="" type="button" class="v-btn v-theme--light text-primary v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-play mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Play </span>
                         <!---->
                         <!---->
                       </button>
