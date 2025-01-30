@@ -14,97 +14,74 @@
 
     <v-dialog
       :transition="false"
+      :fullscreen="true"
       v-model="showDialog"
-      max-width="1024px"
-      min-width="350px"
     >
       <v-card class="bg-v-theme-surface">
+        <div class="ma-0 pa-0 w-100 fill-height position-relative">
+          <div ref="terminal" class="terminal" />
+        </div>
         <v-card-title
-          class="text-h5 pa-3 bg-primary d-flex justify-space-between align-center"
+          class="text-h5 pa-3 bg-primary d-flex justify-space-between ga-4 align-center"
         >
-          Watch Session
+
+          <v-icon
+            v-if="!paused"
+            variant="text"
+            icon="mdi-pause-circle"
+            class="maa-2"
+            color="primaary"
+            rounded
+            size="x-large"
+            data-test="pause-icon"
+            @click="pauseHandler"
+          />
+          <v-icon
+            v-else
+            variant="text"
+            icon="mdi-play-circle"
+            class="pl-0"
+            color="primaary"
+            rounded
+            size="x-large"
+            data-test="play-icon"
+            @click="pauseHandler"
+          />
+          <v-slider
+            v-model="currentTime"
+            class="ml-0 flex-grow-1 flex-shrink-0"
+            min="0"
+            :max="totalLength"
+            :label="`${nowTimerDisplay} - ${endTimerDisplay}`"
+            hide-details
+            color="white"
+            data-test="time-slider"
+            @update:model-value="changeSliderTime()"
+            @mousedown="(previousPause = paused), (paused = true)"
+            @mouseup="paused = previousPause"
+            @click="setSliderDiplayTime(currentTime)"
+          />
+          <div class="d-flex flex-column">
+            <v-select
+              :items="speedList"
+              v-model="defaultSpeed"
+              hide-details
+              flat
+              prepend-inner-icon="mdi-speedometer"
+              data-test="speed-select"
+              @change="speedChange(defaultSpeed)"
+            />
+          </div>
+
           <v-btn
             variant="text"
             data-test="close-btn"
             icon="mdi-close"
             @click="showDialog = false"
           />
+
         </v-card-title>
 
-        <v-card-item class="ma-0 pa-0 w-100">
-          <div ref="terminal" />
-        </v-card-item>
-
-        <v-card-actions class="bg-v-theme-surface">
-          <v-container>
-            <v-row no-gutters>
-              <v-col cols="2" sm="6" md="1">
-                <div class="pt-4 ml-7">
-                  <v-icon
-                    v-if="!paused"
-                    variant="text"
-                    icon="mdi-pause-circle"
-                    class="pl-0"
-                    color="primary"
-                    rounded
-                    size="x-large"
-                    data-test="pause-icon"
-                    @click="pauseHandler"
-                  />
-                  <v-icon
-                    v-else
-                    variant="text"
-                    icon="mdi-play-circle"
-                    class="pl-0"
-                    color="primary"
-                    rounded
-                    size="x-large"
-                    data-test="play-icon"
-                    @click="pauseHandler"
-                  />
-                </div>
-              </v-col>
-
-              <v-col cols="6" md="9">
-                <div
-                  :elevation="0"
-                  class="pt-4 pl-9 mr-5 d-flex align-center"
-                  tile
-                >
-                  <v-slider
-                    v-model="currentTime"
-                    class="ml-0"
-                    min="0"
-                    :max="totalLength"
-                    :label="`${nowTimerDisplay} - ${endTimerDisplay}`"
-                    hide-details
-                    color="primary"
-                    data-test="time-slider"
-                    @update:model-value="changeSliderTime()"
-                    @mousedown="(previousPause = paused), (paused = true)"
-                    @mouseup="paused = previousPause"
-                    @click="setSliderDiplayTime(currentTime)"
-                  />
-                </div>
-              </v-col>
-
-              <v-col cols="6" md="2">
-                <div :elevation="0">
-                  <v-select
-                    :items="speedList"
-                    v-model="defaultSpeed"
-                    hide-details
-                    prepend-icon="mdi-speedometer"
-                    data-test="speed-select"
-                    variant="underlined"
-                    color="primary"
-                    @change="speedChange(defaultSpeed)"
-                  />
-                </div>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -359,6 +336,8 @@ const openPlay = async () => {
     fitAddon.value = new FitAddon();
     xterm.value.loadAddon(fitAddon.value); // adjust screen in container
 
+    fitAddon.value.fit();
+
     if (xterm.value.element) {
       xterm.value.reset();
     }
@@ -415,3 +394,14 @@ watch(showDialog, (value) => {
   }
 });
 </script>
+
+<style lang="scss" scoped>
+.terminal {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0;
+  right:0;
+  margin-right: 0px;
+}
+</style>
