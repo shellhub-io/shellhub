@@ -14,7 +14,7 @@
     </template>
     <v-dialog
       v-model="showTerminal"
-      :fullscreen="$vuetify.display.smAndDown"
+      :fullscreen="!showLoginForm || $vuetify.display.smAndDown"
       :max-width="$vuetify.display.smAndDown ? undefined : $vuetify.display.thresholds.sm"
       @click:outside="close"
     >
@@ -26,6 +26,10 @@
           <v-spacer />
           <v-icon @click="close()" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
         </v-card-title>
+
+        <div class="ma-0 pa-0 w-100 fill-height position-relative">
+          <div v-if="!showLoginForm" ref="terminal" class="terminal" />
+        </div>
 
         <div class="mt-2" v-if="showLoginForm">
           <v-tabs align-tabs="center" color="primary" v-model="tabActive">
@@ -51,7 +55,6 @@
                           :error-messages="usernameError"
                           label="Username"
                           autofocus
-                          variant="underlined"
                           hint="Enter an existing user on the device"
                           persistent-hint
                           persistent-placeholder
@@ -71,7 +74,6 @@
                           :error-messages="passwordError"
                           label="Password"
                           required
-                          variant="underlined"
                           hint="Enter a valid password for the user on the device"
                           persistent-hint
                           persistent-placeholder
@@ -110,7 +112,6 @@
                           :error-messages="usernameError"
                           label="Username"
                           autofocus
-                          variant="underlined"
                           hint="Enter an existing user on the device"
                           persistent-hint
                           persistent-placeholder
@@ -126,7 +127,6 @@
                           :items="nameOfPrivateKeys"
                           item-text="name"
                           item-value="data"
-                          variant="underlined"
                           label="Private Key"
                           hint="Select a private key file for authentication"
                           persistent-hint
@@ -154,9 +154,6 @@
           </v-card-text>
         </div>
       </v-card>
-      <v-card-item class="ma-0 pa-0 w-100">
-        <div ref="terminal" />
-      </v-card-item>
     </v-dialog>
   </div>
 </template>
@@ -165,6 +162,7 @@
 import {
   ref,
   computed,
+  nextTick,
   watch,
 } from "vue";
 import { useField } from "vee-validate";
@@ -173,6 +171,7 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import * as yup from "yup";
 import axios from "axios";
+import { useEventListener } from "@vueuse/core";
 import { useStore } from "../../store";
 import {
   createKeyFingerprint,
@@ -250,6 +249,12 @@ const nameOfPrivateKeys = computed(() => {
   return list.map((item: IPrivateKey) => item.name);
 });
 
+useEventListener(window, "resize", (evt) => {
+  nextTick(() => {
+    fitAddon.value.fit();
+  });
+});
+
 watch(showTerminal, (value) => {
   if (value) showLoginForm.value = true;
 });
@@ -276,30 +281,29 @@ const connect = async (params: IConnectToTerminal) => {
   const { token } = response.data;
 
   showLoginForm.value = false;
+  nextTick(() => {
+    if (!xterm.value.element) {
+      xterm.value.open(terminal.value);
+    }
 
-  if (!xterm.value.element) {
-    xterm.value.open(terminal.value);
-  }
+    xterm.value.focus();
 
-  fitAddon.value.fit();
-  xterm.value.focus();
+    let protocolConnectionURL = "";
 
-  let protocolConnectionURL = "";
+    if (window.location.protocol === "http:") {
+      protocolConnectionURL = "ws";
+    } else {
+      protocolConnectionURL = "wss";
+    }
 
-  if (window.location.protocol === "http:") {
-    protocolConnectionURL = "ws";
-  } else {
-    protocolConnectionURL = "wss";
-  }
+    const wsInfo = { token, ...webTermDimensions.value };
 
-  const wsInfo = { token, ...webTermDimensions.value };
-
-  const enc = new TextEncoder();
-  ws.value = new WebSocket(
-    `${protocolConnectionURL}://${
-      window.location.host
-    }/ws/ssh?${encodeURLParams(wsInfo)}`,
-  );
+    const enc = new TextEncoder();
+    ws.value = new WebSocket(
+      `${protocolConnectionURL}://${
+        window.location.host
+      }/ws/ssh?${encodeURLParams(wsInfo)}`,
+    );
 
       enum MessageKind {
         Input = 1,
@@ -310,6 +314,10 @@ const connect = async (params: IConnectToTerminal) => {
         kind: MessageKind;
         data: unknown;
       }
+
+      ws.value.onopen = () => {
+        fitAddon.value.fit();
+      };
 
       ws.value.onmessage = (ev) => {
         xterm.value.write(ev.data);
@@ -330,12 +338,15 @@ const connect = async (params: IConnectToTerminal) => {
           data: { cols: data.cols, rows: data.rows },
         };
 
+        console.log("resize");
+
         ws.value.send(JSON.stringify(message));
       });
 
       ws.value.onclose = () => {
         xterm.value.write("\r\nConnection ended");
       };
+  });
 };
 
 const open = () => {
@@ -405,9 +416,13 @@ const close = () => {
 defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
 
-<!-- <style lang="scss" scoped>
-.xterm-helper {
-  background: #0f1526;
-  width: 105%;
+<style lang="scss" scoped>
+.terminal {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0;
+  right:0;
+  margin-right: 0px;
 }
-</style> -->
+</style>
