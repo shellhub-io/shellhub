@@ -16,25 +16,23 @@ docker_install() {
     MODE=""
     DEFAULT_CONTAINER_NAME="shellhub"
 
-    if [ "$1" = "-s" ]; then
-        case "$2" in
-            "agent")
-                shift 2
-                ;;
-            "connector")
-                MODE="connector"
-                DEFAULT_CONTAINER_NAME="shellhub-connector"
-                ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
+    case "$1" in
+        "agent")
+            shift 1
+            ;;
+        "connector")
+            MODE="connector"
+            DEFAULT_CONTAINER_NAME="shellhub-connector"
+            ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
 
-                echo "🚀 Starting ShellHub container in Docker Connector mode..."
-                shift 2
-                ;;
-            *)
-                echo "❌ Invalid mode: $2"
-                exit 1
-                ;;
-        esac
-    fi
+            echo "🚀 Starting ShellHub container in Docker Connector mode..."
+            shift 1
+            ;;
+        *)
+            echo "❌ Invalid mode: $2"
+            exit 1
+            ;;
+    esac
 
     if [ -z "$MODE" ]; then
         ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
