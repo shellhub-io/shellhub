@@ -70,13 +70,13 @@ exports[`App Layout Component > Renders the component 1`] = `
             </div>
           </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/containers" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
-            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-server mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-docker mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
             </div>
             <div class="v-list-item__content" data-no-activator="">
               <!---->
               <!---->
-              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-server-listItem">Containers</div>
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-docker-listItem">Containers</div>
             </div>
             <div class="v-list-item__append">
               <!--v-if-->
