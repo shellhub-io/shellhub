@@ -28,7 +28,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
           <!---->
           <!---->
           <div data-v-7c65953f="" class="v-row v-row--no-gutters align-center">
-            <div data-v-7c65953f="" data-test="terminalDialog-component">
+            <div data-v-abcb598c="" data-v-7c65953f="" data-test="terminalDialog-component">
               <!--v-if-->
               <!---->
               <!---->

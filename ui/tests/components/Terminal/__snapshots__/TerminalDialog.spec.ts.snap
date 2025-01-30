@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Terminal Dialog > Renders the component 1`] = `
-"<div>
+"<div data-v-abcb598c="">
   <!--v-if-->
   <!---->
   <!---->

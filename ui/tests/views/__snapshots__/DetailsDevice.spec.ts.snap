@@ -24,7 +24,7 @@ exports[`Details Device > Renders the component 1`] = `
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
-      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div data-v-abcb598c="" data-test="terminalDialog-component"><button data-v-abcb598c="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator="">Connect</span>
           <!---->
           <!---->
@@ -105,7 +105,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
-      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div data-v-abcb598c="" data-test="terminalDialog-component"><button data-v-abcb598c="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator="">Connect</span>
           <!---->
           <!---->
@@ -186,7 +186,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
-      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div data-v-abcb598c="" data-test="terminalDialog-component"><button data-v-abcb598c="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator="">Connect</span>
           <!---->
           <!---->
@@ -267,7 +267,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
-      <div data-test="terminalDialog-component"><button type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div data-v-abcb598c="" data-test="terminalDialog-component"><button data-v-abcb598c="" type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator="">Offline</span>
           <!---->
           <!---->
