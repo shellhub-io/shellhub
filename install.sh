@@ -17,6 +17,8 @@ docker_install() {
     DEFAULT_CONTAINER_NAME="shellhub"
 
     case "$1" in
+        "")
+            ;;
         "agent")
             shift 1
             ;;
