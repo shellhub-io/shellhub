@@ -47,9 +47,20 @@ local function resolve_dns(hostname)
 end
 
 local function resolve_all_dns()
+    ngx.log(ngx.INFO, "Resolving DNS for ", #hostnames, " hostnames")
+
     for _, hostname in ipairs(hostnames) do
         resolve_dns(hostname)
     end
+end
+
+local function contains_hostname(tbl, value)
+  for _, v in ipairs(hostnames) do
+      if v == value then
+          return true
+      end
+  end
+  return false
 end
 
 function _M.init_worker()
@@ -78,6 +89,8 @@ function _M.balance()
         return ngx.exit(500)
     end
 
+    ngx_balancer.set_more_tries(1)
+
     local ok, err = ngx_balancer.set_current_peer(ip, port)
     if not ok then
         ngx.log(ngx.ERR, "Failed to set the current peer: ", err)
@@ -91,7 +104,7 @@ function _M.set_peer(host, port)
 
     local ip = dns_cache:get(host)
     if not ip then
-        if resolve_dns(host) then
+        if resolve_dns(host) and not contains_hostname(host) then
             table.insert(hostnames, host)
         end
     end
