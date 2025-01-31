@@ -18,6 +18,7 @@
       :max-width="$vuetify.display.smAndDown ? undefined : $vuetify.display.thresholds.sm"
       @click:outside="close"
       @keyup.esc="close()"
+      persistent
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
         <v-card-title
@@ -172,7 +173,7 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import * as yup from "yup";
 import axios from "axios";
-import { useEventListener } from "@vueuse/core";
+import { useEventListener, onKeyStroke } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useStore } from "../../store";
 import {
@@ -421,6 +422,10 @@ const close = () => {
   resetFieldValidation();
   store.dispatch("modal/toggleTerminal", "");
 };
+
+onKeyStroke("Escape", () => {
+  close();
+});
 
 defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
