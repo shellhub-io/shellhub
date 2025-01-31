@@ -318,6 +318,11 @@ export const routes: Array<RouteRecordRaw> = [
     component: DeviceDetails,
   },
   {
+    path: "/devices/:id/terminal",
+    name: "DeviceTerminal",
+    component: DeviceDetails,
+  },
+  {
     path: "/sessions",
     name: "Sessions",
     component: Sessions,

@@ -172,6 +172,7 @@ import { FitAddon } from "xterm-addon-fit";
 import * as yup from "yup";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
+import { useRoute } from "vue-router";
 import { useStore } from "../../store";
 import {
   createKeyFingerprint,
@@ -210,6 +211,7 @@ const props = defineProps({
   },
 });
 const store = useStore();
+const route = useRoute();
 const tabActive = ref("Password");
 const showPassword = ref(false);
 const showLoginForm = ref(true);
@@ -370,6 +372,12 @@ const open = () => {
     xterm.value.reset();
   }
 };
+
+watch(() => route.path, (Path) => {
+  if (Path === `/devices/${props.uid}/terminal`) {
+    open();
+  }
+}, { immediate: true });
 
 const resetFieldValidation = () => {
   resetUsername();
