@@ -17,6 +17,7 @@
       :fullscreen="!showLoginForm || $vuetify.display.smAndDown"
       :max-width="$vuetify.display.smAndDown ? undefined : $vuetify.display.thresholds.sm"
       @click:outside="close"
+      @keyup.esc="close()"
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
         <v-card-title
