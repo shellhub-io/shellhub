@@ -58,6 +58,9 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		Status:        models.UserStatusConfirmed,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: -1,
+		Preferences: models.UserPreferences{
+			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+		},
 	}
 
 	insertedID, err := s.store.UserCreate(ctx, user)

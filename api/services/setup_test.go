@@ -107,6 +107,9 @@ func TestSetup(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 				storeMock.On("UserCreate", ctx, user).Return("", errors.New("error", "", 0)).Once()
 			},
@@ -144,6 +147,9 @@ func TestSetup(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 
 				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
@@ -210,6 +216,9 @@ func TestSetup(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 
 				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
@@ -275,6 +284,9 @@ func TestSetup(t *testing.T) {
 						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
 					},
 					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 
 				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
