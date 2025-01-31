@@ -65,7 +65,7 @@ The owner must be a valid username within the system. If a tenant ID is provided
 		},
 	}
 
-	cmdNamespace.PersistentFlags().String("type", "personal", "type")
+	cmdNamespace.PersistentFlags().String("type", "team", "type")
 
 	return cmdNamespace
 }
