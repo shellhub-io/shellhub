@@ -26,6 +26,13 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.infra.ossystems.io
+          username: ${{ secrets.PORTUS_USERNAME }}
+          password: ${{ secrets.PORTUS_TOKEN }}
+
       - name: Build '${{ matrix.project }}' Docker container
         uses: docker/build-push-action@v6
         with:
