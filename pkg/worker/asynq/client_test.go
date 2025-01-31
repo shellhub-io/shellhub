@@ -19,7 +19,7 @@ func TestClient(t *testing.T) {
 
 	image := "docker.io/redis:7"
 	if envs.DefaultBackend.Get("CI") == "true" {
-		image = "registry.infra.ossystems.io/cache/image"
+		image = "registry.infra.ossystems.io/cache/redis:7"
 	}
 
 	redisContainer, err := redis.Run(ctx, image)
