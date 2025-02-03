@@ -45,8 +45,8 @@ exports[`Sign Up > Renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-input__details">
-          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-0-messages">
+        <div id="input-0-messages" class="v-input__details" role="alert" aria-live="polite">
+          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
           <!---->
@@ -91,8 +91,8 @@ exports[`Sign Up > Renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-input__details">
-          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-2-messages">
+        <div id="input-2-messages" class="v-input__details" role="alert" aria-live="polite">
+          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
           <!---->
@@ -137,8 +137,8 @@ exports[`Sign Up > Renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-input__details">
-          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-4-messages">
+        <div id="input-4-messages" class="v-input__details" role="alert" aria-live="polite">
+          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
           <!---->
@@ -185,8 +185,8 @@ exports[`Sign Up > Renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-input__details">
-          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-6-messages">
+        <div id="input-6-messages" class="v-input__details" role="alert" aria-live="polite">
+          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
           <!---->
@@ -233,8 +233,8 @@ exports[`Sign Up > Renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-input__details">
-          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-8-messages">
+        <div id="input-8-messages" class="v-input__details" role="alert" aria-live="polite">
+          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
           <!---->
