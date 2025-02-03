@@ -33,7 +33,7 @@ exports[`Details Device > Renders the component 1`] = `
         <!---->
       </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -114,7 +114,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
         <!---->
       </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -195,7 +195,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
         <!---->
       </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -276,7 +276,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
         <!---->
       </div><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -350,7 +350,7 @@ exports[`Details Device > Renders the component when device status is not accept
     <div class="d-flex align-center">
       <!--v-if--><span class="ml-2">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-owns="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->

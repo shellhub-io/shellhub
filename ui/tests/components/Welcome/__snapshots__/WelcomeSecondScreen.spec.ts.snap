@@ -44,8 +44,8 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
     <div class="v-input__append"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label=" appended action"></i>
       <!---->
     </div>
-    <div class="v-input__details">
-      <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-0-messages">
+    <div id="input-0-messages" class="v-input__details" role="alert" aria-live="polite">
+      <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
         <!---->
       </transition-group-stub>
       <!---->
