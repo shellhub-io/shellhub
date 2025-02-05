@@ -12,13 +12,12 @@
         {{ online ? "Connect" : "Offline" }}
       </v-btn>
     </template>
+
     <v-dialog
       v-model="showTerminal"
       :fullscreen="!showLoginForm || $vuetify.display.smAndDown"
       :max-width="$vuetify.display.smAndDown ? undefined : $vuetify.display.thresholds.sm"
       @click:outside="close"
-      @keyup.esc="close()"
-      persistent
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
         <v-card-title
@@ -29,8 +28,8 @@
           <v-icon @click="close()" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
         </v-card-title>
 
-        <div class="ma-0 pa-0 w-100 fill-height position-relative">
-          <div v-if="!showLoginForm" ref="terminal" class="terminal" />
+        <div class="ma-0 pa-0 w-100 fill-height position-relative" v-if="!showLoginForm">
+          <div ref="terminal" class="terminal" />
         </div>
 
         <div class="mt-2" v-if="showLoginForm">
@@ -166,6 +165,8 @@ import {
   computed,
   nextTick,
   watch,
+  onMounted,
+  onBeforeUnmount,
 } from "vue";
 import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
@@ -173,7 +174,7 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import * as yup from "yup";
 import axios from "axios";
-import { useEventListener, onKeyStroke } from "@vueuse/core";
+import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useStore } from "../../store";
 import {
@@ -253,14 +254,14 @@ const nameOfPrivateKeys = computed(() => {
   return list.map((item: IPrivateKey) => item.name);
 });
 
-useEventListener(window, "resize", (evt) => {
+useEventListener(window, "resize", () => {
   nextTick(() => {
     fitAddon.value.fit();
   });
 });
 
 watch(showTerminal, (value) => {
-  if (value) showLoginForm.value = true;
+  if (!value) showLoginForm.value = true;
 });
 
 const encodeURLParams = (params: IParams) => Object.entries(params)
@@ -375,8 +376,8 @@ const open = () => {
   }
 };
 
-watch(() => route.path, (Path) => {
-  if (Path === `/devices/${props.uid}/terminal`) {
+watch(() => route.path, (path) => {
+  if (path === `/devices/${props.uid}/terminal`) {
     open();
   }
 }, { immediate: true });
@@ -423,8 +424,24 @@ const close = () => {
   store.dispatch("modal/toggleTerminal", "");
 };
 
-onKeyStroke("Escape", () => {
-  close();
+let lastEscPress = 0;
+
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === "Escape" && !showLoginForm.value) {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastEscPress < 400) {
+      close();
+    }
+    lastEscPress = currentTime;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("keyup", handleEscKey);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keyup", handleEscKey);
 });
 
 defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
