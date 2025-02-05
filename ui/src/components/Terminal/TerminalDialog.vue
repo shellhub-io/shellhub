@@ -33,21 +33,11 @@
         </div>
 
         <div class="mt-2" v-if="showLoginForm">
-          <v-tabs align-tabs="center" color="primary" v-model="tabActive">
-            <v-tab value="Password" block data-test="password-tab" @click="resetFieldValidation">Password</v-tab>
-            <v-tab
-              value="PrivateKey"
-              @click="resetFieldValidation"
-              block
-              data-test="private-key-tab"
-            >Private Key</v-tab
-            >
-          </v-tabs>
 
           <v-card-text>
-            <v-window v-model="tabActive">
-              <v-window-item value="Password">
-                <v-form lazy-validation @submit.prevent="connectWithPassword()">
+            <v-window>
+              <v-window-item :value="AuthMethods.Password">
+                <v-form lazy-validation>
                   <v-container>
                     <v-row>
                       <v-col>
@@ -66,12 +56,32 @@
                     </v-row>
                     <v-row>
                       <v-col>
+                        <v-select
+                          v-model="authenticationMethod"
+                          :items="[AuthMethods.Password, AuthMethods.PrivateKey]"
+                          label="Authentication method"
+                          data-test="auth-method-select"
+                        />
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col>
+                        <v-select
+                          v-model="privateKey"
+                          v-if="authenticationMethod === AuthMethods.PrivateKey"
+                          :items="nameOfPrivateKeys"
+                          item-text="name"
+                          item-value="data"
+                          label="Private Key"
+                          hint="Select a private key file for authentication"
+                          persistent-hint
+                          data-test="privatekeys-select"
+                        />
                         <v-text-field
                           color="primary"
-                          :append-inner-icon="
-                            showPassword ? 'mdi-eye' : 'mdi-eye-off'
-                          "
+                          :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                           v-model="password"
+                          v-if="authenticationMethod === AuthMethods.Password"
                           :error-messages="passwordError"
                           label="Password"
                           required
@@ -89,65 +99,16 @@
                   <v-card-actions>
                     <v-spacer />
                     <v-btn
-                      type="submit"
+                      type="button"
                       color="primary"
                       class="mt-4"
                       variant="flat"
                       data-test="connect2-btn"
+                      @click="submitForm"
                     >
                       Connect
                     </v-btn>
-                  </v-card-actions>
-                </v-form>
-              </v-window-item>
-
-              <v-window-item value="PrivateKey">
-                <v-form
-                  lazy-validation
-                  @submit.prevent="connectWithPrivateKey()">
-                  <v-container>
-                    <v-row>
-                      <v-col>
-                        <v-text-field
-                          v-model="username"
-                          :error-messages="usernameError"
-                          label="Username"
-                          autofocus
-                          hint="Enter an existing user on the device"
-                          persistent-hint
-                          persistent-placeholder
-                          :validate-on-blur="true"
-                          data-test="username-field-pk"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col>
-                        <v-select
-                          v-model="privateKey"
-                          :items="nameOfPrivateKeys"
-                          item-text="name"
-                          item-value="data"
-                          label="Private Key"
-                          hint="Select a private key file for authentication"
-                          persistent-hint
-                          data-test="privatekeys-select"
-                        />
-                      </v-col>
-                    </v-row>
-                  </v-container>
-
-                  <v-card-actions>
                     <v-spacer />
-                    <v-btn
-                      type="submit"
-                      color="primary"
-                      class="mt-4"
-                      variant="flat"
-                      data-test="connect2-btn-pk"
-                    >
-                      Connect
-                    </v-btn>
                   </v-card-actions>
                 </v-form>
               </v-window-item>
@@ -187,6 +148,11 @@ import { IPrivateKey } from "../../interfaces/IPrivateKey";
 import { IParams } from "../../interfaces/IParams";
 import { IConnectToTerminal } from "../../interfaces/ITerminal";
 
+enum AuthMethods {
+  Password = "Password",
+  PrivateKey = "Private Key",
+}
+
 const props = defineProps({
   enableConnectButton: {
     type: Boolean,
@@ -215,7 +181,7 @@ const props = defineProps({
 });
 const store = useStore();
 const route = useRoute();
-const tabActive = ref("Password");
+const authenticationMethod = ref(AuthMethods.Password);
 const showPassword = ref(false);
 const showLoginForm = ref(true);
 const privateKey = ref("");
@@ -412,6 +378,14 @@ const connectWithPrivateKey = async () => {
   }
   const fingerprint = await createKeyFingerprint(privateKeyData.data);
   connect({ fingerprint, signature });
+};
+
+const submitForm = () => {
+  if (authenticationMethod.value === AuthMethods.Password) {
+    connectWithPassword();
+  } else if (authenticationMethod.value === AuthMethods.PrivateKey) {
+    connectWithPrivateKey();
+  }
 };
 
 const close = () => {
