@@ -16,7 +16,7 @@
     <v-dialog
       v-model="showTerminal"
       :fullscreen="!showLoginForm || $vuetify.display.smAndDown"
-      :max-width="$vuetify.display.smAndDown ? undefined : $vuetify.display.thresholds.sm"
+      :max-width="$vuetify.display.smAndDown || !showLoginForm ? undefined : $vuetify.display.thresholds.sm"
       @click:outside="close"
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
