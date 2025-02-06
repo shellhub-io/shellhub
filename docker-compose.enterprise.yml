@@ -32,6 +32,7 @@ services:
       - AUTO_SSL=${SHELLHUB_AUTO_SSL}
       - DOMAIN=${SHELLHUB_DOMAIN}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SAML_SECRET=${SHELLHUB_SAML_SECRET}
     networks:
       - shellhub
   admin-api:
