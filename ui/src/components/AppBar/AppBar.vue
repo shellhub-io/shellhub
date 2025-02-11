@@ -134,6 +134,7 @@ const userId = computed(() => store.getters["auth/id"]);
 const identifier = computed(() => store.getters["support/getIdentifier"]);
 const currentUser = computed(() => store.getters["auth/currentUser"]);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
+const billingActive = computed(() => store.getters["billing/active"]);
 
 const showNavigationDrawer = defineModel<boolean>();
 
@@ -168,7 +169,7 @@ const toggleDarkMode = () => {
 };
 
 const openShellhubHelp = async () => {
-  if (envVariables.isCloud || envVariables.isEnterprise) {
+  if ((envVariables.isCloud || envVariables.isEnterprise) && billingActive) {
     await store.dispatch("support/get", tenant.value);
   }
   if (identifier.value.length === 0) {

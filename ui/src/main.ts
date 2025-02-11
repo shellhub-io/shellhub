@@ -14,24 +14,7 @@ import { loadFonts } from "./plugins/webfontloader";
 import SnackbarComponent from "./components/Snackbar/Snackbar.vue";
 import { SnackbarPlugin } from "./plugins/snackbar";
 
-/* import the fontawesome core */
-
-/* import font awesome icon component */
-
 const app = createApp(App);
-
-const chatwoot = createChatWoot({
-  init: {
-    websiteToken: envVariables.chatWootWebsiteToken,
-    baseUrl: envVariables.chatWootBaseURL,
-  },
-  settings: {
-    locale: "en",
-    position: "right",
-    hideMessageBubble: true,
-  },
-  partytown: false,
-});
 
 Sentry.init({
   app,
@@ -56,9 +39,24 @@ app.use(store, key);
 app.use(VueGtag, {
   config: { id: envVariables.googleAnalyticsID || "" },
 });
-if (envVariables.isCloud || envVariables.isEnterprise) {
-  app.use(chatwoot);
+
+if ((envVariables.isCloud || envVariables.isEnterprise) && (envVariables.chatWootWebsiteToken && envVariables.chatWootBaseURL)) {
+  app.use(
+    createChatWoot({
+      init: {
+        websiteToken: envVariables.chatWootWebsiteToken,
+        baseUrl: envVariables.chatWootBaseURL,
+      },
+      settings: {
+        locale: "en",
+        position: "right",
+        hideMessageBubble: true,
+      },
+      partytown: false,
+    }),
+  );
 }
+
 app.use(SnackbarPlugin);
 app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");
