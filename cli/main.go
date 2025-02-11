@@ -41,14 +41,7 @@ func main() {
 
 	log.Trace("Connecting to MongoDB")
 
-	_, db, err := mongo.Connect(ctx, cfg.MongoURI)
-	if err != nil {
-		log.
-			WithError(err).
-			Fatal("unable to connect to MongoDB")
-	}
-
-	store, err := mongo.NewStore(ctx, db, cache)
+	store, err := mongo.NewStore(ctx, cfg.MongoURI, cache)
 	if err != nil {
 		log.
 			WithError(err).

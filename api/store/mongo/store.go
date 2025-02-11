@@ -31,6 +31,10 @@ type Store struct {
 	cache   cache.Cache
 }
 
+func (s *Store) GetDB() *mongo.Database {
+	return s.db
+}
+
 func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
 	client, err := mongo.Connect(ctx, mongooptions.Client().ApplyURI(uri))
 	if err != nil {
@@ -49,7 +53,12 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 	return client, client.Database(connStr.Database), nil
 }
 
-func NewStore(ctx context.Context, db *mongo.Database, cache cache.Cache, opts ...options.DatabaseOpt) (store.Store, error) {
+func NewStore(ctx context.Context, uri string, cache cache.Cache, opts ...options.DatabaseOpt) (store.Store, error) {
+	_, db, err := Connect(ctx, uri)
+	if err != nil {
+		return nil, err
+	}
+
 	store := &Store{db: db, cache: cache, options: &queryOptions{}}
 
 	for _, opt := range opts {

@@ -16,9 +16,11 @@ import (
 	mongodb "go.mongodb.org/mongo-driver/mongo"
 )
 
-var srv = &dbtest.Server{}
-var db *mongodb.Database
-var s store.Store
+var (
+	srv = &dbtest.Server{}
+	db  *mongodb.Database
+	s   store.Store
+)
 
 const (
 	fixtureAPIKeys          = "api-key"           // Check "store.mongo.fixtures.api-keys" for fixture info
@@ -75,17 +77,15 @@ func TestMain(m *testing.M) {
 	log.Info("Connecting to ", srv.Container.ConnectionString)
 
 	var err error
-	_, db, err = mongo.Connect(ctx, srv.Container.ConnectionString+"/"+srv.Container.Database)
-	if err != nil {
-		log.WithError(err).Error("Failed to connect to mongodb")
-		os.Exit(1)
-	}
 
-	s, err = mongo.NewStore(ctx, db, cache.NewNullCache())
+	s, err = mongo.NewStore(ctx, srv.Container.ConnectionString+"/"+srv.Container.Database, cache.NewNullCache())
 	if err != nil {
 		log.WithError(err).Error("Failed to create the mongodb store")
 		os.Exit(1)
 	}
+
+	store := s.(*mongo.Store)
+	db = store.GetDB()
 
 	code := m.Run()
 
