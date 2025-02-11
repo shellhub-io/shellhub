@@ -45,14 +45,7 @@ var serverCmd = &cobra.Command{
 
 		log.Trace("Connecting to MongoDB")
 
-		_, db, err := mongo.Connect(ctx, cfg.MongoURI)
-		if err != nil {
-			log.
-				WithError(err).
-				Fatal("unable to connect to MongoDB")
-		}
-
-		store, err := mongo.NewStore(ctx, db, cache, options.RunMigatrions)
+		store, err := mongo.NewStore(ctx, cfg.MongoURI, cache, options.RunMigatrions)
 		if err != nil {
 			log.
 				WithError(err).
