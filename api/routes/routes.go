@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
@@ -13,6 +15,44 @@ import (
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
 )
 
+type DefaultHTTPHandlerConfig struct {
+	// Reporter represents an instance of [*sentry.Client] that should be proper configured to send error messages
+	// from the error handler. If it's nil, the error handler will ignore the Sentry client.
+	Reporter *sentry.Client
+}
+
+// DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v4] package, with the default
+// configuration required by ShellHub's services, loading the [github.com/shellhub-io/shellhub/api/pkg/gateway] into
+// the context, and the service layer. The configuration received controls the error reporter and more.
+func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Handler {
+	server := echo.New()
+
+	// Sets the default binder.
+	server.Binder = handlers.NewBinder()
+
+	// Sets the default validator.
+	server.Validator = handlers.NewValidator()
+
+	// Defines the default errors handler.
+	server.HTTPErrorHandler = handlers.NewErrors(cfg.Reporter)
+
+	// Configures the default IP extractor for a header.
+	server.IPExtractor = echo.ExtractIPFromRealIPHeader()
+
+	server.Use(echoMiddleware.RequestID())
+	server.Use(echoMiddleware.Secure())
+	server.Use(pkgmiddleware.Log)
+	server.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// NOTE: We load the gateway context to each route handler to access their context as gateway's context.
+			// https://echo.labstack.com/docs/context
+			return next(gateway.NewContext(service, c))
+		}
+	})
+
+	return server
+}
+
 type Option func(e *echo.Echo, handler *Handler) error
 
 func WithReporter(reporter *sentry.Client) Option {
@@ -24,32 +64,17 @@ func WithReporter(reporter *sentry.Client) Option {
 }
 
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
-	e := echo.New()
-	e.Binder = handlers.NewBinder()
-	e.Validator = handlers.NewValidator()
-	e.HTTPErrorHandler = handlers.NewErrors(nil)
-	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
-
-	e.Use(echoMiddleware.RequestID())
-	e.Use(echoMiddleware.Secure())
-	e.Use(pkgmiddleware.Log)
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			apicontext := gateway.NewContext(service, c)
-
-			return next(apicontext)
-		}
-	})
+	router := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
 
 	handler := NewHandler(service)
 	for _, opt := range opts {
-		if err := opt(e, handler); err != nil {
+		if err := opt(router, handler); err != nil {
 			return nil
 		}
 	}
 
 	// Internal routes only accessible by other services in the local container network
-	internalAPI := e.Group("/internal")
+	internalAPI := router.Group("/internal")
 
 	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest))
 	internalAPI.GET(AuthUserTokenInternalURL, gateway.Handler(handler.CreateUserToken)) // TODO: same as defined in public API. remove it.
@@ -70,7 +95,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.POST(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
 	// Public routes for external access through API gateway
-	publicAPI := e.Group("/api")
+	publicAPI := router.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
 
 	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
@@ -142,11 +167,11 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	}
 
 	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
-	e.Pre(echoMiddleware.Rewrite(map[string]string{
+	router.Pre(echoMiddleware.Rewrite(map[string]string{
 		"/api/containers":   "/api/devices?connector=true",
 		"/api/containers?*": "/api/devices?$1&connector=true",
 		"/api/containers/*": "/api/devices/$1",
 	}))
 
-	return e
+	return router
 }
