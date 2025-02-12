@@ -76,7 +76,7 @@ const store = useStore();
 const route = useRoute();
 const tunnelList = computed(() => store.getters["tunnels/listTunnels"]);
 const deviceId = computed(() => route.params.id);
-const url = ref(window.location.host);
+const url = ref(envVariables.tunnelsDomain || window.location.host);
 const urlProtocol = ref(window.location.protocol);
 
 const getTunnels = async () => {
