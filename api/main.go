@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	loglevel.SetLogLevel()
+	loglevel.UseEnvs()
 
 	rootCmd := &cobra.Command{Use: "api"}
 
