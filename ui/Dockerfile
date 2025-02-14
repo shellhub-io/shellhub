@@ -2,7 +2,7 @@ FROM node:21.4.0-alpine3.17 as base
 
 ARG NPM_CONFIG_REGISTRY
 
-RUN apk add --update build-base python3 curl
+RUN apk add --update build-base python3 curl git
 
 WORKDIR /app
 
