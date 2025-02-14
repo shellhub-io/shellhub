@@ -1,0 +1,142 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Device Details > Renders the component 1`] = `
+"<div class="d-flex pa-0 align-center">
+  <h1>Device Details</h1>
+</div>
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="v-card-text">
+    <div>
+      <div class="text-overline mt-3">
+        <h3>uid:</h3>
+      </div>
+      <div data-test="cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75">
+        <p>cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>name:</h3>
+      </div>
+      <div data-test="08-97-98-68-7a-97">
+        <p>08-97-98-68-7a-97</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>mac:</h3>
+      </div>
+      <div data-test="08:97:98:68:7a:97">08:97:98:68:7a:97</div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>info:</h3>
+      </div>
+      <ul data-test="ubuntu">
+        <li class="ml-8"><span class="font-weight-bold mr-1">id:</span><span>ubuntu</span></li>
+      </ul>
+      <ul data-test="ubuntu">
+        <li class="ml-8"><span class="font-weight-bold mr-1">pretty_name:</span><span>Ubuntu 20.04.4 LTS</span></li>
+      </ul>
+      <ul data-test="ubuntu">
+        <li class="ml-8"><span class="font-weight-bold mr-1">version:</span><span>latest</span></li>
+      </ul>
+      <ul data-test="ubuntu">
+        <li class="ml-8"><span class="font-weight-bold mr-1">arch:</span><span>amd64</span></li>
+      </ul>
+      <ul data-test="ubuntu">
+        <li class="ml-8"><span class="font-weight-bold mr-1">platform:</span><span>docker</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Public Key:</h3>
+      </div>
+      <div data-test="-----BEGIN RSA PUBLIC KEY-----
+  MIIBCgKCAQEAx2C95p3s9OpwHdSwV8xP5dS39jGBCM+VMChiqJViaaVoJJ2tTK/i
+  zCEH6+jAuKSfvXjM3jql59RD0o7lFqd9bixiGN8/KvXZ/6hlDrdKniatIGHmGw6z
+  N9EfKbTqJh0vHX/yRzRWlfAlLHoWjg0lV+Y6RpAiV1u6Gd4ZnDyz62u82fpQYqLu
+  IFrhfOP52qbVZHMT6Vn/q8U26wysrDlVbF1k8RDR79Ib9i1Bu3mBPn0r5AEJOpQQ
+  NqODe3Wjntgy8i0/iFaUV+9K17u50Pmm4uPfVfMEPmZSXpAwfpgWFPFInA9hLefq
+  9XLjOj93MwVWN4iXLbLOoLI/9MQw5zZSYQIDAQAB
+  -----END RSA PUBLIC KEY-----
+  ">
+        <p>-----BEGIN RSA PUBLIC KEY-----
+          MIIBCgKCAQEAx2C95p3s9OpwHdSwV8xP5dS39jGBCM+VMChiqJViaaVoJJ2tTK/i
+          zCEH6+jAuKSfvXjM3jql59RD0o7lFqd9bixiGN8/KvXZ/6hlDrdKniatIGHmGw6z
+          N9EfKbTqJh0vHX/yRzRWlfAlLHoWjg0lV+Y6RpAiV1u6Gd4ZnDyz62u82fpQYqLu
+          IFrhfOP52qbVZHMT6Vn/q8U26wysrDlVbF1k8RDR79Ib9i1Bu3mBPn0r5AEJOpQQ
+          NqODe3Wjntgy8i0/iFaUV+9K17u50Pmm4uPfVfMEPmZSXpAwfpgWFPFInA9hLefq
+          9XLjOj93MwVWN4iXLbLOoLI/9MQw5zZSYQIDAQAB
+          -----END RSA PUBLIC KEY-----
+        </p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Tenat Id:</h3>
+      </div>
+      <div data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <p>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Online:</h3>
+      </div>
+      <div data-test="true">
+        <p>true</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Tags:</h3>
+      </div>
+      <div data-test="dev"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-0"><!----><span class="v-chip__underlay"></span>
+        <!---->
+        <!---->
+        <div class="v-chip__content" data-no-activator="">dev</div>
+        <!---->
+        <!----></span>
+        <!--teleport start-->
+        <!--teleport end-->
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Namespace:</h3>
+      </div>
+      <div data-test="dev">
+        <p>dev</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Status:</h3>
+      </div>
+      <div data-test="accepted">
+        <p>accepted</p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>"
+`;
