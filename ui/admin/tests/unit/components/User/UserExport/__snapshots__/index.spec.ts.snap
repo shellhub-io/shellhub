@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`User Export > Renders the component 1`] = `
+"<button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-6"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  <!----><span class="v-btn__content" data-no-activator="">Export CSV</span>
+  <!---->
+  <!---->
+</button>"
+`;

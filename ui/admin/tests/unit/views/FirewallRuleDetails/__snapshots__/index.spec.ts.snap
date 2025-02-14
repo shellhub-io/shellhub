@@ -1,0 +1,84 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Firewall Rule Details > Renders the component 1`] = `
+"<div class="d-flex pa-0 align-center">
+  <h1>Firewall Details</h1>
+</div>
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="v-card-text">
+    <div>
+      <div class="text-overline mt-3">
+        <h3>id:</h3>
+      </div>
+      <div data-test="6256b876e5c1d9bbdf954662">
+        <p>6256b876e5c1d9bbdf954662</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Tenant Id:</h3>
+      </div>
+      <div data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <p>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Priority:</h3>
+      </div>
+      <div data-test="1">
+        <p>1</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Action:</h3>
+      </div>
+      <div data-test="allow">
+        <p>allow</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Source Ip:</h3>
+      </div>
+      <div data-test=".*">
+        <p>Any IP</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Username:</h3>
+      </div>
+      <div data-test="^[A-a]">
+        <p>^[A-a]</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Filter:</h3>
+      </div>
+      <div data-test="[object Object]">All devices</div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>"
+`;
