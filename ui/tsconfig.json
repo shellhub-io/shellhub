@@ -16,6 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@ui/*": ["src/*"],
+      "@admin/*": ["admin/src/*"],
     },
     "noImplicitAny": false,
     "sourceRoot": "/",
@@ -33,7 +35,10 @@
     "src/router/index.js",
     "src/sshpk.js",
     "example.ts",
-    "src/sshpk.Js"
+    "src/sshpk.Js",
+    "admin/**/*.ts",
+    "admin/**/*.d.ts",
+    "admin/**/*.vue",
   ],
   "extensions": [
     ".vue"

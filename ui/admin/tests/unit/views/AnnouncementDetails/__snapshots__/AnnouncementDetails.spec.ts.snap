@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Announcement Details > Renders the component 1`] = `
+"<div class="d-flex pa-0 align-center">
+  <h1>Announcement Details</h1>
+</div>
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="v-card-text">
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Uuid:</h3>
+      </div>
+      <div data-test="eac7e18d-7127-41ca-b68b-8242dfdbaf4c">
+        <p>eac7e18d-7127-41ca-b68b-8242dfdbaf4c</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Title:</h3>
+      </div>
+      <div data-test="Announcement 1">
+        <p>Announcement 1</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Content:</h3>
+      </div>
+      <div class="pa-2">
+        <div data-test="## ShellHub new features 
+ - New feature 1 
+ - New feature 2 
+ - New feature 3">
+          <div class="content-announcement">
+            <h2>ShellHub new features</h2>
+            <ul>
+              <li>New feature 1</li>
+              <li>New feature 2</li>
+              <li>New feature 3</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Date:</h3>
+      </div>
+      <div data-test="2022-12-15T19:45:45.618Z">
+        <p>December 15, 2022</p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>"
+`;

@@ -1,0 +1,80 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`User Details > Renders the component 1`] = `
+"<div class="d-flex pa-0 align-center">
+  <h1>User Details</h1>
+  <div class="v-col pr-4 text-right"><a class="mdi-login mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-0"></a>
+    <!--teleport start-->
+    <!--teleport end--><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-1"></a>
+    <!--teleport start-->
+    <!--teleport end-->
+    <!---->
+    <!---->
+  </div>
+</div>
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="v-card-text">
+    <div class="text-overline mt-3">
+      <h3>Status:</h3><span class="v-chip v-theme--light text-success v-chip--density-default v-chip--size-default v-chip--variant-text ma-2" draggable="false"><!----><span class="v-chip__underlay"></span>
+      <!---->
+      <div class="v-chip__prepend"><i class="mdi-checkbox-marked-circle mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--start" aria-hidden="true"></i>
+        <!---->
+      </div>
+      <div class="v-chip__content" data-no-activator=""> Confirmed </div>
+      <!---->
+      <!----></span>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>uid:</h3>
+      </div>
+      <div data-test="6256b739302b50b6cc5eafcc">
+        <p>6256b739302b50b6cc5eafcc</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Email:</h3>
+      </div>
+      <div data-test="antony@gmail.com">
+        <p>antony@gmail.com</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Username:</h3>
+      </div>
+      <div data-test="antony">
+        <p>antony</p>
+      </div>
+    </div>
+    <div>
+      <div class="text-overline mt-3">
+        <h3>Namespaces:</h3>
+      </div>
+      <div data-test="0">
+        <p>0</p>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>"
+`;

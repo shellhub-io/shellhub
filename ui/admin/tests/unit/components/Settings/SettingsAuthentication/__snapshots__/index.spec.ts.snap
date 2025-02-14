@@ -1,0 +1,360 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Authentication > renders correctly 1`] = `
+"<div class="pb-2">
+  <h1 data-test="auth-header">Authentication</h1>
+</div>
+<div class="v-card v-theme--light border-8 v-card--density-default v-card--variant-elevated w-100" data-test="auth-card">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="v-container v-container--fluid v-locale--is-ltr" data-test="license-container">
+    <div class="v-row">
+      <div class="v-col">
+        <h6 class="text-h6 text-center" data-test="auth-status-header">Authentication Status</h6>
+      </div>
+    </div>
+    <div class="v-row">
+      <div class="v-col-sm-auto v-col-md-auto v-col">
+        <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="local-auth-label">
+          <!---->
+          <div class="v-card__loader">
+            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+              <!---->
+              <div class="v-progress-linear__background"></div>
+              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                <div class="v-progress-linear__indeterminate">
+                  <div class="v-progress-linear__indeterminate long"></div>
+                  <div class="v-progress-linear__indeterminate short"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->Local Authentication
+          <!---->
+          <!----><span class="v-card__underlay"></span>
+        </div>
+      </div>
+      <div class="v-spacer"></div>
+      <div class="v-col-sm-auto v-col-md-auto v-col ml-auto pt-0">
+        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch" data-test="local-auth-switch">
+          <!---->
+          <div class="v-input__control">
+            <div class="v-selection-control v-selection-control--density-default">
+              <div class="v-selection-control__wrapper">
+                <div class="v-switch__track">
+                  <!---->
+                  <!---->
+                </div>
+                <div class="v-selection-control__input"><input id="switch-0" aria-disabled="false" type="checkbox" aria-describedby="switch-0-messages" value="true">
+                  <div class="v-switch__thumb">
+                    <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
+                      <!---->
+                    </transition-stub>
+                  </div>
+                </div>
+              </div>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->
+        </div>
+      </div>
+    </div>
+    <div class="v-row">
+      <div class="v-col-sm-auto v-col-md-auto v-col">
+        <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="saml-auth-label">
+          <!---->
+          <div class="v-card__loader">
+            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+              <!---->
+              <div class="v-progress-linear__background"></div>
+              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                <div class="v-progress-linear__indeterminate">
+                  <div class="v-progress-linear__indeterminate long"></div>
+                  <div class="v-progress-linear__indeterminate short"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->SAML Authentication
+          <!---->
+          <!----><span class="v-card__underlay"></span>
+        </div>
+      </div>
+      <div class="v-spacer"></div>
+      <div class="v-col-sm-auto v-col-md-auto v-col ml-auto pt-0">
+        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch" data-test="saml-auth-switch">
+          <!---->
+          <div class="v-input__control">
+            <div class="v-selection-control v-selection-control--dirty v-selection-control--density-default">
+              <div class="v-selection-control__wrapper text-success">
+                <div class="v-switch__track bg-success">
+                  <!---->
+                  <!---->
+                </div>
+                <div class="v-selection-control__input"><input checked="" id="switch-3" aria-disabled="false" type="checkbox" aria-describedby="switch-3-messages" value="true">
+                  <div class="v-switch__thumb bg-success">
+                    <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
+                      <!---->
+                    </transition-stub>
+                  </div>
+                </div>
+              </div>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <!---->
+        </div>
+      </div>
+    </div>
+    <div class="v-row">
+      <hr class="v-divider v-theme--light mt-4 mb-4" aria-orientation="horizontal" role="separator">
+    </div>
+    <div class="v-row">
+      <div class="v-col">
+        <div class="v-card-title text-h6 text-center" data-test="sso-header">Single Sign-on (SSO)</div>
+        <div class="v-card-subtitle text-center" data-test="sso-subtitle"> Single Sign-On (SSO) simplifies access by enabling users to authenticate once and securely access multiple applications. </div>
+      </div>
+    </div>
+    <div>
+      <div class="v-row mt-2" cols="12">
+        <div class="v-col-sm-8 v-col-md-10 v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->Assertion URL
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+          <div class="v-card-subtitle pl-0"> The Assertion URL is the endpoint where the IdP will redirect users after successful authentication. Many IdPs require this URL to be registered in their list of allowed callback URLs. </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-4 v-col-md-2 v-col ml-auto d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="copy-assertion-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""> Copy Assertion URL </span>
+            <!---->
+            <!---->
+          </button></div>
+      </div>
+      <div class="v-row">
+        <div class="v-col-sm-auto v-col-md-auto v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->IdP SignOn URL
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-auto v-col-md-auto v-col ml-auto">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-value">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->https://signon.example.com
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </div>
+      <div class="v-row">
+        <div class="v-col-sm-auto v-col-md-auto v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-entity-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->IdP Entity ID
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-auto v-col-md-auto v-col ml-auto mb-3">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-entity-value">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->entity-id-example
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </div>
+      <div class="v-row" cols="12">
+        <div class="v-col-sm-8 v-col-md-10 v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="certificate-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->SP Certificate
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+          <div class="v-card-subtitle pl-0 text-overflow"> The SP Certificate is an X.509 certificate that IdPs use to verify requests from ShellHub. Upload it to your IdP to validate the authenticity of authentication requests. </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-4 v-col-md-2 v-col d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="download-certificate-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Download SP Certificate</span>
+            <!---->
+            <!---->
+          </button></div>
+      </div>
+      <div class="v-row" cols="12">
+        <div class="v-col-sm-6 v-col-md-10 v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="sso-config-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->SSO Configuration
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-3 v-col-md-1 v-col ml-auto d-flex w-100 justify-end align-center">
+          <div class="v-row" aria-describedby="v-tooltip-8">
+            <div class="v-col"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" aria-describedby="v-tooltip-8" data-test="redirect-auth-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <!----><span class="v-btn__content" data-no-activator=""> Test Auth Integration </span>
+                <!---->
+                <!---->
+              </button></div>
+          </div>
+          <!--teleport start-->
+          <div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-8" role="tooltip">
+            <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+              <!---->
+            </transition-stub>
+            <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLDivElement]">
+              <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>Opens a new window directly calling the Authentication URL </span></div>
+            </transition-stub>
+          </div>
+          <!--teleport end-->
+        </div>
+        <div class="v-col-sm-3 v-col-md-1 v-col ml-auto d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="sso-config-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Edit</span>
+            <!---->
+            <!---->
+          </button></div>
+      </div>
+    </div>
+  </div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>"
+`;

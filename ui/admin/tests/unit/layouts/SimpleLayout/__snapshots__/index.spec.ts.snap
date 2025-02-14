@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SimpleLayout > Renders the component 1`] = `"<router-view-stub name="default"></router-view-stub>"`;

@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Namespace Edit > Renders the component 1`] = `
+"<a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-0" aria-label="Editar Namespace"></a>
+<!--teleport start-->
+<!--teleport end-->"
+`;
