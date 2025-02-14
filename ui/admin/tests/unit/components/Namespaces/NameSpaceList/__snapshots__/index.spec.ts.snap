@@ -1,0 +1,122 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Namespace Edit > Renders the component 1`] = `
+"<div>
+  <div data-v-90b5158f="" data-test="namespaces-list">
+    <div data-v-90b5158f="" class="v-table v-theme--light v-table--density-default">
+      <!---->
+      <div class="v-table__wrapper">
+        <table>
+          <thead data-v-90b5158f="">
+            <tr data-v-90b5158f="">
+              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Name</span></th>
+              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Devices</span></th>
+              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Tenant ID</span></th>
+              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Owner</span></th>
+              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Session Record</span></th>
+              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody data-v-90b5158f="">
+            <tr>
+              <td>ossystems</td>
+              <td>2</td>
+              <td>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</td>
+              <td>ossystems</td>
+              <td>
+                <div>true</div>
+              </td>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-0"></a>
+                <!--teleport start-->
+                <!--teleport end--><a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-1" aria-label="Editar Namespace"></a>
+                <!--teleport start-->
+                <!--teleport end-->
+                <!---->
+                <!---->
+              </td>
+            </tr>
+            <tr>
+              <td>dev</td>
+              <td>12</td>
+              <td>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</td>
+              <td>dev</td>
+              <td>
+                <div>true</div>
+              </td>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-2"></a>
+                <!--teleport start-->
+                <!--teleport end--><a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-3" aria-label="Editar Namespace"></a>
+                <!--teleport start-->
+                <!--teleport end-->
+                <!---->
+                <!---->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!---->
+    </div>
+    <hr data-v-90b5158f="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+    <!--v-if-->
+    <div data-v-90b5158f="" class="d-flex w-100 justify-end align-center"><span data-v-90b5158f="" class="text-subtitle-2 mr-4">Items per page:</span>
+      <div data-v-90b5158f="">
+        <div data-v-90b5158f="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+          <!---->
+          <div class="v-input__control">
+            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-6">
+              <div class="v-field__overlay"></div>
+              <div class="v-field__loader">
+                <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                  <!---->
+                  <div class="v-progress-linear__background"></div>
+                  <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                  <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                    <div class="v-progress-linear__indeterminate">
+                      <div class="v-progress-linear__indeterminate long"></div>
+                      <div class="v-progress-linear__indeterminate short"></div>
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+              </div>
+              <!---->
+              <div class="v-field__field" data-no-activator="">
+                <!---->
+                <!---->
+                <!---->
+                <div class="v-field__input" data-no-activator="">
+                  <!---->
+                  <!---->
+                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-4" aria-describedby="input-4-messages" outlined="" value="10">
+                </div>
+                <!---->
+              </div>
+              <!---->
+              <div class="v-field__append-inner">
+                <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="false" tabindex="-1" aria-label="Open" title="Open"></i>
+                <!---->
+              </div>
+              <div class="v-field__outline">
+                <!---->
+                <!---->
+              </div>
+            </div>
+          </div>
+          <!---->
+          <!---->
+        </div>
+      </div>
+      <div data-v-90b5158f="" class="d-flex align-center"><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+          <!---->
+          <!---->
+        </button><span data-v-90b5158f="" class="text-subtitle-2">1 of 1</span><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+          <!---->
+          <!---->
+        </button></div>
+    </div>
+  </div>
+</div>"
+`;

@@ -1,0 +1,48 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Card > Renders the component 1`] = `
+"<div class="v-card v-theme--light v-card--density-default elevation-8 v-card--variant-elevated pa-2 mb-2">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="v-list-item v-theme--light v-list-item--density-default v-list-item--three-line rounded-0 v-list-item--variant-text" data-test="viewUsers-btn">
+    <!----><span class="v-list-item__underlay"></span>
+    <!---->
+    <div class="v-list-item__content" data-no-activator="">
+      <!---->
+      <!---->
+      <div>
+        <p class="text-overline mb-4" title-test="Registered Users">Registered Users</p>
+        <div class="v-list-item-title text-h4 mb-1" stats-test="10">10</div>
+        <div class="v-list-item-subtitle" content-test="Registered users">Registered users</div>
+      </div>
+      <div class="v-spacer"></div>
+    </div>
+    <div class="v-list-item__append">
+      <div class="mt-4"><i class="mdi-account-group mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" iconname-test="mdi-account-group"></i></div>
+      <div class="v-list-item__spacer"></div>
+    </div>
+  </div>
+  <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" buttonname-test="View all Users"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator="">View all Users</span>
+      <!---->
+      <!---->
+    </a></div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>"
+`;
