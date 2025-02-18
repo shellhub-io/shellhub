@@ -72,7 +72,7 @@ type DeviceUpdateTag struct {
 }
 
 type DeviceIdentity struct {
-	MAC string `json:"mac"`
+	MAC string `json:"mac" validate:"required"`
 }
 
 type DeviceInfo struct {
