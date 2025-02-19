@@ -122,7 +122,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 
 	// `/sessions/:uid/close` is the endpoint that is called by the agent to inform the SSH's server that the session is
 	// closed.
-	tunnel.router.POST("/sessions/:uid/close", func(c echo.Context) error {
+	tunnel.router.POST("/api/sessions/:uid/close", func(c echo.Context) error {
 		var data struct {
 			UID    string `param:"uid"`
 			Device string `json:"device"`
