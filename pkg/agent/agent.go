@@ -343,9 +343,11 @@ func (a *Agent) probeServerInfo() error {
 	return err
 }
 
+var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostname and identity. Set PREFERRED_IDENTITY or PREFERRED_HOSTNAME to specify the device's name and identity")
+
 // authorize send auth request to the server with device information in order to register it in the namespace.
 func (a *Agent) authorize() error {
-	data, err := a.cli.AuthDevice(&models.DeviceAuthRequest{
+	req := &models.DeviceAuthRequest{
 		Info: a.Info,
 		DeviceAuth: &models.DeviceAuth{
 			Hostname:  a.config.PreferredHostname,
@@ -353,7 +355,22 @@ func (a *Agent) authorize() error {
 			TenantID:  a.config.TenantID,
 			PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
 		},
-	})
+	}
+
+	// NOTE: A MAC address can be empty when the network interface used to communicate with the external world isn't a
+	// physical one. In this case, we should be able to define a custom value for MAC's field using the
+	// [PREFERRED_IDENTITY] variable. If the hostname is also empty, [PREFERRED_HOSTNAME] could be defined to provide a
+	// fallback identifier for the device. This ensures that even if both the MAC address and hostname are missing, we
+	// have a way to identify the device uniquely. When it occurs, and no variable was defined, the agent should fail to
+	// initialize.
+	if req.DeviceAuth.Hostname == "" && (req.DeviceAuth.Identity == nil || req.DeviceAuth.Identity.MAC == "") {
+		return ErrNoIdentityAndHostname
+	}
+
+	data, err := a.cli.AuthDevice(req)
+	if err != nil {
+		return err
+	}
 
 	a.authData = data
 
