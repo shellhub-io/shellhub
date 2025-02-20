@@ -6,113 +6,132 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
-	"net"
 	"testing"
 	"time"
 
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
-	"github.com/shellhub-io/shellhub/pkg/geoip"
-	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
 	testifymock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/undefinedlabs/go-mpatch"
 )
 
 func TestAuthDevice(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(mocks.Store)
 
-	ctx := context.TODO()
+	clockMock := new(clockmock.Clock)
+	clock.DefaultBackend = clockMock
+	clockMock.On("Now").Return(now)
 
-	authReq := requests.DeviceAuth{
-		TenantID: "tenant",
+	uuidMock := &uuidmock.Uuid{}
+	uuid.DefaultBackend = uuidMock
+	uuidMock.On("Generate").Return("00000000-0000-4000-0000-000000000000")
+
+	req := requests.DeviceAuth{
+		Hostname: "hostname",
 		Identity: &requests.DeviceIdentity{
 			MAC: "mac",
 		},
-		Sessions: []string{"session"},
+		TenantID:  "00000000-0000-4000-0000-000000000000",
+		PublicKey: "",
+		Sessions:  []string{"session"},
 	}
 
 	auth := models.DeviceAuth{
-		Hostname: authReq.Hostname,
+		Hostname: req.Hostname,
 		Identity: &models.DeviceIdentity{
-			MAC: authReq.Identity.MAC,
+			MAC: req.Identity.MAC,
 		},
-		PublicKey: authReq.PublicKey,
-		TenantID:  authReq.TenantID,
+		PublicKey: req.PublicKey,
+		TenantID:  req.TenantID,
 	}
+
 	uid := sha256.Sum256(structhash.Dump(auth, 1))
-	device := &models.Device{
-		UID: hex.EncodeToString(uid[:]),
-		Identity: &models.DeviceIdentity{
-			MAC: authReq.Identity.MAC,
-		},
-		TenantID:   authReq.TenantID,
-		LastSeen:   now,
-		RemoteAddr: "127.0.0.1",
-		Position: &models.DevicePosition{
-			Latitude:  0,
-			Longitude: 0,
+
+	key := hex.EncodeToString(uid[:])
+
+	claims := authorizer.DeviceClaims{
+		UID:      key,
+		TenantID: req.TenantID,
+	}
+
+	token, err := jwttoken.EncodeDeviceClaims(claims, privateKey)
+	assert.NoError(t, err)
+
+	type Expected struct {
+		authRes *models.DeviceAuthResponse
+		err     error
+	}
+
+	cases := []struct {
+		description   string
+		req           requests.DeviceAuth
+		requiredMocks func(context.Context)
+		expected      Expected
+	}{
+		{
+			description: "succeeds to authenticate device",
+			req:         req,
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace-name"}, nil).
+					Once()
+				storeMock.
+					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionSetLastSeen", ctx, models.UID("session")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, testifymock.Anything, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Device{
+						UID:      key,
+						Name:     "device-name",
+						TenantID: "00000000-0000-4000-0000-000000000000",
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				authRes: &models.DeviceAuthResponse{
+					UID:       key,
+					Token:     token,
+					Name:      "device-name",
+					Namespace: "namespace-name",
+				},
+				err: nil,
+			},
 		},
 	}
 
-	clockMock.On("Now").Return(now).Twice()
-	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
 
-	// [DeviceAuthClaims.WithDefaults]
-	uuidMock := &uuidmock.Uuid{}
-	uuid.DefaultBackend = uuidMock
-	uuidMock.
-		On("Generate").
-		Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
-		Once()
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			ctx := context.TODO()
+			tc.requiredMocks(ctx)
 
-	mock.On("DeviceCreate", ctx, *device, "").
-		Return(nil).Once()
-	mock.On("SessionSetLastSeen", ctx, models.UID(authReq.Sessions[0])).
-		Return(nil).Once()
-	mock.On("DeviceGetByUID", ctx, models.UID(device.UID), device.TenantID).
-		Return(device, nil).Once()
-	mock.On("NamespaceGet", ctx, namespace.TenantID).
-		Return(namespace, nil).Once()
+			authRes, err := service.AuthDevice(ctx, tc.req, "127.0.0.1")
+			require.Equal(tt, tc.expected.authRes, authRes)
+			require.Equal(tt, tc.expected.err, err)
+		})
+	}
 
-	// Mock time.Now using monkey patch
-	patch, err := mpatch.PatchMethod(time.Now, func() time.Time { return now })
-	assert.NoError(t, err)
-	defer patch.Unpatch() //nolint:errcheck
-
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.NoError(t, err)
-
-	locator := &mocksGeoIp.Locator{}
-	locator.On("GetPosition", net.ParseIP("127.0.0.1")).
-		Return(geoip.Position{
-			Latitude:  0,
-			Longitude: 0,
-		}, nil).Once()
-
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock, WithLocator(locator))
-
-	authRes, err := service.AuthDevice(ctx, authReq, "127.0.0.1")
-	assert.NoError(t, err)
-
-	assert.Equal(t, device.UID, authRes.UID)
-	assert.Equal(t, device.Name, authRes.Name)
-	assert.Equal(t, namespace.Name, authRes.Namespace)
-	assert.NotEmpty(t, authRes.Token)
-	assert.Equal(t, device.RemoteAddr, "127.0.0.1")
-
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestService_AuthLocalUser(t *testing.T) {
