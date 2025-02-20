@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
+	goerrors "errors"
 	"testing"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -30,6 +30,7 @@ import (
 
 func TestAuthDevice(t *testing.T) {
 	storeMock := new(mocks.Store)
+	cacheMock := new(mockcache.Cache)
 
 	clockMock := new(clockmock.Clock)
 	clock.DefaultBackend = clockMock
@@ -44,7 +45,7 @@ func TestAuthDevice(t *testing.T) {
 		Identity: &requests.DeviceIdentity{
 			MAC: "mac",
 		},
-		TenantID:  "00000000-0000-4000-0000-000000000000",
+		TenantID:  "tenant",
 		PublicKey: "",
 		Sessions:  []string{"session"},
 	}
@@ -59,7 +60,6 @@ func TestAuthDevice(t *testing.T) {
 	}
 
 	uid := sha256.Sum256(structhash.Dump(auth, 1))
-
 	key := hex.EncodeToString(uid[:])
 
 	claims := authorizer.DeviceClaims{
@@ -82,11 +82,100 @@ func TestAuthDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "succeeds to authenticate device",
-			req:         req,
+			description: "fails to authenticate device due to no identity and hostname",
+			req: requests.DeviceAuth{
+				Hostname: "",
+				Identity: nil,
+			},
+			requiredMocks: func(_ context.Context) {},
+			expected: Expected{
+				authRes: nil,
+				err:     NewErrAuthDeviceNoIdentityAndHostname(),
+			},
+		},
+		{
+			description: "fails to authenticate device due to namespace not found",
+			req: requests.DeviceAuth{
+				Hostname: "hostname",
+				TenantID: "tenant",
+			},
 			requiredMocks: func(ctx context.Context) {
+				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
+
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGet", ctx, "tenant").
+					Return(nil, goerrors.New("")).
+					Once()
+			},
+			expected: Expected{
+				authRes: nil,
+				err:     NewErrNamespaceNotFound("tenant", goerrors.New("")),
+			},
+		},
+		{
+			description: "fails to authenticate device due to device creation error",
+			req: requests.DeviceAuth{
+				TenantID: "tenant",
+				Info:     nil,
+				Hostname: "hostname",
+				Identity: &requests.DeviceIdentity{
+					MAC: "mac",
+				},
+				PublicKey: "",
+			},
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
+
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(&models.Namespace{
+						Name:     "namespace-name",
+						TenantID: "tenant",
+					}, nil).Once()
+				storeMock.
+					On("DeviceCreate", ctx, models.Device{
+						UID: key,
+						Identity: &models.DeviceIdentity{
+							MAC: "mac",
+						},
+						TenantID:   "tenant",
+						LastSeen:   clock.Now(),
+						Position:   &models.DevicePosition{},
+						RemoteAddr: "127.0.0.1",
+					}, req.Hostname).
+					Return(goerrors.New("device creation error")).
+					Once()
+			},
+			expected: Expected{
+				authRes: nil,
+				err: NewErrDeviceCreate(models.Device{
+					UID: key,
+					Identity: &models.DeviceIdentity{
+						MAC: "mac",
+					},
+					TenantID:   "tenant",
+					LastSeen:   clock.Now(),
+					Position:   &models.DevicePosition{},
+					RemoteAddr: "127.0.0.1",
+				}, goerrors.New("device creation error")),
+			},
+		},
+
+		{
+			description: "fails to authenticate device due to device not found",
+			req: requests.DeviceAuth{
+				TenantID: "tenant",
+				Info:     nil,
+				Hostname: "hostname",
+				Identity: &requests.DeviceIdentity{
+					MAC: "mac",
+				},
+				PublicKey: "",
+			},
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
 					Return(&models.Namespace{Name: "namespace-name"}, nil).
 					Once()
 				storeMock.
@@ -98,13 +187,74 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceGetByUID", ctx, testifymock.Anything, "00000000-0000-4000-0000-000000000000").
+					On("DeviceGetByUID", ctx, testifymock.Anything, "tenant").
+					Return(nil, goerrors.New("device not found")).
+					Once()
+			},
+			expected: Expected{
+				authRes: nil,
+				err:     NewErrDeviceNotFound(models.UID(key), goerrors.New("device not found")),
+			},
+		},
+		{
+			description: "fails to authenticate device due to cache set error",
+			req: requests.DeviceAuth{
+				TenantID: "tenant",
+				Info:     nil,
+				Hostname: "hostname",
+				Identity: &requests.DeviceIdentity{
+					MAC: "mac",
+				},
+				PublicKey: "",
+			},
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(&models.Namespace{Name: "namespace-name"}, nil).
+					Once()
+				storeMock.
+					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, testifymock.Anything, "tenant").
 					Return(&models.Device{
 						UID:      key,
 						Name:     "device-name",
-						TenantID: "00000000-0000-4000-0000-000000000000",
+						TenantID: "tenant",
 					}, nil).
 					Once()
+
+				cacheMock.On("Set", ctx, testifymock.Anything, testifymock.Anything, time.Second*30).Return(goerrors.New("")).Once()
+			},
+			expected: Expected{
+				authRes: nil,
+				err:     goerrors.New(""),
+			},
+		},
+		{
+			description: "succeeds to authenticate device",
+			req:         req,
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(&models.Namespace{Name: "namespace-name"}, nil).
+					Once()
+				storeMock.
+					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceGetByUID", ctx, testifymock.Anything, "tenant").
+					Return(&models.Device{
+						UID:      key,
+						Name:     "device-name",
+						TenantID: "tenant",
+					}, nil).
+					Once()
+				cacheMock.On("Set", ctx, testifymock.Anything, testifymock.Anything, time.Second*30).Return(nil).Once()
 			},
 			expected: Expected{
 				authRes: &models.DeviceAuthResponse{
@@ -118,7 +268,7 @@ func TestAuthDevice(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
