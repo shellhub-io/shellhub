@@ -72,8 +72,18 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 			MAC: req.Identity.MAC,
 		}
 	}
+
+	var hostname string
+	if req.Hostname != "" {
+		hostname = req.Hostname
+	}
+
+	if hostname == "" && (identity == nil || identity.MAC == "") {
+		return nil, NewErrAuthDeviceNoIdentityAndHostname()
+	}
+
 	auth := models.DeviceAuth{
-		Hostname:  req.Hostname,
+		Hostname:  hostname,
 		Identity:  identity,
 		PublicKey: req.PublicKey,
 		TenantID:  req.TenantID,
@@ -143,7 +153,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		return nil, NewErrNamespaceNotFound(device.TenantID, err)
 	}
 
-	hostname := strings.ToLower(req.Hostname)
+	hostname = strings.ToLower(hostname)
 
 	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
 		return nil, NewErrDeviceCreate(device, err)
