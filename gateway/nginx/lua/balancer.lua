@@ -34,7 +34,7 @@ local function resolve_dns(hostname)
 
     for _, ans in ipairs(answers) do
         if ans.address then
-            local ok, err = dns_cache:set(hostname, ans.address)
+            local ok, err = dns_cache:set(hostname, ans.address, 45)
             if not ok then
                 ngx.log(ngx.ERR, "Failed to set ", hostname, " in cache: ", err)
                 return
@@ -54,7 +54,7 @@ local function resolve_all_dns()
     end
 end
 
-local function contains_hostname(tbl, value)
+local function contains_hostname(value)
   for _, v in ipairs(hostnames) do
       if v == value then
           return true
@@ -64,7 +64,7 @@ local function contains_hostname(tbl, value)
 end
 
 function _M.init_worker()
-    local ok, err = ngx.timer.every(10, resolve_all_dns)
+    local ok, err = ngx.timer.every(60, resolve_all_dns)
     if not ok then
         ngx.log(ngx.ERR, "failed to create the timer: ", err)
     end
@@ -102,11 +102,13 @@ function _M.set_peer(host, port)
     ngx.ctx.upstream_host = host
     ngx.ctx.upstream_port = port
 
+    if not contains_hostname(host) then
+        table.insert(hostnames, host)
+    end
+
     local ip = dns_cache:get(host)
     if not ip then
-        if resolve_dns(host) and not contains_hostname(host) then
-            table.insert(hostnames, host)
-        end
+        resolve_dns(host)
     end
 end
 
