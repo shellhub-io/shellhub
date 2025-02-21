@@ -18,8 +18,8 @@ export const leaveNamespace = async (tenant: string) => namespacesApi.leaveNames
 export const putNamespace = async (data: INamespaceResponse) => namespacesApi.editNamespace(data.id, {
   name: data.name,
   settings: {
-    connection_announcement: data.settings.connection_announcement,
-    session_record: data.settings.session_record,
+    connection_announcement: data.settings?.connection_announcement,
+    session_record: data.settings?.session_record,
   },
 });
 

@@ -29,11 +29,11 @@ export interface INamespaceInvite {
 }
 
 export interface INamespaceSettings {
-  connection_announcement: string;
-  session_record: boolean;
+  connection_announcement?: string;
+  session_record?: boolean;
 }
 export interface INamespaceResponse {
-  settings: INamespaceSettings;
+  settings?: INamespaceSettings;
   id: string;
   tenant_id: string;
   name: string;
