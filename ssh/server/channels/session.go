@@ -30,7 +30,7 @@ const (
 	// mechanism, and possibly other features.  Implementations may also allow configuring more such mechanisms.  As
 	// the user's shell is usually used to execute the subsystem, it is advisable for the subsystem protocol to have a
 	// "magic cookie" at the beginning of the protocol transaction to distinguish it from arbitrary output generated
-	// by shell initialization scripts, etc.  This spurious output from the shell may be filtered out either at the
+	// by shell initialization scripts, etc. This spurious output from the shell may be filtered out either at the
 	// server or at the client.
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.5
@@ -62,7 +62,7 @@ const (
 	ExitSignalRequest = "exit-signal"
 )
 
-// A client may request agent forwarding for a previously-opened session using the following channel request. This
+// A client may request agent forwarding for a previously opened session using the following channel request. This
 // request is sent after the channel has been opened, but before a [ShellRequestType], command or
 // [SubsystemRequestType] has been executed.
 //
@@ -78,8 +78,8 @@ const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 
 // DefaultSessionHandler is the default handler for session's channel.
 //
-// A session is a remote execution of a program.  The program may be a shell, an application, a system command, or some
-// built-in subsystem. It may or may not have a tty, and may or may not involve X11 forwarding.
+// A session is a remote execution of a program. The program may be a shell, an application, a system command, or some
+// built-in subsystem. It may or may not have a TTY, and may or may not involve X11 forwarding.
 //
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler() gliderssh.ChannelHandler {
