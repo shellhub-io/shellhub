@@ -517,7 +517,12 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	return nil
 }
 
-func (s *Session) Record(ctx context.Context, url string, seat int) (*Camera, error) {
+func (s *Session) Record(ctx context.Context, seat int) (*Camera, error) {
+	url := ctx.Value("RECORD_URL").(string)
+	if url == "" {
+		return nil, ErrSessionNoRecordURL
+	}
+
 	conn, err := s.api.RecordSession(ctx, s.UID, seat, url)
 	if err != nil {
 		log.WithError(err).Error("failed to start the record session process")

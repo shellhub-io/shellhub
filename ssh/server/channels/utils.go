@@ -110,15 +110,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		defer wg.Done()
 
 		if envs.IsEnterprise() || envs.IsCloud() {
-			recordURL := ctx.Value("RECORD_URL").(string)
-			if recordURL == "" {
-				log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID, "record_url": recordURL}).
-					Warning("failed to start session's record because the record URL is empty")
-
-				goto normal
-			}
-
-			camera, err := sess.Record(ctx, recordURL, seat)
+			camera, err := sess.Record(ctx, seat)
 			if err != nil {
 				goto normal
 			}
@@ -126,7 +118,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 			recorder, err := NewRecorder(client, sess, camera, seat)
 			if err != nil {
 				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID, "record_url": recordURL}).
+					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 					Warning("failed to connect to session record endpoint")
 
 				goto normal
