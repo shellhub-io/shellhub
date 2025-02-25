@@ -112,7 +112,14 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 		logger.Info("session channel started")
 		defer logger.Info("session channel done")
 
-		client, clientReqs, err := newChan.Accept()
+		seat, err := sess.NewSeat()
+		if err != nil {
+			reject(err, "failed to create a new seat on the SSH session")
+
+			return
+		}
+
+		client, err := sess.NewClientChannel(newChan, seat)
 		if err != nil {
 			reject(err, "failed to accept the channel opening")
 
@@ -121,23 +128,16 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		defer client.Close()
 
-		agent, agentReqs, err := sess.AgentClient.OpenChannel(SessionChannel, nil)
+		agent, err := sess.NewAgentChannel(SessionChannel, seat)
 		if err != nil {
-			reject(err, "failed to open the 'session' channel on agent")
+			reject(err, "failed to open the session channel on agent")
 
 			return
 		}
 
 		defer agent.Close()
 
-		seat, err := sess.NewSeat()
-		if err != nil {
-			reject(err, "failed to create a new set on the SSH session")
-
-			return
-		}
-
-		go pipe(ctx, sess, client, agent, seat)
+		go pipe(ctx, sess, client.Channel, agent.Channel, seat)
 
 		// TODO: Add middleware to block certain types of requests.
 		for {
@@ -146,7 +146,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				logger.Info("context has done")
 
 				return
-			case req, ok := <-sess.AgentGlobalReqs:
+			case req, ok := <-sess.Agent.Requests:
 				if !ok {
 					logger.Trace("global requests is closed")
 
@@ -161,7 +161,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
 				// prefix exists and perform the necessary operations.
 				case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
-					if _, err := client.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
+					if _, err := client.Channel.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
 						logger.Error("failed to send the keepalive request received from agent to client")
 
 						return
@@ -179,7 +179,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						}
 					}
 				}
-			case req, ok := <-agentReqs:
+			case req, ok := <-agent.Requests:
 				if !ok {
 					logger.Trace("agent requests is closed")
 
@@ -197,7 +197,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 				logger.Debugf("request from agent to client: %s", req.Type)
 
-				ok, err := client.SendRequest(req.Type, req.WantReply, req.Payload)
+				ok, err := client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
 				if err != nil {
 					logger.WithError(err).Error("failed to send the request from agent to client")
 
@@ -209,7 +209,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						logger.WithError(err).Error(err)
 					}
 				}
-			case req, ok := <-clientReqs:
+			case req, ok := <-client.Requests:
 				if !ok {
 					logger.Trace("client requests is closed")
 
@@ -219,7 +219,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				switch req.Type {
 				case ShellRequestType:
 					if sess.Pty.Term != "" {
-						if err := sess.Announce(client); err != nil {
+						if err := sess.Announce(client.Channel); err != nil {
 							logger.WithError(err).Warn("failed to get the namespace announcement")
 						}
 					}
@@ -256,7 +256,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					sess.Event(req.Type, req.Payload, seat)
 					go func() {
 						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
-						agentChannels := sess.AgentClient.HandleChannelOpen(AuthRequestOpenSSHChannel)
+						agentChannels := sess.Agent.Client.HandleChannelOpen(AuthRequestOpenSSHChannel)
 
 						for {
 							newAgentChannel, ok := <-agentChannels
@@ -297,7 +297,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 				logger.Debugf("request from client to agent: %s", req.Type)
 
-				ok, err := agent.SendRequest(req.Type, req.WantReply, req.Payload)
+				ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
 				if err != nil {
 					logger.WithError(err).Error("failed to send the request from client to agent")
 
