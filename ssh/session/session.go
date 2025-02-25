@@ -80,17 +80,61 @@ type Data struct {
 	Handled bool
 }
 
+// AgentChannel represents a channel open between agent and server.
+type AgentChannel struct {
+	// Channel is a open channel for communication between the agent and the server.
+	Channel gossh.Channel
+	// Requests is the channel to handle SSH requests.
+	Requests <-chan *gossh.Request
+}
+
+func (a *AgentChannel) Close() error {
+	return a.Channel.Close()
+}
+
+// Agent represents a connection to an agent.
+type Agent struct {
+	// Conn is the connection between the Server and Agent.
+	Conn net.Conn
+
+	// Client is a [gossh.Client] connected and authenticated to the agent, waiting for an open session request.
+	Client *gossh.Client
+	// Requests is the channel to handle SSH global requests.
+	Requests <-chan *gossh.Request
+
+	Channels map[int]*AgentChannel
+}
+
+func (a *Agent) Close() error {
+	return a.Client.Close()
+}
+
+// ClientChannel represents a channel open between client and server.
+type ClientChannel struct {
+	// Channel is a open channel for communication between the client and the server.
+	Channel gossh.Channel
+	// Requests is the channel to handle SSH requests.
+	Requests <-chan *gossh.Request
+}
+
+func (c *ClientChannel) Close() error {
+	return c.Channel.Close()
+}
+
+// Client represents a connection to a client.
+type Client struct {
+	Channels map[int]*ClientChannel
+}
+
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
 	// UID is the session's UID.
 	UID string
 
-	// AgentConn is the connection between the Server and Agent.
-	AgentConn net.Conn
-	// AgentClient is a [gossh.Client] connected and authenticated to the agent, waiting for an open session request.
-	AgentClient *gossh.Client
-	// AgentGlobalReqs is the channel to handle global request like "keepalive".
-	AgentGlobalReqs <-chan *gossh.Request
+	// Agent represents a connection to an Agent.
+	Agent *Agent
+	// Client represents a connection to a Client.
+	Client *Client
 
 	api    internalclient.Client
 	tunnel *httptunnel.Tunnel
@@ -194,6 +238,12 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		},
 		once: new(sync.Once),
 		Seat: new(atomic.Int32),
+		Agent: &Agent{
+			Channels: make(map[int]*AgentChannel),
+		},
+		Client: &Client{
+			Channels: make(map[int]*ClientChannel),
+		},
 	}
 
 	session.Data.Lookup["username"] = target.Username
@@ -202,6 +252,38 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 	snap.save(session, StateCreated)
 
 	return session, nil
+}
+
+func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*ClientChannel, error) {
+	channel, requests, err := newChannel.Accept()
+	if err != nil {
+		return nil, err
+	}
+
+	c := &ClientChannel{
+		Channel:  channel,
+		Requests: requests,
+	}
+
+	s.Client.Channels[seat] = c
+
+	return c, nil
+}
+
+func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) {
+	channel, requests, err := s.Agent.Client.OpenChannel(name, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	a := &AgentChannel{
+		Channel:  channel,
+		Requests: requests,
+	}
+
+	s.Agent.Channels[seat] = a
+
+	return a, nil
 }
 
 func (s *Session) checkFirewall() (bool, error) {
@@ -293,14 +375,14 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	const Addr = "tcp"
 
 	// NOTICE: When the agent connection is closed, we should redial this connection before trying to authenticate.
-	if s.AgentConn == nil {
+	if s.Agent.Conn == nil {
 		if err := s.Dial(ctx); err != nil {
 			return err
 		}
 	}
 
 	if config.Timeout > 0 {
-		if err := s.AgentConn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+		if err := s.Agent.Conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
@@ -309,7 +391,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		}
 	}
 
-	conn, chans, reqs, err := gossh.NewClientConn(s.AgentConn, Addr, config)
+	conn, chans, reqs, err := gossh.NewClientConn(s.Agent.Conn, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
@@ -317,13 +399,13 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 			// NOTICE: To help to identify when the Agent's connection is closed, we set it to nil when an
 			// authentication error happens.
-		s.AgentConn = nil
+		s.Agent.Conn = nil
 
 		return err
 	}
 
 	if config.Timeout > 0 {
-		if err := s.AgentConn.SetReadDeadline(time.Time{}); err != nil {
+		if err := s.Agent.Conn.SetReadDeadline(time.Time{}); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline with Time{}")
@@ -335,8 +417,8 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	ch := make(chan *gossh.Request)
 	close(ch)
 
-	s.AgentClient = gossh.NewClient(conn, chans, ch)
-	s.AgentGlobalReqs = reqs
+	s.Agent.Client = gossh.NewClient(conn, chans, ch)
+	s.Agent.Requests = reqs
 
 	return nil
 }
@@ -345,15 +427,18 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
+	conn, err := s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(s.AgentConn); err != nil {
+	if err = req.Write(conn); err != nil {
 		return err
 	}
+
+	s.Agent.Conn = conn
+
 	ctx.Unlock()
 
 	return nil
@@ -526,10 +611,10 @@ func (s *Session) Announce(client gossh.Channel) error {
 // Finish terminates the session between Agent and Client, sending a request to Agent to closes it.
 func (s *Session) Finish() (err error) {
 	s.once.Do(func() {
-		if s.AgentConn != nil {
+		if s.Agent.Conn != nil {
 			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
-			if err = request.Write(s.AgentConn); err != nil {
+			if err = request.Write(s.Agent.Conn); err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 					Warning("Error when trying write the request to /ssh/close")
