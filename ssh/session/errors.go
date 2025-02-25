@@ -15,4 +15,5 @@ var (
 	ErrUnsuportedPublicKeyAuth = fmt.Errorf("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
 	ErrUnexpectedAuthMethod    = fmt.Errorf("failed to authenticate the session due to a unexpected method")
 	ErrEvaluatePublicKey       = fmt.Errorf("failed to evaluate the provided public key")
+	ErrSeatAlreadySet          = fmt.Errorf("this seat was already set")
 )

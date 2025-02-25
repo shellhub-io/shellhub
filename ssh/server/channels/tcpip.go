@@ -88,7 +88,7 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 	// In such instances, a new connection to the agent is generated and saved in the metadata for
 	// subsequent use.
 	// An illustrative scenario is when the SSH connection is initiated with the "-N" flag.
-	connection := sess.AgentClient
+	connection := sess.Agent.Client
 
 	agent, err := connection.Dial("tcp", dest)
 	if err != nil {
