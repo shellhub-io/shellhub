@@ -87,7 +87,7 @@ type Session struct {
 
 	// AgentConn is the connection between the Server and Agent.
 	AgentConn net.Conn
-	// AgentClient is a [gossh.Client] connected and authenticated to the agent, waiting for a open sesssion request.
+	// AgentClient is a [gossh.Client] connected and authenticated to the agent, waiting for an open session request.
 	AgentClient *gossh.Client
 	// AgentGlobalReqs is the channel to handle global request like "keepalive".
 	AgentGlobalReqs <-chan *gossh.Request
@@ -107,7 +107,7 @@ type Session struct {
 }
 
 // NewSession creates a new Session but differs from [New] as it only creates
-// the session without registering, connecting to the agent and etc.
+// the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
 func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Cache) (*Session, error) {
@@ -292,7 +292,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 	const Addr = "tcp"
 
-	// NOTICE: When the agent connection is closed, we should redial this connection before try to authenticate.
+	// NOTICE: When the agent connection is closed, we should redial this connection before trying to authenticate.
 	if s.AgentConn == nil {
 		if err := s.Dial(ctx); err != nil {
 			return err
@@ -315,8 +315,8 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
 
-			// NOTICE: To help identifing when the Agent's connection is closed, we set it to nil when a authentication
-			// error happens.
+			// NOTICE: To help to identify when the Agent's connection is closed, we set it to nil when an
+			// authentication error happens.
 		s.AgentConn = nil
 
 		return err
@@ -511,7 +511,7 @@ func (s *Session) Announce(client gossh.Channel) error {
 		return nil
 	}
 
-	// Remove whitespaces and new lines at end
+	// NOTE: Remove whitespace and new lines at end.
 	announcement = strings.TrimRightFunc(announcement, func(r rune) bool {
 		return r == ' ' || r == '\n' || r == '\t'
 	})
@@ -523,7 +523,7 @@ func (s *Session) Announce(client gossh.Channel) error {
 	return nil
 }
 
-// Finish terminate the session between Agent and Client, sending a request to Agent to closes it.
+// Finish terminates the session between Agent and Client, sending a request to Agent to closes it.
 func (s *Session) Finish() (err error) {
 	s.once.Do(func() {
 		if s.AgentConn != nil {
