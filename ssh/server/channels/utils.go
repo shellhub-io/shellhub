@@ -93,8 +93,8 @@ func (c *Recorder) Close() error {
 	return c.channel.CloseWrite()
 }
 
-// pipe pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are Cloud or
-// Enterprise.
+// pipe function pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are
+// Cloud or Enterprise.
 func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int) {
 	defer log.
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
