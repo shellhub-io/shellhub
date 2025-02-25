@@ -137,8 +137,6 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		defer agent.Close()
 
-		go pipe(ctx, sess, client.Channel, agent.Channel, seat)
-
 		// TODO: Add middleware to block certain types of requests.
 		for {
 			select {
@@ -237,6 +235,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					}
 
 					sess.Pty = pty
+
+					go pipe(ctx, sess, client.Channel, agent.Channel, seat)
 
 					sess.Event(req.Type, pty, seat) //nolint:errcheck
 				case WindowChangeRequestType:
