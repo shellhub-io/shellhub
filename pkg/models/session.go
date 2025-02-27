@@ -67,6 +67,8 @@ type SessionUpdate struct {
 
 // SessionEvent represents a session event.
 type SessionEvent struct {
+	// Session is the session UID where the event occurred.
+	Session string `json:"session" bson:"session,omitempty"`
 	// Type of the session. Normally, it is the SSH request name.
 	Type string `json:"type" bson:"type"`
 	// Timestamp contains the time when the event was logged.
@@ -81,8 +83,6 @@ type SessionEvent struct {
 type SessionEvents struct {
 	// Types field is a set of sessions type to simplify the indexing on the database.
 	Types []string `json:"types" bson:"types,omitempty"`
-	// Items contains a list of events happened in a session.
-	Items []SessionEvent `json:"items" bson:"items,omitempty"`
 	// Seats contains a list of seats of events.
 	Seats []int `json:"seats" bson:"seats,omitempty"`
 }

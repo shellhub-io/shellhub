@@ -20,9 +20,10 @@ var migration90 = migrate.Migration{
 		}).Info("Applying migration")
 
 		filter := bson.M{
-			"events":       bson.M{"$exists": false},
-			"events.types": bson.M{"$exists": false},
-			"events.items": bson.M{"$exists": false},
+			"$or": []bson.M{
+				{"events": bson.M{"$exists": false}},
+				{"events": bson.M{"$eq": bson.M{}}},
+			},
 		}
 
 		update := bson.M{
@@ -30,7 +31,6 @@ var migration90 = migrate.Migration{
 				"events": bson.M{
 					"types": bson.A{},
 					"items": bson.A{},
-					"seats": bson.A{0},
 				},
 			},
 		}

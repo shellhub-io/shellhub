@@ -29,7 +29,9 @@ func TestMigration90Up(t *testing.T) {
 				_, err := c.
 					Database("test").
 					Collection("sessions").
-					InsertOne(ctx, map[string]interface{}{})
+					InsertOne(ctx, map[string]interface{}{
+						"uid": "test",
+					})
 
 				return err
 			},
@@ -50,12 +52,16 @@ func TestMigration90Up(t *testing.T) {
 			query := c.
 				Database("test").
 				Collection("sessions").
-				FindOne(context.TODO(), bson.M{})
+				FindOne(ctx, bson.M{
+					"uid": "test",
+				})
 
 			session := make(map[string]interface{})
 			require.NoError(tt, query.Decode(&session))
 
 			require.Contains(tt, session, "events")
+			require.Contains(tt, session["events"], "types")
+			require.Contains(tt, session["events"], "items")
 		})
 	}
 }
@@ -79,7 +85,6 @@ func TestMigration90Down(t *testing.T) {
 					InsertOne(ctx, models.Session{
 						Events: models.SessionEvents{
 							Types: []string{},
-							Items: []models.SessionEvent{},
 							Seats: []int{0},
 						},
 					})
