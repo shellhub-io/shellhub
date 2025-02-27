@@ -453,6 +453,7 @@ func (s *Session) NewSeat() (int, error) {
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
 	go s.api.EventSession(s.UID, &models.SessionEvent{ //nolint:errcheck
+		Session:   s.UID,
 		Type:      t,
 		Timestamp: clock.Now(),
 		Data:      data,
@@ -467,6 +468,7 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 	}
 
 	go sess.api.EventSession(sess.UID, &models.SessionEvent{ //nolint:errcheck
+		Session:   sess.UID,
 		Type:      t,
 		Timestamp: clock.Now(),
 		Data:      d,
