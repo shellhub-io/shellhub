@@ -17,6 +17,5 @@ type SessionStore interface {
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error
 	SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error
-	// SessionEvent register a log event into the session.
 	SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error
 }

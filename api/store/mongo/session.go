@@ -272,16 +272,32 @@ func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session
 // It pushes the event into events type array, and the event type into a separated set. The set is used to improve the
 // performance of indexing when looking for sessions.
 func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	if _, err := s.db.Collection("sessions").UpdateOne(ctx,
-		bson.M{"uid": uid},
-		bson.M{
-			"$addToSet": bson.M{
-				"events.types": event.Type,
-				"events.seats": event.Seat,
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	defer session.EndSession(ctx)
+
+	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
+			bson.M{"uid": uid},
+			bson.M{
+				"$addToSet": bson.M{
+					"events.types": event.Type,
+					"events.seats": event.Seat,
+				},
 			},
-			"$push": bson.M{"events.items": event},
-		},
-	); err != nil {
+		); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("sessions_events").InsertOne(ctx, event); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		return nil, nil
+	}); err != nil {
 		return FromMongoError(err)
 	}
 
