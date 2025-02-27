@@ -14,66 +14,17 @@ import (
 )
 
 type Recorder struct {
-	queue   chan string
+	session *session.Session
 	channel gossh.Channel
+	seat    int
 }
 
-func NewRecorder(channel gossh.Channel, sess *session.Session, camera *session.Camera, seat int) (io.WriteCloser, error) {
-	// NOTE: The queue's size is a random number.
-	queue := make(chan string, 100)
-
-	go func() {
-		for {
-			msg, ok := <-queue
-			if !ok {
-				log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("recorder queue is closed")
-
-				return
-			}
-
-			if err := camera.WriteFrame(&models.SessionRecorded{ //nolint:errcheck
-				UID:       sess.UID,
-				Seat:      seat,
-				Namespace: sess.Lookup["domain"],
-				Message:   msg,
-				Width:     int(sess.Pty.Columns),
-				Height:    int(sess.Pty.Rows),
-			}); err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("failed to send the session frame to record")
-
-					// NOTE: When a frame isn't sent correctly, we stop the writing loop, only reading from the queue,
-					// and discarding the messages to avoid stuck the go routine.
-				break
-			}
-		}
-
-		for {
-			// NOTE: Reads the queue and discards the data to avoid stuck the go routine.
-			if _, ok := <-queue; !ok {
-				log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("recorder queue is closed")
-
-				return
-			}
-		}
-	}()
-
+func NewRecorder(channel gossh.Channel, sess *session.Session, seat int) (io.WriteCloser, error) {
 	return &Recorder{
-		queue:   queue,
+		session: sess,
 		channel: channel,
+		seat:    seat,
 	}, nil
-}
-
-// record enqueues a session frame to be recorded. If the queue is closed, nothing is done.
-func (c *Recorder) record(msg string) {
-	select {
-	case c.queue <- msg:
-	default:
-		log.Trace("the message couldn't sent to the record queue")
-	}
 }
 
 func (c *Recorder) Write(data []byte) (int, error) {
@@ -82,19 +33,25 @@ func (c *Recorder) Write(data []byte) (int, error) {
 		return read, err
 	}
 
-	c.record(string(data))
+	c.session.Event("output", &models.SessionRecorded{
+		UID:       c.session.UID,
+		Seat:      c.seat,
+		Namespace: c.session.Lookup["domain"],
+		Message:   string(data),
+		Width:     int(c.session.Pty.Columns),
+		Height:    int(c.session.Pty.Rows),
+	}, c.seat)
 
 	return read, nil
 }
 
 func (c *Recorder) Close() error {
-	close(c.queue)
-
 	return c.channel.CloseWrite()
 }
 
 // pipe function pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are
 // Cloud or Enterprise.
+// TODO: Use context to stop data piping.
 func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int) {
 	defer log.
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
@@ -110,12 +67,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		defer wg.Done()
 
 		if envs.IsEnterprise() || envs.IsCloud() {
-			camera, err := sess.Record(ctx, seat)
-			if err != nil {
-				goto normal
-			}
-
-			recorder, err := NewRecorder(client, sess, camera, seat)
+			recorder, err := NewRecorder(client, sess, seat)
 			if err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).

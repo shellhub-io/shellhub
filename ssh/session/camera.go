@@ -1,18 +1,23 @@
 package session
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// Camera is used to record session's events.
 type Camera struct {
-	conn *websocket.Conn
+	mutex *sync.Mutex
+	conn  *websocket.Conn
 }
 
-// Close closes the camera's WebSocket connections normally.
 func (c *Camera) Close() error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	if err := c.conn.WriteControl(
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, "session record connection done"),
@@ -24,14 +29,16 @@ func (c *Camera) Close() error {
 	return c.conn.Close()
 }
 
-// WriteFrame writes a session's frame into the WebSocket connection.
-func (c *Camera) WriteFrame(frame *models.SessionRecorded) error {
-	return c.conn.WriteJSON(frame)
+func (c *Camera) WriteEvent(event *models.SessionEvent) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	return c.conn.WriteJSON(event)
 }
 
-// NewCamera creates a new camera, using a WebSocket connections.
 func NewCamera(conn *websocket.Conn) *Camera {
 	return &Camera{
-		conn: conn,
+		mutex: new(sync.Mutex),
+		conn:  conn,
 	}
 }
