@@ -24,7 +24,14 @@ const firewallRules = [
     action: "allow" as const,
     active: true,
     filter: {
-      tags: ["xxxx", "yyyy"],
+      tags: [
+        {
+          tenant_id: "fake-tenant-data",
+          name: "test-tag",
+          created_at: "",
+          updated_at: "",
+        },
+      ],
     },
     id: "5f1996c84d2190a22d5857bb",
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",

@@ -1,11 +1,12 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import SettingTags from "@/components/Setting/SettingTags.vue";
 import { tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { envVariables } from "@/envVariables";
 
 type SettingTagsWrapper = VueWrapper<InstanceType<typeof SettingTags>>;
 
@@ -13,10 +14,16 @@ describe("Setting Tags", () => {
   let wrapper: SettingTagsWrapper;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
+  const mockTags = new MockAdapter(tagsApi.getAxios());
 
   beforeEach(async () => {
-    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, ["1", "2"]);
+    vi.useFakeTimers();
+    localStorage.setItem("tenant", "fake-tenant-data");
+    envVariables.isCloud = true;
+
+    mockTags
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, [{ name: "1" }, { name: "2" }]);
 
     wrapper = mount(SettingTags, {
       global: {

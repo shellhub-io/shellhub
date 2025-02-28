@@ -114,12 +114,6 @@ describe("Devices Pinia Store", () => {
     expect(devicesStore.suggestedDevices).toEqual(devicesData);
   });
 
-  it("should update device tags", async () => {
-    const updateData = { uid: "a582b47a42d", tags: { tags: ["tag1", "tag2"] } };
-    mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(200);
-    await expect(devicesStore.updateDeviceTags(updateData)).resolves.not.toThrow();
-  });
-
   it("should handle fetch device list error", async () => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(500);
     await expect(devicesStore.fetchDeviceList({ page: 1, perPage: 10, status: "accepted" })).rejects.toThrow();

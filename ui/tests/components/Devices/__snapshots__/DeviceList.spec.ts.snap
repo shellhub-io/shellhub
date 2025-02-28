@@ -59,7 +59,7 @@ exports[`Device List > Renders the component 1`] = `
                   <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-7" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
-                    <div class="v-chip__content" data-no-activator="">test</div>
+                    <div class="v-chip__content" data-no-activator="">test-tag</div>
                     <!---->
                     <!----></span>
                     <!--teleport start-->
@@ -115,7 +115,7 @@ exports[`Device List > Renders the component 1`] = `
                   <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-18" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
-                    <div class="v-chip__content" data-no-activator="">test</div>
+                    <div class="v-chip__content" data-no-activator="">test-tag</div>
                     <!---->
                     <!----></span>
                     <!--teleport start-->

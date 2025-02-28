@@ -66,7 +66,7 @@
                 v-for="(tag, index) in item.tags"
                 :key="index"
                 location="bottom"
-                :disabled="!showTag(tag)"
+                :disabled="!showTag(tag.name)"
               >
                 <template #activator="{ props }">
                   <v-chip
@@ -75,12 +75,12 @@
                     class="mr-1"
                     data-test="tag-chip"
                   >
-                    {{ displayOnlyTenCharacters(tag) }}
+                    {{ displayOnlyTenCharacters(tag.name) }}
                   </v-chip>
                 </template>
 
-                <span v-if="showTag(tag)">
-                  {{ tag }}
+                <span>
+                  {{ tag.name }}
                 </span>
               </v-tooltip>
             </div>

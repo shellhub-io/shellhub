@@ -1,32 +1,234 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
-import * as tagsApi from "../api/tags";
+import { ref, computed } from "vue";
+import * as apiTags from "../api/tags";
+import { Tags } from "@/interfaces/ITags";
+import { UpdateTagRequest } from "@/api/client";
 
 const useTagsStore = defineStore("tags", () => {
-  const tags = ref<Array<string>>([]);
-  const tagsCount = ref<number>(0);
+  const tags = ref<Array<Tags>>([]);
+  const numberTags = ref(0);
+  const page = ref(1);
+  const perPage = ref(10);
+  const filter = ref<string | undefined>("");
+  const selected = ref<{
+    device: Array<Tags>;
+    container: Array<Tags>;
+  }>({
+    device: [],
+    container: [],
+  });
 
-  const fetchTags = async () => {
-    const res = await tagsApi.getTags();
+  const list = computed(() => tags.value);
+  const getNumberTags = computed(() => numberTags.value);
+  const getPage = computed(() => page.value);
+  const getPerPage = computed(() => perPage.value);
+  const getFilter = computed(() => filter.value);
+
+  const getSelected = (variant: "device" | "container") => selected.value[variant];
+
+  const setTags = (res) => {
     tags.value = res.data;
-    tagsCount.value = parseInt(res.headers["x-total-count"], 10);
+    numberTags.value = parseInt(res.headers["x-total-count"], 10);
   };
 
-  const updateTag = async (data: { oldTag: string, newTag: string }) => {
-    await tagsApi.updateTag(data);
+  const setPagePerPage = (data: { page: number; perPage: number }) => {
+    page.value = data.page;
+    perPage.value = data.perPage;
   };
 
-  const removeTag = async (name: string) => {
-    await tagsApi.removeTag(name);
+  const setFilter = (value: string) => {
+    filter.value = value;
+  };
+
+  const clearListTags = () => {
+    tags.value = [];
+    numberTags.value = 0;
+  };
+
+  const setSelected = ({
+    variant,
+    tag,
+  }: {
+  variant: "device" | "container";
+  tag: Tags;
+}) => {
+    const toName = (tag: Tags) => (typeof tag === "string" ? tag : tag.name);
+    const list = selected.value[variant];
+    const name = toName(tag);
+    const exists = list.some((t) => toName(t) === name);
+
+    selected.value[variant] = exists
+      ? list.filter((t) => toName(t) !== name)
+      : [...list, tag];
+  };
+
+  const clearSelected = (variant: "device" | "container") => {
+    selected.value[variant] = [];
+  };
+
+  const fetch = async ({
+    tenant,
+    filter,
+    page,
+    perPage,
+  }: {
+    tenant: string;
+    filter: string;
+    page: number;
+    perPage: number;
+  }) => {
+    try {
+      const res = await apiTags.getTags(tenant, filter, page, perPage);
+      setTags(res);
+      setPagePerPage({ page, perPage });
+      setFilter(filter);
+    } catch (error) {
+      clearListTags();
+      throw error;
+    }
+  };
+
+  const search = async ({
+    tenant,
+    filter,
+  }: {
+    tenant: string;
+    filter: string;
+  }) => {
+    try {
+      const res = await apiTags.getTags(tenant, filter, page.value, perPage.value);
+      setTags(res);
+      setFilter(filter);
+    } catch (error) {
+      clearListTags();
+      throw error;
+    }
+  };
+
+  const autocomplete = async ({
+    tenant,
+    filter,
+    page,
+    perPage,
+  }: {
+    tenant: string;
+    filter: string;
+    page: number;
+    perPage: number;
+  }) => {
+    try {
+      const res = await apiTags.getTags(tenant, filter, page, perPage);
+      setTags(res);
+      setFilter(filter);
+    } catch (error) {
+      clearListTags();
+      throw error;
+    }
+  };
+
+  const createTag = async ({
+    tenant,
+    name,
+  }: {
+    tenant: string;
+    name: string;
+  }) => {
+    try {
+      await apiTags.createTag(tenant, name);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+  const editTag = async ({
+    tenant,
+    currentName,
+    newName,
+  }: {
+    tenant: string;
+    currentName: string;
+    newName: UpdateTagRequest;
+  }) => {
+    try {
+      await apiTags.updateTag(tenant, currentName, newName);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+  const removeTag = async ({
+    tenant,
+    currentName,
+  }: {
+    tenant: string;
+    currentName: string;
+  }) => {
+    try {
+      await apiTags.removeTag(tenant, currentName);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+  const pushTagToDevice = async ({
+    tenant,
+    uid,
+    name,
+  }: {
+    tenant: string;
+    uid: string;
+    name: string;
+  }) => {
+    await apiTags.pushTagToDevice(tenant, uid, name);
+  };
+
+  const removeTagFromDevice = async ({
+    tenant,
+    uid,
+    name,
+  }: {
+    tenant: string;
+    uid: string;
+    name: string;
+  }) => {
+    await apiTags.removeTagFromDevice(tenant, uid, name);
   };
 
   return {
+    // State
     tags,
-    tagsCount,
-    fetchTags,
+    numberTags,
+    page,
+    perPage,
+    filter,
+    selected,
 
-    updateTag,
+    // Getters
+    list,
+    getNumberTags,
+    getPage,
+    getPerPage,
+    getFilter,
+    getSelected,
+
+    // Mutations/Actions
+    setSelected,
+    clearSelected,
+    setFilter,
+    clearListTags,
+
+    // Async API Actions
+    fetch,
+    search,
+    autocomplete,
+    createTag,
+    editTag,
     removeTag,
+    pushTagToDevice,
+    removeTagFromDevice,
   };
 });
 

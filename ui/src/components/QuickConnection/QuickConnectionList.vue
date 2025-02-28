@@ -64,15 +64,15 @@
             <v-col md="3" data-test="device-tags">
               <div class="text-center">
                 <div v-if="item.tags[0]">
-                  <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag)">
+                  <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag.name)">
                     <template #activator="{ props }">
                       <v-chip size="small" v-bind="props" class="mr-1" data-test="tag-chip">
-                        {{ displayOnlyTenCharacters(tag) }}
+                        {{ displayOnlyTenCharacters(tag.name) }}
                       </v-chip>
                     </template>
 
-                    <span v-if="showTag(tag)" data-test="tag-name">
-                      {{ tag }}
+                    <span data-test="tag-name">
+                      {{ tag.name }}
                     </span>
                   </v-tooltip>
                 </div>

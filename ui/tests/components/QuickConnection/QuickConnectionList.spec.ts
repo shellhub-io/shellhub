@@ -16,6 +16,30 @@ const mockSnackbar = {
 
 const devices = [
   {
+    uid: "a582b47a42d",
+    name: "39-5e-2a",
+    identity: {
+      mac: "00:00:00:00:00:00",
+    },
+    info: {
+      id: "linuxmint",
+      pretty_name: "Linux Mint 19.3",
+      version: "",
+    },
+    public_key: "----- PUBLIC KEY -----",
+    tenant_id: "fake-tenant-data",
+    last_seen: "2020-05-20T18:58:53.276Z",
+    online: true,
+    namespace: "user",
+    status: "accepted",
+    tags: [{
+      tenant_id: "fake-tenant-data",
+      name: "test-tag",
+      created_at: "",
+      updated_at: "",
+    }],
+  },
+  {
     uid: "a582b47a42e",
     name: "39-5e-2b",
     identity: {
@@ -32,7 +56,7 @@ const devices = [
     online: true,
     namespace: "user",
     status: "accepted",
-    tags: ["test-tag"],
+    tags: [],
   },
 ];
 
@@ -87,8 +111,6 @@ describe("Quick Connection List", () => {
   });
 
   it("Renders the no tags chip", async () => {
-    // Change the value of tags[0] to an empty string for the first device
-    devices[0].tags[0] = "";
     await flushPromises();
     expect(wrapper.find('[data-test="no-tags-chip"]').exists()).toBe(true);
   });

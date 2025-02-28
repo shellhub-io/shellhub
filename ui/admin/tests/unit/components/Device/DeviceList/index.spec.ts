@@ -22,29 +22,66 @@ const headers = [
 
 const devices = [
   {
-    created_at: "2020-05-20T19:58:53.276Z",
-    identity: { mac: "00:00:00:00:00:00" },
-    info: {
-      arch: "x86_64",
-      id: "linuxmint",
-      platform: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "18.4.2",
-    },
-    last_seen: "2020-05-20T19:58:53.276Z",
-    name: "tests",
-    namespace: "dev",
-    online: true,
-    position: {
-      latitude: 12,
-      longitude: 12,
-    },
-    public_key: "xxxxxxxxxxxxxxxx",
-    remote_addr: "127.0.0.1",
-    status: "accepted",
-    tags: ["xxxx", "yyyyy"],
-    tenant_id: "00000000",
     uid: "a582b47a42d",
+    name: "39-5e-2a",
+    identity: {
+      mac: "00:00:00:00:00:00",
+    },
+    info: {
+      id: "linuxmint",
+      pretty_name: "Linux Mint 19.3",
+      version: "",
+      arch: "x86_64",
+      platform: "linux",
+    },
+    public_key: "----- PUBLIC KEY -----",
+    tenant_id: "fake-tenant-data",
+    last_seen: "2020-05-20T18:58:53.276Z",
+    created_at: "2020-05-20T18:00:00.000Z",
+    online: false,
+    namespace: "user",
+    status: "accepted",
+    remoteAddr: "127.0.0.1",
+    position: { latitude: 0, longitude: 0 },
+    tags: [
+      {
+        tenant_id: "fake-tenant-data",
+        name: "test-tag",
+        created_at: "",
+        updated_at: "",
+      },
+    ],
+  },
+  {
+    uid: "a582b47a42e",
+    name: "39-5e-2b",
+    identity: {
+      mac: "00:00:00:00:00:00",
+    },
+    info: {
+      id: "linuxmint",
+      pretty_name: "Linux Mint 19.3",
+      version: "",
+      arch: "x86_64",
+      platform: "linux",
+    },
+    public_key: "----- PUBLIC KEY -----",
+    tenant_id: "fake-tenant-data",
+    last_seen: "2020-05-20T19:58:53.276Z",
+    created_at: "2020-05-20T18:00:00.000Z",
+    online: true,
+    namespace: "user",
+    status: "accepted",
+    remoteAddr: "127.0.0.1",
+    position: { latitude: 0, longitude: 0 },
+    tags: [
+      {
+        tenant_id: "fake-tenant-data",
+        name: "test-tag",
+        created_at: "",
+        updated_at: "",
+      },
+    ],
   },
 ];
 

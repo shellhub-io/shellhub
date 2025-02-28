@@ -79,16 +79,16 @@
             v-for="(tag, index) in device.tags"
             :key="index"
             bottom
-            :disabled="!showTag(tag)"
+            :disabled="!showTag(tag.name)"
           >
             <template #activator="{ props }">
               <v-chip size="small" v-bind="props">
-                {{ displayOnlyTenCharacters(tag) }}
+                {{ displayOnlyTenCharacters(tag.name) }}
               </v-chip>
             </template>
 
-            <span v-if="showTag(tag)">
-              {{ tag }}
+            <span>
+              {{ tag.name }}
             </span>
           </v-tooltip>
         </div>

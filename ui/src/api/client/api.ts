@@ -35,19 +35,6 @@ export interface AcceptInviteRequest {
     'sig': string;
 }
 /**
- * 
- * @export
- * @interface AddTagPublicKeyRequest
- */
-export interface AddTagPublicKeyRequest {
-    /**
-     * Tag\'s name.
-     * @type {string}
-     * @memberof AddTagPublicKeyRequest
-     */
-    'tag': string;
-}
-/**
  * Announcement.
  * @export
  * @interface Announcement
@@ -1132,19 +1119,6 @@ export interface ConnectorTLS {
 /**
  * 
  * @export
- * @interface CreateDeviceTagRequest
- */
-export interface CreateDeviceTagRequest {
-    /**
-     * Tag\'s name.
-     * @type {string}
-     * @memberof CreateDeviceTagRequest
-     */
-    'tag': string;
-}
-/**
- * 
- * @export
  * @interface CreateNamespaceRequest
  */
 export interface CreateNamespaceRequest {
@@ -1197,6 +1171,19 @@ export interface CreatePublicKey200Response {
      * @memberof CreatePublicKey200Response
      */
     'username'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface CreateTagRequest
+ */
+export interface CreateTagRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateTagRequest
+     */
+    'name': string;
 }
 /**
  * 
@@ -1346,10 +1333,10 @@ export interface Device {
     'position'?: DevicePosition;
     /**
      * Device\'s Tags list
-     * @type {Array<string>}
+     * @type {Array<Tag>}
      * @memberof Device
      */
-    'tags'?: Array<string>;
+    'tags'?: Array<Tag>;
     /**
      * Device\'s public URL status.
      * @type {boolean}
@@ -2375,10 +2362,10 @@ export interface PublicKeyFilterOneOf {
 export interface PublicKeyFilterOneOf1 {
     /**
      * Public key\'s tags.
-     * @type {Set<string>}
+     * @type {Set<Tag>}
      * @memberof PublicKeyFilterOneOf1
      */
-    'tags': Set<string>;
+    'tags': Set<Tag>;
 }
 /**
  * 
@@ -2624,19 +2611,6 @@ export interface RegisterUserRequest {
 /**
  * 
  * @export
- * @interface RenameTagRequest
- */
-export interface RenameTagRequest {
-    /**
-     * Tag\'s name.
-     * @type {string}
-     * @memberof RenameTagRequest
-     */
-    'tag'?: string;
-}
-/**
- * 
- * @export
  * @interface RequestResetMFARequest
  */
 export interface RequestResetMFARequest {
@@ -2672,32 +2646,6 @@ export interface ResolveDevice404Response {
      * @memberof ResolveDevice404Response
      */
     'message'?: string;
-}
-/**
- * 
- * @export
- * @interface RuleAddTagRequest
- */
-export interface RuleAddTagRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof RuleAddTagRequest
-     */
-    'tag': string;
-}
-/**
- * 
- * @export
- * @interface RuleUpdateTagsRequest
- */
-export interface RuleUpdateTagsRequest {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof RuleUpdateTagsRequest
-     */
-    'tags': Array<string>;
 }
 /**
  * 
@@ -2950,6 +2898,19 @@ export interface Support {
     'identifier'?: string;
 }
 /**
+ * A tag represents a label or category that can be attached to devices, firewall rules and public keys for organization and filtering purposes. 
+ * @export
+ * @interface Tag
+ */
+export interface Tag {
+    /**
+     * The display name of the tag
+     * @type {string}
+     * @memberof Tag
+     */
+    'name'?: string;
+}
+/**
  * 
  * @export
  * @interface Tunnel
@@ -3089,28 +3050,15 @@ export interface UpdateRecoverPasswordRequest {
 /**
  * 
  * @export
- * @interface UpdateTagsDeviceRequest
+ * @interface UpdateTagRequest
  */
-export interface UpdateTagsDeviceRequest {
+export interface UpdateTagRequest {
     /**
-     * Device\'s Tags list
-     * @type {Array<string>}
-     * @memberof UpdateTagsDeviceRequest
+     * New tag name
+     * @type {string}
+     * @memberof UpdateTagRequest
      */
-    'tags': Array<string>;
-}
-/**
- * 
- * @export
- * @interface UpdateTagsPublicKeyRequest
- */
-export interface UpdateTagsPublicKeyRequest {
-    /**
-     * Public key\'s new tags.
-     * @type {Set<string>}
-     * @memberof UpdateTagsPublicKeyRequest
-     */
-    'tags'?: Set<string>;
+    'name': string;
 }
 /**
  * 
@@ -5892,141 +5840,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Add a tag to firewall rule
-         * @summary Add a tag to firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleAddTag: async (id: string, ruleAddTagRequest?: RuleAddTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ruleAddTag', 'id', id)
-            const localVarPath = `/api/firewall/rules/{id}/tags`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(ruleAddTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Remove a tag from firewall rule
-         * @summary Remove a tag from firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleDeleteTag: async (id: string, ruleAddTagRequest?: RuleAddTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ruleDeleteTag', 'id', id)
-            const localVarPath = `/api/firewall/rules/{id}/tags`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(ruleAddTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Update tags in firewall rule
-         * @summary Update tags in firewall rule
-         * @param {string} id 
-         * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleUpdateTags: async (id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ruleUpdateTags', 'id', id)
-            const localVarPath = `/api/firewall/rules/{id}/tags`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(ruleUpdateTagsRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Set default payment method to the customer.
          * @summary Set default payment method
          * @param {AttachPaymentMethodRequest} [attachPaymentMethodRequest] 
@@ -6491,42 +6304,6 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Add a tag to firewall rule
-         * @summary Add a tag to firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ruleAddTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ruleAddTag(id, ruleAddTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Remove a tag from firewall rule
-         * @summary Remove a tag from firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ruleDeleteTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ruleDeleteTag(id, ruleAddTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Update tags in firewall rule
-         * @summary Update tags in firewall rule
-         * @param {string} id 
-         * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ruleUpdateTags(id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ruleUpdateTags(id, ruleUpdateTagsRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Set default payment method to the customer.
          * @summary Set default payment method
          * @param {AttachPaymentMethodRequest} [attachPaymentMethodRequest] 
@@ -6870,39 +6647,6 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         resetMFA(userId?: string, mfaReset?: MfaReset, options?: any): AxiosPromise<UserAuth> {
             return localVarFp.resetMFA(userId, mfaReset, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Add a tag to firewall rule
-         * @summary Add a tag to firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleAddTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.ruleAddTag(id, ruleAddTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Remove a tag from firewall rule
-         * @summary Remove a tag from firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleDeleteTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.ruleDeleteTag(id, ruleAddTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Update tags in firewall rule
-         * @summary Update tags in firewall rule
-         * @param {string} id 
-         * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleUpdateTags(id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.ruleUpdateTags(id, ruleUpdateTagsRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Set default payment method to the customer.
@@ -7307,45 +7051,6 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * Add a tag to firewall rule
-     * @summary Add a tag to firewall rule
-     * @param {string} id 
-     * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CloudApi
-     */
-    public ruleAddTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig) {
-        return CloudApiFp(this.configuration).ruleAddTag(id, ruleAddTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Remove a tag from firewall rule
-     * @summary Remove a tag from firewall rule
-     * @param {string} id 
-     * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CloudApi
-     */
-    public ruleDeleteTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig) {
-        return CloudApiFp(this.configuration).ruleDeleteTag(id, ruleAddTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update tags in firewall rule
-     * @summary Update tags in firewall rule
-     * @param {string} id 
-     * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CloudApi
-     */
-    public ruleUpdateTags(id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options?: AxiosRequestConfig) {
-        return CloudApiFp(this.configuration).ruleUpdateTags(id, ruleUpdateTagsRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Set default payment method to the customer.
      * @summary Set default payment method
      * @param {AttachPaymentMethodRequest} [attachPaymentMethodRequest] 
@@ -7392,51 +7097,6 @@ export class CloudApi extends BaseAPI {
 export const ContainersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createContainerTag: async (uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('createContainerTag', 'uid', uid)
-            const localVarPath = `/api/containers/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createDeviceTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Delete a container.
          * @summary Delete container
          * @param {string} uid Device\&#39;s UID
@@ -7448,51 +7108,6 @@ export const ContainersApiAxiosParamCreator = function (configuration?: Configur
             assertParamExists('deleteContainer', 'uid', uid)
             const localVarPath = `/api/containers/{uid}`
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Delete a tag from container.
-         * @summary Delete a tag from container
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteContainerTag: async (uid: string, tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('deleteContainerTag', 'uid', uid)
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('deleteContainerTag', 'tag', tag)
-            const localVarPath = `/api/containers/{uid}/tags/{tag}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7720,51 +7335,6 @@ export const ContainersApiAxiosParamCreator = function (configuration?: Configur
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * Update tags to container
-         * @summary Update tags to container
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTagsContainer: async (uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('updateTagsContainer', 'uid', uid)
-            const localVarPath = `/api/containers/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateTagsDeviceRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -7776,18 +7346,6 @@ export const ContainersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ContainersApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async createContainerTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createContainerTag(uid, createDeviceTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Delete a container.
          * @summary Delete container
          * @param {string} uid Device\&#39;s UID
@@ -7796,18 +7354,6 @@ export const ContainersApiFp = function(configuration?: Configuration) {
          */
         async deleteContainer(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteContainer(uid, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Delete a tag from container.
-         * @summary Delete a tag from container
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async deleteContainerTag(uid: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteContainerTag(uid, tag, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -7861,18 +7407,6 @@ export const ContainersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateContainerStatus(uid, status, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
-        /**
-         * Update tags to container
-         * @summary Update tags to container
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagsContainer(uid, updateTagsDeviceRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
     }
 };
 
@@ -7884,17 +7418,6 @@ export const ContainersApiFactory = function (configuration?: Configuration, bas
     const localVarFp = ContainersApiFp(configuration)
     return {
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createContainerTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.createContainerTag(uid, createDeviceTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Delete a container.
          * @summary Delete container
          * @param {string} uid Device\&#39;s UID
@@ -7903,17 +7426,6 @@ export const ContainersApiFactory = function (configuration?: Configuration, bas
          */
         deleteContainer(uid: string, options?: any): AxiosPromise<void> {
             return localVarFp.deleteContainer(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Delete a tag from container.
-         * @summary Delete a tag from container
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteContainerTag(uid: string, tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.deleteContainerTag(uid, tag, options).then((request) => request(axios, basePath));
         },
         /**
          * Get a container.
@@ -7962,17 +7474,6 @@ export const ContainersApiFactory = function (configuration?: Configuration, bas
         updateContainerStatus(uid: string, status: 'accept' | 'reject' | 'pending' | 'unused', options?: any): AxiosPromise<void> {
             return localVarFp.updateContainerStatus(uid, status, options).then((request) => request(axios, basePath));
         },
-        /**
-         * Update tags to container
-         * @summary Update tags to container
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateTagsContainer(uid, updateTagsDeviceRequest, options).then((request) => request(axios, basePath));
-        },
     };
 };
 
@@ -7984,19 +7485,6 @@ export const ContainersApiFactory = function (configuration?: Configuration, bas
  */
 export class ContainersApi extends BaseAPI {
     /**
-     * Create a tag
-     * @summary Create a tag
-     * @param {string} uid Device\&#39;s UID
-     * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContainersApi
-     */
-    public createContainerTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig) {
-        return ContainersApiFp(this.configuration).createContainerTag(uid, createDeviceTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Delete a container.
      * @summary Delete container
      * @param {string} uid Device\&#39;s UID
@@ -8006,19 +7494,6 @@ export class ContainersApi extends BaseAPI {
      */
     public deleteContainer(uid: string, options?: AxiosRequestConfig) {
         return ContainersApiFp(this.configuration).deleteContainer(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Delete a tag from container.
-     * @summary Delete a tag from container
-     * @param {string} uid Device\&#39;s UID
-     * @param {string} tag Device\&#39;s tag name
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContainersApi
-     */
-    public deleteContainerTag(uid: string, tag: string, options?: AxiosRequestConfig) {
-        return ContainersApiFp(this.configuration).deleteContainerTag(uid, tag, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8074,19 +7549,6 @@ export class ContainersApi extends BaseAPI {
      */
     public updateContainerStatus(uid: string, status: 'accept' | 'reject' | 'pending' | 'unused', options?: AxiosRequestConfig) {
         return ContainersApiFp(this.configuration).updateContainerStatus(uid, status, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update tags to container
-     * @summary Update tags to container
-     * @param {string} uid Device\&#39;s UID
-     * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContainersApi
-     */
-    public updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig) {
-        return ContainersApiFp(this.configuration).updateTagsContainer(uid, updateTagsDeviceRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -8231,51 +7693,6 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createDeviceTag: async (uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('createDeviceTag', 'uid', uid)
-            const localVarPath = `/api/devices/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createDeviceTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Creates a new tunnel for a device.
          * @summary Create a tunnel
          * @param {string} uid Device\&#39;s UID
@@ -8335,51 +7752,6 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             assertParamExists('deleteDevice', 'uid', uid)
             const localVarPath = `/api/devices/{uid}`
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Delete a tag from device.
-         * @summary Delete a tag from device
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteDeviceTag: async (uid: string, tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('deleteDeviceTag', 'uid', uid)
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('deleteDeviceTag', 'tag', tag)
-            const localVarPath = `/api/devices/{uid}/tags/{tag}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -8830,51 +8202,6 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * Update tags to device
-         * @summary Update tags to device
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTagsDevice: async (uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('updateTagsDevice', 'uid', uid)
-            const localVarPath = `/api/devices/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateTagsDeviceRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -8921,18 +8248,6 @@ export const DevicesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async createDeviceTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createDeviceTag(uid, createDeviceTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Creates a new tunnel for a device.
          * @summary Create a tunnel
          * @param {string} uid Device\&#39;s UID
@@ -8954,18 +8269,6 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          */
         async deleteDevice(uid: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteDevice(uid, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Delete a tag from device.
-         * @summary Delete a tag from device
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async deleteDeviceTag(uid: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteDeviceTag(uid, tag, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -9079,18 +8382,6 @@ export const DevicesApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateDeviceStatusOffline(uid, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
-        /**
-         * Update tags to device
-         * @summary Update tags to device
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateTagsDevice(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagsDevice(uid, updateTagsDeviceRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
     }
 };
 
@@ -9134,17 +8425,6 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.authDevice_1(xRealIP, authDeviceRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createDeviceTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.createDeviceTag(uid, createDeviceTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Creates a new tunnel for a device.
          * @summary Create a tunnel
          * @param {string} uid Device\&#39;s UID
@@ -9165,17 +8445,6 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          */
         deleteDevice(uid: string, options?: any): AxiosPromise<void> {
             return localVarFp.deleteDevice(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Delete a tag from device.
-         * @summary Delete a tag from device
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteDeviceTag(uid: string, tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.deleteDeviceTag(uid, tag, options).then((request) => request(axios, basePath));
         },
         /**
          * Deletes a tunnel for a specific device and port.
@@ -9279,17 +8548,6 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
         updateDeviceStatusOffline(uid: string, options?: any): AxiosPromise<void> {
             return localVarFp.updateDeviceStatusOffline(uid, options).then((request) => request(axios, basePath));
         },
-        /**
-         * Update tags to device
-         * @summary Update tags to device
-         * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTagsDevice(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateTagsDevice(uid, updateTagsDeviceRequest, options).then((request) => request(axios, basePath));
-        },
     };
 };
 
@@ -9339,19 +8597,6 @@ export class DevicesApi extends BaseAPI {
     }
 
     /**
-     * Create a tag
-     * @summary Create a tag
-     * @param {string} uid Device\&#39;s UID
-     * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DevicesApi
-     */
-    public createDeviceTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).createDeviceTag(uid, createDeviceTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Creates a new tunnel for a device.
      * @summary Create a tunnel
      * @param {string} uid Device\&#39;s UID
@@ -9375,19 +8620,6 @@ export class DevicesApi extends BaseAPI {
      */
     public deleteDevice(uid: string, options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).deleteDevice(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Delete a tag from device.
-     * @summary Delete a tag from device
-     * @param {string} uid Device\&#39;s UID
-     * @param {string} tag Device\&#39;s tag name
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DevicesApi
-     */
-    public deleteDeviceTag(uid: string, tag: string, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).deleteDeviceTag(uid, tag, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -9508,19 +8740,6 @@ export class DevicesApi extends BaseAPI {
      */
     public updateDeviceStatusOffline(uid: string, options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).updateDeviceStatusOffline(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update tags to device
-     * @summary Update tags to device
-     * @param {string} uid Device\&#39;s UID
-     * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DevicesApi
-     */
-    public updateTagsDevice(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig) {
-        return DevicesApiFp(this.configuration).updateTagsDevice(uid, updateTagsDeviceRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -13093,141 +12312,6 @@ export const RulesApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Add a tag to firewall rule
-         * @summary Add a tag to firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleAddTag: async (id: string, ruleAddTagRequest?: RuleAddTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ruleAddTag', 'id', id)
-            const localVarPath = `/api/firewall/rules/{id}/tags`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(ruleAddTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Remove a tag from firewall rule
-         * @summary Remove a tag from firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleDeleteTag: async (id: string, ruleAddTagRequest?: RuleAddTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ruleDeleteTag', 'id', id)
-            const localVarPath = `/api/firewall/rules/{id}/tags`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(ruleAddTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Update tags in firewall rule
-         * @summary Update tags in firewall rule
-         * @param {string} id 
-         * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleUpdateTags: async (id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ruleUpdateTags', 'id', id)
-            const localVarPath = `/api/firewall/rules/{id}/tags`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(ruleUpdateTagsRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Update a firewall rule.
          * @summary Update firewall rule
          * @param {string} id 
@@ -13328,42 +12412,6 @@ export const RulesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Add a tag to firewall rule
-         * @summary Add a tag to firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ruleAddTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ruleAddTag(id, ruleAddTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Remove a tag from firewall rule
-         * @summary Remove a tag from firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ruleDeleteTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ruleDeleteTag(id, ruleAddTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Update tags in firewall rule
-         * @summary Update tags in firewall rule
-         * @param {string} id 
-         * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ruleUpdateTags(id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ruleUpdateTags(id, ruleUpdateTagsRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Update a firewall rule.
          * @summary Update firewall rule
          * @param {string} id 
@@ -13425,39 +12473,6 @@ export const RulesApiFactory = function (configuration?: Configuration, basePath
          */
         getFirewallRules(page?: number, perPage?: number, options?: any): AxiosPromise<Array<FirewallRulesResponse>> {
             return localVarFp.getFirewallRules(page, perPage, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Add a tag to firewall rule
-         * @summary Add a tag to firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleAddTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.ruleAddTag(id, ruleAddTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Remove a tag from firewall rule
-         * @summary Remove a tag from firewall rule
-         * @param {string} id 
-         * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleDeleteTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.ruleDeleteTag(id, ruleAddTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Update tags in firewall rule
-         * @summary Update tags in firewall rule
-         * @param {string} id 
-         * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ruleUpdateTags(id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.ruleUpdateTags(id, ruleUpdateTagsRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Update a firewall rule.
@@ -13527,45 +12542,6 @@ export class RulesApi extends BaseAPI {
      */
     public getFirewallRules(page?: number, perPage?: number, options?: AxiosRequestConfig) {
         return RulesApiFp(this.configuration).getFirewallRules(page, perPage, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Add a tag to firewall rule
-     * @summary Add a tag to firewall rule
-     * @param {string} id 
-     * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof RulesApi
-     */
-    public ruleAddTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig) {
-        return RulesApiFp(this.configuration).ruleAddTag(id, ruleAddTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Remove a tag from firewall rule
-     * @summary Remove a tag from firewall rule
-     * @param {string} id 
-     * @param {RuleAddTagRequest} [ruleAddTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof RulesApi
-     */
-    public ruleDeleteTag(id: string, ruleAddTagRequest?: RuleAddTagRequest, options?: AxiosRequestConfig) {
-        return RulesApiFp(this.configuration).ruleDeleteTag(id, ruleAddTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update tags in firewall rule
-     * @summary Update tags in firewall rule
-     * @param {string} id 
-     * @param {RuleUpdateTagsRequest} [ruleUpdateTagsRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof RulesApi
-     */
-    public ruleUpdateTags(id: string, ruleUpdateTagsRequest?: RuleUpdateTagsRequest, options?: AxiosRequestConfig) {
-        return RulesApiFp(this.configuration).ruleUpdateTags(id, ruleUpdateTagsRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -14342,51 +13318,6 @@ export class SessionsApi extends BaseAPI {
 export const SshApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Add a tag to a public key.
-         * @summary Add tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        addTagPublicKey: async (fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'fingerprint' is not null or undefined
-            assertParamExists('addTagPublicKey', 'fingerprint', fingerprint)
-            const localVarPath = `/api/sshkeys/public-keys/{fingerprint}/tags`
-                .replace(`{${"fingerprint"}}`, encodeURIComponent(String(fingerprint)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(addTagPublicKeyRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Authenticate a SSH public key to ShellHub server.
          * @summary Auth SSH public key
          * @param {AuthSSHPublicKeyRequest} [authSSHPublicKeyRequest] 
@@ -14556,51 +13487,6 @@ export const SshApiAxiosParamCreator = function (configuration?: Configuration) 
             };
         },
         /**
-         * Remove a tag from public key.
-         * @summary Remove tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        removeTagPublicKey: async (fingerprint: string, tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'fingerprint' is not null or undefined
-            assertParamExists('removeTagPublicKey', 'fingerprint', fingerprint)
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('removeTagPublicKey', 'tag', tag)
-            const localVarPath = `/api/sshkeys/public-keys/{fingerprint}/tags/{tag}`
-                .replace(`{${"fingerprint"}}`, encodeURIComponent(String(fingerprint)))
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Update a public key.
          * @summary Update public key
          * @param {string} fingerprint Public key\&#39;s fingerprint.
@@ -14642,51 +13528,6 @@ export const SshApiAxiosParamCreator = function (configuration?: Configuration) 
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * Update all tags in a public key.
-         * @summary Update tags public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTagsPublicKey: async (fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'fingerprint' is not null or undefined
-            assertParamExists('updateTagsPublicKey', 'fingerprint', fingerprint)
-            const localVarPath = `/api/sshkeys/public-keys/{fingerprint}/tags`
-                .replace(`{${"fingerprint"}}`, encodeURIComponent(String(fingerprint)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateTagsPublicKeyRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -14697,18 +13538,6 @@ export const SshApiAxiosParamCreator = function (configuration?: Configuration) 
 export const SshApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = SshApiAxiosParamCreator(configuration)
     return {
-        /**
-         * Add a tag to a public key.
-         * @summary Add tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.addTagPublicKey(fingerprint, addTagPublicKeyRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
         /**
          * Authenticate a SSH public key to ShellHub server.
          * @summary Auth SSH public key
@@ -14756,18 +13585,6 @@ export const SshApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Remove a tag from public key.
-         * @summary Remove tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async removeTagPublicKey(fingerprint: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.removeTagPublicKey(fingerprint, tag, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Update a public key.
          * @summary Update public key
          * @param {string} fingerprint Public key\&#39;s fingerprint.
@@ -14777,18 +13594,6 @@ export const SshApiFp = function(configuration?: Configuration) {
          */
         async updatePublicKey(fingerprint: string, updatePublicKeyRequest?: UpdatePublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PublicKeyResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updatePublicKey(fingerprint, updatePublicKeyRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Update all tags in a public key.
-         * @summary Update tags public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -14801,17 +13606,6 @@ export const SshApiFp = function(configuration?: Configuration) {
 export const SshApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = SshApiFp(configuration)
     return {
-        /**
-         * Add a tag to a public key.
-         * @summary Add tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.addTagPublicKey(fingerprint, addTagPublicKeyRequest, options).then((request) => request(axios, basePath));
-        },
         /**
          * Authenticate a SSH public key to ShellHub server.
          * @summary Auth SSH public key
@@ -14855,17 +13649,6 @@ export const SshApiFactory = function (configuration?: Configuration, basePath?:
             return localVarFp.getPublicKeys(filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
-         * Remove a tag from public key.
-         * @summary Remove tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        removeTagPublicKey(fingerprint: string, tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.removeTagPublicKey(fingerprint, tag, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Update a public key.
          * @summary Update public key
          * @param {string} fingerprint Public key\&#39;s fingerprint.
@@ -14875,17 +13658,6 @@ export const SshApiFactory = function (configuration?: Configuration, basePath?:
          */
         updatePublicKey(fingerprint: string, updatePublicKeyRequest?: UpdatePublicKeyRequest, options?: any): AxiosPromise<PublicKeyResponse> {
             return localVarFp.updatePublicKey(fingerprint, updatePublicKeyRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Update all tags in a public key.
-         * @summary Update tags public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -14897,19 +13669,6 @@ export const SshApiFactory = function (configuration?: Configuration, basePath?:
  * @extends {BaseAPI}
  */
 export class SshApi extends BaseAPI {
-    /**
-     * Add a tag to a public key.
-     * @summary Add tag public key
-     * @param {string} fingerprint Public key\&#39;s fingerprint.
-     * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SshApi
-     */
-    public addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: AxiosRequestConfig) {
-        return SshApiFp(this.configuration).addTagPublicKey(fingerprint, addTagPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
     /**
      * Authenticate a SSH public key to ShellHub server.
      * @summary Auth SSH public key
@@ -14961,19 +13720,6 @@ export class SshApi extends BaseAPI {
     }
 
     /**
-     * Remove a tag from public key.
-     * @summary Remove tag public key
-     * @param {string} fingerprint Public key\&#39;s fingerprint.
-     * @param {string} tag Tag\&#39;s name.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SshApi
-     */
-    public removeTagPublicKey(fingerprint: string, tag: string, options?: AxiosRequestConfig) {
-        return SshApiFp(this.configuration).removeTagPublicKey(fingerprint, tag, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Update a public key.
      * @summary Update public key
      * @param {string} fingerprint Public key\&#39;s fingerprint.
@@ -14984,19 +13730,6 @@ export class SshApi extends BaseAPI {
      */
     public updatePublicKey(fingerprint: string, updatePublicKeyRequest?: UpdatePublicKeyRequest, options?: AxiosRequestConfig) {
         return SshApiFp(this.configuration).updatePublicKey(fingerprint, updatePublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update all tags in a public key.
-     * @summary Update tags public key
-     * @param {string} fingerprint Public key\&#39;s fingerprint.
-     * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SshApi
-     */
-    public updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: AxiosRequestConfig) {
-        return SshApiFp(this.configuration).updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -15191,18 +13924,20 @@ export class SystemApi extends BaseAPI {
 export const TagsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Add a tag to a public key.
-         * @summary Add tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
+         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        addTagPublicKey: async (fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'fingerprint' is not null or undefined
-            assertParamExists('addTagPublicKey', 'fingerprint', fingerprint)
-            const localVarPath = `/api/sshkeys/public-keys/{fingerprint}/tags`
-                .replace(`{${"fingerprint"}}`, encodeURIComponent(String(fingerprint)));
+        createTag: async (tenant: string, createTagRequest: CreateTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('createTag', 'tenant', tenant)
+            // verify required parameter 'createTagRequest' is not null or undefined
+            assertParamExists('createTag', 'createTagRequest', createTagRequest)
+            const localVarPath = `/api/namespaces/{tenant}/tags`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15228,7 +13963,7 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(addTagPublicKeyRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(createTagRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -15236,156 +13971,21 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
+         * Removes a tag and all its associations
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} currentName Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createContainerTag: async (uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('createContainerTag', 'uid', uid)
-            const localVarPath = `/api/containers/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createDeviceTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createDeviceTag: async (uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('createDeviceTag', 'uid', uid)
-            const localVarPath = `/api/devices/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createDeviceTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Delete a tag from container.
-         * @summary Delete a tag from container
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteContainerTag: async (uid: string, tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('deleteContainerTag', 'uid', uid)
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('deleteContainerTag', 'tag', tag)
-            const localVarPath = `/api/containers/{uid}/tags/{tag}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Delete a tag from device.
-         * @summary Delete a tag from device
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteDeviceTag: async (uid: string, tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('deleteDeviceTag', 'uid', uid)
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('deleteDeviceTag', 'tag', tag)
-            const localVarPath = `/api/devices/{uid}/tags/{tag}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
+        deleteTag: async (tenant: string, currentName: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('deleteTag', 'tenant', tenant)
+            // verify required parameter 'currentName' is not null or undefined
+            assertParamExists('deleteTag', 'currentName', currentName)
+            const localVarPath = `/api/namespaces/{tenant}/tags/{current_name}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"current_name"}}`, encodeURIComponent(String(currentName)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15417,53 +14017,19 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
-         * @summary Delete a tag name.
-         * @param {string} tag Tag\&#39;s name.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag: async (tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('deleteTag', 'tag', tag)
-            const localVarPath = `/api/tags/{tag}`
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Get tags
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getTags: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/tags`;
+        getTags: async (tenant: string, filter?: string, page?: number, perPage?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('getTags', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/tags`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15482,6 +14048,18 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -15494,21 +14072,25 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Remove a tag from public key.
-         * @summary Remove tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {string} tag Tag\&#39;s name.
+         * 
+         * @summary Remove a tag from a container
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        removeTagPublicKey: async (fingerprint: string, tag: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'fingerprint' is not null or undefined
-            assertParamExists('removeTagPublicKey', 'fingerprint', fingerprint)
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('removeTagPublicKey', 'tag', tag)
-            const localVarPath = `/api/sshkeys/public-keys/{fingerprint}/tags/{tag}`
-                .replace(`{${"fingerprint"}}`, encodeURIComponent(String(fingerprint)))
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
+        pullTagFromContainer: async (tenant: string, uid: string, name: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pullTagFromContainer', 'tenant', tenant)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('pullTagFromContainer', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pullTagFromContainer', 'name', name)
+            const localVarPath = `/api/namespaces/{tenant}/containers/{uid}/tags/{name}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15540,62 +14122,24 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
-         * @summary Rename a tag name.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {RenameTagRequest} [renameTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        renameTag: async (tag: string, renameTagRequest?: RenameTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tag' is not null or undefined
-            assertParamExists('renameTag', 'tag', tag)
-            const localVarPath = `/api/tags/{tag}`
-                .replace(`{${"tag"}}`, encodeURIComponent(String(tag)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(renameTagRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Update tags to container
-         * @summary Update tags to container
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+         * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTagsContainer: async (uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        pullTagFromDevice: async (tenant: string, uid: string, name: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pullTagFromDevice', 'tenant', tenant)
             // verify required parameter 'uid' is not null or undefined
-            assertParamExists('updateTagsContainer', 'uid', uid)
-            const localVarPath = `/api/containers/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            assertParamExists('pullTagFromDevice', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pullTagFromDevice', 'name', name)
+            const localVarPath = `/api/namespaces/{tenant}/devices/{uid}/tags/{name}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15603,7 +14147,7 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -15616,12 +14160,9 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateTagsDeviceRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -15629,18 +14170,25 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Update tags to device
-         * @summary Update tags to device
+         * 
+         * @summary Associate a tag with a container
+         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+         * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTagsDevice: async (uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        pushTagToContainer: async (tenant: string, uid: string, name: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pushTagToContainer', 'tenant', tenant)
             // verify required parameter 'uid' is not null or undefined
-            assertParamExists('updateTagsDevice', 'uid', uid)
-            const localVarPath = `/api/devices/{uid}/tags`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            assertParamExists('pushTagToContainer', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pushTagToContainer', 'name', name)
+            const localVarPath = `/api/namespaces/{tenant}/containers/{uid}/tags/{name}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15648,7 +14196,7 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -15661,12 +14209,9 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateTagsDeviceRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -15674,18 +14219,25 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Update all tags in a public key.
-         * @summary Update tags public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
+         * 
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTagsPublicKey: async (fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'fingerprint' is not null or undefined
-            assertParamExists('updateTagsPublicKey', 'fingerprint', fingerprint)
-            const localVarPath = `/api/sshkeys/public-keys/{fingerprint}/tags`
-                .replace(`{${"fingerprint"}}`, encodeURIComponent(String(fingerprint)));
+        pushTagToDevice: async (tenant: string, uid: string, name: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pushTagToDevice', 'tenant', tenant)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('pushTagToDevice', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pushTagToDevice', 'name', name)
+            const localVarPath = `/api/namespaces/{tenant}/devices/{uid}/tags/{name}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -15693,7 +14245,55 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} currentName Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateTag: async (tenant: string, currentName: string, updateTagRequest: UpdateTagRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateTag', 'tenant', tenant)
+            // verify required parameter 'currentName' is not null or undefined
+            assertParamExists('updateTag', 'currentName', currentName)
+            // verify required parameter 'updateTagRequest' is not null or undefined
+            assertParamExists('updateTag', 'updateTagRequest', updateTagRequest)
+            const localVarPath = `/api/namespaces/{tenant}/tags/{current_name}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"current_name"}}`, encodeURIComponent(String(currentName)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -15711,7 +14311,7 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateTagsPublicKeyRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(updateTagRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -15729,144 +14329,106 @@ export const TagsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = TagsApiAxiosParamCreator(configuration)
     return {
         /**
-         * Add a tag to a public key.
-         * @summary Add tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
+         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.addTagPublicKey(fingerprint, addTagPublicKeyRequest, options);
+        async createTag(tenant: string, createTagRequest: CreateTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(tenant, createTagRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
+         * Removes a tag and all its associations
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} currentName Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createContainerTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createContainerTag(uid, createDeviceTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async createDeviceTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createDeviceTag(uid, createDeviceTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Delete a tag from container.
-         * @summary Delete a tag from container
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async deleteContainerTag(uid: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteContainerTag(uid, tag, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Delete a tag from device.
-         * @summary Delete a tag from device
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async deleteDeviceTag(uid: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteDeviceTag(uid, tag, options);
+        async deleteTag(tenant: string, currentName: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(tenant, currentName, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
          * 
-         * @summary Delete a tag name.
-         * @param {string} tag Tag\&#39;s name.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteTag(tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(tag, options);
+        async getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTags(tenant, filter, page, perPage, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
          * 
-         * @summary Get tags
+         * @summary Remove a tag from a container
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTags(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getTags(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Remove a tag from public key.
-         * @summary Remove tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async removeTagPublicKey(fingerprint: string, tag: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.removeTagPublicKey(fingerprint, tag, options);
+        async pullTagFromContainer(tenant: string, uid: string, name: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromContainer(tenant, uid, name, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
          * 
-         * @summary Rename a tag name.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {RenameTagRequest} [renameTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async renameTag(tag: string, renameTagRequest?: RenameTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.renameTag(tag, renameTagRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Update tags to container
-         * @summary Update tags to container
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+         * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagsContainer(uid, updateTagsDeviceRequest, options);
+        async pullTagFromDevice(tenant: string, uid: string, name: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDevice(tenant, uid, name, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Update tags to device
-         * @summary Update tags to device
+         * 
+         * @summary Associate a tag with a container
+         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+         * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTagsDevice(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagsDevice(uid, updateTagsDeviceRequest, options);
+        async pushTagToContainer(tenant: string, uid: string, name: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToContainer(tenant, uid, name, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Update all tags in a public key.
-         * @summary Update tags public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
+         * 
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options);
+        async pushTagToDevice(tenant: string, uid: string, name: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDevice(tenant, uid, name, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} currentName Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateTag(tenant: string, currentName: string, updateTagRequest: UpdateTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(tenant, currentName, updateTagRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -15880,133 +14442,99 @@ export const TagsApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = TagsApiFp(configuration)
     return {
         /**
-         * Add a tag to a public key.
-         * @summary Add tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
+         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.addTagPublicKey(fingerprint, addTagPublicKeyRequest, options).then((request) => request(axios, basePath));
+        createTag(tenant: string, createTagRequest: CreateTagRequest, options?: any): AxiosPromise<void> {
+            return localVarFp.createTag(tenant, createTagRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
+         * Removes a tag and all its associations
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} currentName Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createContainerTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.createContainerTag(uid, createDeviceTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Create a tag
-         * @summary Create a tag
-         * @param {string} uid Device\&#39;s UID
-         * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createDeviceTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.createDeviceTag(uid, createDeviceTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Delete a tag from container.
-         * @summary Delete a tag from container
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteContainerTag(uid: string, tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.deleteContainerTag(uid, tag, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Delete a tag from device.
-         * @summary Delete a tag from device
-         * @param {string} uid Device\&#39;s UID
-         * @param {string} tag Device\&#39;s tag name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteDeviceTag(uid: string, tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.deleteDeviceTag(uid, tag, options).then((request) => request(axios, basePath));
+        deleteTag(tenant: string, currentName: string, options?: any): AxiosPromise<void> {
+            return localVarFp.deleteTag(tenant, currentName, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Delete a tag name.
-         * @param {string} tag Tag\&#39;s name.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag(tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.deleteTag(tag, options).then((request) => request(axios, basePath));
+        getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Tag>> {
+            return localVarFp.getTags(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Get tags
+         * @summary Remove a tag from a container
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTags(options?: any): AxiosPromise<Array<string>> {
-            return localVarFp.getTags(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Remove a tag from public key.
-         * @summary Remove tag public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        removeTagPublicKey(fingerprint: string, tag: string, options?: any): AxiosPromise<void> {
-            return localVarFp.removeTagPublicKey(fingerprint, tag, options).then((request) => request(axios, basePath));
+        pullTagFromContainer(tenant: string, uid: string, name: string, options?: any): AxiosPromise<void> {
+            return localVarFp.pullTagFromContainer(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Rename a tag name.
-         * @param {string} tag Tag\&#39;s name.
-         * @param {RenameTagRequest} [renameTagRequest] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        renameTag(tag: string, renameTagRequest?: RenameTagRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.renameTag(tag, renameTagRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Update tags to container
-         * @summary Update tags to container
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+         * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateTagsContainer(uid, updateTagsDeviceRequest, options).then((request) => request(axios, basePath));
+        pullTagFromDevice(tenant: string, uid: string, name: string, options?: any): AxiosPromise<void> {
+            return localVarFp.pullTagFromDevice(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update tags to device
-         * @summary Update tags to device
+         * 
+         * @summary Associate a tag with a container
+         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+         * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTagsDevice(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateTagsDevice(uid, updateTagsDeviceRequest, options).then((request) => request(axios, basePath));
+        pushTagToContainer(tenant: string, uid: string, name: string, options?: any): AxiosPromise<void> {
+            return localVarFp.pushTagToContainer(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update all tags in a public key.
-         * @summary Update tags public key
-         * @param {string} fingerprint Public key\&#39;s fingerprint.
-         * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
+         * 
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: any): AxiosPromise<void> {
-            return localVarFp.updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options).then((request) => request(axios, basePath));
+        pushTagToDevice(tenant: string, uid: string, name: string, options?: any): AxiosPromise<void> {
+            return localVarFp.pushTagToDevice(tenant, uid, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} currentName Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateTag(tenant: string, currentName: string, updateTagRequest: UpdateTagRequest, options?: any): AxiosPromise<Tag> {
+            return localVarFp.updateTag(tenant, currentName, updateTagRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -16019,156 +14547,114 @@ export const TagsApiFactory = function (configuration?: Configuration, basePath?
  */
 export class TagsApi extends BaseAPI {
     /**
-     * Add a tag to a public key.
-     * @summary Add tag public key
-     * @param {string} fingerprint Public key\&#39;s fingerprint.
-     * @param {AddTagPublicKeyRequest} [addTagPublicKeyRequest] 
+     * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+     * @summary Create a new tag in the namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {CreateTagRequest} createTagRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public addTagPublicKey(fingerprint: string, addTagPublicKeyRequest?: AddTagPublicKeyRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).addTagPublicKey(fingerprint, addTagPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
+    public createTag(tenant: string, createTagRequest: CreateTagRequest, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).createTag(tenant, createTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Create a tag
-     * @summary Create a tag
-     * @param {string} uid Device\&#39;s UID
-     * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
+     * Removes a tag and all its associations
+     * @summary Delete a tag
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} currentName Tag name to delete
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public createContainerTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).createContainerTag(uid, createDeviceTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Create a tag
-     * @summary Create a tag
-     * @param {string} uid Device\&#39;s UID
-     * @param {CreateDeviceTagRequest} [createDeviceTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TagsApi
-     */
-    public createDeviceTag(uid: string, createDeviceTagRequest?: CreateDeviceTagRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).createDeviceTag(uid, createDeviceTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Delete a tag from container.
-     * @summary Delete a tag from container
-     * @param {string} uid Device\&#39;s UID
-     * @param {string} tag Device\&#39;s tag name
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TagsApi
-     */
-    public deleteContainerTag(uid: string, tag: string, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).deleteContainerTag(uid, tag, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Delete a tag from device.
-     * @summary Delete a tag from device
-     * @param {string} uid Device\&#39;s UID
-     * @param {string} tag Device\&#39;s tag name
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TagsApi
-     */
-    public deleteDeviceTag(uid: string, tag: string, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).deleteDeviceTag(uid, tag, options).then((request) => request(this.axios, this.basePath));
+    public deleteTag(tenant: string, currentName: string, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).deleteTag(tenant, currentName, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Delete a tag name.
-     * @param {string} tag Tag\&#39;s name.
+     * @summary Retrieve all tags associated with a namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public deleteTag(tag: string, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).deleteTag(tag, options).then((request) => request(this.axios, this.basePath));
+    public getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).getTags(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Get tags
+     * @summary Remove a tag from a container
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} name Tag name to remove
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public getTags(options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).getTags(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Remove a tag from public key.
-     * @summary Remove tag public key
-     * @param {string} fingerprint Public key\&#39;s fingerprint.
-     * @param {string} tag Tag\&#39;s name.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TagsApi
-     */
-    public removeTagPublicKey(fingerprint: string, tag: string, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).removeTagPublicKey(fingerprint, tag, options).then((request) => request(this.axios, this.basePath));
+    public pullTagFromContainer(tenant: string, uid: string, name: string, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pullTagFromContainer(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Rename a tag name.
-     * @param {string} tag Tag\&#39;s name.
-     * @param {RenameTagRequest} [renameTagRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TagsApi
-     */
-    public renameTag(tag: string, renameTagRequest?: RenameTagRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).renameTag(tag, renameTagRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update tags to container
-     * @summary Update tags to container
+     * @summary Remove a tag from a device
+     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} uid Device\&#39;s UID
-     * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+     * @param {string} name Tag name to remove
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public updateTagsContainer(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).updateTagsContainer(uid, updateTagsDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    public pullTagFromDevice(tenant: string, uid: string, name: string, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pullTagFromDevice(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Update tags to device
-     * @summary Update tags to device
+     * 
+     * @summary Associate a tag with a container
+     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} uid Device\&#39;s UID
-     * @param {UpdateTagsDeviceRequest} [updateTagsDeviceRequest] 
+     * @param {string} name Tag name to associate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public updateTagsDevice(uid: string, updateTagsDeviceRequest?: UpdateTagsDeviceRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).updateTagsDevice(uid, updateTagsDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    public pushTagToContainer(tenant: string, uid: string, name: string, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pushTagToContainer(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Update all tags in a public key.
-     * @summary Update tags public key
-     * @param {string} fingerprint Public key\&#39;s fingerprint.
-     * @param {UpdateTagsPublicKeyRequest} [updateTagsPublicKeyRequest] 
+     * 
+     * @summary Associate a tag with a device
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} name Tag name to associate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TagsApi
      */
-    public updateTagsPublicKey(fingerprint: string, updateTagsPublicKeyRequest?: UpdateTagsPublicKeyRequest, options?: AxiosRequestConfig) {
-        return TagsApiFp(this.configuration).updateTagsPublicKey(fingerprint, updateTagsPublicKeyRequest, options).then((request) => request(this.axios, this.basePath));
+    public pushTagToDevice(tenant: string, uid: string, name: string, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pushTagToDevice(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update a tag
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} currentName Current tag name
+     * @param {UpdateTagRequest} updateTagRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TagsApi
+     */
+    public updateTag(tenant: string, currentName: string, updateTagRequest: UpdateTagRequest, options?: AxiosRequestConfig) {
+        return TagsApiFp(this.configuration).updateTag(tenant, currentName, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

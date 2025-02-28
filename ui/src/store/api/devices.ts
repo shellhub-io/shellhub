@@ -1,7 +1,7 @@
-import { IDevicePostTag, IDeviceRename, IUpdateDeviceTags } from "@/interfaces/IDevice";
+import { IDeviceRename } from "@/interfaces/IDevice";
 import { devicesApi, tagsApi } from "@/api/http";
 
-export const addTag = async (data: IDevicePostTag) => tagsApi.createDeviceTag(data.uid, data.name);
+export const postTag = async (data) => tagsApi.createTag(data.uid, data.name);
 
 export const fetchDevices = async (
   page: number,
@@ -27,6 +27,4 @@ export const acceptDevice = async (uid: string) => devicesApi.updateDeviceStatus
 
 export const rejectDevice = async (uid: string) => devicesApi.updateDeviceStatus(uid, "reject");
 
-export const updateDeviceTags = async (data: IUpdateDeviceTags) => devicesApi.updateTagsDevice(data.uid, data.tags);
-
-export const removeDevice = async (uid: string) => devicesApi.deleteDevice(uid);
+export const removeDevice = async (uid : string) => devicesApi.deleteDevice(uid);
