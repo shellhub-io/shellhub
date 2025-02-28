@@ -38,12 +38,12 @@
                     outlined
                     v-bind="props"
                   >
-                    {{ displayOnlyTenCharacters(tag) }}
+                    {{ displayOnlyTenCharacters(tag.name) }}
                   </v-chip>
                 </template>
 
                 <span v-if="showTag(tag)">
-                  {{ tag }}
+                  {{ tag.name }}
                 </span>
               </v-tooltip>
             </div>
