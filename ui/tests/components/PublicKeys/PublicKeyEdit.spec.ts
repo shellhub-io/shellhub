@@ -33,7 +33,10 @@ describe("Public Key Edit", () => {
   };
 
   beforeEach(async () => {
-    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, []);
+    localStorage.setItem("tenant", "fake-tenant-data");
+    mockTagsApi
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, [{ name: "1" }, { name: "2" }]);
 
     wrapper = mount(PublicKeyEdit, {
       global: {

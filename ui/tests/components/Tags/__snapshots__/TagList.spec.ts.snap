@@ -1,44 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Firewall Rules List > Renders the component 1`] = `
-"<div data-test="firewall-rules-list">
+exports[`Tag List > Renders the component 1`] = `
+"<div data-test="tag-list">
   <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
     <!---->
     <div class="v-table__wrapper">
       <table>
         <thead class="bg-v-theme-background">
           <tr>
-            <th class="text-center"><span>Tenant Id</span></th>
-            <th class="text-center"><span>Priority</span></th>
-            <th class="text-center"><span>Action</span></th>
-            <th class="text-center"><span>Source Ip</span></th>
-            <th class="text-center"><span>Username</span></th>
-            <th class="text-center"><span>Filter</span></th>
+            <th class="text-center"><span>Name</span></th>
             <th class="text-center"><span>Actions</span></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="pa-4 text-subtitle-2">
           <tr>
-            <td>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</td>
-            <td>4</td>
-            <td>allow</td>
-            <td>127.0.0.1</td>
-            <td>shellhub</td>
-            <td>
-              <div><span class="v-chip v-theme--light v-chip--density-compact v-chip--size-default v-chip--variant-tonal mr-1" draggable="false" outlined="" aria-describedby="v-tooltip-v-0"><!----><span class="v-chip__underlay"></span>
-                <!---->
-                <!---->
-                <div class="v-chip__content" data-no-activator="">test-tag</div>
-                <!---->
-                <!----></span>
-                <!--teleport start-->
-                <!--teleport end-->
-              </div>
-            </td>
-            <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-2"></a>
-              <!--teleport start-->
-              <!--teleport end-->
-            </td>
+            <td colspan="2" class="pa-4 text-subtitle-2 text-center"> No data available </td>
           </tr>
         </tbody>
       </table>
@@ -46,13 +22,24 @@ exports[`Firewall Rules List > Renders the component 1`] = `
     <!---->
   </div>
   <!--v-if-->
-  <!--v-if-->
+  <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading">
+    <!---->
+    <div class="v-progress-linear__background"></div>
+    <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+    <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+      <div class="v-progress-linear__indeterminate">
+        <div class="v-progress-linear__indeterminate long"></div>
+        <div class="v-progress-linear__indeterminate short"></div>
+      </div>
+    </transition-stub>
+    <!---->
+  </div>
   <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
     <div>
       <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
         <!---->
         <div class="v-input__control">
-          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-6">
+          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3">
             <div class="v-field__overlay"></div>
             <div class="v-field__loader">
               <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -76,7 +63,7 @@ exports[`Firewall Rules List > Renders the component 1`] = `
               <div class="v-field__input" data-no-activator="">
                 <!---->
                 <!---->
-                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-4" outlined="" value="10">
+                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-1" outlined="" value="10">
               </div>
               <!---->
             </div>

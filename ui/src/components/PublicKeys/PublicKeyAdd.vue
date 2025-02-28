@@ -67,18 +67,29 @@
             </v-row>
 
             <v-row class="px-3">
-              <v-select
+              <v-autocomplete
                 v-if="choiceFilter === 'tags'"
                 v-model="tagChoices"
-                :items="tagNames"
-                data-test="tags-selector"
+                v-model:menu="acMenuOpen"
+                :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+                :items="tags"
+                variant="outlined"
+                item-title="name"
+                item-value="name"
                 attach
                 chips
                 label="Tags"
                 :rules="[validateLength]"
                 :error-messages="errMsg"
                 multiple
-              />
+                data-test="tags-selector"
+                @update:search="onSearch"
+              >=
+                <template #append-item>
+                  <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+                </template>
+              </v-autocomplete>
+
               <v-text-field
                 v-if="choiceFilter === 'hostname'"
                 v-model="hostname"
@@ -99,21 +110,11 @@
               rows="2"
             />
           </v-card-text>
+
           <v-card-actions>
             <v-spacer />
-            <v-btn
-              @click="close"
-              data-test="pk-add-cancel-btn"
-            >
-              Cancel
-            </v-btn>
-            <v-btn
-              color="primary"
-              type="submit"
-              data-test="pk-add-save-btn"
-            >
-              Save
-            </v-btn>
+            <v-btn @click="close" data-test="pk-add-cancel-btn">Cancel</v-btn>
+            <v-btn color="primary" type="submit" data-test="pk-add-save-btn">Save</v-btn>
           </v-card-actions>
         </form>
       </v-card>
@@ -123,7 +124,7 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, watch, onMounted, onUnmounted } from "vue";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import hasPermission from "@/utils/permission";
@@ -142,73 +143,69 @@ const publicKeysStore = usePublicKeysStore();
 const tagsStore = useTagsStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
+
 const validateLength = ref(true);
-const choiceFilter = ref("all");
-const choiceUsername = ref("all");
-const tagChoices = ref([]);
+const choiceFilter = ref<"all" | "hostname" | "tags">("all");
+const choiceUsername = ref<"all" | "username">("all");
+const tagChoices = ref<string[]>([]);
 const errMsg = ref("");
 const keyLocal = ref({});
+
 const usernameList = ref([
-  {
-    filterName: "all",
-    filterText: "Allow any user",
-  },
-  {
-    filterName: "username",
-    filterText: "Restrict access using a regexp for username",
-  },
+  { filterName: "all", filterText: "Allow any user" },
+  { filterName: "username", filterText: "Restrict access using a regexp for username" },
 ]);
+
 const filterList = ref([
-  {
-    filterName: "all",
-    filterText: "Allow the key to connect to all available devices",
-  },
-  {
-    filterName: "hostname",
-    filterText: "Restrict access using a regexp for hostname",
-  },
-  {
-    filterName: "tags",
-    filterText: "Restrict access by tags",
-  },
+  { filterName: "all", filterText: "Allow the key to connect to all available devices" },
+  { filterName: "hostname", filterText: "Restrict access using a regexp for hostname" },
+  { filterName: "tags", filterText: "Restrict access by tags" },
 ]);
 
 const {
   value: name,
   errorMessage: nameError,
   resetField: resetName,
-} = useField<string | undefined>("name", yup.string().required(), {
-  initialValue: "",
-});
+} = useField<string | undefined>("name", yup.string().required(), { initialValue: "" });
 
 const {
   value: username,
   errorMessage: usernameError,
   setErrors: setUsernameError,
   resetField: resetUsername,
-} = useField<string | undefined>("username", yup.string().required(), {
-  initialValue: "",
-});
+} = useField<string | undefined>("username", yup.string().required(), { initialValue: "" });
 
 const {
   value: hostname,
   errorMessage: hostnameError,
   setErrors: setHostnameError,
   resetField: resetHostname,
-} = useField<string | undefined>("hostname", yup.string().required(), {
-  initialValue: "",
-});
+} = useField<string | undefined>("hostname", yup.string().required(), { initialValue: "" });
 
 const {
   value: publicKeyData,
   errorMessage: publicKeyDataError,
   setErrors: setPublicKeyDataError,
   resetField: resetPublicKeyData,
-} = useField<string>("publicKeyData", yup.string().required(), {
-  initialValue: "",
-});
+} = useField<string>("publicKeyData", yup.string().required(), { initialValue: "" });
 
-const tagNames = computed(() => tagsStore.tags);
+type LocalTag = { name: string };
+
+const acMenuOpen = ref(false);
+const menuContentClass = computed(() => "pk-tags-ac-content");
+
+const fetchedTags = ref<LocalTag[]>([]);
+const tags = computed(() => fetchedTags.value);
+
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+const page = ref(1);
+const perPage = ref(10);
+const filter = ref("");
+const isLoading = ref(false);
+
+const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 
 const canCreatePublicKey = hasPermission("publicKey:create");
 
@@ -226,57 +223,31 @@ watch(tagChoices, (list) => {
   }
 });
 
-watch(choiceFilter, async () => {
-  if (choiceFilter.value === "tags") {
-    await tagsStore.fetchTags();
-  }
-});
-
 watch(publicKeyData, async () => {
-  if (publicKeyData.value !== "") {
-    setPublicKeyDataError("Field is required");
-  }
-
-  if (!isKeyValid("public", publicKeyData.value)) {
-    setPublicKeyDataError("Invalid public key data");
-  }
+  if (publicKeyData.value !== "") setPublicKeyDataError("Field is required");
+  if (isKeyValid("public", publicKeyData.value)) setPublicKeyDataError("This is not valid key");
 });
 
 const chooseUsername = () => {
   switch (choiceUsername.value) {
-    case "all": {
-      keyLocal.value = { ...keyLocal.value, username: ".*" };
-      break;
-    }
-    case "username": {
-      keyLocal.value = { ...keyLocal.value, username: username.value };
-      break;
-    }
-    default:
+    case "all": keyLocal.value = { ...keyLocal.value, username: ".*" }; break;
+    case "username": keyLocal.value = { ...keyLocal.value, username: username.value }; break;
+    default: break;
   }
 };
 
 const chooseFilter = () => {
   switch (choiceFilter.value) {
-    case "all": {
+    case "all":
       keyLocal.value = { ...keyLocal.value, filter: { hostname: ".*" } };
       break;
-    }
-    case "hostname": {
-      keyLocal.value = {
-        ...keyLocal.value,
-        filter: { hostname: hostname.value },
-      };
+    case "hostname":
+      keyLocal.value = { ...keyLocal.value, filter: { hostname: hostname.value } };
       break;
-    }
-    case "tags": {
-      keyLocal.value = {
-        ...keyLocal.value,
-        filter: { tags: tagChoices.value },
-      };
+    case "tags":
+      keyLocal.value = { ...keyLocal.value, filter: { tags: tagChoices.value } };
       break;
-    }
-    default:
+    default: break;
   }
 };
 
@@ -288,74 +259,149 @@ const setLocalVariable = () => {
   choiceUsername.value = "all";
 };
 
-watch(showDialog, (value) => {
-  if (!value) {
-    setLocalVariable();
-  }
-});
+watch(showDialog, (value) => { if (!value) setLocalVariable(); });
 
-const close = () => {
-  showDialog.value = false;
-  setLocalVariable();
-};
-
-const update = () => {
-  emit("update");
-  close();
-};
+const close = () => { showDialog.value = false; setLocalVariable(); };
+const update = () => { emit("update"); close(); };
 
 const hasErrors = () => {
-  if (choiceUsername.value === "username" && username.value === "") {
-    setUsernameError("This Field is required!");
-    return true;
-  }
-
-  if (choiceFilter.value === "hostname" && hostname.value === "") {
-    setHostnameError("This Field is required!");
-    return true;
-  }
-
-  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
-    return true;
-  }
-
+  if (choiceUsername.value === "username" && !username.value) { setUsernameError("This Field is required!"); return true; }
+  if (choiceFilter.value === "hostname" && !hostname.value) { setHostnameError("This Field is required!"); return true; }
+  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
   return false;
 };
 
-const resetFields = () => {
-  resetName();
-  resetUsername();
-  resetHostname();
-  resetPublicKeyData();
-};
+const resetFields = () => { resetName(); resetUsername(); resetHostname(); resetPublicKeyData(); };
 
 const create = async () => {
-  if (!hasErrors()) {
-    try {
-      chooseFilter();
-      chooseUsername();
-      const keySend = {
-        ...keyLocal.value,
-        data: btoa(publicKeyData.value),
-        name: name.value,
-      };
-      await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
-      snackbar.showSuccess("Public key created successfully.");
-      update();
-      resetFields();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response?.status === 409) {
-          setPublicKeyDataError("Public Key data already exists");
-        }
-      } else {
-        snackbar.showError("Failed to create the public key.");
-        handleError(error);
+  if (hasErrors()) return;
+
+  try {
+    chooseFilter();
+    chooseUsername();
+    const keySend = {
+      ...keyLocal.value,
+      data: btoa(publicKeyData.value),
+      name: name.value,
+    };
+    await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
+    snackbar.showSuccess("Public key created successfully.");
+    update();
+    resetFields();
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 409) {
+        setPublicKeyDataError("Public Key data already exists");
       }
+    } else {
+      snackbar.showError("Failed to create the public key.");
+      handleError(error);
     }
   }
 };
+
+const encodeFilter = (search: string) => {
+  if (!search) return "";
+  const filterToEncodeBase64 = [
+    { type: "property", params: { name: "name", operator: "contains", value: search } },
+  ];
+  return btoa(JSON.stringify(filterToEncodeBase64));
+};
+
+const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
+  .map((tag) => {
+    const name = typeof tag === "string" ? tag : tag?.name;
+    return name ? ({ name } as LocalTag) : null;
+  })
+  .filter((t: LocalTag | null): t is LocalTag => !!t);
+
+const resetPagination = () => {
+  page.value = 1;
+  perPage.value = 10;
+  fetchedTags.value = [];
+};
+
+const loadTags = async () => {
+  if (isLoading.value) return;
+  isLoading.value = true;
+
+  try {
+    await tagsStore.autocomplete({
+      tenant: localStorage.getItem("tenant") || "",
+      filter: encodeFilter(filter.value),
+      page: page.value,
+      perPage: perPage.value,
+    });
+
+    fetchedTags.value = normalizeStoreItems(tagsStore.list);
+  } catch (error) {
+    snackbar.showError("Failed to load tags.");
+    handleError(error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const onSearch = async (search: string) => {
+  filter.value = search || "";
+  resetPagination();
+  await loadTags();
+};
+
+watch(choiceFilter, async (val) => {
+  if (val === "tags") {
+    resetPagination();
+    await loadTags();
+  }
+});
+
+const bumpPerPageAndLoad = async () => {
+  if (!hasMore.value || isLoading.value) return;
+  perPage.value += 10;
+  await loadTags();
+};
+
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+
+const cleanupObserver = () => {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+};
+
+const setupObserver = () => {
+  cleanupObserver();
+  const root = getMenuRootEl();
+  if (!root || !sentinel.value) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (entry?.isIntersecting) bumpPerPageAndLoad();
+    },
+    { root, threshold: 1.0 },
+  );
+
+  observer.observe(sentinel.value);
+};
+
+watch(acMenuOpen, async (open) => {
+  if (open && choiceFilter.value === "tags") {
+    await nextTick();
+    setupObserver();
+  } else {
+    cleanupObserver();
+  }
+});
+
+onMounted(async () => {
+  resetPagination();
+  await loadTags();
+});
+
+onUnmounted(cleanupObserver);
 
 defineExpose({ publicKeyDataError, nameError });
 </script>

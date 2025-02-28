@@ -10,26 +10,38 @@ import DeviceDetails from "../../../../src/views/DeviceDetails.vue";
 type DeviceDetailsWrapper = VueWrapper<InstanceType<typeof DeviceDetails>>;
 
 const deviceDetail = {
-  uid: "cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75",
-  name: "08-97-98-68-7a-97",
-  identity: { mac: "08:97:98:68:7a:97" },
-  info: {
-    id: "ubuntu",
-    pretty_name: "Ubuntu 20.04.4 LTS",
-    version: "latest",
-    arch: "amd64",
-    platform: "docker",
+  uid: "a582b47a42e",
+  name: "39-5e-2b",
+  identity: {
+    mac: "00:00:00:00:00:00",
   },
-  public_key: "---BEGIN RSA KEY---",
-  tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  last_seen: "2022-06-06T18:51:53.813Z",
+  info: {
+    id: "linuxmint",
+    pretty_name: "Linux Mint 19.3",
+    version: "",
+    arch: "x86_64",
+    platform: "linux",
+  },
+  public_key: "----- PUBLIC KEY -----",
+  tenant_id: "fake-tenant-data",
+  last_seen: "2020-05-20T19:58:53.276Z",
   online: true,
-  namespace: "dev",
+  namespace: "user",
   status: "accepted",
-  created_at: "2022-04-13T11:43:25.218Z",
-  remote_addr: "172.22.0.1",
-  position: { latitude: 0, longitude: 0 },
-  tags: ["dev"],
+  created_at: "2020-05-01T00:00:00.000Z",
+  remoteAddr: "127.0.0.1",
+  position: {
+    longitude: 0,
+    latitude: 0,
+  },
+  tags: [
+    {
+      tenant_id: "fake-tenant-data",
+      name: "test-tag",
+      created_at: "",
+      updated_at: "",
+    },
+  ],
 };
 
 const mockRoute = {
@@ -84,7 +96,7 @@ describe("Device Details", () => {
     expect(wrapper.find(`[data-test='${deviceDetail.info.id}']`).text()).toContain(deviceDetail.info.id);
     expect(wrapper.find(`[data-test='${deviceDetail.tenant_id}']`).text()).toContain(deviceDetail.tenant_id);
     expect(wrapper.find(`[data-test='${deviceDetail.online}']`).text()).toContain(String(deviceDetail.online));
-    expect(wrapper.find(`[data-test='${deviceDetail.tags}']`).text()).toContain(deviceDetail.tags[0]);
+    expect(wrapper.find(`[data-test='${deviceDetail.tags}']`).text()).toContain(deviceDetail.tags[0].name);
     expect(wrapper.find(`[data-test='${deviceDetail.namespace}']`).text()).toContain(deviceDetail.namespace);
     expect(wrapper.find(`[data-test='${deviceDetail.status}']`).text()).toContain(deviceDetail.status);
   });

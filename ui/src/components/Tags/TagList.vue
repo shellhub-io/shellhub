@@ -1,19 +1,17 @@
 <template>
-  <v-table data-test="tagListList-dataTable" class="bg-background border rounded mx-4">
-    <thead class="bg-v-theme-background">
-      <tr>
-        <th
-          v-for="(head, i) in headers"
-          :key="i"
-          :class="head.align ? `text-${head.align}` : 'text-center'"
-        >
-          <span> {{ head.text }}</span>
-        </th>
-      </tr>
-    </thead>
-    <tbody v-if="tags.length">
-      <tr v-for="(tag, i) in tags" :key="i">
-        <td class="text-center">{{ tag }}</td>
+  <DataTable
+    v-model:itemsPerPage="itemsPerPage"
+    v-model:page="page"
+    :headers
+    :items="tags"
+    :loading
+    :totalCount="numberTags"
+    :itemsPerPageOptions="[10, 20, 50, 100]"
+    data-test="tag-list"
+  >
+    <template v-slot:rows>
+      <tr v-for="(item, i) in tags" :key="i">
+        <td class="text-center" data-test="tag-name"> {{ item.name }}</td>
         <td class="text-center">
           <v-menu location="bottom" scrim eager>
             <template v-slot:activator="{ props }">
@@ -32,9 +30,9 @@
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <TagEdit
-                      :tag="tag"
+                      :tag-name="item.name"
                       :has-authorization="canEditTag"
-                      @update="getTags()"
+                      @update="refresh()"
                     />
                   </div>
                 </template>
@@ -45,9 +43,9 @@
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <TagRemove
-                      :tag="tag"
+                      :tag-name="item.name"
                       :has-authorization="canRemoveTag"
-                      @update="getTags()"
+                      @update="refresh()"
                     />
                   </div>
                 </template>
@@ -57,55 +55,73 @@
           </v-menu>
         </td>
       </tr>
-    </tbody>
-    <div v-else class="text-start mt-2 mb-3">
-      <span class="ml-4">No data available</span>
-    </div>
-  </v-table>
+    </template>
+  </DataTable>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import hasPermission from "@/utils/permission";
+import { computed, onMounted, ref, watch } from "vue";
+import hasPermission from "../../utils/permission";
+import DataTable from "../DataTable.vue";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
 import handleError from "@/utils/handleError";
-import useSnackbar from "@/helpers/snackbar";
 import useTagsStore from "@/store/modules/tags";
+import useSnackbar from "@/helpers/snackbar";
 
-const tagsStore = useTagsStore();
-const snackbar = useSnackbar();
 const headers = ref([
   {
     text: "Name",
     value: "name",
-    align: "center",
-    sortable: false,
   },
   {
     text: "Actions",
     value: "actions",
-    align: "center",
-    sortable: false,
   },
 ]);
 
-const tags = computed(() => tagsStore.tags);
+const tagsStore = useTagsStore();
+const snackbar = useSnackbar();
+const loading = ref(false);
+const itemsPerPage = ref(10);
+const page = ref<number>(1);
+const tags = computed(() => tagsStore.list);
+const tenant = computed(() => localStorage.getItem("tenant"));
+const numberTags = computed<number>(
+  () => tagsStore.getNumberTags,
+);
+
+const getTags = async (): Promise<void> => {
+  if (!tenant.value) return;
+  loading.value = true;
+  try {
+    await tagsStore.fetch({
+      tenant: tenant.value,
+      filter: tagsStore.getFilter || "",
+      perPage: itemsPerPage.value,
+      page: page.value,
+    });
+  } catch (error) {
+    snackbar.showError("Failed to load tags.");
+    handleError(error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const refresh = async () => {
+  await getTags();
+};
+
+watch([page, itemsPerPage], async () => { await getTags(); });
 
 const canEditTag = hasPermission("tag:edit");
 
 const canRemoveTag = hasPermission("tag:remove");
 
-const getTags = async () => {
-  try {
-    await tagsStore.fetchTags();
-  } catch (error: unknown) {
-    snackbar.showError("Failed to load tags.");
-    handleError(error);
-  }
-};
-
-onMounted(async () => {
-  await getTags();
+onMounted(() => {
+  refresh();
 });
+
+defineExpose({ refresh });
 </script>

@@ -122,18 +122,27 @@
             />
 
             <v-row v-else-if="selectedFilterOption === FormFilterOptions.Tags" class="px-3 mt-2">
-              <v-select
+              <v-autocomplete
                 v-model="selectedTags"
-                @update:model-value="setSelectedTagsError"
-                :items="availableTags"
-                data-test="tags-selector"
+                v-model:menu="acMenuOpen"
+                :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+                :items="tags"
+                item-title="name"
+                item-value="name"
                 attach
                 chips
                 label="Tags"
                 :error-messages="selectedTagsError"
                 variant="underlined"
                 multiple
-              />
+                data-test="tags-selector"
+                @update:model-value="setSelectedTagsError"
+                @update:search="onSearch"
+              >
+                <template #append-item>
+                  <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+                </template>
+              </v-autocomplete>
             </v-row>
           </v-card-text>
 
@@ -161,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, nextTick, onUnmounted, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
@@ -175,6 +184,8 @@ import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import useTagsStore from "@/store/modules/tags";
 import useUsersStore from "@/store/modules/users";
 
+type LocalTag = { name: string };
+
 const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
 const tagsStore = useTagsStore();
@@ -186,7 +197,7 @@ const action = ref<IFirewallRule["action"]>("allow");
 const selectedIPOption = ref("all");
 const selectedUsernameOption = ref("all");
 const selectedFilterOption = ref(FormFilterOptions.All);
-const availableTags = computed(() => tagsStore.tags);
+
 const {
   value: priority,
   errorMessage: priorityError,
@@ -198,10 +209,9 @@ const {
     .required("This field is required")
     .notOneOf([0], "Priority cannot be zero")
     .typeError("This must be a valid integer"),
-  {
-    initialValue: 1,
-  },
+  { initialValue: 1 },
 );
+
 const {
   value: sourceIp,
   errorMessage: sourceIpError,
@@ -210,6 +220,7 @@ const {
 } = useField<string>("sourceIp", yup.string().required("This field is required"), {
   initialValue: "",
 });
+
 const {
   value: username,
   errorMessage: usernameError,
@@ -218,6 +229,7 @@ const {
 } = useField<string>("username", yup.string().required("This field is required"), {
   initialValue: "",
 });
+
 const {
   value: hostname,
   errorMessage: hostnameError,
@@ -226,8 +238,10 @@ const {
 } = useField<string>("hostname", yup.string().required("This field is required"), {
   initialValue: "",
 });
-const selectedTags = ref([]);
+
+const selectedTags = ref<string[]>([]);
 const selectedTagsError = ref("");
+
 const activeSelectOptions = [
   { value: true, title: "Active" },
   { value: false, title: "Inactive" },
@@ -252,15 +266,139 @@ const filterSelectOptions = [
 
 const canCreateFirewallRule = hasPermission("firewall:create");
 
+const acMenuOpen = ref(false);
+const menuContentClass = computed(() => "fw-tags-ac-content");
+
+const fetchedTags = ref<LocalTag[]>([]);
+const tags = computed(() => fetchedTags.value);
+
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+const page = ref(1);
+const perPage = ref(10);
+const filter = ref("");
+const isLoading = ref(false);
+
+const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
+
 const setSelectedTagsError = () => {
-  if (selectedTags.value.length > 3) selectedTagsError.value = "You can select up to 3 tags only.";
-  else if (selectedTags.value.length === 0) selectedTagsError.value = "You must choose at least one tag";
-  else selectedTagsError.value = "";
+  if (selectedFilterOption.value !== FormFilterOptions.Tags) {
+    selectedTagsError.value = "";
+    return;
+  }
+  if (selectedTags.value.length > 3) {
+    nextTick(() => selectedTags.value.pop());
+    selectedTagsError.value = "You can select up to 3 tags only.";
+  } else if (selectedTags.value.length === 0) {
+    selectedTagsError.value = "You must choose at least one tag";
+  } else {
+    selectedTagsError.value = "";
+  }
 };
+watch(selectedTags, setSelectedTagsError);
+
+const encodeFilter = (search: string) => {
+  if (!search) return "";
+  const filterToEncodeBase64 = [
+    { type: "property", params: { name: "name", operator: "contains", value: search } },
+  ];
+  return btoa(JSON.stringify(filterToEncodeBase64));
+};
+
+const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
+  .map((tag) => {
+    const name = typeof tag === "string" ? tag : tag?.name;
+    return name ? ({ name } as LocalTag) : null;
+  })
+  .filter((tag: LocalTag | null): tag is LocalTag => !!tag);
+
+const resetPagination = () => {
+  page.value = 1;
+  perPage.value = 10;
+  fetchedTags.value = [];
+};
+
+const loadTags = async () => {
+  if (isLoading.value) return;
+  isLoading.value = true;
+  try {
+    await tagsStore.autocomplete({
+      tenant: localStorage.getItem("tenant") || "",
+      filter: encodeFilter(filter.value),
+      page: page.value,
+      perPage: perPage.value,
+    });
+    fetchedTags.value = normalizeStoreItems(tagsStore.list);
+  } catch (error) {
+    snackbar.showError("Failed to load tags.");
+    handleError(error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const onSearch = async (search: string) => {
+  filter.value = search || "";
+  resetPagination();
+  await loadTags();
+};
+
+const bumpPerPageAndLoad = async () => {
+  if (!hasMore.value || isLoading.value) return;
+  perPage.value += 10;
+  await loadTags();
+};
+
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+
+const cleanupObserver = () => {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+};
+
+const setupObserver = () => {
+  cleanupObserver();
+  const root = getMenuRootEl();
+  if (!root || !sentinel.value) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (entry?.isIntersecting) bumpPerPageAndLoad();
+    },
+    { root, threshold: 1.0 },
+  );
+
+  observer.observe(sentinel.value);
+};
+
+watch(acMenuOpen, async (open) => {
+  if (open && selectedFilterOption.value === FormFilterOptions.Tags) {
+    await nextTick();
+    setupObserver();
+  } else {
+    cleanupObserver();
+  }
+});
 
 const resetSelectedTags = () => {
   selectedTags.value = [];
   selectedTagsError.value = "";
+};
+
+const handleFilterUpdate = async () => {
+  resetHostname();
+  resetSelectedTags();
+
+  if (selectedFilterOption.value === FormFilterOptions.Hostname) setHostnameError("This field is required");
+  if (selectedFilterOption.value === FormFilterOptions.Tags) {
+    resetPagination();
+    await loadTags();
+    setSelectedTagsError();
+  }
 };
 
 const handleSourceIpUpdate = () => {
@@ -273,24 +411,18 @@ const handleUsernameUpdate = () => {
   if (selectedUsernameOption.value === "username") setUsernameError("This field is required");
 };
 
-const handleFilterUpdate = async () => {
-  resetHostname();
-  resetSelectedTags();
-
-  if (selectedFilterOption.value === FormFilterOptions.Hostname) setHostnameError("This field is required");
-  if (selectedFilterOption.value === FormFilterOptions.Tags) {
-    setSelectedTagsError();
-    await tagsStore.fetchTags();
-  }
-};
-
-const hasErrors = computed(() => (
-  !!(priorityError.value
+const hasErrors = computed(() => {
+  const common = !!(
+    priorityError.value
     || sourceIpError.value
     || usernameError.value
     || hostnameError.value
-    || selectedTagsError.value)
-));
+  );
+  const tagsErrors = selectedFilterOption.value === FormFilterOptions.Tags
+    && !!selectedTagsError.value;
+
+  return common || tagsErrors;
+});
 
 const resetForm = () => {
   active.value = true;
@@ -303,10 +435,16 @@ const resetForm = () => {
   resetUsername();
   resetHostname();
   resetSelectedTags();
+  cleanupObserver();
 };
 
 const open = () => {
   showDialog.value = true;
+  if (selectedFilterOption.value === FormFilterOptions.Tags) {
+    resetPagination();
+    loadTags();
+    setSelectedTagsError();
+  }
 };
 
 const close = () => {
@@ -320,11 +458,11 @@ const update = () => {
 };
 
 const constructNewFirewallRule = () => {
-  const filter = {
+  const filterMap = {
     [FormFilterOptions.Hostname]: { hostname: hostname.value.trim() },
     [FormFilterOptions.Tags]: { tags: selectedTags.value },
     [FormFilterOptions.All]: { hostname: ".*" },
-  }[selectedFilterOption.value];
+  };
 
   return {
     active: active.value,
@@ -332,7 +470,7 @@ const constructNewFirewallRule = () => {
     priority: Number(priority.value),
     source_ip: selectedIPOption.value === "all" ? ".*" : sourceIp.value.trim(),
     username: selectedUsernameOption.value === "all" ? ".*" : username.value.trim(),
-    filter,
+    filter: filterMap[selectedFilterOption.value],
   };
 };
 
@@ -353,6 +491,10 @@ const addFirewallRule = async () => {
     handleError(error);
   }
 };
+
+onUnmounted(() => {
+  cleanupObserver();
+});
 
 defineExpose({ selectedIPOption, selectedFilterOption, selectedUsernameOption });
 </script>

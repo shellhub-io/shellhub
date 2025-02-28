@@ -27,58 +27,58 @@ exports[`Device Details > Renders the component 1`] = `
       <div class="text-overline mt-3">
         <h3>uid:</h3>
       </div>
-      <div data-test="cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75">
-        <p>cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75</p>
+      <div data-test="a582b47a42e">
+        <p>a582b47a42e</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">
         <h3>name:</h3>
       </div>
-      <div data-test="08-97-98-68-7a-97">
-        <p>08-97-98-68-7a-97</p>
+      <div data-test="39-5e-2b">
+        <p>39-5e-2b</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">
         <h3>mac:</h3>
       </div>
-      <div data-test="08:97:98:68:7a:97">08:97:98:68:7a:97</div>
+      <div data-test="00:00:00:00:00:00">00:00:00:00:00:00</div>
     </div>
     <div>
       <div class="text-overline mt-3">
         <h3>info:</h3>
       </div>
-      <ul data-test="ubuntu">
-        <li class="ml-8"><span class="font-weight-bold mr-1">id:</span><span>ubuntu</span></li>
+      <ul data-test="linuxmint">
+        <li class="ml-8"><span class="font-weight-bold mr-1">id:</span><span>linuxmint</span></li>
       </ul>
-      <ul data-test="ubuntu">
-        <li class="ml-8"><span class="font-weight-bold mr-1">pretty_name:</span><span>Ubuntu 20.04.4 LTS</span></li>
+      <ul data-test="linuxmint">
+        <li class="ml-8"><span class="font-weight-bold mr-1">pretty_name:</span><span>Linux Mint 19.3</span></li>
       </ul>
-      <ul data-test="ubuntu">
-        <li class="ml-8"><span class="font-weight-bold mr-1">version:</span><span>latest</span></li>
+      <ul data-test="linuxmint">
+        <li class="ml-8"><span class="font-weight-bold mr-1">version:</span><span></span></li>
       </ul>
-      <ul data-test="ubuntu">
-        <li class="ml-8"><span class="font-weight-bold mr-1">arch:</span><span>amd64</span></li>
+      <ul data-test="linuxmint">
+        <li class="ml-8"><span class="font-weight-bold mr-1">arch:</span><span>x86_64</span></li>
       </ul>
-      <ul data-test="ubuntu">
-        <li class="ml-8"><span class="font-weight-bold mr-1">platform:</span><span>docker</span></li>
+      <ul data-test="linuxmint">
+        <li class="ml-8"><span class="font-weight-bold mr-1">platform:</span><span>linux</span></li>
       </ul>
     </div>
     <div>
       <div class="text-overline mt-3">
         <h3>Public Key:</h3>
       </div>
-      <div data-test="---BEGIN RSA KEY---">
-        <p>---BEGIN RSA KEY---</p>
+      <div data-test="----- PUBLIC KEY -----">
+        <p>----- PUBLIC KEY -----</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">
         <h3>Tenant Id:</h3>
       </div>
-      <div data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-        <p>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
+      <div data-test="fake-tenant-data">
+        <p>fake-tenant-data</p>
       </div>
     </div>
     <div>
@@ -93,10 +93,10 @@ exports[`Device Details > Renders the component 1`] = `
       <div class="text-overline mt-3">
         <h3>Tags:</h3>
       </div>
-      <div data-test="dev"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-0"><!----><span class="v-chip__underlay"></span>
+      <div data-test="[object Object]"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-0"><!----><span class="v-chip__underlay"></span>
         <!---->
         <!---->
-        <div class="v-chip__content" data-no-activator="">dev</div>
+        <div class="v-chip__content" data-no-activator="">test-tag</div>
         <!---->
         <!----></span>
         <!--teleport start-->
@@ -107,8 +107,8 @@ exports[`Device Details > Renders the component 1`] = `
       <div class="text-overline mt-3">
         <h3>Namespace:</h3>
       </div>
-      <div data-test="dev">
-        <p>dev</p>
+      <div data-test="user">
+        <p>user</p>
       </div>
     </div>
     <div>

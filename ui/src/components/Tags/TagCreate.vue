@@ -1,24 +1,7 @@
 <template>
-  <v-list-item
-    @click="open"
-    v-bind="$attrs"
-    :disabled="!hasAuthorization"
-    data-test="open-tag-edit"
-  >
-    <div class="d-flex align-center">
-      <div class="mr-2">
-        <v-icon> mdi-pencil </v-icon>
-      </div>
-
-      <v-list-item-title data-test="mdi-information-list-item">
-        Edit
-      </v-list-item-title>
-    </div>
-  </v-list-item>
-
-  <BaseDialog v-model="showDialog">
+  <BaseDialog v-model="showDialog" min-width="300" max-width="600">
     <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary"> Update Tag </v-card-title>
+      <v-card-title class="text-h5 pa-4 bg-primary"> Create Tag </v-card-title>
       <v-divider />
 
       <v-card-text class="mt-4 mb-0 pb-1">
@@ -41,11 +24,10 @@
         <v-btn
           color="primary"
           variant="text"
-          data-test="edit-btn"
-          @click="edit()"
-          :disabled="!!tagsError"
+          data-test="create-btn"
+          @click="create()"
         >
-          Edit
+          Create
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -56,24 +38,13 @@
 import { ref, computed, watch } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
 import useTagsStore from "@/store/modules/tags";
-
-const props = defineProps({
-  tagName: {
-    type: String,
-    required: true,
-  },
-  hasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-});
+import BaseDialog from "../BaseDialog.vue";
 
 const emit = defineEmits(["update"]);
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const showDialog = ref(false);
+const showDialog = defineModel({ default: false });
 
 const inputTags = ref<string>("");
 const tagsError = ref("");
@@ -82,7 +53,7 @@ const tenant = computed(() => localStorage.getItem("tenant"));
 
 watch(inputTags, () => {
   if (inputTags.value.length > 255) {
-    tagsError.value = "The maximum length is 255 characters";
+    tagsError.value = "Maximum of 3 tags";
   } else if (tagsHasLessThan3Characters.value) {
     tagsError.value = "The minimum length is 3 characters";
   } else {
@@ -90,14 +61,9 @@ watch(inputTags, () => {
   }
 });
 
-const open = () => {
-  showDialog.value = true;
-  inputTags.value = props.tagName;
-};
-
 const close = () => {
-  showDialog.value = false;
   inputTags.value = "";
+  showDialog.value = false;
 };
 
 const update = () => {
@@ -105,25 +71,22 @@ const update = () => {
   close();
 };
 
-const edit = async () => {
+const create = async () => {
   if (!tagsError.value) {
     try {
-      await tagsStore.editTag({
+      await tagsStore.createTag({
         tenant: tenant.value || "",
-        currentName: props.tagName,
-        newName: {
-          name: inputTags.value,
-        },
+        name: inputTags.value,
       });
 
       update();
-      snackbar.showSuccess("Tag updated successfully.");
+      snackbar.showSuccess("Successfully created tag");
     } catch (error: unknown) {
-      snackbar.showError("Failed to update tag.");
+      snackbar.showError("Failed to create tag.");
       handleError(error);
     }
   }
 };
 
-defineExpose({ inputTags });
+defineExpose({ inputTags, showDialog });
 </script>

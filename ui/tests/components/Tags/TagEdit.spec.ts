@@ -19,7 +19,10 @@ describe("Tag Form Edit", async () => {
   setActivePinia(createPinia());
   const tagsStore = useTagsStore();
   const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
+
+  localStorage.setItem("tenant", "fake-tenant-data");
+
+  const mockTags = new MockAdapter(tagsApi.getAxios());
 
   beforeEach(async () => {
     wrapper = mount(TagEdit, {
@@ -28,7 +31,7 @@ describe("Tag Form Edit", async () => {
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
-        tag: "tag-test",
+        tagName: "tag-test",
         hasAuthorization: true,
       },
     });
@@ -54,9 +57,9 @@ describe("Tag Form Edit", async () => {
   });
 
   it("Successfully edit tag", async () => {
-    mockTagsApi.onPut("http://localhost:3000/api/tags/tag-test").reply(200);
+    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(200);
 
-    const storeSpy = vi.spyOn(tagsStore, "updateTag");
+    const tagsSpy = vi.spyOn(tagsStore, "editTag");
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 
@@ -66,14 +69,17 @@ describe("Tag Form Edit", async () => {
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith({
-      oldTag: "tag-test",
-      newTag: "tag-test2",
+    expect(tagsSpy).toHaveBeenCalledWith({
+      tenant: "fake-tenant-data",
+      currentName: "tag-test",
+      newName: {
+        name: "tag-test2",
+      },
     });
   });
 
-  it("Failed to edit tags", async () => {
-    mockTagsApi.onPut("http://localhost:3000/api/tags/tag-test").reply(409);
+  it("Failed to add tags", async () => {
+    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(409);
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 

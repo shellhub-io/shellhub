@@ -68,18 +68,28 @@
             </v-row>
 
             <v-row class="px-3">
-              <v-select
+              <v-autocomplete
                 v-if="choiceFilter === 'tags'"
                 v-model="tagChoices"
-                :items="tagNames"
-                data-test="tags-selector"
+                v-model:menu="acMenuOpen"
+                :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+                :items="tags"
+                item-title="name"
+                item-value="name"
                 attach
                 chips
                 label="Tags"
                 :rules="[validateLength]"
                 :error-messages="errMsg"
                 multiple
-              />
+                data-test="tags-selector"
+                @update:search="onSearch"
+              >
+                <template #append-item>
+                  <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+                </template>
+              </v-autocomplete>
+
               <v-text-field
                 v-if="choiceFilter === 'hostname'"
                 v-model="hostname"
@@ -132,6 +142,7 @@ import {
   computed,
   nextTick,
   onUpdated,
+  onUnmounted,
 } from "vue";
 import * as yup from "yup";
 import { IPublicKey } from "@/interfaces/IPublicKey";
@@ -157,36 +168,20 @@ const validateLength = ref(true);
 const errMsg = ref("");
 const prop = computed(() => props);
 const choiceUsername = ref("username");
+
 const filterList = ref([
-  {
-    filterName: "all",
-    filterText: "Allow the key to connect to all available devices",
-  },
-  {
-    filterName: "hostname",
-    filterText: "Restrict access using a regexp for hostname",
-  },
-  {
-    filterName: "tags",
-    filterText: "Restrict access by tags",
-  },
+  { filterName: "all", filterText: "Allow the key to connect to all available devices" },
+  { filterName: "hostname", filterText: "Restrict access using a regexp for hostname" },
+  { filterName: "tags", filterText: "Restrict access by tags" },
 ]);
+
 const usernameList = ref([
-  {
-    filterName: "all",
-    filterText: "Allow any user",
-  },
-  {
-    filterName: "username",
-    filterText: "Restrict access using a regexp for username",
-  },
+  { filterName: "all", filterText: "Allow any user" },
+  { filterName: "username", filterText: "Restrict access using a regexp for username" },
 ]);
-const tagChoices = ref<Array<string>>([]);
-const keyLocal = ref<Partial<IPublicKey>>({
-  name: "",
-  username: "",
-  data: "",
-});
+
+const tagChoices = ref<string[]>([]);
+const keyLocal = ref<Partial<IPublicKey>>({ name: "", username: "", data: "" });
 
 const {
   value: name,
@@ -194,10 +189,7 @@ const {
 } = useField<string>("name", yup.string().required(), {
   initialValue: prop.value.publicKey.name,
 });
-
-watch(name, () => {
-  keyLocal.value.name = name.value;
-});
+watch(name, () => { keyLocal.value.name = name.value; });
 
 const {
   value: username,
@@ -206,10 +198,7 @@ const {
 } = useField<string>("username", yup.string().required(), {
   initialValue: prop.value.publicKey.username,
 });
-
-watch(username, () => {
-  keyLocal.value.username = username.value;
-});
+watch(username, () => { keyLocal.value.username = username.value; });
 
 const {
   value: hostname,
@@ -226,25 +215,123 @@ const {
   initialValue: prop.value.publicKey.data,
 });
 
+const hasAuthorization = computed(() => props.hasAuthorization ?? true);
+
 const hasTags = computed(() => {
   const { publicKey } = props;
   if (!publicKey) return false;
   return Reflect.ownKeys(publicKey.filter)[0] === "tags";
 });
 
-watch(choiceFilter, async () => {
-  if (choiceFilter.value === "tags") {
-    await tagsStore.fetchTags();
+type LocalTag = { name: string };
+
+const acMenuOpen = ref(false);
+const menuContentClass = computed(() => `pk-edit-tags-ac-${(props.publicKey?.name || "key").replace(/\W/g, "-")}`);
+
+const fetchedTags = ref<LocalTag[]>([]);
+const tags = computed(() => fetchedTags.value);
+
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+const page = ref(1);
+const perPage = ref(10);
+const filter = ref("");
+const isLoading = ref(false);
+
+const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
+
+const encodeFilter = (search: string) => {
+  if (!search) return "";
+  const filterToEncodeBase64 = [
+    { type: "property", params: { name: "name", operator: "contains", value: search } },
+  ];
+  return btoa(JSON.stringify(filterToEncodeBase64));
+};
+
+const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
+  .map((tag) => {
+    const name = typeof tag === "string" ? tag : tag?.name;
+    return name ? ({ name } as LocalTag) : null;
+  })
+  .filter((t: LocalTag | null): t is LocalTag => !!t);
+
+const resetPagination = () => {
+  page.value = 1;
+  perPage.value = 10;
+  fetchedTags.value = [];
+};
+
+const loadTags = async () => {
+  if (isLoading.value) return;
+  isLoading.value = true;
+  try {
+    await tagsStore.autocomplete({
+      tenant: localStorage.getItem("tenant") || "",
+      filter: encodeFilter(filter.value),
+      page: page.value,
+      perPage: perPage.value,
+    });
+    fetchedTags.value = normalizeStoreItems(tagsStore.list);
+  } catch (error) {
+    snackbar.showError("Failed to load tags.");
+    handleError(error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const onSearch = async (search: string) => {
+  filter.value = search || "";
+  resetPagination();
+  await loadTags();
+};
+
+const bumpPerPageAndLoad = async () => {
+  if (!hasMore.value || isLoading.value) return;
+  perPage.value += 10;
+  await loadTags();
+};
+
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+
+const cleanupObserver = () => {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+};
+
+const setupObserver = () => {
+  cleanupObserver();
+  const root = getMenuRootEl();
+  if (!root || !sentinel.value) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (entry?.isIntersecting) bumpPerPageAndLoad();
+    },
+    { root, threshold: 1.0 },
+  );
+
+  observer.observe(sentinel.value);
+};
+
+watch(acMenuOpen, async (open) => {
+  if (open && choiceFilter.value === "tags") {
+    await nextTick();
+    setupObserver();
+  } else {
+    cleanupObserver();
   }
 });
 
-const tagNames = computed({
-  get() {
-    return tagsStore.tags;
-  },
-  set(val) {
-    tagChoices.value = val;
-  },
+watch(choiceFilter, async (val) => {
+  if (val === "tags") {
+    resetPagination();
+    await loadTags();
+  }
 });
 
 watch(tagChoices, (list) => {
@@ -287,20 +374,16 @@ const chooseFilter = () => {
       break;
     }
     case "hostname": {
-      keyLocal.value = {
-        ...keyLocal.value,
-        filter: { hostname: hostname.value },
-      };
+      keyLocal.value = { ...keyLocal.value, filter: { hostname: hostname.value } };
       break;
     }
     case "tags": {
-      keyLocal.value = {
-        ...keyLocal.value,
-        filter: { tags: tagChoices.value },
-      };
+      keyLocal.value = { ...keyLocal.value, filter: { tags: tagChoices.value } };
       break;
     }
-    default:
+    default: {
+      break;
+    }
   }
 };
 
@@ -314,7 +397,9 @@ const chooseUsername = () => {
       keyLocal.value = { ...keyLocal.value, username: username.value };
       break;
     }
-    default:
+    default: {
+      break;
+    }
   }
 };
 
@@ -328,16 +413,13 @@ const hasError = () => {
     setUsernameError("This Field is required !");
     return true;
   }
-
   if (choiceFilter.value === "hostname" && hostname.value === "") {
     setHostnameError("This Field is required !");
     return true;
   }
-
   if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
     return true;
   }
-
   return false;
 };
 
@@ -349,12 +431,18 @@ const open = () => {
 
 onMounted(() => {
   setLocalVariable();
+  resetPagination();
+  loadTags();
 });
 
 onUpdated(() => {
   handleUpdate();
   setLocalVariable();
   keyLocal.value.data = publicKeyData.value;
+});
+
+onUnmounted(() => {
+  cleanupObserver();
 });
 
 const resetPublicKey = () => {
@@ -367,6 +455,7 @@ const close = () => {
   resetPublicKey();
   setLocalVariable();
   showDialog.value = false;
+  cleanupObserver();
 };
 
 const update = () => {
@@ -378,7 +467,6 @@ const edit = async () => {
   if (!hasError()) {
     chooseFilter();
     chooseUsername();
-
     const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data as string) };
 
     try {

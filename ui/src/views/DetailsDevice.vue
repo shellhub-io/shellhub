@@ -106,16 +106,16 @@
                 v-for="(tag, index) in device.tags"
                 :key="index"
                 bottom
-                :disabled="!showTag(tag)"
+                :disabled="!showTag(tag.name)"
               >
                 <template #activator="{ props }">
                   <v-chip size="small" v-bind="props" class="mr-2">
-                    {{ displayOnlyTenCharacters(tag) }}
+                    {{ displayOnlyTenCharacters(tag.name) }}
                   </v-chip>
                 </template>
 
-                <span v-if="showTag(tag)">
-                  {{ tag }}
+                <span>
+                  {{ tag.name }}
                 </span>
               </v-tooltip>
             </div>
@@ -146,12 +146,12 @@ import { useRoute } from "vue-router";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "@/utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
+import hasPermission from "@/utils/permission";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import TerminalConnectButton from "../components/Terminal/TerminalConnectButton.vue";
 import { formatFullDateTime } from "@/utils/date";
-import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";

@@ -5,7 +5,7 @@ import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import FirewallRuleAdd from "@/components/firewall/FirewallRuleAdd.vue";
 import { router } from "@/router";
-import { rulesApi } from "@/api/http";
+import { rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import useAuthStore from "@/store/modules/auth";
@@ -26,8 +26,14 @@ describe("Firewall Rule Add", () => {
   const vuetify = createVuetify();
 
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
-
+  const mockTags = new MockAdapter(tagsApi.getAxios());
   beforeEach(async () => {
+    localStorage.setItem("tenant", "fake-tenant-data");
+
+    mockTags
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, [{ name: "1" }, { name: "2" }]);
+
     authStore.role = "owner";
 
     wrapper = mount(FirewallRuleAdd, {
@@ -110,7 +116,7 @@ describe("Firewall Rule Add", () => {
   });
 
   it("Fails on adding firewall rules", async () => {
-    mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(400);
+    mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(404);
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 

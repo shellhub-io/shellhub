@@ -34,7 +34,12 @@ describe("Device List", () => {
       online: false,
       namespace: "user",
       status: "accepted",
-      tags: ["test"],
+      tags: [{
+        tenant_id: "fake-tenant-data",
+        name: "test-tag",
+        created_at: "",
+        updated_at: "",
+      }],
     },
     {
       uid: "a582b47a42e",
@@ -53,7 +58,14 @@ describe("Device List", () => {
       online: true,
       namespace: "user",
       status: "accepted",
-      tags: ["test"],
+      tags: [
+        {
+          tenant_id: "fake-tenant-data",
+          name: "test-tag",
+          created_at: "",
+          updated_at: "",
+        },
+      ],
     },
   ];
 

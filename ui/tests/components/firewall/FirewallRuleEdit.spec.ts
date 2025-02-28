@@ -14,7 +14,7 @@ type FirewallRuleEditWrapper = VueWrapper<InstanceType<typeof FirewallRuleEdit>>
 
 const firewallRule = {
   id: "1000",
-  tenant_id: "00000000-0000-4000-0000-000000000000",
+  tenant_id: "fake-tenant-data",
   priority: 1,
   action: "allow" as const,
   active: true,
@@ -34,6 +34,8 @@ const mockSnackbar = {
 describe("Firewall Rule Edit", () => {
   let wrapper: FirewallRuleEditWrapper;
   const vuetify = createVuetify();
+  localStorage.setItem("tenant", "fake-tenant-data");
+
   setActivePinia(createPinia());
   const firewallRulesStore = useFirewallRulesStore();
   const mountWrapper = (firewallRuleProp: IFirewallRule = firewallRule) => mount(FirewallRuleEdit, {
@@ -51,7 +53,10 @@ describe("Firewall Rule Edit", () => {
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
   beforeEach(async () => {
-    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, ["tag1", "tag2"]);
+    mockTagsApi
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, [{ name: "1" }, { name: "2" }]);
+
     wrapper = mountWrapper();
   });
 
