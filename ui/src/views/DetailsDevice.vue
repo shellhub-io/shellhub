@@ -154,6 +154,8 @@ import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";

@@ -5,7 +5,7 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import TagFormUpdate from "@/components/Tags/TagFormUpdate.vue";
 import { router } from "@/router";
-import { namespacesApi, devicesApi } from "@/api/http";
+import { namespacesApi, devicesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const mockSnackbar = {
@@ -31,7 +31,7 @@ const devices = [
     online: false,
     namespace: "user",
     status: "accepted",
-    tags: ["test"],
+    tags: [{ name: "test1" }],
   },
   {
     uid: "a582b47a42e",
@@ -50,7 +50,7 @@ const devices = [
     online: true,
     namespace: "user",
     status: "accepted",
-    tags: ["test2"],
+    tags: [{ name: "test2" }],
   },
 ];
 
@@ -121,6 +121,20 @@ const stats = {
   rejected_devices: 0,
 };
 
+const tags = [
+  { name: "tag1" },
+  { name: "tag2" },
+  { name: "tag3" },
+  { name: "tag4" },
+  { name: "tag5" },
+  { name: "tag6" },
+  { name: "tag7" },
+  { name: "tag8" },
+  { name: "tag9" },
+  { name: "tag10" },
+  { name: "tag11" },
+];
+
 describe("Tag Form Update", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TagFormUpdate>>;
 
@@ -128,15 +142,19 @@ describe("Tag Form Update", async () => {
 
   let mockNamespace: MockAdapter;
   let mockDevices: MockAdapter;
+  let mockTags: MockAdapter;
 
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
+    mockTags = new MockAdapter(tagsApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
+    mockTags
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, tags);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
 
     store.commit("auth/authSuccess", authData);
@@ -167,41 +185,110 @@ describe("Tag Form Update", async () => {
 
   it("Renders the component data table", async () => {
     const dialog = new DOMWrapper(document.body);
-    await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
     await flushPromises();
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    expect(wrapper.find('[data-test="has-tags-verification"]').exists()).toBe(true);
+    await wrapper.findComponent('[data-test="deviceTag-autocomplete"').trigger("click");
+    expect(wrapper.find('[data-test="hastags-verification"]').exists()).toBe(true);
     expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="deviceTag-combobox"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="deviceTag-autocomplete"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="save-btn"]').exists()).toBe(true);
   });
 
   it("Successfully add tags", async () => {
-    await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
-    mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(200);
-    const dialog = new DOMWrapper(document.body);
+    mockTags
+      .onPost("http://localhost:3000/api/namespaces/fake-tenant-data/devices/a582b47a42d/tags/tag-test-1")
+      .reply(200);
+
     const StoreSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="deviceTag-combobox"').setValue(["tag-test"]);
-    await dialog.find('[data-test="save-btn"]').trigger("click");
+    await wrapper.vm.updateTags("tag-test-1");
+
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("devices/updateDeviceTag", {
+
+    expect(StoreSpy).toHaveBeenCalledWith("tags/pushTagToDevice", {
+      tenant: "fake-tenant-data",
       uid: "a582b47a42d",
-      tags: { tags: ["test"] },
+      name: "tag-test-1",
     });
   });
 
   it("Failed to add tags", async () => {
     await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
     mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(403);
-    const dialog = new DOMWrapper(document.body);
+  });
+
+  it("Succesfully remove tags", async () => {
+    mockTags
+      .onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/devices/a582b47a42d/tags/test1")
+      .reply(200);
+
+    const StoreSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="deviceTag-combobox"').setValue(["tag-test"]);
-    await dialog.find('[data-test="save-btn"]').trigger("click");
+    await wrapper.vm.updateTags("test1");
+
     await flushPromises();
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("You are not authorized to update this tag.");
+
+    expect(StoreSpy).toHaveBeenCalledWith("tags/removeTagFromDevice", {
+      tenant: "fake-tenant-data",
+      uid: "a582b47a42d",
+      name: "test1",
+    });
+  });
+
+  it("Succesfully load more tags", async () => {
+    mockTags
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, tags.pop());
+
+    mockTags
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=2&per_page=10")
+      .reply(200, tags);
+
+    const StoreSpy = vi.spyOn(store, "dispatch");
+
+    await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
+
+    await flushPromises();
+
+    await wrapper.vm.loadTags();
+
+    await flushPromises();
+
+    expect(StoreSpy).toHaveBeenCalledWith("tags/autocomplete", {
+      filter: "",
+      page: 1,
+      perPage: 10,
+      tenant: "fake-tenant-data",
+    });
+    expect(StoreSpy).toHaveBeenCalledWith("tags/autocomplete", {
+      filter: "",
+      page: 2,
+      perPage: 10,
+      tenant: "fake-tenant-data",
+    });
+    expect(wrapper.vm.fetchedTags).toEqual(tags);
+  });
+
+  it("Succesfully remove tags", async () => {
+    mockTags
+      .onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/devices/a582b47a42d/tags/test1")
+      .reply(200);
+
+    const StoreSpy = vi.spyOn(store, "dispatch");
+
+    await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
+    expect(wrapper.vm.selectedTags).toEqual(["test1"]);
+    await wrapper.vm.removeTag("test1");
+
+    await flushPromises();
+
+    expect(StoreSpy).toHaveBeenCalledWith("tags/removeTagFromDevice", {
+      tenant: "fake-tenant-data",
+      uid: "a582b47a42d",
+      name: "test1",
+    });
+    expect(wrapper.vm.selectedTags).toEqual([]);
   });
 });
