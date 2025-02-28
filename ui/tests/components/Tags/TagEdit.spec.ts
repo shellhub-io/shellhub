@@ -32,6 +32,7 @@ describe("Tag Form Edit", async () => {
         hasAuthorization: true,
       },
     });
+    await wrapper.setProps({ tagName: "tag-test" });
   });
 
   it("Is a Vue instance", () => {
@@ -54,7 +55,7 @@ describe("Tag Form Edit", async () => {
   });
 
   it("Successfully edit tag", async () => {
-    mockTagsApi.onPut("http://localhost:3000/api/tags/tag-test").reply(200);
+    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(200);
 
     const storeSpy = vi.spyOn(tagsStore, "updateTag");
 
@@ -66,14 +67,17 @@ describe("Tag Form Edit", async () => {
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith({
-      oldTag: "tag-test",
-      newTag: "tag-test2",
+    expect(StoreSpy).toHaveBeenCalledWith("tags/editTag", {
+      tenant: "fake-tenant-data",
+      currentName: "tag-test",
+      newName: {
+        name: "tag-test2",
+      },
     });
   });
 
-  it("Failed to edit tags", async () => {
-    mockTagsApi.onPut("http://localhost:3000/api/tags/tag-test").reply(409);
+  it("Failed to add tags", async () => {
+    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(409);
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 

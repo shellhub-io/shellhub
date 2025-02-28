@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 import * as devicesApi from "../api/devices";
 import * as billingApi from "../api/billing";
-import { FetchDevicesParams, IDevice, IDeviceRename, IUpdateDeviceTags } from "@/interfaces/IDevice";
+import { FetchDevicesParams, IDevice, IDeviceRename } from "@/interfaces/IDevice";
 
 const useDevicesStore = defineStore("devices", () => {
   const devices = ref<Array<IDevice>>([]);
@@ -104,10 +104,6 @@ const useDevicesStore = defineStore("devices", () => {
     }
   };
 
-  const updateDeviceTags = async (data: IUpdateDeviceTags) => {
-    await devicesApi.updateDeviceTags(data);
-  };
-
   return {
     devices,
     device,
@@ -129,7 +125,6 @@ const useDevicesStore = defineStore("devices", () => {
     getFirstPendingDevice,
     sendDeviceChoices,
     fetchMostUsedDevices,
-    updateDeviceTags,
   };
 });
 

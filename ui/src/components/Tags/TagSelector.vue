@@ -41,7 +41,7 @@
                       color="primary"
                       hide-details
                     />
-                    <v-list-item-title>{{ item }}</v-list-item-title>
+                    <v-list-item-title>{{ getTagName(item) }}</v-list-item-title>
                   </v-list-item-action>
                 </div>
               </template>
@@ -61,6 +61,7 @@ import useSnackbar from "@/helpers/snackbar";
 import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
 import useTagsStore from "@/store/modules/tags";
+import { Tags } from "@/interfaces/ITags";
 
 const props = defineProps<{ variant: "device" | "container" }>();
 
@@ -68,15 +69,46 @@ const containersStore = useContainersStore();
 const devicesStore = useDevicesStore();
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const tags = computed(() => tagsStore.tags);
-const selectedTags = ref<Array<string>>([]);
-const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
+const tenant = computed(() => localStorage.getItem("tenant"));
+const page = ref(1);
+const perPage = ref(10);
+const fetchedTags = ref<Tags[]>([]);
+const tags = computed(() => fetchedTags.value);
+const prevSelectedLength = ref(0);
+const selectedTags = computed<Tags[]>(() => tagsStore.getSelected(props.variant));
+const hasMore = ref(true);
 
-const getTags = async () => {
-  await tagsStore.fetchTags();
+const getTagName = (tag: Tags): string => typeof tag === "string" ? tag : tag.name;
+
+const getSelectedTagNames = (): string[] => selectedTags.value.map((tag) => getTagName(tag));
+
+const tagIsSelected = (tag: Tags): boolean => {
+  const tagName = getTagName(tag);
+  return selectedTags.value.some((selectedTag) => getTagName(selectedTag) === tagName);
 };
 
-const fetchDevices = async (filter?: string) => {
+const getTags = async (): Promise<void> => {
+  try {
+    await tagsStore.autocomplete({
+      tenant: tenant.value || "",
+      filter: "",
+      page: page.value,
+      perPage: perPage.value,
+    });
+
+    const newTags = tagsStore.list;
+
+    if (newTags.length < perPage.value) hasMore.value = false;
+    else page.value += 1;
+
+    fetchedTags.value = [...fetchedTags.value, ...newTags];
+  } catch (error) {
+    snackbar.showError("Failed to load tags.");
+    console.error("Failed to load tags", error);
+  }
+};
+
+const fetchDevices = async (filter?: string): Promise<void> => {
   const fetch = {
     device: () => devicesStore.fetchDeviceList({ filter }),
     container: () => containersStore.fetchContainerList({ filter }),
@@ -85,10 +117,10 @@ const fetchDevices = async (filter?: string) => {
   await fetch();
 };
 
-const getItems = async (item: Array<string>) => {
+const getItems = async (tagNames: string[]): Promise<void> => {
   const filter = [{
     type: "property",
-    params: { name: "tags", operator: "contains", value: item },
+    params: { name: "tags", operator: "contains", value: tagNames },
   }];
 
   const encodedFilter = btoa(JSON.stringify(filter));
@@ -109,15 +141,20 @@ const getItems = async (item: Array<string>) => {
   }
 };
 
-const selectTag = async (item: string) => {
-  if (tagIsSelected(item)) selectedTags.value = selectedTags.value.filter((tag) => tag !== item);
-  else selectedTags.value.push(item);
+const selectTag = async (item: Tags): Promise<void> => {
+  tagsStore.setSelected({ variant: props.variant, tag: item });
 
-  if (selectedTags.value.length) await getItems(selectedTags.value);
-  else await fetchDevices();
+  if (selectedTags.value.length > 0) {
+    const selectedTagNames = getSelectedTagNames();
+    await getItems(selectedTagNames);
+    prevSelectedLength.value = selectedTags.value.length;
+  } else {
+    await fetchDevices();
+  }
 };
 
 onMounted(async () => {
+  tagsStore.clearSelected(props.variant);
   await getTags();
 });
 </script>
