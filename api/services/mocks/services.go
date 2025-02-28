@@ -728,17 +728,17 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 	return r0, r1
 }
 
-// EventSession provides a mock function with given fields: ctx, uid, event
-func (_m *Service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	ret := _m.Called(ctx, uid, event)
+// EventSession provides a mock function with given fields: ctx, tenant, uid, event
+func (_m *Service) EventSession(ctx context.Context, tenant string, uid models.UID, event *models.SessionEvent) error {
+	ret := _m.Called(ctx, tenant, uid, event)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EventSession")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.SessionEvent) error); ok {
-		r0 = rf(ctx, uid, event)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *models.SessionEvent) error); ok {
+		r0 = rf(ctx, tenant, uid, event)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -866,9 +866,9 @@ func (_m *Service) GetPublicKey(ctx context.Context, fingerprint string, tenant 
 	return r0, r1
 }
 
-// GetSession provides a mock function with given fields: ctx, uid
-func (_m *Service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	ret := _m.Called(ctx, uid)
+// GetSession provides a mock function with given fields: ctx, tenant, uid
+func (_m *Service) GetSession(ctx context.Context, tenant string, uid models.UID) (*models.Session, error) {
+	ret := _m.Called(ctx, tenant, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSession")
@@ -876,19 +876,19 @@ func (_m *Service) GetSession(ctx context.Context, uid models.UID) (*models.Sess
 
 	var r0 *models.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) (*models.Session, error)); ok {
-		return rf(ctx, uid)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) (*models.Session, error)); ok {
+		return rf(ctx, tenant, uid)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.Session); ok {
-		r0 = rf(ctx, uid)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) *models.Session); ok {
+		r0 = rf(ctx, tenant, uid)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
+	if rf, ok := ret.Get(1).(func(context.Context, string, models.UID) error); ok {
+		r1 = rf(ctx, tenant, uid)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1672,17 +1672,17 @@ func (_m *Service) UpdatePublicKeyTags(ctx context.Context, tenant string, finge
 	return r0
 }
 
-// UpdateSession provides a mock function with given fields: ctx, uid, model
-func (_m *Service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {
-	ret := _m.Called(ctx, uid, model)
+// UpdateSession provides a mock function with given fields: ctx, tenant, uid, model
+func (_m *Service) UpdateSession(ctx context.Context, tenant string, uid models.UID, model models.SessionUpdate) error {
+	ret := _m.Called(ctx, tenant, uid, model)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateSession")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.SessionUpdate) error); ok {
-		r0 = rf(ctx, uid, model)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, models.SessionUpdate) error); ok {
+		r0 = rf(ctx, tenant, uid, model)
 	} else {
 		r0 = ret.Error(0)
 	}

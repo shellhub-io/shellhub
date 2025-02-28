@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/websocket"
 )
 
 const (
@@ -53,7 +54,12 @@ func (h *Handler) GetSession(c gateway.Context) error {
 		return err
 	}
 
-	session, err := h.service.GetSession(c.Ctx(), models.UID(req.UID))
+	var tenant string
+	if t := c.Tenant(); t != nil {
+		tenant = t.ID
+	}
+
+	session, err := h.service.GetSession(c.Ctx(), tenant, models.UID(req.UID))
 	if err != nil {
 		return err
 	}
@@ -71,7 +77,12 @@ func (h *Handler) UpdateSession(c gateway.Context) error {
 		return err
 	}
 
-	return h.service.UpdateSession(c.Ctx(), models.UID(req.UID), models.SessionUpdate{
+	var tenant string
+	if t := c.Tenant(); t != nil {
+		tenant = t.ID
+	}
+
+	return h.service.UpdateSession(c.Ctx(), tenant, models.UID(req.UID), models.SessionUpdate{
 		Authenticated: req.Authenticated,
 		Type:          req.Type,
 	})
@@ -131,11 +142,45 @@ func (h *Handler) EventSession(c gateway.Context) error {
 		return err
 	}
 
-	return h.service.EventSession(c.Ctx(), models.UID(req.UID), &models.SessionEvent{
-		Session:   req.UID,
-		Type:      req.Type,
-		Timestamp: req.Timestamp,
-		Data:      req.Data,
-		Seat:      req.Seat,
-	})
+	if !c.IsWebSocket() {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	connection, err := h.WebSocketUpgrader.Upgrade(c.Response(), c.Request())
+	if err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	defer connection.Close()
+
+	var tenant string
+	if t := c.Tenant(); t != nil {
+		tenant = t.ID
+	}
+
+	var item requests.SessionEventItem
+	for {
+		err := connection.ReadJSON(&item)
+		if websocket.IsErrorCloseNormal(err) {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if err := c.Validate(&item); err != nil {
+			return err
+		}
+
+		if err := h.service.EventSession(c.Ctx(), tenant, models.UID(req.UID), &models.SessionEvent{
+			Session:   item.Session,
+			Type:      item.Type,
+			Timestamp: item.Timestamp,
+			Data:      item.Data,
+			Seat:      item.Seat,
+		}); err != nil {
+			return err
+		}
+	}
 }

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	goerrors "errors"
-
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -139,7 +138,7 @@ func TestGetSession(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			returnedSession, err := service.GetSession(ctx, tc.uid)
+			returnedSession, err := service.GetSession(ctx, "", tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
 	}
@@ -355,7 +354,7 @@ func TestUpdateSession(t *testing.T) {
 			tc.requiredMocks()
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			err := service.UpdateSession(ctx, tc.uid, tc.model)
+			err := service.UpdateSession(ctx, "", tc.uid, tc.model)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
