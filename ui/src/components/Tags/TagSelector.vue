@@ -1,7 +1,15 @@
 <!-- eslint-disable vue/no-v-text-v-html-on-component -->
 <template>
   <div class="mr-4">
-    <v-menu location="bottom" v-bind="$attrs" scrim eager>
+    <v-menu
+      v-model="menuOpen"
+      location="bottom"
+      v-bind="$attrs"
+      scrim
+      eager
+      open-on-click
+      :close-on-content-click="false"
+    >
       <template v-slot:activator="{ props }">
         <v-badge
           bordered
@@ -14,41 +22,46 @@
             data-test="tags-btn"
             color="primary"
             variant="outlined"
-            :disabled="getListTags.length == 0"
-            @click="getTags"
+            :disabled="tags.length == 0"
           >
             Tags
             <v-icon right> mdi-chevron-down </v-icon>
           </v-btn>
         </v-badge>
       </template>
-      <v-list shaped density="compact" class="bg-v-theme-surface">
-        <div>
-          <template v-for="(item, i) in getListTags">
-            <v-divider v-if="!item" :key="`divider-${i}`" />
-
-            <v-list-item
-              v-else
-              :key="`item-${i}`"
-              :value="item"
-              active-color="primary"
-              @click="selectTag(item)"
-            >
-              <template v-slot:default="{}">
-                <div class="d-flex align-center">
-                  <v-list-item-action>
-                    <v-checkbox
-                      :model-value="tagIsSelected(item)"
-                      color="primary"
-                      hide-details
-                    />
-
-                    <v-list-item-title v-text="item" />
-                  </v-list-item-action>
-                </div>
-              </template>
-            </v-list-item>
-          </template>
+      <v-list shaped density="compact" class="bg-v-theme-surface" max-height="600">
+        <template v-for="(item, i) in tags">
+          <v-divider v-if="!item" :key="`divider-${i}`" />
+          <v-list-item
+            v-else
+            :key="`item-${i}`"
+            :value="item"
+            active-color="primary"
+            @click="selectTag(item)"
+          >
+            <template v-slot:default="{}">
+              <div class="d-flex justify-start" action>
+                <v-list-item->
+                  <v-checkbox
+                    color="primary"
+                    hide-details
+                  />
+                  <v-list-item-title><v-chip>{{ item.name }} </v-chip></v-list-item-title>
+                </v-list-item->
+              </div>
+            </template>
+          </v-list-item>
+        </template>
+        <div class="d-flex justify-center" v-if="hasMore">
+          <v-btn
+            @click="loadMoreTags"
+            variant="text"
+            color="primary"
+            data-test="load-more-tags-btn"
+            :disabled="!hasMore"
+          >
+            Load More
+          </v-btn>
         </div>
       </v-list>
     </v-menu>
@@ -60,6 +73,7 @@ import { computed, onMounted, ref, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../../store";
 import handleError from "@/utils/handleError";
+import { Tags } from "@/interfaces/ITags";
 
 const props = defineProps({
   variant: {
@@ -67,22 +81,44 @@ const props = defineProps({
     required: true,
   },
 });
+
+const tenant = computed(() => localStorage.getItem("tenant"));
+const page = ref(1);
+const perPage = ref(10);
+const fetchedTags = ref<Array<Tags>>([]);
+const tags = computed(() => fetchedTags.value);
 const store = useStore();
-
 const prevSelectedLength = ref(0);
-
-const getListTags = computed(() => store.getters["tags/list"]);
-
-const selectedTags = computed<Array<string>>(() => store.getters["tags/selected"]);
-
-const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
+const selectedTags = computed<Array<Tags>>(() => store.getters["tags/selected"](props.variant));
+const hasMore = ref(true);
+const menuOpen = ref(false);
 
 const getTags = async () => {
-  await store.dispatch("tags/fetch");
+  try {
+    await store.dispatch("tags/autocomplete", {
+      tenant: tenant.value,
+      page: page.value,
+      perPage: perPage.value,
+    });
+
+    const newTags = store.getters["tags/list"];
+
+    if (newTags.length < perPage.value) hasMore.value = false;
+    else page.value += 1;
+
+    fetchedTags.value = [...fetchedTags.value, ...newTags];
+  } catch (error) {
+    console.error("Failed to load tags", error);
+  }
 };
 
-const getItems = async (item: Array<string>) => {
-  let encodedFilter : string | null = null;
+const loadMoreTags = async () => {
+  await getTags();
+  menuOpen.value = true;
+};
+
+const getItems = async (item: Array<Tags>) => {
+  let encodedFilter: string | null = null;
 
   const filter = [
     {
@@ -92,6 +128,7 @@ const getItems = async (item: Array<string>) => {
   ];
   encodedFilter = btoa(JSON.stringify(filter));
 
+  await store.dispatch("tag/setFilter", encodedFilter);
   switch (props.variant) {
     case "device":
       await store.dispatch("devices/setFilter", encodedFilter);
@@ -102,6 +139,7 @@ const getItems = async (item: Array<string>) => {
     default:
       break;
   }
+
   try {
     switch (props.variant) {
       case "device":
@@ -129,8 +167,14 @@ const getItems = async (item: Array<string>) => {
 
 const fetchDevices = async () => {
   const data = {
-    perPage: props.variant === "device" ? store.getters["devices/getPerPage"] : store.getters["container/getPerPage"],
-    page: props.variant === "device" ? store.getters["devices/getPage"] : store.getters["container/getPage"],
+    perPage:
+      props.variant === "device"
+        ? store.getters["devices/getPerPage"]
+        : store.getters["container/getPerPage"],
+    page:
+      props.variant === "device"
+        ? store.getters["devices/getPage"]
+        : store.getters["container/getPage"],
     status: "accepted",
     search: null,
     filter: "",
@@ -149,22 +193,21 @@ const fetchDevices = async () => {
   }
 };
 
-const selectTag = async (item: string) => {
-  store.dispatch("tags/setSelected", item);
+const selectTag = async (item: Tags) => {
+  store.commit("tags/setSelected", { variant: props.variant, tag: item });
+
   if (selectedTags.value.length > 0) {
     await getItems(selectedTags.value);
     prevSelectedLength.value = selectedTags.value.length;
-  } else if (prevSelectedLength.value === 1 && selectedTags.value.length === 0) {
-    await fetchDevices();
-  }
-
-  if (selectedTags.value.length === 0) {
-    await store.dispatch("tags/clearSelectedTags");
+  } else {
     await fetchDevices();
   }
 };
 
 onMounted(() => {
+  store.commit("tags/clearSelected", props.variant);
   getTags();
 });
+
+defineExpose({ loadMoreTags, fetchedTags, menuOpen });
 </script>

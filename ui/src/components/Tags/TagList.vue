@@ -1,19 +1,22 @@
 <template>
-  <v-table data-test="tagListList-dataTable" class="bg-background border rounded mx-4">
-    <thead class="bg-v-theme-background">
-      <tr>
-        <th
-          v-for="(head, i) in headers"
-          :key="i"
-          :class="head.align ? `text-${head.align}` : 'text-center'"
-        >
-          <span> {{ head.text }}</span>
-        </th>
-      </tr>
-    </thead>
-    <tbody v-if="tags.length">
-      <tr v-for="(tag, i) in tags" :key="i">
-        <td class="text-center">{{ tag }}</td>
+  <DataTable
+    :headers="headers"
+    :items="tags"
+    :itemsPerPage="itemsPerPage"
+    :nextPage="next"
+    :previousPage="prev"
+    :loading="loading"
+    :actualPage="page"
+    :totalCount="numberTags"
+    :comboboxOptions="[10, 20, 50, 100]"
+    @changeItemsPerPage="changeItemsPerPage"
+    @clickNextPage="next"
+    @clickPreviousPage="prev"
+    data-test="tag-list"
+  >
+    <template v-slot:rows>
+      <tr v-for="(item, i) in tags" :key="i">
+        <td class="text-center" data-test="tag-name"> {{ item.name }}</td>
         <td class="text-center">
           <v-menu location="bottom" scrim eager>
             <template v-slot:activator="{ props }">
@@ -32,9 +35,9 @@
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <TagEdit
-                      :tag="tag"
+                      :tag-name="item.name"
                       :not-has-authorization="!hasAuthorizationEdit()"
-                      @update="getTags()"
+                      @update="refresh()"
                     />
                   </div>
                 </template>
@@ -45,9 +48,9 @@
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <TagRemove
-                      :tag="tag"
+                      :tag-name="item.name"
                       :not-has-authorization="!hasAuthorizationRemove()"
-                      @update="getTags()"
+                      @update="refresh()"
                     />
                   </div>
                 </template>
@@ -57,41 +60,89 @@
           </v-menu>
         </td>
       </tr>
-    </tbody>
-    <div v-else class="text-start mt-2 mb-3">
-      <span class="ml-4">No data avaliable</span>
-    </div>
-  </v-table>
+    </template>
+  </DataTable>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useStore } from "../../store";
+import { FetchTagsParams } from "../../interfaces/ITags";
 import { actions, authorizer } from "../../authorizer";
 import hasPermission from "../../utils/permission";
+import DataTable from "../DataTable.vue";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
 import { INotificationsError } from "../../interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
-const store = useStore();
-
 const headers = ref([
   {
     text: "Name",
     value: "name",
-    align: "center",
-    sortable: false,
   },
   {
     text: "Actions",
     value: "actions",
-    align: "center",
-    sortable: false,
   },
 ]);
 
+const store = useStore();
+const loading = ref(false);
+const itemsPerPage = ref(10);
+const page = ref<number>(1);
 const tags = computed(() => store.getters["tags/list"]);
+const tenant = computed(() => localStorage.getItem("tenant"));
+const numberTags = computed<number>(
+  () => store.getters["tags/getNumberTags"],
+);
+
+const getTags = async (perPage: number, page: number): Promise<void> => {
+  if (!tenant.value) return;
+
+  loading.value = true;
+
+  try {
+    await store.dispatch("tags/fetch", {
+      tenant: tenant.value,
+      filter: store.getters["tags/getFilter"],
+      perPage,
+      page,
+    } as FetchTagsParams);
+
+    loading.value = false;
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorLoading",
+      INotificationsError.deviceTagList,
+    );
+    handleError(error);
+  }
+};
+
+const refresh = async () => {
+  await getTags(itemsPerPage.value, page.value);
+};
+
+const next = async () => {
+  await getTags(itemsPerPage.value, page.value++);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getTags(itemsPerPage.value, page.value--);
+  } catch (error) {
+    store.dispatch("snackbar/setSnackbarErrorDefault");
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async (newItemsPerPage) => {
+  await getTags(newItemsPerPage, page.value);
+});
 
 const hasAuthorizationEdit = () => {
   const role = store.getters["auth/role"];
@@ -109,19 +160,9 @@ const hasAuthorizationRemove = () => {
   return false;
 };
 
-const getTags = async () => {
-  try {
-    await store.dispatch("tags/fetch");
-  } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.deviceTagList,
-    );
-    handleError(error);
-  }
-};
-
 onMounted(() => {
-  getTags();
+  refresh();
 });
+
+defineExpose({ refresh });
 </script>
