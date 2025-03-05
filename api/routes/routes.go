@@ -91,7 +91,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
 	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
-	internalAPI.POST(EventsSessionsURL, gateway.Handler(handler.EventSession))
+	internalAPI.GET(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")

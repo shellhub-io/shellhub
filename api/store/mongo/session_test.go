@@ -303,7 +303,7 @@ func TestSessionGet(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			s, err := s.SessionGet(ctx, tc.UID)
+			s, err := s.SessionGet(ctx, "00000000-0000-4000-0000-000000000000", tc.UID)
 			assert.Equal(t, tc.expected, Expected{s: s, err: err})
 		})
 	}

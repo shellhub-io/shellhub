@@ -118,7 +118,7 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 				goto normal
 			}
 
-			camera, err := sess.Record(ctx, recordURL, seat)
+			camera, err := sess.NewCamera(ctx, recordURL, seat)
 			if err != nil {
 				goto normal
 			}
