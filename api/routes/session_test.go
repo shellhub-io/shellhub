@@ -122,7 +122,7 @@ func TestGetSession(t *testing.T) {
 			title: "fails when try to get session don't existing",
 			uid:   "1234",
 			requiredMocks: func(*models.Session) {
-				mock.On("GetSession", gomock.Anything, models.UID("1234")).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
+				mock.On("GetSession", gomock.Anything, gomock.Anything, models.UID("1234")).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
 			},
 			expected: Expected{
 				expectedSession: nil,
@@ -133,7 +133,7 @@ func TestGetSession(t *testing.T) {
 			title: "success when try to get a session exists",
 			uid:   "123",
 			requiredMocks: func(session *models.Session) {
-				mock.On("GetSession", gomock.Anything, models.UID("123")).Return(session, nil)
+				mock.On("GetSession", gomock.Anything, gomock.Anything, models.UID("123")).Return(session, nil)
 			},
 			expected: Expected{
 				expectedSession: &models.Session{UID: "123"},

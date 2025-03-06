@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Camera struct {
@@ -25,7 +24,7 @@ func (c *Camera) Close() error {
 }
 
 // WriteFrame writes a session's frame into the WebSocket connection.
-func (c *Camera) WriteFrame(frame *models.SessionRecorded) error {
+func (c *Camera) WriteFrame(frame any) error {
 	return c.conn.WriteJSON(frame)
 }
 

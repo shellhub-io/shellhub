@@ -80,6 +80,13 @@ type Data struct {
 	Handled bool
 }
 
+type CameraType string
+
+const (
+	EventsCameraType  CameraType = "events"
+	RecordsCameraType CameraType = "records"
+)
+
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
 	// UID is the session's UID.
@@ -92,8 +99,9 @@ type Session struct {
 	// AgentGlobalReqs is the channel to handle global request like "keepalive".
 	AgentGlobalReqs <-chan *gossh.Request
 
-	api    internalclient.Client
-	tunnel *httptunnel.Tunnel
+	api     internalclient.Client
+	tunnel  *httptunnel.Tunnel
+	cameras map[CameraType]*Camera
 
 	once *sync.Once
 
@@ -182,9 +190,10 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 	}
 
 	session := &Session{
-		UID:    ctx.SessionID(),
-		api:    api,
-		tunnel: tunnel,
+		UID:     ctx.SessionID(),
+		api:     api,
+		tunnel:  tunnel,
+		cameras: make(map[CameraType]*Camera),
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -271,8 +280,15 @@ func (s *Session) register() error {
 // Authenticate marks the session as authenticated on the API.
 //
 // It returns an error if authentication fails.
-func (s *Session) authenticate() error {
+func (s *Session) authenticate(ctx context.Context) error {
 	value := true
+
+	events, err := s.api.ConnectSessionEvents(ctx, s.UID)
+	if err != nil {
+		return err
+	}
+
+	s.cameras[EventsCameraType] = NewCamera(events)
 
 	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
 		Authenticated: &value,
@@ -419,7 +435,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		if err := sess.authenticate(); err != nil {
+		if err := sess.authenticate(ctx); err != nil {
 			return err
 		}
 	default:
@@ -432,17 +448,6 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	return nil
 }
 
-func (s *Session) Record(ctx context.Context, url string, seat int) (*Camera, error) {
-	conn, err := s.api.RecordSession(ctx, s.UID, seat, url)
-	if err != nil {
-		log.WithError(err).Error("failed to start the record session process")
-
-		return nil, err
-	}
-
-	return NewCamera(conn), nil
-}
-
 func (s *Session) NewSeat() (int, error) {
 	seat := int(s.Seat.Load())
 	defer s.Seat.Add(1)
@@ -450,9 +455,23 @@ func (s *Session) NewSeat() (int, error) {
 	return seat, nil
 }
 
+// NewCamera is used to read and record data from a session.
+func (s *Session) NewCamera(ctx context.Context, url string, seat int) (*Camera, error) {
+	conn, err := s.api.ConnectSessionRecord(ctx, s.UID, seat, url)
+	if err != nil {
+		log.WithError(err).Error("failed to start the record session process")
+
+		return nil, err
+	}
+
+	s.cameras[RecordsCameraType] = NewCamera(conn)
+
+	return s.cameras[RecordsCameraType], nil
+}
+
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
-	go s.api.EventSession(s.UID, &models.SessionEvent{ //nolint:errcheck
+	go s.cameras[EventsCameraType].WriteFrame(&models.SessionEvent{ //nolint:errcheck
 		Session:   s.UID,
 		Type:      t,
 		Timestamp: clock.Now(),
@@ -467,7 +486,7 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 		return
 	}
 
-	go sess.api.EventSession(sess.UID, &models.SessionEvent{ //nolint:errcheck
+	go sess.cameras[EventsCameraType].WriteFrame(&models.SessionEvent{ //nolint:errcheck
 		Session:   sess.UID,
 		Type:      t,
 		Timestamp: clock.Now(),

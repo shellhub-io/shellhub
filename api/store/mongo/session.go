@@ -90,7 +90,7 @@ func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]m
 	return sessions, count, err
 }
 
-func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session, error) {
+func (s *Store) SessionGet(ctx context.Context, tenant string, uid models.UID) (*models.Session, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{"uid": uid},
@@ -110,14 +110,11 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 		},
 	}
 
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
+	query = append(query, bson.M{
+		"$match": bson.M{
+			"tenant_id": tenant,
+		},
+	})
 
 	session := new(models.Session)
 
@@ -172,7 +169,7 @@ func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded
 func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
-	session.Recorded = false
+	session.Recorded = true
 
 	device, err := s.DeviceGet(ctx, session.DeviceUID)
 	if err != nil {
@@ -267,10 +264,7 @@ func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session
 	return nil
 }
 
-// SessionEvent saves a [models.SessionEvent] into the database.
-//
-// It pushes the event into events type array, and the event type into a separated set. The set is used to improve the
-// performance of indexing when looking for sessions.
+// SessionEvent saves an [models.SessionEvent] into the database.
 func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {

@@ -12,20 +12,20 @@ import (
 
 type SessionService interface {
 	ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error)
-	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
+	GetSession(ctx context.Context, tenant string, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
-	UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error
-	EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error
+	UpdateSession(ctx context.Context, tenant string, uid models.UID, model models.SessionUpdate) error
+	EventSession(ctx context.Context, tenant string, uid models.UID, event *models.SessionEvent) error
 }
 
 func (s *service) ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
 	return s.store.SessionList(ctx, paginator)
 }
 
-func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	session, err := s.store.SessionGet(ctx, uid)
+func (s *service) GetSession(ctx context.Context, tenant string, uid models.UID) (*models.Session, error) {
+	session, err := s.store.SessionGet(ctx, tenant, uid)
 	if err != nil {
 		return nil, NewErrSessionNotFound(uid, err)
 	}
@@ -63,8 +63,8 @@ func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	return s.store.SessionSetLastSeen(ctx, uid)
 }
 
-func (s *service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {
-	sess, err := s.store.SessionGet(ctx, uid)
+func (s *service) UpdateSession(ctx context.Context, tenant string, uid models.UID, model models.SessionUpdate) error {
+	sess, err := s.store.SessionGet(ctx, tenant, uid)
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
@@ -94,8 +94,8 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 	return nil
 }
 
-func (s *service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	sess, err := s.store.SessionGet(ctx, uid)
+func (s *service) EventSession(ctx context.Context, tenant string, uid models.UID, event *models.SessionEvent) error {
+	sess, err := s.store.SessionGet(ctx, tenant, uid)
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}

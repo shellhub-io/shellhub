@@ -85,6 +85,66 @@ func (_m *Client) BillingReport(tenant string, action string) (int, error) {
 	return r0, r1
 }
 
+// ConnectSessionEvents provides a mock function with given fields: ctx, uid
+func (_m *Client) ConnectSessionEvents(ctx context.Context, uid string) (*websocket.Conn, error) {
+	ret := _m.Called(ctx, uid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectSessionEvents")
+	}
+
+	var r0 *websocket.Conn
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*websocket.Conn, error)); ok {
+		return rf(ctx, uid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *websocket.Conn); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*websocket.Conn)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, uid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConnectSessionRecord provides a mock function with given fields: ctx, uid, seat, recordURL
+func (_m *Client) ConnectSessionRecord(ctx context.Context, uid string, seat int, recordURL string) (*websocket.Conn, error) {
+	ret := _m.Called(ctx, uid, seat, recordURL)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectSessionRecord")
+	}
+
+	var r0 *websocket.Conn
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, string) (*websocket.Conn, error)); ok {
+		return rf(ctx, uid, seat, recordURL)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, string) *websocket.Conn); ok {
+		r0 = rf(ctx, uid, seat, recordURL)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*websocket.Conn)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, string) error); ok {
+		r1 = rf(ctx, uid, seat, recordURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreatePrivateKey provides a mock function with no fields
 func (_m *Client) CreatePrivateKey() (*models.PrivateKey, error) {
 	ret := _m.Called()
@@ -209,24 +269,6 @@ func (_m *Client) EvaluateKey(fingerprint string, dev *models.Device, username s
 	}
 
 	return r0, r1
-}
-
-// EventSession provides a mock function with given fields: uid, event
-func (_m *Client) EventSession(uid string, event *models.SessionEvent) error {
-	ret := _m.Called(uid, event)
-
-	if len(ret) == 0 {
-		panic("no return value specified for EventSession")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *models.SessionEvent) error); ok {
-		r0 = rf(uid, event)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // FinishSession provides a mock function with given fields: uid
@@ -512,36 +554,6 @@ func (_m *Client) NamespaceLookup(tenant string) (*models.Namespace, []error) {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]error)
 		}
-	}
-
-	return r0, r1
-}
-
-// RecordSession provides a mock function with given fields: ctx, uid, seat, recordURL
-func (_m *Client) RecordSession(ctx context.Context, uid string, seat int, recordURL string) (*websocket.Conn, error) {
-	ret := _m.Called(ctx, uid, seat, recordURL)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RecordSession")
-	}
-
-	var r0 *websocket.Conn
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, string) (*websocket.Conn, error)); ok {
-		return rf(ctx, uid, seat, recordURL)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, string) *websocket.Conn); ok {
-		r0 = rf(ctx, uid, seat, recordURL)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*websocket.Conn)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, int, string) error); ok {
-		r1 = rf(ctx, uid, seat, recordURL)
-	} else {
-		r1 = ret.Error(1)
 	}
 
 	return r0, r1
