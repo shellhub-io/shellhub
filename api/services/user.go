@@ -2,10 +2,8 @@ package services
 
 import (
 	"context"
-	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type UserService interface {
@@ -22,66 +20,12 @@ type UserService interface {
 }
 
 func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
-	if err != nil {
-		return []string{}, NewErrUserNotFound(req.UserID, nil)
-	}
-
-	if req.RecoveryEmail == user.Email || req.RecoveryEmail == req.Email {
-		return []string{"email", "recovery_email"}, NewErrBadRequest(nil)
-	}
-
-	conflictsTarget := &models.UserConflicts{Email: req.Email, Username: req.Username}
-	conflictsTarget.Distinct(user)
-	if conflicts, has, _ := s.store.UserConflicts(ctx, conflictsTarget); has {
-		return conflicts, NewErrUserDuplicated(conflicts, nil)
-	}
-
-	changes := &models.UserChanges{
-		Name:          req.Name,
-		Username:      strings.ToLower(req.Username),
-		Email:         strings.ToLower(req.Email),
-		RecoveryEmail: strings.ToLower(req.RecoveryEmail),
-	}
-
-	if req.Password != "" {
-		// TODO: test
-		if !user.Password.Compare(req.CurrentPassword) {
-			return []string{}, NewErrUserPasswordNotMatch(nil)
-		}
-
-		neo, _ := models.HashUserPassword(req.Password)
-		changes.Password = neo.Hash
-	}
-
-	if err := s.store.UserUpdate(ctx, req.UserID, changes); err != nil {
-		return []string{}, NewErrUserUpdate(user, err)
-	}
-
-	return []string{}, nil
+	return nil, nil
 }
 
 // UpdatePasswordUser updates a user's password.
 //
 // Deprecated, use [Service.UpdateUser] instead.
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
-	user, _, err := s.store.UserGetByID(ctx, id, false)
-	if user == nil {
-		return NewErrUserNotFound(id, err)
-	}
-
-	if !user.Password.Compare(currentPassword) {
-		return NewErrUserPasswordNotMatch(nil)
-	}
-
-	neo, err := models.HashUserPassword(newPassword)
-	if err != nil {
-		return NewErrUserPasswordInvalid(err)
-	}
-
-	if err := s.store.UserUpdate(ctx, id, &models.UserChanges{Password: neo.Hash}); err != nil {
-		return NewErrUserUpdate(user, err)
-	}
-
 	return nil
 }

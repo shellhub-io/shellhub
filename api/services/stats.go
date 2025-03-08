@@ -11,5 +11,5 @@ type StatsService interface {
 }
 
 func (s *service) GetStats(ctx context.Context) (*models.Stats, error) {
-	return s.store.GetStats(ctx)
+	return nil, nil
 }
