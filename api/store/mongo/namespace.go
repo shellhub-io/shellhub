@@ -135,9 +135,9 @@ func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts .
 	filter := bson.M{"members.id": userID}
 
 	if user, _, _ := s.UserGetByID(ctx, userID, false); user != nil {
-		if user.Preferences.PreferredNamespace != "" {
-			filter["tenant_id"] = user.Preferences.PreferredNamespace
-		}
+		// if user.Preferences.PreferredNamespace != "" {
+		// 	filter["tenant_id"] = user.Preferences.PreferredNamespace
+		// }
 	}
 
 	ns := new(models.Namespace)

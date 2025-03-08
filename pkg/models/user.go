@@ -5,6 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"gorm.io/gorm"
 )
 
 type UserStatus string
@@ -57,40 +58,17 @@ func (a UserAuthMethod) String() string {
 }
 
 type User struct {
-	ID string `json:"id,omitempty" bson:"_id,omitempty"`
-	// Origin specifies the the user's signup method.
-	Origin UserOrigin `json:"-" bson:"origin"`
+	gorm.Model
 
-	// ExternalID represents the user's identifier in an external system. It is always empty when [User.Origin]
-	// is [UserOriginLocal].
-	ExternalID string `json:"-" bson:"external_id"`
-
-	Status UserStatus `json:"status" bson:"status"`
-	// MaxNamespaces represents the count of namespaces that the user can owns.
-	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
-	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
-	LastLogin      time.Time `json:"last_login" bson:"last_login"`
-	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
-	UserData       `bson:",inline"`
-	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
-	// check if MFA is active for the user.
-	//
-	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
-	MFA         UserMFA         `json:"mfa" bson:"mfa"`
-	Preferences UserPreferences `json:"preferences" bson:"preferences"`
-	Password    UserPassword    `bson:",inline"`
+	ID            string `json:"id,omitempty" bson:"_id,omitempty"`
+	MaxNamespaces int    `json:"max_namespaces" bson:"max_namespaces"`
+	Name          string `json:"name" validate:"required,name"`
+	Username      string `json:"username" bson:"username" validate:"required,username"`
+	Email         string `json:"email" bson:"email" validate:"required,email"`
+	Password      string `bson:",inline"`
 }
 
-type UserData struct {
-	Name     string `json:"name" validate:"required,name"`
-	Username string `json:"username" bson:"username" validate:"required,username"`
-	Email    string `json:"email" bson:"email" validate:"required,email"`
-	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
-	// when they lose access to all other methods. It must never be equal to [UserData.Email].
-	//
-	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
-	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
-}
+type UserData struct{}
 
 // UserMFA represents the attributes related to MFA for a user.
 type UserMFA struct {
