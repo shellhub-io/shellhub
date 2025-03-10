@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/Masterminds/semver"
-	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -14,88 +13,48 @@ import (
 )
 
 type Recorder struct {
-	queue   chan string
+	// channels is the source of data read, recorded and redirected to client.
 	channel gossh.Channel
+	// session is the session between Agent and Client.
+	session *session.Session
+	// seat is the current identifier of session's.
+	seat int
 }
 
-func NewRecorder(channel gossh.Channel, sess *session.Session, camera *session.Camera, seat int) (io.WriteCloser, error) {
-	// NOTE: The queue's size is a random number.
-	queue := make(chan string, 100)
-
-	go func() {
-		for {
-			msg, ok := <-queue
-			if !ok {
-				log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("recorder queue is closed")
-
-				return
-			}
-
-			if err := camera.WriteFrame(&models.SessionRecorded{ //nolint:errcheck
-				UID:       sess.UID,
-				Seat:      seat,
-				Namespace: sess.Lookup["domain"],
-				Message:   msg,
-				Width:     int(sess.Pty.Columns),
-				Height:    int(sess.Pty.Rows),
-			}); err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("failed to send the session frame to record")
-
-					// NOTE: When a frame isn't sent correctly, we stop the writing loop, only reading from the queue,
-					// and discarding the messages to avoid stuck the go routine.
-				break
-			}
-		}
-
-		for {
-			// NOTE: Reads the queue and discards the data to avoid stuck the go routine.
-			if _, ok := <-queue; !ok {
-				log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("recorder queue is closed")
-
-				return
-			}
-		}
-	}()
-
+func NewRecorder(channel gossh.Channel, session *session.Session, seat int) (io.WriteCloser, error) {
 	return &Recorder{
-		queue:   queue,
 		channel: channel,
+		session: session,
+		seat:    seat,
 	}, nil
 }
 
-// record enqueues a session frame to be recorded. If the queue is closed, nothing is done.
-func (c *Recorder) record(msg string) {
-	select {
-	case c.queue <- msg:
-	default:
-		log.Trace("the message couldn't sent to the record queue")
-	}
-}
+// PtyOutputEventType is the event's type for an output.
+const PtyOutputEventType = "pty-output"
 
-func (c *Recorder) Write(data []byte) (int, error) {
-	read, err := c.channel.Write(data)
+func (c *Recorder) Write(output []byte) (int, error) {
+	read, err := c.channel.Write(output)
 	if err != nil {
 		return read, err
 	}
 
-	c.record(string(data))
+	// NOTE: Writes the event into the event stream to be processed and send to target endpoint.
+	c.session.Event(PtyOutputEventType, &models.SessionRecorded{
+		UID:    c.session.UID,
+		Output: string(output),
+	}, c.seat)
 
 	return read, nil
 }
 
+// Close closes the internal channel.
 func (c *Recorder) Close() error {
-	close(c.queue)
-
 	return c.channel.CloseWrite()
 }
 
 // pipe function pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are
 // Cloud or Enterprise.
-func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int) {
+func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int) {
 	defer log.
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")
@@ -110,23 +69,10 @@ func pipe(ctx gliderssh.Context, sess *session.Session, client gossh.Channel, ag
 		defer wg.Done()
 
 		if envs.IsEnterprise() || envs.IsCloud() {
-			recordURL := ctx.Value("RECORD_URL").(string)
-			if recordURL == "" {
-				log.WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID, "record_url": recordURL}).
-					Warning("failed to start session's record because the record URL is empty")
-
-				goto normal
-			}
-
-			camera, err := sess.Record(ctx, recordURL, seat)
-			if err != nil {
-				goto normal
-			}
-
-			recorder, err := NewRecorder(client, sess, camera, seat)
+			recorder, err := NewRecorder(client, sess, seat)
 			if err != nil {
 				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID, "record_url": recordURL}).
+					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 					Warning("failed to connect to session record endpoint")
 
 				goto normal
