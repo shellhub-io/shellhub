@@ -60,12 +60,10 @@ func (a UserAuthMethod) String() string {
 type User struct {
 	gorm.Model
 
-	ID            string `json:"id,omitempty" bson:"_id,omitempty"`
-	MaxNamespaces int    `json:"max_namespaces" bson:"max_namespaces"`
-	Name          string `json:"name" validate:"required,name"`
-	Username      string `json:"username" bson:"username" validate:"required,username"`
-	Email         string `json:"email" bson:"email" validate:"required,email"`
-	Password      string `bson:",inline"`
+	ID       string `json:"id,omitempty" bson:"_id,omitempty"`
+	Name     string `json:"name" validate:"required,name"`
+	Email    string `json:"email" bson:"email" validate:"required,email"`
+	Password string `bson:",inline"`
 }
 
 type UserData struct{}
@@ -159,7 +157,6 @@ type UserTokenRecover struct {
 type UserChanges struct {
 	LastLogin          time.Time        `bson:"last_login,omitempty"`
 	Name               string           `bson:"name,omitempty"`
-	Username           string           `bson:"username,omitempty"`
 	Email              string           `bson:"email,omitempty"`
 	RecoveryEmail      string           `bson:"recovery_email,omitempty"`
 	Password           string           `bson:"password,omitempty"`
@@ -174,18 +171,13 @@ type UserChanges struct {
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
 // to identify conflicts.
 type UserConflicts struct {
-	Email    string
-	Username string
+	Email string
 }
 
 // Distinct removes the c attributes whether it's equal to the user attribute.
 func (c *UserConflicts) Distinct(user *User) {
 	if c.Email == user.Email {
 		c.Email = ""
-	}
-
-	if c.Username == user.Username {
-		c.Username = ""
 	}
 }
 

@@ -93,9 +93,9 @@ func (h *Handler) GetNamespace(c gateway.Context) error {
 	}
 
 	if uid != "" {
-		if _, ok := ns.FindMember(uid); !ok {
-			return c.NoContent(http.StatusForbidden)
-		}
+		// if _, ok := ns.FindMember(uid); !ok {
+		// 	return c.NoContent(http.StatusForbidden)
+		// }
 	}
 
 	return c.JSON(http.StatusOK, ns)

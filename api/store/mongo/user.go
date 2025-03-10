@@ -202,7 +202,6 @@ func (s *Store) UserConflicts(ctx context.Context, target *models.UserConflicts)
 			"$match": bson.M{
 				"$or": []bson.M{
 					{"email": target.Email},
-					{"username": target.Username},
 				},
 			},
 		},
@@ -219,10 +218,6 @@ func (s *Store) UserConflicts(ctx context.Context, target *models.UserConflicts)
 	for cursor.Next(ctx) {
 		if err := cursor.Decode(&user); err != nil {
 			return nil, false, FromMongoError(err)
-		}
-
-		if user.Username == target.Username {
-			conflicts = append(conflicts, "username")
 		}
 
 		if user.Email == target.Email {
@@ -284,11 +279,11 @@ func (s *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, e
 			return nil, FromMongoError(err)
 		}
 
-		if ns.Owner == id {
-			userInfo.OwnedNamespaces = append(userInfo.OwnedNamespaces, *ns)
-		} else {
-			userInfo.AssociatedNamespaces = append(userInfo.AssociatedNamespaces, *ns)
-		}
+		// if ns.Owner == id {
+		// 	userInfo.OwnedNamespaces = append(userInfo.OwnedNamespaces, *ns)
+		// } else {
+		// 	userInfo.AssociatedNamespaces = append(userInfo.AssociatedNamespaces, *ns)
+		// }
 	}
 
 	return userInfo, nil

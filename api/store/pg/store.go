@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -34,13 +35,24 @@ func DSN(host, port, user, password, db string) string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=%s", host, port, user, password, db, timezone)
 }
 
-func New(ctx context.Context, dsn string, cache cache.Cache) (store.Store, error) {
+func New(ctx context.Context, dsn string, cache cache.Cache, opts ...options.Option) (store.Store, error) {
 	db, err := connect(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}
 
 	store := &Store{db: db, cache: cache, options: &queryOptions{}}
+
+	raw_db, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, opt := range opts {
+		if err := opt(ctx, raw_db); err != nil {
+			return nil, err
+		}
+	}
 
 	return store, nil
 }

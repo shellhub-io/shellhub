@@ -235,9 +235,7 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace 
 		},
 		bson.M{
 			"$set": bson.M{
-				"name":                    namespace.Name,
-				"max_devices":             namespace.MaxDevices,
-				"settings.session_record": namespace.Settings.SessionRecord,
+				"name": namespace.Name,
 			},
 		},
 	)

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS namespaces(
+   id UUID PRIMARY KEY,
+   name VARCHAR (50) NOT NULL
+);
+
