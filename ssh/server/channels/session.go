@@ -137,7 +137,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		defer agent.Close()
 
-		go pipe(ctx, sess, client.Channel, agent.Channel, seat)
+		go pipe(sess, client.Channel, agent.Channel, seat)
 
 		// TODO: Add middleware to block certain types of requests.
 		for {

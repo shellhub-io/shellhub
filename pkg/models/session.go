@@ -52,12 +52,8 @@ type Status struct {
 }
 
 type SessionRecorded struct {
-	UID       string `json:"uid"`
-	Seat      int    `json:"seat"`
-	Namespace string `json:"namespace" bson:"namespace"`
-	Message   string `json:"message" bson:"message"`
-	Width     int    `json:"width" bson:"width,omitempty"`
-	Height    int    `json:"height" bson:"height,omitempty"`
+	UID    string `json:"uid"`
+	Output string `json:"output" bson:"output"`
 }
 
 type SessionUpdate struct {
@@ -65,12 +61,39 @@ type SessionUpdate struct {
 	Type          *string `json:"type"`
 }
 
+type SessionEventType string
+
+const (
+	// ShellHub custom requests.
+	SessionEventTypePtyOutput SessionEventType = "pty-output"
+
+	// Terminal (PTY) request types
+	SessionEventTypePtyRequest   SessionEventType = "pty-req"
+	SessionEventTypeWindowChange SessionEventType = "window-change"
+	SessionEventTypeExitCode     SessionEventType = "exit-code"
+
+	// Process-related requests
+	SessionEventTypeExitStatus SessionEventType = "exit-status"
+	SessionEventTypeExitSignal SessionEventType = "exit-signal"
+
+	// Environment and Shell requests
+	SessionEventTypeEnv       SessionEventType = "env"
+	SessionEventTypeShell     SessionEventType = "shell"
+	SessionEventTypeExec      SessionEventType = "exec"
+	SessionEventTypeSubsystem SessionEventType = "subsystem"
+
+	// Signal and forwarding requests
+	SessionEventTypeSignal       SessionEventType = "signal"
+	SessionEventTypeTcpipForward SessionEventType = "tcpip-forward"
+	SessionEventTypeAuthAgentReq SessionEventType = "auth-agent-req"
+)
+
 // SessionEvent represents a session event.
 type SessionEvent struct {
 	// Session is the session UID where the event occurred.
 	Session string `json:"session" bson:"session,omitempty"`
 	// Type of the session. Normally, it is the SSH request name.
-	Type string `json:"type" bson:"type"`
+	Type SessionEventType `json:"type" bson:"type"`
 	// Timestamp contains the time when the event was logged.
 	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
 	// Data is a generic structure containing data of the event, normally the unmarshaling data of the request.
