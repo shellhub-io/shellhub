@@ -156,6 +156,8 @@ type Session struct {
 
 	api    internalclient.Client
 	tunnel *httptunnel.Tunnel
+	// Events is a channel used to send and process Events of a session.
+	Events chan *models.SessionEvent
 
 	once *sync.Once
 
@@ -247,6 +249,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		UID:    ctx.SessionID(),
 		api:    api,
 		tunnel: tunnel,
+		Events: make(chan *models.SessionEvent, 100),
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -268,6 +271,8 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 	session.Data.Lookup["ip_address"] = hos.Host
 
 	snap.save(session, StateCreated)
+
+	go session.NewEventStream(ctx)
 
 	return session, nil
 }
@@ -565,13 +570,13 @@ func (s *Session) NewSeat() (int, error) {
 
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
-	go s.api.EventSession(s.UID, &models.SessionEvent{ //nolint:errcheck
+	s.Events <- &models.SessionEvent{
 		Session:   s.UID,
-		Type:      t,
+		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
 		Data:      data,
 		Seat:      seat,
-	})
+	}
 }
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
@@ -580,13 +585,33 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 		return
 	}
 
-	go sess.api.EventSession(sess.UID, &models.SessionEvent{ //nolint:errcheck
+	sess.Events <- &models.SessionEvent{
 		Session:   sess.UID,
-		Type:      t,
+		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
-		Data:      d,
+		Data:      data,
 		Seat:      seat,
-	})
+	}
+}
+
+func (s *Session) NewEventStream(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			log.WithFields(log.Fields{
+				"session": s.UID,
+			}).Debug("event stream loop done")
+
+			return
+		case event := <-s.Events:
+			log.WithFields(log.Fields{
+				"session": s.UID,
+				"event":   event,
+			}).Trace("event received on event stream")
+
+			go s.api.EventSession(s.UID, event) //nolint:errcheck
+		}
+	}
 }
 
 func (s *Session) KeepAlive() error {
