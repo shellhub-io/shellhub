@@ -51,11 +51,6 @@ type Status struct {
 	Authenticated bool `json:"authenticated"`
 }
 
-type SessionRecorded struct {
-	UID    string `json:"uid"`
-	Output string `json:"output" bson:"output"`
-}
-
 type SessionUpdate struct {
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`

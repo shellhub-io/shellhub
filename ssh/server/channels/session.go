@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -188,9 +189,9 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 				switch req.Type {
 				case ExitStatusRequest:
-					session.Event[session.Status](sess, req.Type, req.Payload, seat)
+					session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
 				case ExitSignalRequest:
-					session.Event[session.Signal](sess, req.Type, req.Payload, seat)
+					session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
 				default:
 					sess.Event(req.Type, req.Payload, seat)
 				}
@@ -226,11 +227,11 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 					sess.Event(req.Type, req.Payload, seat)
 				case ExecRequestType, SubsystemRequestType:
-					session.Event[session.Command](sess, req.Type, req.Payload, seat)
+					session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
 
 					sess.Type = ExecRequestType
 				case PtyRequestType:
-					var pty session.Pty
+					var pty models.SSHPty
 
 					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
 						reject(nil, "failed to recover the session dimensions")
@@ -240,7 +241,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 					sess.Event(req.Type, pty, seat) //nolint:errcheck
 				case WindowChangeRequestType:
-					var dimensions session.Dimensions
+					var dimensions models.SSHWindowChange
 
 					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
 						reject(nil, "failed to recover the session dimensions")
