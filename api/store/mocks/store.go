@@ -1719,6 +1719,24 @@ func (_m *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error
 	return r0
 }
 
+// SessionDeleteEvents provides a mock function with given fields: ctx, uid, seat, event
+func (_m *Store) SessionDeleteEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
+	ret := _m.Called(ctx, uid, seat, event)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionDeleteEvents")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType) error); ok {
+		r0 = rf(ctx, uid, seat, event)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SessionEvent provides a mock function with given fields: ctx, uid, event
 func (_m *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
 	ret := _m.Called(ctx, uid, event)
@@ -1797,6 +1815,43 @@ func (_m *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]
 
 	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
 		r2 = rf(ctx, paginator)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// SessionListEvents provides a mock function with given fields: ctx, uid, seat, event, paginator
+func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error) {
+	ret := _m.Called(ctx, uid, seat, event, paginator)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionListEvents")
+	}
+
+	var r0 []models.SessionEvent
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) ([]models.SessionEvent, int, error)); ok {
+		return rf(ctx, uid, seat, event, paginator)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) []models.SessionEvent); ok {
+		r0 = rf(ctx, uid, seat, event, paginator)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.SessionEvent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) int); ok {
+		r1 = rf(ctx, uid, seat, event, paginator)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) error); ok {
+		r2 = rf(ctx, uid, seat, event, paginator)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2333,8 +2388,7 @@ func (_m *Store) WithTransaction(ctx context.Context, cb store.TransactionCb) er
 func NewStore(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *Store {
+}) *Store {
 	mock := &Store{}
 	mock.Mock.Test(t)
 

@@ -303,3 +303,55 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 
 	return nil
 }
+
+func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error) {
+	query := []bson.M{
+		{
+			"$match": bson.M{
+				"session": uid,
+				"seat":    seat,
+				"type":    event,
+			},
+		},
+		{
+			"$sort": bson.M{
+				"timestamp": 1,
+			},
+		},
+	}
+
+	queryCount := query
+	queryCount = append(queryCount, bson.M{"$count": "count"})
+	count, err := AggregateCount(ctx, s.db.Collection("firewall_rules"), queryCount)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
+	}
+
+	query = append(query, queries.FromPaginator(&paginator)...)
+
+	cursosr, err := s.db.Collection("sessions_events").Aggregate(ctx, query)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
+	}
+
+	events := make([]models.SessionEvent, 0)
+	if err := cursosr.All(ctx, events); err != nil {
+		return nil, 0, FromMongoError(err)
+	}
+
+	return events, count, nil
+}
+
+func (s *Store) SessionDeleteEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
+	filter := bson.M{
+		"session": uid,
+		"seat":    seat,
+		"type":    event,
+	}
+
+	if _, err := s.db.Collection("sessions_events").DeleteMany(ctx, filter); err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
