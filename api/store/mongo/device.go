@@ -174,66 +174,8 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	return devices, count, FromMongoError(err)
 }
 
-func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
-	query := []bson.M{
-		{
-			"$match": bson.M{"uid": uid},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "connected_devices",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "online",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "namespaces",
-				"localField":   "tenant_id",
-				"foreignField": "tenant_id",
-				"as":           "namespace",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"namespace": "$namespace.name",
-			},
-		},
-		{
-			"$unwind": "$namespace",
-		},
-	}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
-
-	device := new(models.Device)
-
-	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-	defer cursor.Close(ctx)
-	cursor.Next(ctx)
-
-	err = cursor.Decode(&device)
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return device, nil
+func (s *Store) DeviceGet(ctx context.Context, bar, foo, namespace string) (*models.Device, error) {
+	return nil, nil
 }
 
 func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
@@ -588,9 +530,6 @@ func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.
 
 func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error { //nolint:revive
 	now := time.Now()
-
-	device.Status = models.DeviceStatusRemoved
-	device.StatusUpdatedAt = now
 
 	_, err := s.db.Collection("removed_devices").InsertOne(ctx, models.DeviceRemoved{
 		Timestamp: now,

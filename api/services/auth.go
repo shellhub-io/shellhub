@@ -3,8 +3,18 @@ package services
 import (
 	"context"
 	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/hex"
+	"net"
+	"strings"
+	"time"
 
+	"github.com/cnf/structhash"
+	"github.com/google/uuid"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -49,7 +59,156 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
-	return nil, nil
+	if req.Hostname == "" && (req.Identity == nil || req.Identity.MAC == "") {
+		return nil, NewErrAuthDeviceNoIdentityAndHostname()
+	}
+
+	println("1")
+	println("1")
+
+	auth := models.DeviceAuth{
+		Hostname:  req.Hostname,
+		Identity:  &models.DeviceIdentity{MAC: req.Identity.MAC},
+		PublicKey: req.PublicKey,
+		TenantID:  req.TenantID,
+	}
+
+	uid := sha256.Sum256(structhash.Dump(auth, 1))
+	key := hex.EncodeToString(uid[:])
+
+	claims := authorizer.DeviceClaims{
+		UID:      key,
+		TenantID: req.TenantID,
+	}
+
+	println("2")
+	println("2")
+
+	token, err := jwttoken.EncodeDeviceClaims(claims, s.privKey)
+	if err != nil {
+		return nil, NewErrTokenSigned(err)
+	}
+
+	type Device struct {
+		Name      string
+		Namespace string
+	}
+
+	var value *Device
+
+	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
+		return &models.DeviceAuthResponse{
+			UID:       key,
+			Token:     token,
+			Name:      value.Name,
+			Namespace: value.Namespace,
+		}, nil
+	}
+
+	println("3")
+	println("3")
+
+	var info *models.DeviceInfo
+	if req.Info != nil {
+		info = &models.DeviceInfo{
+			ID:         req.Info.ID,
+			PrettyName: req.Info.PrettyName,
+			Version:    req.Info.Version,
+			Arch:       req.Info.Arch,
+			Platform:   req.Info.Platform,
+		}
+	}
+
+	position, err := s.locator.GetPosition(net.ParseIP(remoteAddr))
+	if err != nil {
+		return nil, err
+	}
+
+	println("4")
+	println(key)
+	println("4")
+
+	i, err := uuid.Parse("00000000-0000-4000-0000-000000000000")
+	if err != nil {
+		panic(err)
+
+	}
+
+	name := req.Hostname
+	if name == "" {
+		name = strings.ReplaceAll(req.Identity.MAC, ":", "-")
+	}
+
+	device := models.Device{
+		UID:         key,
+		Name:        name,
+		Identity:    auth.Identity,
+		Info:        info,
+		PublicKey:   req.PublicKey,
+		TenantID:    req.TenantID,
+		NamespaceID: i,
+		LastSeen:    clock.Now(),
+		RemoteAddr:  remoteAddr,
+		Position: &models.DevicePosition{
+			Longitude: position.Longitude,
+			Latitude:  position.Latitude,
+		},
+	}
+
+	// The order here is critical as we don't want to register devices if the tenant id is invalid
+	namespace, err := s.store.NamespaceGet(ctx, i.String())
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(device.TenantID, err)
+	}
+
+	println("5")
+	println("5")
+
+	if err := s.store.DeviceCreate(ctx, device, strings.ToLower(req.Hostname)); err != nil {
+		println("[d-c]error: ", err.Error())
+		println("[d-c]error: ", err.Error())
+		println("[d-c]error: ", err.Error())
+		println("[d-c]error: ", err.Error())
+
+		return nil, NewErrDeviceCreate(device, err)
+	}
+
+	println("6")
+	println("6")
+
+	// for _, uid := range req.Sessions {
+	// 	if err := s.store.SessionSetLastSeen(ctx, models.UID(uid)); err != nil {
+	// 		continue
+	// 	}
+	// }
+
+	dev, err := s.store.DeviceGet(ctx, "uid", device.UID, "")
+	if err != nil {
+		println("[d-g]error: ", err.Error())
+		println("[d-g]error: ", err.Error())
+		println("[d-g]error: ", err.Error())
+		println("[d-g]error: ", err.Error())
+
+		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
+	}
+
+	println("7")
+	println("7")
+
+	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", key}, "/"), &Device{Name: dev.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
+
+		return nil, err
+	}
+
+	println("8")
+	println("8")
+
+	return &models.DeviceAuthResponse{
+		UID:       key,
+		Token:     token,
+		Name:      dev.Name,
+		Namespace: namespace.Name,
+	}, nil
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
@@ -73,7 +232,7 @@ func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (str
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {
-	return nil
+	return s.pubKey
 }
 
 // AuthCacheToken caches the user's namespace token.

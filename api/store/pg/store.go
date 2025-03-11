@@ -36,7 +36,7 @@ func DSN(host, port, user, password, db string) string {
 }
 
 func New(ctx context.Context, dsn string, cache cache.Cache, opts ...options.Option) (store.Store, error) {
-	db, err := connect(ctx, dsn)
+	db, err := connect(dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +57,12 @@ func New(ctx context.Context, dsn string, cache cache.Cache, opts ...options.Opt
 	return store, nil
 }
 
-func connect(ctx context.Context, dsn string) (*gorm.DB, error) {
+func connect(dsn string) (*gorm.DB, error) {
 	db, err := gorm.Open(
 		postgres.Open(dsn),
 		&gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
+			Logger:                 logger.Default.LogMode(logger.Info),
+			SkipDefaultTransaction: true,
 		})
 	if err != nil {
 		panic(err)
@@ -69,11 +70,7 @@ func connect(ctx context.Context, dsn string) (*gorm.DB, error) {
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		panic(err)
-	}
-
-	if err := sqlDB.Ping(); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	sqlDB.SetMaxIdleConns(10)

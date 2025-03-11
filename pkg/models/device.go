@@ -2,6 +2,9 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type DeviceStatus string
@@ -16,25 +19,24 @@ const (
 )
 
 type Device struct {
-	// UID is the unique identifier for a device.
-	UID              string          `json:"uid"`
-	Name             string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
-	Identity         *DeviceIdentity `json:"identity"`
-	Info             *DeviceInfo     `json:"info"`
-	PublicKey        string          `json:"public_key" bson:"public_key"`
-	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen         time.Time       `json:"last_seen" bson:"last_seen"`
-	Online           bool            `json:"online" bson:",omitempty"`
-	Namespace        string          `json:"namespace" bson:",omitempty"`
-	Status           DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
-	StatusUpdatedAt  time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
-	CreatedAt        time.Time       `json:"created_at" bson:"created_at,omitempty"`
-	RemoteAddr       string          `json:"remote_addr" bson:"remote_addr"`
-	Position         *DevicePosition `json:"position" bson:"position"`
-	Tags             []string        `json:"tags" bson:"tags,omitempty"`
-	PublicURL        bool            `json:"public_url" bson:"public_url,omitempty"`
-	PublicURLAddress string          `json:"public_url_address" bson:"public_url_address,omitempty"`
-	Acceptable       bool            `json:"acceptable" bson:"acceptable,omitempty"`
+	gorm.Model
+
+	ID  uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	UID string
+
+	Name     string
+	LastSeen time.Time
+
+	Identity   *DeviceIdentity `gorm:"-:all"`
+	Info       *DeviceInfo     `gorm:"-:all"`
+	PublicKey  string          `gorm:"-:all"`
+	TenantID   string          `gorm:"-:all"`
+	Online     bool            `gorm:"-:all"`
+	RemoteAddr string          `gorm:"-:all"`
+	Position   *DevicePosition `gorm:"-:all"`
+
+	NamespaceID uuid.UUID `gorm:"type:uuid"`
+	Namespace   Namespace
 }
 
 type DeviceAuthRequest struct {

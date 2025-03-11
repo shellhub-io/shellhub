@@ -61,7 +61,13 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)
 	s.router = routes.NewRouter(service, routerOptions...)
-	s.worker = asynq.NewServer(s.env.RedisURI)
+
+	s.worker = asynq.NewServer(
+		s.env.RedisURI,
+		asynq.BatchConfig(s.env.AsynqGroupMaxSize, s.env.AsynqGroupMaxDelay, int(s.env.AsynqGroupGracePeriod)),
+		asynq.UniquenessTimeout(s.env.AsynqUniquenessTimeout),
+	)
+
 	s.worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
 
 	log.Info("Server setup completed successfully")

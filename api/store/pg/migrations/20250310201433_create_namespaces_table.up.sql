@@ -1,5 +1,10 @@
 CREATE TABLE IF NOT EXISTS namespaces(
-   id UUID PRIMARY KEY,
-   name VARCHAR (50) NOT NULL
+    id UUID PRIMARY KEY,
+
+    created_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    name VARCHAR (50) NOT NULL
 );
 

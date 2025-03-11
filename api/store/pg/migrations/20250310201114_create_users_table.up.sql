@@ -1,7 +1,12 @@
 CREATE TABLE IF NOT EXISTS users(
-   id UUID PRIMARY KEY,
-   name VARCHAR (50) NOT NULL,
-   email VARCHAR (300) UNIQUE NOT NULL,
-   password VARCHAR (72) NOT NULL
+    id UUID PRIMARY KEY,
+
+    created_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    name VARCHAR (50) NOT NULL,
+    email VARCHAR (300) UNIQUE NOT NULL,
+    password VARCHAR (72) NOT NULL
 );
 

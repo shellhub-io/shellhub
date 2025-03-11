@@ -17,8 +17,18 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, fi
 }
 
 func (s *Store) NamespaceGet(ctx context.Context, tenantID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	// TODO: unify get methods
-	return nil, nil
+	println(tenantID)
+	println(tenantID)
+
+	n := new(models.Namespace)
+	r := s.db.First(n, "id = ?", tenantID)
+
+	if r.Error != nil {
+		println("UEUEUEUEUEUE")
+		println(r.Error.Error())
+	}
+
+	return n, r.Error
 }
 
 func (s *Store) NamespaceGetByName(ctx context.Context, name string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {

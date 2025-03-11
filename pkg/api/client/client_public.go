@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -23,6 +24,8 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	if err := ErrorFromResponse(response); err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("INFO EH: %+v\n", info)
 
 	return info, nil
 }

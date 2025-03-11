@@ -49,12 +49,13 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	return nil
 }
 
-// LookupDevice looks for a device in a namespace.
-//
-// It receives a context, used to "control" the request flow and, the namespace name from a models.Namespace and a
-// device name from models.Device.
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	return nil, nil
+	device, err := s.store.DeviceGet(ctx, "name", name, namespace)
+	if err != nil || device == nil {
+		return nil, NewErrDeviceLookupNotFound(namespace, name, err)
+	}
+
+	return device, nil
 }
 
 func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {

@@ -22,7 +22,10 @@ const (
 
 type DeviceStore interface {
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
-	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
+
+	// DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
+	DeviceGet(ctx context.Context, foo, bar, namespace string) (*models.Device, error)
+
 	DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error

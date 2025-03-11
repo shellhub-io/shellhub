@@ -84,12 +84,19 @@ const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler() gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+		println("TA MALUCO!!!")
+		println("UE")
+		println("TA MALUCO!!!")
+
 		sess, _ := session.ObtainSession(ctx)
 
 		go func() {
 			// NOTICE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
 			// other channel invocation. To avoid it, we wait for the connection to be closed to finish the session.
 			conn.Wait() //nolint:errcheck
+
+			println("ACABOU!!!")
+			println("ACABOU!!!")
 
 			sess.Finish() //nolint:errcheck
 		}()

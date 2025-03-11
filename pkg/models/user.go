@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"gorm.io/gorm"
@@ -60,7 +61,8 @@ func (a UserAuthMethod) String() string {
 type User struct {
 	gorm.Model
 
-	ID       string `json:"id,omitempty" bson:"_id,omitempty"`
+	ID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+
 	Name     string `json:"name" validate:"required,name"`
 	Email    string `json:"email" bson:"email" validate:"required,email"`
 	Password string `bson:",inline"`

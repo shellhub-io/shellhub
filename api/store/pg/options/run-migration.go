@@ -11,6 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -32,6 +33,14 @@ func RunMigrations() Option {
 
 		m, err := migrate.NewWithDatabaseInstance("file://"+migrationsPath, envs.DefaultBackend.Get("POSTGRES_DB"), driver)
 		if err != nil {
+			return errors.Join(ErrMigrationFail, err)
+		}
+
+		if version, dirty, _ := m.Version(); dirty {
+			log.WithField("version", version).
+				WithField("dirty", dirty).
+				Info("migrations are dirty. manual fix required")
+
 			return errors.Join(ErrMigrationFail, err)
 		}
 

@@ -1,14 +1,19 @@
 package models
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Namespace struct {
 	gorm.Model
 
-	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`
-	TenantID string
+	ID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+
+	Name     string `json:"name" validate:"required,hostname_rfc1123,excludes=.,lowercase"`
+	TenantID string `gorm:"-:all"`
+
+	Devices []Device
 }
 
 type NamespaceSettings struct {

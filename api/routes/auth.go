@@ -62,14 +62,31 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
+	println("AUTH!!!")
+	println("AUTH!!!")
+
 	bearerToken := c.Request().Header.Get("Authorization")
+
+	println("HJKFHDSLKFGJDSHLKJ")
+	println("HJKFHDSLKFGJDSHLKJ")
+
 	claims, err := jwttoken.ClaimsFromBearerToken(h.service.PublicKey(), bearerToken)
 	if err != nil {
+		println("DEU ERRO!!!")
+		println(err.Error())
+		println(err.Error())
+		println("DEU ERRO!!!")
+
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
+	println("BBBBBBBBBBBB")
+	println("BBBBBBBBBBBB")
+	println("BBBBBBBBBBBB")
+
 	switch claims := claims.(type) {
 	case *authorizer.DeviceClaims:
+
 		c.Response().Header().Set("X-Device-UID", claims.UID)
 		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
 	case *authorizer.UserClaims:

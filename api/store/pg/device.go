@@ -4,12 +4,36 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
+	println("??")
+
+	d.ID = uuid.New()
+	println(d.NamespaceID.String())
+	println(d.NamespaceID.String())
+	println("HAHAHHAHA")
+
+	if r := s.db.Save(&d); r.Error != nil {
+		println("error ", r.Error.Error())
+		println("error ", r.Error.Error())
+		println("error ", r.Error.Error())
+		println("error ", r.Error.Error())
+
+		return r.Error
+	}
+
+	println("!!")
+
+	log.WithField("id", d.ID).Info("created device")
+
 	return nil
 }
 
@@ -22,8 +46,24 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]model
 	return nil, nil
 }
 
-func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
-	return nil, nil
+func (s *Store) DeviceGet(ctx context.Context, bar, foo, namespace string) (*models.Device, error) {
+	d := new(models.Device)
+
+	query := new(gorm.DB)
+	switch bar {
+	case "uid":
+		query = s.db.Where("uid = ?", foo)
+	case "name":
+		query = s.db.Where("devices.name = ?", foo)
+	}
+
+	if namespace != "" {
+		query = query.Joins("JOIN namespaces ON devices.namespace_id = namespaces.id").Where("namespaces.name = ?", namespace)
+	}
+
+	r := query.First(d)
+
+	return d, r.Error
 }
 
 func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
@@ -56,8 +96,22 @@ func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID,
 }
 
 func (s *Store) DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error {
-	// TODO: this must be implemented in the DeviceUpdate method
-	return nil
+	println("SetOnline sendo executado")
+
+	query := `
+	UPDATE "devices" 
+	  SET last_seen = $2
+	  FROM 
+	    (select unnest($1::text[]) as uid) as data_table
+	  WHERE "devices".uid = data_table.uid;
+	`
+
+	f := make([]string, 0)
+	for _, b := range connectedDevices {
+		f = append(f, b.UID)
+	}
+
+	return s.db.Exec(query, pq.Array(f), time.Now()).Error
 }
 
 func (s *Store) DeviceSetOffline(ctx context.Context, uid string) error {
