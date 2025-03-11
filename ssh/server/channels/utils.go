@@ -39,8 +39,7 @@ func (c *Recorder) Write(output []byte) (int, error) {
 	}
 
 	// NOTE: Writes the event into the event stream to be processed and send to target endpoint.
-	c.session.Event(PtyOutputEventType, &models.SessionRecorded{
-		UID:    c.session.UID,
+	c.session.Event(PtyOutputEventType, &models.SSHPtyOutput{
 		Output: string(output),
 	}, c.seat)
 

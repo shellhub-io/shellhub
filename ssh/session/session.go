@@ -25,42 +25,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-type Command struct {
-	Command string `json:"command"`
-}
-
-type Subsystem struct {
-	Subsystem string `json:"subsystem"`
-}
-
-type Status struct {
-	Status uint32 `json:"status"`
-}
-
-type Signal struct {
-	Name    uint32 `json:"status"`
-	Dumped  bool   `json:"dumped"`
-	Message string `json:"message"`
-	Lang    string `json:"lang"`
-}
-
-type Dimensions struct {
-	Columns uint32 `json:"columns"`
-	Rows    uint32 `json:"rows"`
-	Width   uint32 `json:"width"`
-	Height  uint32 `json:"height"`
-}
-
-// NOTICE: [Pty] cannot use [Dimensions] inside itself due [ssh.Unmarshal] issues.
-type Pty struct {
-	Term     string `json:"term"`
-	Columns  uint32 `json:"columns" `
-	Rows     uint32 `json:"rows"`
-	Width    uint32 `json:"width"`
-	Height   uint32 `json:"height"`
-	Modelist []byte `json:"modelist"`
-}
-
 type Data struct {
 	Target *target.Target
 	// SSHID is the combination of device's name and namespace name.
@@ -75,7 +39,7 @@ type Data struct {
 	// TODO:
 	Lookup map[string]string
 	// Pty is the PTY dimension.
-	Pty Pty
+	Pty models.SSHPty
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
 }
@@ -548,17 +512,6 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	snap.save(sess, StateFinished)
 
 	return nil
-}
-
-func (s *Session) Record(ctx context.Context, url string, seat int) (*Camera, error) {
-	conn, err := s.api.RecordSession(ctx, s.UID, seat, url)
-	if err != nil {
-		log.WithError(err).Error("failed to start the record session process")
-
-		return nil, err
-	}
-
-	return NewCamera(conn), nil
 }
 
 func (s *Session) NewSeat() (int, error) {
