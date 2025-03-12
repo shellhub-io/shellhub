@@ -52,6 +52,7 @@ type Status struct {
 }
 
 type SessionUpdate struct {
+	Recorded      *bool   `json:"recorded"`
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`
 }

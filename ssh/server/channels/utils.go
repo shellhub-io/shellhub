@@ -79,6 +79,14 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 
 			defer recorder.Close() //nolint:errcheck
 
+			if err := sess.Recorded(); err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
+					Warning("failed to set the session as recorded")
+
+				goto normal
+			}
+
 			if _, err := io.Copy(recorder, a); err != nil && err != io.EOF {
 				log.WithError(err).Error("failed on coping data from client to agent")
 			}
