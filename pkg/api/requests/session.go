@@ -41,6 +41,7 @@ type SessionKeepAlive struct {
 
 type SessionUpdate struct {
 	SessionIDParam
+	Recorded      *bool   `json:"recorded"`
 	Authenticated *bool   `json:"authenticated"`
 	Type          *string `json:"type"`
 }

@@ -358,6 +358,14 @@ func (s *Session) authenticate() error {
 	})
 }
 
+func (s *Session) Recorded() error {
+	value := true
+
+	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
+		Recorded: &value,
+	})
+}
+
 // connect connects the session's client to the session's agent.
 func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	config := &gossh.ClientConfig{

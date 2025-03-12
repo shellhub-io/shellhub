@@ -83,6 +83,10 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 		sess.Type = *model.Type
 	}
 
+	if model.Recorded != nil {
+		sess.Recorded = *model.Recorded
+	}
+
 	if err := s.store.SessionUpdate(ctx, uid, sess); err != nil {
 		return err
 	}
