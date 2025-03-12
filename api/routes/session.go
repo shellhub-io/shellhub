@@ -72,6 +72,7 @@ func (h *Handler) UpdateSession(c gateway.Context) error {
 	}
 
 	return h.service.UpdateSession(c.Ctx(), models.UID(req.UID), models.SessionUpdate{
+		Recorded:      req.Recorded,
 		Authenticated: req.Authenticated,
 		Type:          req.Type,
 	})
