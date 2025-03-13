@@ -10,7 +10,6 @@ import {
   reloadConfiguration as reloadApiConfiguration,
 } from "@/api/http";
 
-const { reset, toggle } = useChatWoot();
 export interface AuthState {
   status: string;
   token: string;
@@ -363,6 +362,7 @@ export const auth: Module<AuthState, State> = {
       localStorage.removeItem("recovery_email");
       const chatIsCreated = context.rootGetters["support/getCreatedStatus"];
       if (chatIsCreated) {
+        const { reset, toggle } = useChatWoot();
         toggle("close");
         reset();
       }
