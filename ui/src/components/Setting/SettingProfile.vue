@@ -165,7 +165,7 @@
               </template>
             </v-card-item>
             <v-divider />
-            <div class="d-flex mr-4">
+            <div class="d-flex mr-4" v-if="isCloud || isEnterprise">
               <v-card
                 flat
                 class="bg-background"
@@ -184,7 +184,7 @@
                   </div>
                 </div>
               </v-card>
-              <div class="d-flex align-center bg-background pr-4" v-if="isCloud || isEnterprise">
+              <div class="d-flex align-center bg-background pr-4">
                 <v-switch
                   hide-details
                   inset
