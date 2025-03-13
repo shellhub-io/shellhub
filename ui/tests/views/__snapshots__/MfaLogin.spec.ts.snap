@@ -35,7 +35,7 @@ exports[`MfaLogin > Renders the component 1`] = `
         <!---->
         <div class="v-field__field" data-no-activator="">
           <!---->
-          <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="1" type="text">
+          <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="6" type="text">
         </div>
         <!---->
         <!---->
