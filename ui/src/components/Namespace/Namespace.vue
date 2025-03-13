@@ -57,6 +57,10 @@ interface NamespaceItem {
   name: string;
 }
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const store = useStore();
 const namespaceList = computed(() => store.getters["namespaces/list"]);
 const selectedNamespace = computed(() => store.getters["namespaces/get"]);
