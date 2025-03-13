@@ -121,6 +121,11 @@ type BreadcrumbItem = {
   title: string;
   href: string;
 };
+
+defineOptions({
+  inheritAttrs: false,
+});
+
 const store = useStore();
 const router = useRouter();
 const route = useRoute();

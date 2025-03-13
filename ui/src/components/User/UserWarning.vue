@@ -68,6 +68,10 @@ import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const store = useStore();
 const router = useRouter();
 const showInstructions = ref(false);
