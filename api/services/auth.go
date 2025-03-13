@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"net"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"gorm.io/gorm"
 )
 
 type AuthService interface {
@@ -63,9 +65,6 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		return nil, NewErrAuthDeviceNoIdentityAndHostname()
 	}
 
-	println("1")
-	println("1")
-
 	auth := models.DeviceAuth{
 		Hostname:  req.Hostname,
 		Identity:  &models.DeviceIdentity{MAC: req.Identity.MAC},
@@ -73,16 +72,13 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		TenantID:  req.TenantID,
 	}
 
-	uid := sha256.Sum256(structhash.Dump(auth, 1))
-	key := hex.EncodeToString(uid[:])
+	hash := sha256.Sum256(structhash.Dump(auth, 1))
+	uid := hex.EncodeToString(hash[:])
 
 	claims := authorizer.DeviceClaims{
-		UID:      key,
+		UID:      uid,
 		TenantID: req.TenantID,
 	}
-
-	println("2")
-	println("2")
 
 	token, err := jwttoken.EncodeDeviceClaims(claims, s.privKey)
 	if err != nil {
@@ -96,17 +92,14 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 
 	var value *Device
 
-	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
+	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", uid}, "/"), &value); err == nil && value != nil {
 		return &models.DeviceAuthResponse{
-			UID:       key,
+			UID:       uid,
 			Token:     token,
 			Name:      value.Name,
 			Namespace: value.Namespace,
 		}, nil
 	}
-
-	println("3")
-	println("3")
 
 	var info *models.DeviceInfo
 	if req.Info != nil {
@@ -124,89 +117,60 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		return nil, err
 	}
 
-	println("4")
-	println(key)
-	println("4")
-
-	i, err := uuid.Parse("00000000-0000-4000-0000-000000000000")
-	if err != nil {
-		panic(err)
-
-	}
-
 	name := req.Hostname
 	if name == "" {
 		name = strings.ReplaceAll(req.Identity.MAC, ":", "-")
 	}
 
-	device := models.Device{
-		UID:         key,
-		Name:        name,
-		Identity:    auth.Identity,
-		Info:        info,
-		PublicKey:   req.PublicKey,
-		TenantID:    req.TenantID,
-		NamespaceID: i,
-		LastSeen:    clock.Now(),
-		RemoteAddr:  remoteAddr,
-		Position: &models.DevicePosition{
-			Longitude: position.Longitude,
-			Latitude:  position.Latitude,
-		},
-	}
-
-	// The order here is critical as we don't want to register devices if the tenant id is invalid
-	namespace, err := s.store.NamespaceGet(ctx, i.String())
+	namespaceID, err := uuid.Parse(req.TenantID)
 	if err != nil {
-		return nil, NewErrNamespaceNotFound(device.TenantID, err)
-	}
-
-	println("5")
-	println("5")
-
-	if err := s.store.DeviceCreate(ctx, device, strings.ToLower(req.Hostname)); err != nil {
-		println("[d-c]error: ", err.Error())
-		println("[d-c]error: ", err.Error())
-		println("[d-c]error: ", err.Error())
-		println("[d-c]error: ", err.Error())
-
-		return nil, NewErrDeviceCreate(device, err)
-	}
-
-	println("6")
-	println("6")
-
-	// for _, uid := range req.Sessions {
-	// 	if err := s.store.SessionSetLastSeen(ctx, models.UID(uid)); err != nil {
-	// 		continue
-	// 	}
-	// }
-
-	dev, err := s.store.DeviceGet(ctx, "uid", device.UID, "")
-	if err != nil {
-		println("[d-g]error: ", err.Error())
-		println("[d-g]error: ", err.Error())
-		println("[d-g]error: ", err.Error())
-		println("[d-g]error: ", err.Error())
-
-		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
-	}
-
-	println("7")
-	println("7")
-
-	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", key}, "/"), &Device{Name: dev.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
-
 		return nil, err
 	}
 
-	println("8")
-	println("8")
+	namespace, err := s.store.NamespaceGet(ctx, namespaceID.String())
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	device, err := s.store.DeviceGet(ctx, "uid", uid, "")
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		foo := models.Device{
+			ID:          uid,
+			Name:        name,
+			Identity:    auth.Identity,
+			Info:        info,
+			PublicKey:   req.PublicKey,
+			TenantID:    req.TenantID,
+			NamespaceID: namespaceID,
+			LastSeen:    clock.Now(),
+			RemoteAddr:  remoteAddr,
+			Position: &models.DevicePosition{
+				Longitude: position.Longitude,
+				Latitude:  position.Latitude,
+			},
+		}
+
+		if err := s.store.DeviceCreate(ctx, foo, strings.ToLower(req.Hostname)); err != nil {
+			return nil, NewErrDeviceCreate(foo, err)
+		}
+
+		if device, err = s.store.DeviceGet(ctx, "uid", uid, ""); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", uid}, "/"), &Device{Name: device.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
+		return nil, err
+	}
 
 	return &models.DeviceAuthResponse{
-		UID:       key,
+		UID:       uid,
 		Token:     token,
-		Name:      dev.Name,
+		Name:      device.Name,
 		Namespace: namespace.Name,
 	}, nil
 }

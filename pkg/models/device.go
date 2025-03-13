@@ -21,8 +21,8 @@ const (
 type Device struct {
 	gorm.Model
 
-	ID  uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	UID string
+	ID  string `gorm:"primary_key;type:bytea"`
+	UID string `gorm:"-:all"`
 
 	Name     string
 	LastSeen time.Time

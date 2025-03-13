@@ -100,8 +100,6 @@ func main() {
 				}).Fatal("Failed to initialize agent")
 			}
 
-			println("DENTRO DO MAIN APOS O INITIALIZE")
-
 			ctx := cmd.Context()
 
 			log.WithFields(log.Fields{
@@ -111,10 +109,6 @@ func main() {
 				"server_address":     cfg.ServerAddress,
 				"preferred_hostname": cfg.PreferredHostname,
 			}).Info("Listening for connections")
-
-			println("1")
-			println("1")
-			println(AgentVersion)
 
 			// Disable check update in development mode
 			if AgentVersion != "latest" {
@@ -168,9 +162,6 @@ func main() {
 				}()
 			}
 
-			println("22")
-			println("22")
-
 			if err := ag.Listen(ctx); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":            AgentVersion,
@@ -180,9 +171,6 @@ func main() {
 					"preferred_hostname": cfg.PreferredHostname,
 				}).Fatal("Failed to listen for connections")
 			}
-
-			println("33")
-			println("33")
 
 			log.WithFields(log.Fields{
 				"version":            AgentVersion,

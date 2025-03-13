@@ -168,4 +168,3 @@ secrets:
 networks:
   shellhub:
     name: ${SHELLHUB_NETWORK}
-    external: true

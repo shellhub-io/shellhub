@@ -1,6 +1,7 @@
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS devices(
-    id UUID PRIMARY KEY,
-    uid VARCHAR NOT NULL,
+    id BYTEA PRIMARY KEY,
 
     created_at TIMESTAMP WITH TIME ZONE,
     updated_at TIMESTAMP WITH TIME ZONE,
@@ -16,3 +17,4 @@ CREATE TABLE IF NOT EXISTS devices(
 
 CREATE INDEX idx_devices_namespace_id ON devices(namespace_id);
 
+COMMIT;

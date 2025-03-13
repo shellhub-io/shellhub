@@ -15,8 +15,7 @@ import (
 )
 
 var (
-	ErrMigrationFail          = errors.New("failed to apply migration")
-	ErrMigrationsPathNotFound = errors.New("migrations path not found")
+	ErrMigrationFail = errors.New("failed to apply migration")
 )
 
 func RunMigrations() Option {
@@ -28,8 +27,10 @@ func RunMigrations() Option {
 
 		migrationsPath, err := fetchMigrationsPath()
 		if err != nil {
-			return ErrMigrationsPathNotFound
+			return err
 		}
+
+		log.WithField("path", migrationsPath).Info("Applying migrations")
 
 		m, err := migrate.NewWithDatabaseInstance("file://"+migrationsPath, envs.DefaultBackend.Get("POSTGRES_DB"), driver)
 		if err != nil {
@@ -59,7 +60,13 @@ func fetchMigrationsPath() (string, error) {
 	}
 
 	migrationsPath := filepath.Join(cwd, "store", "pg", "migrations")
-	if _, err := os.Stat(migrationsPath); err != nil {
+
+	if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
+		log.WithField("path", migrationsPath).Info("Migrations directory not found, creating it")
+		if err := os.MkdirAll(migrationsPath, 0755); err != nil {
+			return "", errors.New("failed to create migrations directory: " + err.Error())
+		}
+	} else if err != nil {
 		return "", err
 	}
 

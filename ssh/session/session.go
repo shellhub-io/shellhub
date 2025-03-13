@@ -133,21 +133,12 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, err
 	}
 
-	println("AQUI!!!!")
-	fmt.Printf("HAHA: %+v\n", target)
-
 	var namespace, hostname string
 	if target.IsSSHID() {
-		println("FLKJASHFKASDJF")
-		println("FLKJASHFKASDJF")
-
 		namespace, hostname, err = target.SplitSSHID()
 		if err != nil {
 			return nil, err
 		}
-
-		println(namespace)
-		println(hostname)
 	} else {
 		if hos.IsLocalhost() {
 			var data string
@@ -185,15 +176,10 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		"name":   hostname,
 	}
 
-	println("ANTES DO LOOKUP")
-
 	device, errs := api.DeviceLookup(lookup)
 	if len(errs) > 0 {
 		return nil, errs[0]
 	}
-
-	fmt.Printf("UEUEUE: %t\n", device == nil)
-	println("APOS O LOOKUP")
 
 	session := &Session{
 		UID:    ctx.SessionID(),
@@ -210,14 +196,10 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		Seat: new(atomic.Int32),
 	}
 
-	println("CRIOU A SESSUIN")
-
 	session.Data.Lookup["username"] = target.Username
 	session.Data.Lookup["ip_address"] = hos.Host
 
 	snap.save(session, StateCreated)
-
-	println("SALVOU O SNAP")
 
 	return session, nil
 }
@@ -361,12 +343,6 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
-
-	println("*********")
-	println(s.Device.NamespaceID.String())
-	println(s.Device.TenantID)
-	println(s.Device.UID)
-	println("*********")
 
 	ctx.Lock()
 	s.AgentConn, err = s.tunnel.Dial(ctx, s.Device.NamespaceID.String()+":"+s.Device.UID)

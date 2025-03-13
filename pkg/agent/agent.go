@@ -264,13 +264,9 @@ func (a *Agent) Initialize() error {
 		return errors.Wrap(err, "failed to probe server info")
 	}
 
-	println("ANTES!!!")
-
 	if err := a.authorize(); err != nil {
 		return errors.Wrap(err, "failed to authorize device")
 	}
-
-	println("APOS!")
 
 	a.closed.Store(false)
 
@@ -377,11 +373,6 @@ func (a *Agent) authorize() error {
 	}
 
 	fmt.Printf("auth_data eh nil? %t\n", data == nil)
-	println(data.Name)
-	println(data.UID)
-	println(data.Namespace)
-	println(data.Token)
-
 	a.authData = data
 
 	return err
@@ -579,29 +570,17 @@ func sshCloseHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
-	println("i-1")
-	println("i-1")
-
 	a.tunnel = tunnel.NewBuilder().
 		WithSSHHandler(sshHandler(a.server)).
 		WithSSHCloseHandler(sshCloseHandler(a, a.server)).
 		WithHTTPProxyHandler(httpProxyHandler(a)).
 		Build()
 
-	println("i-2")
-	println("i-2")
-
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
-
-	println("i-3")
-	println("i-3")
 
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		for {
-			println("ir-1")
-			println("ir-1")
-
 			if a.isClosed() {
 				log.WithFields(log.Fields{
 					"version":        AgentVersion,
@@ -614,9 +593,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 				return
 			}
 
-			println("ir-2")
-			println("ir-2")
-
 			fmt.Printf("authData: %+v\n", a.authData)
 			fmt.Printf("serverInfo: %+v\n", a.serverInfo)
 
@@ -624,17 +600,11 @@ func (a *Agent) Listen(ctx context.Context) error {
 			tenantName := a.authData.Name
 			sshEndpoint := a.serverInfo.Endpoints.SSH
 
-			println("ir-3")
-			println("ir-3")
-
 			sshid := strings.NewReplacer(
 				"{namespace}", namespace,
 				"{tenantName}", tenantName,
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
-
-			println("ir-4")
-			println("ir-4")
 
 			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
 			if err != nil {
@@ -658,9 +628,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"sshid":          sshid,
 			}).Info("Server connection established")
 
-			println("ir-5")
-			println("ir-5")
-
 			a.listening <- true
 
 			{
@@ -679,20 +646,11 @@ func (a *Agent) Listen(ctx context.Context) error {
 				listener.Close() // nolint:errcheck
 			}
 
-			println("ir-6")
-			println("ir-6")
-
 			a.listening <- false
 		}
 	}()
 
-	println("i-4")
-	println("i-4")
-
 	<-ctx.Done()
-
-	println("i-5")
-	println("i-5")
 
 	return a.Close()
 }
@@ -707,8 +665,6 @@ const AgentPingDefaultInterval = 10 * time.Minute
 // Ping only sends requests to the server if the agent is listening for connections. If the agent is not
 // listening, the ping process will be stopped. When the interval is 0, the default value is 10 minutes.
 func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
-	println("COMECOU HEIN!!!")
-
 	a.listening = make(chan bool)
 
 	if interval == 0 {
@@ -717,9 +673,6 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 
 	<-a.listening // NOTE: wait for the first connection to start to ping the server.
 	ticker := time.NewTicker(interval)
-
-	println("LISTENING FINALMENTE")
-	fmt.Printf("INTERVAL: %d", interval)
 
 	for {
 		if a.isClosed() {
@@ -756,8 +709,6 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 				ticker.Stop()
 			}
 		case <-ticker.C:
-			println("DENTRO DO TICKER")
-
 			if err := a.authorize(); err != nil {
 				a.server.SetDeviceName(a.authData.Name)
 			}

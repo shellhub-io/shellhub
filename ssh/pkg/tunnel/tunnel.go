@@ -55,14 +55,8 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 	}
 
 	tunnel.Tunnel.ConnectionHandler = func(request *http.Request) (string, error) {
-		println("CONNECTIONHANDLER")
-
 		tenant := request.Header.Get("X-Tenant-ID")
 		uid := request.Header.Get("X-Device-UID")
-
-		println(tenant)
-		println(uid)
-		println("\n\n")
 
 		// WARN:
 		// In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID" header.
@@ -84,8 +78,6 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		return tenant + ":" + uid, nil
 	}
 	tunnel.Tunnel.CloseHandler = func(key string) {
-		println("CLOSEHANDLER")
-
 		parts := strings.Split(key, ":")
 		if len(parts) != 2 {
 			log.Error("failed to parse key at close handler")

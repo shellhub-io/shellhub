@@ -16,6 +16,15 @@ type Namespace struct {
 	Devices []Device
 }
 
+func (n *Namespace) AfterFind(tx *gorm.DB) error {
+	println("AFTER FIND DO NAMESPACE")
+	println("AFTER FIND DO NAMESPACE")
+	println("AFTER FIND DO NAMESPACE")
+	println("AFTER FIND DO NAMESPACE")
+
+	return nil
+}
+
 type NamespaceSettings struct {
 	SessionRecord          bool   `json:"session_record" bson:"session_record,omitempty"`
 	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`

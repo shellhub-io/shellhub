@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -14,23 +13,9 @@ import (
 )
 
 func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
-	println("??")
-
-	d.ID = uuid.New()
-	println(d.NamespaceID.String())
-	println(d.NamespaceID.String())
-	println("HAHAHHAHA")
-
 	if r := s.db.Save(&d); r.Error != nil {
-		println("error ", r.Error.Error())
-		println("error ", r.Error.Error())
-		println("error ", r.Error.Error())
-		println("error ", r.Error.Error())
-
 		return r.Error
 	}
-
-	println("!!")
 
 	log.WithField("id", d.ID).Info("created device")
 
@@ -52,7 +37,7 @@ func (s *Store) DeviceGet(ctx context.Context, bar, foo, namespace string) (*mod
 	query := new(gorm.DB)
 	switch bar {
 	case "uid":
-		query = s.db.Where("uid = ?", foo)
+		query = s.db.Where("id = ?", foo)
 	case "name":
 		query = s.db.Where("devices.name = ?", foo)
 	}
@@ -96,14 +81,12 @@ func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID,
 }
 
 func (s *Store) DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error {
-	println("SetOnline sendo executado")
-
 	query := `
 	UPDATE "devices" 
 	  SET last_seen = $2
 	  FROM 
-	    (select unnest($1::text[]) as uid) as data_table
-	  WHERE "devices".uid = data_table.uid;
+		(select unnest($1::bytea[]) as id) as data_table
+	  WHERE "devices".id = data_table.id;
 	`
 
 	f := make([]string, 0)
