@@ -161,7 +161,10 @@ func (c *client) SaveSession(uid string, seat int) error {
 		return errors.Join(errors.New("failed to save the Asciinema file on Object Storage"), err)
 	}
 
-	if res.StatusCode() != 200 {
+	switch {
+	case res.StatusCode() == 404:
+		return ErrNotFound
+	case res.StatusCode() != 200:
 		return errors.New("failed to save the Asciinema due status code")
 	}
 
