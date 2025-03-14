@@ -1,0 +1,102 @@
+package migrations
+
+import (
+	"context"
+	"errors"
+
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
+	migrate "github.com/xakep666/mongo-migrate"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+var ErrMigration96StatusNot200 = errors.New("failed to save the session as asciinema file")
+
+var migration96 = migrate.Migration{
+	Version:     96,
+	Description: "Save session's events as Asciinema file on Object Storage",
+	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
+		log.WithFields(log.Fields{
+			"component": "migration",
+			"version":   96,
+			"action":    "Up",
+		}).Info("Applying migration")
+
+		if !envs.IsEnterprise() {
+			return nil
+		}
+
+		cursor, err := db.Collection("sessions").Aggregate(ctx, []bson.M{
+			{
+				"$match": bson.M{
+					"recorded": true,
+					"events.types": bson.M{
+						"$all": []models.SessionEventType{
+							models.SessionEventTypePtyRequest,
+							models.SessionEventTypePtyOutput,
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			log.WithError(err).Error("Failed to find recorded sessions")
+
+			return err
+		}
+
+		defer cursor.Close(ctx)
+
+		cli, err := internalclient.NewClient()
+		if err != nil {
+			log.WithError(err).Error("Failed to find recorded sessions")
+
+			return err
+		}
+
+		session := &models.Session{}
+
+		for cursor.Next(ctx) {
+			if err := cursor.Decode(&session); err != nil {
+				log.WithError(err).Error("Failed to decode UID result")
+
+				return err
+			}
+
+			for s := range session.Events.Seats {
+				uid, seat := session.UID, s
+
+				log.WithFields(log.Fields{
+					"uid":  uid,
+					"seat": seat,
+				}).Info("Processing session as Asciinema file")
+
+				if err := cli.SaveSession(uid, seat); err != nil {
+					log.WithError(err).Error("Error on saving session a session")
+
+					return err
+				}
+
+				log.WithFields(log.Fields{
+					"uid":  uid,
+					"seat": seat,
+				}).Info("Session saved as Asciinema file")
+			}
+
+		}
+
+		return nil
+	}),
+	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
+		log.WithFields(log.Fields{
+			"component": "migration",
+			"version":   93,
+			"action":    "Down",
+		}).Info("Cannot undo migration")
+
+		return nil
+	}),
+}
