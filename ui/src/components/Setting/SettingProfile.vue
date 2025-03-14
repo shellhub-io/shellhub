@@ -82,7 +82,7 @@
             </template>
           </v-card-item>
           <v-divider />
-          <div v-if="isLocalAuth || envVariables.isCloud">
+          <div v-if="isLocalAuth || isCloud">
             <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
               <template #prepend>
                 <v-icon>mdi-account</v-icon>
@@ -129,7 +129,7 @@
           </v-card-item>
           <v-divider />
 
-          <div v-if="isLocalAuth || envVariables.isCloud">
+          <div v-if="isLocalAuth || isCloud">
             <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
               <template #prepend>
                 <v-icon>mdi-email-lock</v-icon>
@@ -152,7 +152,7 @@
               </template>
             </v-card-item>
             <v-divider />
-            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || envVariables.isCloud">
+            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || isCloud">
               <template #prepend>
                 <v-icon>mdi-key</v-icon>
               </template>
