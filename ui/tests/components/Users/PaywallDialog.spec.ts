@@ -1,8 +1,8 @@
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
-import axios from "axios";
+import { expect, describe, it, beforeEach, vi } from "vitest";
+import { nextTick } from "vue";
 import { store, key } from "@/store";
 import PaywallDialog from "@/components/User/PaywallDialog.vue";
 import { router } from "@/router";
@@ -84,9 +84,12 @@ describe("PaywallDialog", async () => {
 
   const vuetify = createVuetify();
 
-  let mock: MockAdapter;
   let mockNamespace: MockAdapter;
   let mockDevices: MockAdapter;
+
+  vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
+    json: async () => (cards),
+  })));
 
   beforeEach(async () => {
     const el = document.createElement("div");
@@ -96,7 +99,7 @@ describe("PaywallDialog", async () => {
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
-    mock = new MockAdapter(axios);
+
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
 
@@ -106,9 +109,6 @@ describe("PaywallDialog", async () => {
     wrapper = mount(PaywallDialog, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -129,6 +129,7 @@ describe("PaywallDialog", async () => {
     wrapper.vm.dialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
+
     expect(dialog.find('[data-test="card-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="icon-crown"]').exists()).toBe(true);
     expect(dialog.find('[data-test="upgrade-heading"]').exists()).toBe(true);
@@ -165,8 +166,6 @@ describe("PaywallDialog", async () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
-    mock.onGet("https://static.shellhub.io/premium-features.v1.json").reply(200, cards);
-
     store.commit("users/setPremiumContent", cards);
 
     await flushPromises();
@@ -198,7 +197,7 @@ describe("PaywallDialog", async () => {
 
     store.commit("users/setPremiumContent", []);
 
-    await flushPromises();
+    await nextTick();
 
     expect(dialog.find('[data-test="no-link-available-btn"]').exists()).toBe(true);
   });
