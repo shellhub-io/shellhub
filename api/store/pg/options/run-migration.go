@@ -30,36 +30,38 @@ func RunMigrations() Option {
 			return err
 		}
 
-		log.WithField("path", migrationsPath).Info("Applying migrations")
-
 		m, err := migrate.NewWithDatabaseInstance("file://"+migrationsPath, envs.DefaultBackend.Get("POSTGRES_DB"), driver)
 		if err != nil {
+			log.WithError(err).Error("failed to create migrate instance")
+
 			return errors.Join(ErrMigrationFail, err)
 		}
 
 		if version, dirty, _ := m.Version(); dirty {
 			log.WithField("version", version).
 				WithField("dirty", dirty).
-				Info("migrations are dirty. manual fix required")
+				WithError(err).
+				Error("migrations are dirty. manual fix required")
 
 			return errors.Join(ErrMigrationFail, err)
 		}
+
+		log.WithField("path", migrationsPath).Info("applying migrations")
 
 		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+			log.WithError(err).Error("failed to apply migrations")
+
 			return errors.Join(ErrMigrationFail, err)
 		}
+
+		log.Info("migrations applied")
 
 		return nil
 	}
 }
 
 func fetchMigrationsPath() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	migrationsPath := filepath.Join(cwd, "store", "pg", "migrations")
+	migrationsPath := filepath.Join("/", "migrations")
 
 	if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
 		log.WithField("path", migrationsPath).Info("Migrations directory not found, creating it")
@@ -68,6 +70,34 @@ func fetchMigrationsPath() (string, error) {
 		}
 	} else if err != nil {
 		return "", err
+	}
+
+	files, err := os.ReadDir(migrationsPath)
+	if err != nil {
+		log.WithError(err).WithField("path", migrationsPath).Error("failed to read migrations directory")
+		return "", err
+	}
+
+	if len(files) == 0 {
+		log.Error("no migration files found in directory")
+	} else {
+		log.WithField("path", migrationsPath).WithField("total_files", len(files)).Info("migration files directory content:")
+
+		for i, file := range files {
+			fileInfo, err := file.Info()
+			if err != nil {
+				log.WithField("filename", file.Name()).WithError(err).Warn("failed to get file info")
+				continue
+			}
+
+			log.WithFields(log.Fields{
+				"index":  i,
+				"name":   file.Name(),
+				"size":   fileInfo.Size(),
+				"is_dir": file.IsDir(),
+				"mode":   fileInfo.Mode().String(),
+			}).Info("migration file")
+		}
 	}
 
 	return migrationsPath, nil

@@ -51,6 +51,9 @@ RUN go mod download
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
 
+RUN mkdir -p /migrations
+COPY ./api/store/pg/migrations/ /migrations/
+
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
 RUN mkdir -p /templates
@@ -67,6 +70,9 @@ RUN apk add curl
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
 RUN mkdir -p /templates
+
+RUN mkdir -p /migrations
+COPY ./api/store/pg/migrations/ /migrations/
 
 COPY ./install.sh /templates/install.sh
 
