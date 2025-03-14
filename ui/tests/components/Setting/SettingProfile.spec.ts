@@ -76,6 +76,7 @@ describe("Settings Namespace", () => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
+    envVariables.isCommunity = true; // used in the MFA switch test only
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
@@ -140,6 +141,11 @@ describe("Settings Namespace", () => {
       const element = wrapper.find(`[data-test="${dataTest}"]`);
       expect(element.exists()).toBe(true);
     });
+  });
+
+  it("Disables the MFA switch for Community accounts", async () => {
+    const switchMfa = wrapper.find('[data-test="switch-mfa"] input');
+    expect(switchMfa.attributes().disabled).toBeDefined();
   });
 
   it("Successfully changes user data", async () => {

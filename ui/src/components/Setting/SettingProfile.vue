@@ -82,7 +82,7 @@
             </template>
           </v-card-item>
           <v-divider />
-          <div v-if="isLocalAuth || envVariables.isCloud">
+          <div v-if="isLocalAuth || isCloud">
             <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
               <template #prepend>
                 <v-icon>mdi-account</v-icon>
@@ -129,7 +129,7 @@
           </v-card-item>
           <v-divider />
 
-          <div v-if="isLocalAuth || envVariables.isCloud">
+          <div v-if="isLocalAuth || isCloud">
             <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
               <template #prepend>
                 <v-icon>mdi-email-lock</v-icon>
@@ -152,7 +152,7 @@
               </template>
             </v-card-item>
             <v-divider />
-            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || envVariables.isCloud">
+            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || isCloud">
               <template #prepend>
                 <v-icon>mdi-key</v-icon>
               </template>
@@ -165,10 +165,12 @@
               </template>
             </v-card-item>
             <v-divider />
-            <div class="d-flex mr-4" v-if="isCloud || isEnterprise">
+            <div class="d-flex align-center justify-space-between pr-4">
               <v-card
+                :disabled="isCommunity"
                 flat
                 class="bg-background"
+                :class="lgAndUp ? 'w-100' : 'w-75'"
                 prepend-icon="mdi-fingerprint"
                 data-test="mfa-card"
               >
@@ -177,25 +179,30 @@
                 </template>
                 <div class="d-flex flex-no-wrap justify-space-between">
                   <div>
-                    <v-card-text class="pt-0" data-test="mfa-text">
+                    <v-card-text class="pt-0 text-justify" data-test="mfa-text">
                       Enable multi-factor authentication (MFA) to add an extra layer of security to your account.
                       You'll need to enter a one-time verification code from your preferred TOTP provider to log in.
                     </v-card-text>
                   </div>
                 </div>
               </v-card>
-              <div class="d-flex align-center bg-background pr-4">
-                <v-switch
-                  hide-details
-                  inset
-                  color="primary"
-                  v-model="mfaEnabled"
-                  @click="toggleMfa()"
-                  data-test="switch-mfa"
-                />
-                <MfaSettings v-model="dialogMfaSettings" />
-                <MfaDisable v-model="dialogMfaDisable" />
-              </div>
+              <v-tooltip location="top" text="Only available for Cloud or Enterprise accounts!" :disabled="!isCommunity">
+                <template v-slot:activator="{ props }">
+                  <div v-bind="props" class="d-flex align-center bg-background" style="height: fit-content;">
+                    <v-switch
+                      hide-details
+                      inset
+                      color="primary"
+                      v-model="mfaEnabled"
+                      @click="toggleMfa()"
+                      :disabled="isCommunity"
+                      data-test="switch-mfa"
+                    />
+                    <MfaSettings v-model="dialogMfaSettings" />
+                    <MfaDisable v-model="dialogMfaDisable" />
+                  </div>
+                </template>
+              </v-tooltip>
             </div>
 
           </div>
@@ -220,6 +227,7 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { ref, computed, onMounted } from "vue";
+import { useDisplay } from "vuetify";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
@@ -239,14 +247,14 @@ const store = useStore();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
 const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
-const isEnterprise = computed(() => envVariables.isEnterprise);
-const isCloud = computed(() => envVariables.isCloud);
 const dialogMfaSettings = ref(false);
 const dialogMfaDisable = ref(false);
 const showChangePassword = ref(false);
 const showDeleteAccountDialog = ref(false);
 const getAuthMethods = computed(() => store.getters["auth/getAuthMethods"]);
 const isLocalAuth = computed(() => getAuthMethods.value.includes("local"));
+const { isCloud, isCommunity } = envVariables;
+const { lgAndUp } = useDisplay();
 
 const {
   value: name,
