@@ -22,13 +22,13 @@
         >
           <td class="text-center" data-test="device-tunnel-url">
             <a
-              :href="`${urlProtocol}//${tunnel.address}.${url}`"
+              :href="`${urlProtocol}//${tunnel.address}`"
               target="_blank"
               rel="noopener noreferrer"
               :data-test="`device-tunnel-link-${i}`"
               @click="handleTunnelLinkClick"
             >
-              {{ `${urlProtocol}//${tunnel.address}.${url}` }}
+              {{ `${urlProtocol}//${tunnel.address}` }}
             </a>
           </td>
 
@@ -76,7 +76,6 @@ const store = useStore();
 const route = useRoute();
 const tunnelList = computed(() => store.getters["tunnels/listTunnels"]);
 const deviceId = computed(() => route.params.id);
-const url = ref(envVariables.tunnelsDomain || window.location.host);
 const urlProtocol = ref(window.location.protocol);
 
 const getTunnels = async () => {
