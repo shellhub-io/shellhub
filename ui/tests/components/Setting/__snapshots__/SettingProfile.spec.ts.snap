@@ -280,7 +280,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
           </div>
           <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
           <div data-v-b3fa301d="" class="d-flex align-center justify-space-between pr-4">
-            <div data-v-b3fa301d="" class="v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background w-75" data-test="mfa-card">
+            <div data-v-b3fa301d="" class="v-card v-card--disabled v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background w-75" tabindex="-1" data-test="mfa-card">
               <!---->
               <div class="v-card__loader">
                 <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -317,16 +317,16 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!----><span class="v-card__underlay"></span>
             </div>
             <div data-v-b3fa301d="" aria-describedby="v-tooltip-11" class="d-flex align-center bg-background">
-              <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset" data-test="switch-mfa">
+              <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-switch v-switch--inset" data-test="switch-mfa">
                 <!---->
                 <div class="v-input__control">
-                  <div class="v-selection-control v-selection-control--density-default">
+                  <div class="v-selection-control v-selection-control--disabled v-selection-control--density-default">
                     <div class="v-selection-control__wrapper">
                       <div class="v-switch__track">
                         <!---->
                         <!---->
                       </div>
-                      <div class="v-selection-control__input"><input id="switch-12" aria-disabled="false" type="checkbox" aria-describedby="switch-12-messages" value="true">
+                      <div class="v-selection-control__input"><input disabled="" id="switch-12" aria-disabled="true" type="checkbox" aria-describedby="switch-12-messages" value="true">
                         <div class="v-switch__thumb">
                           <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                             <!---->
