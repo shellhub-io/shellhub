@@ -247,14 +247,13 @@ const store = useStore();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
 const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
-const isCloud = computed(() => envVariables.isCloud);
-const isCommunity = computed(() => envVariables.isCommunity);
 const dialogMfaSettings = ref(false);
 const dialogMfaDisable = ref(false);
 const showChangePassword = ref(false);
 const showDeleteAccountDialog = ref(false);
 const getAuthMethods = computed(() => store.getters["auth/getAuthMethods"]);
 const isLocalAuth = computed(() => getAuthMethods.value.includes("local"));
+const { isCloud, isCommunity } = envVariables;
 const { lgAndUp } = useDisplay();
 
 const {
