@@ -25,42 +25,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-type Command struct {
-	Command string `json:"command"`
-}
-
-type Subsystem struct {
-	Subsystem string `json:"subsystem"`
-}
-
-type Status struct {
-	Status uint32 `json:"status"`
-}
-
-type Signal struct {
-	Name    uint32 `json:"status"`
-	Dumped  bool   `json:"dumped"`
-	Message string `json:"message"`
-	Lang    string `json:"lang"`
-}
-
-type Dimensions struct {
-	Columns uint32 `json:"columns"`
-	Rows    uint32 `json:"rows"`
-	Width   uint32 `json:"width"`
-	Height  uint32 `json:"height"`
-}
-
-// NOTICE: [Pty] cannot use [Dimensions] inside itself due [ssh.Unmarshal] issues.
-type Pty struct {
-	Term     string `json:"term"`
-	Columns  uint32 `json:"columns" `
-	Rows     uint32 `json:"rows"`
-	Width    uint32 `json:"width"`
-	Height   uint32 `json:"height"`
-	Modelist []byte `json:"modelist"`
-}
-
 type Data struct {
 	Target *target.Target
 	// SSHID is the combination of device's name and namespace name.
@@ -75,7 +39,7 @@ type Data struct {
 	// TODO:
 	Lookup map[string]string
 	// Pty is the PTY dimension.
-	Pty Pty
+	Pty models.SSHPty
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
 }
@@ -156,6 +120,8 @@ type Session struct {
 
 	api    internalclient.Client
 	tunnel *httptunnel.Tunnel
+	// Events is a channel used to send and process Events of a session.
+	Events chan *models.SessionEvent
 
 	once *sync.Once
 
@@ -247,6 +213,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		UID:    ctx.SessionID(),
 		api:    api,
 		tunnel: tunnel,
+		Events: make(chan *models.SessionEvent, 100),
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -268,6 +235,8 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 	session.Data.Lookup["ip_address"] = hos.Host
 
 	snap.save(session, StateCreated)
+
+	go session.NewEventStream(ctx)
 
 	return session, nil
 }
@@ -386,6 +355,14 @@ func (s *Session) authenticate() error {
 
 	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
 		Authenticated: &value,
+	})
+}
+
+func (s *Session) Recorded() error {
+	value := true
+
+	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
+		Recorded: &value,
 	})
 }
 
@@ -545,17 +522,6 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	return nil
 }
 
-func (s *Session) Record(ctx context.Context, url string, seat int) (*Camera, error) {
-	conn, err := s.api.RecordSession(ctx, s.UID, seat, url)
-	if err != nil {
-		log.WithError(err).Error("failed to start the record session process")
-
-		return nil, err
-	}
-
-	return NewCamera(conn), nil
-}
-
 func (s *Session) NewSeat() (int, error) {
 	seat := int(s.Seat.Load())
 	defer s.Seat.Add(1)
@@ -565,13 +531,13 @@ func (s *Session) NewSeat() (int, error) {
 
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
-	go s.api.EventSession(s.UID, &models.SessionEvent{ //nolint:errcheck
+	s.Events <- &models.SessionEvent{
 		Session:   s.UID,
-		Type:      t,
+		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
 		Data:      data,
 		Seat:      seat,
-	})
+	}
 }
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
@@ -580,13 +546,33 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 		return
 	}
 
-	go sess.api.EventSession(sess.UID, &models.SessionEvent{ //nolint:errcheck
+	sess.Events <- &models.SessionEvent{
 		Session:   sess.UID,
-		Type:      t,
+		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
-		Data:      d,
+		Data:      data,
 		Seat:      seat,
-	})
+	}
+}
+
+func (s *Session) NewEventStream(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			log.WithFields(log.Fields{
+				"session": s.UID,
+			}).Debug("event stream loop done")
+
+			return
+		case event := <-s.Events:
+			log.WithFields(log.Fields{
+				"session": s.UID,
+				"event":   event,
+			}).Trace("event received on event stream")
+
+			go s.api.EventSession(s.UID, event) //nolint:errcheck
+		}
+	}
 }
 
 func (s *Session) KeepAlive() error {
