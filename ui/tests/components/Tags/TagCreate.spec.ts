@@ -3,7 +3,7 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
-import TagEdit from "@/components/Tags/TagEdit.vue";
+import TagCreate from "@/components/Tags/TagCreate.vue";
 import { router } from "@/router";
 import { namespacesApi, devicesApi, tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -92,8 +92,8 @@ const stats = {
   rejected_devices: 0,
 };
 
-describe("Tag Form Edit", async () => {
-  let wrapper: VueWrapper<InstanceType<typeof TagEdit>>;
+describe("Tag Form Create", async () => {
+  let wrapper: VueWrapper<InstanceType<typeof TagCreate>>;
 
   const vuetify = createVuetify();
 
@@ -119,7 +119,7 @@ describe("Tag Form Edit", async () => {
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("devices/setDeviceChooserStatus", true);
 
-    wrapper = mount(TagEdit, {
+    wrapper = mount(TagCreate, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
         config: {
@@ -127,7 +127,6 @@ describe("Tag Form Edit", async () => {
         },
       },
     });
-    await wrapper.setProps({ tagName: "tag-test" });
   });
 
   it("Is a Vue instance", () => {
@@ -144,49 +143,48 @@ describe("Tag Form Edit", async () => {
 
   it("Renders the component table", async () => {
     const dialog = new DOMWrapper(document.body);
+    wrapper.vm.showDialog = true;
     await flushPromises();
-    await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
-
-    expect(wrapper.find('[data-test="mdi-information-list-item"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="tag-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="edit-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="create-btn"]').exists()).toBe(true);
   });
 
-  it("Successfully edit tag", async () => {
-    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(200);
+  it("Successfully create tag", async () => {
+    wrapper.vm.showDialog = true;
+    await flushPromises();
+
+    mockTags.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/tags").reply(200);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
-
-    await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 
     await wrapper.findComponent('[data-test="tag-field"]').setValue("tag-test2");
 
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="create-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith("tags/editTag", {
+    expect(StoreSpy).toHaveBeenCalledWith("tags/createTag", {
       tenant: "fake-tenant-data",
-      currentName: "tag-test",
-      newName: {
-        name: "tag-test2",
-      },
+      name: "tag-test2",
     });
   });
 
-  it("Failed to add tags", async () => {
-    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(409);
+  it("Failed to create tag", async () => {
+    wrapper.vm.showDialog = true;
+
+    await flushPromises();
+
+    mockTags.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/tags").reply(403);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
+    await wrapper.findComponent('[data-test="create-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
     await flushPromises();
     expect(StoreSpy).toHaveBeenCalledWith(
       "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceTagEdit,
+      INotificationsError.deviceTagCreate,
     );
   });
 });
