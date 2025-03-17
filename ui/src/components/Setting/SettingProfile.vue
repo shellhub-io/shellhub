@@ -249,7 +249,7 @@ const editPasswordStatus = ref(false);
 const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
 const isEnterprise = computed(() => envVariables.isEnterprise);
 const isCloud = computed(() => envVariables.isCloud);
-const isCommunity = computed(() => !(isCloud.value || isEnterprise.value));
+const isCommunity = computed(() => envVariables.isCommunity);
 const dialogMfaSettings = ref(false);
 const dialogMfaDisable = ref(false);
 const showChangePassword = ref(false);
