@@ -11,18 +11,17 @@ import (
 )
 
 const (
-	GetDeviceListURL            = "/devices"
-	GetDeviceURL                = "/devices/:uid"
-	GetDeviceByPublicURLAddress = "/devices/public/:address"
-	DeleteDeviceURL             = "/devices/:uid"
-	RenameDeviceURL             = "/devices/:uid"
-	OfflineDeviceURL            = "/devices/:uid/offline"
-	LookupDeviceURL             = "/lookup"
-	UpdateDeviceStatusURL       = "/devices/:uid/:status"
-	CreateTagURL                = "/devices/:uid/tags"      // Add a tag to a device.
-	UpdateTagURL                = "/devices/:uid/tags"      // Update device's tags with a new set.
-	RemoveTagURL                = "/devices/:uid/tags/:tag" // Delete a tag from a device.
-	UpdateDevice                = "/devices/:uid"
+	GetDeviceListURL      = "/devices"
+	GetDeviceURL          = "/devices/:uid"
+	DeleteDeviceURL       = "/devices/:uid"
+	RenameDeviceURL       = "/devices/:uid"
+	OfflineDeviceURL      = "/devices/:uid/offline"
+	LookupDeviceURL       = "/lookup"
+	UpdateDeviceStatusURL = "/devices/:uid/:status"
+	CreateTagURL          = "/devices/:uid/tags"      // Add a tag to a device.
+	UpdateTagURL          = "/devices/:uid/tags"      // Update device's tags with a new set.
+	RemoveTagURL          = "/devices/:uid/tags/:tag" // Delete a tag from a device.
+	UpdateDevice          = "/devices/:uid"
 )
 
 const (
@@ -115,24 +114,6 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, device)
-}
-
-func (h *Handler) GetDeviceByPublicURLAddress(c gateway.Context) error {
-	var req requests.DevicePublicURLAddress
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	url, err := h.service.GetDeviceByPublicURLAddress(c.Ctx(), req.PublicURLAddress)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, url)
 }
 
 func (h *Handler) DeleteDevice(c gateway.Context) error {
@@ -309,7 +290,7 @@ func (h *Handler) UpdateDevice(c gateway.Context) error {
 		tenant = c.Tenant().ID
 	}
 
-	if err := h.service.UpdateDevice(c.Ctx(), tenant, models.UID(req.UID), req.Name, req.PublicURL); err != nil {
+	if err := h.service.UpdateDevice(c.Ctx(), tenant, models.UID(req.UID), req.Name); err != nil {
 		return err
 	}
 

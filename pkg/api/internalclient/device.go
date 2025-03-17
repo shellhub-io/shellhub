@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -19,8 +18,6 @@ type deviceAPI interface {
 
 	// GetDevice retrieves device information for the specified UID.
 	GetDevice(uid string) (*models.Device, error)
-
-	GetDeviceByPublicURLAddress(address string) (*models.Device, error)
 
 	// DevicesOffline updates a device's status to offline.
 	DevicesOffline(uid string) error
@@ -117,28 +114,6 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 
 	switch resp.StatusCode() {
 	case 400:
-		return nil, ErrNotFound
-	case 200:
-		return device, nil
-	default:
-		return nil, ErrUnknown
-	}
-}
-
-func (c *client) GetDeviceByPublicURLAddress(address string) (*models.Device, error) {
-	httpClient := resty.New()
-
-	var device *models.Device
-	resp, err := httpClient.
-		R().
-		SetResult(&device).
-		Get(fmt.Sprintf("/internal/devices/public/%s", address))
-	if err != nil {
-		return nil, ErrConnectionFailed
-	}
-
-	switch resp.StatusCode() {
-	case 404:
 		return nil, ErrNotFound
 	case 200:
 		return device, nil

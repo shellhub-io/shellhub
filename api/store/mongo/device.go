@@ -1,9 +1,7 @@
 package mongo
 
 import (
-	"context"
-	"crypto/md5" //nolint:gosec
-	"fmt"
+	"context" //nolint:gosec
 	"strings"
 	"time"
 
@@ -540,15 +538,11 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 
 // DeviceChooser updates devices with "accepted" status to "pending" for a given tenantID,
 // excluding devices with UIDs present in the "notIn" list.
-func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
+func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string) error {
 	changes := bson.M{}
 
 	if name != nil {
 		changes["name"] = *name
-	}
-
-	if publicURL != nil {
-		changes["public_url"] = *publicURL
 	}
 
 	_, err := s.db.
@@ -649,22 +643,4 @@ func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator 
 	}
 
 	return devices, len(devices), nil
-}
-
-func (s *Store) DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url_address": fmt.Sprintf("%x", md5.Sum([]byte(uid)))}}) //nolint:gosec
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
-	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"public_url_address": address}).Decode(&device); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return device, nil
 }

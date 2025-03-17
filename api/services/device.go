@@ -19,13 +19,12 @@ const StatusAccepted = "accepted"
 type DeviceService interface {
 	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
-	GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OfflineDevice(ctx context.Context, uid models.UID) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
-	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
+	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string) error
 }
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
@@ -83,15 +82,6 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	return device, nil
 }
 
-func (s *service) GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
-	device, err := s.store.DeviceGetByPublicURLAddress(ctx, address)
-	if err != nil {
-		return nil, NewErrDeviceNotFound(models.UID(address), err)
-	}
-
-	return device, nil
-}
-
 // DeleteDevice deletes a device from a namespace.
 //
 // It receives a context, used to "control" the request flow and, the device UID from models.Device and the tenant ID
@@ -144,7 +134,6 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		RemoteAddr: "",
 		Position:   &models.DevicePosition{},
 		Tags:       []string{},
-		PublicURL:  false,
 	}
 
 	if ok, err := s.validator.Struct(updatedDevice); !ok || err != nil {
@@ -302,7 +291,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
 }
 
-func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
+func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string) error {
 	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
 	if err != nil {
 		return NewErrDeviceNotFound(uid, err)
@@ -329,13 +318,5 @@ func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UI
 		}
 	}
 
-	if publicURL != nil {
-		if device.PublicURLAddress == "" && *publicURL {
-			if err := s.store.DeviceCreatePublicURLAddress(ctx, models.UID(device.UID)); err != nil {
-				return err
-			}
-		}
-	}
-
-	return s.store.DeviceUpdate(ctx, tenant, uid, name, publicURL)
+	return s.store.DeviceUpdate(ctx, tenant, uid, name)
 }
