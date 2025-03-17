@@ -225,7 +225,6 @@
 </template>
 
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { ref, computed, onMounted } from "vue";
 import { useDisplay } from "vuetify";
 import { useField } from "vee-validate";
