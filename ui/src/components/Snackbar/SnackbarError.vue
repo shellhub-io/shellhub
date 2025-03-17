@@ -10,52 +10,44 @@
   </v-snackbar>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useStore } from "../../store";
 
-export default defineComponent({
-  props: {
-    typeMessage: {
-      type: String,
-      required: true,
-    },
-
-    mainContent: {
-      type: String,
-      default: "",
-      required: false,
-    },
+const { mainContent, typeMessage } = defineProps({
+  typeMessage: {
+    type: String,
+    required: true,
   },
-  setup(props) {
-    const store = useStore();
 
-    const snackbar = computed({
-      get() {
-        return store.getters["snackbar/snackbarError"];
-      },
-      set() {
-        store.dispatch("snackbar/unsetShowStatusSnackbarError");
-      },
-    });
-
-    const message = computed(() => {
-      switch (props.typeMessage) {
-        case "loading":
-          return `Loading the ${props.mainContent} has failed, please try again.`;
-        case "action":
-          return `The ${props.mainContent} request has failed, please try again.`;
-        case "licenseRequired":
-          return `The ${props.mainContent} request has failed, license required.`;
-        default:
-          return "The request has failed, please try again.";
-      }
-    });
-
-    return {
-      snackbar,
-      message,
-    };
+  mainContent: {
+    type: String,
+    default: "",
+    required: false,
   },
+});
+
+const store = useStore();
+
+const snackbar = computed({
+  get() {
+    return store.getters["snackbar/snackbarError"];
+  },
+  set() {
+    store.dispatch("snackbar/unsetShowStatusSnackbarError");
+  },
+});
+
+const message = computed(() => {
+  switch (typeMessage) {
+    case "loading":
+      return `Loading the ${mainContent} has failed, please try again.`;
+    case "action":
+      return `The ${mainContent} request has failed, please try again.`;
+    case "licenseRequired":
+      return `The ${mainContent} request has failed, license required.`;
+    default:
+      return "The request has failed, please try again.";
+  }
 });
 </script>
