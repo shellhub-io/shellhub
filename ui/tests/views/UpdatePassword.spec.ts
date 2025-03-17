@@ -2,11 +2,11 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import UpdatePassword from "../../src/views/UpdatePassword.vue";
+import UpdatePassword from "@/views/UpdatePassword.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "../../src/store";
-import { router } from "../../src/router";
-import { envVariables } from "../../src/envVariables";
+import { store, key } from "@/store";
+import { router } from "@/router";
+import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type UpdatePasswordWrapper = VueWrapper<InstanceType<typeof UpdatePassword>>;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { store } from "../../../src/store";
+import { store } from "@/store";
 
 describe("Billing", () => {
   const customerId = "test_customer123";
