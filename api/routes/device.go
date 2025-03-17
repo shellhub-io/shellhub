@@ -276,21 +276,17 @@ func (h *Handler) UpdateDeviceTag(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateDevice(c gateway.Context) error {
-	var req requests.DeviceUpdate
-	if err := c.Bind(&req); err != nil {
+	req := new(requests.DeviceUpdate)
+
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	if err := h.service.UpdateDevice(c.Ctx(), tenant, models.UID(req.UID), req.Name); err != nil {
+	if err := h.service.UpdateDevice(c.Ctx(), req); err != nil {
 		return err
 	}
 
