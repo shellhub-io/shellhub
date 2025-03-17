@@ -776,36 +776,6 @@ func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Devic
 	return r0, r1
 }
 
-// GetDeviceByPublicURLAddress provides a mock function with given fields: ctx, address
-func (_m *Service) GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
-	ret := _m.Called(ctx, address)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetDeviceByPublicURLAddress")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Device, error)); ok {
-		return rf(ctx, address)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Device); ok {
-		r0 = rf(ctx, address)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, address)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetNamespace provides a mock function with given fields: ctx, tenantID
 func (_m *Service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenantID)
@@ -1534,17 +1504,17 @@ func (_m *Service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey)
 	return r0
 }
 
-// UpdateDevice provides a mock function with given fields: ctx, tenant, uid, name, publicURL
-func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
-	ret := _m.Called(ctx, tenant, uid, name, publicURL)
+// UpdateDevice provides a mock function with given fields: ctx, tenant, uid, name
+func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string) error {
+	ret := _m.Called(ctx, tenant, uid, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateDevice")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *string, *bool) error); ok {
-		r0 = rf(ctx, tenant, uid, name, publicURL)
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *string) error); ok {
+		r0 = rf(ctx, tenant, uid, name)
 	} else {
 		r0 = ret.Error(0)
 	}

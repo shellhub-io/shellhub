@@ -297,36 +297,6 @@ func (_m *Client) GetDevice(uid string) (*models.Device, error) {
 	return r0, r1
 }
 
-// GetDeviceByPublicURLAddress provides a mock function with given fields: address
-func (_m *Client) GetDeviceByPublicURLAddress(address string) (*models.Device, error) {
-	ret := _m.Called(address)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetDeviceByPublicURLAddress")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.Device, error)); ok {
-		return rf(address)
-	}
-	if rf, ok := ret.Get(0).(func(string) *models.Device); ok {
-		r0 = rf(address)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(address)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetPublicKey provides a mock function with given fields: fingerprint, tenant
 func (_m *Client) GetPublicKey(fingerprint string, tenant string) (*models.PublicKey, error) {
 	ret := _m.Called(fingerprint, tenant)

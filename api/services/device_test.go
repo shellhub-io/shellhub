@@ -3237,7 +3237,6 @@ func TestDeviceUpdate(t *testing.T) {
 		uid           string
 		tenant        string
 		name          *string
-		publicKey     *bool
 		requiredMocks func(ctx context.Context)
 		expected      error
 	}{
@@ -3246,7 +3245,6 @@ func TestDeviceUpdate(t *testing.T) {
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        nil,
-			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3260,7 +3258,6 @@ func TestDeviceUpdate(t *testing.T) {
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        toPointer("name"),
-			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3280,7 +3277,6 @@ func TestDeviceUpdate(t *testing.T) {
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        toPointer(""),
-			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3300,7 +3296,6 @@ func TestDeviceUpdate(t *testing.T) {
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        toPointer("same"),
-			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3323,7 +3318,6 @@ func TestDeviceUpdate(t *testing.T) {
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        toPointer("same"),
-			publicKey:   nil,
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3353,7 +3347,6 @@ func TestDeviceUpdate(t *testing.T) {
 			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			name:        other,
-			publicKey:   new(bool),
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3370,7 +3363,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), other, new(bool)).
+					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), other).
 					Return(nil).
 					Once()
 			},
@@ -3385,7 +3378,7 @@ func TestDeviceUpdate(t *testing.T) {
 			ctx := context.Background()
 			test.requiredMocks(ctx)
 
-			err := service.UpdateDevice(ctx, test.tenant, models.UID(test.uid), test.name, test.publicKey)
+			err := service.UpdateDevice(ctx, test.tenant, models.UID(test.uid), test.name)
 			assert.Equal(t, test.expected, err)
 		})
 	}
