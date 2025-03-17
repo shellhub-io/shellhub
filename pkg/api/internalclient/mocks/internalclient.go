@@ -517,6 +517,24 @@ func (_m *Client) RecordSession(ctx context.Context, uid string, seat int, recor
 	return r0, r1
 }
 
+// SaveSession provides a mock function with given fields: uid, seat
+func (_m *Client) SaveSession(uid string, seat int) error {
+	ret := _m.Called(uid, seat)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveSession")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int) error); ok {
+		r0 = rf(uid, seat)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SessionAsAuthenticated provides a mock function with given fields: uid
 func (_m *Client) SessionAsAuthenticated(uid string) []error {
 	ret := _m.Called(uid)
