@@ -856,17 +856,17 @@ func (_m *Store) DeviceSetTags(ctx context.Context, uid models.UID, tags []strin
 	return r0, r1, r2
 }
 
-// DeviceUpdate provides a mock function with given fields: ctx, tenant, uid, name
-func (_m *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string) error {
-	ret := _m.Called(ctx, tenant, uid, name)
+// DeviceUpdate provides a mock function with given fields: ctx, tenant, uid, changes
+func (_m *Store) DeviceUpdate(ctx context.Context, tenant string, uid string, changes *models.DeviceChanges) error {
+	ret := _m.Called(ctx, tenant, uid, changes)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *string) error); ok {
-		r0 = rf(ctx, tenant, uid, name)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.DeviceChanges) error); ok {
+		r0 = rf(ctx, tenant, uid, changes)
 	} else {
 		r0 = ret.Error(0)
 	}

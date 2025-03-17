@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -3226,25 +3225,19 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 func TestDeviceUpdate(t *testing.T) {
 	storeMock := new(storemock.Store)
 
-	toPointer := func(s string) *string {
-		return &s
-	}
-
-	other := toPointer("other")
-
 	cases := []struct {
 		description   string
-		uid           string
-		tenant        string
-		name          *string
+		req           *requests.DeviceUpdate
 		requiredMocks func(ctx context.Context)
 		expected      error
 	}{
 		{
 			description: "fails when could not get the device by UID",
-			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			name:        nil,
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "",
+			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3255,9 +3248,11 @@ func TestDeviceUpdate(t *testing.T) {
 		},
 		{
 			description: "success when updating the device name to same name",
-			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			name:        toPointer("name"),
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "name",
+			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3268,56 +3263,45 @@ func TestDeviceUpdate(t *testing.T) {
 						},
 						nil,
 					).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{}).
+					Return(nil).
 					Once()
 			},
 			expected: nil,
 		},
 		{
-			description: "fails when name does not meet the validation requirements",
-			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			name:        toPointer(""),
+			description: "fails when could not get the device by name",
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "name",
+			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Device{
-							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-							Name: "name",
+							UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 						},
 						nil,
 					).
 					Once()
-			},
-			expected: NewErrDeviceInvalid(map[string]interface{}{"name": ""}, nil),
-		},
-		{
-			description: "fails when could not get the device by name",
-			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			name:        toPointer("same"),
-			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(
-						&models.Device{
-							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-							Name: "name",
-						},
-						nil,
-					).Once()
-				storeMock.
-					On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
-			expected: NewErrDeviceNotFound(models.UID("same"), fmt.Errorf("failed to get device by name: %w", errors.New("error", "", 0))),
+			expected: errors.New("error", "", 0),
 		},
 		{
 			description: "fails when already exists a device with same name",
-			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			name:        toPointer("same"),
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "same",
+			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
@@ -3343,27 +3327,28 @@ func TestDeviceUpdate(t *testing.T) {
 			expected: NewErrDeviceDuplicated("same", nil),
 		},
 		{
-			description: "success when update device for a different name",
-			uid:         "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-			tenant:      "00000000-0000-0000-0000-000000000000",
-			name:        other,
+			description: "success when update device",
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "name",
+			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Device{
-							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-							Name: "name",
+							UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 						},
 						nil,
 					).
 					Once()
 				storeMock.
-					On("DeviceGetByName", ctx, "other", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
+					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), other).
+					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{Name: "name"}).
 					Return(nil).
 					Once()
 			},
@@ -3378,7 +3363,7 @@ func TestDeviceUpdate(t *testing.T) {
 			ctx := context.Background()
 			test.requiredMocks(ctx)
 
-			err := service.UpdateDevice(ctx, test.tenant, models.UID(test.uid), test.name)
+			err := service.UpdateDevice(ctx, test.req)
 			assert.Equal(t, test.expected, err)
 		})
 	}

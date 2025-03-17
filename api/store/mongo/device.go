@@ -536,26 +536,18 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 	return nil
 }
 
-// DeviceChooser updates devices with "accepted" status to "pending" for a given tenantID,
-// excluding devices with UIDs present in the "notIn" list.
-func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string) error {
-	changes := bson.M{}
-
-	if name != nil {
-		changes["name"] = *name
-	}
-
-	_, err := s.db.
-		Collection("devices").
-		UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
+func (s *Store) DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error {
+	r, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	// Not deleting the device from the cache may cause issues when trying to retrieve the device after the update.
-	// TODO: Maybe we can standardize the key creation?
-	if err := s.cache.Delete(ctx, strings.Join([]string{"device", string(uid)}, "/")); err != nil {
-		logrus.Error(err)
+	if r.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	if err := s.cache.Delete(ctx, "device"+uid+"/"); err != nil {
+		logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
 	}
 
 	return nil

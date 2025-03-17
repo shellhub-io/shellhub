@@ -1318,6 +1318,56 @@ func TestDeviceChooser(t *testing.T) {
 	}
 }
 
+func TestDeviceUpdate(t *testing.T) {
+	cases := []struct {
+		description string
+		tenantID    string
+		uid         string
+		changes     *models.DeviceChanges
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "fails when the device is not found due to uid",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			uid:         "nonexistent",
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    store.ErrNoDocuments,
+		},
+		{
+			description: "fails when the device is not found due to tenantID",
+			tenantID:    "nonexistent",
+			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when the device is found",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			err := s.DeviceUpdate(ctx, tc.tenantID, tc.uid, tc.changes)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
 func TestDeviceDelete(t *testing.T) {
 	cases := []struct {
 		description string

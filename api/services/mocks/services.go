@@ -1504,17 +1504,17 @@ func (_m *Service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey)
 	return r0
 }
 
-// UpdateDevice provides a mock function with given fields: ctx, tenant, uid, name
-func (_m *Service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string) error {
-	ret := _m.Called(ctx, tenant, uid, name)
+// UpdateDevice provides a mock function with given fields: ctx, req
+func (_m *Service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateDevice")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, *string) error); ok {
-		r0 = rf(ctx, tenant, uid, name)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceUpdate) error); ok {
+		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -23,7 +23,10 @@ const (
 type DeviceStore interface {
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
-	DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string) error
+
+	// DeviceUpdate updates a device with the specified UID that belongs to the specified namespace. It returns [ErrNoDocuments] if none device is found.
+	DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error
+
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
