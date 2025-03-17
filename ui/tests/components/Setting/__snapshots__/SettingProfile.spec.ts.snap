@@ -310,7 +310,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
               <div data-v-b3fa301d="" class="d-flex flex-no-wrap justify-space-between">
                 <div data-v-b3fa301d="">
-                  <div data-v-b3fa301d="" class="v-card-text pt-0" data-test="mfa-text"> Enable multi-factor authentication (MFA) to add an extra layer of security to your account. You'll need to enter a one-time verification code from your preferred TOTP provider to log in. </div>
+                  <div data-v-b3fa301d="" class="v-card-text pt-0 text-justify" data-test="mfa-text"> Enable multi-factor authentication (MFA) to add an extra layer of security to your account. You'll need to enter a one-time verification code from your preferred TOTP provider to log in. </div>
                 </div>
               </div>
               <!---->
@@ -345,6 +345,8 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
               <!---->
             </div>
+            <!--teleport start-->
+            <!--teleport end-->
           </div>
         </div>
         <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
