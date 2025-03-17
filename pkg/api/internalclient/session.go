@@ -36,6 +36,10 @@ type sessionAPI interface {
 
 	// EventSession inserts a new event into a session.
 	EventSession(uid string, event *models.SessionEvent) error
+
+	// SaveSession saves a session as a Asciinema file into the Object Storage and delete
+	// [models.SessionEventTypePtyOutput] events.
+	SaveSession(uid string, seat int) error
 }
 
 func (c *client) SessionCreate(session requests.SessionCreate) error {
@@ -140,6 +144,25 @@ func (c *client) EventSession(uid string, event *models.SessionEvent) error {
 
 	if res.StatusCode() != 200 {
 		return errors.New("failed to send the log event")
+	}
+
+	return nil
+}
+
+func (c *client) SaveSession(uid string, seat int) error {
+	res, err := c.http.
+		R().
+		SetPathParams(map[string]string{
+			"uid":  uid,
+			"seat": fmt.Sprintf("%d", seat),
+		}).
+		Post("http://cloud-api:8080/internal/sessions/{uid}/records/{seat}")
+	if err != nil {
+		return errors.Join(errors.New("failed to save the Asciinema file on Object Storage"), err)
+	}
+
+	if res.StatusCode() != 200 {
+		return errors.New("failed to save the Asciinema due status code")
 	}
 
 	return nil
