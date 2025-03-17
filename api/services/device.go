@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 const StatusAccepted = "accepted"
@@ -24,7 +22,8 @@ type DeviceService interface {
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OfflineDevice(ctx context.Context, uid models.UID) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
-	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string) error
+
+	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
 }
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
@@ -291,32 +290,26 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
 }
 
-func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string) error {
-	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
+func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {
+	device, err := s.store.DeviceGetByUID(ctx, models.UID(req.UID), req.TenantID)
 	if err != nil {
-		return NewErrDeviceNotFound(uid, err)
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
 
-	if name != nil {
-		*name = strings.ToLower(*name)
+	changes := new(models.DeviceChanges)
 
-		if device.Name == *name {
-			return nil
-		}
-
-		if ok, err := s.validator.Var(*name, validator.DeviceNameTag); err != nil || !ok {
-			return NewErrDeviceInvalid(map[string]interface{}{"name": *name}, nil)
-		}
-
-		otherDevice, err := s.store.DeviceGetByName(ctx, *name, tenant, models.DeviceStatusAccepted)
-		if err != nil && err != store.ErrNoDocuments {
-			return NewErrDeviceNotFound(models.UID(*name), fmt.Errorf("failed to get device by name: %w", err))
-		}
-
-		if otherDevice != nil {
+	req.Name = strings.ToLower(req.Name)
+	if req.Name != "" && req.Name != device.Name {
+		otherDevice, err := s.store.DeviceGetByName(ctx, req.Name, req.TenantID, models.DeviceStatusAccepted)
+		switch {
+		case err != nil && err != store.ErrNoDocuments:
+			return err
+		case otherDevice != nil:
 			return NewErrDeviceDuplicated(otherDevice.Name, err)
+		default:
+			changes.Name = req.Name
 		}
 	}
 
-	return s.store.DeviceUpdate(ctx, tenant, uid, name)
+	return s.store.DeviceUpdate(ctx, req.TenantID, req.UID, changes)
 }

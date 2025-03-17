@@ -92,3 +92,7 @@ func NewDeviceTag(tag string) DeviceTag {
 		Tag: tag,
 	}
 }
+
+type DeviceChanges struct {
+	Name string `bson:"name,omitempty"`
+}
