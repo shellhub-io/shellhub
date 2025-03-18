@@ -1,5 +1,5 @@
 import { IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp, IUserSetup } from "@/interfaces/IUSer";
-import { usersApi, systemApi } from "../../api/http";
+import { usersApi, systemApi } from "@/api/http";
 
 export const signUp = async (data : IUserSignUp) => usersApi.registerUser({
   name: data.name,

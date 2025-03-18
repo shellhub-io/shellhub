@@ -1,4 +1,4 @@
-import { tagsApi } from "../../api/http";
+import { tagsApi } from "@/api/http";
 
 interface UpdateTagResponse {
   oldTag: string;

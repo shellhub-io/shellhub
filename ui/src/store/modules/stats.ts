@@ -1,7 +1,7 @@
 import { Module } from "vuex";
 import { AxiosResponse } from "axios";
 import getStats from "../api/stats";
-import { IStats } from "../../interfaces/IStats";
+import { IStats } from "@/interfaces/IStats";
 import { State } from "..";
 
 export interface StatsState {

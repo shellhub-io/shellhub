@@ -1,7 +1,7 @@
 import {
   ApiKeyValidation, ApiKeyEdit,
   ApiKeyRemove } from "@/interfaces/IUserLogin";
-import { apiKeysApi } from "../../api/http";
+import { apiKeysApi } from "@/api/http";
 
 export const generateApiKey = async (data: ApiKeyValidation) => apiKeysApi.apiKeyCreate({
   name: data.name,

@@ -1,5 +1,5 @@
 import { IContainerPostTag, IContainerRename, IUpdateContainerTag, IUpdateContainerTags } from "@/interfaces/IContainer";
-import { containersApi, tagsApi } from "../../api/http";
+import { containersApi, tagsApi } from "@/api/http";
 
 export const postTag = async (data: IContainerPostTag) => tagsApi.createContainerTag(data.uid, data.name);
 
