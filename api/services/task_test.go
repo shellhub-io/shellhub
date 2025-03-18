@@ -4,16 +4,22 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	storemocks "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/require"
 )
 
 func TestService_DevicesHeartbeat(t *testing.T) {
 	storeMock := new(storemocks.Store)
+	clockMock := new(clockmock.Clock)
+
+	clock.DefaultBackend = clockMock
+
+	clockMock.On("Now").Return(now)
 
 	cases := []struct {
 		description   string
@@ -23,78 +29,48 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 	}{
 		{
 			description: "fails when cannot set the status",
-			payload:     []byte("00000000-0000-4000-0000-000000000000:0000000000000000000000000000000000000000000000000000000000000000=1721912837\n00000000-0000-4000-0000-000000000000:0000000000000000000000000000000000000000000000000000000000000001=1721912837"),
+			payload:     []byte("0000000000000000000000000000000000000000000000000000000000000000\n0000000000000000000000000000000000000000000000000000000000000001"),
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceSetOnline", ctx, []models.ConnectedDevice{
-						{
-							UID:      "0000000000000000000000000000000000000000000000000000000000000000",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							LastSeen: time.Unix(1721912837, 0),
-						},
-						{
-							UID:      "0000000000000000000000000000000000000000000000000000000000000001",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							LastSeen: time.Unix(1721912837, 0),
-						},
-					}).
-					Return(errors.New("error")).
+					On(
+						"DeviceBulkUpdate",
+						ctx,
+						[]string{"0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000001"},
+						&models.DeviceChanges{LastSeen: now, DisconnectedAt: nil},
+					).
+					Return(int64(0), errors.New("error")).
 					Once()
 			},
 			expected: errors.New("error"),
 		},
 		{
-			description: "succeeds but one payload does not have ':'",
-			payload:     []byte("00000000-0000-4000-0000-0000000000000000000000000000000000000000000000000000000000000000000000000000=1721912837\n00000000-0000-4000-0000-000000000000:0000000000000000000000000000000000000000000000000000000000000001=1721912837"),
+			description: "succeeds with duplicated IDs",
+			payload:     []byte("0000000000000000000000000000000000000000000000000000000000000000\n0000000000000000000000000000000000000000000000000000000000000001\n0000000000000000000000000000000000000000000000000000000000000000"),
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceSetOnline", ctx, []models.ConnectedDevice{
-						{
-							UID:      "0000000000000000000000000000000000000000000000000000000000000001",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							LastSeen: time.Unix(1721912837, 0),
-						},
-					}).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "succeeds but one payload does not have '='",
-			payload:     []byte("00000000-0000-4000-0000-000000000000:00000000000000000000000000000000000000000000000000000000000000001721912837\n00000000-0000-4000-0000-000000000000:0000000000000000000000000000000000000000000000000000000000000001=1721912837"),
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("DeviceSetOnline", ctx, []models.ConnectedDevice{
-						{
-							UID:      "0000000000000000000000000000000000000000000000000000000000000001",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							LastSeen: time.Unix(1721912837, 0),
-						},
-					}).
-					Return(nil).
+					On(
+						"DeviceBulkUpdate",
+						ctx,
+						[]string{"0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000001"},
+						&models.DeviceChanges{LastSeen: now, DisconnectedAt: nil},
+					).
+					Return(int64(2), nil).
 					Once()
 			},
 			expected: nil,
 		},
 		{
 			description: "succeeds",
-			payload:     []byte("00000000-0000-4000-0000-000000000000:0000000000000000000000000000000000000000000000000000000000000000=1721912837\n00000000-0000-4000-0000-000000000000:0000000000000000000000000000000000000000000000000000000000000001=1721912837"),
+			payload:     []byte("0000000000000000000000000000000000000000000000000000000000000000\n0000000000000000000000000000000000000000000000000000000000000001"),
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceSetOnline", ctx, []models.ConnectedDevice{
-						{
-							UID:      "0000000000000000000000000000000000000000000000000000000000000000",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							LastSeen: time.Unix(1721912837, 0),
-						},
-						{
-							UID:      "0000000000000000000000000000000000000000000000000000000000000001",
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							LastSeen: time.Unix(1721912837, 0),
-						},
-					}).
-					Return(nil).
+					On(
+						"DeviceBulkUpdate",
+						ctx,
+						[]string{"0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000001"},
+						&models.DeviceChanges{LastSeen: now, DisconnectedAt: nil},
+					).
+					Return(int64(2), nil).
 					Once()
 			},
 			expected: nil,

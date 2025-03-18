@@ -17,14 +17,27 @@ const (
 
 type Device struct {
 	// UID is the unique identifier for a device.
-	UID             string          `json:"uid"`
-	Name            string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
-	Identity        *DeviceIdentity `json:"identity"`
-	Info            *DeviceInfo     `json:"info"`
-	PublicKey       string          `json:"public_key" bson:"public_key"`
-	TenantID        string          `json:"tenant_id" bson:"tenant_id"`
-	LastSeen        time.Time       `json:"last_seen" bson:"last_seen"`
-	Online          bool            `json:"online" bson:",omitempty"`
+	UID       string          `json:"uid"`
+	Name      string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
+	Identity  *DeviceIdentity `json:"identity"`
+	Info      *DeviceInfo     `json:"info"`
+	PublicKey string          `json:"public_key" bson:"public_key"`
+	TenantID  string          `json:"tenant_id" bson:"tenant_id"`
+
+	// LastSeen represents the timestamp of the most recent ping from the device to the server.
+	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	// DisconnectedAt stores the timestamp when the device disconnected from the server.
+	// When nil, it indicates the device is potentially online.
+	//
+	// Due to potential network issues, this field might be nil even when the device
+	// is actually offline. For reliable connection status, check both this and
+	// [Device.LastSeen] fields.
+	DisconnectedAt *time.Time `json:"-" bson:"disconnected_at"`
+	// Online indicates whether the device is currently connected. This field is not
+	// persisted to the database but is computed based on both [Device.LastSeen] and
+	// [Device.DisconnectedAt] fields to determine the current connection status.
+	Online bool `json:"online" bson:",omitempty"`
+
 	Namespace       string          `json:"namespace" bson:",omitempty"`
 	Status          DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
 	StatusUpdatedAt time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
@@ -67,12 +80,6 @@ type DeviceInfo struct {
 	Platform   string `json:"platform"`
 }
 
-type ConnectedDevice struct {
-	UID      string    `json:"uid"`
-	TenantID string    `json:"tenant_id" bson:"tenant_id"`
-	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
-}
-
 type DevicePosition struct {
 	Latitude  float64 `json:"latitude" bson:"latitude"`
 	Longitude float64 `json:"longitude" bson:"longitude"`
@@ -94,7 +101,9 @@ func NewDeviceTag(tag string) DeviceTag {
 }
 
 type DeviceChanges struct {
-	Name string `bson:"name,omitempty"`
+	Name           string     `bson:"name,omitempty"`
+	LastSeen       time.Time  `bson:"last_seen,omitempty"`
+	DisconnectedAt *time.Time `bson:"disconnected_at"`
 }
 
 // DeviceConflicts holds user attributes that must be unique for each itam and can be utilized in queries

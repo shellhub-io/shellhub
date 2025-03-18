@@ -108,7 +108,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		tenant := parts[0]
 		uid := parts[1]
 
-		if err := tunnel.API.DevicesHeartbeat(tenant, uid); err != nil {
+		if err := tunnel.API.DevicesHeartbeat(uid); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{
 					"uid":       uid,

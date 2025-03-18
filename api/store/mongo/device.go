@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -28,16 +29,19 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 			},
 		},
 		{
-			"$lookup": bson.M{
-				"from":         "connected_devices",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "online",
-			},
-		},
-		{
 			"$addFields": bson.M{
-				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"online": bson.M{
+					"$cond": bson.M{
+						"if": bson.M{
+							"$and": bson.A{
+								bson.M{"$eq": bson.A{"$disconnected_at", nil}},
+								bson.M{"$gt": bson.A{"$last_seen", primitive.NewDateTimeFromTime(time.Now().Add(-2 * time.Minute))}},
+							},
+						},
+						"then": true,
+						"else": false,
+					},
+				},
 			},
 		},
 	}
@@ -178,16 +182,19 @@ func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, 
 			"$match": bson.M{"uid": uid},
 		},
 		{
-			"$lookup": bson.M{
-				"from":         "connected_devices",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "online",
-			},
-		},
-		{
 			"$addFields": bson.M{
-				"online": bson.M{"$anyElementTrue": []interface{}{"$online"}},
+				"online": bson.M{
+					"$cond": bson.M{
+						"if": bson.M{
+							"$and": bson.A{
+								bson.M{"$eq": bson.A{"$disconnected_at", nil}},
+								bson.M{"$gt": bson.A{"$last_seen", primitive.NewDateTimeFromTime(time.Now().Add(-2 * time.Minute))}},
+							},
+						},
+						"then": true,
+						"else": false,
+					},
+				},
 			},
 		},
 		{
@@ -259,10 +266,6 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 			return nil, FromMongoError(err)
 		}
 
-		if _, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid}); err != nil {
-			return nil, FromMongoError(err)
-		}
-
 		if _, err := s.db.Collection("tunnels").DeleteMany(ctx, bson.M{"device": uid}); err != nil {
 			return nil, FromMongoError(err)
 		}
@@ -324,42 +327,6 @@ func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*
 	}
 
 	return device, nil
-}
-
-func (s *Store) DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error {
-	var updateModels []mongo.WriteModel
-	var replaceModels []mongo.WriteModel
-
-	for _, d := range connectedDevices {
-		filter := bson.M{"uid": d.UID}
-
-		update := bson.M{"$set": bson.M{"last_seen": d.LastSeen}}
-		updateModels = append(updateModels, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
-		replaceModels = append(replaceModels, mongo.NewReplaceOneModel().SetFilter(filter).SetReplacement(d).SetUpsert(true))
-	}
-
-	if _, err := s.db.Collection("devices").BulkWrite(ctx, updateModels); err != nil {
-		return FromMongoError(err)
-	}
-
-	if _, err := s.db.Collection("connected_devices").BulkWrite(ctx, replaceModels); err != nil {
-		return FromMongoError(err)
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceSetOffline(ctx context.Context, uid string) error {
-	d, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if d.DeletedCount == 0 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
 }
 
 // DeviceUpdateStatus updates the status of a specific device in the devices collection
@@ -542,8 +509,13 @@ func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfli
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (s *Store) DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error {
-	r, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
+func (s *Store) DeviceUpdate(ctx context.Context, tenantID, uid string, changes *models.DeviceChanges) error {
+	filter := bson.M{"uid": uid}
+	if tenantID != "" {
+		filter["tenant_id"] = tenantID
+	}
+
+	r, err := s.db.Collection("devices").UpdateMany(ctx, filter, bson.M{"$set": changes})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -557,6 +529,15 @@ func (s *Store) DeviceUpdate(ctx context.Context, tenant, uid string, changes *m
 	}
 
 	return nil
+}
+
+func (s *Store) DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (int64, error) {
+	res, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"uid": bson.M{"$in": uids}}, bson.M{"$set": changes})
+	if err != nil {
+		return 0, FromMongoError(err)
+	}
+
+	return res.ModifiedCount, nil
 }
 
 func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {

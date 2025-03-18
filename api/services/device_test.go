@@ -1063,7 +1063,7 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceSetOffline", ctx, "uid").
+					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1074,7 +1074,7 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceSetOffline", ctx, "uid").
+					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now}).
 					Return(store.ErrNoDocuments).
 					Once()
 			},
@@ -1085,7 +1085,7 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceSetOffline", ctx, "uid").
+					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now}).
 					Return(nil).
 					Once()
 			},
@@ -3223,6 +3223,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 }
 
 func TestDeviceUpdate(t *testing.T) {
+	now := time.Now()
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
@@ -3258,7 +3259,8 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Device{
-							UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							DisconnectedAt: &now,
 						},
 						nil,
 					).
@@ -3282,8 +3284,9 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Device{
-							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-							Name: "name",
+							UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							Name:           "name",
+							DisconnectedAt: &now,
 						},
 						nil,
 					).
@@ -3293,7 +3296,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{}).
+					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{DisconnectedAt: &now}).
 					Return(nil).
 					Once()
 			},
@@ -3311,7 +3314,8 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Device{
-							UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+							DisconnectedAt: &now,
 						},
 						nil,
 					).
@@ -3321,7 +3325,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{Name: "name"}).
+					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{Name: "name", DisconnectedAt: &now}).
 					Return(nil).
 					Once()
 			},

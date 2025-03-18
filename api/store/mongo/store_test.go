@@ -23,17 +23,16 @@ var (
 )
 
 const (
-	fixtureAPIKeys          = "api-key"           // Check "store.mongo.fixtures.api-keys" for fixture info
-	fixtureConnectedDevices = "connected_devices" // Check "store.mongo.fixtures.connected_devices" for fixture info
-	fixtureDevices          = "devices"           // Check "store.mongo.fixtures.devices" for fixture info
-	fixtureSessions         = "sessions"          // Check "store.mongo.fixtures.sessions" for fixture info
-	fixtureActiveSessions   = "active_sessions"   // Check "store.mongo.fixtures.active_sessions" for fixture info
-	fixtureFirewallRules    = "firewall_rules"    // Check "store.mongo.fixtures.firewall_rules" for fixture info
-	fixturePublicKeys       = "public_keys"       // Check "store.mongo.fixtures.public_keys" for fixture info
-	fixturePrivateKeys      = "private_keys"      // Check "store.mongo.fixtures.private_keys" for fixture info
-	fixtureUsers            = "users"             // Check "store.mongo.fixtures.users" for fixture iefo
-	fixtureNamespaces       = "namespaces"        // Check "store.mongo.fixtures.namespaces" for fixture info
-	fixtureRecoveryTokens   = "recovery_tokens"   // Check "store.mongo.fixtures.recovery_tokens" for fixture info
+	fixtureAPIKeys        = "api-key"         // Check "store.mongo.fixtures.api-keys" for fixture info
+	fixtureDevices        = "devices"         // Check "store.mongo.fixtures.devices" for fixture info
+	fixtureSessions       = "sessions"        // Check "store.mongo.fixtures.sessions" for fixture info
+	fixtureActiveSessions = "active_sessions" // Check "store.mongo.fixtures.active_sessions" for fixture info
+	fixtureFirewallRules  = "firewall_rules"  // Check "store.mongo.fixtures.firewall_rules" for fixture info
+	fixturePublicKeys     = "public_keys"     // Check "store.mongo.fixtures.public_keys" for fixture info
+	fixturePrivateKeys    = "private_keys"    // Check "store.mongo.fixtures.private_keys" for fixture info
+	fixtureUsers          = "users"           // Check "store.mongo.fixtures.users" for fixture iefo
+	fixtureNamespaces     = "namespaces"      // Check "store.mongo.fixtures.namespaces" for fixture info
+	fixtureRecoveryTokens = "recovery_tokens" // Check "store.mongo.fixtures.recovery_tokens" for fixture info
 )
 
 func TestMain(m *testing.M) {
@@ -60,7 +59,6 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertTime("devices", "created_at"),
 		mongotest.SimpleConvertTime("devices", "last_seen"),
 		mongotest.SimpleConvertTime("devices", "status_updated_at"),
-		mongotest.SimpleConvertTime("connected_devices", "last_seen"),
 		mongotest.SimpleConvertObjID("firewall_rules", "_id"),
 		mongotest.SimpleConvertObjID("sessions", "_id"),
 		mongotest.SimpleConvertTime("sessions", "started_at"),

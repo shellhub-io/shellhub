@@ -147,17 +147,17 @@ func (_m *Client) DeviceLookup(lookup map[string]string) (*models.Device, []erro
 	return r0, r1
 }
 
-// DevicesHeartbeat provides a mock function with given fields: tenant, uid
-func (_m *Client) DevicesHeartbeat(tenant string, uid string) error {
-	ret := _m.Called(tenant, uid)
+// DevicesHeartbeat provides a mock function with given fields: uid
+func (_m *Client) DevicesHeartbeat(uid string) error {
+	ret := _m.Called(uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DevicesHeartbeat")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(tenant, uid)
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(uid)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -578,7 +578,8 @@ func (_m *Client) UpdateSession(uid string, model *models.SessionUpdate) error {
 func NewClient(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *Client {
+},
+) *Client {
 	mock := &Client{}
 	mock.Mock.Test(t)
 

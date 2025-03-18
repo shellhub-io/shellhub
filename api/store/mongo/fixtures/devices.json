@@ -3,6 +3,7 @@
         "656f605bafb652df9927adef": {
             "created_at": "2023-01-01T12:00:00.000Z",
             "last_seen": "2023-01-01T12:00:00.000Z",
+            "disconnected_at": null,
             "status_updated_at": "2023-01-01T12:00:00.000Z",
             "identity": {
                 "mac": "mac-1"
@@ -22,6 +23,7 @@
         "656f608671625f495fe70037": {
             "created_at": "2023-01-02T12:00:00.000Z",
             "last_seen": "2023-01-02T12:00:00.000Z",
+            "disconnected_at": null,
             "status_updated_at": "2023-01-02T12:00:00.000Z",
             "identity": {
                 "mac": "mac-2"
@@ -39,6 +41,7 @@
         "6500c8f026e1e911042ee820": {
             "created_at": "2023-01-03T12:00:00.000Z",
             "last_seen": "2023-01-03T12:00:00.000Z",
+            "disconnected_at": null,
             "status_updated_at": "2023-01-03T12:00:00.000Z",
             "identity": {
                 "mac": "mac-3"
@@ -58,6 +61,7 @@
         "656f60cada27dad292686e34": {
             "created_at": "2023-01-04T12:00:00.000Z",
             "last_seen": "2023-01-04T12:00:00.000Z",
+            "disconnected_at": null,
             "status_updated_at": "2023-01-04T12:00:00.000Z",
             "identity": {
                 "mac": "mac-4"
