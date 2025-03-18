@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 )
@@ -23,7 +22,7 @@ type deviceAPI interface {
 	DevicesOffline(uid string) error
 
 	// DevicesHeartbeat enqueues a task to send a heartbeat for the device.
-	DevicesHeartbeat(tenant, uid string) error
+	DevicesHeartbeat(uid string) error
 
 	// Lookup performs a lookup operation based on the provided parameters.
 	Lookup(lookup map[string]string) (string, []error)
@@ -47,10 +46,8 @@ func (c *client) DevicesOffline(uid string) error {
 	return nil
 }
 
-func (c *client) DevicesHeartbeat(tenant, uid string) error {
-	payload := fmt.Sprintf("%s:%s=%d", tenant, uid, clock.Now().Unix())
-
-	return c.worker.SubmitToBatch(context.TODO(), worker.TaskPattern("api:heartbeat"), []byte(payload))
+func (c *client) DevicesHeartbeat(uid string) error {
+	return c.worker.SubmitToBatch(context.TODO(), worker.TaskPattern("api:heartbeat"), []byte(uid))
 }
 
 func (c *client) Lookup(lookup map[string]string) (string, []error) {

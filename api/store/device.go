@@ -34,6 +34,9 @@ type DeviceStore interface {
 
 	// DeviceUpdate updates a device with the specified UID that belongs to the specified namespace. It returns [ErrNoDocuments] if none device is found.
 	DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error
+	// DeviceBulkdUpdate updates a list of devices. Different than [DeviceStore.DeviceUpdate], it does not differentiate namespaces.
+	// It returns the number of  modified devices and an error if any.
+	DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (modifiedCount int64, err error)
 
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
@@ -51,11 +54,4 @@ type DeviceStore interface {
 	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
 	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error)
-
-	// DeviceSetOnline receives a list of devices to mark as online. For each device in the array, it will upsert
-	// a connected device entry; each UID must exists in the "devices" collection.
-	DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error
-
-	// DeviceSetOffline sets a device's status to offline using its UID.
-	DeviceSetOffline(ctx context.Context, uid string) error
 }

@@ -2,10 +2,12 @@ package mongo
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
@@ -25,26 +27,15 @@ func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	query = append([]bson.M{
 		{
-			"$lookup": bson.M{
-				"from":         "devices",
-				"localField":   "uid",
-				"foreignField": "uid",
-				"as":           "device",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"status": "$device.status",
-			},
-		},
-		{
 			"$match": bson.M{
-				"status": "accepted",
+				"disconnected_at": nil,
+				"last_seen":       bson.M{"$gt": primitive.NewDateTimeFromTime(time.Now().Add(-2 * time.Minute))},
+				"status":          "accepted",
 			},
 		},
 	}, query...)
 
-	onlineDevices, err := AggregateCount(ctx, s.db.Collection("connected_devices"), query)
+	onlineDevices, err := AggregateCount(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, err
 	}

@@ -36,6 +36,12 @@ func TestMigration17(t *testing.T) {
 		Name string `json:"name,omitempty" bson:"-"`
 	}
 
+	type ConnectedDevice struct {
+		UID      string    `json:"uid"`
+		TenantID string    `json:"tenant_id" bson:"tenant_id"`
+		LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	}
+
 	type Namespace struct {
 		Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
 		Owner        string             `json:"owner"`
@@ -64,7 +70,7 @@ func TestMigration17(t *testing.T) {
 		DeviceUID: "1",
 	}
 
-	connectedDevice := models.ConnectedDevice{
+	connectedDevice := ConnectedDevice{
 		UID: "1",
 	}
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -169,7 +170,8 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
-	if err := s.store.DeviceSetOffline(ctx, string(uid)); err != nil {
+	now := clock.Now()
+	if err := s.store.DeviceUpdate(ctx, "", string(uid), &models.DeviceChanges{DisconnectedAt: &now}); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrDeviceNotFound(uid, err)
 		}
@@ -302,7 +304,8 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
-	changes := new(models.DeviceChanges)
+	// We pass DisconnectedAt because we don't want to update it to nil
+	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt}
 	if req.Name != "" && strings.ToLower(req.Name) != device.Name {
 		changes.Name = strings.ToLower(req.Name)
 	}

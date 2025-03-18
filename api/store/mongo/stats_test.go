@@ -27,12 +27,11 @@ func TestGetStats(t *testing.T) {
 				fixtureSessions,
 				fixtureActiveSessions,
 				fixtureDevices,
-				fixtureConnectedDevices,
 			},
 			expected: Expected{
 				stats: &models.Stats{
 					RegisteredDevices: 3,
-					OnlineDevices:     1,
+					OnlineDevices:     0,
 					ActiveSessions:    1,
 					PendingDevices:    1,
 					RejectedDevices:   0,

@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestDeviceList(t *testing.T) {
@@ -47,7 +48,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -96,7 +97,7 @@ func TestDeviceList(t *testing.T) {
 						Info:            nil,
 						PublicKey:       "",
 						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          true,
+						Online:          false,
 						Namespace:       "namespace-1",
 						Status:          "accepted",
 						RemoteAddr:      "",
@@ -133,7 +134,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: 2, PerPage: 2},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -146,7 +147,7 @@ func TestDeviceList(t *testing.T) {
 						Info:            nil,
 						PublicKey:       "",
 						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          true,
+						Online:          false,
 						Namespace:       "namespace-1",
 						Status:          "accepted",
 						RemoteAddr:      "",
@@ -183,7 +184,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -232,7 +233,7 @@ func TestDeviceList(t *testing.T) {
 						Info:            nil,
 						PublicKey:       "",
 						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          true,
+						Online:          false,
 						Namespace:       "namespace-1",
 						Status:          "accepted",
 						RemoteAddr:      "",
@@ -269,7 +270,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -318,7 +319,7 @@ func TestDeviceList(t *testing.T) {
 						Info:            nil,
 						PublicKey:       "",
 						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          true,
+						Online:          false,
 						Namespace:       "namespace-1",
 						Status:          "accepted",
 						RemoteAddr:      "",
@@ -355,7 +356,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -386,7 +387,7 @@ func TestDeviceList(t *testing.T) {
 						Info:            nil,
 						PublicKey:       "",
 						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          true,
+						Online:          false,
 						Namespace:       "namespace-1",
 						Status:          "accepted",
 						RemoteAddr:      "",
@@ -441,7 +442,7 @@ func TestDeviceList(t *testing.T) {
 			paginator:   query.Paginator{Page: -1, PerPage: -1},
 			filters:     query.Filters{},
 			status:      models.DeviceStatusPending,
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -554,7 +555,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when namespace is not found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -563,7 +564,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found",
 			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -572,7 +573,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "fails when device is not found due to tenant",
 			uid:         models.UID("5600560h6ed5h960969e7f358g4568491247198ge8537e9g448609fff1b231f"),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: nil,
 				err: store.ErrNoDocuments,
@@ -581,7 +582,7 @@ func TestDeviceGet(t *testing.T) {
 		{
 			description: "succeeds when device is found",
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices, fixtureConnectedDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -593,7 +594,7 @@ func TestDeviceGet(t *testing.T) {
 					Info:            nil,
 					PublicKey:       "",
 					TenantID:        "00000000-0000-4000-0000-000000000000",
-					Online:          true,
+					Online:          false,
 					Namespace:       "namespace-1",
 					Status:          "accepted",
 					RemoteAddr:      "",
@@ -1093,76 +1094,6 @@ func TestDeviceUpdateStatus(t *testing.T) {
 	}
 }
 
-func TestDeviceSetOnline(t *testing.T) {
-	cases := []struct {
-		description string
-		devices     []models.ConnectedDevice
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "succeeds",
-			devices: []models.ConnectedDevice{
-				{
-					UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					LastSeen: clock.Now(),
-				},
-			},
-			fixtures: []string{fixtureDevices},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			require.Equal(t, tc.expected, s.DeviceSetOnline(ctx, tc.devices))
-		})
-	}
-}
-
-func TestDeviceSetOffline(t *testing.T) {
-	cases := []struct {
-		description string
-		uid         string
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when connected_device is not found",
-			uid:         "0000000000000000000000000000000000000000000000000000000000000000",
-			fixtures:    []string{fixtureConnectedDevices},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when UID is valid and online is false",
-			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			fixtures:    []string{fixtureConnectedDevices},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			require.Equal(t, tc.expected, s.DeviceSetOffline(ctx, tc.uid))
-		})
-	}
-}
-
 func TestDeviceSetPosition(t *testing.T) {
 	cases := []struct {
 		description string
@@ -1312,8 +1243,16 @@ func TestDeviceUpdate(t *testing.T) {
 			expected:    store.ErrNoDocuments,
 		},
 		{
-			description: "succeeds when the device is found",
+			description: "succeeds when the device is found with tenant",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
+			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    nil,
+		},
+		{
+			description: "succeeds when the device is found without tenant",
+			tenantID:    "",
 			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 			changes:     &models.DeviceChanges{},
 			fixtures:    []string{fixtureDevices},
@@ -1332,6 +1271,69 @@ func TestDeviceUpdate(t *testing.T) {
 
 			err := s.DeviceUpdate(ctx, tc.tenantID, tc.uid, tc.changes)
 			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestDeviceBulkUpdate(t *testing.T) {
+	type Expected struct {
+		modifiedCount int64
+		err           error
+	}
+
+	cases := []struct {
+		description string
+		uids        []string
+		changes     *models.DeviceChanges
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "succeeds when a device does not matches",
+			uids:        []string{"0000000000000000000000000000000000000000000000000000000000000000"},
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    Expected{int64(0), nil},
+		},
+		{
+			description: "succeeds when devices matches but nothing is updated",
+			uids:        []string{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"},
+			changes:     &models.DeviceChanges{},
+			fixtures:    []string{fixtureDevices},
+			expected:    Expected{int64(0), nil},
+		},
+		{
+			description: "succeeds when devices matches",
+			uids:        []string{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"},
+			changes:     &models.DeviceChanges{LastSeen: time.Now()},
+			fixtures:    []string{fixtureDevices},
+			expected:    Expected{int64(2), nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			modifiedCount, err := s.DeviceBulkUpdate(ctx, tc.uids, tc.changes)
+			require.Equal(t, Expected{modifiedCount: modifiedCount, err: err}, tc.expected)
+
+			cursor, err := db.Collection("devices").Find(ctx, bson.M{"uid": bson.M{"$in": tc.uids}})
+			require.NoError(t, err)
+
+			for cursor.Next(ctx) {
+				device := new(models.Device)
+				require.NoError(t, cursor.Decode(device))
+
+				if tc.changes.LastSeen != (time.Time{}) {
+					require.WithinDuration(t, tc.changes.LastSeen, device.LastSeen, 2*time.Second)
+				}
+			}
 		})
 	}
 }

@@ -272,6 +272,34 @@ func (_m *Store) DeviceBulkRenameTag(ctx context.Context, tenant string, current
 	return r0, r1
 }
 
+// DeviceBulkUpdate provides a mock function with given fields: ctx, uids, changes
+func (_m *Store) DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (int64, error) {
+	ret := _m.Called(ctx, uids, changes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceBulkUpdate")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, *models.DeviceChanges) (int64, error)); ok {
+		return rf(ctx, uids, changes)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string, *models.DeviceChanges) int64); ok {
+		r0 = rf(ctx, uids, changes)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string, *models.DeviceChanges) error); ok {
+		r1 = rf(ctx, uids, changes)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeviceChooser provides a mock function with given fields: ctx, tenantID, chosen
 func (_m *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
 	ret := _m.Called(ctx, tenantID, chosen)
@@ -795,42 +823,6 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
 		r0 = rf(ctx, uid, hostname)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceSetOffline provides a mock function with given fields: ctx, uid
-func (_m *Store) DeviceSetOffline(ctx context.Context, uid string) error {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceSetOffline")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeviceSetOnline provides a mock function with given fields: ctx, connectedDevices
-func (_m *Store) DeviceSetOnline(ctx context.Context, connectedDevices []models.ConnectedDevice) error {
-	ret := _m.Called(ctx, connectedDevices)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceSetOnline")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []models.ConnectedDevice) error); ok {
-		r0 = rf(ctx, connectedDevices)
 	} else {
 		r0 = ret.Error(0)
 	}
