@@ -43,50 +43,46 @@
   </v-hover>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 
-export default defineComponent({
-  props: {
-    id: {
-      type: Number,
-      default: 0,
-    },
-    title: {
-      type: String,
-      default: "",
-    },
-    fieldObject: {
-      type: String,
-      default: "",
-    },
-    content: {
-      type: String,
-      default: "",
-    },
-    icon: {
-      type: String,
-      default: "",
-    },
-    buttonName: {
-      type: String,
-      default: "",
-    },
-    pathName: {
-      type: String,
-      default: "",
-    },
-    nameUseTest: {
-      type: String,
-      default: "",
-    },
-    stats: {
-      type: Number,
-      default: 0,
-    },
+defineProps({
+  id: {
+    type: Number,
+    default: 0,
   },
-  components: { DeviceAdd },
+  title: {
+    type: String,
+    default: "",
+  },
+  fieldObject: {
+    type: String,
+    default: "",
+  },
+  content: {
+    type: String,
+    default: "",
+  },
+  icon: {
+    type: String,
+    default: "",
+  },
+  buttonName: {
+    type: String,
+    default: "",
+  },
+  pathName: {
+    type: String,
+    default: "",
+  },
+  nameUseTest: {
+    type: String,
+    default: "",
+  },
+  stats: {
+    type: Number,
+    default: 0,
+  },
 });
 </script>
 
