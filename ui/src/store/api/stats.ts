@@ -1,4 +1,4 @@
-import { devicesApi } from "../../api/http";
+import { devicesApi } from "@/api/http";
 
 const getStats = async () => devicesApi.getStatusDevices();
 

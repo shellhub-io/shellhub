@@ -1,4 +1,4 @@
-import { rulesApi } from "../../api/http";
+import { rulesApi } from "@/api/http";
 
 interface FitlerHostnameType {
   hostname: string;

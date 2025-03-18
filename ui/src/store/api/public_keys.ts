@@ -1,5 +1,5 @@
 import http from "../helpers/http";
-import { sshApi } from "../../api/http";
+import { sshApi } from "@/api/http";
 import { PublicKeyRequest, UpdatePublicKeyRequest } from "@/api/client/api";
 
 export const postPublicKey = async (data : PublicKeyRequest) => sshApi.createPublicKey(data);

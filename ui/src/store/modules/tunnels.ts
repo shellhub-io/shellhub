@@ -1,7 +1,7 @@
 import { Module } from "vuex";
 import { State } from "../index";
 import * as apiTunnel from "../api/tunnels";
-import { ITunnel, ITunnelCreate, ITunnelDelete } from "../../interfaces/ITunnel";
+import { ITunnel, ITunnelCreate, ITunnelDelete } from "@/interfaces/ITunnel";
 
 export interface TunnelsState {
   tunnels: Array<ITunnel>;
