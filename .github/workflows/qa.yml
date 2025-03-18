@@ -106,7 +106,7 @@ jobs:
       - name: Unit test [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: go test -v ${{ matrix.extra_args }} -timeout 25m ./...
+        run: go test ${{ matrix.extra_args }} -timeout 25m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
