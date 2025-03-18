@@ -3247,6 +3247,30 @@ func TestDeviceUpdate(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
 		},
 		{
+			description: "fails when already exists a device with same name",
+			req: &requests.DeviceUpdate{
+				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				Name:     "name",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Device{
+							UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "name"}).
+					Return([]string{"name"}, true, nil).
+					Once()
+			},
+			expected: NewErrDeviceDuplicated("name", nil),
+		},
+		{
 			description: "success when updating the device name to same name",
 			req: &requests.DeviceUpdate{
 				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
@@ -3265,66 +3289,15 @@ func TestDeviceUpdate(t *testing.T) {
 					).
 					Once()
 				storeMock.
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
 					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{}).
 					Return(nil).
 					Once()
 			},
 			expected: nil,
-		},
-		{
-			description: "fails when could not get the device by name",
-			req: &requests.DeviceUpdate{
-				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				Name:     "name",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(
-						&models.Device{
-							UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, errors.New("error", "", 0)).
-					Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-		{
-			description: "fails when already exists a device with same name",
-			req: &requests.DeviceUpdate{
-				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				Name:     "same",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("DeviceGetByUID", ctx, models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), "00000000-0000-0000-0000-000000000000").
-					Return(
-						&models.Device{
-							UID:  "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-							Name: "name",
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("DeviceGetByName", ctx, "same", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(
-						&models.Device{
-							UID:  "fb2de504e98d3ccab342b53d83395cd7fda297c71e8da550c31478bae0dbb8c5",
-							Name: "same",
-						},
-						nil,
-					).
-					Once()
-			},
-			expected: NewErrDeviceDuplicated("same", nil),
 		},
 		{
 			description: "success when update device",
@@ -3344,8 +3317,8 @@ func TestDeviceUpdate(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("DeviceGetByName", ctx, "name", "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted).
-					Return(nil, store.ErrNoDocuments).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "name"}).
+					Return([]string{}, false, nil).
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", &models.DeviceChanges{Name: "name"}).

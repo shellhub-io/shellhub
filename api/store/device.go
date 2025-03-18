@@ -24,6 +24,15 @@ type DeviceStore interface {
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 
+	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
+	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
+	//
+	//  ctx := context.Background()
+	//  conflicts, has, err := store.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "mydevice"})
+	//
+	// It returns an array of conflicting attribute fields and an error, if any.
+	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) (conflicts []string, has bool, err error)
+
 	// DeviceUpdate updates a device with the specified UID that belongs to the specified namespace. It returns [ErrNoDocuments] if none device is found.
 	DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error
 

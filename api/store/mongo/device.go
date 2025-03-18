@@ -536,6 +536,38 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 	return nil
 }
 
+func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"$or": []bson.M{
+					{"name": target.Name},
+				},
+			},
+		},
+	}
+
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, false, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	conflicts := make([]string, 0)
+	for cursor.Next(ctx) {
+		device := new(models.DeviceConflicts)
+		if err := cursor.Decode(&device); err != nil {
+			return nil, false, FromMongoError(err)
+		}
+
+		if device.Name == target.Name {
+			conflicts = append(conflicts, "name")
+		}
+	}
+
+	return conflicts, len(conflicts) > 0, nil
+}
+
 func (s *Store) DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error {
 	r, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
 	if err != nil {
