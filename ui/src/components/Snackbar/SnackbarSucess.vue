@@ -10,50 +10,42 @@
   </v-snackbar>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from "vue";
-import { useStore } from "@/store";
+<script setup lang="ts">
+import { computed } from "vue";
+import { useStore } from "../../store";
 
-export default defineComponent({
-  props: {
-    typeMessage: {
-      type: String,
-      required: true,
-    },
-
-    mainContent: {
-      type: String,
-      default: "",
-      required: false,
-    },
+const { mainContent, typeMessage } = defineProps({
+  typeMessage: {
+    type: String,
+    required: true,
   },
-  setup(props) {
-    const store = useStore();
 
-    const snackbar = computed({
-      get() {
-        return store.getters["snackbar/snackbarSuccess"];
-      },
-      set() {
-        store.dispatch("snackbar/unsetShowStatusSnackbarSuccess");
-      },
-    });
-
-    const message = computed(() => {
-      switch (props.typeMessage) {
-        case "action":
-          return `The ${props.mainContent} has succeeded.`;
-        case "no-content":
-          return "There is no content to export";
-        default:
-          return "The request has succeeded.";
-      }
-    });
-
-    return {
-      snackbar,
-      message,
-    };
+  mainContent: {
+    type: String,
+    default: "",
+    required: false,
   },
+});
+
+const store = useStore();
+
+const snackbar = computed({
+  get() {
+    return store.getters["snackbar/snackbarSuccess"];
+  },
+  set() {
+    store.dispatch("snackbar/unsetShowStatusSnackbarSuccess");
+  },
+});
+
+const message = computed(() => {
+  switch (typeMessage) {
+    case "action":
+      return `The ${mainContent} has succeeded.`;
+    case "no-content":
+      return "There is no content to export";
+    default:
+      return "The request has succeeded.";
+  }
 });
 </script>
