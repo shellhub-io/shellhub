@@ -1240,6 +1240,52 @@ func TestDeviceChooser(t *testing.T) {
 	}
 }
 
+func TestDeviceConflicts(t *testing.T) {
+	type Expected struct {
+		conflicts []string
+		ok        bool
+		err       error
+	}
+
+	cases := []struct {
+		description string
+		target      *models.DeviceConflicts
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "no conflicts when target is empty",
+			target:      &models.DeviceConflicts{},
+			fixtures:    []string{fixtureDevices},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "no conflicts with non existing email",
+			target:      &models.DeviceConflicts{Name: "nonexistent"},
+			fixtures:    []string{fixtureDevices},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "conflict detected with existing email",
+			target:      &models.DeviceConflicts{Name: "device-1"},
+			fixtures:    []string{fixtureDevices},
+			expected:    Expected{[]string{"name"}, true, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			require.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
+
+			conflicts, ok, err := s.DeviceConflicts(ctx, tc.target)
+			require.Equal(t, tc.expected, Expected{conflicts, ok, err})
+		})
+	}
+}
+
 func TestDeviceUpdate(t *testing.T) {
 	cases := []struct {
 		description string
