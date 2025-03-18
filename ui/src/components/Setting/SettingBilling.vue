@@ -155,13 +155,13 @@ import {
   reactive,
 } from "vue";
 import axios from "axios";
-import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
+import { useStore } from "@/store";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
 import BillingDialog from "../Billing/BillingDialog.vue";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import formatCurrency from "@/utils/currency";
-import { formatDateWithoutDayAndHours } from "../../utils/formateDate";
+import { formatDateWithoutDayAndHours } from "@/utils/formateDate";
 import handleError from "@/utils/handleError";
 
 const store = useStore();

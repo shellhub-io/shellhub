@@ -101,9 +101,9 @@ import {
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import { useEventListener } from "@vueuse/core";
-import { useStore } from "../../store";
-import { createNewClient } from "../../api/http";
-import handleError from "../../utils/handleError";
+import { useStore } from "@/store";
+import { createNewClient } from "@/api/http";
+import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
 import Notification from "./Notifications/Notification.vue";
 import PaywallChat from "../User/PaywallChat.vue";

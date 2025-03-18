@@ -85,13 +85,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { INotificationsError } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
+import { INotificationsError } from "@/interfaces/INotifications";
+import { useStore } from "@/store";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
-import handleError from "../../utils/handleError";
+import handleError from "@/utils/handleError";
 
 type Timer = ReturnType<typeof setInterval>;
 

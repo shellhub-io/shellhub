@@ -11,7 +11,7 @@ import { defineComponent, computed } from "vue";
 import SnackbarSucess from "./SnackbarSucess.vue";
 import SnackbarError from "./SnackbarError.vue";
 import SnackbarCopy from "./SnackbarCopy.vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 
 export default defineComponent({
   setup() {

@@ -110,17 +110,17 @@
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { computed, ref, watch } from "vue";
-import { envVariables } from "../../envVariables";
-import { useStore } from "../../store";
+import { envVariables } from "@/envVariables";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import { IConnectorPayload } from "@/interfaces/IConnector";
-import { parseCertificate, parsePrivateKeySsh } from "../../utils/validate";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import handleError from "../../utils/handleError";
+import { parseCertificate, parsePrivateKeySsh } from "@/utils/validate";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   isEditing: {

@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, PropType } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ConnectorForm from "./ConnectorForm.vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 
 const dialog = ref(false);
 const store = useStore();

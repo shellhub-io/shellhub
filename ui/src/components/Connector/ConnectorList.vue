@@ -132,14 +132,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
-import { envVariables } from "../../envVariables";
+import { useStore } from "@/store";
+import { envVariables } from "@/envVariables";
 import DataTable from "../DataTable.vue";
 import ConnectorDelete from "../Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../Connector/ConnectorEdit.vue";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import { INotificationsCopy, INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { INotificationsCopy, INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { router } from "@/router";
 

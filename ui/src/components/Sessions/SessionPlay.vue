@@ -99,11 +99,11 @@ import { Terminal } from "xterm";
 import "xterm/css/xterm.css";
 import { FitAddon } from "xterm-addon-fit";
 import moment from "moment";
-import { envVariables } from "../../envVariables";
-import { useStore } from "../../store";
-import { INotificationsError } from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
-import { ITerminalFrames, ITerminalLog } from "../../interfaces/ITerminal";
+import { envVariables } from "@/envVariables";
+import { useStore } from "@/store";
+import { INotificationsError } from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
+import { ITerminalFrames, ITerminalLog } from "@/interfaces/ITerminal";
 
 type Timer = ReturnType<typeof setTimeout>;
 

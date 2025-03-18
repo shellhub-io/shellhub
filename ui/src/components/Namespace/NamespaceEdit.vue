@@ -51,11 +51,11 @@ import { computed, onMounted, watch } from "vue";
 import { useField } from "vee-validate";
 import axios from "axios";
 import * as yup from "yup";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const store = useStore();

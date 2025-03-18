@@ -232,13 +232,13 @@ import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import { INotificationsSuccess } from "../../interfaces/INotifications";
+import { INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
 import UserDelete from "../User/UserDelete.vue";
 import UserIcon from "../User/UserIcon.vue";
-import { envVariables } from "../../envVariables";
+import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
 
 type ErrorResponseData = { field: string; message: string }[];

@@ -56,7 +56,7 @@ import {
   INotificationsError,
   INotificationsSuccess,
 } from "@/interfaces/INotifications";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({
