@@ -160,7 +160,7 @@ import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
 import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
-import Namespace from "../../src/components/Namespace/Namespace.vue";
+import Namespace from "@/src/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
