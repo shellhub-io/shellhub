@@ -1,61 +1,39 @@
 <template>
   <v-snackbar
     v-model="snackbar"
-    :timeout="4000"
-    color="#bd4147"
+    :timeout="2000"
     location="top"
+    :color="color"
     transition="slide-x-transition"
   >
     {{ message }}
   </v-snackbar>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useStore } from "@/store";
 
-export default defineComponent({
-  props: {
-    typeMessage: {
-      type: String,
-      required: true,
-    },
-
-    mainContent: {
-      type: String,
-      default: "",
-      required: false,
-    },
-  },
-  setup(props) {
-    const store = useStore();
-
-    const snackbar = computed({
-      get() {
-        return store.getters["snackbar/snackbarError"];
-      },
-      set() {
-        store.dispatch("snackbar/unsetShowStatusSnackbarError");
-      },
-    });
-
-    const message = computed(() => {
-      switch (props.typeMessage) {
-        case "loading":
-          return `Loading the ${props.mainContent} has failed, please try again.`;
-        case "action":
-          return `The ${props.mainContent} request has failed, please try again.`;
-        case "licenseRequired":
-          return `The ${props.mainContent} request has failed, license required.`;
-        default:
-          return "The request has failed, please try again.";
-      }
-    });
-
-    return {
-      snackbar,
-      message,
-    };
+const { mainContent } = defineProps({
+  mainContent: {
+    type: String,
+    default: "",
+    required: true,
   },
 });
+
+const store = useStore();
+
+const color = computed(() => store.getters["layout/getStatusDarkMode"] === "dark" ? "#F9F3EE" : "#1E1E1E");
+
+const snackbar = computed({
+  get() {
+    return store.getters["snackbar/snackbarCopy"];
+  },
+  set() {
+    store.dispatch("snackbar/unsetShowStatusSnackbarCopy");
+  },
+});
+
+const message = computed(() => `${mainContent} copied to clipboard.`);
 </script>
