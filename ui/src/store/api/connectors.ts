@@ -1,5 +1,5 @@
 import { IConnectorCreate, IConnectorUpdate } from "@/interfaces/IConnector";
-import { namespacesApi } from "../../api/http";
+import { namespacesApi } from "@/api/http";
 
 export const createConnector = async (data: IConnectorCreate) => namespacesApi.connectorCreate({
   enable: data.enable,

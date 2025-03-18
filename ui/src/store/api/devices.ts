@@ -1,5 +1,5 @@
 import { IDevicePostTag, IDeviceRename, IUpdateDeviceTags } from "@/interfaces/IDevice";
-import { devicesApi, tagsApi } from "../../api/http";
+import { devicesApi, tagsApi } from "@/api/http";
 
 export const postTag = async (data: IDevicePostTag) => tagsApi.createDeviceTag(data.uid, data.name);
 

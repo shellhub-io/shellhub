@@ -1,5 +1,5 @@
 import { INamespace, INamespaceInvite, INamespaceResponse } from "@/interfaces/INamespace";
-import { namespacesApi } from "../../api/http";
+import { namespacesApi } from "@/api/http";
 
 export const postNamespace = async (data: string) => namespacesApi.createNamespace({ name: data });
 

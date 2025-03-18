@@ -1,7 +1,7 @@
 import { IUserLogin, MfaValidation, MfaDisable,
   MfaAuth,
   MfaRecover, MfaReset } from "@/interfaces/IUserLogin";
-import { usersApi, mfaApi } from "../../api/http";
+import { usersApi, mfaApi } from "@/api/http";
 
 export const login = async (user: IUserLogin) => usersApi.login(user);
 
