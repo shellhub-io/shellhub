@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -28,8 +27,6 @@ type DeviceStore interface {
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
-	DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error
-	DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error)
 	DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error)
