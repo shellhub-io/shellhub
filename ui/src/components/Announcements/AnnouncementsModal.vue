@@ -42,52 +42,43 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import MarkdownIt from "markdown-it";
 import moment from "moment";
 
-export default defineComponent({
-  props: {
-    show: {
-      type: Boolean,
-      required: true,
-    },
-    announcement: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  show: {
+    type: Boolean,
+    required: true,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const md = new MarkdownIt();
-
-    const date = computed(() => moment(props.announcement.date).format("LL"));
-    const markdownContent = computed(() => md.render(props.announcement.content));
-
-    const showAnnouncements = computed({
-      get() {
-        return props.show;
-      },
-      set(value: boolean) {
-        ctx.emit("update", value);
-      },
-    });
-
-    const close = () => {
-      localStorage.setItem("announcement", btoa(JSON.stringify(props.announcement)));
-      ctx.emit("update", false);
-      showAnnouncements.value = false;
-    };
-
-    return {
-      showAnnouncements,
-      markdownContent,
-      date,
-      close,
-    };
+  announcement: {
+    type: Object,
+    required: true,
   },
 });
+
+const emit = defineEmits(["update"]);
+
+const md = new MarkdownIt();
+
+const date = computed(() => moment(props.announcement.date).format("LL"));
+const markdownContent = computed(() => md.render(props.announcement.content));
+
+const showAnnouncements = computed({
+  get() {
+    return props.show;
+  },
+  set(value: boolean) {
+    emit("update", value);
+  },
+});
+
+const close = () => {
+  localStorage.setItem("announcement", btoa(JSON.stringify(props.announcement)));
+  emit("update", false);
+  showAnnouncements.value = false;
+};
 </script>
 
 <style lang="scss">
