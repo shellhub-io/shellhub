@@ -362,32 +362,6 @@ func (s *Store) DeviceSetOffline(ctx context.Context, uid string) error {
 	return nil
 }
 
-func (s *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
-	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if dev.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error {
-	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": ts}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if dev.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 // DeviceUpdateStatus updates the status of a specific device in the devices collection
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
 	updateOptions := options.FindOneAndUpdate().SetReturnDocument(options.After)
