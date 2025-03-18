@@ -39,8 +39,8 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
@@ -48,47 +48,42 @@ import {
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 
-export default defineComponent({
-  props: {
-    tag: {
-      type: String,
-      required: true,
-    },
-    notHasAuthorization: {
-      type: Boolean,
-      required: true,
-    },
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  tag: {
+    type: String,
+    required: true,
   },
-  emits: ["update"],
-  inheritAttrs: true,
-  setup(props, ctx) {
-    const showDialog = ref(false);
-    const store = useStore();
-
-    const remove = async () => {
-      try {
-        await store.dispatch("tags/remove", props.tag);
-
-        store.dispatch(
-          "snackbar/showSnackbarSuccessAction",
-          INotificationsSuccess.deviceTagDelete,
-        );
-        ctx.emit("update");
-      } catch (error: unknown) {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.deviceTagDelete,
-        );
-        handleError(error);
-      } finally {
-        showDialog.value = false;
-      }
-    };
-
-    return {
-      showDialog,
-      remove,
-    };
+  notHasAuthorization: {
+    type: Boolean,
+    required: true,
   },
 });
+
+const emit = defineEmits(["update"]);
+const showDialog = ref(false);
+const store = useStore();
+
+const remove = async () => {
+  try {
+    await store.dispatch("tags/remove", props.tag);
+
+    store.dispatch(
+      "snackbar/showSnackbarSuccessAction",
+      INotificationsSuccess.deviceTagDelete,
+    );
+    emit("update");
+  } catch (error: unknown) {
+    store.dispatch(
+      "snackbar/showSnackbarErrorAction",
+      INotificationsError.deviceTagDelete,
+    );
+    handleError(error);
+  } finally {
+    showDialog.value = false;
+  }
+};
 </script>
