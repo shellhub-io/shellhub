@@ -36,13 +36,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
+import { useStore } from "@/store";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const store = useStore();

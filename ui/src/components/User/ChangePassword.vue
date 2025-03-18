@@ -74,7 +74,7 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsSuccess,
 } from "@/interfaces/INotifications";

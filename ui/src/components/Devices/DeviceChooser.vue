@@ -112,11 +112,11 @@
 import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import { actions, authorizer } from "../../authorizer";
+import { actions, authorizer } from "@/authorizer";
 import DeviceListChooser from "./DeviceListChooser.vue";
-import hasPermision from "../../utils/permission";
-import handleError from "../../utils/handleError";
-import { INotificationsSuccess, INotificationsError } from "../../interfaces/INotifications";
+import hasPermision from "@/utils/permission";
+import handleError from "@/utils/handleError";
+import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
 
 const store = useStore();
 

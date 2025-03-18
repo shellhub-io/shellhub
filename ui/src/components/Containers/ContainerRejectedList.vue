@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import DeviceTable from "../Tables/DeviceTable.vue";
-import { FetchContainerParams, IContainerMethods } from "../../interfaces/IContainer";
+import { FetchContainerParams, IContainerMethods } from "@/interfaces/IContainer";
 import { useStore } from "@/store";
 
 const store = useStore();

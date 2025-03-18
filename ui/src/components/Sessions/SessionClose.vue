@@ -52,10 +52,10 @@ import { PropType, ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import { IDevice } from "../../interfaces/IDevice";
-import { useStore } from "../../store";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import { IDevice } from "@/interfaces/IDevice";
+import { useStore } from "@/store";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   uid: {

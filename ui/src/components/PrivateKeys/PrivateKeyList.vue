@@ -59,8 +59,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { useStore } from "../../store";
-import { convertToFingerprint } from "../../utils/validate";
+import { useStore } from "@/store";
+import { convertToFingerprint } from "@/utils/validate";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
 import handleError from "@/utils/handleError";

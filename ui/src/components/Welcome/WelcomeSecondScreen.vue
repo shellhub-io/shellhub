@@ -42,8 +42,8 @@
 
 <script setup lang="ts">
 import { useClipboard } from "@vueuse/core";
-import { INotificationsCopy } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
+import { INotificationsCopy } from "@/interfaces/INotifications";
+import { useStore } from "@/store";
 
 const props = defineProps({
   command: {

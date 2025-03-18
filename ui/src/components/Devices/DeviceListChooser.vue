@@ -62,8 +62,8 @@ import { ref, computed, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import {
   INotificationsError,
-} from "../../interfaces/INotifications";
-import { useStore } from "../../store";
+} from "@/interfaces/INotifications";
+import { useStore } from "@/store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import handleError from "@/utils/handleError";

@@ -245,7 +245,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed, PropType } from "vue";
 import { useRouter } from "vue-router";
-import { store } from "../../store";
+import { store } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
@@ -253,13 +253,13 @@ import DeviceActionButton from "../Devices/DeviceActionButton.vue";
 import DeviceDelete from "../Devices/DeviceDelete.vue";
 import TagFormUpdate from "../Tags/TagFormUpdate.vue";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
-import { INotificationsCopy } from "../../interfaces/INotifications";
-import { IDevice, IDeviceMethods } from "../../interfaces/IDevice";
+import { INotificationsCopy } from "@/interfaces/INotifications";
+import { IDevice, IDeviceMethods } from "@/interfaces/IDevice";
 import hasPermission from "@/utils/permission";
-import showTag from "../../utils/tag";
-import { displayOnlyTenCharacters } from "../../utils/string";
-import handleError from "../../utils/handleError";
-import { formatDate } from "../../utils/formateDate";
+import showTag from "@/utils/tag";
+import { displayOnlyTenCharacters } from "@/utils/string";
+import handleError from "@/utils/handleError";
+import { formatDate } from "@/utils/formateDate";
 
 const props = defineProps({
   storeMethods: {

@@ -42,9 +42,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { actions, authorizer } from "../../authorizer";
-import hasPermission from "../../utils/permission";
-import { useStore } from "../../store";
+import { actions, authorizer } from "@/authorizer";
+import hasPermission from "@/utils/permission";
+import { useStore } from "@/store";
 
 const store = useStore();
 

@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 
 const { mainContent, typeMessage } = defineProps({
   typeMessage: {

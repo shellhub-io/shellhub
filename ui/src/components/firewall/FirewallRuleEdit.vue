@@ -168,13 +168,13 @@
 import { useField } from "vee-validate";
 import { ref, watch, computed } from "vue";
 import * as yup from "yup";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import { FirewallRuleType } from "./FirewallRuleAdd.vue";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   firewallRule: {

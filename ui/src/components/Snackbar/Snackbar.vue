@@ -11,7 +11,7 @@ import { computed } from "vue";
 import SnackbarSuccess from "./SnackbarSuccess.vue";
 import SnackbarError from "./SnackbarError.vue";
 import SnackbarCopy from "./SnackbarCopy.vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 
 const store = useStore();
 const message = computed(() => store.getters["snackbar/snackbarMessageAndContentType"]);

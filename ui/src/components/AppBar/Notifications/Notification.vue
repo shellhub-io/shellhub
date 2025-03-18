@@ -108,12 +108,12 @@ import {
   watch,
 } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../../store";
-import { authorizer, actions } from "../../../authorizer";
-import hasPermission from "../../../utils/permission";
-import { INotificationsError } from "../../../interfaces/INotifications";
-import DeviceActionButton from "../../../components/Devices/DeviceActionButton.vue";
-import handleError from "../../../utils/handleError";
+import { useStore } from "@/../store";
+import { authorizer, actions } from "@/../authorizer";
+import hasPermission from "@/../utils/permission";
+import { INotificationsError } from "@/../interfaces/INotifications";
+import DeviceActionButton from "@/../components/Devices/DeviceActionButton.vue";
+import handleError from "@/../utils/handleError";
 
 const store = useStore();
 defineProps({

@@ -127,15 +127,15 @@ import { useField } from "vee-validate";
 import { computed, nextTick, ref, watch } from "vue";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import { actions, authorizer } from "../../authorizer";
-import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
-import { validateKey } from "../../utils/validate";
+import { actions, authorizer } from "@/authorizer";
+import { useStore } from "@/store";
+import hasPermission from "@/utils/permission";
+import { validateKey } from "@/utils/validate";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   size: {

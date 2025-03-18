@@ -145,14 +145,14 @@
 import { ref, onMounted, watch, computed } from "vue";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import { useStore } from "../../store";
-import { formatDateCompact } from "../../utils/formateDate";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { useStore } from "@/store";
+import { formatDateCompact } from "@/utils/formateDate";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const headers = [

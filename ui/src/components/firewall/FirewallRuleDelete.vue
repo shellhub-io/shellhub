@@ -56,8 +56,8 @@ import { ref } from "vue";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import { useStore } from "../../store";
+} from "@/interfaces/INotifications";
+import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

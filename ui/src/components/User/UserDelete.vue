@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,

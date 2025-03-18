@@ -66,12 +66,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useStore } from "../../store";
-import { actions, authorizer } from "../../authorizer";
-import hasPermission from "../../utils/permission";
+import { useStore } from "@/store";
+import { actions, authorizer } from "@/authorizer";
+import hasPermission from "@/utils/permission";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const store = useStore();

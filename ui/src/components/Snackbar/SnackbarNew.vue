@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 
 const store = useStore();
 const show = ref(false);
