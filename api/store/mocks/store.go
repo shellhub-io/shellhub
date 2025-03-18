@@ -290,6 +290,43 @@ func (_m *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []st
 	return r0
 }
 
+// DeviceConflicts provides a mock function with given fields: ctx, target
+func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
+	ret := _m.Called(ctx, target)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceConflicts")
+	}
+
+	var r0 []string
+	var r1 bool
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts) ([]string, bool, error)); ok {
+		return rf(ctx, target)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts) []string); ok {
+		r0 = rf(ctx, target)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceConflicts) bool); ok {
+		r1 = rf(ctx, target)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, *models.DeviceConflicts) error); ok {
+		r2 = rf(ctx, target)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // DeviceCreate provides a mock function with given fields: ctx, d, hostname
 func (_m *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
 	ret := _m.Called(ctx, d, hostname)
@@ -2304,7 +2341,8 @@ func (_m *Store) WithTransaction(ctx context.Context, cb store.TransactionCb) er
 func NewStore(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *Store {
+},
+) *Store {
 	mock := &Store{}
 	mock.Mock.Test(t)
 

@@ -96,3 +96,16 @@ func NewDeviceTag(tag string) DeviceTag {
 type DeviceChanges struct {
 	Name string `bson:"name,omitempty"`
 }
+
+// DeviceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
+// to identify conflicts.
+type DeviceConflicts struct {
+	Name string
+}
+
+// Distinct removes the c's attributes whether it's equal to the device attribute.
+func (c *DeviceConflicts) Distinct(device *Device) {
+	if c.Name == device.Name {
+		c.Name = ""
+	}
+}

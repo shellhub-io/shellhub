@@ -296,19 +296,15 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
 
-	changes := new(models.DeviceChanges)
+	conflictsTarget := &models.DeviceConflicts{Name: req.Name}
+	conflictsTarget.Distinct(device)
+	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget); err != nil || has {
+		return NewErrDeviceDuplicated(req.Name, err)
+	}
 
-	req.Name = strings.ToLower(req.Name)
-	if req.Name != "" && req.Name != device.Name {
-		otherDevice, err := s.store.DeviceGetByName(ctx, req.Name, req.TenantID, models.DeviceStatusAccepted)
-		switch {
-		case err != nil && err != store.ErrNoDocuments:
-			return err
-		case otherDevice != nil:
-			return NewErrDeviceDuplicated(otherDevice.Name, err)
-		default:
-			changes.Name = req.Name
-		}
+	changes := new(models.DeviceChanges)
+	if req.Name != "" && strings.ToLower(req.Name) != device.Name {
+		changes.Name = strings.ToLower(req.Name)
 	}
 
 	return s.store.DeviceUpdate(ctx, req.TenantID, req.UID, changes)
