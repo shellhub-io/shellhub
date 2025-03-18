@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 import FirewallRuleAdd from "../firewall/FirewallRuleAdd.vue";
 import PublicKeyAdd from "../PublicKeys/PublicKeyAdd.vue";

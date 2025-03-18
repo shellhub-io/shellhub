@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import { INotificationsCopy } from "@/interfaces/INotifications";
 
 const props = defineProps({

@@ -135,13 +135,13 @@ import {
   onUpdated,
 } from "vue";
 import * as yup from "yup";
-import { useStore } from "../../store";
-import { IPublicKey } from "../../interfaces/IPublicKey";
+import { useStore } from "@/store";
+import { IPublicKey } from "@/interfaces/IPublicKey";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   show: {

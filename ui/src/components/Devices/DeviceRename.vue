@@ -53,11 +53,11 @@ import { ref, computed, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

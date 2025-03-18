@@ -53,12 +53,12 @@
 <script setup lang="ts">
 import { ref, computed, PropType } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
-import { authorizer, actions } from "../../authorizer";
-import hasPermission from "../../utils/permission";
-import { INotificationsError } from "../../interfaces/INotifications";
-import { capitalizeText } from "../../utils/string";
-import handleError from "../../utils/handleError";
+import { useStore } from "@/store";
+import { authorizer, actions } from "@/authorizer";
+import hasPermission from "@/utils/permission";
+import { INotificationsError } from "@/interfaces/INotifications";
+import { capitalizeText } from "@/utils/string";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   name: {

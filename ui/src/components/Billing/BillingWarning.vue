@@ -42,9 +42,9 @@
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
-import { actions, authorizer } from "../../authorizer";
-import hasPermission from "../../utils/permission";
-import { useStore } from "../../store";
+import { actions, authorizer } from "@/authorizer";
+import hasPermission from "@/utils/permission";
+import { useStore } from "@/store";
 
 export default defineComponent({
   setup() {

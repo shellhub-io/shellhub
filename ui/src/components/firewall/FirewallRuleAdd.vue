@@ -173,16 +173,16 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import { actions, authorizer } from "../../authorizer";
-import hasPermission from "../../utils/permission";
-import { envVariables } from "../../envVariables";
-import { useStore } from "../../store";
+import { actions, authorizer } from "@/authorizer";
+import hasPermission from "@/utils/permission";
+import { envVariables } from "@/envVariables";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
-import { filterType } from "../../interfaces/IFirewallRule";
+} from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
+import { filterType } from "@/interfaces/IFirewallRule";
 
 export interface FirewallRuleType {
   action?: string;

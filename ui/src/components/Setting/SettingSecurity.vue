@@ -11,10 +11,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import { useStore } from "../../store";
-import { INotificationsSuccess } from "../../interfaces/INotifications";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { useStore } from "@/store";
+import { INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

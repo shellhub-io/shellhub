@@ -15,8 +15,8 @@
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
-import { useStore } from "../../store";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { useStore } from "@/store";
+import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { INamespace } from "@/interfaces/INamespace";
 

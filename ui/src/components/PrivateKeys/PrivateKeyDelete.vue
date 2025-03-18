@@ -45,8 +45,8 @@
 import { ref } from "vue";
 import {
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import { useStore } from "../../store";
+} from "@/interfaces/INotifications";
+import { useStore } from "@/store";
 
 const props = defineProps({
   id: {

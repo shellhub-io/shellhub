@@ -39,8 +39,8 @@
 <script setup lang="ts">
 import { computed, PropType, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { INotificationsSuccess } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
+import { INotificationsSuccess } from "@/interfaces/INotifications";
+import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

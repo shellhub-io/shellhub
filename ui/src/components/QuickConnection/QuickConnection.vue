@@ -110,8 +110,8 @@ import { useMagicKeys } from "@vueuse/core";
 import { watch, ref, onUnmounted } from "vue";
 import axios, { AxiosError } from "axios";
 import QuickConnectionList from "./QuickConnectionList.vue";
-import { useStore } from "../../store";
-import handleError from "../../utils/handleError";
+import { useStore } from "@/store";
+import handleError from "@/utils/handleError";
 
 const list = ref<InstanceType<typeof QuickConnectionList>>();
 const dialog = ref(false);

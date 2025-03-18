@@ -51,15 +51,15 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
-import { actions, authorizer } from "../../authorizer";
-import { envVariables } from "../../envVariables";
-import { displayOnlyTenCharacters } from "../../utils/string";
+import { useStore } from "@/store";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { envVariables } from "@/envVariables";
+import { displayOnlyTenCharacters } from "@/utils/string";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

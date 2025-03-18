@@ -98,9 +98,9 @@ import { loadStripe } from "@stripe/stripe-js";
 import { StripeElements, StripeElement } from "vue-stripe-js";
 import type { StripeConstructorOptions, StripeElementsOptions, StripeCardElementOptions } from "@stripe/stripe-js";
 import BillingIcon from "./BillingIcon.vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { envVariables } from "../../envVariables";
+import { envVariables } from "@/envVariables";
 import { Customer } from "@/interfaces/ICustomer";
 
 const emit = defineEmits(["no-payment-methods", "has-default-payment", "customer-id-created"]);
