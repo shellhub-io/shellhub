@@ -190,7 +190,7 @@
           <span>{{ item.info.pretty_name }}</span>
         </td>
         <td class="text-center">
-          {{ formatDate(item.last_seen) }}
+          {{ formatFullDateTime(item.last_seen) }}
         </td>
 
         <td class="text-center">
@@ -259,7 +259,7 @@ import hasPermission from "@/utils/permission";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
-import { formatDate } from "@/utils/formateDate";
+import { formatFullDateTime } from "@/utils/formateDate";
 
 const props = defineProps({
   storeMethods: {

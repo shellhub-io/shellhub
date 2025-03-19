@@ -117,7 +117,7 @@
       <div>
         <div class="text-overline mt-3">Last Seen:</div>
         <div data-test="deviceConvertDate-field">
-          <p>{{ formatDate(device.last_seen) }}</p>
+          <p>{{ formatFullDateTime(device.last_seen) }}</p>
         </div>
       </div>
       <div v-if="envVariables.hasTunnels && envVariables.isEnterprise">
@@ -145,7 +145,7 @@ import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
-import { formatDate } from "@/utils/formateDate";
+import { formatFullDateTime } from "@/utils/formateDate";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";

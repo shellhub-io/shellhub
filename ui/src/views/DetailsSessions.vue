@@ -12,7 +12,7 @@
           <template v-slot:activator="{ props }">
             <v-icon v-bind="props" size="small" data-test="sessionInactive-icon"> mdi-check-circle </v-icon>
           </template>
-          <span>{{ lastSeen(session.last_seen) }}</span>
+          <span>{{ getTimeFromNow(session.last_seen) }}</span>
         </v-tooltip>
         <span class="ml-2" v-if="session.device" data-test="sessionDeviceName">{{ session.device.name }}</span>
       </div>
@@ -145,14 +145,14 @@
       <div>
         <div class="text-overline mt-3">Started:</div>
         <div data-test="sessionStartedAt-field">
-          <p>{{ formatDate(session.started_at) }}</p>
+          <p>{{ formatFullDateTime(session.started_at) }}</p>
         </div>
       </div>
 
       <div>
         <div>Last seen:</div>
         <div data-test="sessionLastSeen-field">
-          <p>{{ formatDate(session.last_seen) }}</p>
+          <p>{{ formatFullDateTime(session.last_seen) }}</p>
         </div>
       </div>
     </v-card-text>
@@ -166,7 +166,7 @@
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
-import { formatDate, lastSeen } from "..//utils/formateDate";
+import { formatFullDateTime, getTimeFromNow } from "..//utils/formateDate";
 import hasPermission from "..//utils/permission";
 import { ISessions } from "../interfaces/ISessions";
 import { authorizer, actions } from "../authorizer";
