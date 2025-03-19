@@ -116,7 +116,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory("/admin/dashboard/"),
+  history: createWebHistory("/admin/"),
   routes,
 });
 
