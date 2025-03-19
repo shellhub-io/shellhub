@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import { envVariables } from "../../envVariables";
+import { envVariables } from "@/envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
 
 const route = useRoute();

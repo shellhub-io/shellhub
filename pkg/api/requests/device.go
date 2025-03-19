@@ -13,6 +13,12 @@ type DeviceList struct {
 	query.Filters
 }
 
+type DeviceUpdate struct {
+	TenantID string `header:"X-Tenant-ID"`
+	UID      string `param:"uid" validate:"required"`
+	Name     string `json:"name" validate:"device_name,omitempty"`
+}
+
 // DeviceParam is a structure to represent and validate a device UID as path param.
 type DeviceParam struct {
 	UID string `param:"uid" validate:"required"`
@@ -91,19 +97,4 @@ type DeviceAuth struct {
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key" validate:"required"`
 	TenantID  string          `json:"tenant_id" validate:"required"`
-}
-
-type DeviceGetPublicURL struct {
-	DeviceParam
-}
-
-type DeviceUpdate struct {
-	DeviceParam
-	// NOTICE: the pointers here help to distinguish between the zero value and the absence of the field.
-	Name      *string `json:"name"`
-	PublicURL *bool   `json:"public_url"`
-}
-
-type DevicePublicURLAddress struct {
-	PublicURLAddress string `param:"address" validate:"required"`
 }

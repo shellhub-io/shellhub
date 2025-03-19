@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import { INotificationsSuccess } from "@/interfaces/INotifications";
 import useCountdown from "@/utils/countdownTimeout";

@@ -132,17 +132,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import { actions, authorizer } from "../../authorizer";
-import { filterType } from "../../interfaces/IFirewallRule";
-import { useStore } from "../../store";
-import { lastSeen } from "../../utils/formateDate";
-import { capitalizeText, displayOnlyTenCharacters } from "../../utils/string";
-import showTag from "../../utils/tag";
-import hasPermission from "../../utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { filterType } from "@/interfaces/IFirewallRule";
+import { useStore } from "@/store";
+import { lastSeen } from "@/utils/formateDate";
+import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
+import showTag from "@/utils/tag";
+import hasPermission from "@/utils/permission";
 import DataTable from "../DataTable.vue";
 import FirewallRuleDelete from "./FirewallRuleDelete.vue";
 import FirewallRuleEdit from "./FirewallRuleEdit.vue";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const headers = [

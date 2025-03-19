@@ -81,16 +81,16 @@ import { useMagicKeys } from "@vueuse/core";
 import { ref, onMounted, computed, watch } from "vue";
 import { VList } from "vuetify/components";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
-import { useStore } from "../../store";
-import { displayOnlyTenCharacters } from "../../utils/string";
-import showTag from "../../utils/tag";
+import { useStore } from "@/store";
+import { displayOnlyTenCharacters } from "@/utils/string";
+import showTag from "@/utils/tag";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 import {
   INotificationsCopy,
   INotificationsError,
-} from "../../interfaces/INotifications";
-import handleError from "../../utils/handleError";
-import { IDevice } from "../../interfaces/IDevice";
+} from "@/interfaces/INotifications";
+import handleError from "@/utils/handleError";
+import { IDevice } from "@/interfaces/IDevice";
 
 interface Device {
       online: boolean

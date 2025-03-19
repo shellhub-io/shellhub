@@ -1,9 +1,7 @@
 package mongo
 
 import (
-	"context"
-	"crypto/md5" //nolint:gosec
-	"fmt"
+	"context" //nolint:gosec
 	"strings"
 	"time"
 
@@ -364,32 +362,6 @@ func (s *Store) DeviceSetOffline(ctx context.Context, uid string) error {
 	return nil
 }
 
-func (s *Store) DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error {
-	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"online": online}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if dev.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error {
-	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"last_seen": ts}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if dev.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 // DeviceUpdateStatus updates the status of a specific device in the devices collection
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
 	updateOptions := options.FindOneAndUpdate().SetReturnDocument(options.After)
@@ -538,30 +510,50 @@ func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []str
 	return nil
 }
 
-// DeviceChooser updates devices with "accepted" status to "pending" for a given tenantID,
-// excluding devices with UIDs present in the "notIn" list.
-func (s *Store) DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
-	changes := bson.M{}
-
-	if name != nil {
-		changes["name"] = *name
+func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"$or": []bson.M{
+					{"name": target.Name},
+				},
+			},
+		},
 	}
 
-	if publicURL != nil {
-		changes["public_url"] = *publicURL
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, false, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	conflicts := make([]string, 0)
+	for cursor.Next(ctx) {
+		device := new(models.DeviceConflicts)
+		if err := cursor.Decode(&device); err != nil {
+			return nil, false, FromMongoError(err)
+		}
+
+		if device.Name == target.Name {
+			conflicts = append(conflicts, "name")
+		}
 	}
 
-	_, err := s.db.
-		Collection("devices").
-		UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
+	return conflicts, len(conflicts) > 0, nil
+}
+
+func (s *Store) DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error {
+	r, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"tenant_id": tenant, "uid": uid}, bson.M{"$set": changes})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	// Not deleting the device from the cache may cause issues when trying to retrieve the device after the update.
-	// TODO: Maybe we can standardize the key creation?
-	if err := s.cache.Delete(ctx, strings.Join([]string{"device", string(uid)}, "/")); err != nil {
-		logrus.Error(err)
+	if r.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	if err := s.cache.Delete(ctx, "device"+uid+"/"); err != nil {
+		logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
 	}
 
 	return nil
@@ -649,22 +641,4 @@ func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator 
 	}
 
 	return devices, len(devices), nil
-}
-
-func (s *Store) DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error {
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"public_url_address": fmt.Sprintf("%x", md5.Sum([]byte(uid)))}}) //nolint:gosec
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
-	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"public_url_address": address}).Decode(&device); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return device, nil
 }

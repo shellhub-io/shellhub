@@ -53,11 +53,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
+} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 
 const props = defineProps({

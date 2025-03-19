@@ -40,60 +40,51 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from "vue";
-import { actions, authorizer } from "../../authorizer";
-import hasPermission from "../../utils/permission";
-import { useStore } from "../../store";
+<script setup lang="ts">
+import { computed } from "vue";
+import { actions, authorizer } from "@/authorizer";
+import hasPermission from "@/utils/permission";
+import { useStore } from "@/store";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
+const store = useStore();
 
-    const hasAuthorization = computed(() => {
-      const role = store.getters["auth/role"];
-      if (role !== "") {
-        return hasPermission(
-          authorizer.role[role],
-          actions.billing.subscribe,
-        );
-      }
+const hasAuthorization = computed(() => {
+  const role = store.getters["auth/role"];
 
-      return false;
-    });
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.billing.subscribe,
+    );
+  }
 
-    const close = () => {
-      if (store.getters["users/statusUpdateAccountDialog"]) {
-        store.dispatch("users/setStatusUpdateAccountDialog", false);
-      } else if (
-        store.getters["users/statusUpdateAccountDialogByDeviceAction"]
-      ) {
-        store.dispatch(
-          "users/setStatusUpdateAccountDialogByDeviceAction",
-          false,
-        );
-      }
-    };
+  return false;
+});
 
-    const showMessage = computed({
-      get() {
-        return (
-          (store.getters["users/statusUpdateAccountDialog"]
+const close = () => {
+  if (store.getters["users/statusUpdateAccountDialog"]) {
+    store.dispatch("users/setStatusUpdateAccountDialog", false);
+  } else if (
+    store.getters["users/statusUpdateAccountDialogByDeviceAction"]
+  ) {
+    store.dispatch(
+      "users/setStatusUpdateAccountDialogByDeviceAction",
+      false,
+    );
+  }
+};
+
+const showMessage = computed({
+  get() {
+    return (
+      (store.getters["users/statusUpdateAccountDialog"]
             && store.getters["stats/stats"].registered_devices === 3
             && !store.getters["billing/active"])
           || store.getters["users/statusUpdateAccountDialogByDeviceAction"]
-        );
-      },
-      set() {
-        close();
-      },
-    });
-
-    return {
-      hasAuthorization,
-      showMessage,
-      close,
-    };
+    );
+  },
+  set() {
+    close();
   },
 });
 </script>

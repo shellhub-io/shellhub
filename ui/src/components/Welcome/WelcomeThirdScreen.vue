@@ -49,8 +49,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { useStore } from "../../store";
-import { INotificationsError } from "../../interfaces/INotifications";
+import { useStore } from "@/store";
+import { INotificationsError } from "@/interfaces/INotifications";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 
 const store = useStore();

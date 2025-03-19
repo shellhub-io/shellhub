@@ -1,5 +1,5 @@
 import { IUser, IUserPutSecurity, IUserUpdatePassword, IUserSignUp, IUserSetup } from "@/interfaces/IUSer";
-import { usersApi, systemApi } from "../../api/http";
+import { usersApi, systemApi } from "@/api/http";
 
 export const signUp = async (data: IUserSignUp) => usersApi.registerUser({
   name: data.name,
@@ -18,7 +18,7 @@ export const postValidationAccount = async (data: IUser) => usersApi.getValidate
 
 export const setSessionRecordStatus = async (data: IUserPutSecurity) => usersApi.setSessionRecord(data.id, { session_record: data.status });
 
-export const getSessionRecordStatus = async () => usersApi.getSessionRecord();
+export const getSessionRecordStatus = async () => usersApi.checkSessionRecord();
 
 export const postUpdatePassword = async (data: IUserUpdatePassword) => usersApi.updateRecoverPassword(data.id, {
   token: data.token,

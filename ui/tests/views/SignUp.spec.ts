@@ -3,11 +3,11 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
-import SignUp from "../../src/views/SignUp.vue";
+import SignUp from "@/views/SignUp.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "../../src/store";
-import { router } from "../../src/router";
-import { envVariables } from "../../src/envVariables";
+import { store, key } from "@/store";
+import { router } from "@/router";
+import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type SignUpWrapper = VueWrapper<InstanceType<typeof SignUp>>;

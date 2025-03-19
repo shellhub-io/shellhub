@@ -82,7 +82,7 @@
             </template>
           </v-card-item>
           <v-divider />
-          <div v-if="isLocalAuth || envVariables.isCloud">
+          <div v-if="isLocalAuth || isCloud">
             <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
               <template #prepend>
                 <v-icon>mdi-account</v-icon>
@@ -129,7 +129,7 @@
           </v-card-item>
           <v-divider />
 
-          <div v-if="isLocalAuth || envVariables.isCloud">
+          <div v-if="isLocalAuth || isCloud">
             <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
               <template #prepend>
                 <v-icon>mdi-email-lock</v-icon>
@@ -152,7 +152,7 @@
               </template>
             </v-card-item>
             <v-divider />
-            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || envVariables.isCloud">
+            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || isCloud">
               <template #prepend>
                 <v-icon>mdi-key</v-icon>
               </template>
@@ -225,20 +225,19 @@
 </template>
 
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { ref, computed, onMounted } from "vue";
 import { useDisplay } from "vuetify";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import { INotificationsSuccess } from "../../interfaces/INotifications";
+import { INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
 import UserDelete from "../User/UserDelete.vue";
 import UserIcon from "../User/UserIcon.vue";
-import { envVariables } from "../../envVariables";
+import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
 
 type ErrorResponseData = { field: string; message: string }[];
@@ -247,15 +246,13 @@ const store = useStore();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
 const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
-const isEnterprise = computed(() => envVariables.isEnterprise);
-const isCloud = computed(() => envVariables.isCloud);
-const isCommunity = computed(() => envVariables.isCommunity);
 const dialogMfaSettings = ref(false);
 const dialogMfaDisable = ref(false);
 const showChangePassword = ref(false);
 const showDeleteAccountDialog = ref(false);
 const getAuthMethods = computed(() => store.getters["auth/getAuthMethods"]);
 const isLocalAuth = computed(() => getAuthMethods.value.includes("local"));
+const { isCloud, isCommunity } = envVariables;
 const { lgAndUp } = useDisplay();
 
 const {

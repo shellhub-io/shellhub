@@ -1,4 +1,4 @@
-import { tunnelApi } from "../../api/http";
+import { tunnelApi } from "@/api/http";
 
 const getTunnels = (uid: string) => tunnelApi.listTunnels(uid);
 

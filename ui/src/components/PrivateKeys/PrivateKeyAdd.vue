@@ -67,14 +67,14 @@
 import { useField } from "vee-validate";
 import { ref } from "vue";
 import * as yup from "yup";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   INotificationsError,
   INotificationsSuccess,
-} from "../../interfaces/INotifications";
-import { parsePrivateKeySsh, validateKey } from "../../utils/validate";
-import { IPrivateKeyError } from "../../interfaces/IPrivateKey";
-import handleError from "../../utils/handleError";
+} from "@/interfaces/INotifications";
+import { parsePrivateKeySsh, validateKey } from "@/utils/validate";
+import { IPrivateKeyError } from "@/interfaces/IPrivateKey";
+import handleError from "@/utils/handleError";
 
 const emit = defineEmits(["update"]);
 const store = useStore();

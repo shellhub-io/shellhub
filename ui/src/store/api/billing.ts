@@ -1,5 +1,5 @@
 import { ChoiceDevicesRequest } from "@/api/client";
-import { billingApi } from "../../api/http";
+import { billingApi } from "@/api/http";
 
 export const getCustomer = async () => billingApi.getCustomer();
 

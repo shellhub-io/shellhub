@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -23,13 +22,23 @@ const (
 type DeviceStore interface {
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
-	DeviceUpdate(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
+
+	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
+	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
+	//
+	//  ctx := context.Background()
+	//  conflicts, has, err := store.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "mydevice"})
+	//
+	// It returns an array of conflicting attribute fields and an error, if any.
+	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) (conflicts []string, has bool, err error)
+
+	// DeviceUpdate updates a device with the specified UID that belongs to the specified namespace. It returns [ErrNoDocuments] if none device is found.
+	DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error
+
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
-	DeviceUpdateOnline(ctx context.Context, uid models.UID, online bool) error
-	DeviceUpdateLastSeen(ctx context.Context, uid models.UID, ts time.Time) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error)
 	DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error)
@@ -42,8 +51,6 @@ type DeviceStore interface {
 	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
 	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error)
-	DeviceCreatePublicURLAddress(ctx context.Context, uid models.UID) error
-	DeviceGetByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 
 	// DeviceSetOnline receives a list of devices to mark as online. For each device in the array, it will upsert
 	// a connected device entry; each UID must exists in the "devices" collection.

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 const StatusAccepted = "accepted"
@@ -19,13 +17,13 @@ const StatusAccepted = "accepted"
 type DeviceService interface {
 	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
-	GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error)
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OfflineDevice(ctx context.Context, uid models.UID) error
 	UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error
-	UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error
+
+	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
 }
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
@@ -83,15 +81,6 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	return device, nil
 }
 
-func (s *service) GetDeviceByPublicURLAddress(ctx context.Context, address string) (*models.Device, error) {
-	device, err := s.store.DeviceGetByPublicURLAddress(ctx, address)
-	if err != nil {
-		return nil, NewErrDeviceNotFound(models.UID(address), err)
-	}
-
-	return device, nil
-}
-
 // DeleteDevice deletes a device from a namespace.
 //
 // It receives a context, used to "control" the request flow and, the device UID from models.Device and the tenant ID
@@ -144,7 +133,6 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		RemoteAddr: "",
 		Position:   &models.DevicePosition{},
 		Tags:       []string{},
-		PublicURL:  false,
 	}
 
 	if ok, err := s.validator.Struct(updatedDevice); !ok || err != nil {
@@ -302,40 +290,22 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	return s.store.DeviceUpdateStatus(ctx, uid, status)
 }
 
-func (s *service) UpdateDevice(ctx context.Context, tenant string, uid models.UID, name *string, publicURL *bool) error {
-	device, err := s.store.DeviceGetByUID(ctx, uid, tenant)
+func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {
+	device, err := s.store.DeviceGetByUID(ctx, models.UID(req.UID), req.TenantID)
 	if err != nil {
-		return NewErrDeviceNotFound(uid, err)
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
 
-	if name != nil {
-		*name = strings.ToLower(*name)
-
-		if device.Name == *name {
-			return nil
-		}
-
-		if ok, err := s.validator.Var(*name, validator.DeviceNameTag); err != nil || !ok {
-			return NewErrDeviceInvalid(map[string]interface{}{"name": *name}, nil)
-		}
-
-		otherDevice, err := s.store.DeviceGetByName(ctx, *name, tenant, models.DeviceStatusAccepted)
-		if err != nil && err != store.ErrNoDocuments {
-			return NewErrDeviceNotFound(models.UID(*name), fmt.Errorf("failed to get device by name: %w", err))
-		}
-
-		if otherDevice != nil {
-			return NewErrDeviceDuplicated(otherDevice.Name, err)
-		}
+	conflictsTarget := &models.DeviceConflicts{Name: req.Name}
+	conflictsTarget.Distinct(device)
+	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget); err != nil || has {
+		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
-	if publicURL != nil {
-		if device.PublicURLAddress == "" && *publicURL {
-			if err := s.store.DeviceCreatePublicURLAddress(ctx, models.UID(device.UID)); err != nil {
-				return err
-			}
-		}
+	changes := new(models.DeviceChanges)
+	if req.Name != "" && strings.ToLower(req.Name) != device.Name {
+		changes.Name = strings.ToLower(req.Name)
 	}
 
-	return s.store.DeviceUpdate(ctx, tenant, uid, name, publicURL)
+	return s.store.DeviceUpdate(ctx, req.TenantID, req.UID, changes)
 }

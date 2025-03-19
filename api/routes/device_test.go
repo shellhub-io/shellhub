@@ -210,76 +210,6 @@ func TestRenameDevice(t *testing.T) {
 	}
 }
 
-func TestGetDeviceByPublicURLAddress(t *testing.T) {
-	mock := new(mocks.Service)
-
-	type Expected struct {
-		expectedSession *models.Device
-		expectedStatus  int
-	}
-	cases := []struct {
-		title         string
-		address       string
-		requiredMocks func()
-		expected      Expected
-	}{
-		{
-			title:         "fails when bind fails to validate uid",
-			address:       "",
-			requiredMocks: func() {},
-			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusNotFound,
-			},
-		},
-		{
-			title:   "fails when try to searching a device by the public URL address",
-			address: "exampleaddress",
-			requiredMocks: func() {
-				mock.On("GetDeviceByPublicURLAddress", gomock.Anything, "exampleaddress").Return(nil, svc.ErrDeviceNotFound)
-			},
-			expected: Expected{
-				expectedSession: nil,
-				expectedStatus:  http.StatusNotFound,
-			},
-		},
-		{
-			title:   "success when try to searching a device by the public URL address",
-			address: "example",
-			requiredMocks: func() {
-				mock.On("GetDeviceByPublicURLAddress", gomock.Anything, "example").Return(&models.Device{}, nil)
-			},
-			expected: Expected{
-				expectedSession: &models.Device{},
-				expectedStatus:  http.StatusOK,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
-
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/internal/devices/public/%s", tc.address), nil)
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			rec := httptest.NewRecorder()
-
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
-
-			var session *models.Device
-			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
-				assert.ErrorIs(t, io.EOF, err)
-			}
-
-			assert.Equal(t, tc.expected.expectedSession, session)
-		})
-	}
-}
-
 func TestGetDeviceList(t *testing.T) {
 	mock := new(mocks.Service)
 
@@ -852,55 +782,56 @@ func TestUpdateDeviceTag(t *testing.T) {
 
 func TestUpdateDevice(t *testing.T) {
 	mock := new(mocks.Service)
-	name := "new device name"
-	url := true
 
 	cases := []struct {
-		title          string
-		updatePayload  requests.DeviceUpdate
-		requiredMocks  func(req requests.DeviceUpdate)
+		description    string
+		req            requests.DeviceUpdate
+		requiredMocks  func()
 		expectedStatus int
 	}{
 		{
-			title: "fails when try to update a existing device",
-			updatePayload: requests.DeviceUpdate{
-				DeviceParam: requests.DeviceParam{UID: "1234"},
-				Name:        &name,
-				PublicURL:   &url,
+			description: "fails when try to update a existing device",
+			req: requests.DeviceUpdate{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				UID:      "1234",
+				Name:     "name",
 			},
-			requiredMocks: func(req requests.DeviceUpdate) {
-				mock.On("UpdateDevice", gomock.Anything, "tenant-id", models.UID("1234"), req.Name, req.PublicURL).Return(svc.ErrNotFound)
+			requiredMocks: func() {
+				mock.On("UpdateDevice", gomock.Anything, &requests.DeviceUpdate{TenantID: "00000000-0000-4000-0000-000000000000", UID: "1234", Name: "name"}).
+					Return(svc.ErrNotFound).
+					Once()
 			},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			title: "success when try to update a existing device",
-			updatePayload: requests.DeviceUpdate{
-				DeviceParam: requests.DeviceParam{UID: "123"},
-				Name:        &name,
-				PublicURL:   &url,
+			description: "success when try to update a existing device",
+			req: requests.DeviceUpdate{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				UID:      "1234",
+				Name:     "name",
 			},
-
-			requiredMocks: func(req requests.DeviceUpdate) {
-				mock.On("UpdateDevice", gomock.Anything, "tenant-id", models.UID("123"), req.Name, req.PublicURL).Return(nil)
+			requiredMocks: func() {
+				mock.On("UpdateDevice", gomock.Anything, &requests.DeviceUpdate{TenantID: "00000000-0000-4000-0000-000000000000", UID: "1234", Name: "name"}).
+					Return(nil).
+					Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.updatePayload)
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
 
-			jsonData, err := json.Marshal(tc.updatePayload)
+			jsonData, err := json.Marshal(tc.req)
 			if err != nil {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/devices/%s", tc.updatePayload.UID), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/devices/%s", tc.req.UID), strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "tenant-id")
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)

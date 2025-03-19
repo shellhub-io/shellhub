@@ -137,16 +137,16 @@ import * as yup from "yup";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
-import { useStore } from "../../store";
+import { useStore } from "@/store";
 import {
   createKeyFingerprint,
   createSignatureOfPrivateKey,
   createSignerPrivateKey,
   parsePrivateKeySsh,
-} from "../../utils/validate";
-import { IPrivateKey } from "../../interfaces/IPrivateKey";
-import { IParams } from "../../interfaces/IParams";
-import { IConnectToTerminal } from "../../interfaces/ITerminal";
+} from "@/utils/validate";
+import { IPrivateKey } from "@/interfaces/IPrivateKey";
+import { IParams } from "@/interfaces/IParams";
+import { IConnectToTerminal } from "@/interfaces/ITerminal";
 
 enum AuthMethods {
   Password = "Password",

@@ -2,11 +2,11 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import ConfirmAccount from "../../src/views/ConfirmAccount.vue";
+import ConfirmAccount from "@/views/ConfirmAccount.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "../../src/store";
-import { router } from "../../src/router";
-import { envVariables } from "../../src/envVariables";
+import { store, key } from "@/store";
+import { router } from "@/router";
+import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type ConfirmAccountWrapper = VueWrapper<InstanceType<typeof ConfirmAccount>>;

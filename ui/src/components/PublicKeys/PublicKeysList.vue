@@ -121,17 +121,17 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { actions, authorizer } from "../../authorizer";
-import { filterType } from "../../interfaces/IFirewallRule";
-import { useStore } from "../../store";
-import hasPermission from "../../utils/permission";
+import { actions, authorizer } from "@/authorizer";
+import { filterType } from "@/interfaces/IFirewallRule";
+import { useStore } from "@/store";
+import hasPermission from "@/utils/permission";
 import {
   displayOnlyTenCharacters,
   formatHostnameFilter,
   formatUsername,
-} from "../../utils/string";
-import { formatDateFullAbrevied } from "../../utils/formateDate";
-import showTag from "../../utils/tag";
+} from "@/utils/string";
+import { formatDateFullAbrevied } from "@/utils/formateDate";
+import showTag from "@/utils/tag";
 import DataTable from "../DataTable.vue";
 import PublicKeyDelete from "./PublicKeyDelete.vue";
 import PublicKeyEdit from "./PublicKeyEdit.vue";
