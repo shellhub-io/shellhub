@@ -1,6 +1,6 @@
 import moment from "moment";
 
-const formatDate = (date: string) => {
+export const formatDate = (date: string) => {
   if (date) {
     return moment(date).format("dddd, MMMM Do YYYY, h:mm:ss a");
   }
@@ -28,11 +28,9 @@ export const formatDateFullAbrevied = (date : string) => {
   return null;
 };
 
-const lastSeen = (date: string) => {
+export const lastSeen = (date: string) => {
   if (date) {
     return moment(date).fromNow();
   }
   return null;
 };
-
-export { formatDate, lastSeen };
