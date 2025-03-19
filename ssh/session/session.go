@@ -625,6 +625,10 @@ func (s *Session) Announce(client gossh.Channel) error {
 // Finish terminates the session between Agent and Client, sending a request to Agent to closes it.
 func (s *Session) Finish() (err error) {
 	s.once.Do(func() {
+		log.WithFields(log.Fields{
+			"uid": s.UID,
+		}).Trace("session finish called")
+
 		if s.Agent.Conn != nil {
 			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
@@ -641,6 +645,28 @@ func (s *Session) Finish() (err error) {
 				Error("Error when trying to finish the session")
 
 			err = errs[0]
+		}
+
+		if envs.IsEnterprise() {
+			log.WithFields(log.Fields{
+				"uid": s.UID,
+			}).Info("saving sessions as Asciinema files")
+
+			for seat := range s.Seat.Load() {
+				if err := s.api.SaveSession(s.UID, int(seat)); err != nil {
+					log.WithError(err).WithFields(log.Fields{
+						"uid":  s.UID,
+						"seat": seat,
+					}).Error("failed to save the session as Asciinema file")
+
+					continue
+				}
+
+				log.WithFields(log.Fields{
+					"uid":  s.UID,
+					"seat": seat,
+				}).Info("asciinema file saved")
+			}
 		}
 
 		log.WithFields(
