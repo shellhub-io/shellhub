@@ -60,7 +60,7 @@
           </td>
 
           <td class="text-center" data-test="public-key-created-at">
-            {{ formatDateFullAbrevied(item.created_at) }}
+            {{ formatAbbreviatedDateTime(item.created_at) }}
           </td>
 
           <td class="text-center" data-test="public-key-actions">
@@ -130,7 +130,7 @@ import {
   formatHostnameFilter,
   formatUsername,
 } from "@/utils/string";
-import { formatDateFullAbrevied } from "@/utils/formateDate";
+import { formatAbbreviatedDateTime } from "@/utils/formateDate";
 import showTag from "@/utils/tag";
 import DataTable from "../DataTable.vue";
 import PublicKeyDelete from "./PublicKeyDelete.vue";

@@ -25,7 +25,7 @@
               <template v-slot:activator="{ props }">
                 <v-icon v-bind="props"> mdi-check-circle </v-icon>
               </template>
-              <span>{{ lastSeen(item.last_seen) }}</span>
+              <span>{{ getTimeFromNow(item.last_seen) }}</span>
             </v-tooltip>
           </td>
 
@@ -135,7 +135,7 @@ import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
 import { filterType } from "@/interfaces/IFirewallRule";
 import { useStore } from "@/store";
-import { lastSeen } from "@/utils/formateDate";
+import { getTimeFromNow } from "@/utils/formateDate";
 import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";

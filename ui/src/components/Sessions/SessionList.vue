@@ -80,11 +80,11 @@
             </v-code>
           </td>
           <td class="text-center">
-            <span>{{ formatDateCompact(session.started_at) }}</span>
+            <span>{{ formatShortDateTime(session.started_at) }}</span>
           </td>
 
           <td class="text-center">
-            <span>{{ formatDateCompact(session.last_seen) }}</span>
+            <span>{{ formatShortDateTime(session.last_seen) }}</span>
           </td>
 
           <td class="text-center">
@@ -148,7 +148,7 @@ import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
-import { formatDateCompact } from "@/utils/formateDate";
+import { formatShortDateTime } from "@/utils/formateDate";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";

@@ -44,7 +44,7 @@
               v-if="member.added_at !== '0001-01-01T00:00:00Z'"
               activator="parent"
               location="bottom"
-            >This member was added on {{ formatDate(member.added_at) }}</v-tooltip>
+            >This member was added on {{ formatFullDateTime(member.added_at) }}</v-tooltip>
           </td>
 
           <td class="text-center">
@@ -119,7 +119,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import axios, { AxiosError } from "axios";
-import { formatDate } from "@/utils/formateDate";
+import { formatFullDateTime } from "@/utils/formateDate";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
