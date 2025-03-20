@@ -259,7 +259,7 @@ import hasPermission from "@/utils/permission";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
-import { formatFullDateTime } from "@/utils/formateDate";
+import { formatFullDateTime } from "@/utils/date";
 
 const props = defineProps({
   storeMethods: {
