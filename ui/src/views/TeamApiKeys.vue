@@ -19,10 +19,6 @@ import { ref } from "vue";
 import ApiKeyGenerate from "@/components/Team/ApiKeys/ApiKeyGenerate.vue";
 import ApiKeyList from "@/components/Team/ApiKeys/ApiKeyList.vue";
 
-defineOptions({
-  inheritAttrs: false,
-});
-
 const apiKeyList = ref();
 
 const refreshApiKeys = () => {
