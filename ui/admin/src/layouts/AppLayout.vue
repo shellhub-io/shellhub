@@ -63,7 +63,7 @@
     </v-app-bar>
 
     <v-navigation-drawer v-if="isLoggedIn" theme="dark" v-model="drawer" expand-on-hover>
-      <v-list density="compact" class="bg-v-theme-surface" data-test="list">
+      <v-list density="compact" data-test="list">
         <template v-for="item in visibleItems" :key="item.title">
           <v-list-group
             v-if="item.children"
