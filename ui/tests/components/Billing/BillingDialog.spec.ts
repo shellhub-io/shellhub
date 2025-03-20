@@ -2,7 +2,6 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
 import BillingDialog from "@/components/Billing/BillingDialog.vue";
 import { billingApi, namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";

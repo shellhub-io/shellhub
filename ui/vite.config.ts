@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
 import VuetifyPlugin from "vite-plugin-vuetify";
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 import Markdown from "unplugin-vue-markdown/vite";
 import * as path from "node:path";
 

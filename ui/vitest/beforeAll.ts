@@ -1,12 +1,12 @@
 import { beforeAll } from "vitest";
 import ResizeObserver from "resize-observer-polyfill";
 
-(global as any).CSS = { supports: () => false };
+global.CSS = { supports: () => false } as never;
 global.ResizeObserver = ResizeObserver;
 
 beforeAll(() => {
   global.CSS = {
-    supports: (str: string) => false,
+    supports: () => false,
     escape: (str: string) => str,
-  };
+  } as never;
 });
