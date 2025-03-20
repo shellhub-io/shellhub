@@ -148,7 +148,7 @@ import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
-import { formatShortDateTime } from "@/utils/formateDate";
+import { formatShortDateTime } from "@/utils/date";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";

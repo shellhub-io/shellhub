@@ -166,7 +166,7 @@
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
-import { formatFullDateTime, getTimeFromNow } from "..//utils/formateDate";
+import { formatFullDateTime, getTimeFromNow } from "..//utils/date";
 import hasPermission from "..//utils/permission";
 import { ISessions } from "../interfaces/ISessions";
 import { authorizer, actions } from "../authorizer";

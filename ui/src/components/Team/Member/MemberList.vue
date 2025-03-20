@@ -119,7 +119,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import axios, { AxiosError } from "axios";
-import { formatFullDateTime } from "@/utils/formateDate";
+import { formatFullDateTime } from "@/utils/date";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";

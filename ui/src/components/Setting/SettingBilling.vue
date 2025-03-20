@@ -161,7 +161,7 @@ import { actions, authorizer } from "@/authorizer";
 import BillingDialog from "../Billing/BillingDialog.vue";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import formatCurrency from "@/utils/currency";
-import { formatDateOnly } from "@/utils/formateDate";
+import { formatDateOnly } from "@/utils/date";
 import handleError from "@/utils/handleError";
 
 const store = useStore();

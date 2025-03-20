@@ -145,7 +145,7 @@ import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
-import { formatFullDateTime } from "@/utils/formateDate";
+import { formatFullDateTime } from "@/utils/date";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";

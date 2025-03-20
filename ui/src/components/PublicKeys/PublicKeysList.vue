@@ -130,7 +130,7 @@ import {
   formatHostnameFilter,
   formatUsername,
 } from "@/utils/string";
-import { formatAbbreviatedDateTime } from "@/utils/formateDate";
+import { formatAbbreviatedDateTime } from "@/utils/date";
 import showTag from "@/utils/tag";
 import DataTable from "../DataTable.vue";
 import PublicKeyDelete from "./PublicKeyDelete.vue";

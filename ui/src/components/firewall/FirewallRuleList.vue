@@ -135,7 +135,7 @@ import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
 import { filterType } from "@/interfaces/IFirewallRule";
 import { useStore } from "@/store";
-import { getTimeFromNow } from "@/utils/formateDate";
+import { getTimeFromNow } from "@/utils/date";
 import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
