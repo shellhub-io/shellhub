@@ -161,7 +161,7 @@ import { actions, authorizer } from "@/authorizer";
 import BillingDialog from "../Billing/BillingDialog.vue";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import formatCurrency from "@/utils/currency";
-import { formatDateOnly } from "@/utils/date";
+import { formatUnixToDate } from "@/utils/date";
 import handleError from "@/utils/handleError";
 
 const store = useStore();
@@ -227,7 +227,7 @@ const getSubscriptionInfo = async () => {
   if (active.value && hasAuthorization.value) {
     try {
       await store.dispatch("billing/getSubscription");
-      formattedDate.value = formatDateOnly(billing.value?.end_at);
+      formattedDate.value = formatUnixToDate(billing.value?.end_at);
       formattedCurrency.value = formatCurrency(billing.value?.invoices[0].amount, billing.value?.invoices[0].currency.toUpperCase());
     } catch (error: unknown) {
       handleError(error);
