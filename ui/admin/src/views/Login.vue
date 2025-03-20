@@ -11,7 +11,7 @@
                   max-width="220"
                   alt="logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado"
                 />
-                <span class="mt-6 text-overline">xadmin</span>
+                <span class="mt-6 text-overline">Admin</span>
               </v-card-title>
               <v-card-item>
                 <SnackbarComponent />
