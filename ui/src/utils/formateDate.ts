@@ -1,36 +1,13 @@
 import moment from "moment";
 
-export const formatFullDateTime = (date: string) => {
-  if (date) {
-    return moment(date).format("dddd, MMMM Do YYYY, h:mm:ss a");
-  }
-  return null;
-};
+const formatDate = (date: string, formatToken: string) => date ? moment(date).format(formatToken) : null;
 
-export const formatShortDateTime = (date: string) => {
-  if (date) {
-    return moment(date).format("LLL");
-  }
-  return null;
-};
+export const formatFullDateTime = (date: string) => formatDate(date, "dddd, MMMM Do YYYY, h:mm:ss a");
 
-export const formatDateOnly = (date : number) => {
-  if (date) {
-    return moment.unix(date).format("MMM Do YYYY");
-  }
-  return null;
-};
+export const formatShortDateTime = (date: string) => formatDate(date, "LLL");
 
-export const formatAbbreviatedDateTime = (date : string) => {
-  if (date) {
-    return moment(date).format("ddd, MMM Do YY, h:mm:ss a");
-  }
-  return null;
-};
+export const formatAbbreviatedDateTime = (date : string) => formatDate(date, "ddd, MMM Do YY, h:mm:ss a");
 
-export const getTimeFromNow = (date: string) => {
-  if (date) {
-    return moment(date).fromNow();
-  }
-  return null;
-};
+export const formatUnixToDate = (timestamp: number) => timestamp ? moment.unix(timestamp).format("MMM Do YYYY") : null;
+
+export const getTimeFromNow = (date: string) => date ? moment(date).fromNow() : null;
