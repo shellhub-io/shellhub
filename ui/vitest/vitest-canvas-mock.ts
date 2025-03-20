@@ -1,1 +1,1 @@
-import 'vi-canvas-mock';
+import "vi-canvas-mock";

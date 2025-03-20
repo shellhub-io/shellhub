@@ -3,9 +3,9 @@
  */
 export async function setup() {
   global.CSS = {
-    supports: (str: string) => false,
+    supports: () => false,
     escape: (str: string) => str,
-  };
+  } as never;
 }
 
 // FAIL LOUDLY on unhandled promise rejections / errors
