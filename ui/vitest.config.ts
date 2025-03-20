@@ -9,6 +9,7 @@ export default defineConfig({
     // https://vitejs.dev/config/#resolve-alias
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@admin": fileURLToPath(new URL("./admin/src", import.meta.url)),
     },
   },
   css: {

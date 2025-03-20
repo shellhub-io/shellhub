@@ -40,7 +40,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-list-item__spacer"></div>
           </div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/dashboard/users" buttonname-test="View all Users"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/users" buttonname-test="View all Users"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Users</span>
             <!---->
             <!---->
@@ -88,7 +88,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-list-item__spacer"></div>
           </div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/dashboard/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
             <!---->
             <!---->
@@ -136,7 +136,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-list-item__spacer"></div>
           </div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/dashboard/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
             <!---->
             <!---->
@@ -184,7 +184,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-list-item__spacer"></div>
           </div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/dashboard/sessions" buttonname-test="View all Sessions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/sessions" buttonname-test="View all Sessions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Sessions</span>
             <!---->
             <!---->
@@ -232,7 +232,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-list-item__spacer"></div>
           </div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/dashboard/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
             <!---->
             <!---->
@@ -280,7 +280,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-list-item__spacer"></div>
           </div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/dashboard/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" href="/admin/devices" buttonname-test="View all Devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
             <!---->
             <!---->

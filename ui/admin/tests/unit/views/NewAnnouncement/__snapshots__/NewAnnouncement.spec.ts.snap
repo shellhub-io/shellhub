@@ -61,8 +61,8 @@ exports[`New Announcement > Renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-input__details">
-          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages" role="alert" aria-live="polite" id="input-0-messages">
+        <div id="input-0-messages" class="v-input__details" role="alert" aria-live="polite">
+          <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
           <!---->
@@ -76,19 +76,9 @@ exports[`New Announcement > Renders the component 1`] = `
     <div class="v-card-item__content">
       <!---->
       <!---->
-      <div class="v-card-title">Content</div><textarea id="tiny-vue_20948240231738782419976" visibility="hidden" data-test="announcement-content"></textarea>
+      <div class="v-card-title">Content</div><textarea id="tiny-vue_65276314731742474428212" visibility="hidden" data-test="announcement-content"></textarea>
       <!--v-if-->
-      <div class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat mt-2" role="alert" data-test="announcement-key-warning">
-        <!----><span class="v-alert__underlay"></span>
-        <!---->
-        <div class="v-alert__prepend"><i class="mdi-alert-circle mdi v-icon notranslate v-theme--light" style="font-size: 28px; height: 28px; width: 28px;" aria-hidden="true" density="default"></i></div>
-        <div class="v-alert__content">
-          <!---->
-          <!----> It's recommended to set the TinyMCE key in the .env file.
-        </div>
-        <!---->
-        <!---->
-      </div>
+      <!--v-if-->
     </div>
     <!---->
   </div>

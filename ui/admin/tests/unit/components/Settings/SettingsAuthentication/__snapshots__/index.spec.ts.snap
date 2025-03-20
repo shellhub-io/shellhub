@@ -140,39 +140,8 @@ exports[`Authentication > renders correctly 1`] = `
       </div>
     </div>
     <div>
-      <div class="v-row">
-        <div class="v-col-sm-auto v-col-md-auto v-col">
-          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="certificate-label">
-            <!---->
-            <div class="v-card__loader">
-              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                <!---->
-                <div class="v-progress-linear__background"></div>
-                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                  <div class="v-progress-linear__indeterminate">
-                    <div class="v-progress-linear__indeterminate long"></div>
-                    <div class="v-progress-linear__indeterminate short"></div>
-                  </div>
-                </transition-stub>
-                <!---->
-              </div>
-            </div>
-            <!---->
-            <!---->SP Certificate
-            <!---->
-            <!----><span class="v-card__underlay"></span>
-          </div>
-        </div>
-        <div class="v-spacer"></div>
-        <div class="v-col d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="download-certificate-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-            <!----><span class="v-btn__content" data-no-activator="">Download SP Certificate</span>
-            <!---->
-            <!---->
-          </button></div>
-      </div>
-      <div class="v-row mt-2">
-        <div class="v-col-sm-auto v-col-md-auto v-col">
+      <div class="v-row mt-2" cols="12">
+        <div class="v-col-sm-8 v-col-md-10 v-col">
           <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-label">
             <!---->
             <div class="v-card__loader">
@@ -194,43 +163,11 @@ exports[`Authentication > renders correctly 1`] = `
             <!---->
             <!----><span class="v-card__underlay"></span>
           </div>
-          <div class="v-card-subtitle pl-0">Copy the Assertion URL</div>
+          <div class="v-card-subtitle pl-0"> The Assertion URL is the endpoint where the IdP will redirect users after successful authentication. Many IdPs require this URL to be registered in their list of allowed callback URLs. </div>
         </div>
         <div class="v-spacer"></div>
-        <div class="v-col-sm-auto v-col-md-auto v-col ml-auto"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="copy-assertion-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-col-sm-4 v-col-md-2 v-col ml-auto d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="copy-assertion-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""> Copy Assertion URL </span>
-            <!---->
-            <!---->
-          </button></div>
-      </div>
-      <div class="v-row">
-        <div class="v-col-sm-auto v-col-md-auto v-col">
-          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-auth-label">
-            <!---->
-            <div class="v-card__loader">
-              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                <!---->
-                <div class="v-progress-linear__background"></div>
-                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                  <div class="v-progress-linear__indeterminate">
-                    <div class="v-progress-linear__indeterminate long"></div>
-                    <div class="v-progress-linear__indeterminate short"></div>
-                  </div>
-                </transition-stub>
-                <!---->
-              </div>
-            </div>
-            <!---->
-            <!---->Authentication URL
-            <!---->
-            <!----><span class="v-card__underlay"></span>
-          </div>
-          <div class="v-card-subtitle pl-0">Open a new window directly calling the Authentication URL</div>
-        </div>
-        <div class="v-spacer"></div>
-        <div class="v-col-sm-auto v-col-md-auto v-col ml-auto"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="redirect-auth-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-            <!----><span class="v-btn__content" data-no-activator=""> Redirect to Auth URL </span>
             <!---->
             <!---->
           </button></div>
@@ -333,37 +270,88 @@ exports[`Authentication > renders correctly 1`] = `
           </div>
         </div>
       </div>
-    </div>
-    <div class="v-row">
-      <div class="v-col-sm-auto v-col-md-auto v-col">
-        <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="sso-config-label">
-          <!---->
-          <div class="v-card__loader">
-            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-              <!---->
-              <div class="v-progress-linear__background"></div>
-              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                <div class="v-progress-linear__indeterminate">
-                  <div class="v-progress-linear__indeterminate long"></div>
-                  <div class="v-progress-linear__indeterminate short"></div>
-                </div>
-              </transition-stub>
-              <!---->
+      <div class="v-row" cols="12">
+        <div class="v-col-sm-8 v-col-md-10 v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="certificate-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
             </div>
+            <!---->
+            <!---->SP Certificate
+            <!---->
+            <!----><span class="v-card__underlay"></span>
           </div>
-          <!---->
-          <!---->SSO Configuration
-          <!---->
-          <!----><span class="v-card__underlay"></span>
+          <div class="v-card-subtitle pl-0 text-overflow"> The SP Certificate is an X.509 certificate that IdPs use to verify requests from ShellHub. Upload it to your IdP to validate the authenticity of authentication requests. </div>
         </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-4 v-col-md-2 v-col d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="download-certificate-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Download SP Certificate</span>
+            <!---->
+            <!---->
+          </button></div>
       </div>
-      <div class="v-spacer"></div>
-      <div class="v-col-sm-auto v-col-md-auto v-col ml-auto"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="sso-config-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-          <!----><span class="v-btn__content" data-no-activator="">Edit</span>
-          <!---->
-          <!---->
-        </button></div>
+      <div class="v-row" cols="12">
+        <div class="v-col-sm-6 v-col-md-10 v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="sso-config-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->SSO Configuration
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-3 v-col-md-1 v-col ml-auto d-flex w-100 justify-end align-center">
+          <div class="v-row" aria-describedby="v-tooltip-8">
+            <div class="v-col"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" aria-describedby="v-tooltip-8" data-test="redirect-auth-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <!----><span class="v-btn__content" data-no-activator=""> Test Auth Integration </span>
+                <!---->
+                <!---->
+              </button></div>
+          </div>
+          <!--teleport start-->
+          <div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-8" role="tooltip">
+            <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+              <!---->
+            </transition-stub>
+            <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLDivElement]">
+              <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>Opens a new window directly calling the Authentication URL </span></div>
+            </transition-stub>
+          </div>
+          <!--teleport end-->
+        </div>
+        <div class="v-col-sm-3 v-col-md-1 v-col ml-auto d-flex w-100 justify-end align-center"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="sso-config-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Edit</span>
+            <!---->
+            <!---->
+          </button></div>
+      </div>
     </div>
   </div>
   <!---->

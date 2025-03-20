@@ -2,7 +2,7 @@ import { createVuetify } from "vuetify";
 import { createStore } from "vuex";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import UserFormDialog from @admin/components/User/UserFormDialog.vue";
+import UserFormDialog from "@admin/components/User/UserFormDialog.vue";
 import { key } from "../../../../../src/store";
 
 const store = createStore({
