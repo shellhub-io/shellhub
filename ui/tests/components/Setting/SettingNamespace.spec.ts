@@ -109,7 +109,7 @@ describe("Setting Namespace", () => {
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("security/setSecurity", session);
-    store.commit("auth/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
+    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
     wrapper = mount(SettingNamespace, {
       global: {
