@@ -87,12 +87,12 @@ describe("Recovery Helper", () => {
   it("Disable MFA Authentication (fail)", async () => {
     // Mock the API response for MFA disable
     mock.onPut("http://localhost:3000/api/users/mfa/disable").reply(403);
-    // Spy on Vuex store dispatch
-    const mfaSpy = vi.spyOn(store, "dispatch");
+    // Spy on Vuex store commit
+    const mfaSpy = vi.spyOn(store, "commit");
     // Click the "Disable" button
     await wrapper.findComponent('[data-test="disable-btn"]').trigger("click");
     await flushPromises();
-    // Assert that the MFA disable action was dispatched
+    // Assert that the MFA disable action was committed
     expect(mfaSpy).toHaveBeenCalledWith("snackbar/setSnackbarErrorDefault");
   });
 });

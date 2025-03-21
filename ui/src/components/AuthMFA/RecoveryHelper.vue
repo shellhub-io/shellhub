@@ -131,7 +131,7 @@ const disableMFA = async () => {
     store.commit("auth/accountRecoveryHelper");
     dialog.value = false;
   } catch (error) {
-    store.dispatch(
+    store.commit(
       "snackbar/setSnackbarErrorDefault",
     );
     handleError(error);
