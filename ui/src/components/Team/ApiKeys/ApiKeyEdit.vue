@@ -76,6 +76,10 @@ import {
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = defineProps({
   keyName: {
     type: String,
