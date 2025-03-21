@@ -72,6 +72,7 @@ func (h *Handler) UpdateSession(c gateway.Context) error {
 	}
 
 	return h.service.UpdateSession(c.Ctx(), models.UID(req.UID), models.SessionUpdate{
+		Recorded:      req.Recorded,
 		Authenticated: req.Authenticated,
 		Type:          req.Type,
 	})
@@ -133,7 +134,7 @@ func (h *Handler) EventSession(c gateway.Context) error {
 
 	return h.service.EventSession(c.Ctx(), models.UID(req.UID), &models.SessionEvent{
 		Session:   req.UID,
-		Type:      req.Type,
+		Type:      models.SessionEventType(req.Type),
 		Timestamp: req.Timestamp,
 		Data:      req.Data,
 		Seat:      req.Seat,
