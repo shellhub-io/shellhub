@@ -1,6 +1,6 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PrivateKeyList from "@/components/PrivateKeys/PrivateKeyList.vue";
 import { namespacesApi, usersApi } from "@/api/http";
@@ -59,7 +59,7 @@ describe("Private Key List", () => {
 
   const session = true;
 
-  const PrivateKeys = [
+  const privateKeys = [
     {
       name: "",
       data: "",
@@ -76,6 +76,10 @@ describe("Private Key List", () => {
       id: 3,
     },
   ];
+
+  vi.mock("@/utils/validate", () => ({
+    convertToFingerprint: () => "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
+  }));
 
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -117,7 +121,7 @@ describe("Private Key List", () => {
 
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="no-private-key-warning"]').exists()).toBe(true);
-    store.commit("privateKey/fetchPrivateKey", PrivateKeys);
+    store.commit("privateKey/fetchPrivateKey", privateKeys);
     await flushPromises();
     expect(wrapper.find('[data-test="privateKey-thead"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="privateKey-name"]').exists()).toBe(true);
