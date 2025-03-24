@@ -64,7 +64,6 @@ export const apiKeys: Module<ApiKeysState, State> = {
     async generateApiKey(context, data) {
       try {
         const resp = await apiKeysApi.generateApiKey(data);
-        console.log(resp);
         if (resp.status === 200) {
           context.commit("apiKey", resp.data);
         }
