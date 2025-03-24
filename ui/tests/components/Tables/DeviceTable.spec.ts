@@ -3,7 +3,7 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { createStore } from "vuex";
-import { key } from "@/store";
+import { key, store } from "@/store";
 import DeviceTable from "@/components/Tables/DeviceTable.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
@@ -129,16 +129,7 @@ describe("Device Table", () => {
     rejected_devices: 0,
   };
 
-  const mockStoreMethods = {
-    fetchDevices: vi.fn(),
-    getFilter: vi.fn(),
-    getList: vi.fn(),
-    getSortStatusField: vi.fn(),
-    getSortStatusString: vi.fn(),
-    getNumber: vi.fn(),
-  };
-
-  const store = createStore({
+  const mockStore = createStore({
     state: {
       totalCount: 3, // Mock total count
       devices: [
@@ -152,6 +143,15 @@ describe("Device Table", () => {
       devices: (state) => state.devices,
     },
   });
+
+  const mockStoreMethods = {
+    fetchDevices: vi.fn(),
+    getFilter: vi.fn(),
+    getList: vi.fn(),
+    getSortStatusField: vi.fn(),
+    getSortStatusString: vi.fn(),
+    getNumber: () => mockStore.state.totalCount,
+  };
 
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -176,7 +176,7 @@ describe("Device Table", () => {
 
     wrapper = shallowMount(DeviceTable, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[mockStore, key], vuetify, router, SnackbarPlugin],
       },
       props: {
         storeMethods: mockStoreMethods,
