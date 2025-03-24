@@ -61,7 +61,6 @@ const session = true;
 
 describe("Namespace Invite Dialog (Invalid User)", () => {
   beforeEach(async () => {
-    // eslint-disable-next-line vue/max-len
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
 
@@ -101,8 +100,7 @@ describe("Namespace Invite Dialog (Invalid User)", () => {
 
 describe("Namespace Invite Dialog", () => {
   beforeEach(async () => {
-    // eslint-disable-next-line vue/max-len
-    await router.push({ query: { "user-id": "507f1f77bcf86cd799439011" } });
+    await router.push({ query: { "user-id": "507f1f77bcf86cd799439011", "tenant-id": "fake-tenant" } });
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     localStorage.setItem("id", "507f1f77bcf86cd799439011");
@@ -166,7 +164,6 @@ describe("Namespace Invite Dialog", () => {
   });
 
   it("Calls acceptInvite method when Accept Invitation button is clicked", async () => {
-    // eslint-disable-next-line vue/max-len
     const acceptSpy = vi.spyOn(wrapper.vm, "acceptInvite");
     await flushPromises();
     await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
@@ -179,9 +176,7 @@ describe("Namespace Invite Dialog", () => {
     // Simulate an error
     wrapper.vm.handleInviteError({ response: { status: 400 } });
     await nextTick();
-    // eslint-disable-next-line vue/max-len
     expect(wrapper.find('[data-test="title"]').text()).toBe("Invite Accept Error");
-    // eslint-disable-next-line vue/max-len
     expect(wrapper.find('[data-test="message"]').text()).toBe("An unexpected error occurred. Please try again later.");
     expect(wrapper.find('[data-test="accept-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="decline-btn"]').exists()).toBe(true);
