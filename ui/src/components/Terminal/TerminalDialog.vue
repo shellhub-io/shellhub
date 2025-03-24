@@ -309,8 +309,6 @@ const connect = async (params: IConnectToTerminal) => {
           data: { cols: data.cols, rows: data.rows },
         };
 
-        console.log("resize");
-
         ws.value.send(JSON.stringify(message));
       });
 
