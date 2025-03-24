@@ -1,7 +1,7 @@
 import { Module } from "vuex";
 import * as apiKeysApi from "../api/api_keys";
 import { ApiKey } from "@/interfaces/IUserLogin";
-import { State } from "..";
+import { State, store } from "..";
 
 export interface ApiKeysState {
   page: number;
@@ -64,11 +64,12 @@ export const apiKeys: Module<ApiKeysState, State> = {
     async generateApiKey(context, data) {
       try {
         const resp = await apiKeysApi.generateApiKey(data);
+        console.log(resp);
         if (resp.status === 200) {
           context.commit("apiKey", resp.data);
         }
       } catch (error) {
-        context.commit("authError");
+        store.commit("auth/authError");
         throw error;
       }
     },
@@ -90,7 +91,7 @@ export const apiKeys: Module<ApiKeysState, State> = {
         context.commit("clearApiKeysList");
         return false;
       } catch (error) {
-        context.commit("authError");
+        store.commit("auth/authError");
         throw error;
       }
     },
@@ -99,7 +100,7 @@ export const apiKeys: Module<ApiKeysState, State> = {
       try {
         await apiKeysApi.editApiKey(data);
       } catch (error) {
-        context.commit("authError");
+        store.commit("auth/authError");
         throw error;
       }
     },
@@ -108,7 +109,7 @@ export const apiKeys: Module<ApiKeysState, State> = {
       try {
         await apiKeysApi.removeApiKey(data);
       } catch (error) {
-        context.commit("authError");
+        store.commit("auth/authError");
         throw error;
       }
     },
