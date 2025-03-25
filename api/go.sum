@@ -240,6 +240,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.13/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
 github.com/mattn/goveralls v0.0.9/go.mod h1:FRbM1PS8oVsOe9JtdzAAXM+DsvDMMHcM1C7drGJD8HY=
+github.com/mdelapenya/tlscert v0.1.0 h1:YTpF579PYUX475eOL+6zyEO3ngLTOUWck78NBuJVXaM=
+github.com/mdelapenya/tlscert v0.1.0/go.mod h1:wrbyM/DwbFCeCeqdPX/8c6hNOqQgbf0rUDErE1uD+64=
 github.com/mholt/archiver/v4 v4.0.0-alpha.8 h1:tRGQuDVPh66WCOelqe6LIGh0gwmfwxUrSSDunscGsRM=
 github.com/mholt/archiver/v4 v4.0.0-alpha.8/go.mod h1:5f7FUYGXdJWUjESffJaYR4R60VhnHxb2X3T1teMyv5A=
 github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3Nl2EsFP0=
@@ -352,6 +354,8 @@ github.com/testcontainers/testcontainers-go v0.35.0 h1:uADsZpTKFAtp8SLK+hMwSaa+X
 github.com/testcontainers/testcontainers-go v0.35.0/go.mod h1:oEVBj5zrfJTrgjwONs1SsRbnBtH9OKl+IGl3UMcr2B4=
 github.com/testcontainers/testcontainers-go/modules/mongodb v0.35.0 h1:i1Kh9fmXgHG9z3uzJv5Arz7pDKVaaNpLrqyd+0xhYMA=
 github.com/testcontainers/testcontainers-go/modules/mongodb v0.35.0/go.mod h1:SD8nVMK1m7b/K2YJqYjYNzfHmZfqHtqNOlI44nfxjdg=
+github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0 h1:eEGx9kYzZb2cNhRbBrNOCL/YPOM7+RMJiy3bB+ie0/I=
+github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0/go.mod h1:hfH71Mia/WWLBgMD2YctYcMlfsbnT0hflweL1dy8Q4s=
 github.com/testcontainers/testcontainers-go/modules/redis v0.32.0 h1:HW5Qo9qfLi5iwfS7cbXwG6qe8ybXGePcgGPEmVlVDlo=
 github.com/testcontainers/testcontainers-go/modules/redis v0.32.0/go.mod h1:5kltdxVKZG0aP1iegeqKz4K8HHyP0wbkW5o84qLyMjY=
 github.com/therootcompany/xz v1.0.1 h1:CmOtsn1CbtmyYiusbfmhmkpAAETj0wBIH6kCYaX+xzw=
