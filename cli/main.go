@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store/pg"
+	"github.com/shellhub-io/shellhub/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/cli/cmd"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -42,7 +43,7 @@ func main() {
 	}
 
 	uri := pg.URI(cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresDB)
-	store, err := pg.New(ctx, uri)
+	store, err := pg.New(ctx, uri, options.Log("DEBUG", true))
 	if err != nil {
 		log.
 			WithError(err).

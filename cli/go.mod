@@ -26,6 +26,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
+	github.com/oiime/logrusbun v0.1.2-0.20241011112815-4df3a0fb0e11 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
 	github.com/sethvargo/go-envconfig v0.9.0 // indirect
