@@ -51,8 +51,8 @@ export default defineConfig({
     },
     exclude: ["**/node_modules/**"],
     update: false,
-    onConsoleLog(log: string): boolean | void {
-      return !(log.includes("Axios"));
-    },
+    // onConsoleLog(log: string): boolean | void {
+    //   return !(log.includes("Axios"));
+    // },
   },
 });
