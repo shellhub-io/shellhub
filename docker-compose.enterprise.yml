@@ -20,7 +20,6 @@ services:
   ssh:
     image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
     environment:
-      - RECORD_URL=cloud-api:8080
       - BILLING_URL=billing-api:8080
   cloud-api:
     image: registry.infra.ossystems.io/shellhub/cloud-api:${SHELLHUB_VERSION}
