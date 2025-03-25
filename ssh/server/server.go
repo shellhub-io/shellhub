@@ -19,8 +19,6 @@ import (
 
 type Options struct {
 	ConnectTimeout time.Duration
-	// TODO: add default value for RECORD_URL.
-	RecordURL string
 	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
@@ -43,7 +41,6 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 		Addr: ":2222",
 		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
 			ctx.SetValue("conn", conn)
-			ctx.SetValue("RECORD_URL", opts.RecordURL)
 
 			return conn
 		},
