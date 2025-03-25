@@ -211,22 +211,34 @@ func (_m *Client) EvaluateKey(fingerprint string, dev *models.Device, username s
 	return r0, r1
 }
 
-// EventSession provides a mock function with given fields: uid, event
-func (_m *Client) EventSession(uid string, event *models.SessionEvent) error {
-	ret := _m.Called(uid, event)
+// EventSessionStream provides a mock function with given fields: ctx, uid
+func (_m *Client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
+	ret := _m.Called(ctx, uid)
 
 	if len(ret) == 0 {
-		panic("no return value specified for EventSession")
+		panic("no return value specified for EventSessionStream")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *models.SessionEvent) error); ok {
-		r0 = rf(uid, event)
+	var r0 *websocket.Conn
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*websocket.Conn, error)); ok {
+		return rf(ctx, uid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *websocket.Conn); ok {
+		r0 = rf(ctx, uid)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*websocket.Conn)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, uid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // FinishSession provides a mock function with given fields: uid
@@ -487,36 +499,6 @@ func (_m *Client) NamespaceLookup(tenant string) (*models.Namespace, []error) {
 	return r0, r1
 }
 
-// RecordSession provides a mock function with given fields: ctx, uid, seat, recordURL
-func (_m *Client) RecordSession(ctx context.Context, uid string, seat int, recordURL string) (*websocket.Conn, error) {
-	ret := _m.Called(ctx, uid, seat, recordURL)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RecordSession")
-	}
-
-	var r0 *websocket.Conn
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, string) (*websocket.Conn, error)); ok {
-		return rf(ctx, uid, seat, recordURL)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, string) *websocket.Conn); ok {
-		r0 = rf(ctx, uid, seat, recordURL)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*websocket.Conn)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, int, string) error); ok {
-		r1 = rf(ctx, uid, seat, recordURL)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // SaveSession provides a mock function with given fields: uid, seat
 func (_m *Client) SaveSession(uid string, seat int) error {
 	ret := _m.Called(uid, seat)
@@ -596,8 +578,7 @@ func (_m *Client) UpdateSession(uid string, model *models.SessionUpdate) error {
 func NewClient(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *Client {
+}) *Client {
 	mock := &Client{}
 	mock.Mock.Test(t)
 

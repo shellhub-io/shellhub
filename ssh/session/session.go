@@ -1,7 +1,6 @@
 package session
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -120,8 +120,8 @@ type Session struct {
 
 	api    internalclient.Client
 	tunnel *httptunnel.Tunnel
-	// Events is a channel used to send and process Events of a session.
-	Events chan *models.SessionEvent
+	// Events is a connection to the endpoint to save session's events.
+	Events *websocket.Conn
 
 	once *sync.Once
 
@@ -209,11 +209,18 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, errs[0]
 	}
 
+	events, err := api.EventSessionStream(ctx, ctx.SessionID())
+	if err != nil {
+		log.WithError(err).Error("failed to connecting to endpoint to save session's events")
+
+		return nil, err
+	}
+
 	session := &Session{
 		UID:    ctx.SessionID(),
 		api:    api,
 		tunnel: tunnel,
-		Events: make(chan *models.SessionEvent, 100),
+		Events: events,
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -235,8 +242,6 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 	session.Data.Lookup["ip_address"] = hos.Host
 
 	snap.save(session, StateCreated)
-
-	go session.NewEventStream(ctx)
 
 	return session, nil
 }
@@ -531,13 +536,13 @@ func (s *Session) NewSeat() (int, error) {
 
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
-	s.Events <- &models.SessionEvent{
+	s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
 		Session:   s.UID,
 		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
 		Data:      data,
 		Seat:      seat,
-	}
+	})
 }
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
@@ -546,33 +551,13 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 		return
 	}
 
-	sess.Events <- &models.SessionEvent{
+	sess.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
 		Session:   sess.UID,
 		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
 		Data:      data,
 		Seat:      seat,
-	}
-}
-
-func (s *Session) NewEventStream(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			log.WithFields(log.Fields{
-				"session": s.UID,
-			}).Debug("event stream loop done")
-
-			return
-		case event := <-s.Events:
-			log.WithFields(log.Fields{
-				"session": s.UID,
-				"event":   event,
-			}).Trace("event received on event stream")
-
-			go s.api.EventSession(s.UID, event) //nolint:errcheck
-		}
-	}
+	})
 }
 
 func (s *Session) KeepAlive() error {
@@ -628,6 +613,8 @@ func (s *Session) Finish() (err error) {
 		log.WithFields(log.Fields{
 			"uid": s.UID,
 		}).Trace("session finish called")
+
+		defer s.Events.Close()
 
 		if s.Agent.Conn != nil {
 			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)

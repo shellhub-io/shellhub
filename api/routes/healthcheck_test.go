@@ -14,7 +14,7 @@ import (
 func TestEvaluateHealth(t *testing.T) {
 	e := echo.New()
 	mock := new(mocks.Service)
-	h := NewHandler(mock)
+	h := NewHandler(mock, nil)
 
 	cases := []struct {
 		title         string
