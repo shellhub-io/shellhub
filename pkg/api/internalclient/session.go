@@ -28,14 +28,11 @@ type sessionAPI interface {
 	// It returns a slice of errors encountered during the operation.
 	KeepAliveSession(uid string) []error
 
-	// RecordSession creates a WebSocket client connection to the URL.
-	RecordSession(ctx context.Context, uid string, seat int, recordURL string) (*websocket.Conn, error)
-
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(uid string, model *models.SessionUpdate) error
 
-	// EventSession inserts a new event into a session.
-	EventSession(uid string, event *models.SessionEvent) error
+	// EventSessionStream creates a WebSocket client connection to endpoint to save session's events.
+	EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error)
 
 	// SaveSession saves a session as a Asciinema file into the Object Storage and delete
 	// [models.SessionEventTypePtyOutput] events.
@@ -93,24 +90,6 @@ func (c *client) KeepAliveSession(uid string) []error {
 	return errors
 }
 
-func (c *client) RecordSession(ctx context.Context, uid string, seat int, recordURL string) (*websocket.Conn, error) {
-	connection, _, err := websocket.
-		DefaultDialer.
-		DialContext(
-			ctx,
-			fmt.Sprintf("ws://%s/internal/sessions/%s/records/%d",
-				recordURL,
-				uid,
-				seat,
-			),
-			nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return connection, nil
-}
-
 func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
 	res, err := c.http.
 		R().
@@ -130,23 +109,20 @@ func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
 	return nil
 }
 
-func (c *client) EventSession(uid string, event *models.SessionEvent) error {
-	res, err := c.http.
-		R().
-		SetPathParams(map[string]string{
-			"uid": uid,
-		}).
-		SetBody(event).
-		Post("/internal/sessions/{uid}/events")
+func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
+	connection, _, err := websocket.
+		DefaultDialer.
+		DialContext(
+			ctx,
+			fmt.Sprintf("ws://api:8080/internal/sessions/%s/events",
+				uid,
+			),
+			nil)
 	if err != nil {
-		return errors.Join(errors.New("failed to log the event on the session due error"), err)
+		return nil, err
 	}
 
-	if res.StatusCode() != 200 {
-		return errors.New("failed to send the log event")
-	}
-
-	return nil
+	return connection, nil
 }
 
 func (c *client) SaveSession(uid string, seat int) error {

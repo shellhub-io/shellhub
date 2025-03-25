@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,15 +10,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	svc "github.com/shellhub-io/shellhub/api/services"
-
-	"github.com/shellhub-io/shellhub/api/store"
-
 	"github.com/shellhub-io/shellhub/api/services/mocks"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	websocketmocks "github.com/shellhub-io/shellhub/pkg/websocket/mocks"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
 )
@@ -311,4 +314,157 @@ func TestFinishSession(t *testing.T) {
 	}
 
 	mock.AssertExpectations(t)
+}
+
+func TestEventSession(t *testing.T) {
+	mock := new(mocks.Service)
+	webSocketUpgraderMock := new(websocketmocks.Upgrader)
+
+	cases := []struct {
+		description   string
+		uid           string
+		seat          int
+		requiredMocks func(uid string)
+		expected      int
+	}{
+		{
+			description: "fails when upgrade cannot be done",
+			uid:         "123",
+			seat:        0,
+			requiredMocks: func(_ string) {
+				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(nil, errors.New("")).Once()
+			},
+			expected: http.StatusBadRequest,
+		},
+		{
+			description: "fails when cannot read from websocket due error",
+			uid:         "123",
+			seat:        0,
+			requiredMocks: func(_ string) {
+				conn := new(websocketmocks.Conn)
+				conn.On("Close").Return(nil).Once()
+				conn.On("ReadJSON", gomock.Anything).Return(io.EOF).Once()
+
+				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
+			},
+			expected: http.StatusInternalServerError,
+		},
+		{
+			description: "fails when cannot read from websocket due generic error",
+			uid:         "123",
+			seat:        0,
+			requiredMocks: func(_ string) {
+				conn := new(websocketmocks.Conn)
+				conn.On("Close").Return(nil).Once()
+				conn.On("ReadJSON", gomock.Anything).Return(errors.New("")).Once()
+
+				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
+			},
+			expected: http.StatusInternalServerError,
+		},
+		{
+			description: "fails when record frame is invalid",
+			uid:         "123",
+			seat:        0,
+			requiredMocks: func(_ string) {
+				conn := new(websocketmocks.Conn)
+				conn.On("Close").Return(nil).Once()
+				conn.On("ReadJSON", gomock.Anything).Return(nil).Once().Run(func(args gomock.Arguments) {
+					req := args.Get(0).(*requests.SessionEvent) //nolint:forcetypeassert
+
+					json.
+						NewDecoder(strings.NewReader(`{}`)).
+						Decode(req) //nolint:errcheck
+				})
+
+				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
+			},
+			expected: http.StatusBadRequest,
+		},
+		{
+			description: "fails to write the frame on the database",
+			uid:         "123",
+			seat:        0,
+			requiredMocks: func(uid string) {
+				conn := new(websocketmocks.Conn)
+				conn.On("Close").Return(nil).Once()
+				conn.On("NextReader").Return().Once()
+				conn.On("ReadJSON", gomock.Anything).Return(nil).Once().Run(func(args gomock.Arguments) {
+					req := args.Get(0).(*requests.SessionEvent) //nolint:forcetypeassert
+
+					json.
+						NewDecoder(strings.NewReader(`{"type":"pty-output","timestamp":"2025-02-03T14:11:32.405Z","data": { "output":"test" },"seat": 0}`)).
+						Decode(req) //nolint:errcheck
+				})
+
+				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
+
+				mock.On("EventSession", gomock.Anything, models.UID(uid), gomock.Anything).
+					Return(errors.New("not able record")).Once()
+			},
+			expected: http.StatusInternalServerError,
+		},
+		{
+			description: "success to write one frame on database",
+			uid:         "123",
+			seat:        0,
+			requiredMocks: func(uid string) {
+				conn := new(websocketmocks.Conn)
+				conn.On("Close").Return(nil).Once()
+				conn.On("NextReader").Return().Once()
+				conn.On("ReadJSON", gomock.Anything).Return(nil).Once().Run(func(args gomock.Arguments) {
+					req := args.Get(0).(*requests.SessionEvent) //nolint:forcetypeassert
+
+					json.
+						NewDecoder(strings.NewReader(`{"type":"pty-output","timestamp":"2025-02-03T14:11:32.405Z","data": { "output":"test" },"seat": 0}`)).
+						Decode(req) //nolint:errcheck
+				})
+
+				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
+
+				mock.On("EventSession", gomock.Anything, models.UID(uid),
+					gomock.Anything).Return(nil).Once()
+
+				conn.On("ReadJSON", gomock.Anything).Return(&websocket.CloseError{
+					Code: 1000,
+					Text: "test",
+				}).Once()
+			},
+			expected: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks(tc.uid)
+
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("ws:///internal/sessions/%s/events", tc.uid), nil)
+			req.Header.Set("Content-Type", echo.MIMEApplicationJSON)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("Upgrade", "websocket")
+			req.Header.Set("Connection", "Upgrade")
+			req.Header.Set("Sec-WebSocket-Version", "13")
+			req.Header.Set("Sec-WebSocket-Key", "test")
+
+			e := NewRouter(mock, func(_ *echo.Echo, handler *Handler) error {
+				handler.WebSocketUpgrader = webSocketUpgraderMock
+
+				return nil
+			})
+
+			e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					ctx := gateway.NewContext(mock, c)
+
+					return next(ctx)
+				}
+			})
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			mock.AssertExpectations(t)
+		})
+	}
 }

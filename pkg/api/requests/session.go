@@ -47,7 +47,6 @@ type SessionUpdate struct {
 }
 
 type SessionEvent struct {
-	SessionIDParam
 	Type      string    `json:"type" validate:"required"`
 	Timestamp time.Time `json:"timestamp" validate:"required"`
 	Data      any       `json:"data" validate:"required"`

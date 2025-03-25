@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
+	"github.com/shellhub-io/shellhub/pkg/websocket"
 )
 
 type DefaultHTTPHandlerConfig struct {
@@ -66,7 +67,7 @@ func WithReporter(reporter *sentry.Client) Option {
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	router := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
 
-	handler := NewHandler(service)
+	handler := NewHandler(service, websocket.NewGorillaWebSocketUpgrader())
 	for _, opt := range opts {
 		if err := opt(router, handler); err != nil {
 			return nil
@@ -90,7 +91,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
 	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
-	internalAPI.POST(EventsSessionsURL, gateway.Handler(handler.EventSession))
+	internalAPI.GET(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
