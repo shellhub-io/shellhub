@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -276,8 +275,6 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
 			return NewErrNamespaceNotFound(ns.TenantID, err)
-		case errors.Is(err, mongo.ErrUserNotFound):
-			return NewErrNamespaceMemberNotFound(userID, err)
 		default:
 			return err
 		}
