@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
@@ -226,7 +227,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, lockout, "", NewErrAuthUnathorized(nil)
 	}
 
-	if !user.Password.Compare(req.Password) {
+	if !hash.CompareWith(req.Password, user.PasswordDigest) {
 		lockout, _, err := s.cache.StoreLoginAttempt(ctx, sourceIP, user.ID)
 		if err != nil {
 			log.WithError(err).
@@ -285,9 +286,9 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
 	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
-	if !strings.HasPrefix(user.Password.Hash, "$") {
-		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			changes.Password = neo.Hash
+	if !strings.HasPrefix(user.PasswordDigest, "$") {
+		if passwordDigest, _ := hash.Do(req.Password); passwordDigest != "" {
+			changes.Password = passwordDigest
 		}
 	}
 
@@ -309,12 +310,12 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
-		RecoveryEmail: user.RecoveryEmail,
+		RecoveryEmail: user.Preferences.SecurityEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
-		MaxNamespaces: user.MaxNamespaces,
+		MaxNamespaces: user.Preferences.MaxNamespaces,
 	}
 
 	return res, 0, "", nil
@@ -393,12 +394,12 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
-		RecoveryEmail: user.RecoveryEmail,
+		RecoveryEmail: user.Preferences.SecurityEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
-		MaxNamespaces: user.MaxNamespaces,
+		MaxNamespaces: user.Preferences.MaxNamespaces,
 	}, nil
 }
 

@@ -3,28 +3,19 @@ package services
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
-	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
-	// TODO: convert username and email to lower case.
-	userData := models.UserData{
-		Name:     input.Username,
-		Email:    input.Email,
-		Username: input.Username,
-	}
-
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(userData); !ok || err != nil {
-		return nil, ErrUserDataInvalid
-	}
-
-	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
+	if conflicts, has, err := s.store.UserConflicts(ctx, &models.UserConflicts{Email: input.Email}); err != nil || has {
 		containsEmail := slices.Contains(conflicts, "email")
 		containsUsername := slices.Contains(conflicts, "username")
 
@@ -40,33 +31,31 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		}
 	}
 
-	password, err := models.HashUserPassword(input.Password)
+	passwordDigest, err := hash.Do(input.Password)
 	if err != nil {
 		return nil, ErrUserPasswordInvalid
 	}
 
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return nil, ErrUserPasswordInvalid
-	}
-
 	user := &models.User{
-		Origin:        models.UserOriginLocal,
-		UserData:      userData,
-		Password:      password,
-		Status:        models.UserStatusConfirmed,
-		CreatedAt:     clock.Now(),
-		MaxNamespaces: MaxNumberNamespacesCommunity,
+		Origin:         models.UserOriginLocal,
+		ExternalID:     "",
+		Status:         models.UserStatusConfirmed,
+		Name:           cases.Title(language.AmericanEnglish).String(strings.ToLower(input.Username)),
+		Email:          strings.ToLower(input.Email),
+		Username:       strings.ToLower(input.Username),
+		PasswordDigest: passwordDigest,
 		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+			PreferredNamespace: "",
+			AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+			SecurityEmail:      "",
+			MaxNamespaces:      -1,
+			EmailMarketing:     false,
 		},
 	}
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {
 		return nil, ErrCreateNewUser
 	}
-
-	s.store.SystemSet(ctx, "setup", true) //nolint:errcheck
 
 	return user, nil
 }
@@ -117,17 +106,12 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserNotFound
 	}
 
-	password, err := models.HashUserPassword(input.Password)
+	passwordDigest, err := hash.Do(input.Password)
 	if err != nil {
 		return ErrUserPasswordInvalid
 	}
 
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return ErrUserPasswordInvalid
-	}
-
-	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: password.Hash}); err != nil {
+	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: passwordDigest}); err != nil {
 		return ErrFailedUpdateUser
 	}
 

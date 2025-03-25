@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -46,12 +47,12 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 
 	if req.Password != "" {
 		// TODO: test
-		if !user.Password.Compare(req.CurrentPassword) {
+		if !hash.CompareWith(req.CurrentPassword, user.PasswordDigest) {
 			return []string{}, NewErrUserPasswordNotMatch(nil)
 		}
 
-		neo, _ := models.HashUserPassword(req.Password)
-		changes.Password = neo.Hash
+		passwordDigest, _ := hash.Do(req.Password)
+		changes.Password = passwordDigest
 	}
 
 	if err := s.store.UserUpdate(ctx, req.UserID, changes); err != nil {
@@ -70,16 +71,16 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 		return NewErrUserNotFound(id, err)
 	}
 
-	if !user.Password.Compare(currentPassword) {
+	if !hash.CompareWith(currentPassword, user.PasswordDigest) {
 		return NewErrUserPasswordNotMatch(nil)
 	}
 
-	neo, err := models.HashUserPassword(newPassword)
+	passwordDigest, err := hash.Do(newPassword)
 	if err != nil {
 		return NewErrUserPasswordInvalid(err)
 	}
 
-	if err := s.store.UserUpdate(ctx, id, &models.UserChanges{Password: neo.Hash}); err != nil {
+	if err := s.store.UserUpdate(ctx, id, &models.UserChanges{Password: passwordDigest}); err != nil {
 		return NewErrUserUpdate(user, err)
 	}
 

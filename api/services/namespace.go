@@ -32,15 +32,15 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 
 	// When MaxNamespaces is less than zero, it means that the user has no limit
 	// of namespaces. If the value is zero, it means he has no right to create a new namespace
-	if user.MaxNamespaces == 0 {
-		return nil, NewErrNamespaceCreationIsForbidden(user.MaxNamespaces, nil)
-	} else if user.MaxNamespaces > 0 {
+	if user.Preferences.MaxNamespaces == 0 {
+		return nil, NewErrNamespaceCreationIsForbidden(user.Preferences.MaxNamespaces, nil)
+	} else if user.Preferences.MaxNamespaces > 0 {
 		info, err := s.store.UserGetInfo(ctx, req.UserID)
 		switch {
 		case err != nil:
 			return nil, err
-		case len(info.OwnedNamespaces) >= user.MaxNamespaces:
-			return nil, NewErrNamespaceLimitReached(user.MaxNamespaces, nil)
+		case len(info.OwnedNamespaces) >= user.Preferences.MaxNamespaces:
+			return nil, NewErrNamespaceLimitReached(user.Preferences.MaxNamespaces, nil)
 		}
 	}
 
