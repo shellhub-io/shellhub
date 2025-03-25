@@ -3,12 +3,25 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/internal/entity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/uptrace/bun"
 )
 
 func (pg *pg) UserCreate(ctx context.Context, user *models.User) (string, error) {
-	return "", nil
+	user.ID = uuid.Generate()
+	user.CreatedAt = clock.Now()
+	user.UpdatedAt = clock.Now()
+
+	if _, err := pg.driver.NewInsert().Model(&entity.User{User: *user}).Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return user.ID, nil
 }
 
 func (pg *pg) UserCreateInvited(ctx context.Context, email string) (string, error) {
@@ -17,34 +30,35 @@ func (pg *pg) UserCreateInvited(ctx context.Context, email string) (string, erro
 }
 
 func (pg *pg) UserConflicts(ctx context.Context, target *models.UserConflicts) ([]string, bool, error) {
-	return nil, false, nil
+	users := make([]map[string]any, 0)
+	if err := pg.driver.NewSelect().Model((*entity.User)(nil)).Column("email").Where("email = ?", target.Email).Scan(ctx, &users); err != nil {
+		return nil, false, err
+	}
+
+	conflicts := make([]string, 0)
+	for _, user := range users {
+		if user["email"] == target.Email {
+			conflicts = append(conflicts, "email")
+		}
+	}
+
+	return conflicts, len(conflicts) > 0, nil
 }
 
 func (pg *pg) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
 	return nil, 0, nil
 }
 
-func (pg *pg) UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error) {
-	return nil, 0, nil
-}
+func (pg *pg) UserGet(ctx context.Context, ident store.UserIdent, val string) (*models.User, error) {
+	u := new(entity.User)
+	if err := pg.driver.NewSelect().Model(u).Where("? = ?", bun.Ident(ident), val).Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
 
-func (pg *pg) UserGetByUsername(ctx context.Context, username string) (*models.User, error) {
-	return nil, nil
-}
-
-func (pg *pg) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
-	return nil, nil
+	return &u.User, nil
 }
 
 func (pg *pg) UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error) {
 	// TODO: unify get methods
 	return nil, nil
-}
-
-func (pg *pg) UserUpdate(ctx context.Context, id string, changes *models.UserChanges) error {
-	return nil
-}
-
-func (pg *pg) UserDelete(ctx context.Context, id string) error {
-	return nil
 }

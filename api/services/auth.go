@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -187,15 +188,14 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
 	}
 
-	var err error
-	var user *models.User
-
+	ident := store.UserIdent("")
 	if req.Identifier.IsEmail() {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentEmail
 	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentUsername
 	}
 
+	user, err := s.store.UserGet(ctx, ident, strings.ToLower(string(req.Identifier)))
 	if err != nil {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
@@ -284,16 +284,16 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
 
-	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
-	if !strings.HasPrefix(user.PasswordDigest, "$") {
+	user.LastLogin = clock.Now()
+	user.Preferences.PreferredNamespace = tenantID
+	if !strings.HasPrefix(user.PasswordDigest, "$") { // Updates the hash algorithm to bcrypt only if still using SHA256
 		if passwordDigest, _ := hash.Do(req.Password); passwordDigest != "" {
-			changes.Password = passwordDigest
+			user.PasswordDigest = passwordDigest
 		}
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
+	if err := s.store.Save(ctx, user.ID); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -322,7 +322,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 }
 
 func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
@@ -366,7 +366,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+			user.Preferences.PreferredNamespace = tenantID
+			_ = s.store.Save(ctx, user)
 		}
 	}
 

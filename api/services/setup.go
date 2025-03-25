@@ -79,8 +79,9 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		},
 	}
 
+	// TODO: use a transaction here
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
-		if err := s.store.UserDelete(ctx, insertedID); err != nil {
+		if err := s.store.Delete(ctx, user); err != nil {
 			return NewErrUserDelete(err)
 		}
 

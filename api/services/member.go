@@ -53,7 +53,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil || user == nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
@@ -71,7 +71,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 	// In cloud instances, if the target user does not exist, we need to create a new user
 	// with the specified email. We use the inserted ID to identify the user once they complete
 	// the registration and accepts the invitation.
-	passiveUser, err := s.store.UserGetByEmail(ctx, strings.ToLower(req.MemberEmail))
+	passiveUser, err := s.store.UserGet(ctx, store.UserIdentEmail, strings.ToLower(req.MemberEmail))
 	if err != nil {
 		if !envs.IsCloud() || !errors.Is(err, store.ErrNoDocuments) {
 			return nil, NewErrUserNotFound(req.MemberEmail, err)
@@ -161,7 +161,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return NewErrUserNotFound(req.UserID, err)
 	}
@@ -198,7 +198,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
@@ -251,13 +251,14 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, nil
 	}
 
-	emptyString := "" // just to be used as a pointer
-	if err := s.store.UserUpdate(ctx, req.UserID, &models.UserChanges{PreferredNamespace: &emptyString}); err != nil {
-		log.WithError(err).
-			WithField("tenant_id", req.TenantID).
-			WithField("user_id", req.UserID).
-			Error("failed to reset user's preferred namespace")
-	}
+	// TODO: search for the user so we can use s.store.Save()
+	// emptyString := "" // just to be used as a pointer
+	// if err := s.store.UserUpdate(ctx, req.UserID, &models.UserChanges{PreferredNamespace: &emptyString}); err != nil {
+	// 	log.WithError(err).
+	// 		WithField("tenant_id", req.TenantID).
+	// 		WithField("user_id", req.UserID).
+	// 		Error("failed to reset user's preferred namespace")
+	// }
 
 	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
 		log.WithError(err).

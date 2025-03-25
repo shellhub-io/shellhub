@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -62,33 +63,12 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 // UserDelete removes a user and cleans up related data based on the provided username.
 func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) error {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return ErrUserDataInvalid
-	}
-
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	userInfo, err := s.store.UserGetInfo(ctx, user.ID)
-	if err != nil {
-		return ErrNamespaceNotFound
-	}
-
-	for _, ns := range userInfo.OwnedNamespaces {
-		if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
-			return err
-		}
-	}
-
-	for _, ns := range userInfo.AssociatedNamespaces {
-		if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
-			return err
-		}
-	}
-
-	if err := s.store.UserDelete(ctx, user.ID); err != nil {
+	if err := s.store.Delete(ctx, user); err != nil {
 		return ErrFailedDeleteUser
 	}
 
@@ -101,17 +81,16 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	passwordDigest, err := hash.Do(input.Password)
-	if err != nil {
+	if user.PasswordDigest, err = hash.Do(input.Password); err != nil {
 		return ErrUserPasswordInvalid
 	}
 
-	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: passwordDigest}); err != nil {
+	if err := s.store.Save(ctx, user); err != nil {
 		return ErrFailedUpdateUser
 	}
 
