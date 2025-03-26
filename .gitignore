@@ -10,16 +10,15 @@ api_private_key
 api_public_key
 ssh_private_key
 
-go.work
-go.work.sum
-go.sum
+./go.work
+./go.work.sum
+./go.sum
 
 # Docker binaries
 agent/agent
-api/api
+server/server
 cli/cli
 gateway/gateway
-ssh/ssh
 
 agent/shellhub.key
 
