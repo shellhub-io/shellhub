@@ -73,6 +73,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		TenantID:   uuid.Generate(),
 		MaxDevices: -1,
 		Owner:      insertedID,
+		Type:       models.TypePersonal,
 		Members: []models.Member{
 			{
 				ID:      insertedID,
