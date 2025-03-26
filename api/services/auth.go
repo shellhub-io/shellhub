@@ -16,10 +16,12 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
@@ -186,15 +188,14 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
 	}
 
-	var err error
-	var user *models.User
-
+	ident := store.UserIdent("")
 	if req.Identifier.IsEmail() {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentEmail
 	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentUsername
 	}
 
+	user, err := s.store.UserGet(ctx, ident, strings.ToLower(string(req.Identifier)))
 	if err != nil {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
@@ -226,7 +227,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, lockout, "", NewErrAuthUnathorized(nil)
 	}
 
-	if !user.Password.Compare(req.Password) {
+	if !hash.CompareWith(req.Password, user.PasswordDigest) {
 		lockout, _, err := s.cache.StoreLoginAttempt(ctx, sourceIP, user.ID)
 		if err != nil {
 			log.WithError(err).
@@ -283,16 +284,16 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrTokenSigned(err)
 	}
 
-	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
-	if !strings.HasPrefix(user.Password.Hash, "$") {
-		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			changes.Password = neo.Hash
+	user.LastLogin = clock.Now()
+	user.Preferences.PreferredNamespace = tenantID
+	if !strings.HasPrefix(user.PasswordDigest, "$") { // Updates the hash algorithm to bcrypt only if still using SHA256
+		if passwordDigest, _ := hash.Do(req.Password); passwordDigest != "" {
+			user.PasswordDigest = passwordDigest
 		}
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
+	if err := s.store.Save(ctx, user.ID); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -309,19 +310,19 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
-		RecoveryEmail: user.RecoveryEmail,
+		RecoveryEmail: user.Preferences.SecurityEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
-		MaxNamespaces: user.MaxNamespaces,
+		MaxNamespaces: user.Preferences.MaxNamespaces,
 	}
 
 	return res, 0, "", nil
 }
 
 func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
@@ -365,7 +366,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+			user.Preferences.PreferredNamespace = tenantID
+			_ = s.store.Save(ctx, user)
 		}
 	}
 
@@ -393,12 +395,12 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
-		RecoveryEmail: user.RecoveryEmail,
+		RecoveryEmail: user.Preferences.SecurityEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
 		Token:         token,
-		MaxNamespaces: user.MaxNamespaces,
+		MaxNamespaces: user.Preferences.MaxNamespaces,
 	}, nil
 }
 
