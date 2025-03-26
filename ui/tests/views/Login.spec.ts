@@ -58,10 +58,6 @@ describe("Login", () => {
   it("Renders enterprise only fragments", async () => {
     envVariables.isEnterprise = true;
 
-    store.commit("users/setSystemInfo", {
-      authentication: { local: true, saml: true },
-    });
-
     await flushPromises();
 
     expect(wrapper.find('[data-test="sso-btn"]').exists()).toBe(true);
@@ -71,10 +67,6 @@ describe("Login", () => {
   it("disables fields and login button when envVariables.isEnterprise is true", async () => {
     envVariables.isCloud = false;
     envVariables.isEnterprise = true;
-
-    store.commit("users/setSystemInfo", {
-      authentication: { local: false, saml: true },
-    });
 
     await flushPromises();
 
