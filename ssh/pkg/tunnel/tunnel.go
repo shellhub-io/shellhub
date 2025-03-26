@@ -159,6 +159,9 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 		return c.NoContent(http.StatusOK)
 	})
 
+	// The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes the
+	// `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server, returning
+	// an error related to the connection to device or what was returned from the server inside the tunnel.
 	tunnel.router.Any("/http/proxy", func(c echo.Context) error {
 		requestID := c.Request().Header.Get("X-Request-ID")
 
