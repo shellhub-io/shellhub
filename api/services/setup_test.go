@@ -159,6 +159,7 @@ func TestSetup(t *testing.T) {
 					TenantID:   tenant,
 					Owner:      "000000000000000000000000",
 					MaxDevices: -1,
+					Type:       models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
@@ -228,6 +229,7 @@ func TestSetup(t *testing.T) {
 					TenantID:   tenant,
 					Owner:      "000000000000000000000000",
 					MaxDevices: -1,
+					Type:       models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
@@ -296,6 +298,7 @@ func TestSetup(t *testing.T) {
 					TenantID:   tenant,
 					Owner:      "000000000000000000000000",
 					MaxDevices: -1,
+					Type:       models.TypePersonal,
 					Members: []models.Member{
 						{
 							ID:      "000000000000000000000000",
