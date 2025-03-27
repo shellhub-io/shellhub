@@ -107,7 +107,7 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 //
 // GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID, s.store.Options().WithMember("0195d35d-d77d-7ccc-b49a-2b17b09d03e5"))
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -122,42 +122,45 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 // When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
 // service if it exists.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID, s.store.Options().WithMember("0195d35d-d77d-7ccc-b49a-2b17b09d03e5"))
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
-		return !ns.Billing.IsNil() && ns.Billing.HasCutomer() && ns.Billing.HasSubscription()
-	}
+	// ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
+	// 	return !ns.Billing.IsNil() && ns.Billing.HasCutomer() && ns.Billing.HasSubscription()
+	// }
+	//
+	// if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
+	// 	if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
+	// 		return NewErrBillingReportNamespaceDelete(err)
+	// 	}
+	// }
 
-	if envs.IsCloud() && envs.HasBilling() && ableToReportDeleteNamespace(ns) {
-		if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
-			return NewErrBillingReportNamespaceDelete(err)
-		}
-	}
-
-	return s.store.Delete(ctx, ns)
+	return s.store.Delete(ctx, ns.Memberships, ns)
 }
 
 func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
-	return nil, nil
-	// changes := &models.NamespaceChanges{
-	// 	Name:                   strings.ToLower(req.Name),
-	// 	SessionRecord:          req.Settings.SessionRecord,
-	// 	ConnectionAnnouncement: req.Settings.ConnectionAnnouncement,
-	// }
-	//
-	// if err := s.store.Save(ctx, req.Tenant, changes); err != nil {
-	// 	switch {
-	// 	case errors.Is(err, store.ErrNoDocuments):
-	// 		return nil, NewErrNamespaceNotFound(req.Tenant, err)
-	// 	default:
-	// 		return nil, err
-	// 	}
-	// }
-	//
-	// return s.store.NamespaceGet(ctx, req.Tenant, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.Tenant, s.store.Options().WithMember("0195d35d-d77d-7ccc-b49a-2b17b09d03e5"))
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.Tenant, err)
+	}
+
+	if req.Name != "" {
+		ns.Name = strings.ToLower(req.Name)
+	}
+	if req.Settings.ConnectionAnnouncement != nil {
+		ns.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
+	}
+	if req.Settings.SessionRecord != nil {
+		ns.Settings.SessionRecord = *req.Settings.SessionRecord
+	}
+
+	if err := s.store.Save(ctx, ns); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
 }
 
 // EditSessionRecordStatus defines if the sessions will be recorded.

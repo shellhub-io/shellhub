@@ -29,7 +29,7 @@ type NamespaceStore interface {
 	// an error if any.
 	NamespaceList(ctx context.Context, opts ...QueryOption) ([]models.Namespace, int, error)
 
-	NamespaceGet(ctx context.Context, ident NamespaceIdent, val string) (*models.Namespace, error)
+	NamespaceGet(ctx context.Context, ident NamespaceIdent, val string, opts ...QueryOption) (*models.Namespace, error)
 
 	NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error
 	NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error)

@@ -77,10 +77,15 @@ func (pg *pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 	return namespaces, count, nil
 }
 
-func (pg *pg) NamespaceGet(ctx context.Context, ident store.NamespaceIdent, val string) (*models.Namespace, error) {
+func (pg *pg) NamespaceGet(ctx context.Context, ident store.NamespaceIdent, val string, opts ...store.QueryOption) (*models.Namespace, error) {
 	ns := new(entity.Namespace)
 
-	if err := pg.driver.NewSelect().Model(ns).Relation("Memberships").Where("? = ?", bun.Ident(ident), val).Scan(ctx); err != nil {
+	query := pg.driver.NewSelect().Model(ns).Relation("Memberships").Where("? = ?", bun.Ident(ident), val)
+	if err := applyOptions(ctx, query, opts...); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	if err := query.Scan(ctx); err != nil {
 		return nil, fromSqlError(err)
 	}
 
