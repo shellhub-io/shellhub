@@ -126,5 +126,6 @@ export enum INotificationsCopy {
   recoveryCodes = "Recovery Codes",
   tenantId = "Tenant ID",
   copyKey = "API Key",
-  connector = "Connector host"
+  connector = "Connector host",
+  invitationLink = "Invitation Link"
 }

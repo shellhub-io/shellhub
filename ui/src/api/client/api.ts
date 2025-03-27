@@ -37,25 +37,6 @@ export interface AcceptInviteRequest {
 /**
  * 
  * @export
- * @interface AddNamespaceMemberRequest
- */
-export interface AddNamespaceMemberRequest {
-    /**
-     * The email of the member.
-     * @type {string}
-     * @memberof AddNamespaceMemberRequest
-     */
-    'email': string;
-    /**
-     * 
-     * @type {NamespaceMemberRole}
-     * @memberof AddNamespaceMemberRequest
-     */
-    'role': NamespaceMemberRole;
-}
-/**
- * 
- * @export
  * @interface AddTagPublicKeyRequest
  */
 export interface AddTagPublicKeyRequest {
@@ -1629,6 +1610,38 @@ export interface FirewallRulesResponseFilterOneOf1 {
      * @memberof FirewallRulesResponseFilterOneOf1
      */
     'tags': Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface GenerateInvitationLink200Response
+ */
+export interface GenerateInvitationLink200Response {
+    /**
+     * The invitation link.
+     * @type {string}
+     * @memberof GenerateInvitationLink200Response
+     */
+    'link'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface GenerateInvitationLinkRequest
+ */
+export interface GenerateInvitationLinkRequest {
+    /**
+     * The email of the member.
+     * @type {string}
+     * @memberof GenerateInvitationLinkRequest
+     */
+    'email': string;
+    /**
+     * 
+     * @type {NamespaceMemberRole}
+     * @memberof GenerateInvitationLinkRequest
+     */
+    'role': NamespaceMemberRole;
 }
 /**
  * 
@@ -9856,11 +9869,11 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
          * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        addNamespaceMember: async (tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        addNamespaceMember: async (tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('addNamespaceMember', 'tenant', tenant)
             const localVarPath = `/api/namespaces/{tenant}/members`
@@ -9887,7 +9900,49 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(addNamespaceMemberRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(generateInvitationLinkRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+         * @summary Generate an invitation link for a namespace member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateInvitationLink: async (tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('generateInvitationLink', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/members/invites`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(generateInvitationLinkRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -10006,12 +10061,24 @@ export const MembersApiFp = function(configuration?: Configuration) {
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
          * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Namespace>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.addNamespaceMember(tenant, addNamespaceMemberRequest, options);
+        async addNamespaceMember(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Namespace>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addNamespaceMember(tenant, generateInvitationLinkRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+         * @summary Generate an invitation link for a namespace member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async generateInvitationLink(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GenerateInvitationLink200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.generateInvitationLink(tenant, generateInvitationLinkRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -10063,12 +10130,23 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
          * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: any): AxiosPromise<Namespace> {
-            return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        addNamespaceMember(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: any): AxiosPromise<Namespace> {
+            return localVarFp.addNamespaceMember(tenant, generateInvitationLinkRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+         * @summary Generate an invitation link for a namespace member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateInvitationLink(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: any): AxiosPromise<GenerateInvitationLink200Response> {
+            return localVarFp.generateInvitationLink(tenant, generateInvitationLinkRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
@@ -10119,13 +10197,26 @@ export class MembersApi extends BaseAPI {
      * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
      * @summary Invite member
      * @param {string} tenant Namespace\&#39;s tenant ID
-     * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+     * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MembersApi
      */
-    public addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig) {
-        return MembersApiFp(this.configuration).addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
+    public addNamespaceMember(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig) {
+        return MembersApiFp(this.configuration).addNamespaceMember(tenant, generateInvitationLinkRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+     * @summary Generate an invitation link for a namespace member
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MembersApi
+     */
+    public generateInvitationLink(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig) {
+        return MembersApiFp(this.configuration).generateInvitationLink(tenant, generateInvitationLinkRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -10725,11 +10816,11 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
          * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        addNamespaceMember: async (tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        addNamespaceMember: async (tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('addNamespaceMember', 'tenant', tenant)
             const localVarPath = `/api/namespaces/{tenant}/members`
@@ -10756,7 +10847,7 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(addNamespaceMemberRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(generateInvitationLinkRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -11327,6 +11418,48 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+         * @summary Generate an invitation link for a namespace member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateInvitationLink: async (tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('generateInvitationLink', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/members/invites`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(generateInvitationLinkRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get a namespace.
          * @summary Get a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -11701,12 +11834,12 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
          * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Namespace>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.addNamespaceMember(tenant, addNamespaceMemberRequest, options);
+        async addNamespaceMember(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Namespace>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addNamespaceMember(tenant, generateInvitationLinkRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -11861,6 +11994,18 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+         * @summary Generate an invitation link for a namespace member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async generateInvitationLink(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GenerateInvitationLink200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.generateInvitationLink(tenant, generateInvitationLinkRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get a namespace.
          * @summary Get a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -11980,12 +12125,12 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
          * @summary Invite member
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: any): AxiosPromise<Namespace> {
-            return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        addNamespaceMember(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: any): AxiosPromise<Namespace> {
+            return localVarFp.addNamespaceMember(tenant, generateInvitationLinkRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * The `created_by`, `tenant_id`, and `role` (unless provided in the request body) values will be obtained from the JWT token. 
@@ -12126,6 +12271,17 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.editNamespace(tenant, editNamespaceRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+         * @summary Generate an invitation link for a namespace member
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateInvitationLink(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: any): AxiosPromise<GenerateInvitationLink200Response> {
+            return localVarFp.generateInvitationLink(tenant, generateInvitationLinkRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get a namespace.
          * @summary Get a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -12239,13 +12395,13 @@ export class NamespacesApi extends BaseAPI {
      * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
      * @summary Invite member
      * @param {string} tenant Namespace\&#39;s tenant ID
-     * @param {AddNamespaceMemberRequest} [addNamespaceMemberRequest] 
+     * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof NamespacesApi
      */
-    public addNamespaceMember(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: AxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
+    public addNamespaceMember(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).addNamespaceMember(tenant, generateInvitationLinkRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -12410,6 +12566,19 @@ export class NamespacesApi extends BaseAPI {
      */
     public editNamespace(tenant: string, editNamespaceRequest?: EditNamespaceRequest, options?: AxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).editNamespace(tenant, editNamespaceRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
+     * @summary Generate an invitation link for a namespace member
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {GenerateInvitationLinkRequest} [generateInvitationLinkRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NamespacesApi
+     */
+    public generateInvitationLink(tenant: string, generateInvitationLinkRequest?: GenerateInvitationLinkRequest, options?: AxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).generateInvitationLink(tenant, generateInvitationLinkRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
