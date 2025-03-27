@@ -46,7 +46,6 @@ func (s *Server) Setup(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
 	s.env = env
 
 	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize)
@@ -82,7 +81,6 @@ func (s *Server) Setup(ctx context.Context) error {
 		asynq.BatchConfig(s.env.AsynqGroupMaxSize, s.env.AsynqGroupMaxDelay, int(s.env.AsynqGroupGracePeriod)),
 		asynq.UniquenessTimeout(s.env.AsynqUniquenessTimeout),
 	)
-
 	s.worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
 
 	return nil
@@ -98,6 +96,10 @@ func (s *Server) Start() error {
 func (s *Server) Shutdown() {
 	s.worker.Shutdown()
 	s.router.Close() // nolint: errcheck
+}
+
+func (s *Server) Router() *echo.Echo {
+	return s.router
 }
 
 func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) {

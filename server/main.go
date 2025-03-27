@@ -22,42 +22,41 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
+	log.Info("Starting ShellHub server")
+
 	apiServer := api.New()
 	if err := apiServer.Setup(ctx); err != nil {
 		log.WithError(err).Fatal("failed to setup API server")
 	}
 
-	sshServer, err := ssh.New()
+	router := apiServer.Router()
+
+	sshServer, err := ssh.New(router)
 	if err != nil {
 		log.WithError(err).Fatal("failed to setup SSH server")
 	}
 
-	errs := make(chan error, 2)
+	errCh := make(chan error, 2)
 
 	go func() {
 		log.Info("Starting API server")
-		if err := apiServer.Start(); err != nil {
-			errs <- err
-		}
+		errCh <- apiServer.Start()
 	}()
 
 	go func() {
 		log.Info("Starting SSH server")
-		if err := sshServer.Start(); err != nil {
-			errs <- err
-		}
+		errCh <- sshServer.Start()
 	}()
 
 	go func() {
 		sig := <-sigs
 		log.WithField("signal", sig).Info("received shutdown signal")
-
 		apiServer.Shutdown()
 		sshServer.Shutdown()
 		cancel()
 	}()
 
-	if err := <-errs; err != nil {
+	if err := <-errCh; err != nil {
 		log.WithError(err).Fatal("server exited with error")
 	}
 }

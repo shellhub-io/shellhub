@@ -1,11 +1,10 @@
 package ssh
 
 import (
-	"net/http"
-	"runtime"
 	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
+	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/tunnel"
@@ -13,8 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/server/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
-
-const listenAddr = ":2222"
 
 type Env struct {
 	ConnectTimeout               time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
@@ -28,7 +25,7 @@ type Server struct {
 	tun   *tunnel.Tunnel
 }
 
-func New() (*Server, error) {
+func New(router *echo.Echo) (*Server, error) {
 	env, err := envs.ParseWithPrefix[Env]("SSH_")
 	if err != nil {
 		return nil, err
@@ -44,11 +41,10 @@ func New() (*Server, error) {
 		return nil, err
 	}
 
-	web.NewSSHServerBridge(tun.GetRouter(), cache)
+	web.NewSSHServerBridge(router, cache)
 
 	if envs.IsDevelopment() {
-		runtime.SetBlockProfileRate(1)
-		pprof.Register(tun.GetRouter())
+		pprof.Register(router)
 	}
 
 	return &Server{
@@ -59,23 +55,12 @@ func New() (*Server, error) {
 }
 
 func (s *Server) Start() error {
-	errs := make(chan error, 2)
-
-	go func() {
-		errs <- http.ListenAndServe(listenAddr, s.tun.GetRouter())
-	}()
-
-	go func() {
-		errs <- server.NewServer(&server.Options{
-			ConnectTimeout:               s.env.ConnectTimeout,
-			AllowPublickeyAccessBelow060: s.env.AllowPublickeyAccessBelow060,
-		}, s.tun.Tunnel, s.cache).ListenAndServe()
-	}()
-
-	return <-errs
+	return server.NewServer(&server.Options{
+		ConnectTimeout:               s.env.ConnectTimeout,
+		AllowPublickeyAccessBelow060: s.env.AllowPublickeyAccessBelow060,
+	}, s.tun.Tunnel, s.cache).ListenAndServe()
 }
 
 func (s *Server) Shutdown() {
-	// por enquanto nada específico pra encerrar
 	log.Info("SSH server shutdown (noop)")
 }
