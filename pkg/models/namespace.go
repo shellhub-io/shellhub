@@ -2,65 +2,8 @@ package models
 
 import "time"
 
-type Namespace struct {
-	Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`
-	Owner        string             `json:"owner"`
-	TenantID     string             `json:"tenant_id" bson:"tenant_id,omitempty"`
-	Members      []Member           `json:"members" bson:"members"`
-	Settings     *NamespaceSettings `json:"settings"`
-	Devices      int                `json:"-" bson:"devices,omitempty"`
-	Sessions     int                `json:"-" bson:"sessions,omitempty"`
-	MaxDevices   int                `json:"max_devices" bson:"max_devices"`
-	DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
-	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
-	Billing      *Billing           `json:"billing" bson:"billing,omitempty"`
-	Type         Type               `json:"type" bson:"type"`
-}
-
-// HasMaxDevices checks if the namespace has a maximum number of devices.
-//
-// Generally, a namespace has a MaxDevices value greater than 0 when the ShellHub is either in community version or
-// the namespace does not have a billing plan enabled, because, in this case, we set this value to -1.
-func (n *Namespace) HasMaxDevices() bool {
-	return n.MaxDevices > 0
-}
-
-// HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
-func (n *Namespace) HasMaxDevicesReached() bool {
-	return n.DevicesCount >= n.MaxDevices
-}
-
-// HasLimitDevicesReached checks if the namespace limit was reached using the removed devices collection.
-//
-// This method is intended to be run only when the ShellHub instance is Cloud.
-func (n *Namespace) HasLimitDevicesReached(removed int64) bool {
-	return int64(n.DevicesCount)+removed >= int64(n.MaxDevices)
-}
-
-// FindMember checks if a member with the specified ID exists in the namespace.
-func (n *Namespace) FindMember(id string) (*Member, bool) {
-	for _, member := range n.Members {
-		if member.ID == id {
-			return &member, true
-		}
-	}
-
-	return nil, false
-}
-
-type NamespaceSettings struct {
-	SessionRecord          bool   `json:"session_record" bson:"session_record,omitempty"`
-	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
-}
-
-type NamespaceChanges struct {
-	Name                   string  `bson:"name,omitempty"`
-	SessionRecord          *bool   `bson:"settings.session_record,omitempty"`
-	ConnectionAnnouncement *string `bson:"settings.connection_announcement,omitempty"`
-}
-
 // default Announcement Message for the shellhub namespace
-const DefaultAnnouncementMessage = `
+const DefaultCommunityNamespaceAnnouncement = `
 ******************************************************************
 *                                                                *
 *             Welcome to ShellHub Community Edition!             *
@@ -81,3 +24,86 @@ const DefaultAnnouncementMessage = `
 *                                                                *
 ******************************************************************
 `
+
+type NamespaceType string
+
+const (
+	NamespaceTypePersonal NamespaceType = "personal"
+	NamespaceTypeTeam     NamespaceType = "team"
+)
+
+func NamespaceTypeFromString(base string) NamespaceType {
+	switch base {
+	case "personal":
+		return NamespaceTypePersonal
+	case "team":
+		return NamespaceTypeTeam
+	default:
+		panic("invalid type") // TODO: refactor it
+	}
+}
+
+type Namespace struct {
+	ID          string            `json:"tenant_id" bun:"id,pk,type:uuid"`
+	CreatedAt   time.Time         `json:"created_at" bun:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at" bun:"updated_at"`
+	Type        NamespaceType     `json:"type" bun:"scope"`
+	Name        string            `json:"name" bun:"name"`
+	Settings    NamespaceSettings `json:"settings" bun:"embed:"`
+	Memberships []Membership      `json:"members" bun:"rel:has-many,join:id=namespace_id"`
+
+	Billing *Billing `json:"billing" bun:"-"`
+}
+
+type NamespaceSettings struct {
+	MaxDevices             int    `json:"max_devices" bun:"max_devices"`
+	SessionRecord          bool   `json:"session_record" bun:"record_sessions"`
+	ConnectionAnnouncement string `json:"connection_announcement" bun:"connection_announcement,type:text"`
+}
+
+// HasMaxDevices checks if the namespace has a maximum number of devices.
+//
+// Generally, a namespace has a MaxDevices value greater than 0 when the ShellHub is either in community version or
+// the namespace does not have a billing plan enabled, because, in this case, we set this value to -1.
+func (n *Namespace) HasMaxDevices() bool {
+	// return n.MaxDevices > 0
+	return false
+}
+
+// HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
+func (n *Namespace) HasMaxDevicesReached() bool {
+	// return n.DevicesCount >= n.MaxDevices
+	return false
+}
+
+// HasLimitDevicesReached checks if the namespace limit was reached using the removed devices collection.
+//
+// This method is intended to be run only when the ShellHub instance is Cloud.
+func (n *Namespace) HasLimitDevicesReached(removed int64) bool {
+	// return int64(n.DevicesCount)+removed >= int64(n.MaxDevices)
+	return false
+}
+
+// FindMember checks if a member with the specified ID exists in the namespace.
+func (n *Namespace) FindMember(id string) (*Membership, bool) {
+	for _, member := range n.Memberships {
+		if member.UserID == id {
+			return &member, true
+		}
+	}
+
+	return nil, false
+}
+
+// NamespaceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
+// to identify conflicts.
+type NamespaceConflicts struct {
+	Name string
+}
+
+// Distinct removes the c attributes whether it's equal to the namespace's attributes.
+func (c *NamespaceConflicts) Distinct(namespace *Namespace) {
+	if c.Name == namespace.Name {
+		c.Name = ""
+	}
+}

@@ -14,8 +14,11 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 )
 
+type queryOptions struct{}
+
 type pg struct {
-	driver *bun.DB
+	driver  *bun.DB
+	options *queryOptions
 }
 
 func URI(host, port, user, password, db string) string {
@@ -35,13 +38,13 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 		return nil, err
 	}
 
-	pg := &pg{driver: bun.NewDB(stdlib.OpenDBFromPool(pool), pgdialect.New())}
+	pg := &pg{driver: bun.NewDB(stdlib.OpenDBFromPool(pool), pgdialect.New()), options: &queryOptions{}}
 	if err := pg.driver.Ping(); err != nil {
 		return nil, err
 	}
 
 	// We need to register models so we can apply fixtures and relations later
-	pg.driver.RegisterModel((*models.User)(nil))
+	pg.driver.RegisterModel((*models.User)(nil), (*models.Namespace)(nil), (*models.Membership)(nil))
 
 	for _, opt := range opts {
 		if err := opt(ctx, pg.driver); err != nil {

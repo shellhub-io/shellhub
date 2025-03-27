@@ -20,6 +20,6 @@ type Store interface {
 
 	Options() QueryOptions
 
-	Save(ctx context.Context, model any) error
-	Delete(ctx context.Context, model any) error
+	Save(ctx context.Context, models ...any) error
+	Delete(ctx context.Context, models ...any) error
 }

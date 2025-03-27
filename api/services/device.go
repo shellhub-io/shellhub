@@ -44,7 +44,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 	}
 
 	if req.TenantID != "" {
-		ns, err := s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices())
+		ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -52,7 +52,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 		if ns.HasMaxDevices() {
 			switch {
 			case envs.IsCloud():
-				removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
+				removed, err := s.store.DeviceRemovedCount(ctx, ns.ID)
 				if err != nil {
 					return nil, 0, NewErrDeviceRemovedCount(err)
 				}
@@ -96,7 +96,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	ns, err := s.store.NamespaceGet(ctx, tenant)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenant)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
@@ -184,7 +184,7 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 
 // UpdateDeviceStatus updates the device status.
 func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant, s.store.Options().CountAcceptedDevices())
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenant)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
@@ -249,11 +249,11 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	switch {
 	case envs.IsCommunity(), envs.IsEnterprise():
 		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
+			return NewErrDeviceMaxDevicesReached(namespace.Settings.MaxDevices)
 		}
 	case envs.IsCloud():
 		if namespace.Billing.IsActive() {
-			if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
+			if err := s.BillingReport(s.client, namespace.ID, ReportDeviceAccept); err != nil {
 				return NewErrBillingReportNamespaceDelete(err)
 			}
 		} else {
@@ -274,11 +274,11 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 				}
 
 				if namespace.HasMaxDevices() && namespace.HasLimitDevicesReached(count) {
-					return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
+					return NewErrDeviceRemovedFull(namespace.Settings.MaxDevices, nil)
 				}
 			}
 
-			ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
+			ok, err := s.BillingEvaluate(s.client, namespace.ID)
 			if err != nil {
 				return NewErrBillingEvaluate(err)
 			}

@@ -63,12 +63,12 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 // UserDelete removes a user and cleans up related data based on the provided username.
 func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) error {
-	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
+	u, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	if err := s.store.Delete(ctx, user); err != nil {
+	if err := s.store.Delete(ctx, u.Memberships, u); err != nil {
 		return ErrFailedDeleteUser
 	}
 
@@ -77,10 +77,6 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 
 // UserUpdate updates a user's data based on the provided username.
 func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) error {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return ErrUserDataInvalid
-	}
-
 	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
@@ -91,7 +87,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 	}
 
 	if err := s.store.Save(ctx, user); err != nil {
-		return ErrFailedUpdateUser
+		return err
 	}
 
 	return nil

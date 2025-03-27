@@ -57,8 +57,8 @@ The owner must be a valid username within the system. If a tenant ID is provided
 
 			cmd.Println("Namespace created successfully")
 			cmd.Println("Namespace:", namespace.Name)
-			cmd.Println("Tenant:", namespace.TenantID)
-			cmd.Println("Owner:", namespace.Owner)
+			cmd.Println("Tenant:", namespace.ID)
+			// cmd.Println("Owner:", namespace.Owner)
 			cmd.Println("Type:", namespace.Type)
 
 			return nil
@@ -135,7 +135,7 @@ and the role indicates the permissions that the member will have within that nam
 
 			cmd.Println("Member added successfully")
 			cmd.Println("Namespace:", namespace.Name)
-			cmd.Println("Tenant:", namespace.TenantID)
+			cmd.Println("Tenant:", namespace.ID)
 			cmd.Println("Member:", input.Username)
 			cmd.Println("Role:", input.Role)
 
@@ -166,7 +166,7 @@ The username identifies the member to be removed, and the namespace specifies wh
 
 			cmd.Println("Member removed successfully")
 			cmd.Println("Namespace:", namespace.Name)
-			cmd.Println("Tenant:", namespace.TenantID)
+			cmd.Println("Tenant:", namespace.ID)
 			cmd.Println("Member:", input.Username)
 
 			return nil

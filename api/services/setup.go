@@ -10,8 +10,8 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"os"
+	"strings"
 
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
@@ -54,28 +54,18 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		},
 	}
 
-	insertedID, err := s.store.UserCreate(ctx, user)
-	if err != nil {
+	if _, err := s.store.UserCreate(ctx, user); err != nil {
 		return NewErrUserDuplicated([]string{req.Username}, err)
 	}
 
 	namespace := &models.Namespace{
-		Name:       req.Username,
-		TenantID:   uuid.Generate(),
-		MaxDevices: -1,
-		Owner:      insertedID,
-		Members: []models.Member{
-			{
-				ID:      insertedID,
-				Role:    authorizer.RoleOwner,
-				Status:  models.MemberStatusAccepted,
-				AddedAt: clock.Now(),
-			},
-		},
-		CreatedAt: clock.Now(),
-		Settings: &models.NamespaceSettings{
-			SessionRecord:          false,
-			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+		ID:   uuid.Generate(),
+		Type: models.NamespaceTypeTeam,
+		Name: strings.ToLower(req.Username),
+		Settings: models.NamespaceSettings{
+			SessionRecord:          true,
+			ConnectionAnnouncement: models.DefaultCommunityNamespaceAnnouncement,
+			MaxDevices:             -1,
 		},
 	}
 

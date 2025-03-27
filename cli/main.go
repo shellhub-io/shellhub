@@ -55,8 +55,6 @@ func main() {
 	rootCmd := &cobra.Command{Use: "cli"}
 	rootCmd.AddCommand(cmd.UserCommands(service))
 	rootCmd.AddCommand(cmd.NamespaceCommands(service))
-	// WARN: this is deprecated and will be removed soon
-	cmd.DeprecatedCommands(rootCmd, service)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Error(err)

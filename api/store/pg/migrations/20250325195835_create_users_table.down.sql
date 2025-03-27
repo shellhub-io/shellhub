@@ -3,6 +3,6 @@ BEGIN;
 DROP TYPE IF EXISTS user_origin;
 DROP TYPE IF EXISTS user_status;
 DROP TYPE IF EXISTS user_auth_method;
-DROP TABLE users;
+DROP TABLE IF EXISTS users;
 
 COMMIT;

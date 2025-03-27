@@ -150,7 +150,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}
 
 	// The order here is critical as we don't want to register devices if the tenant id is invalid
-	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, device.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(device.TenantID, err)
 	}
@@ -184,9 +184,9 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
-	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
-		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
-	}
+	// if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
+	// 	return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
+	// }
 
 	ident := store.UserIdent("")
 	if req.Identifier.IsEmail() {
@@ -260,13 +260,13 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, mfaToken, nil
 	}
 
-	tenantID := ""
-	role := ""
 	// Populate the tenant and role when the user is associated with a namespace. If the member status is pending, we
 	// ignore the namespace.
-	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.ID); ns != nil && ns.TenantID != "" {
-		if m, _ := ns.FindMember(user.ID); m.Status != models.MemberStatusPending {
-			tenantID = ns.TenantID
+	tenantID := ""
+	role := ""
+	if ns, _ := s.store.UserPreferredNamespace(ctx, store.UserIdentID, user.ID); ns != nil && ns.ID != "" {
+		if m, _ := ns.FindMember(user.ID); m.Status != models.MembershipStatusPending {
+			tenantID = ns.ID
 			role = m.Role.String()
 		}
 	}
@@ -293,7 +293,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.Save(ctx, user.ID); err != nil {
+	if err := s.store.Save(ctx, user); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -333,7 +333,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	switch req.TenantID {
 	case "":
 		// A user may not have a preferred namespace. In such cases, we create a token without it.
-		namespace, err := s.store.NamespaceGetPreferred(ctx, user.ID)
+		namespace, err := s.store.UserPreferredNamespace(ctx, store.UserIdentID, user.ID)
 		if err != nil {
 			break
 		}
@@ -343,12 +343,12 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 		}
 
-		if member.Status != models.MemberStatusPending {
-			tenantID = namespace.TenantID
+		if member.Status != models.MembershipStatusPending {
+			tenantID = namespace.ID
 			role = member.Role.String()
 		}
 	default:
-		namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+		namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 		if err != nil {
 			return nil, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -358,14 +358,14 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 		}
 
-		if member.Status == models.MemberStatusPending {
+		if member.Status == models.MembershipStatusPending {
 			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 		}
 
-		tenantID = namespace.TenantID
+		tenantID = namespace.ID
 		role = member.Role.String()
 
-		if user.Preferences.PreferredNamespace != namespace.TenantID {
+		if user.Preferences.PreferredNamespace != namespace.ID {
 			user.Preferences.PreferredNamespace = tenantID
 			_ = s.store.Save(ctx, user)
 		}
@@ -459,7 +459,7 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 }
 
 func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (string, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID)
 	if err != nil {
 		return "", err
 	}

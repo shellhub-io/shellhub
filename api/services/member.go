@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -48,7 +47,7 @@ type MemberService interface {
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -90,13 +89,12 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 	// since the member will never be in a pending status.
 	// Otherwise, add the member "from scratch"
 	if m, ok := namespace.FindMember(passiveUser.ID); ok {
-		now := clock.Now()
-
-		if !envs.IsCloud() || !(m.Status == models.MemberStatusPending && m.ExpiresAt.Before(now)) {
+		// now := clock.Now()
+		if !envs.IsCloud() { // || !(m.Status == models.MembershipStatusPending && m.ExpiresAt.Before(now)) {
 			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 
-		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m.ID, req)); err != nil {
+		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m.UserID, req)); err != nil {
 			return nil, err
 		}
 	} else {
@@ -105,33 +103,33 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	return s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 }
 
 // addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
 func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		member := &models.Member{
-			ID:      memberID,
-			AddedAt: clock.Now(),
-			Role:    req.MemberRole,
+		member := &models.Membership{
+			UserID:    memberID,
+			CreatedAt: clock.Now(),
+			Role:      req.MemberRole,
 		}
 
 		// In cloud instances, the member must accept the invite before enter in the namespace.
 		if envs.IsCloud() {
-			member.Status = models.MemberStatusPending
-			member.ExpiresAt = member.AddedAt.Add(7 * (24 * time.Hour))
+			member.Status = models.MembershipStatusPending
+			// member.ExpiresAt = member.AddedAt.Add(7 * (24 * time.Hour))
 		} else {
-			member.Status = models.MemberStatusAccepted
-			member.ExpiresAt = time.Time{}
+			member.Status = models.MembershipStatusAccepted
+			// member.ExpiresAt = time.Time{}
 		}
 
-		if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
-			return err
-		}
+		// if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
+		// 	return err
+		// }
 
 		if envs.IsCloud() {
-			if err := s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost); err != nil {
+			if err := s.client.InviteMember(ctx, req.TenantID, member.UserID, req.FowardedHost); err != nil {
 				return err
 			}
 		}
@@ -144,56 +142,57 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 // specified ID.
 func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		expiresAt := clock.Now().Add(7 * (24 * time.Hour))
-		changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
-
-		if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {
-			return err
-		}
-
-		return s.client.InviteMember(ctx, req.TenantID, memberID, req.FowardedHost)
+		// expiresAt := clock.Now().Add(7 * (24 * time.Hour))
+		// changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
+		//
+		// if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {
+		// 	return err
+		// }
+		//
+		// return s.client.InviteMember(ctx, req.TenantID, memberID, req.FowardedHost)
+		return nil
 	}
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
-	if err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
-	if err != nil {
-		return NewErrUserNotFound(req.UserID, err)
-	}
-
-	active, ok := namespace.FindMember(user.ID)
-	if !ok {
-		return NewErrNamespaceMemberNotFound(user.ID, err)
-	}
-
-	if _, ok := namespace.FindMember(req.MemberID); !ok {
-		return NewErrNamespaceMemberNotFound(req.MemberID, err)
-	}
-
-	changes := &models.MemberChanges{Role: req.MemberRole}
-
-	if changes.Role != authorizer.RoleInvalid {
-		if !active.Role.HasAuthority(req.MemberRole) {
-			return NewErrRoleInvalid()
-		}
-	}
-
-	if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, req.MemberID, changes); err != nil {
-		return err
-	}
-
-	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) // nolint: errcheck
+	// namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
+	// if err != nil {
+	// 	return NewErrNamespaceNotFound(req.TenantID, err)
+	// }
+	//
+	// user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
+	// if err != nil {
+	// 	return NewErrUserNotFound(req.UserID, err)
+	// }
+	//
+	// active, ok := namespace.FindMember(user.ID)
+	// if !ok {
+	// 	return NewErrNamespaceMemberNotFound(user.ID, err)
+	// }
+	//
+	// if _, ok := namespace.FindMember(req.MemberID); !ok {
+	// 	return NewErrNamespaceMemberNotFound(req.MemberID, err)
+	// }
+	//
+	// // changes := &models.MemberChanges{Role: req.MemberRole}
+	//
+	// if changes.Role != authorizer.RoleInvalid {
+	// 	if !active.Role.HasAuthority(req.MemberRole) {
+	// 		return NewErrRoleInvalid()
+	// 	}
+	// }
+	//
+	// if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, req.MemberID, changes); err != nil {
+	// 	return err
+	// }
+	//
+	// s.AuthUncacheToken(ctx, namespace.ID, req.MemberID) // nolint: errcheck
 
 	return nil
 }
 
 func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -228,11 +227,11 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 			Error("failed to uncache the token")
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	return s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 }
 
 func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
-	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -272,14 +271,14 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 }
 
 func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID string) error {
-	if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, userID); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return NewErrNamespaceNotFound(ns.TenantID, err)
-		default:
-			return err
-		}
-	}
+	// if err := s.store.NamespaceRemoveMember(ctx, ns.ID, userID); err != nil {
+	// 	switch {
+	// 	case errors.Is(err, store.ErrNoDocuments):
+	// 		return NewErrNamespaceNotFound(ns.ID, err)
+	// 	default:
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

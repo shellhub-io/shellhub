@@ -51,11 +51,27 @@ func (pg *pg) UserList(ctx context.Context, paginator query.Paginator, filters q
 
 func (pg *pg) UserGet(ctx context.Context, ident store.UserIdent, val string) (*models.User, error) {
 	u := new(entity.User)
-	if err := pg.driver.NewSelect().Model(u).Where("? = ?", bun.Ident(ident), val).Scan(ctx); err != nil {
+	if err := pg.driver.NewSelect().Model(u).Relation("Memberships").Where("? = ?", bun.Ident(ident), val).Scan(ctx); err != nil {
 		return nil, fromSqlError(err)
 	}
 
 	return &u.User, nil
+}
+
+func (pg *pg) UserPreferredNamespace(ctx context.Context, ident store.UserIdent, val string) (*models.Namespace, error) {
+	ns := new(entity.Namespace)
+	if err := pg.driver.NewSelect().
+		Model(ns).
+		Relation("Memberships").
+		Join("JOIN users AS u ON namespace.id = u.preferred_namespace_id OR namespace.id IN (SELECT namespace_id FROM memberships WHERE user_id = u.id)").
+		Where("u.? = ?", bun.Ident(ident), val).
+		OrderExpr("CASE WHEN namespace.id = u.preferred_namespace_id THEN 0 ELSE 1 END").
+		Limit(1).
+		Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	return &ns.Namespace, nil
 }
 
 func (pg *pg) UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error) {

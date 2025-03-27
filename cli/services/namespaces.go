@@ -2,11 +2,11 @@ package services
 
 import (
 	"context"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
@@ -15,96 +15,48 @@ import (
 // The tenant defaults to a UUID if not provided.
 // Max device limit is based on the envs.IsCloud() setting.
 func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error) {
-	// tenant is optional.
-	if input.TenantID == "" {
-		input.TenantID = uuid.Generate()
-	}
-
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return nil, ErrNamespaceInvalid
-	}
-
 	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Owner)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
-	ns := &models.Namespace{
-		Name:       input.Namespace,
-		Owner:      user.ID,
-		TenantID:   input.TenantID,
-		MaxDevices: getMaxDevices(),
-		Members: []models.Member{
-			{
-				ID:      user.ID,
-				Role:    authorizer.RoleOwner,
-				AddedAt: clock.Now(),
-				Status:  models.MemberStatusAccepted,
-			},
-		},
-		Settings: &models.NamespaceSettings{
-			SessionRecord:          true,
-			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-		},
-		CreatedAt: clock.Now(),
-		Type:      models.NewDefaultType(),
-	}
+	input.Namespace = strings.ToLower(input.Namespace)
 
-	if models.IsTypeTeam(input.Type) {
-		ns.Type = models.TypeTeam
-	} else if models.IsTypePersonal(input.Type) {
-		ns.Type = models.TypePersonal
-	}
-
-	ns, err = s.store.NamespaceCreate(ctx, ns)
-	if err != nil {
+	if _, has, err := s.store.NamespaceConflicts(ctx, &models.NamespaceConflicts{Name: input.Namespace}); err != nil || has {
 		return nil, ErrDuplicateNamespace
 	}
 
-	return ns, nil
-}
-
-// NamespaceAddMember adds a new member with a specified role to a namespace.
-func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error) {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return nil, ErrInvalidFormat
+	if input.TenantID == "" {
+		input.TenantID = uuid.Generate()
 	}
 
-	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
-	if err != nil {
-		return nil, ErrUserNotFound
+	ns := &models.Namespace{
+		ID:   input.TenantID,
+		Type: models.NamespaceTypeFromString(input.Type),
+		Name: input.Namespace,
+		Settings: models.NamespaceSettings{
+			SessionRecord:          true,
+			ConnectionAnnouncement: models.DefaultCommunityNamespaceAnnouncement,
+			MaxDevices:             getMaxDevices(),
+		},
+		Memberships: []models.Membership{
+			{
+				UserID:      user.ID,
+				NamespaceID: input.TenantID,
+				Status:      models.MembershipStatusAccepted,
+				Role:        authorizer.RoleOwner,
+			},
+		},
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
-	if err != nil {
-		return nil, ErrNamespaceNotFound
+	// TODO: transaction
+
+	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
+		return nil, err
 	}
 
-	if err = s.store.NamespaceAddMember(ctx, ns.TenantID, &models.Member{ID: user.ID, Role: input.Role}); err != nil {
-		return nil, ErrFailedNamespaceAddMember
-	}
-
-	return ns, nil
-}
-
-// NamespaceRemoveMember removes a member from a namespace.
-func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error) {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return nil, ErrInvalidFormat
-	}
-
-	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
-	if err != nil {
-		return nil, ErrUserNotFound
-	}
-
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
-	if err != nil {
-		return nil, ErrNamespaceNotFound
-	}
-
-	if err = s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
-		return nil, ErrFailedNamespaceRemoveMember
+	if err := s.store.NamespaceCreateMemberships(ctx, ns.Memberships); err != nil {
+		return nil, err
 	}
 
 	return ns, nil
@@ -112,18 +64,59 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 
 // NamespaceDelete deletes a namespace based on the provided namespace name.
 func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return ErrNamespaceInvalid
-	}
-
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	n, err := s.store.NamespaceGet(ctx, store.NamespaceIdentName, input.Namespace)
 	if err != nil {
 		return ErrNamespaceNotFound
 	}
 
-	if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
+	if err := s.store.Delete(ctx, n.Memberships, n); err != nil {
 		return ErrFailedDeleteNamespace
 	}
 
 	return nil
+}
+
+// NamespaceAddMember adds a new member with a specified role to a namespace.
+func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error) {
+	u, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
+	if err != nil {
+		return nil, ErrUserNotFound
+	}
+
+	n, err := s.store.NamespaceGet(ctx, store.NamespaceIdentName, input.Namespace)
+	if err != nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	membership := models.Membership{
+		UserID:      u.ID,
+		NamespaceID: n.ID,
+		Status:      models.MembershipStatusAccepted,
+		Role:        input.Role,
+	}
+
+	if err = s.store.NamespaceCreateMemberships(ctx, []models.Membership{membership}); err != nil {
+		return nil, ErrFailedNamespaceAddMember
+	}
+
+	return n, nil
+}
+
+// NamespaceRemoveMember removes a member from a namespace.
+func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error) {
+	// user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
+	// if err != nil {
+	// 	return nil, ErrUserNotFound
+	// }
+	//
+	// ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentName, input.Namespace)
+	// if err != nil {
+	// 	return nil, ErrNamespaceNotFound
+	// }
+	//
+	// if err = s.store.NamespaceRemoveMember(ctx, ns.ID, user.ID); err != nil {
+	// 	return nil, ErrFailedNamespaceRemoveMember
+	// }
+
+	return nil, nil
 }

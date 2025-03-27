@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -13,12 +14,12 @@ type TagsService interface {
 }
 
 func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenant)
 	if err != nil || namespace == nil {
 		return nil, 0, NewErrNamespaceNotFound(tenant, err)
 	}
 
-	return s.store.TagsGet(ctx, namespace.TenantID)
+	return s.store.TagsGet(ctx, namespace.ID)
 }
 
 func (s *service) RenameTag(ctx context.Context, tenant string, oldTag string, newTag string) error {
@@ -49,12 +50,12 @@ func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) erro
 		return NewErrTagInvalid(tag, err)
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenant)
 	if err != nil || namespace == nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	tags, count, err := s.store.TagsGet(ctx, namespace.TenantID)
+	tags, count, err := s.store.TagsGet(ctx, namespace.ID)
 	if err != nil || count == 0 {
 		return NewErrTagEmpty(tenant, err)
 	}
@@ -63,7 +64,7 @@ func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) erro
 		return NewErrTagNotFound(tag, nil)
 	}
 
-	_, err = s.store.TagsDelete(ctx, namespace.TenantID, tag)
+	_, err = s.store.TagsDelete(ctx, namespace.ID, tag)
 
 	return err
 }

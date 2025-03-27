@@ -41,6 +41,8 @@ type UserStore interface {
 	// UserGet retrieves a user based on the provided [UserIdent]. It returns an error if none record was found.
 	UserGet(ctx context.Context, ident UserIdent, val string) (*models.User, error)
 
+	UserPreferredNamespace(ctx context.Context, ident UserIdent, val string) (*models.Namespace, error)
+
 	// UserGetInfo retrieves the user's information, like the owned and associated namespaces.
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)

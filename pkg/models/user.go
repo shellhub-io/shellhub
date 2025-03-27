@@ -69,7 +69,7 @@ func (a UserAuthMethod) String() string {
 
 type User struct {
 	// ID is the primary identifier for the user
-	ID string `json:"id,omitempty" bun:"id,pk,type:char"`
+	ID string `json:"id,omitempty" bun:"id,pk,type:uuid"`
 
 	// CreatedAt represents the timestamp when the user was created
 	CreatedAt time.Time `json:"created_at" bun:"created_at"`
@@ -93,6 +93,8 @@ type User struct {
 	Email    string `json:"email" bun:"email"`
 	// PasswordDigest stores the hashed password.
 	PasswordDigest string `json:"-" bun:"password_digest"`
+
+	Memberships []Membership `json:"members" bun:"rel:has-many,join:id=user_id"`
 
 	Preferences UserPreferences `json:"preferences" bun:"embed:"`
 	MFA         UserMFA         `json:"mfa" bun:"-"`

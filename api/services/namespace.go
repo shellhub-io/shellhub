@@ -2,13 +2,11 @@ package services
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -44,61 +42,58 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		}
 	}
 
-	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
+	req.Name = strings.ToLower(req.Name)
+
+	if _, has, err := s.store.NamespaceConflicts(ctx, &models.NamespaceConflicts{Name: req.Name}); err != nil || has {
 		return nil, NewErrNamespaceDuplicated(err)
 	}
 
+	if req.TenantID == "" {
+		req.TenantID = uuid.Generate()
+	}
+
 	ns := &models.Namespace{
-		Name:  strings.ToLower(req.Name),
-		Owner: user.ID,
-		Members: []models.Member{
+		ID:   req.TenantID,
+		Type: models.NamespaceTypeTeam,
+		Name: strings.ToLower(req.Name),
+		Memberships: []models.Membership{
 			{
-				ID:      user.ID,
-				Role:    authorizer.RoleOwner,
-				Status:  models.MemberStatusAccepted,
-				AddedAt: clock.Now(),
+				UserID:      user.ID,
+				NamespaceID: req.TenantID,
+				Status:      models.MembershipStatusAccepted,
+				Role:        authorizer.RoleOwner,
 			},
 		},
-		Settings: &models.NamespaceSettings{
-			SessionRecord:          true,
-			ConnectionAnnouncement: "",
-		},
-		TenantID: req.TenantID,
-		Type:     models.NewDefaultType(),
-	}
-
-	if envs.IsCommunity() {
-		ns.Settings.ConnectionAnnouncement = models.DefaultAnnouncementMessage
-	}
-
-	if models.IsTypeTeam(req.Type) {
-		ns.Type = models.TypeTeam
-	} else if models.IsTypePersonal(req.Type) {
-		ns.Type = models.TypePersonal
-	}
-
-	if req.TenantID == "" {
-		ns.TenantID = uuid.Generate()
 	}
 
 	// Set limits according to ShellHub instance type
 	if envs.IsCloud() {
 		// cloud free plan is limited only by the max of devices
-		ns.MaxDevices = 3
+		ns.Settings.MaxDevices = 3
+		ns.Settings.ConnectionAnnouncement = ""
+		ns.Settings.SessionRecord = true
 	} else {
 		// we don't set limits on enterprise and community instances
-		ns.MaxDevices = -1
+		ns.Settings.MaxDevices = -1
+		ns.Settings.ConnectionAnnouncement = models.DefaultCommunityNamespaceAnnouncement
+		ns.Settings.SessionRecord = envs.IsEnterprise()
 	}
+
+	// TODO: transactions
 
 	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
 		return nil, NewErrNamespaceCreateStore(err)
+	}
+
+	if err := s.store.NamespaceCreateMemberships(ctx, ns.Memberships); err != nil {
+		return nil, err
 	}
 
 	return ns, nil
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	namespaces, count, err := s.store.NamespaceList(ctx, s.store.Options().WithMember("0195d35d-d77d-7ccc-b49a-2b17b09d03e5"), s.store.Options().Paginate(0, 100), s.store.Options().Order("created_at", "asc"))
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}
@@ -112,7 +107,7 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 //
 // GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -127,7 +122,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 // When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
 // service if it exists.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceGet(ctx, tenantID, s.store.Options().CountAcceptedDevices())
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -142,26 +137,27 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 		}
 	}
 
-	return s.store.NamespaceDelete(ctx, tenantID)
+	return s.store.Delete(ctx, ns)
 }
 
 func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
-	changes := &models.NamespaceChanges{
-		Name:                   strings.ToLower(req.Name),
-		SessionRecord:          req.Settings.SessionRecord,
-		ConnectionAnnouncement: req.Settings.ConnectionAnnouncement,
-	}
-
-	if err := s.store.NamespaceEdit(ctx, req.Tenant, changes); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return nil, NewErrNamespaceNotFound(req.Tenant, err)
-		default:
-			return nil, err
-		}
-	}
-
-	return s.store.NamespaceGet(ctx, req.Tenant, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	return nil, nil
+	// changes := &models.NamespaceChanges{
+	// 	Name:                   strings.ToLower(req.Name),
+	// 	SessionRecord:          req.Settings.SessionRecord,
+	// 	ConnectionAnnouncement: req.Settings.ConnectionAnnouncement,
+	// }
+	//
+	// if err := s.store.Save(ctx, req.Tenant, changes); err != nil {
+	// 	switch {
+	// 	case errors.Is(err, store.ErrNoDocuments):
+	// 		return nil, NewErrNamespaceNotFound(req.Tenant, err)
+	// 	default:
+	// 		return nil, err
+	// 	}
+	// }
+	//
+	// return s.store.NamespaceGet(ctx, req.Tenant, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
 }
 
 // EditSessionRecordStatus defines if the sessions will be recorded.
@@ -179,7 +175,7 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 // GetSessionRecord returns a boolean indicating the session record status and an error. When error is not nil,
 // the boolean is false.
 func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, tenantID); err != nil {
 		return false, NewErrNamespaceNotFound(tenantID, err)
 	}
 
