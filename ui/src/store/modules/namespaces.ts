@@ -13,6 +13,7 @@ export interface NamespacesState {
   numberNamespaces: number;
   owner: boolean;
   userStatus: string;
+  invitationLink: string;
 }
 
 export const namespaces: Module<NamespacesState, State> = {
@@ -26,6 +27,7 @@ export const namespaces: Module<NamespacesState, State> = {
     numberNamespaces: 0,
     owner: false,
     userStatus: "",
+    invitationLink: "",
   },
 
   getters: {
@@ -35,6 +37,7 @@ export const namespaces: Module<NamespacesState, State> = {
     owner: (state) => state.owner,
     billing: (state) => state.billing,
     getUserStatus: (state) => state.userStatus,
+    getInvitationLink: (state) => state.invitationLink,
   },
 
   mutations: {
@@ -80,6 +83,10 @@ export const namespaces: Module<NamespacesState, State> = {
 
     setOwnerStatus: (state, status) => {
       state.owner = status;
+    },
+
+    setInvitationLink: (state, link) => {
+      state.invitationLink = link;
     },
   },
 
@@ -157,9 +164,19 @@ export const namespaces: Module<NamespacesState, State> = {
       }
     },
 
-    addUser: async (context, data) => {
+    sendEmailInvitation: async (context, data) => {
       try {
-        await apiNamespace.addUserToNamespace(data);
+        await apiNamespace.sendNamespaceLink(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    generateInvitationLink: async (context, data) => {
+      try {
+        const res = await apiNamespace.generateNamespaceLink(data);
+        context.commit("setInvitationLink", res.data.link);
       } catch (error) {
         console.error(error);
         throw error;
