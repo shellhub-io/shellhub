@@ -4,9 +4,8 @@ import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import FirewallRuleAdd from "@/components/firewall/FirewallRuleAdd.vue";
-import { envVariables } from "@/envVariables";
 import { router } from "@/router";
-import { namespacesApi, rulesApi } from "@/api/http";
+import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { INotificationsError } from "@/interfaces/INotifications";
 
@@ -22,8 +21,8 @@ describe("Firewall Rule Add", () => {
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
-
   let mockFirewall: MockAdapter;
+  let mockTags: MockAdapter;
 
   const members = [
     {
@@ -59,13 +58,15 @@ describe("Firewall Rule Add", () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
     vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
+    mockNamespace = new MockAdapter(namespacesApi.getAxios());
+    mockFirewall = new MockAdapter(rulesApi.getAxios());
+    mockTags = new MockAdapter(tagsApi.getAxios());
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockFirewall = new MockAdapter(rulesApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockTags.onGet("http://localhost:3000/api/tags").reply(200, []);
 
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
