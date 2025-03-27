@@ -273,14 +273,14 @@ export const auth: Module<AuthState, State> = {
     enterInvitedNamespace: async (context, data) => {
       try {
         localStorage.removeItem("role");
-
         const res = await apiNamespace.tenantSwitch(data);
+        const namespaceData = res.data ?? {};
         if (res.status === 200) {
-          localStorage.setItem("token", res.data.token || "");
+          localStorage.setItem("token", namespaceData.token || "");
           localStorage.setItem("tenant", data.tenant_id);
-          localStorage.setItem("role", res.data.role || "");
+          localStorage.setItem("role", namespaceData.role || "");
         }
-        context.commit("authSuccess", res.data);
+        context.commit("authSuccess", namespaceData);
       } catch (error) {
         console.error(error);
         throw error;
@@ -330,16 +330,17 @@ export const auth: Module<AuthState, State> = {
 
     async resetMfa(context, data) {
       const resp = await apiAuth.resetMfa(data);
-      localStorage.setItem("token", resp.data.token || "");
-      localStorage.setItem("user", resp.data.user || "");
-      localStorage.setItem("name", resp.data.name || "");
-      localStorage.setItem("tenant", resp.data.tenant || "");
-      localStorage.setItem("email", resp.data.email || "");
-      localStorage.setItem("id", resp.data.id || "");
+      const mfaData = resp.data ?? {};
+      localStorage.setItem("token", mfaData.token || "");
+      localStorage.setItem("name", mfaData.name || "");
+      localStorage.setItem("user", mfaData.user || "");
+      localStorage.setItem("tenant", mfaData.tenant || "");
+      localStorage.setItem("email", mfaData.email || "");
+      localStorage.setItem("id", mfaData.id || "");
       localStorage.setItem("namespacesWelcome", JSON.stringify({}));
-      localStorage.setItem("role", resp.data.role || "");
+      localStorage.setItem("role", mfaData.role || "");
       localStorage.setItem("mfa", "false");
-      context.commit("authSuccess", resp.data);
+      context.commit("authSuccess", mfaData);
     },
 
     async deleteUser(context) {
