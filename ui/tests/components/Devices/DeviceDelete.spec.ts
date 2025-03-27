@@ -5,7 +5,7 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import DeviceDelete from "@/components/Devices/DeviceDelete.vue";
 import { router } from "@/router";
-import { namespacesApi, billingApi, devicesApi } from "@/api/http";
+import { namespacesApi, billingApi, devicesApi, tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
@@ -126,6 +126,7 @@ describe("Device Delete", () => {
   let mockNamespace: MockAdapter;
   let mockBilling: MockAdapter;
   let mockDevices: MockAdapter;
+  let mockTags: MockAdapter;
 
   beforeEach(async () => {
     const el = document.createElement("div");
@@ -137,6 +138,7 @@ describe("Device Delete", () => {
     mockBilling = new MockAdapter(billingApi.getAxios());
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
+    mockTags = new MockAdapter(tagsApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
@@ -144,6 +146,7 @@ describe("Device Delete", () => {
     mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
     mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
+    mockTags.onGet("http://localhost:3000/api/tags").reply(200, []);
 
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
