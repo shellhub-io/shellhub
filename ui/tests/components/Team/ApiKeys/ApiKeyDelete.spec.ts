@@ -142,7 +142,7 @@ describe("Api Key Delete", () => {
   });
 
   it("Successfully Delete Api Key", async () => {
-    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200);
+    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
@@ -155,16 +155,16 @@ describe("Api Key Delete", () => {
     });
   });
 
-  it("Fails to add Delete Api Key", async () => {
-    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(401);
+  it("Fails to delete Api Key", async () => {
+    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(404);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="delete-main-btn-title"]').trigger("click");
 
     await wrapper.findComponent('[data-test="delete-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith(
+    expect(storeSpy).toHaveBeenCalledWith(
       "snackbar/showSnackbarErrorAction",
       INotificationsError.deleteKey,
     );

@@ -122,7 +122,7 @@ describe("Validate Recovery Mail", () => {
 
   it("Fails on resetting the MFA", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
-    mock.onPut("http://localhost/api/user/mfa/reset/xxxxxx").reply(400);
+    mock.onPut("http://localhost:3000/api/user/mfa/reset/xxxxxx").reply(403);
     await wrapper.findComponent('[data-test="email-text"]').setValue("123");
     await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("123");
     await wrapper.findComponent('[data-test="save-mail-btn"]').trigger("click");

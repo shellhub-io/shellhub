@@ -6,7 +6,7 @@ import { store, key } from "@/store";
 import FirewallRuleEdit from "@/components/firewall/FirewallRuleEdit.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
-import { namespacesApi, rulesApi } from "@/api/http";
+import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { INotificationsError } from "@/interfaces/INotifications";
 
@@ -22,7 +22,7 @@ describe("Firewall Rule Edit", () => {
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
-
+  let mockTags: MockAdapter;
   let mockFirewall: MockAdapter;
 
   const members = [
@@ -77,8 +77,10 @@ describe("Firewall Rule Edit", () => {
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockFirewall = new MockAdapter(rulesApi.getAxios());
+    mockTags = new MockAdapter(tagsApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockTags.onGet("http://localhost:3000/api/tags").reply(200, []);
 
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
