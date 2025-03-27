@@ -19,7 +19,12 @@ export const putNamespace = async (data: INamespaceResponse) => namespacesApi.ed
   },
 });
 
-export const addUserToNamespace = async (data: INamespaceResponse) => namespacesApi.addNamespaceMember(data.tenant_id, {
+export const sendNamespaceLink = async (data: INamespaceResponse) => namespacesApi.addNamespaceMember(data.tenant_id, {
+  email: data.email,
+  role: data.role,
+});
+
+export const generateNamespaceLink = async (data: INamespaceResponse) => namespacesApi.generateInvitationLink(data.tenant_id, {
   email: data.email,
   role: data.role,
 });
