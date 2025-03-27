@@ -89,7 +89,7 @@
         > Close </v-btn>
         <v-tooltip :disabled="!disableButton" top>
           <template v-slot:activator="{ props }">
-            <span v-on="props">
+            <span>
               <v-btn
                 v-bind="props"
                 :disabled="disableButton"
