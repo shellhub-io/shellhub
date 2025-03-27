@@ -69,7 +69,6 @@
                 <v-chip
                   size="small"
                   v-bind="props"
-                  v-on="props"
                   class="mr-1"
                   data-test="tag-chip"
                 >

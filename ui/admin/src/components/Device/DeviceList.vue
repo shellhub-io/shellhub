@@ -48,7 +48,7 @@
                 :disabled="!showTag(tag)"
               >
                 <template #activator="{ props }">
-                  <v-chip size="small" v-bind="props" v-on="props">
+                  <v-chip size="small" v-bind="props">
                     {{ displayOnlyTenCharacters(tag) }}
                   </v-chip>
                 </template>
