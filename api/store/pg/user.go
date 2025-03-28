@@ -63,9 +63,10 @@ func (pg *pg) UserPreferredNamespace(ctx context.Context, ident store.UserIdent,
 	if err := pg.driver.NewSelect().
 		Model(ns).
 		Relation("Memberships").
-		Join("JOIN users AS u ON namespace.id = u.preferred_namespace_id OR namespace.id IN (SELECT namespace_id FROM memberships WHERE user_id = u.id)").
-		Where("u.? = ?", bun.Ident(ident), val).
-		OrderExpr("CASE WHEN namespace.id = u.preferred_namespace_id THEN 0 ELSE 1 END").
+		Join("JOIN users").
+		JoinOn("namespace.id = users.preferred_namespace_id OR namespace.id IN (SELECT namespace_id FROM memberships WHERE user_id = users.id)"). // TODO: subquery
+		Where("users.? = ?", bun.Ident(ident), val).
+		OrderExpr("CASE WHEN namespace.id = users.preferred_namespace_id THEN 0 ELSE 1 END"). // TODO: segunda ordenacao pela membership mais recente
 		Limit(1).
 		Scan(ctx); err != nil {
 		return nil, fromSqlError(err)

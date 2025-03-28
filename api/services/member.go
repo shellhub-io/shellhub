@@ -94,11 +94,11 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 
-		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m.UserID, req)); err != nil {
+		if err := s.resendMemberInvite(m.UserID, req)(ctx); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
+		if err := s.addMember(passiveUser, req)(ctx); err != nil {
 			return nil, err
 		}
 	}
@@ -107,12 +107,13 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 }
 
 // addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
-func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
+func (s *service) addMember(member *models.User, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		member := &models.Membership{
-			UserID:    memberID,
-			CreatedAt: clock.Now(),
-			Role:      req.MemberRole,
+		member := models.Membership{
+			UserID:      member.ID,
+			NamespaceID: req.TenantID,
+			CreatedAt:   clock.Now(),
+			Role:        req.MemberRole,
 		}
 
 		// In cloud instances, the member must accept the invite before enter in the namespace.
@@ -124,9 +125,9 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 			// member.ExpiresAt = time.Time{}
 		}
 
-		// if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
-		// 	return err
-		// }
+		if err := s.store.NamespaceCreateMemberships(ctx, []models.Membership{member}); err != nil {
+			return err
+		}
 
 		if envs.IsCloud() {
 			if err := s.client.InviteMember(ctx, req.TenantID, member.UserID, req.FowardedHost); err != nil {
@@ -155,38 +156,39 @@ func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAdd
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	// namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
-	// if err != nil {
-	// 	return NewErrNamespaceNotFound(req.TenantID, err)
-	// }
-	//
-	// user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
-	// if err != nil {
-	// 	return NewErrUserNotFound(req.UserID, err)
-	// }
-	//
-	// active, ok := namespace.FindMember(user.ID)
-	// if !ok {
-	// 	return NewErrNamespaceMemberNotFound(user.ID, err)
-	// }
-	//
-	// if _, ok := namespace.FindMember(req.MemberID); !ok {
-	// 	return NewErrNamespaceMemberNotFound(req.MemberID, err)
-	// }
-	//
-	// // changes := &models.MemberChanges{Role: req.MemberRole}
-	//
-	// if changes.Role != authorizer.RoleInvalid {
-	// 	if !active.Role.HasAuthority(req.MemberRole) {
-	// 		return NewErrRoleInvalid()
-	// 	}
-	// }
-	//
-	// if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, req.MemberID, changes); err != nil {
-	// 	return err
-	// }
-	//
-	// s.AuthUncacheToken(ctx, namespace.ID, req.MemberID) // nolint: errcheck
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentID, req.TenantID)
+	if err != nil {
+		return NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
+	if err != nil {
+		return NewErrUserNotFound(req.UserID, err)
+	}
+
+	active, ok := namespace.FindMember(user.ID)
+	if !ok {
+		return NewErrNamespaceMemberNotFound(user.ID, err)
+	}
+
+	member, ok := namespace.FindMember(req.MemberID)
+	if !ok {
+		return NewErrNamespaceMemberNotFound(req.MemberID, err)
+	}
+
+	if req.MemberRole != authorizer.RoleInvalid {
+		if !active.Role.HasAuthority(req.MemberRole) {
+			return NewErrRoleInvalid()
+		}
+
+		member.Role = req.MemberRole
+	}
+
+	if err := s.store.Save(ctx, member); err != nil {
+		return err
+	}
+
+	s.AuthUncacheToken(ctx, namespace.ID, req.MemberID) // nolint: errcheck
 
 	return nil
 }
@@ -216,7 +218,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrRoleInvalid()
 	}
 
-	if err := s.removeMember(ctx, namespace, req.MemberID); err != nil { //nolint:revive
+	if err := s.removeMember(ctx, passive); err != nil { //nolint:revive
 		return nil, err
 	}
 
@@ -236,11 +238,17 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if m, ok := ns.FindMember(req.UserID); !ok || m.Role == authorizer.RoleOwner {
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
+	if err != nil || user == nil {
+		return nil, NewErrUserNotFound(req.UserID, err)
+	}
+
+	member, ok := ns.FindMember(user.ID)
+	if !ok || member.Role == authorizer.RoleOwner {
 		return nil, NewErrAuthForbidden()
 	}
 
-	if err := s.removeMember(ctx, ns, req.UserID); err != nil { //nolint:revive
+	if err := s.removeMember(ctx, member); err != nil { //nolint:revive
 		return nil, err
 	}
 
@@ -250,14 +258,13 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, nil
 	}
 
-	// TODO: search for the user so we can use s.store.Save()
-	// emptyString := "" // just to be used as a pointer
-	// if err := s.store.UserUpdate(ctx, req.UserID, &models.UserChanges{PreferredNamespace: &emptyString}); err != nil {
-	// 	log.WithError(err).
-	// 		WithField("tenant_id", req.TenantID).
-	// 		WithField("user_id", req.UserID).
-	// 		Error("failed to reset user's preferred namespace")
-	// }
+	user.Preferences.PreferredNamespace = ""
+	if err := s.store.Save(ctx, user); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", req.TenantID).
+			WithField("user_id", req.UserID).
+			Error("failed to reset user's preferred namespace")
+	}
 
 	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
 		log.WithError(err).
@@ -270,15 +277,10 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
 }
 
-func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID string) error {
-	// if err := s.store.NamespaceRemoveMember(ctx, ns.ID, userID); err != nil {
-	// 	switch {
-	// 	case errors.Is(err, store.ErrNoDocuments):
-	// 		return NewErrNamespaceNotFound(ns.ID, err)
-	// 	default:
-	// 		return err
-	// 	}
-	// }
+func (s *service) removeMember(ctx context.Context, membership *models.Membership) error {
+	if err := s.store.Delete(ctx, membership); err != nil {
+		return err
+	}
 
 	return nil
 }

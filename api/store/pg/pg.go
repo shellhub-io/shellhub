@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/internal/entity"
 	"github.com/shellhub-io/shellhub/api/store/pg/options"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 )
@@ -21,7 +21,7 @@ type pg struct {
 	options *queryOptions
 }
 
-func URI(host, port, user, password, db string) string {
+func BuildURI(host, port, user, password, db string) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, db)
 }
 
@@ -43,8 +43,8 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 		return nil, err
 	}
 
-	// We need to register models so we can apply fixtures and relations later
-	pg.driver.RegisterModel((*models.User)(nil), (*models.Namespace)(nil), (*models.Membership)(nil))
+	// We need to register the entities so we can apply fixtures and relations later
+	pg.driver.RegisterModel((*entity.User)(nil), (*entity.Namespace)(nil), (*entity.Membership)(nil))
 
 	for _, opt := range opts {
 		if err := opt(ctx, pg.driver); err != nil {

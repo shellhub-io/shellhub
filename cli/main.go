@@ -42,7 +42,7 @@ func main() {
 		log.Error(err.Error())
 	}
 
-	uri := pg.URI(cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresDB)
+	uri := pg.BuildURI(cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresDB)
 	store, err := pg.New(ctx, uri, options.Log("DEBUG", true))
 	if err != nil {
 		log.

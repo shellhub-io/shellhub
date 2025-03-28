@@ -58,7 +58,7 @@ type Namespace struct {
 type NamespaceSettings struct {
 	MaxDevices             int    `json:"max_devices" bun:"max_devices"`
 	SessionRecord          bool   `json:"session_record" bun:"record_sessions"`
-	ConnectionAnnouncement string `json:"connection_announcement" bun:"connection_announcement,type:text"`
+	ConnectionAnnouncement string `json:"connection_announcement" bun:"connection_announcement,type:text,nullzero"`
 }
 
 // HasMaxDevices checks if the namespace has a maximum number of devices.

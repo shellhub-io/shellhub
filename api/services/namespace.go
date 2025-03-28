@@ -93,7 +93,13 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, s.store.Options().WithMember("0195d35d-d77d-7ccc-b49a-2b17b09d03e5"), s.store.Options().Paginate(0, 100), s.store.Options().Order("created_at", "asc"))
+	namespaces, count, err := s.store.NamespaceList(
+		ctx,
+		s.store.Options().Filter(req.Filters),
+		s.store.Options().WithMember(req.UserID),
+		s.store.Options().Paginate(req.Paginator),
+		s.store.Options().Order(req.Sorter),
+	)
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}
