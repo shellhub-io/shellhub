@@ -90,6 +90,9 @@ describe("Device Rename", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        uid: device.uid,
+      },
     });
   });
 
@@ -123,9 +126,7 @@ describe("Device Rename", () => {
     expect(wrapper.findComponent('[data-test="rename-btn"]').exists()).toBe(true);
   });
 
-  it("renames sucessfully a device", async () => {
-    await wrapper.setProps({ uid: "a582b47a42d" });
-
+  it("renames successfully a device", async () => {
     wrapper.vm.showDialog = true;
 
     await flushPromises();
@@ -145,9 +146,7 @@ describe("Device Rename", () => {
     });
   });
 
-  it("renames sucessfully a device", async () => {
-    await wrapper.setProps({ uid: "a582b47a42d" });
-
+  it("fails to rename a device", async () => {
     wrapper.vm.showDialog = true;
 
     await flushPromises();

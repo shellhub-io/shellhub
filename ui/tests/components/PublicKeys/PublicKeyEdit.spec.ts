@@ -62,6 +62,11 @@ describe("Public Key Edit", () => {
     },
   };
 
+  const keyObjectMock = {
+    name: "test-name",
+    data: "test-data",
+  };
+
   const session = true;
 
   beforeEach(async () => {
@@ -92,6 +97,9 @@ describe("Public Key Edit", () => {
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
+      },
+      props: {
+        keyObject: keyObjectMock,
       },
     });
   });

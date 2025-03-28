@@ -152,6 +152,10 @@ describe("Tag Form Update", async () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
+      props: {
+        deviceUid: devices[0].uid,
+        tagsList: devices[0].tags,
+      },
       attachTo: el,
     });
   });

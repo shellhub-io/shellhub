@@ -74,6 +74,9 @@ describe("Welcome", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        show: true,
+      },
     });
   });
 
@@ -90,7 +93,6 @@ describe("Welcome", () => {
   });
 
   it("Renders the dialog open button and other key elements", async () => {
-    wrapper.setProps({ show: true });
     const dialog = new DOMWrapper(document.body);
     wrapper.vm.el = 1;
     await flushPromises();
@@ -116,7 +118,6 @@ describe("Welcome", () => {
     expect(dialog.find('[data-test="finish-btn"]').exists()).toBe(true);
   });
   it("Renders the next btn when the user setups a device", async () => {
-    wrapper.setProps({ show: true });
     const dialog = new DOMWrapper(document.body);
     wrapper.vm.el = 2;
     wrapper.vm.enable = true;

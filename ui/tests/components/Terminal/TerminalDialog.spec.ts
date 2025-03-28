@@ -122,6 +122,9 @@ describe("Terminal Dialog", async () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        uid: devices[0].uid,
+      },
     });
   });
 
@@ -138,7 +141,7 @@ describe("Terminal Dialog", async () => {
   });
 
   it("Renders the component table", async () => {
-    await wrapper.setProps({ enableConnectButton: true, enableConsoleIcon: true, uid: "a582b47a42d", online: true, show: true });
+    await wrapper.setProps({ enableConnectButton: true, enableConsoleIcon: true, online: true, show: true });
 
     expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
 

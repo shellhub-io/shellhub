@@ -129,22 +129,18 @@ const props = defineProps({
   },
   initialAddress: {
     type: String,
-    required: false,
     default: "",
   },
   initialPort: {
     type: Number,
-    required: false,
     default: 2375,
   },
   uid: {
     type: String,
-    required: false,
     default: "",
   },
   initialSecure: {
     type: Boolean,
-    required: false,
     default: false,
   },
   storeMethod: {
@@ -153,7 +149,6 @@ const props = defineProps({
   },
   showDialog: {
     type: Boolean,
-    required: false,
     default: false,
   },
 });

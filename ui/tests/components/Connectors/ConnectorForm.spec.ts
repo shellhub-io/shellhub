@@ -91,6 +91,10 @@ describe("Connector Form", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        isEditing: false,
+        storeMethod: vi.fn(),
+      },
       attachTo: el,
     });
   });

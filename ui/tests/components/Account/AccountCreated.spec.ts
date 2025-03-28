@@ -3,7 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import AccountCreated from "@/components/Account/AccountCreated.vue";
-import { usersApi } from "@/api/http";
+import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
@@ -15,20 +15,21 @@ describe("Account Created", () => {
   let wrapper: AccountCreatedWrapper;
   const vuetify = createVuetify();
 
-  let mock: MockAdapter;
+  let usersMock: MockAdapter;
+  let namespacesMock: MockAdapter;
 
   beforeEach(() => {
     vi.useFakeTimers();
 
     envVariables.isCloud = true;
 
-    mock = new MockAdapter(usersApi.getAxios());
+    usersMock = new MockAdapter(usersApi.getAxios());
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
-    mock.reset();
+    usersMock.reset();
   });
 
   describe("With messageKind = 'normal'", () => {
@@ -64,7 +65,7 @@ describe("Account Created", () => {
     it("Resends email", async () => {
       const storeSpy = vi.spyOn(store, "dispatch");
 
-      mock.onPost("http://localhost:3000/api/user/resend_email").reply(200);
+      usersMock.onPost("http://localhost:3000/api/user/resend_email").reply(200);
 
       await wrapper.find('[data-test="resendEmail-btn"]').trigger("click");
 
@@ -76,6 +77,10 @@ describe("Account Created", () => {
   });
 
   describe("With messageKind = 'sig'", () => {
+    namespacesMock = new MockAdapter(namespacesApi.getAxios());
+    namespacesMock.onGet("http://localhost:3000/api/namespaces/fake-tenant/members/fake-id/accept-invite?sig=fake-sig").reply(200);
+    // http://localhost:3000/api/namespaces/fake-tenant/members/fake-id/accept-invite?sig=fake-sig
+
     beforeEach(() => {
       wrapper = mount(AccountCreated, {
         global: {
@@ -87,6 +92,7 @@ describe("Account Created", () => {
           username: "testUser",
         },
       });
+      wrapper.vm.$route.query = { "tenant-id": "fake-tenant", "user-id": "fake-id", sig: "fake-sig" };
     });
 
     it("Is a Vue instance", () => {
@@ -102,7 +108,6 @@ describe("Account Created", () => {
 
     it("Handles timeout for redirect", async () => {
       const redirectSpy = vi.spyOn(router, "push");
-
       await wrapper.find('[data-test="redirect-btn"]').trigger("click");
 
       await flushPromises();
