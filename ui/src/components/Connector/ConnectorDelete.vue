@@ -60,7 +60,6 @@ const props = defineProps({
   },
   notHasAuthorization: {
     type: Boolean,
-    required: true,
     default: false,
   },
 });

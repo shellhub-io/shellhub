@@ -89,10 +89,12 @@ describe("Member Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        member: members[0],
+        hasAuthorization: true,
+      },
       attachTo: el,
     });
-
-    await wrapper.setProps({ member: members[0], hasAuthorization: true });
   });
 
   it("Is a Vue instance", () => {

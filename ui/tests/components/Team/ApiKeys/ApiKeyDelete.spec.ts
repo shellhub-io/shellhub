@@ -113,8 +113,11 @@ describe("Api Key Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        keyId: "fake-id",
+        hasAuthorization: true,
+      },
     });
-    await wrapper.setProps({ keyId: "fake-id" });
   });
 
   it("Is a Vue instance", () => {

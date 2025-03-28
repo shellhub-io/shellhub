@@ -77,6 +77,9 @@ describe("Firewall Rule Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        id: "1000",
+      },
     });
   });
 
@@ -109,8 +112,6 @@ describe("Firewall Rule Delete", () => {
   });
 
   it("Successful on removing firewall rules", async () => {
-    await wrapper.setProps({ id: "1000" });
-
     const storeSpy = vi.spyOn(store, "dispatch");
 
     mockFirewall.onDelete("http://localhost:3000/api/firewall/rules/1000").reply(200);
@@ -123,8 +124,6 @@ describe("Firewall Rule Delete", () => {
   });
 
   it("Fails on removing firewall rules", async () => {
-    await wrapper.setProps({ id: "1000" });
-
     const storeSpy = vi.spyOn(store, "dispatch");
 
     mockFirewall.onDelete("http://localhost:3000/api/firewall/rules/1000").reply(403);

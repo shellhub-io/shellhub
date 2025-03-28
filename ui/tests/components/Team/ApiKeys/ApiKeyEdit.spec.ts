@@ -113,6 +113,12 @@ describe("Api Key Edit", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        keyName: "fake-id",
+        keyRole: "observer",
+        hasAuthorization: true,
+        disabled: false,
+      },
     });
   });
 
@@ -129,8 +135,6 @@ describe("Api Key Edit", () => {
   });
 
   it("Renders components", async () => {
-    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
-
     expect(wrapper.find('[data-test="edit-icon"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="edit-main-btn-title"]').exists()).toBe(true);
     await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
@@ -143,8 +147,6 @@ describe("Api Key Edit", () => {
   });
 
   it("Successfully Edit Api Key", async () => {
-    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
-
     mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
@@ -157,13 +159,10 @@ describe("Api Key Edit", () => {
     expect(StoreSpy).toHaveBeenCalledWith("apiKeys/editApiKey", {
       key: "fake-id",
       name: "fake-key-changed-name",
-      role: "observer",
     });
   });
 
   it("Fails to Edit Api Key", async () => {
-    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
-
     mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(400);
 
     const StoreSpy = vi.spyOn(store, "dispatch");
@@ -179,8 +178,6 @@ describe("Api Key Edit", () => {
   });
 
   it("Fails to Edit Api Key (409)", async () => {
-    await wrapper.setProps({ keyName: "fake-id", hasAuthorization: true, disabled: false });
-
     mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(409);
 
     await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
