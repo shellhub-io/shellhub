@@ -156,12 +156,10 @@ enum AuthMethods {
 const props = defineProps({
   enableConnectButton: {
     type: Boolean,
-    required: false,
     default: false,
   },
   enableConsoleIcon: {
     type: Boolean,
-    required: false,
     default: false,
   },
   uid: {
@@ -170,12 +168,10 @@ const props = defineProps({
   },
   online: {
     type: Boolean,
-    required: false,
     default: false,
   },
   show: {
     type: Boolean,
-    required: false,
     default: false,
   },
 });

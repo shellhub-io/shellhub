@@ -161,6 +161,10 @@ describe("Device Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        uid: "a582b47a42d",
+        variant: "device",
+      },
       attachTo: el,
     });
   });

@@ -59,6 +59,14 @@ describe("Home", () => {
     },
   };
 
+  const statsMock = {
+    registered_devices: 0,
+    online_devices: 0,
+    active_sessions: 0,
+    pending_devices: 0,
+    rejected_devices: 0,
+  };
+
   const session = true;
 
   const res = {
@@ -80,6 +88,7 @@ describe("Home", () => {
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
+    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);

@@ -70,6 +70,9 @@ describe("Welcome Second Screen", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        command: "",
+      },
     });
   });
 

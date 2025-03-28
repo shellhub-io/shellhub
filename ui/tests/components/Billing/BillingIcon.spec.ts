@@ -12,6 +12,9 @@ describe("Billing Icon", () => {
       global: {
         plugins: [vuetify],
       },
+      props: {
+        iconName: "",
+      },
     });
   });
 

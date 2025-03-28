@@ -126,6 +126,9 @@ describe("Tag Form Edit", async () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        tag: "test",
+      },
     });
     await wrapper.setProps({ tag: "tag-test" });
   });
