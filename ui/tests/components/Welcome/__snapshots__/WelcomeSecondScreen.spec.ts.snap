@@ -28,7 +28,7 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
         <div class="v-field__field" data-no-activator="">
           <!---->
           <!---->
-          <!----><input readonly="" size="1" type="text" id="input-0" aria-describedby="input-0-messages" class="v-field__input">
+          <!----><input readonly="" size="1" type="text" id="input-0" aria-describedby="input-0-messages" class="v-field__input" value="">
           <!---->
         </div>
         <!---->
