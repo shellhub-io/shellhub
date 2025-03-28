@@ -15,6 +15,7 @@ describe("App Layout Component", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    store.dispatch("spinner/setStatus", true);
 
     wrapper = mount(AppLayout, {
       global: {

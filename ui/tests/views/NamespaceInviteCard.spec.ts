@@ -61,7 +61,6 @@ const session = true;
 
 describe("Namespace Invite Dialog (Invalid User)", () => {
   beforeEach(async () => {
-    // eslint-disable-next-line vue/max-len
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
 
@@ -70,7 +69,7 @@ describe("Namespace Invite Dialog (Invalid User)", () => {
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
 
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
@@ -101,8 +100,7 @@ describe("Namespace Invite Dialog (Invalid User)", () => {
 
 describe("Namespace Invite Dialog", () => {
   beforeEach(async () => {
-    // eslint-disable-next-line vue/max-len
-    await router.push({ query: { "user-id": "507f1f77bcf86cd799439011" } });
+    await router.push({ query: { "user-id": "507f1f77bcf86cd799439011", "tenant-id": "fake-tenant" } });
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     localStorage.setItem("id", "507f1f77bcf86cd799439011");
@@ -112,7 +110,10 @@ describe("Namespace Invite Dialog", () => {
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
 
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockNamespace.onGet("http://localhost:3000/api/namespaces?filter=&page=1&per_page=10").reply(200);
+    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData);
+    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant/members/accept-invite").reply(200);
+    mockNamespace.onGet("http://localhost:3000/api/auth/token/fake-tenant").reply(200);
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
@@ -166,7 +167,6 @@ describe("Namespace Invite Dialog", () => {
   });
 
   it("Calls acceptInvite method when Accept Invitation button is clicked", async () => {
-    // eslint-disable-next-line vue/max-len
     const acceptSpy = vi.spyOn(wrapper.vm, "acceptInvite");
     await flushPromises();
     await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
@@ -179,9 +179,7 @@ describe("Namespace Invite Dialog", () => {
     // Simulate an error
     wrapper.vm.handleInviteError({ response: { status: 400 } });
     await nextTick();
-    // eslint-disable-next-line vue/max-len
     expect(wrapper.find('[data-test="title"]').text()).toBe("Invite Accept Error");
-    // eslint-disable-next-line vue/max-len
     expect(wrapper.find('[data-test="message"]').text()).toBe("An unexpected error occurred. Please try again later.");
     expect(wrapper.find('[data-test="accept-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="decline-btn"]').exists()).toBe(true);

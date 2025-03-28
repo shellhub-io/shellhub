@@ -19,9 +19,7 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
 
 const onResponseError = async (error: AxiosError): Promise<AxiosError> => {
   store.dispatch("spinner/setStatus", false);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  if (error.response.status === 401) {
+  if (error.response?.status === 401) {
     await store.dispatch("auth/logout");
     await router.push({ name: "Login", query: router.currentRoute.value.query });
   }

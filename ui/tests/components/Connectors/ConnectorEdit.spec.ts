@@ -89,6 +89,12 @@ describe("Connector Edit", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        secure: true,
+        uid: members[0].id,
+        ipAddress: "",
+        portAddress: 80,
+      },
     });
   });
 

@@ -3,11 +3,7 @@ import { namespacesApi } from "@/api/http";
 
 export const postNamespace = async (data: string) => namespacesApi.createNamespace({ name: data });
 
-export const fetchNamespaces = async (page: number, perPage: number, filter: string) => {
-  if (filter) return namespacesApi.getNamespaces(filter, page, perPage);
-
-  return namespacesApi.getNamespaces(filter, page, perPage);
-};
+export const fetchNamespaces = async (page: number, perPage: number, filter: string) => namespacesApi.getNamespaces(filter, page, perPage);
 
 export const getNamespace = async (id: string) => namespacesApi.getNamespace(id);
 

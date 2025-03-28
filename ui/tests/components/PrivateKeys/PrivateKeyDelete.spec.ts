@@ -84,6 +84,9 @@ describe("Private Key Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        id: 1,
+      },
     });
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);

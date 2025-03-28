@@ -54,7 +54,7 @@
                 <div v-if="item.tags[0]">
                   <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag)">
                     <template #activator="{ props }">
-                      <v-chip size="small" v-bind="props" v-on="props" class="mr-1" data-test="tag-chip">
+                      <v-chip size="small" v-bind="props" class="mr-1" data-test="tag-chip">
                         {{ displayOnlyTenCharacters(tag) }}
                       </v-chip>
                     </template>

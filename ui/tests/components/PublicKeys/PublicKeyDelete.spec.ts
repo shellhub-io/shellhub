@@ -92,6 +92,10 @@ describe("Public Key Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        fingerprint: "fake-fingerprint",
+        notHasAuthorization: false,
+      },
     });
   });
 
@@ -121,18 +125,16 @@ describe("Public Key Delete", () => {
   });
 
   it("Succesfully removes a Public Key", async () => {
-    await wrapper.setProps({ fingerprint: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="public-key-remove-btn"]').trigger("click");
-    mockSsh.onDelete("http://localhost:3000/api/sshkeys/public-keys/fingerprint123").reply(500);
+    mockSsh.onDelete("http://localhost:3000/api/sshkeys/public-keys/fake-fingerprint").reply(200);
     const removeSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     expect(removeSpy).toHaveBeenCalledWith("publicKeys/remove", "fake-fingerprint");
   });
 
   it("Shows error snackbar if removing a Public Key fails", async () => {
-    await wrapper.setProps({ fingerprint: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="public-key-remove-btn"]').trigger("click");
-    mockSsh.onDelete("http://localhost:3000/api/sshkeys/public-keys/fingerprint123").reply(500);
+    mockSsh.onDelete("http://localhost:3000/api/sshkeys/public-keys/fake-fingerprint").reply(404); // non-existent key
     const showSnackbarErrorSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     await flushPromises();

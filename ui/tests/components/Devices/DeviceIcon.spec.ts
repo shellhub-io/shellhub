@@ -148,6 +148,9 @@ describe("Device Icon", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
+      props: {
+        icon: "",
+      },
     });
   });
 
@@ -163,17 +166,11 @@ describe("Device Icon", () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders the component", async () => {
+  it("Renders the component", () => {
     expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
   });
 
-  it("Renders the default icon when no icon prop is provided", async () => {
-    const wrapper = mount(DeviceIcon, {
-      global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-      },
-    });
-
+  it("Renders the default icon when no icon prop is provided", () => {
     expect(wrapper.find('[data-test="type-icon"]').classes()).toContain("fl-tux");
   });
 
@@ -181,14 +178,7 @@ describe("Device Icon", () => {
     const iconProp = "ubuntu";
     const expectedIconClass = "fl-ubuntu";
 
-    const wrapper = mount(DeviceIcon, {
-      props: {
-        icon: iconProp,
-      },
-      global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-      },
-    });
+    await wrapper.setProps({ icon: iconProp });
 
     expect(wrapper.find('[data-test="type-icon"]').classes()).toContain(expectedIconClass);
   });
@@ -197,14 +187,7 @@ describe("Device Icon", () => {
     const unknownIconProp = "unknown-icon";
     const defaultIconClass = "fl-tux";
 
-    const wrapper = mount(DeviceIcon, {
-      props: {
-        icon: unknownIconProp,
-      },
-      global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-      },
-    });
+    await wrapper.setProps({ icon: unknownIconProp });
 
     expect(wrapper.find('[data-test="type-icon"]').classes()).toContain(defaultIconClass);
   });

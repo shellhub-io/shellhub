@@ -89,6 +89,9 @@ describe("Connector Delete", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        uid: "fake-fingerprint",
+      },
       attachTo: el,
     });
   });
@@ -121,7 +124,7 @@ describe("Connector Delete", () => {
   it("Succesfully removes a Public Key", async () => {
     await wrapper.setProps({ uid: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
-    mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(500);
+    mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(200);
     const removeSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     expect(removeSpy).toHaveBeenCalledWith("connectors/remove", "fake-fingerprint");
@@ -130,7 +133,7 @@ describe("Connector Delete", () => {
   it("Shows error snackbar if removing a Public Key fails", async () => {
     await wrapper.setProps({ uid: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
-    mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(500);
+    mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(404); // non-existent key
     const showSnackbarErrorSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     await flushPromises();

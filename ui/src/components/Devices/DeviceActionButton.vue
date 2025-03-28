@@ -72,12 +72,10 @@ const props = defineProps({
   },
   notificationStatus: {
     type: Boolean,
-    required: false,
     default: false,
   },
   action: {
     type: String as PropType<"accept" | "reject" | "remove">,
-    required: true,
     default: "accept",
   },
   variant: {
@@ -87,7 +85,6 @@ const props = defineProps({
   show: {
     type: Boolean,
     default: false,
-    required: false,
   },
 });
 

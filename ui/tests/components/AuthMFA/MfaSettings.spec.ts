@@ -49,10 +49,10 @@ describe("MfaSettings", () => {
       validate: false,
     },
   };
-  const mfaGenerate = {
+  const mfaGenerateData = {
     secret: "secret-mfa",
     link: "link-mfa",
-    codes: [
+    recovery_codes: [
       "HW2wlxV40B",
       "2xsmMUHHHb",
       "DTQgVsaVac",
@@ -72,7 +72,7 @@ describe("MfaSettings", () => {
 
     // Mock API responses
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mock.onGet("http://localhost:3000/api/mfa/generate").reply(200, mfaGenerate);
+    mock.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, mfaGenerateData);
 
     // Set initial state in the Vuex store
     store.commit("auth/authSuccess", authData);
@@ -142,7 +142,7 @@ describe("MfaSettings", () => {
     };
 
     // Mock the API response for MFA enable
-    mock.onPost("http://localhost:3000/api/user/mfa/enable").reply(200, responseData);
+    mock.onPut("http://localhost:3000/api/user/mfa/enable").reply(200, responseData);
 
     // Spy on the Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
@@ -159,9 +159,8 @@ describe("MfaSettings", () => {
     // Check if the store dispatch was called with the expected parameters
     expect(mfaSpy).toHaveBeenCalledWith("auth/enableMfa", {
       code: "000000",
-      secret: "",
-      recovery_codes: [
-      ],
+      secret: mfaGenerateData.secret,
+      recovery_codes: mfaGenerateData.recovery_codes,
     });
   });
 
@@ -170,7 +169,7 @@ describe("MfaSettings", () => {
     expect(wrapper.findComponent('[data-test="error-alert"]').exists()).toBe(false);
 
     // Mock an error response for MFA enable
-    mock.onPost("http://localhost:3000/api/user/mfa/enable").reply(403);
+    mock.onPut("http://localhost:3000/api/user/mfa/enable").reply(403);
 
     // Spy on the Vuex store dispatch method
     const mfaSpy = vi.spyOn(store, "dispatch");
@@ -187,9 +186,8 @@ describe("MfaSettings", () => {
     // Check if the store dispatch was called with the expected parameters
     expect(mfaSpy).toHaveBeenCalledWith("auth/enableMfa", {
       code: "000000",
-      secret: "",
-      recovery_codes: [
-      ],
+      secret: mfaGenerateData.secret,
+      recovery_codes: mfaGenerateData.recovery_codes,
     });
 
     // Check if the error alert is displayed

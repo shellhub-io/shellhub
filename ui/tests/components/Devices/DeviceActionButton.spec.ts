@@ -155,6 +155,12 @@ describe("Device Action Button", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
+      props: {
+        uid: devices[0].uid,
+        variant: "device",
+        notificationStatus: false,
+        show: false,
+      },
       attachTo: el,
     });
   });
