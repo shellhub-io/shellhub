@@ -160,7 +160,7 @@ func (h *Handler) EvaluateKey(c gateway.Context) error {
 		return c.JSON(http.StatusForbidden, err)
 	}
 
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), device.TenantID)
+	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), device.NamespaceID)
 	if err != nil {
 		return c.JSON(http.StatusForbidden, err)
 	}

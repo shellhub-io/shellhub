@@ -99,7 +99,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 			log.Fields{
 				"uid":      sess.UID,
 				"sshid":    sess.SSHID,
-				"device":   sess.Device.UID,
+				"device":   sess.Device.ID,
 				"username": sess.Target.Username,
 				"ip":       sess.IPAddress,
 			})

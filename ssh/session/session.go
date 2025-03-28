@@ -195,7 +195,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			return nil, err
 		}
 
-		namespace = device.Namespace
+		namespace = device.NamespaceID
 		hostname = device.Name
 	}
 
@@ -304,7 +304,7 @@ func (s *Session) checkFirewall() (bool, error) {
 }
 
 func (s *Session) checkBilling() (bool, error) {
-	device, err := s.api.GetDevice(s.Device.UID)
+	device, err := s.api.GetDevice(s.Device.ID)
 	if err != nil {
 		defer log.WithError(err).WithFields(log.Fields{
 			"uid":   s.UID,
@@ -314,7 +314,7 @@ func (s *Session) checkBilling() (bool, error) {
 		return false, ErrFindDevice
 	}
 
-	if evaluatation, status, _ := s.api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
+	if evaluatation, status, _ := s.api.BillingEvaluate(device.NamespaceID); status != 402 && !evaluatation.CanConnect {
 		defer log.WithError(err).WithFields(log.Fields{
 			"uid":   s.UID,
 			"sshid": s.SSHID,
@@ -330,7 +330,7 @@ func (s *Session) checkBilling() (bool, error) {
 func (s *Session) register() error {
 	err := s.api.SessionCreate(requests.SessionCreate{
 		UID:       s.UID,
-		DeviceUID: s.Device.UID,
+		DeviceUID: s.Device.ID,
 		Username:  s.Target.Username,
 		IPAddress: s.IPAddress,
 		Type:      "none",
@@ -432,7 +432,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	conn, err := s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
+	conn, err := s.tunnel.Dial(ctx, s.Device.NamespaceID+":"+s.Device.ID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
@@ -597,7 +597,7 @@ func (s *Session) Announce(client gossh.Channel) error {
 	}
 
 	namespace, errs := s.api.
-		NamespaceLookup(s.Device.TenantID)
+		NamespaceLookup(s.Device.NamespaceID)
 	if len(errs) > 0 {
 		log.WithError(errs[0]).Warn("unable to retrieve the namespace's connection announcement")
 
@@ -672,7 +672,7 @@ func (s *Session) Finish() (err error) {
 		log.WithFields(
 			log.Fields{
 				"uid":      s.UID,
-				"device":   s.Device.UID,
+				"device":   s.Device.ID,
 				"username": s.Target.Username,
 				"ip":       s.IPAddress,
 			}).Info("session finished")

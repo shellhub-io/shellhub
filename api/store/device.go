@@ -20,6 +20,8 @@ const (
 )
 
 type DeviceStore interface {
+	DeviceCreate(ctx context.Context, device *models.Device) (insertedID string, err error)
+
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 
@@ -39,7 +41,6 @@ type DeviceStore interface {
 	DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (modifiedCount int64, err error)
 
 	DeviceDelete(ctx context.Context, uid models.UID) error
-	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error

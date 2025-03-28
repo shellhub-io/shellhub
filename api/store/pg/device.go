@@ -4,23 +4,51 @@ import (
 	"context" //nolint:gosec
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/internal/entity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
+
+func (pg *pg) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
+	device.CreatedAt = clock.Now()
+	device.UpdatedAt = clock.Now()
+
+	if _, err := pg.driver.NewInsert().Model(&entity.Device{Device: *device}).Exec(ctx); err != nil {
+		return "", fromSqlError(err)
+	}
+
+	if device.Info != nil {
+		device.Info.DeviceID = device.ID
+		if _, err := pg.driver.NewInsert().Model(&entity.DeviceInfo{DeviceInfo: *device.Info}).Exec(ctx); err != nil {
+			return "", fromSqlError(err)
+		}
+	}
+
+	if device.Position != nil {
+		device.Position.DeviceID = device.ID
+		if _, err := pg.driver.NewInsert().Model(&entity.DevicePosition{DevicePosition: *device.Position}).Exec(ctx); err != nil {
+			return "", fromSqlError(err)
+		}
+	}
+
+	return device.ID, nil
+}
 
 func (pg *pg) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
 	return nil, 0, nil
 }
 
 func (pg *pg) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
-	return nil, nil
+	d := new(entity.Device)
+	if err := pg.driver.NewSelect().Model(d).Where("id = ?", string(uid)).Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	return &d.Device, nil
 }
 
 func (pg *pg) DeviceDelete(ctx context.Context, uid models.UID) error {
-	return nil
-}
-
-func (pg *pg) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
 	return nil
 }
 

@@ -51,7 +51,7 @@ func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, er
 	}
 
 	// Trys to get a public key from the API.
-	key, err := cli.GetPublicKey(creds.Fingerprint, device.TenantID)
+	key, err := cli.GetPublicKey(creds.Fingerprint, device.NamespaceID)
 	if err != nil {
 		return nil, ErrFindPublicKey
 	}

@@ -1,0 +1,8 @@
+BEGIN;
+
+DROP TYPE IF EXISTS device_status;
+DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS device_info;
+DROP TABLE IF EXISTS device_position;
+
+COMMIT;

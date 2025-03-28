@@ -72,7 +72,7 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 				return "", err
 			}
 
-			tenant = device.TenantID
+			tenant = device.NamespaceID
 		}
 
 		return tenant + ":" + uid, nil

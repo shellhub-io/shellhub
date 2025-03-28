@@ -102,7 +102,7 @@ func (p *publicKeyAuth) Evaluate(session *Session) error {
 	}
 
 	if gossh.FingerprintLegacyMD5(magic) != fingerprint {
-		if _, err = session.api.GetPublicKey(fingerprint, session.Device.TenantID); err != nil {
+		if _, err = session.api.GetPublicKey(fingerprint, session.Device.NamespaceID); err != nil {
 			return err
 		}
 
