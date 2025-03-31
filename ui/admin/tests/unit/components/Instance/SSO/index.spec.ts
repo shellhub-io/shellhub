@@ -1,6 +1,8 @@
+import MockAdapter from "axios-mock-adapter";
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
+import { adminApi } from "@admin/api/http";
 import { store, key } from "../../../../../src/store";
 import ConfigureSSO from "../../../../../src/components/Instance/SSO/ConfigureSSO.vue";
 
@@ -8,6 +10,8 @@ type ConfigureSSOWrapper = VueWrapper<InstanceType<typeof ConfigureSSO>>;
 
 describe("Configure SSO", () => {
   let wrapper: ConfigureSSOWrapper;
+
+  let adminMock: MockAdapter;
 
   const vuetify = createVuetify();
 
@@ -61,6 +65,8 @@ describe("Configure SSO", () => {
   });
 
   it("calls Vuex action on save", async () => {
+    adminMock = new MockAdapter(adminApi.getAxios());
+    adminMock.onPut("http://localhost:3000/admin/api/authentication/saml").reply(200);
     await wrapper.findComponent('[data-test="checkbox-idp-metadata"]').setValue(true);
 
     await wrapper.findComponent('[data-test="idp-metadata-url"]').setValue("https://example.co/metadata");
