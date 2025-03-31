@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import vuetify from "@ui/plugins/vuetify";
+import vuetify from "./plugins/vuetify";
 import App from "./App.vue";
 import { loadFonts } from "./plugins/webfontloader";
 import { key, store } from "./store";
