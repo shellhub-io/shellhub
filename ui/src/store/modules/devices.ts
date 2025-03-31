@@ -196,21 +196,11 @@ export const devices: Module<DevicesState, State> = {
     },
 
     accept: async (context, uid) => {
-      try {
-        await apiDevice.acceptDevice(uid);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiDevice.acceptDevice(uid);
     },
 
     reject: async (context, uid) => {
-      try {
-        await apiDevice.rejectDevice(uid);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiDevice.rejectDevice(uid);
     },
 
     setFilter: async (context, filter) => {
@@ -351,12 +341,7 @@ export const devices: Module<DevicesState, State> = {
     },
 
     postDevicesChooser: async (context, data) => {
-      try {
-        await apiBilling.postDevicesChooser(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiBilling.postDevicesChooser(data);
     },
 
     getDevicesMostUsed: async (context) => {
@@ -374,12 +359,7 @@ export const devices: Module<DevicesState, State> = {
     },
 
     updateDeviceTag: async (context, data) => {
-      try {
-        await apiDevice.updateDeviceTags(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiDevice.updateDeviceTags(data);
     },
 
     setDeviceToBeRenamed(context, device) {

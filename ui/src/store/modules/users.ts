@@ -97,107 +97,58 @@ export const users: Module<UsersState, State> = {
 
   actions: {
     async signUp(context, data) {
-      try {
-        const res: AxiosResponse = await apiUser.signUp(data);
+      const res: AxiosResponse = await apiUser.signUp(data);
 
-        if (res.data.token) {
-          context.commit("setSignUpToken", res.data.token);
-          context.commit("auth/authSuccess", res.data, { root: true });
-          localStorage.setItem("token", res.data.token || "");
-          localStorage.setItem("user", res.data.user || "");
-          localStorage.setItem("name", res.data.name || "");
-          localStorage.setItem("tenant", res.data.tenant || "");
-          localStorage.setItem("email", res.data.email || "");
-          localStorage.setItem("id", res.data.id || "");
-          localStorage.setItem("role", res.data.role || "");
-          localStorage.setItem("namespacesWelcome", JSON.stringify({}));
-        }
-      } catch (error) {
-        console.error(error);
-        throw error;
+      if (res.data.token) {
+        context.commit("setSignUpToken", res.data.token);
+        context.commit("auth/authSuccess", res.data, { root: true });
+        localStorage.setItem("token", res.data.token || "");
+        localStorage.setItem("user", res.data.user || "");
+        localStorage.setItem("name", res.data.name || "");
+        localStorage.setItem("tenant", res.data.tenant || "");
+        localStorage.setItem("email", res.data.email || "");
+        localStorage.setItem("id", res.data.id || "");
+        localStorage.setItem("role", res.data.role || "");
+        localStorage.setItem("namespacesWelcome", JSON.stringify({}));
       }
     },
 
     async patchData(context, data) {
-      try {
-        await apiUser.patchUserData(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.patchUserData(data);
     },
 
     async setup(context, data) {
-      try {
-        await apiUser.setup(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.setup(data);
     },
 
     async patchPassword(context, data) {
-      try {
-        await apiUser.patchUserPassword(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.patchUserPassword(data);
     },
 
     async resendEmail(context, username) {
-      try {
-        await apiUser.postResendEmail(username);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.postResendEmail(username);
     },
 
     async recoverPassword(context, username) {
-      try {
-        await apiUser.postRecoverPassword(username);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.postRecoverPassword(username);
     },
 
     async validationAccount(context, data) {
-      try {
-        await apiUser.postValidationAccount(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.postValidationAccount(data);
     },
 
     async updatePassword(context, data) {
-      try {
-        await apiUser.postUpdatePassword(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.postUpdatePassword(data);
     },
 
     async getPremiumContent(context) {
-      try {
-        const res = await apiUser.premiumContent();
-        context.commit("setPremiumContent", res);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiUser.premiumContent();
+      context.commit("setPremiumContent", res);
     },
 
     async fetchSystemInfo({ commit }) {
-      try {
-        const response = await apiUser.getInfo();
-        commit("setSystemInfo", response.data);
-      } catch (error) {
-        console.error(error);
-      }
+      const response = await apiUser.getInfo();
+      commit("setSystemInfo", response.data);
     },
 
     async fetchSamlUrl({ commit }) {

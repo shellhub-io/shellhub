@@ -223,21 +223,17 @@ export const auth: Module<AuthState, State> = {
       apiConfiguration.accessToken = token;
       reloadApiConfiguration();
 
-      try {
-        const resp = await apiAuth.info();
+      const resp = await apiAuth.info();
 
-        localStorage.setItem("token", resp.data.token || "");
-        localStorage.setItem("user", resp.data.user ?? "");
-        localStorage.setItem("name", resp.data.name ?? "");
-        localStorage.setItem("tenant", resp.data.tenant ?? "");
-        localStorage.setItem("id", resp.data.id ?? "");
-        localStorage.setItem("email", resp.data.email ?? "");
-        localStorage.setItem("namespacesWelcome", JSON.stringify({}));
-        localStorage.setItem("role", resp.data.role ?? "");
-        context.commit("authSuccess", resp.data);
-      } catch (error) {
-        context.commit("authError");
-      }
+      localStorage.setItem("token", resp.data.token || "");
+      localStorage.setItem("user", resp.data.user ?? "");
+      localStorage.setItem("name", resp.data.name ?? "");
+      localStorage.setItem("tenant", resp.data.tenant ?? "");
+      localStorage.setItem("id", resp.data.id ?? "");
+      localStorage.setItem("email", resp.data.email ?? "");
+      localStorage.setItem("namespacesWelcome", JSON.stringify({}));
+      localStorage.setItem("role", resp.data.role ?? "");
+      context.commit("authSuccess", resp.data);
     },
 
     async disableMfa(context, data) {
@@ -271,20 +267,15 @@ export const auth: Module<AuthState, State> = {
     },
 
     enterInvitedNamespace: async (context, data) => {
-      try {
-        localStorage.removeItem("role");
-        const res = await apiNamespace.tenantSwitch(data);
-        const namespaceData = res.data ?? {};
-        if (res.status === 200) {
-          localStorage.setItem("token", namespaceData.token || "");
-          localStorage.setItem("tenant", data.tenant_id);
-          localStorage.setItem("role", namespaceData.role || "");
-        }
-        context.commit("authSuccess", namespaceData);
-      } catch (error) {
-        console.error(error);
-        throw error;
+      localStorage.removeItem("role");
+      const res = await apiNamespace.tenantSwitch(data);
+      const namespaceData = res.data ?? {};
+      if (res.status === 200) {
+        localStorage.setItem("token", namespaceData.token || "");
+        localStorage.setItem("tenant", data.tenant_id);
+        localStorage.setItem("role", namespaceData.role || "");
       }
+      context.commit("authSuccess", namespaceData);
     },
 
     async generateMfa(context) {
@@ -295,13 +286,9 @@ export const auth: Module<AuthState, State> = {
     },
 
     async getUserInfo(context) {
-      try {
-        const resp = await apiAuth.info();
-        if (resp.status === 200) {
-          context.commit("userInfo", resp.data);
-        }
-      } catch (error) {
-        context.commit("authError");
+      const resp = await apiAuth.info();
+      if (resp.status === 200) {
+        context.commit("userInfo", resp.data);
       }
     },
 

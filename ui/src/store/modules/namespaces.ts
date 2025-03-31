@@ -85,122 +85,67 @@ export const namespaces: Module<NamespacesState, State> = {
 
   actions: {
     post: async (context, data) => {
-      try {
-        const res = await apiNamespace.postNamespace(data);
-        return res;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiNamespace.postNamespace(data);
+      return res;
     },
 
     fetch: async (context, data) => {
-      try {
-        const res = await apiNamespace.fetchNamespaces(data.page, data.perPage, data.filter);
-        context.commit("setNamespaces", res);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiNamespace.fetchNamespaces(data.page, data.perPage, data.filter);
+      context.commit("setNamespaces", res);
     },
 
     get: async (context, id) => {
-      try {
-        const res = await apiNamespace.getNamespace(id);
-        context.commit("setNamespace", res);
+      const res = await apiNamespace.getNamespace(id);
+      context.commit("setNamespace", res);
 
-        const { billing } = res.data;
-        if (billing !== null) {
-          context.commit("setBilling", billing);
-        }
-      } catch (error) {
-        console.error(error);
-        throw error;
+      const { billing } = res.data;
+      if (billing !== null) {
+        context.commit("setBilling", billing);
       }
     },
 
     put: async (context, data) => {
-      try {
-        const res = await apiNamespace.putNamespace(data);
-        context.commit("setNamespace", res);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiNamespace.putNamespace(data);
+      context.commit("setNamespace", res);
     },
 
     remove: async (context, id) => {
-      try {
-        await apiNamespace.removeNamespace(id);
-        context.commit("removeNamespace", id);
-        context.commit("clearObjectNamespace");
-        context.commit("clearNamespaceList");
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiNamespace.removeNamespace(id);
+      context.commit("removeNamespace", id);
+      context.commit("clearObjectNamespace");
+      context.commit("clearNamespaceList");
     },
 
     leave: async (context, tenant) => {
-      try {
-        const res = await apiNamespace.leaveNamespace(tenant);
+      const res = await apiNamespace.leaveNamespace(tenant);
 
-        localStorage.setItem("token", res.data.token || "");
+      localStorage.setItem("token", res.data.token || "");
 
-        if (res.data.tenant) {
-          localStorage.setItem("tenant", res.data.tenant || "");
-          localStorage.setItem("role", res.data.role || "");
-        }
-      } catch (error) {
-        console.error(error);
-        throw error;
+      if (res.data.tenant) {
+        localStorage.setItem("tenant", res.data.tenant || "");
+        localStorage.setItem("role", res.data.role || "");
       }
     },
 
     addUser: async (context, data) => {
-      try {
-        await apiNamespace.addUserToNamespace(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiNamespace.addUserToNamespace(data);
     },
 
     editUser: async (context, data) => {
-      try {
-        await apiNamespace.editUserToNamespace(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiNamespace.editUserToNamespace(data);
     },
 
     removeUser: async (context, data) => {
-      try {
-        await apiNamespace.removeUserFromNamespace(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiNamespace.removeUserFromNamespace(data);
     },
 
     acceptInvite: async (context, data) => {
-      try {
-        await apiNamespace.acceptNamespaceInvite(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiNamespace.acceptNamespaceInvite(data);
     },
 
     lookupUserStatus: async (context, data) => {
-      try {
-        const res = await apiNamespace.lookupUserStatus(data);
-        context.commit("setUserStatus", res.data.status);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiNamespace.lookupUserStatus(data);
+      context.commit("setUserStatus", res.data?.status);
     },
 
     clearNamespaceList: (context) => {
@@ -208,18 +153,13 @@ export const namespaces: Module<NamespacesState, State> = {
     },
 
     switchNamespace: async (context, data) => {
-      try {
-        localStorage.removeItem("role");
+      localStorage.removeItem("role");
 
-        const res = await apiNamespace.tenantSwitch(data);
-        if (res.status === 200) {
-          localStorage.setItem("token", res.data.token || "");
-          localStorage.setItem("tenant", data.tenant_id);
-          localStorage.setItem("role", res.data.role || "");
-        }
-      } catch (error) {
-        console.error(error);
-        throw error;
+      const res = await apiNamespace.tenantSwitch(data);
+      if (res.status === 200) {
+        localStorage.setItem("token", res.data.token || "");
+        localStorage.setItem("tenant", data.tenant_id);
+        localStorage.setItem("role", res.data.role || "");
       }
     },
 

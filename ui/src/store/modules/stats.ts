@@ -30,14 +30,9 @@ export const stats: Module<StatsState, State> = {
 
   actions: {
     async get({ commit }) {
-      try {
-        const res = await getStats();
-        commit("setStats", res);
-        return res;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await getStats();
+      commit("setStats", res);
+      return res;
     },
 
     async clear({ commit }) {
