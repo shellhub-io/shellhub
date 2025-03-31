@@ -1,6 +1,7 @@
 /* eslint-disable */
 declare const window: any;
 
+import handleError from "@/utils/handleError";
 import crypto from "./crypto"
 
 export const validateKey = (typeKey: string, value: string) => {
@@ -21,7 +22,7 @@ export const convertToFingerprint = (privateKey: string) => {
   try {
     return crypto.convertKeyToFingerprint(privateKey);
   } catch (err) {
-    console.error("err", err);
+    handleError(err);
     return false;
   }
 };
@@ -38,7 +39,7 @@ export const createSignerPrivateKey = (privateKey: any, username: string) => {
   try {
     return crypto.createSignerAndUpdate(privateKey, username);
   } catch (err) {
-    console.error("err", err);
+    handleError(err);
     return false;
   }
 };
