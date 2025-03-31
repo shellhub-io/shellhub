@@ -148,7 +148,7 @@ describe("Api Key Generate", () => {
   });
 
   it("Successfully Generate Api Key", async () => {
-    mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(200);
+    mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(200, { id: "fake-id" });
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
