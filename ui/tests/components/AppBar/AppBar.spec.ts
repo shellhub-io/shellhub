@@ -13,14 +13,12 @@ const Component = {
   template: "<v-layout><AppBar /></v-layout>",
 };
 
-const useChatWootMock = () => ({
-  setUser: vi.fn(),
-  setConversationCustomAttributes: vi.fn(),
-  toggle: vi.fn(),
-});
-
 vi.mock("@productdevbook/chatwoot/vue", () => ({
-  useChatWoot: useChatWootMock,
+  useChatWoot: () => ({
+    setUser: vi.fn(),
+    setConversationCustomAttributes: vi.fn(),
+    toggle: vi.fn(),
+  }),
 }));
 
 let mockNamespace: MockAdapter;
