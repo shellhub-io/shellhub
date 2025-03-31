@@ -31,13 +31,8 @@ export const support: Module<SupportState, State> = {
 
   actions: {
     get: async (context, data) => {
-      try {
-        const res = await apiSupport.getSupportID(data);
-        context.commit("setIdentifier", res.data.identifier);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiSupport.getSupportID(data);
+      context.commit("setIdentifier", res.data.identifier);
     },
   },
 };

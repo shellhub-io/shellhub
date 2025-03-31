@@ -120,22 +120,12 @@ export const sessions: Module<SessionsState, State> = {
     },
 
     close: async (context, session) => {
-      try {
-        await apiSession.closeSession(session);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiSession.closeSession(session);
     },
 
     deleteSessionLogs: async (context, uid) => {
-      try {
-        await apiSession.deleteSessionLogs(uid);
-        context.commit("removeRecordedSession");
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiSession.deleteSessionLogs(uid);
+      context.commit("removeRecordedSession");
     },
   },
 };

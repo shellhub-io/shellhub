@@ -132,21 +132,11 @@ export const container: Module<ContainerState, State> = {
     },
 
     accept: async (context, uid) => {
-      try {
-        await apiContainer.acceptContainer(uid);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiContainer.acceptContainer(uid);
     },
 
     reject: async (context, uid) => {
-      try {
-        await apiContainer.rejectContainer(uid);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiContainer.rejectContainer(uid);
     },
 
     setFilter: async (context, filter) => {
@@ -189,12 +179,7 @@ export const container: Module<ContainerState, State> = {
     },
 
     updateDeviceTag: async (context, data) => {
-      try {
-        await apiContainer.updateContainerTag(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiContainer.updateContainerTag(data);
     },
   },
 };

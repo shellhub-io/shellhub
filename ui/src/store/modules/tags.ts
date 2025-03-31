@@ -43,12 +43,7 @@ export const tags: Module<TagsState, State> = {
 
   actions: {
     post: async (context, data) => {
-      try {
-        await apiDevice.postTag(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiDevice.postTag(data);
     },
 
     setSelected: async (context, data) => {
@@ -56,23 +51,12 @@ export const tags: Module<TagsState, State> = {
     },
 
     fetch: async (context) => {
-      try {
-        const res = await apiTags.getTags();
-
-        context.commit("setTags", res);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiTags.getTags();
+      context.commit("setTags", res);
     },
 
     edit: async (context, data) => {
-      try {
-        await apiTags.updateTag(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiTags.updateTag(data);
     },
 
     setTags: (context, data) => {
@@ -80,12 +64,7 @@ export const tags: Module<TagsState, State> = {
     },
 
     remove: async (context, name: string) => {
-      try {
-        await apiTags.removeTag(name);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiTags.removeTag(name);
     },
 
     clearSelectedTags: (context) => {

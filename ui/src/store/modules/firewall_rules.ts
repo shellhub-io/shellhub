@@ -71,12 +71,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
 
   actions: {
     post: async (context, data) => {
-      try {
-        await apiFirewallRule.postFirewall(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiFirewallRule.postFirewall(data);
     },
 
     fetch: async (context, data) => {
@@ -129,12 +124,7 @@ export const firewallRules: Module<FirewallRulesState, State> = {
     },
 
     remove: async (context, id) => {
-      try {
-        await apiFirewallRule.removeFirewall(id);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiFirewallRule.removeFirewall(id);
     },
   },
 };

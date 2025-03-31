@@ -25,23 +25,13 @@ export const security: Module<SecurityState, State> = {
 
   actions: {
     async set(context, data) {
-      try {
-        await apiUser.setSessionRecordStatus(data);
-        context.commit("setSecurity", data.status);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiUser.setSessionRecordStatus(data);
+      context.commit("setSecurity", data.status);
     },
 
     async get(context) {
-      try {
-        const res = await apiUser.getSessionRecordStatus();
-        context.commit("setSecurity", res.data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiUser.getSessionRecordStatus();
+      context.commit("setSecurity", res.data);
     },
   },
 };

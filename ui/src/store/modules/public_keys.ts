@@ -65,60 +65,35 @@ export const publicKeys: Module<PublicKeysState, State> = {
 
   actions: {
     post: async (context, data) => {
-      try {
-        await apiPublicKey.postPublicKey(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiPublicKey.postPublicKey(data);
     },
 
     fetch: async (context, data) => {
-      try {
-        const res = await apiPublicKey.fetchPublicKeys(data.page, data.perPage, "");
-        if (res.data.length) {
-          context.commit("setPublicKeys", res);
-          context.commit("setPagePerpage", data);
-          return true;
-        }
-        return false;
-      } catch (error) {
-        context.commit("clearListPublicKeys");
-        throw error;
+      const res = await apiPublicKey.fetchPublicKeys(data.page, data.perPage, "");
+      if (res.data.length) {
+        context.commit("setPublicKeys", res);
+        context.commit("setPagePerpage", data);
+        return true;
       }
+      return false;
     },
 
     refresh: async (context) => {
-      try {
-        const res = await apiPublicKey.fetchPublicKeys(
-          context.state.page,
-          context.state.perPage,
-          "",
-        );
-        context.commit("setPublicKeys", res);
-      } catch (error) {
-        context.commit("clearListPublicKeys");
-        throw error;
-      }
+      const res = await apiPublicKey.fetchPublicKeys(
+        context.state.page,
+        context.state.perPage,
+        "",
+      );
+      context.commit("setPublicKeys", res);
     },
 
     get: async (context, id) => {
-      try {
-        const res = await apiPublicKey.getPublicKey(id);
-        context.commit("setPublicKey", res);
-      } catch (error) {
-        context.commit("clearObjectPublicKey");
-        throw error;
-      }
+      const res = await apiPublicKey.getPublicKey(id);
+      context.commit("setPublicKey", res);
     },
 
     put: async (context, data) => {
-      try {
-        await apiPublicKey.putPublicKey(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiPublicKey.putPublicKey(data);
     },
 
     resetPagePerpage: async (context) => {
@@ -126,12 +101,7 @@ export const publicKeys: Module<PublicKeysState, State> = {
     },
 
     remove: async (context, fingerprint) => {
-      try {
-        await apiPublicKey.removePublicKey(fingerprint);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiPublicKey.removePublicKey(fingerprint);
     },
   },
 };
