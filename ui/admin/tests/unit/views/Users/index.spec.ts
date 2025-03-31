@@ -2,6 +2,7 @@ import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { VNumberInput } from "vuetify/labs/VNumberInput";
 import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Users from "../../../../src/views/Users.vue";
@@ -25,7 +26,11 @@ describe("Users", () => {
   let wrapper: UsersWrapper;
 
   beforeEach(() => {
-    const vuetify = createVuetify();
+    const vuetify = createVuetify({
+      components: {
+        VNumberInput,
+      },
+    });
 
     wrapper = mount(Users, {
       global: {
