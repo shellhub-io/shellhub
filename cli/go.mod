@@ -1,8 +1,8 @@
 module github.com/shellhub-io/shellhub/cli
 
-go 1.22.4
+go 1.23.0
 
-toolchain go1.22.8
+toolchain go1.23.7
 
 require (
 	github.com/shellhub-io/shellhub v0.13.4
@@ -75,7 +75,7 @@ require (
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
