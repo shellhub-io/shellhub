@@ -1,16 +1,27 @@
 import { AxiosError } from "axios";
 
-function handleError(error: unknown): never {
-  console.log(">>>>>>>>>>>>>>>>>>>>>");
-  console.log(error);
-  console.log(">>>>>>>>>>>>>>>>>>>>>");
-  if (error instanceof AxiosError) throw new Error(`Axios error: ${error.status} - ${error.message}`);
+const isAxiosError = (error: unknown): error is AxiosError => (
+  typeof error === "object"
+    && error !== null
+    && (error as AxiosError).isAxiosError !== undefined
+);
 
-  if (error instanceof Error) throw new Error(error.message);
+const handleErrorInTests = (error: unknown) => {
+  if (!isAxiosError(error)) {
+    console.error(error);
+    return;
+  }
 
-  if (error instanceof Response) throw new Error(error.statusText);
+  const requestUrl = error.response?.request.responseURL;
+  console.log(`${error.message}\nRequest URL: ${requestUrl}`);
+};
 
-  throw new Error("Unknown error");
-}
+const handleError = (error: unknown) => {
+  if (process.env.NODE_ENV !== "test") {
+    console.error(">>>>>>>>>>>>>>>>>>>>>");
+    console.error(error);
+    console.error(">>>>>>>>>>>>>>>>>>>>>");
+  } else handleErrorInTests(error);
+};
 
 export default handleError;
