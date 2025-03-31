@@ -13,6 +13,16 @@ const Component = {
   template: "<v-layout><AppBar /></v-layout>",
 };
 
+const useChatWootMock = () => ({
+  setUser: vi.fn(),
+  setConversationCustomAttributes: vi.fn(),
+  toggle: vi.fn(),
+});
+
+vi.mock("@productdevbook/chatwoot/vue", () => ({
+  useChatWoot: useChatWootMock,
+}));
+
 let mockNamespace: MockAdapter;
 
 let mockUser: MockAdapter;
@@ -155,6 +165,7 @@ describe("AppBar Component", () => {
     const drawer = wrapper.findComponent(AppBar);
 
     const openShellhubHelpMock = vi.spyOn(drawer.vm, "openShellhubHelp");
+    openShellhubHelpMock.mockImplementation(vi.fn());
     const supportBtn = wrapper.find('[data-test="support-btn"]');
 
     await supportBtn.trigger("click");
