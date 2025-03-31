@@ -1,13 +1,7 @@
-import { AxiosError } from "axios";
-
-const isAxiosError = (error: unknown): error is AxiosError => (
-  typeof error === "object"
-    && error !== null
-    && (error as AxiosError).isAxiosError !== undefined
-);
+import axios from "axios";
 
 const handleErrorInTests = (error: unknown) => {
-  if (!isAxiosError(error)) {
+  if (!axios.isAxiosError(error)) {
     console.error(error);
     return;
   }
