@@ -158,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import axios from "axios";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
 import { useStore } from "../../store";
@@ -171,11 +171,11 @@ onMounted(async () => {
   await store.dispatch("instance/fetchAuthenticationSettings");
 });
 
-const ssoSettings = computed(() => store.getters["instance/authenticationSettings"]);
-const certificate = computed(() => ssoSettings.value.saml.sp.certificate);
+const ssoSettings = ref(store.getters["instance/authenticationSettings"]);
+const certificate = ref(ssoSettings.value.saml.sp.certificate);
 
-const localEnabled = computed(() => store.getters["instance/isLocalAuthEnabled"]);
-const samlEnabled = computed(() => store.getters["instance/isSamlEnabled"]);
+const localEnabled = ref(store.getters["instance/isLocalAuthEnabled"]);
+const samlEnabled = ref(store.getters["instance/isSamlEnabled"]);
 
 const changeLocalAuthStatus = async () => {
   try {

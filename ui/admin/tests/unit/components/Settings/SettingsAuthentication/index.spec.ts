@@ -115,6 +115,8 @@ describe("Authentication", () => {
     expect(redirectBtn.exists()).toBe(true);
 
     const windowOpenSpy = vi.spyOn(window, "open");
+    windowOpenSpy.mockImplementation(() => null);
+
     await redirectBtn.trigger("click");
 
     expect(windowOpenSpy).toHaveBeenCalledWith(authData.saml.auth_url, "_blank");
