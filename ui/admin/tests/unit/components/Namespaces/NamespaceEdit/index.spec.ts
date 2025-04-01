@@ -2,6 +2,7 @@ import { createVuetify } from "vuetify";
 import { createStore } from "vuex";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { INamespace } from "@admin/interfaces/INamespace";
 import NamespaceEdit from "../../../../../src/components/Namespace/NamespaceEdit.vue";
 import { key } from "../../../../../src/store";
 
@@ -17,15 +18,27 @@ const store = createStore({
   },
 });
 
-const namespace = {
-  billing: null,
+const billing = {
+  active: true,
+  current_period_end: "",
+  customer_id: "",
+  payment_failed: null,
+  payment_method_id: "",
+  price_id: "",
+  state: "",
+  sub_item_id: "",
+  subscription_id: "",
+};
+
+const namespace: INamespace = {
+  billing,
   created_at: "2022-04-13T11:42:49.578Z",
   devices_count: 2,
   max_devices: 10,
   members: [
     {
       id: "",
-      role: "admin",
+      role: "owner",
       username: "ossystems",
     },
   ],
