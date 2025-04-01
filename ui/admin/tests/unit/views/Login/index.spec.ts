@@ -6,7 +6,6 @@ import router from "@admin/router";
 import Login from "../../../../src/views/Login.vue";
 import SnackbarComponent from "../../../../src/components/Snackbar/Snackbar.vue";
 import { key } from "../../../../src/store";
-import routes from "../../../../src/router";
 
 type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
 
@@ -33,7 +32,7 @@ describe("Login", () => {
 
     wrapper = shallowMount(Login, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [[store, key], vuetify, router],
         components: { SnackbarComponent },
       },
     });
