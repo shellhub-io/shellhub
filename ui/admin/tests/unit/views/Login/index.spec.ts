@@ -2,6 +2,7 @@ import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import router from "@admin/router";
 import Login from "../../../../src/views/Login.vue";
 import SnackbarComponent from "../../../../src/components/Snackbar/Snackbar.vue";
 import { key } from "../../../../src/store";
@@ -43,6 +44,7 @@ describe("Login", () => {
   });
 
   it("Renders the component", () => {
+    router.push("/login");
     expect(wrapper.html()).toMatchSnapshot();
   });
   it("Compare data with default value", () => {
