@@ -196,6 +196,10 @@ describe("Device Action Button", () => {
   });
 
   it("Closing dialog sets dialog value to false", async () => {
+    vi.spyOn(console, "warn").mockImplementation((message) => {
+      if (message.includes("click:outside")) return;
+      console.log(message);
+    });
     wrapper.vm.dialog = true;
     const dialogComponent = wrapper.findComponent({ name: "VDialog" });
     await dialogComponent.vm.$emit("click:outside");
