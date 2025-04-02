@@ -34,7 +34,7 @@ func (c *client) FirewallEvaluate(lookup map[string]string) error {
 		SetRetryCount(10).
 		R().
 		SetQueryParams(lookup).
-		Get("http://cloud-api:8080/internal/firewall/rules/evaluate")
+		Get("http://cloud:8080/internal/firewall/rules/evaluate")
 	if err != nil {
 		return ErrFirewallConnection
 	}

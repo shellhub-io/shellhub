@@ -132,7 +132,7 @@ func (c *client) SaveSession(uid string, seat int) error {
 			"uid":  uid,
 			"seat": fmt.Sprintf("%d", seat),
 		}).
-		Post("http://cloud-api:8080/internal/sessions/{uid}/records/{seat}")
+		Post("http://cloud:8080/internal/sessions/{uid}/records/{seat}")
 	if err != nil {
 		return errors.Join(errors.New("failed to save the Asciinema file on Object Storage"), err)
 	}

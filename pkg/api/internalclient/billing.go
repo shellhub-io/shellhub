@@ -22,7 +22,7 @@ func (c *client) BillingReport(tenant string, action string) (int, error) {
 		R().
 		SetHeader("X-Tenant-ID", tenant).
 		SetQueryParam("action", action).
-		Post("http://billing-api:8080/internal/billing/report")
+		Post("http://cloud:8080/internal/billing/report")
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -37,7 +37,7 @@ func (c *client) BillingEvaluate(tenantID string) (*models.BillingEvaluation, in
 		R().
 		SetHeader("X-Tenant-ID", tenantID).
 		SetResult(&eval).
-		Post("http://billing-api:8080/internal/billing/evaluate")
+		Post("http://cloud:8080/internal/billing/evaluate")
 	if err != nil {
 		return eval, resp.StatusCode(), err
 	}

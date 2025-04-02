@@ -135,7 +135,7 @@ func (c *client) LookupTunnel(address string) (*Tunnel, error) {
 	resp, err := c.http.
 		R().
 		SetResult(&tunnel).
-		Get(fmt.Sprintf("http://cloud-api:8080/internal/tunnels/%s", address))
+		Get(fmt.Sprintf("http://cloud:8080/internal/tunnels/%s", address))
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}
