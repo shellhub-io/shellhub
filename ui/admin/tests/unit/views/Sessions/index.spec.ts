@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Sessions from "../../../../src/views/Sessions.vue";
 
+type SessionsWrapper = VueWrapper<InstanceType<typeof Sessions>>;
+
 describe("Sessions", () => {
   const store = createStore({
     state: {},
@@ -17,7 +19,7 @@ describe("Sessions", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: SessionsWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

@@ -120,6 +120,8 @@ const login = async () => {
     store.dispatch("snackbar/showSnackbarErrorDefault");
   }
 };
+
+defineExpose({ username, password, usernameError, passwordError });
 </script>
 
 <style>

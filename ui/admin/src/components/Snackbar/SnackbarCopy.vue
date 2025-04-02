@@ -34,4 +34,6 @@ const snackbar = computed({
 });
 
 const message = computed(() => `${props.mainContent} copied to clipboard.`);
+
+defineExpose({ snackbar, message });
 </script>

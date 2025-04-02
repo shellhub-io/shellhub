@@ -233,4 +233,6 @@ const refreshUsers = async () => {
 const redirectToUser = async (user: IUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
+
+defineExpose({ users });
 </script>

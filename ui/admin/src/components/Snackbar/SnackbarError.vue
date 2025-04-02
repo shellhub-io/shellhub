@@ -51,4 +51,6 @@ const message = computed(() => {
       return "The request has failed, please try again.";
   }
 });
+
+defineExpose({ snackbar, message });
 </script>

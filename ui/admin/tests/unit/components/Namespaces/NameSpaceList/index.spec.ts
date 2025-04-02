@@ -6,6 +6,8 @@ import NamespaceList from "../../../../../src/components/Namespace/NamespaceList
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type NamespaceListWrapper = VueWrapper<InstanceType<typeof NamespaceList>>;
+
 const namespaces = [
   {
     billing: null,
@@ -63,7 +65,7 @@ const store = createStore({
 });
 
 describe("Namespace Edit", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: NamespaceListWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

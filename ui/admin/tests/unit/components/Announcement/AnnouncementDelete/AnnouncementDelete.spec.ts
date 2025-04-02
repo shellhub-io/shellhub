@@ -6,6 +6,8 @@ import AnnouncementDelete from "../../../../../src/components/Announcement/Annou
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type AnnouncementDeleteWrapper = VueWrapper<InstanceType<typeof AnnouncementDelete>>;
+
 const announcement = {
   uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
   title: "Announcement 1",
@@ -29,7 +31,7 @@ describe("Announcement Delete", () => {
 
   const vuetify = createVuetify();
 
-  let wrapper: VueWrapper<any>;
+  let wrapper: AnnouncementDeleteWrapper;
 
   beforeEach(() => {
     wrapper = mount(AnnouncementDelete, {

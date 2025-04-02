@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import NamespaceDetails from "../../../../src/views/NamespaceDetails.vue";
 
+type NamespaceDetailsWrapper = VueWrapper<InstanceType<typeof NamespaceDetails>>;
+
 const namespaceDetail = {
   name: "dev",
   owner: "6256b739302b50b6cc5eafcc",
@@ -50,7 +52,7 @@ describe("Firewall Rule Details", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: NamespaceDetailsWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

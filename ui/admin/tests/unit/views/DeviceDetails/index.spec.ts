@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import DeviceDetails from "../../../../src/views/DeviceDetails.vue";
 
+type DeviceDetailsWrapper = VueWrapper<InstanceType<typeof DeviceDetails>>;
+
 const deviceDetail = {
   uid: "cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75",
   name: "08-97-98-68-7a-97",
@@ -61,7 +63,7 @@ describe("Device Details", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: DeviceDetailsWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

@@ -6,6 +6,8 @@ import Snackbar from "../../../../src/components/Snackbar/Snackbar.vue";
 import { key } from "../../../../src/store";
 import router from "../../../../src/router";
 
+type SnackbarWrapper = VueWrapper<InstanceType<typeof Snackbar>>;
+
 const snackbarMessageAndContentType = {
   typeMessage: "",
   typeContent: "",
@@ -21,7 +23,7 @@ const store = createStore({
 });
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: SnackbarWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

@@ -49,4 +49,5 @@ const message = computed(() => {
   }
 });
 
+defineExpose({ snackbar, message });
 </script>

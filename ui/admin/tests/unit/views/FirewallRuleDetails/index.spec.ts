@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import FirewallRulesDetails from "../../../../src/views/FirewallRulesDetails.vue";
 
+type FirewallRulesDetailsWrapper = VueWrapper<InstanceType<typeof FirewallRulesDetails>>;
+
 const firewallRuleDetail = {
   id: "6256b876e5c1d9bbdf954662",
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -38,7 +40,7 @@ describe("Firewall Rule Details", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: FirewallRulesDetailsWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

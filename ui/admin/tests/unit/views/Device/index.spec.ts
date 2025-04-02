@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Device from "../../../../src/views/Device.vue";
 
+type DeviceWrapper = VueWrapper<InstanceType<typeof Device>>;
+
 describe("Device", () => {
   const store = createStore({
     state: {},
@@ -20,7 +22,7 @@ describe("Device", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: DeviceWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

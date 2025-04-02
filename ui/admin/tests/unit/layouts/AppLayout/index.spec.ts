@@ -8,6 +8,7 @@ import routes from "../../../../src/router";
 import AppLayout from "../../../../src/layouts/AppLayout.vue";
 
 const layout = "AppLayout";
+type AppLayoutWrapper = VueWrapper<InstanceType<typeof AppLayout>>;
 
 const license = {
   id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -55,7 +56,7 @@ const store = createStore({
 });
 
 describe("AppLayout", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: AppLayoutWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

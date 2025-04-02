@@ -6,6 +6,8 @@ import SnackbarCopy from "../../../../../src/components/Snackbar/SnackbarCopy.vu
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type SnackbarCopyWrapper = VueWrapper<InstanceType<typeof SnackbarCopy>>;
+
 const mainContent = "Command";
 const snackbarCopy = true;
 const message = `${mainContent} copied to clipboard.`;
@@ -25,7 +27,7 @@ const store = createStore({
 });
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: SnackbarCopyWrapper;
 
   beforeEach(() => {
     wrapper = shallowMount(SnackbarCopy, {

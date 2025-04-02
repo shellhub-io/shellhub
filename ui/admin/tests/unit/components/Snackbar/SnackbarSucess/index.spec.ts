@@ -6,6 +6,8 @@ import SnackbarSucess from "../../../../../src/components/Snackbar/SnackbarSuces
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type SnackbarSucessWrapper = VueWrapper<InstanceType<typeof SnackbarSucess>>;
+
 const snackbarSuccess = true;
 let typeMessage = "action";
 const mainContent = "renaming device";
@@ -26,7 +28,7 @@ const store = createStore({
 });
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: SnackbarSucessWrapper;
 
   beforeEach(() => {
     wrapper = shallowMount(SnackbarSucess, {

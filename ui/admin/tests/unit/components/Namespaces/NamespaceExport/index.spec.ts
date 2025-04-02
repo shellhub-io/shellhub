@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import NamespaceExport from "../../../../../src/components/Namespace/NamespaceExport.vue";
 import { key } from "../../../../../src/store";
 
+type NamespaceExportWrapper = VueWrapper<InstanceType<typeof NamespaceExport>>;
+
 const namespaces = [
   {
     billing: null,
@@ -61,8 +63,8 @@ const store = createStore({
   },
 });
 
-describe("Namespace Edit", () => {
-  let wrapper: VueWrapper<any>;
+describe("Namespace Export", () => {
+  let wrapper: NamespaceExportWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

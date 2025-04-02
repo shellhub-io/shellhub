@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Namespaces from "../../../../src/views/Namespaces.vue";
 
+type NamespacesWrapper = VueWrapper<InstanceType<typeof Namespaces>>;
+
 describe("Namespaces", () => {
   const store = createStore({
     state: {},
@@ -20,7 +22,7 @@ describe("Namespaces", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: NamespacesWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();
