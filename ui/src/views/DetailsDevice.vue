@@ -181,7 +181,6 @@ const refreshUsers = async () => {
     await store.dispatch("devices/get", deviceId.value);
     if (envVariables.isEnterprise) {
       await store.dispatch("tunnels/get", deviceId.value);
-      return;
     }
   } catch (error: unknown) {
     store.dispatch(
