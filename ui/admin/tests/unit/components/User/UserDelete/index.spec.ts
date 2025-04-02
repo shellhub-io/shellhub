@@ -1,4 +1,4 @@
-import { createStore, useStore as vuexUseStore } from "vuex";
+import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";

@@ -1,7 +1,7 @@
 import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mount, shallowMount, VueWrapper } from "@vue/test-utils";
+import { shallowMount, VueWrapper } from "@vue/test-utils";
 import SnackbarComponent from "../../../../src/components/Snackbar/Snackbar.vue";
 import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
