@@ -6,6 +6,8 @@ import License from "../../../../../src/components/Settings/SettingsLicense.vue"
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type LicenseWrapper = VueWrapper<InstanceType<typeof License>>;
+
 const license = {
   id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   expired: false,
@@ -42,7 +44,7 @@ const store = createStore({
 });
 
 describe("License", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: LicenseWrapper;
 
   beforeEach(async () => {
     const vuetify = createVuetify();

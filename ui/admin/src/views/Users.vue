@@ -60,4 +60,6 @@ const searchUsers = () => {
 watchDebounced(filter, () => {
   searchUsers();
 }, { debounce: 1000, maxWait: 5000 });
+
+defineExpose({ filter });
 </script>

@@ -3,6 +3,8 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import DataTable from "../../../../src/components/DataTable.vue";
 
+type DataTableWrapper = VueWrapper<InstanceType<typeof DataTable>>;
+
 const headersTable = [
   {
     text: "Name",
@@ -46,7 +48,7 @@ const itemsTable = [
 ];
 
 describe("DataTable", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: DataTableWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

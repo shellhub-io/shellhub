@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import FirewallRules from "../../../../src/views/FirewallRules.vue";
 
+type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
+
 describe("Firewall Rules", () => {
   const store = createStore({
     state: {},
@@ -17,7 +19,7 @@ describe("Firewall Rules", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: FirewallRulesWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

@@ -6,6 +6,8 @@ import SessionList from "../../../../../src/components/Sessions/SessionList.vue"
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type SessionListWrapper = VueWrapper<InstanceType<typeof SessionList>>;
+
 const headers = [
   { text: "Active", value: "active" },
   { text: "Id", value: "uid" },
@@ -93,7 +95,7 @@ const store = createStore({
 });
 
 describe("Sessions List", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: SessionListWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

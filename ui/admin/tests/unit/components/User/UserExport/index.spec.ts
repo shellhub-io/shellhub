@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import UserExport from "../../../../../src/components/User/UserExport.vue";
 import { key } from "../../../../../src/store";
 
+type UserExportWrapper = VueWrapper<InstanceType<typeof UserExport>>;
+
 const store = createStore({
   state: {},
   getters: {},
@@ -16,7 +18,7 @@ const store = createStore({
 });
 
 describe("User Export", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: UserExportWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

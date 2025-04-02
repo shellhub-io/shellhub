@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Announcements from "../../../../src/views/Announcements.vue";
 
+type AnnouncementsWrapper = VueWrapper<InstanceType<typeof Announcements>>;
+
 const announcements = [
   {
     uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
@@ -34,7 +36,7 @@ describe("Announcement Details", () => {
 
   const vuetify = createVuetify();
 
-  let wrapper: VueWrapper<any>;
+  let wrapper: AnnouncementsWrapper;
 
   beforeEach(() => {
     wrapper = mount(Announcements, {

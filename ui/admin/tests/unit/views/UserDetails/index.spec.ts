@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import UserDetails from "../../../../src/views/UserDetails.vue";
 
+type UserDetailsWrapper = VueWrapper<InstanceType<typeof UserDetails>>;
+
 const user = {
   confirmed: true,
   created_at: "2022-04-13T11:42:49.578Z",
@@ -36,7 +38,7 @@ describe("User Details", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: UserDetailsWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

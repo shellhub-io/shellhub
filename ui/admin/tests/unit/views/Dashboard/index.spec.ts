@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Dashboard from "../../../../src/views/Dashboard.vue";
 
+type DashboardWrapper = VueWrapper<InstanceType<typeof Dashboard>>;
+
 const stats = {
   registeredUsers: 0,
   registeredDevices: 0,
@@ -108,7 +110,7 @@ const cardsContent = [
   },
 ];
 describe("Dashboard", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: DashboardWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

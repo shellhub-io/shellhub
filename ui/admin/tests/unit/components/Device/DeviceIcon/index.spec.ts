@@ -3,8 +3,10 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import DeviceIcon from "../../../../../src/components/Device/DeviceIcon.vue";
 
+type DeviceIconWrapper = VueWrapper<InstanceType<typeof DeviceIcon>>;
+
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: DeviceIconWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

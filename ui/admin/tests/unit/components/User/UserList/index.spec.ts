@@ -6,6 +6,8 @@ import UserList from "../../../../../src/components/User/UserList.vue";
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type UserListWrapper = VueWrapper<InstanceType<typeof UserList>>;
+
 const users = [
   {
     confirmed: true,
@@ -37,7 +39,7 @@ const store = createStore({
 });
 
 describe("UserList", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: UserListWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -58,8 +60,8 @@ describe("UserList", () => {
   });
 
   it("Renders data in the computed", async () => {
-    const users = await wrapper.vm.getListUsers;
-    expect(users).toEqual(users);
+    const componentUsers = await wrapper.vm.users;
+    expect(componentUsers).toEqual(users);
   });
 
   it("Should render the props of the user in the table", () => {

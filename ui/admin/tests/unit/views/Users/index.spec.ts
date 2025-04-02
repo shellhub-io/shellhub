@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import Users from "../../../../src/views/Users.vue";
 
+type UsersWrapper = VueWrapper<InstanceType<typeof Users>>;
+
 describe("Users", () => {
   const store = createStore({
     state: {},
@@ -20,7 +22,7 @@ describe("Users", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: UsersWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

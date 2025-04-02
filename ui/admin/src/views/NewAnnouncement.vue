@@ -130,6 +130,7 @@ const postAnnouncement = () => {
   }
 };
 
+defineExpose({ title, titleError });
 </script>
 
 <style lang="scss">

@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import SimpleLayout from "../../../../src/layouts/SimpleLayout.vue";
 
+type SimpleLayoutWrapper = VueWrapper<InstanceType<typeof SimpleLayout>>;
+
 const layout = "simpleLayout";
 
 const store = createStore({
@@ -23,7 +25,7 @@ const store = createStore({
 });
 
 describe("SimpleLayout", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: SimpleLayoutWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -32,7 +34,7 @@ describe("SimpleLayout", () => {
       global: {
         plugins: [[store, key], vuetify, routes],
       },
-    });
+    }) as unknown as SimpleLayoutWrapper;
   });
 
   it("Is a Vue instance", () => {

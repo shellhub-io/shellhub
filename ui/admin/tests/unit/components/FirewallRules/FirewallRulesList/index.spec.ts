@@ -6,6 +6,8 @@ import FirewallRulesList from "../../../../../src/components/FirewallRules/Firew
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type FirewallRulesListWrapper = VueWrapper<InstanceType<typeof FirewallRulesList>>;
+
 const headers = [
   { text: "Tenant Id", value: "tenant_id" },
   { text: "Priority", value: "priority" },
@@ -47,8 +49,8 @@ const store = createStore({
   },
 });
 
-describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+describe("Firewall Rules List", () => {
+  let wrapper: FirewallRulesListWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

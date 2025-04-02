@@ -312,6 +312,7 @@ const uploadLicense = async () => {
   }
 };
 
+defineExpose({ license });
 </script>
 
 <style scoped>

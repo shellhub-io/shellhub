@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import SessionDetails from "../../../../src/views/SessionDetails.vue";
 
+type SessionDetailsWrapper = VueWrapper<InstanceType<typeof SessionDetails>>;
+
 const sessionDetail = {
   uid: "df33c82dcc7b401b0e4511fd9e0a86a48c5875da6091e89cf37cbbb38819e17e",
   device_uid: "cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75",
@@ -75,7 +77,7 @@ describe("Session Details", () => {
       "snackbar/showSnackbarErrorAction": vi.fn(),
     },
   });
-  let wrapper: VueWrapper<any>;
+  let wrapper: SessionDetailsWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

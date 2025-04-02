@@ -7,6 +7,8 @@ import SnackbarComponent from "../../../../src/components/Snackbar/Snackbar.vue"
 import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 
+type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
+
 const store = createStore({
   state: {},
   getters: {
@@ -23,7 +25,7 @@ const store = createStore({
 });
 
 describe("Login", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: LoginWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

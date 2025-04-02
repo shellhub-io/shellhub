@@ -6,6 +6,8 @@ import routes from "../../../../../src/router";
 import UserDelete from "../../../../../src/components/User/UserDelete.vue";
 import { key } from "../../../../../src/store";
 
+type UserDeleteWrapper = VueWrapper<InstanceType<typeof UserDelete>>;
+
 const store = createStore({
   state: {},
   getters: {},
@@ -17,7 +19,7 @@ const store = createStore({
 });
 
 describe("User Delete", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: UserDeleteWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

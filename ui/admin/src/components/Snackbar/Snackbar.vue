@@ -24,4 +24,6 @@ import { useStore } from "../../store";
 const store = useStore();
 
 const message = computed(() => store.getters["snackbar/snackbarMessageAndContentType"]);
+
+defineExpose({ message });
 </script>

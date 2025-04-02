@@ -6,6 +6,8 @@ import SnackbarError from "../../../../../src/components/Snackbar/SnackbarError.
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type SnackbarErrorWrapper = VueWrapper<InstanceType<typeof SnackbarError>>
+
 const snackbarError = true;
 let typeMessage = "loading";
 let mainContent = "dashboard";
@@ -28,7 +30,7 @@ const store = createStore({
 });
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: SnackbarErrorWrapper;
 
   beforeEach(() => {
     wrapper = shallowMount(SnackbarError, {

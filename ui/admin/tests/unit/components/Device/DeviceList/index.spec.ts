@@ -6,6 +6,8 @@ import DeviceList from "../../../../../src/components/Device/DeviceList.vue";
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
+type DeviceListWrapper = VueWrapper<InstanceType<typeof DeviceList>>;
+
 const headers = [
   { text: "Online", value: "online", sortable: true },
   { text: "Hostname", value: "name", sortable: true },
@@ -64,7 +66,7 @@ const store = createStore({
 });
 
 describe("Device List", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: DeviceListWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();
@@ -94,7 +96,7 @@ describe("Device List", () => {
   });
 
   it("Renders data in the computed", async () => {
-    const devices = await wrapper.vm.getListDevices;
-    expect(devices).toEqual(devices);
+    const componentDevices = await wrapper.vm.devices;
+    expect(componentDevices).toEqual(devices);
   });
 });

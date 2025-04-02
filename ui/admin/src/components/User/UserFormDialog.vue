@@ -316,4 +316,14 @@ watch(changeNamespaceLimit, (newValue) => {
 watch(disableNamespaceCreation, (newValue) => {
   if (!newValue) maxNamespaces.value = 1;
 });
+
+defineExpose({
+  openDialog,
+  emailIsConfirmed,
+  userConfirmed,
+  password,
+  name,
+  email,
+  username,
+});
 </script>

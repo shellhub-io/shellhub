@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import NamespaceEdit from "../../../../../src/components/Namespace/NamespaceEdit.vue";
 import { key } from "../../../../../src/store";
 
+type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
+
 const store = createStore({
   state: {},
   getters: {},
@@ -36,7 +38,7 @@ const namespace = {
 };
 
 describe("Namespace Edit", () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: NamespaceEditWrapper;
 
   beforeEach(() => {
     const vuetify = createVuetify();

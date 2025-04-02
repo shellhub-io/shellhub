@@ -6,6 +6,8 @@ import { key } from "../../../../src/store";
 import routes from "../../../../src/router";
 import NewAnnouncement from "../../../../src/views/NewAnnouncement.vue";
 
+type NewAnnouncementWrapper = VueWrapper<InstanceType<typeof NewAnnouncement>>;
+
 describe("New Announcement", () => {
   const store = createStore({
     state: {
@@ -22,7 +24,7 @@ describe("New Announcement", () => {
 
   const vuetify = createVuetify();
 
-  let wrapper: VueWrapper<any>;
+  let wrapper: NewAnnouncementWrapper;
 
   beforeEach(() => {
     wrapper = mount(NewAnnouncement, {
