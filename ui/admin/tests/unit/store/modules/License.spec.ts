@@ -26,29 +26,29 @@ describe("License", () => {
     },
   };
 
-  const newLicense = {
-    expired: false,
-    about_to_expire: false,
-    grace_period: false,
-    id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    issued_at: -1,
-    starts_at: -1,
-    expires_at: -1,
-    allowed_regions: [],
-    customer: {
-      id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      name: "New ShellHub",
-      email: "newShelhub@ossystems.com.br",
-      company: "New O.S. Systems",
-    },
-    features: {
-      devices: -1,
-      session_recording: true,
-      firewall_rules: true,
-      reports: false,
-      login_link: false,
-    },
-  };
+  // const newLicense = {
+  //   expired: false,
+  //   about_to_expire: false,
+  //   grace_period: false,
+  //   id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  //   issued_at: -1,
+  //   starts_at: -1,
+  //   expires_at: -1,
+  //   allowed_regions: [],
+  //   customer: {
+  //     id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  //     name: "New ShellHub",
+  //     email: "newShelhub@ossystems.com.br",
+  //     company: "New O.S. Systems",
+  //   },
+  //   features: {
+  //     devices: -1,
+  //     session_recording: true,
+  //     firewall_rules: true,
+  //     reports: false,
+  //     login_link: false,
+  //   },
+  // };
   it("Return license default variables", () => {
     expect(store.getters["license/get"]).toEqual(undefined);
   });
