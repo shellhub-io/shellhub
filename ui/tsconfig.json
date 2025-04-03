@@ -18,6 +18,7 @@
       "@/*": ["src/*"],
       "@ui/*": ["src/*"],
       "@admin/*": ["admin/src/*"],
+      "@global/*": ["global/*"],
     },
     "noImplicitAny": false,
     "sourceRoot": "/",
@@ -38,7 +39,10 @@
     "src/sshpk.Js",
     "admin/**/*.ts",
     "admin/**/*.d.ts",
-    "admin/**/*.vue",
+    "admin/**/*.vue", 
+    "global/**/*.ts",
+    "global/**/*.d.ts",
+    "global/**/*.vue", 
   ],
   "extensions": [
     ".vue"

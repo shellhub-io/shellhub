@@ -41,12 +41,6 @@ export const patchUserPassword = async (data: IUser) => usersApi.updateUser({
   password: data.newPassword,
 });
 
-export const premiumContent = async () => {
-  const response = await fetch("https://static.shellhub.io/premium-features.v1.json");
-  const data = await response.json();
-  return data;
-};
-
 export const getSamlLink = async () => usersApi.getSamlAuthUrl();
 
 export const setup = async (data: IUserSetup) => systemApi.setup(data.sign, {

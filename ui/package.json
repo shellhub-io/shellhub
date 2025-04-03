@@ -45,6 +45,7 @@
     "markdown-it": "^13.0.2",
     "moment": "^2.29.4",
     "node-rsa": "^1.1.1",
+    "pinia": "^3.0.1",
     "qrcode.vue": "^3.4.1",
     "sass": "^1.83.0",
     "sshpk": "^1.17.0",

@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@admin": fileURLToPath(new URL("./admin/src", import.meta.url)),
+      "@global": fileURLToPath(new URL("./global", import.meta.url)),
     },
   },
   css: {
@@ -50,6 +51,9 @@ export default defineConfig({
       },
     },
     exclude: ["**/node_modules/**"],
+    alias: {
+      "@global": fileURLToPath(new URL("./global", import.meta.url)),
+    },
     update: false,
   },
 });

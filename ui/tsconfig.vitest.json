@@ -7,7 +7,9 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@admin/*": ["./admin/src/*"],
+      "@global/*": ["./global/*"]
     },
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["vuetify", "node", "jsdom"]
