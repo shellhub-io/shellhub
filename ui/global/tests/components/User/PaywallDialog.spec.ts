@@ -3,8 +3,9 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { nextTick } from "vue";
+import PaywallDialog from "@global/components/User/PaywallDialog.vue";
+import { createPinia, setActivePinia } from "pinia";
 import { store, key } from "@/store";
-import PaywallDialog from "@/components/User/PaywallDialog.vue";
 import { router } from "@/router";
 import { namespacesApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -92,6 +93,7 @@ describe("PaywallDialog", async () => {
   })));
 
   beforeEach(async () => {
+    setActivePinia(createPinia());
     const el = document.createElement("div");
     document.body.appendChild(el);
 

@@ -47,6 +47,11 @@
 
   <PaywallDialog
     v-model="showPaywall"
+    @close="closePaywall"
+    title="Upgrade to have access to all features!"
+    subtitle="To use this feature, upgrade from the ShellHub Community Edition to one of our premium editions.
+              Each edition of ShellHub offers its own set of features and benefits, making it easy to find the
+              right solution for your needs."
     data-test="PaywallDialog-component"
   />
 </template>
@@ -54,6 +59,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import PaywallDialog from "@global/components/User/PaywallDialog.vue";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
 import { INotificationsError } from "@/interfaces/INotifications";
@@ -66,7 +72,6 @@ import handleError from "@/utils/handleError";
 import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
-import PaywallDialog from "./PaywallDialog.vue";
 
 defineOptions({
   inheritAttrs: false,
@@ -101,6 +106,10 @@ const statusWarning = async () => {
     store.getters["stats/stats"].registered_devices > 3
         && !store.getters["billing/active"]
   );
+};
+
+const closePaywall = () => {
+  store.commit("users/setShowPaywall", false);
 };
 
 const billingWarning = async () => {

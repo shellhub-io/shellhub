@@ -2,6 +2,7 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+import { createPinia, setActivePinia } from "pinia";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { store, key } from "@/store";
 import { router } from "@/router";
@@ -14,6 +15,8 @@ describe("App Layout Component", () => {
   const vuetify = createVuetify();
 
   beforeEach(() => {
+    setActivePinia(createPinia());
+
     vi.useFakeTimers();
 
     wrapper = mount(AppLayout, {

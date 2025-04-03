@@ -1,3 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Login > Renders the component 1`] = `"<v-app-stub overlaps="" fullheight="true"></v-app-stub>"`;
+exports[`Login > Renders the component 1`] = `
+"<v-app-stub overlaps="" fullheight="true"></v-app-stub>
+<paywall-dialog-stub filter="enterprise" title="Unlock Full Managing with ShellHub Enterprise!" subtitle="Upgrade to ShellHub Enterprise (Managed or On-Premises)
+    and gain full control over your infrastructure with advanced security,
+    management and priority support." modelvalue="true"></paywall-dialog-stub>"
+`;

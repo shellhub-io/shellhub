@@ -3,7 +3,7 @@
     v-model="dialog"
     transition="dialog-bottom-transition"
     max-width="650"
-    height="800"
+    max-height="800"
     @click:outside="close"
     @keydown.esc="close"
   >
@@ -23,20 +23,18 @@
         <v-row>
           <v-col class="pb-0">
             <h1 class="d-flex justify-center align-center text-center" data-test="upgrade-heading">
-              Upgrade to have access to all features!
+              {{ title }}
             </h1>
           </v-col>
         </v-row>
         <v-row>
           <v-col class="pt-1 pb-6">
             <p class="d-flex justify-center align-center text-grey text-center" data-test="upgrade-description">
-              To use this feature, upgrade from the ShellHub Community Edition to one of our premium editions.
-              Each edition of ShellHub offers its own set of features and benefits, making it easy to find the
-              right solution for your needs.
+              {{ subtitle }}
             </p>
           </v-col>
         </v-row>
-        <div v-if="items.length === 0">
+        <div v-if="filteredItems.length === 0">
           <v-row>
             <v-col class="d-flex align-center justify-center">
               <v-btn
@@ -52,7 +50,7 @@
           </v-row>
         </div>
         <v-row v-else data-test="items-row">
-          <v-col v-for="(item, i) in items" :key="i" :data-test="'item-' + i">
+          <v-col v-for="(item, i) in filteredItems" :key="i" :data-test="'item-' + i">
             <v-card class="bg-v-theme-surface border d-flex flex-column justify-space-between" height="100%" :data-test="'item-card-' + i">
               <v-card-title class="d-flex justify-center" :data-test="'item-title-' + i">
                 <b>{{ item.title }}</b>
@@ -80,34 +78,57 @@
             </v-card>
           </v-col>
         </v-row>
-        <v-card-actions data-test="card-actions">
-          <v-spacer />
-          <v-btn @click="close" class="mt-4" variant="text" data-test="close-btn">
-            Close
-          </v-btn>
-        </v-card-actions>
       </v-container>
+      <v-card-actions data-test="card-actions">
+        <v-spacer />
+        <v-btn @click="close" class="mt-4" variant="text" data-test="close-btn">
+          Close
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useStore } from "@/store";
+import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import useGlobalStore from "@global/store/modules/global";
 
-const store = useStore();
-const dialog = ref(false);
+const props = defineProps<{
+  filter?: "cloud" | "enterprise" | "all";
+  title?: string;
+  subtitle?: string;
+}>();
+
+const emit = defineEmits(["close"]);
+const dialog = defineModel({ default: false });
+
 const close = () => {
   dialog.value = false;
-  store.commit("users/setShowPaywall", false);
+  emit("close");
 };
-const items = computed(() => store.getters["users/getPremiumContent"]);
+
+const store = useGlobalStore();
+const { premiumContent } = storeToRefs(store);
+
+const filteredItems = computed(() => {
+  const filter = props.filter || "all";
+
+  if (filter === "cloud") {
+    return premiumContent.value.filter((item) => item.title.includes("Cloud"));
+  }
+  if (filter === "enterprise") {
+    return premiumContent.value.filter((item) => item.title.includes("Enterprise"));
+  }
+  return premiumContent.value;
+});
 
 onMounted(() => {
-  store.dispatch("users/getPremiumContent");
+  store.getPaywallPremiumContent();
 });
 
 defineExpose({ dialog });
+
 </script>
 
 <style scoped>

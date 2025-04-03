@@ -8,7 +8,6 @@ export interface UsersState {
   statusUpdateAccountDialogByDeviceAction: boolean;
   deviceDuplicationError: boolean,
   showPaywall: boolean,
-  premiumContent: Array<object>,
   signUpToken: string | undefined,
   info: {
     version: string;
@@ -32,7 +31,6 @@ export const users: Module<UsersState, State> = {
     statusUpdateAccountDialogByDeviceAction: false,
     deviceDuplicationError: false,
     showPaywall: false,
-    premiumContent: [],
     signUpToken: undefined,
     info: {
       version: "",
@@ -56,7 +54,6 @@ export const users: Module<UsersState, State> = {
     },
     deviceDuplicationError: (state) => state.deviceDuplicationError,
     showPaywall: (state) => state.showPaywall,
-    getPremiumContent: (state) => state.premiumContent,
     getSignToken: (state) => state.signUpToken,
     getSystemInfo: (state) => state.info,
     getSamlURL: (state) => state.samlUrl,
@@ -80,10 +77,6 @@ export const users: Module<UsersState, State> = {
 
     setShowPaywall(state, status) {
       state.showPaywall = status;
-    },
-
-    setPremiumContent(state, data) {
-      state.premiumContent = data;
     },
 
     setSystemInfo(state, data) {
@@ -175,16 +168,6 @@ export const users: Module<UsersState, State> = {
     async updatePassword(context, data) {
       try {
         await apiUser.postUpdatePassword(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
-    },
-
-    async getPremiumContent(context) {
-      try {
-        const res = await apiUser.premiumContent();
-        context.commit("setPremiumContent", res);
       } catch (error) {
         console.error(error);
         throw error;

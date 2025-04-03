@@ -82,6 +82,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
       "@ui": path.resolve(__dirname, "src"),
       "@admin": path.resolve(__dirname, "admin/src"),
+      "@global": path.resolve(__dirname, "global"),
     },
   },
   define: {
