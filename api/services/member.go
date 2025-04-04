@@ -93,7 +93,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 	if m, ok := namespace.FindMember(passiveUser.ID); ok {
 		now := clock.Now()
 
-		if !envs.IsCloud() || !(m.Status == models.MemberStatusPending && m.ExpiresAt.Before(now)) {
+		if !envs.IsCloud() || (m.Status != models.MemberStatusPending || !m.ExpiresAt.Before(now)) {
 			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 
