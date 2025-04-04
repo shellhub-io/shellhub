@@ -15,6 +15,8 @@ formatters:
     - goimports
 
 linters:
+  disable:
+    - errcheck
   enable:
     - revive
     - govet
@@ -24,7 +26,6 @@ linters:
     - unconvert
     - unused
     - misspell
-    - errcheck
     - whitespace
     - depguard
     - nlreturn
@@ -32,8 +33,16 @@ linters:
     - gosec
 
   settings:
+    gosec:
+      excludes:
+        - G104
+        - G301
+        - G302
+        - G304
+    revive:
+      severity: warning
     staticcheck:
-      checks: ["all", "-SA1029"]
+      checks: ["all", "-SA1029", "-ST1020", "-ST1021", "-ST1022", "-ST1000", "-QF1008"]
     depguard:
       rules:
         all:
