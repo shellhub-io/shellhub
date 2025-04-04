@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"io/fs"
 	"log"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"syscall"
 	"text/template"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 // NginxController manages the configuration and operation of NGINX.
@@ -26,7 +27,7 @@ type NginxController struct {
 
 // generateConfigs generates the NGINX configuration files.
 func (nc *NginxController) generateConfigs() {
-	if err := os.MkdirAll("/etc/nginx", 0755); err != nil {
+	if err := os.MkdirAll("/etc/nginx", 0o755); err != nil {
 		log.Fatalf("Failed to create nginx directory: %v", err)
 	}
 
@@ -48,7 +49,7 @@ func (nc *NginxController) generateConfigs() {
 		destPath := filepath.Join(nc.rootDir, relativePath)
 
 		if info.IsDir() {
-			if err := os.MkdirAll(destPath, 0755); err != nil {
+			if err := os.MkdirAll(destPath, 0o755); err != nil {
 				return fmt.Errorf("failed to create directory %s: %w", destPath, err)
 			}
 		} else {
@@ -56,7 +57,6 @@ func (nc *NginxController) generateConfigs() {
 		}
 		return nil
 	})
-
 	if err != nil {
 		log.Fatalf("Failed to process templates: %v", err)
 	}
@@ -84,7 +84,7 @@ func (nc *NginxController) generateConfig(src, dst string) {
 		log.Fatalf("Failed to execute template %s: %v", src, err)
 	}
 
-	err = os.WriteFile(dst, output.Bytes(), 0644)
+	err = os.WriteFile(dst, output.Bytes(), 0o644)
 	if err != nil {
 		log.Fatalf("Failed to write config file %s: %v", dst, err)
 	}
