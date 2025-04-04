@@ -46,7 +46,7 @@ var migration73 = migrate.Migration{
 			}
 
 			for _, m := range namespace.Members {
-				if m.AddedAt == (time.Time{}) {
+				if m.AddedAt.Equal((time.Time{})) {
 					updateModel := mongo.
 						NewUpdateOneModel().
 						SetFilter(bson.M{"tenant_id": namespace.TenantID, "members": bson.M{"$elemMatch": bson.M{"id": m.ID}}}).
