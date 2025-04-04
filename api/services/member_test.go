@@ -435,7 +435,7 @@ func TestAddNamespaceMember(t *testing.T) {
 								ID:        "000000000000000000000001",
 								Role:      authorizer.RoleAdministrator,
 								Status:    models.MemberStatusPending,
-								ExpiresAt: time.Date(2023, 01, 01, 12, 00, 00, 00, time.UTC),
+								ExpiresAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
 							},
 						},
 					}, nil).
