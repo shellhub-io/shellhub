@@ -12,7 +12,7 @@
       rounded
       size="x-large"
       data-test="pause-icon"
-      @click="isPlaying = false"
+      @click="pause"
     />
     <v-icon
       v-else
@@ -22,7 +22,7 @@
       rounded
       size="x-large"
       data-test="play-icon"
-      @click="isPlaying = true"
+      @click="play"
     />
     <v-slider
       v-model="currentTime"
@@ -40,14 +40,13 @@
 
 <script setup lang="ts">
 import * as AsciinemaPlayer from "asciinema-player";
-import { onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref } from "vue";
 
 const { logs } = defineProps<{
   logs: string | null;
 }>();
 
 const isPlaying = ref(true);
-
 const wrapper = ref<HTMLDivElement | null>(null);
 const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
 const currentTime = ref(0);
@@ -84,7 +83,7 @@ onMounted(() => {
   player.value = AsciinemaPlayer.create({ data: logs }, wrapper.value, playerOptions);
 
   player.value.addEventListener("playing", () => {
-    // reset to prevent multiple intervals when replaying
+    // clear to prevent multiple intervals when replaying
     clearInterval(timeUpdaterId.value);
     startCurrentTimeUpdater();
     duration.value = player.value.getDuration();
@@ -97,7 +96,15 @@ onMounted(() => {
   });
 });
 
-watchEffect(() => isPlaying.value ? player.value?.play() : player.value?.pause());
+const play = () => {
+  player.value.play();
+  isPlaying.value = true;
+};
+
+const pause = () => {
+  player.value.pause();
+  isPlaying.value = false;
+};
 </script>
 
 <style lang="scss" scoped>
