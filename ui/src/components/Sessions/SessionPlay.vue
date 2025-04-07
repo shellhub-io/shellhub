@@ -17,20 +17,16 @@
       :fullscreen="true"
       v-model="showDialog"
     >
-      <v-card class="bg-v-theme-surface">
-        <v-card-title
-          class="text-h5 pa-3 bg-primary d-flex justify-space-between ga-4 align-center"
-        >
-          <v-btn
-            variant="text"
-            data-test="close-btn"
-            icon="mdi-close"
-            @click="showDialog = false"
-          />
-        </v-card-title>
-        <div class="ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal">
-          <Player :logs />
-        </div>
+      <v-card class="bg-v-theme-surface position-relative">
+        <v-btn
+          class="position-absolute top-0 right-0 ma-2 close-btn"
+          variant="text"
+          data-test="close-btn"
+          icon="mdi-close"
+          @click="closeDialog"
+        />
+
+        <Player :logs />
       </v-card>
     </v-dialog>
   </div>
@@ -71,7 +67,7 @@ const store = useStore();
 const logs = ref<string | null>(null);
 const isCommunity = computed(() => envVariables.isCommunity);
 
-const openPlay = async () => {
+const getSessions = async () => {
   if (props.recorded) {
     await store.dispatch("sessions/getLogSession", props.uid);
     logs.value = store.getters["sessions/get"];
@@ -80,7 +76,7 @@ const openPlay = async () => {
 
 const displayDialog = async () => {
   try {
-    await openPlay();
+    await getSessions();
     showDialog.value = true;
   } catch (error: unknown) {
     store.dispatch(
@@ -98,15 +94,14 @@ const openDialog = () => {
   }
   displayDialog();
 };
+
+const closeDialog = () => {
+  showDialog.value = false;
+};
 </script>
 
 <style lang="scss" scoped>
-.terminal {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0;
-  right:0;
-  margin-right: 0px;
+.close-btn {
+  z-index: 999;
 }
 </style>
