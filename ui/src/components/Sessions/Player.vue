@@ -54,8 +54,24 @@ const currentTime = ref(0);
 const duration = ref(0);
 const formattedCurrentTime = ref("00:00:00");
 const formattedDuration = ref("00:00:00");
+const timeUpdaterId = ref<number>();
 
 const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(11, 19);
+
+const clearCurrentTimeUpdater = () => {
+  clearInterval(timeUpdaterId.value);
+};
+
+const startCurrentTimeUpdater = () => {
+  clearCurrentTimeUpdater();
+  timeUpdaterId.value = window.setInterval(() => {
+    if (player.value) {
+      const time = player.value.getCurrentTime();
+      currentTime.value = time;
+      formattedCurrentTime.value = formatTime(time);
+    }
+  }, 100);
+};
 
 onMounted(() => {
   const playerOptions = {
@@ -64,28 +80,24 @@ onMounted(() => {
     controls: false,
     autoplay: true,
   };
-  const timeIntervalId = ref<NodeJS.Timeout>();
 
   player.value = AsciinemaPlayer.create({ data: logs }, wrapper.value, playerOptions);
 
   player.value.addEventListener("playing", () => {
-    console.log("playing");
-    timeIntervalId.value = setInterval(() => {
-      console.log("currentTime", player.value.getCurrentTime());
-      currentTime.value = player.value.getCurrentTime();
-      formattedCurrentTime.value = formatTime(currentTime.value);
-    }, 100);
+    // reset to prevent multiple intervals when replaying
+    clearInterval(timeUpdaterId.value);
+    startCurrentTimeUpdater();
     duration.value = player.value.getDuration();
     formattedDuration.value = formatTime(duration.value);
   });
 
   player.value.addEventListener("ended", () => {
     isPlaying.value = false;
-    clearInterval(timeIntervalId.value);
+    clearCurrentTimeUpdater();
   });
 });
 
-watchEffect(() => isPlaying.value ? player.value?.play() : player.value?.pause());
+watchEffect(() => isPlaying.value ? player.value.play() : player.value.pause());
 </script>
 
 <style lang="scss" scoped>
