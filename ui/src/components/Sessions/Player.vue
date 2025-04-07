@@ -97,7 +97,7 @@ onMounted(() => {
   });
 });
 
-watchEffect(() => isPlaying.value ? player.value.play() : player.value.pause());
+watchEffect(() => isPlaying.value ? player.value?.play() : player.value?.pause());
 </script>
 
 <style lang="scss" scoped>
