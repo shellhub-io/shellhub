@@ -33,7 +33,9 @@
       hide-details
       color="white"
       data-test="time-slider"
-
+      @update:model-value="(value) => changePlaybackTime(value)"
+      @mousedown="pause"
+      @mouseup="play"
     />
   </v-card-actions>
 </template>
@@ -70,6 +72,12 @@ const startCurrentTimeUpdater = () => {
       formattedCurrentTime.value = formatTime(time);
     }
   }, 100);
+};
+
+const changePlaybackTime = (value: number) => {
+  player.value.seek(value);
+  currentTime.value = value;
+  formattedCurrentTime.value = formatTime(value);
 };
 
 onMounted(() => {
