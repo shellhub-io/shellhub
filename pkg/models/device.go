@@ -17,7 +17,7 @@ const (
 
 type Device struct {
 	ID          string `json:"uid" bun:"id,pk"`
-	NamespaceID string `json:"-" bun:"namespace_id,pk,type:uuid"`
+	NamespaceID string `json:"tenant_id" bun:"namespace_id,pk,type:uuid"`
 
 	// CreatedAt represents the timestamp when the user was created
 	CreatedAt time.Time `json:"created_at" bun:"created_at"`
@@ -32,6 +32,11 @@ type Device struct {
 	// is actually offline. For reliable connection status, check both this and
 	// [Device.LastSeen] fields.
 	DisconnectedAt time.Time `json:"-" bun:"disconnected_at,nullzero"`
+
+	// Online indicates whether the device is currently connected. This field is not
+	// persisted to the database but is computed based on both [Device.LastSeen] and
+	// [Device.DisconnectedAt] fields to determine the current connection status.
+	Online bool `json:"online" bun:",scanonly"`
 
 	Status    DeviceStatus `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
 	Name      string       `json:"name" bun:"name"`

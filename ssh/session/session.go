@@ -373,9 +373,13 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
 	}
 
+	println("connect 1")
+
 	if err := authOpt(s, config); err != nil {
 		return errors.New("fail to generate the authentication information")
 	}
+
+	println("connect 2")
 
 	const Addr = "tcp"
 
@@ -386,6 +390,8 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		}
 	}
 
+	println("connect 3")
+
 	if config.Timeout > 0 {
 		if err := s.Agent.Conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
@@ -394,7 +400,11 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 			return err
 		}
+
+		println("connect 3.5")
 	}
+
+	println("connect 4")
 
 	conn, chans, reqs, err := gossh.NewClientConn(s.Agent.Conn, Addr, config)
 	if err != nil {
@@ -409,6 +419,8 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		return err
 	}
 
+	println("connect 5")
+
 	if config.Timeout > 0 {
 		if err := s.Agent.Conn.SetReadDeadline(time.Time{}); err != nil {
 			log.WithError(err).
@@ -417,7 +429,11 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 			return err
 		}
+
+		println("connect 5.5")
 	}
+
+	println("connect 6")
 
 	ch := make(chan *gossh.Request)
 	close(ch)
@@ -432,6 +448,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
+
 	conn, err := s.tunnel.Dial(ctx, s.Device.NamespaceID+":"+s.Device.ID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
@@ -485,39 +502,57 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 // Next steps can use the context's snapshot to retrieve the created session. An error is
 // returned if any occurs.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
+	println("1")
+
 	snap := getSnapshot(ctx)
+
+	println("2")
 
 	// The following code is structured to be read from top to bottom, disregarding the
 	// switch and case statements. These statements serve as a "cache" for handling
 	// different states efficiently.
 	sess, state := snap.retrieve()
+	println("3")
 	switch state {
 	case StateEvaluated:
+		println("4")
+		fmt.Printf("auth: %t\n", auth == nil)
 		if err := auth.Evaluate(sess); err != nil {
 			return err
 		}
+		println("5")
 
 		if err := sess.register(); err != nil {
 			return err
 		}
 
+		println("6")
+
 		snap.save(sess, StateRegistered)
+		println("7")
 
 		fallthrough
 	case StateRegistered:
+		println("8")
 		if err := sess.connect(ctx, auth.Auth()); err != nil {
 			return err
 		}
 
+		println("9")
+
 		if err := sess.authenticate(); err != nil {
 			return err
 		}
+		println("10")
 	default:
+		println("11")
 		// The default arm is intended to avoid [StateNil] and [StateCreated], what are used before the authentication.
 		return errors.New("invalid session state")
 	}
 
+	println("12")
 	snap.save(sess, StateFinished)
+	println("13")
 
 	return nil
 }

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -19,11 +20,18 @@ const (
 	DeviceAcceptableAsFalse
 )
 
+type DeviceIdent string
+
+const (
+	DeviceIdentID   DeviceIdent = "id"
+	DeviceIdentName DeviceIdent = "name"
+)
+
 type DeviceStore interface {
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedID string, err error)
 
-	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
-	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
+	DeviceList(ctx context.Context, opts ...QueryOption) ([]models.Device, int, error)
+	DeviceGet(ctx context.Context, ident DeviceIdent, val string) (*models.Device, error)
 
 	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
@@ -34,11 +42,7 @@ type DeviceStore interface {
 	// It returns an array of conflicting attribute fields and an error, if any.
 	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) (conflicts []string, has bool, err error)
 
-	// DeviceUpdate updates a device with the specified UID that belongs to the specified namespace. It returns [ErrNoDocuments] if none device is found.
-	DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error
-	// DeviceBulkdUpdate updates a list of devices. Different than [DeviceStore.DeviceUpdate], it does not differentiate namespaces.
-	// It returns the number of  modified devices and an error if any.
-	DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (modifiedCount int64, err error)
+	DeviceUpdateSeenAt(ctx context.Context, ids []string, to time.Time) (updatedCount int64, err error)
 
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error

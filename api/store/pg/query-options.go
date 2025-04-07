@@ -38,6 +38,10 @@ func (*queryOptions) Paginate(page query.Paginator) store.QueryOption {
 
 func (*queryOptions) Order(sorter query.Sorter) store.QueryOption {
 	return func(ctx context.Context) error {
+		if sorter.By == "" {
+			return nil
+		}
+
 		query, ok := ctx.Value("query").(*bun.SelectQuery)
 		if !ok {
 			return ErrQueryNotFound
@@ -124,6 +128,19 @@ func (*queryOptions) WithMember(userID string) store.QueryOption {
 		}
 
 		query = query.Where("EXISTS (SELECT 1 FROM memberships WHERE memberships.namespace_id = namespace.id AND memberships.user_id = ?)", userID)
+
+		return nil
+	}
+}
+
+func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		query = query.Where("namespace_id = ?", namespaceID)
 
 		return nil
 	}

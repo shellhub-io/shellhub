@@ -62,6 +62,11 @@ func (h *Handler) GetSession(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateSession(c gateway.Context) error {
+	println("!2222222")
+	println("!2222222")
+	println("!2222222")
+	println("!2222222")
+
 	var req requests.SessionUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -79,6 +84,11 @@ func (h *Handler) UpdateSession(c gateway.Context) error {
 }
 
 func (h *Handler) CreateSession(c gateway.Context) error {
+	println("!1111111")
+	println("!1111111")
+	println("!1111111")
+	println("!1111111")
+
 	var req requests.SessionCreate
 	if err := c.Bind(&req); err != nil {
 		return err

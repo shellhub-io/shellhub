@@ -10,6 +10,9 @@ import (
 
 // PasswordHandler handles ShellHub client's connection using the password authentication method.
 func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
+	println("PASSWORD AUTH")
+	println("PASSWORD AUTH")
+
 	logger := log.WithFields(
 		log.Fields{
 			"uid":   ctx.SessionID(),

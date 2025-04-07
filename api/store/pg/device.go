@@ -2,12 +2,15 @@ package pg
 
 import (
 	"context" //nolint:gosec
+	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/pg/internal/entity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
 )
 
 func (pg *pg) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
@@ -35,13 +38,57 @@ func (pg *pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 	return device.ID, nil
 }
 
-func (pg *pg) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
-	return nil, 0, nil
+func (pg *pg) DeviceList(ctx context.Context, opts ...store.QueryOption) ([]models.Device, int, error) {
+	entities := make([]entity.Device, 0)
+
+	query := pg.driver.
+		NewSelect().
+		Model(&entities).
+		Column("device.*").
+		ColumnExpr(`
+			CASE
+				WHEN "device"."disconnected_at" IS NULL AND "device"."seen_at" > ?
+				THEN true
+				ELSE false
+			END AS "online"`,
+			time.Now().Add(-2*time.Minute),
+		)
+
+	if err := applyOptions(ctx, query, opts...); err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	count, err := query.ScanAndCount(ctx)
+	if err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	devices := make([]models.Device, len(entities))
+	for i, e := range entities {
+		devices[i] = e.Device
+	}
+
+	return devices, count, nil
 }
 
-func (pg *pg) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
+func (pg *pg) DeviceGet(ctx context.Context, ident store.DeviceIdent, val string) (*models.Device, error) {
 	d := new(entity.Device)
-	if err := pg.driver.NewSelect().Model(d).Where("id = ?", string(uid)).Scan(ctx); err != nil {
+
+	query := pg.driver.
+		NewSelect().
+		Model(d).
+		Where("? = ?", bun.Ident(ident), val).
+		Column("device.*").
+		ColumnExpr(`
+			CASE
+				WHEN "device"."disconnected_at" IS NULL AND "device"."seen_at" > ?
+				THEN true
+				ELSE false
+			END AS "online"`,
+			time.Now().Add(-2*time.Minute),
+		)
+
+	if err := query.Scan(ctx); err != nil {
 		return nil, fromSqlError(err)
 	}
 
@@ -93,12 +140,18 @@ func (pg *pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 	return nil, false, nil
 }
 
-func (pg *pg) DeviceUpdate(ctx context.Context, tenantID, uid string, changepg *models.DeviceChanges) error {
-	return nil
-}
+func (pg *pg) DeviceUpdateSeenAt(ctx context.Context, ids []string, to time.Time) (int64, error) {
+	r, err := pg.driver.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("seen_at = ?", to).
+		TableExpr("(SELECT unnest(?::varchar[]) as id) as _data", pgdialect.Array(ids)).
+		Where("device.id = _data.id").
+		Exec(ctx)
+	if err != nil {
+		return 0, fromSqlError(err)
+	}
 
-func (pg *pg) DeviceBulkUpdate(ctx context.Context, uids []string, changepg *models.DeviceChanges) (int64, error) {
-	return int64(0), nil
+	return r.RowsAffected()
 }
 
 func (pg *pg) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {

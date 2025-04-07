@@ -10,6 +10,9 @@ import (
 
 // PublicKeyHandler handles ShellHub client's connection using the public key authentication method.
 func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
+	println("PUBLIC KEY AUTH")
+	println("PUBLIC KEY AUTH")
+
 	logger := log.WithFields(
 		log.Fields{
 			"uid":   ctx.SessionID(),
@@ -30,11 +33,17 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 		return false
 	}
 
+	println("HAHAHAHAHAHAHA")
+	println("HAHAHAHAHAHAHA")
+
 	if err := sess.Auth(ctx, session.AuthPublicKey(publicKey)); err != nil {
 		logger.Warn("failed to authenticate on device using public key")
 
 		return false
 	}
+
+	println("HAHAHAHAHAHAHA")
+	println("HAHAHAHAHAHAHA")
 
 	logger.Info("succeeded to use public key authentication.")
 

@@ -43,6 +43,9 @@ type sessionAPI interface {
 }
 
 func (c *client) SessionCreate(session requests.SessionCreate) error {
+	println("CREATE SESSION!!!")
+	println("CREATE SESSION!!!")
+
 	_, err := c.http.
 		R().
 		SetBody(session).
@@ -112,6 +115,9 @@ func (c *client) RecordSession(ctx context.Context, uid string, seat int, record
 }
 
 func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
+	println("UPDATE SESSION!!!")
+	println("UPDATE SESSION!!!")
+
 	res, err := c.http.
 		R().
 		SetPathParams(map[string]string{

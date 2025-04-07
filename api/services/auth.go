@@ -88,7 +88,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 	}
 
 	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
-	device, err := s.store.DeviceGet(ctx, models.UID(hex.EncodeToString(uidSHA[:])))
+	device, err := s.store.DeviceGet(ctx, store.DeviceIdentID, hex.EncodeToString(uidSHA[:]))
 	if err != nil {
 		if err != store.ErrNoDocuments {
 			return nil, err
