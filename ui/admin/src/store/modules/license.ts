@@ -9,6 +9,9 @@ export interface LicenseState {
 
 export const license: Module<LicenseState, State> = {
   namespaced: true,
+  state: {
+    license: {} as ILicense,
+  },
 
   getters: {
     isExpired: (state) => (state.license && state.license.expired)

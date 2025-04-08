@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 import Login from "@admin/views/Login.vue";
 import Dashboard from "@admin/views/Dashboard.vue";
 import Users from "@admin/views/Users.vue";
@@ -7,6 +7,8 @@ import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentic
 import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
 
+import { INotificationsError } from "@admin/interfaces/INotifications";
+import { computed } from "vue";
 import { store } from "../store";
 
 const routes = [
@@ -14,6 +16,10 @@ const routes = [
     path: "/login",
     name: "login",
     component: Login,
+    meta: {
+      layout: "SimpleLayout",
+      requiresAuth: false,
+    },
   },
   {
     path: "/",
@@ -120,21 +126,41 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.path !== "/login") {
-    if (store.getters["auth/isLoggedIn"]) {
-      return next();
-    }
-    return next(`/login?redirect=${to.path}`);
-  }
-  if (store.getters["auth/isLoggedIn"]) {
-    if (to.path === "/login" && to.query.token) {
-      return next();
-    }
-    return next("/");
-  }
+router.beforeEach(
+  async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+    const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
+    const requiresAuth = to.meta.requiresAuth ?? true;
 
-  return next();
-});
+    const layout = to.meta.layout || "AppLayout";
+    await store.dispatch("layout/setLayout", layout);
+
+    if (!isLoggedIn && requiresAuth) {
+      return next({
+        name: "login",
+        query: { redirect: to.fullPath },
+      });
+    }
+
+    if (isLoggedIn && !to.meta.requiresAuth) {
+      const license = computed(() => store.getters["license/license"]);
+
+      try {
+        await store.dispatch("license/get");
+
+        if (license.value.expired && to.name !== "SettingLicense") {
+          store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.license);
+          return next({ name: "SettingLicense" });
+        }
+      } catch {
+        if (to.name !== "SettingLicense") {
+          store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.license);
+          return next({ name: "SettingLicense" });
+        }
+      }
+    }
+
+    return next();
+  },
+);
 
 export default router;

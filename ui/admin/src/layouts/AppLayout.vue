@@ -188,8 +188,9 @@ const logout = async () => {
   await store.dispatch("auth/logout");
   await router.push("/login");
   createNewClient();
-  store.dispatch("layout/setLayout", "simpleLayout");
+  store.dispatch("layout/setLayout", "SimpleLayout");
 };
+
 const triggerClick = (item: MenuItem): void => {
   switch (item.type) {
     case "path":
@@ -293,10 +294,14 @@ const getFilteredChildren = (children: DrawerItem[]) => expiredLicense.value
 
 const visibleItems = computed(() => {
   if (expiredLicense.value) {
-    return items.filter(
-      (item) => item.title === "Settings" && item.children?.some((child) => child.title === "License"),
-    );
+    return items
+      .filter((item) => item.title === "Settings")
+      .map((item) => ({
+        ...item,
+        children: item.children?.filter((child) => child.title === "License"),
+      }));
   }
+
   return items.filter((item) => !item.hidden);
 });
 

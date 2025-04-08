@@ -38,13 +38,13 @@ describe("Auth", () => {
 
     store.commit("auth/authSuccess", { token, user, tenant });
     expect(store.getters["auth/authStatus"]).toEqual(statusSuccess);
-    expect(store.getters["auth/isLoggedIn"]).toEqual(token);
+    expect(store.getters["auth/isLoggedIn"]).toEqual(true);
     expect(store.getters["auth/currentUser"]).toEqual(user);
     expect(store.getters["auth/tenant"]).toEqual(tenant);
 
     store.commit("auth/logout");
     expect(store.getters["auth/authStatus"]).toEqual("");
-    expect(store.getters["auth/isLoggedIn"]).toEqual("");
+    expect(store.getters["auth/isLoggedIn"]).toEqual(false);
     expect(store.getters["auth/currentUser"]).toEqual("");
     expect(store.getters["auth/tenant"]).toEqual("");
   });

@@ -2,20 +2,11 @@
   <router-view :key="currentRoute.value.path" />
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
-export default {
-  name: "SimpleLayout",
-  setup() {
-    const router = useRouter();
+const router = useRouter();
 
-    const currentRoute = computed(() => router.currentRoute);
-
-    return {
-      currentRoute,
-    };
-  },
-};
+const currentRoute = computed(() => router.currentRoute);
 </script>
