@@ -2,28 +2,29 @@
   <div class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal" v-if="logs" ref="wrapper" />
 
   <v-card-actions
-    class="text-h5 pa-3 d-flex justify-start ga-4 align-center"
+    class="text-h5 pa-3 d-flex ga-4 align-center"
   >
-    <v-icon
+    <v-btn
       v-if="isPlaying"
-      variant="text"
-      icon="mdi-pause-circle"
-      color="primary"
-      rounded
-      size="x-large"
+      class="bg-primary"
+      rounded="circle"
+      size="48"
+      :ripple="false"
+      icon="mdi-pause"
       data-test="pause-icon"
       @click="pause"
     />
-    <v-icon
+    <v-btn
       v-else
-      variant="text"
-      icon="mdi-play-circle"
-      color="primary"
-      rounded
-      size="x-large"
-      data-test="play-icon"
+      class="bg-primary"
+      rounded="circle"
+      size="48"
+      :ripple="false"
+      icon="mdi-play"
+      data-test="play-btn"
       @click="play"
     />
+
     <v-slider
       v-model="currentTime"
       class="ml-0 flex-grow-1 flex-shrink-0"
