@@ -186,36 +186,19 @@
         <v-divider class="mb-4 mt-4" />
         <h6 class="text-h6 text-center">License Field</h6>
 
-        <v-file-input
-          class="mt-4"
-          accept=".dat"
-          show-size
-          variant="outlined"
-          label="Select license file"
-          counter
-          v-model="currentFile"
-          :rules="rules"
-          @change="onAddFiles(currentFile)"
-        />
-        <v-btn v-if="licenseUploadStatus" class="mr-2" variant="outlined" @click="uploadLicense">
-          Upload
-        </v-btn>
       </div>
-
-      <div v-else>
-        <v-file-input
-          class="mt-4"
-          accept=".dat"
-          show-size
-          variant="outlined"
-          label="Select license file"
-          counter
-          v-model="currentFile"
-          :rules="rules"
-          @change="onAddFiles(currentFile)"
-        />
-        <v-btn class="mr-2" variant="outlined" v-if="licenseUploadStatus" @click="uploadLicense"> Upload </v-btn>
-      </div>
+      <v-file-input
+        class="mt-4"
+        accept=".dat"
+        show-size
+        variant="outlined"
+        label="Select license file"
+        counter
+        v-model="currentFile"
+        @change="licenseUploadStatus = !!currentFile.length"
+        :rules="rules"
+      />
+      <v-btn class="mr-2" variant="outlined" @click="uploadLicense"> Upload </v-btn>
     </v-container>
 
   </v-card>
@@ -231,15 +214,6 @@ import {
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
 import { useStore } from "../../store";
-
-type Licensefile = {
-  lastModified: number;
-  lastModifiedDate: string;
-  name: string;
-  size: number;
-  type: string;
-  webkitRelativePath: string;
-};
 
 const store = useStore();
 
@@ -288,14 +262,14 @@ const formatFeatureValue = (value: number | boolean | undefined) => value === -1
 
 const isBooleanType = (value: number | boolean | undefined) => typeof value === "boolean";
 
-const rules = [
-  (value: Array<Licensefile>) => !value || (value.length > 0 && value[0].size < 32768) || "License size should be less than 32 Kb!",
-];
-
-const onAddFiles = (file: Array<File>) => {
-  currentFile.value = file;
-  licenseUploadStatus.value = true;
+const validateLicenseFile = (file: File | null): string | boolean => {
+  if (!file) return true;
+  if (file.size >= 32 * 1024) return "License size must be less than 32 KB!";
+  if (!file.name.endsWith(".dat")) return "Only .dat files are allowed!";
+  return true;
 };
+
+const rules = [validateLicenseFile];
 
 const uploadLicense = async () => {
   if (currentFile.value) {
@@ -303,7 +277,6 @@ const uploadLicense = async () => {
       await store.dispatch("license/post", currentFile.value);
       await store.dispatch("license/get");
       store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.licenseUpload);
-
       licenseUploadStatus.value = false;
     } catch (error) {
       console.error("License upload error:", error);
