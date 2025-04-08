@@ -20,7 +20,7 @@ export const auth: Module<AuthState, State> = {
     tenant: localStorage.getItem("tenant") || "",
   },
   getters: {
-    isLoggedIn: (state) => state.token,
+    isLoggedIn: (state) => !!state.token,
     currentUser: (state) => state.user,
     authStatus: (state) => state.status,
     tenant: (state) => state.tenant,
