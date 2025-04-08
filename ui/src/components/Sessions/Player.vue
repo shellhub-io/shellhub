@@ -80,12 +80,19 @@ const changePlaybackTime = (value: number) => {
   formattedCurrentTime.value = formatTime(value);
 };
 
+const getSessionRows = () => {
+  const dimensionsLine = logs?.split("\n")[1] ?? ""; // returns a string in the format of `[0.123, "r", "80x24"]`
+  const dimensions = JSON.parse(dimensionsLine)[2];
+  const rows = dimensions.split("x")[1];
+  return rows;
+};
+
 onMounted(() => {
   const playerOptions = {
     fit: "height",
-    terminalFontSize: "1rem",
     controls: false,
     autoplay: true,
+    rows: getSessionRows(),
   };
 
   player.value = AsciinemaPlayer.create({ data: logs }, wrapper.value, playerOptions);
