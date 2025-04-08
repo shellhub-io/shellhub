@@ -26,7 +26,6 @@ export const license: Module<LicenseState, State> = {
     async get({ commit }) {
       const res = await apiLicense.getLicense();
       commit("setLicense", res);
-      return res.data;
     },
 
     async post(context, file: File) {
