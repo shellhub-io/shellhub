@@ -17,14 +17,14 @@ exports[`AppBar Component > Renders the component 1`] = `
         <!---->
         <!---->
       </ul>
-      <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-2" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-2" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
       </button>
       <!--teleport start-->
-      <!--teleport end--><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable ml-2 mr-2" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-4" aria-label="notifications-icon"></i>
-      <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-5" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!--teleport end--><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable ml-2 mr-2" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-4" aria-label="notifications-icon"></i>
+      <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-5" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
     </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
     <!----></button>

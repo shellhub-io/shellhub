@@ -3,7 +3,6 @@ import { createStore } from "vuex";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import UserFormDialog from "@admin/components/User/UserFormDialog.vue";
-import { VNumberInput } from "vuetify/labs/VNumberInput";
 import { key } from "../../../../../src/store";
 
 type UserFormDialogWrapper = VueWrapper<InstanceType<typeof UserFormDialog>>;
@@ -31,11 +30,7 @@ describe("UserFormDialog With prop 'createUser' equals false", () => {
   let wrapper: UserFormDialogWrapper;
 
   beforeEach(() => {
-    const vuetify = createVuetify({
-      components: {
-        VNumberInput,
-      },
-    });
+    const vuetify = createVuetify();
 
     wrapper = mount(UserFormDialog, {
       props: {
@@ -80,11 +75,7 @@ describe("UserFormDialog With prop 'createUser' equals true", () => {
   let wrapper: UserFormDialogWrapper;
 
   beforeEach(() => {
-    const vuetify = createVuetify({
-      components: {
-        VNumberInput,
-      },
-    });
+    const vuetify = createVuetify();
 
     wrapper = mount(UserFormDialog, {
       props: {

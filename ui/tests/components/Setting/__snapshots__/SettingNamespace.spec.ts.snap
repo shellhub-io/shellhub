@@ -86,7 +86,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-2" aria-describedby="input-2-messages" required="" class="v-field__input" value="test">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="test">
                     <!---->
                   </div>
                   <!---->
@@ -113,7 +113,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <div class="v-card-item__append"><span data-v-80a16399="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal ml-1" draggable="false"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
-            <div class="v-chip__content" data-no-activator=""><span data-v-80a16399="" aria-describedby="v-tooltip-5" class="hover-text" data-test="tenant-copy-btn">fake-tenant <i data-v-80a16399="" class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <div class="v-chip__content" data-no-activator=""><span data-v-80a16399="" aria-describedby="v-tooltip-v-4" class="hover-text" data-test="tenant-copy-btn">fake-tenant <i data-v-80a16399="" class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
               <!--teleport start-->
               <!--teleport end-->
             </div>
@@ -179,7 +179,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <!---->
                       <!---->
                     </div>
-                    <div class="v-selection-control__input"><input checked="" id="switch-7" aria-disabled="false" type="checkbox" aria-describedby="switch-7-messages" value="true">
+                    <div class="v-selection-control__input"><input checked="" id="switch-v-6" aria-disabled="false" type="checkbox" aria-describedby="switch-v-6-messages" value="true">
                       <div class="v-switch__thumb">
                         <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->

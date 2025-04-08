@@ -98,7 +98,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-2" aria-describedby="input-2-messages" required="" class="v-field__input" value="test">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="test">
                     <!---->
                   </div>
                   <!---->
@@ -147,7 +147,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                     <div class="v-field__field" data-no-activator="">
                       <!---->
                       <!---->
-                      <!----><input readonly="" disabled="" size="1" type="text" id="input-4" aria-describedby="input-4-messages" required="" class="v-field__input">
+                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-3" aria-describedby="input-v-3-messages" required="" class="v-field__input">
                       <!---->
                     </div>
                     <!---->
@@ -196,7 +196,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-6" aria-describedby="input-6-messages" required="" class="v-field__input" value="test@test.com">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-5" aria-describedby="input-v-5-messages" required="" class="v-field__input" value="test@test.com">
                     <!---->
                   </div>
                   <!---->
@@ -245,7 +245,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                     <div class="v-field__field" data-no-activator="">
                       <!---->
                       <!---->
-                      <!----><input readonly="" disabled="" size="1" type="text" id="input-8" aria-describedby="input-8-messages" required="" class="v-field__input" value="test2@test.com">
+                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-7" aria-describedby="input-v-7-messages" required="" class="v-field__input" value="test2@test.com">
                       <!---->
                     </div>
                     <!---->
@@ -316,7 +316,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
               <!----><span class="v-card__underlay"></span>
             </div>
-            <div data-v-b3fa301d="" aria-describedby="v-tooltip-11" class="d-flex align-center bg-background">
+            <div data-v-b3fa301d="" aria-describedby="v-tooltip-v-10" class="d-flex align-center bg-background">
               <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-switch v-switch--inset" data-test="switch-mfa">
                 <!---->
                 <div class="v-input__control">
@@ -326,7 +326,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                         <!---->
                         <!---->
                       </div>
-                      <div class="v-selection-control__input"><input disabled="" id="switch-12" aria-disabled="true" type="checkbox" aria-describedby="switch-12-messages" value="true">
+                      <div class="v-selection-control__input"><input disabled="" id="switch-v-11" aria-disabled="true" type="checkbox" aria-describedby="switch-v-11-messages" value="true">
                         <div class="v-switch__thumb">
                           <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                             <!---->
