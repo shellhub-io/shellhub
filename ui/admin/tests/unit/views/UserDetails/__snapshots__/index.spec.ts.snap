@@ -3,9 +3,9 @@
 exports[`User Details > Renders the component 1`] = `
 "<div class="d-flex pa-0 align-center">
   <h1>User Details</h1>
-  <div class="v-col pr-4 text-right"><a class="mdi-login mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-0"></a>
+  <div class="v-col pr-4 text-right"><a class="mdi-login mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-0"></a>
     <!--teleport start-->
-    <!--teleport end--><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-1"></a>
+    <!--teleport end--><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-1"></a>
     <!--teleport start-->
     <!--teleport end-->
     <!---->

@@ -2,7 +2,6 @@ import { createVuetify } from "vuetify";
 import { createStore } from "vuex";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { VNumberInput } from "vuetify/labs/VNumberInput";
 import UserList from "../../../../../src/components/User/UserList.vue";
 import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
@@ -44,9 +43,6 @@ describe("UserList", () => {
 
   beforeEach(() => {
     const vuetify = createVuetify({
-      components: {
-        VNumberInput,
-      },
     });
 
     wrapper = mount(UserList, {

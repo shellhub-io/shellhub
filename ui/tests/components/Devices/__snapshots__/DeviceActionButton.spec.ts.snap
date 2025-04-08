@@ -6,7 +6,7 @@ exports[`Device Action Button > Renders the component 1`] = `
     <!---->
     <div class="v-list-item__content" data-no-activator="">
       <!---->
-      <!----><span data-v-6b5207c0="" aria-describedby="v-tooltip-1"><div data-v-6b5207c0="" class="v-list-item-title" data-test="action-item"><i data-v-6b5207c0="" class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i> Accept</div></span>
+      <!----><span data-v-6b5207c0="" aria-describedby="v-tooltip-v-0"><div data-v-6b5207c0="" class="v-list-item-title" data-test="action-item"><i data-v-6b5207c0="" class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i> Accept</div></span>
       <!--teleport start-->
       <!--teleport end-->
     </div>

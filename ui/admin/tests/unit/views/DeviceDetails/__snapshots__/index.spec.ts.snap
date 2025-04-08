@@ -109,7 +109,7 @@ exports[`Device Details > Renders the component 1`] = `
       <div class="text-overline mt-3">
         <h3>Tags:</h3>
       </div>
-      <div data-test="dev"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-0"><!----><span class="v-chip__underlay"></span>
+      <div data-test="dev"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-0"><!----><span class="v-chip__underlay"></span>
         <!---->
         <!---->
         <div class="v-chip__content" data-no-activator="">dev</div>

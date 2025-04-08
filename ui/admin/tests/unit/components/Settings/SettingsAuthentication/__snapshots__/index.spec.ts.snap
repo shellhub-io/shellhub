@@ -63,7 +63,7 @@ exports[`Authentication > renders correctly 1`] = `
                   <!---->
                   <!---->
                 </div>
-                <div class="v-selection-control__input"><input id="switch-0" aria-disabled="false" type="checkbox" aria-describedby="switch-0-messages" value="true">
+                <div class="v-selection-control__input"><input id="switch-v-0" aria-disabled="false" type="checkbox" aria-describedby="switch-v-0-messages" value="true">
                   <div class="v-switch__thumb">
                     <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                       <!---->
@@ -114,7 +114,7 @@ exports[`Authentication > renders correctly 1`] = `
                   <!---->
                   <!---->
                 </div>
-                <div class="v-selection-control__input"><input checked="" id="switch-3" aria-disabled="false" type="checkbox" aria-describedby="switch-3-messages" value="true">
+                <div class="v-selection-control__input"><input checked="" id="switch-v-3" aria-disabled="false" type="checkbox" aria-describedby="switch-v-3-messages" value="true">
                   <div class="v-switch__thumb bg-success">
                     <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                       <!---->
@@ -328,15 +328,15 @@ exports[`Authentication > renders correctly 1`] = `
         </div>
         <div class="v-spacer"></div>
         <div class="v-col-sm-3 v-col-md-1 v-col ml-auto d-flex w-100 justify-end align-center">
-          <div class="v-row" aria-describedby="v-tooltip-8">
-            <div class="v-col"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" aria-describedby="v-tooltip-8" data-test="redirect-auth-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <div class="v-row" aria-describedby="v-tooltip-v-8">
+            <div class="v-col"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated" aria-describedby="v-tooltip-v-8" data-test="redirect-auth-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator=""> Test Auth Integration </span>
                 <!---->
                 <!---->
               </button></div>
           </div>
           <!--teleport start-->
-          <div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-8" role="tooltip">
+          <div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-8" role="tooltip">
             <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
               <!---->
             </transition-stub>

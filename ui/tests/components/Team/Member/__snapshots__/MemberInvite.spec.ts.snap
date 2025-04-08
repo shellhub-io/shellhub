@@ -2,7 +2,7 @@
 
 exports[`Member Invite > Renders the component 1`] = `
 "<div data-v-246e02fb="">
-  <div data-v-246e02fb="" aria-describedby="v-tooltip-0"><button data-v-246e02fb="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="invite-dialog-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  <div data-v-246e02fb="" aria-describedby="v-tooltip-v-0"><button data-v-246e02fb="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="invite-dialog-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""> Invite Member </span>
       <!---->
       <!---->

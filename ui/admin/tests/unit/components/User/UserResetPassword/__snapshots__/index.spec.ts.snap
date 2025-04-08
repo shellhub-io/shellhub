@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`User Reset Password > renders correctly 1`] = `
-"<a class="mdi-account-lock-open mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-0" data-test="open-dialog-icon"></a>
+"<a class="mdi-account-lock-open mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-0" data-test="open-dialog-icon"></a>
 <!--teleport start-->
 <!--teleport end-->"
 `;

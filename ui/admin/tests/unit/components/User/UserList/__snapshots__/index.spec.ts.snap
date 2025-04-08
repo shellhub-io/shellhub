@@ -32,16 +32,16 @@ exports[`UserList > Renders the component 1`] = `
                 <!---->
                 <!----></span>
               </td>
-              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-1"></a>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-1"></a>
                 <!--teleport start-->
-                <!--teleport end--><a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-2" aria-label="Dialog edit user"></a>
+                <!--teleport end--><a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-2" aria-label="Dialog edit user"></a>
                 <!--teleport start-->
                 <!--teleport end-->
                 <!---->
-                <!----><a class="mdi-login mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-3"></a>
+                <!----><a class="mdi-login mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3"></a>
                 <!--teleport start-->
                 <!--teleport end-->
-                <!--v-if--><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-4"></a>
+                <!--v-if--><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-4"></a>
                 <!--teleport start-->
                 <!--teleport end-->
                 <!---->
@@ -60,7 +60,7 @@ exports[`UserList > Renders the component 1`] = `
         <div data-v-90b5158f="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
           <!---->
           <div class="v-input__control">
-            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-7">
+            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-7">
               <div class="v-field__overlay"></div>
               <div class="v-field__loader">
                 <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -84,7 +84,7 @@ exports[`UserList > Renders the component 1`] = `
                 <div class="v-field__input" data-no-activator="">
                   <!---->
                   <!---->
-                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-5" aria-describedby="input-5-messages" outlined="" value="10">
+                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-5" aria-describedby="input-v-5-messages" outlined="" value="10">
                 </div>
                 <!---->
               </div>

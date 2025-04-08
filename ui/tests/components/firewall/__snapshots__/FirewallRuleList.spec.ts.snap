@@ -28,7 +28,7 @@ exports[`Firewall Rule List > Renders the component 1`] = `
               <td class="text-center" data-test="firewall-rules-filter">
                 <div>All devices</div>
               </td>
-              <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-0" data-test="firewall-rules-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-0" data-test="firewall-rules-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                   <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                   <!---->
                   <!---->
@@ -38,7 +38,7 @@ exports[`Firewall Rule List > Renders the component 1`] = `
               </td>
             </tr>
             <tr>
-              <td class="text-center"><i class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" aria-describedby="v-tooltip-6"></i>
+              <td class="text-center"><i class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" aria-describedby="v-tooltip-v-4"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -49,7 +49,7 @@ exports[`Firewall Rule List > Renders the component 1`] = `
               <td class="text-center" data-test="firewall-rules-filter">
                 <div>All devices</div>
               </td>
-              <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-7" data-test="firewall-rules-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-5" data-test="firewall-rules-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                   <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                   <!---->
                   <!---->
@@ -69,7 +69,7 @@ exports[`Firewall Rule List > Renders the component 1`] = `
         <div data-v-046d4556="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
           <!---->
           <div class="v-input__control">
-            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-15">
+            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-11">
               <div class="v-field__overlay"></div>
               <div class="v-field__loader">
                 <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -93,7 +93,7 @@ exports[`Firewall Rule List > Renders the component 1`] = `
                 <div class="v-field__input" data-no-activator="">
                   <!---->
                   <!---->
-                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-13" aria-describedby="input-13-messages" outlined="" value="10">
+                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-9" aria-describedby="input-v-9-messages" outlined="" value="10">
                 </div>
                 <!---->
               </div>
