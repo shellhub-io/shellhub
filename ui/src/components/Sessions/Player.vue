@@ -37,8 +37,34 @@
       @update:model-value="(value) => changePlaybackTime(value)"
       @mousedown="pause"
       @mouseup="play"
+      @touchstart="pause"
+      @touchend="play"
+    />
+    <v-btn
+      role="button"
+      variant="text"
+      icon="mdi-keyboard"
+      rounded
+      size="x-large"
+      data-test="keyboard-icon"
+      @click="openDialog"
     />
   </v-card-actions>
+  <v-dialog
+    :fullscreen="false"
+    v-model="showDialog"
+  >
+    <v-card title="Keyboard Shortcuts">
+      <v-card-text>
+        <div class="shortcut"><v-kbd>space</v-kbd>: pause / resume</div>
+        <div class="shortcut"><v-kbd>f</v-kbd>: toggle fullscreen mode</div>
+        <div class="shortcut"><v-kbd>←</v-kbd> / <v-kbd>→</v-kbd>: rewind / fast-forward by 5 seconds</div>
+        <div class="shortcut"><v-kbd>Shift</v-kbd> + <v-kbd>←</v-kbd> / <v-kbd>→</v-kbd>: rewind / fast-forward by 10%</div>
+        <div class="shortcut"><v-kbd>0</v-kbd>, <v-kbd>1</v-kbd>, <v-kbd>2</v-kbd> ... <v-kbd>9</v-kbd>: jump to 0%, 10%, 20% ... 90%</div>
+        <div class="shortcut"><v-kbd>,</v-kbd>/<v-kbd>.</v-kbd>: step back / forward, a frame at a time (only when paused)</div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -50,6 +76,7 @@ const { logs } = defineProps<{
 }>();
 
 const isPlaying = ref(true);
+const showDialog = ref(false);
 const wrapper = ref<HTMLDivElement | null>(null);
 const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
 const currentTime = ref(0);
@@ -121,11 +148,28 @@ const pause = () => {
   player.value.pause();
   isPlaying.value = false;
 };
+
+const openDialog = () => {
+  pause();
+  showDialog.value = true;
+};
 </script>
 
 <style lang="scss" scoped>
 :deep(.ap-wrapper) {
   background-color: #121314;
   justify-content: start;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  .v-kbd {
+    padding: .2rem .5rem;
+    font-weight: 700;
+  }
 }
 </style>
