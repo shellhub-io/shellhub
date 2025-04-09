@@ -142,7 +142,6 @@ const getSessionRows = () => {
 const playerOptions = {
   fit: "height",
   controls: false,
-  autoplay: true,
   rows: getSessionRows(),
 };
 
@@ -184,6 +183,7 @@ const changePlaybackSpeed = () => {
     containerDiv.value,
     { ...playerOptions, speed: currentSpeed.value, startAt: currentTime.value },
   );
+  play();
   setPlayerEventListeners();
 };
 
@@ -194,6 +194,8 @@ onMounted(() => {
 
   playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
   changeFocusToPlayer();
+
+  play();
 
   setPlayerEventListeners();
 });
