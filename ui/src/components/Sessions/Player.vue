@@ -1,5 +1,10 @@
 <template>
-  <div class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal" v-if="logs" ref="wrapper" />
+  <div
+    class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal"
+    v-if="logs"
+    ref="containerDiv"
+    @keydown.space.prevent="isPlaying = !isPlaying"
+  />
 
   <v-card-actions
     class="text-h5 pa-3 d-flex ga-4 align-center"
@@ -77,7 +82,7 @@ const { logs } = defineProps<{
 
 const isPlaying = ref(true);
 const showDialog = ref(false);
-const wrapper = ref<HTMLDivElement | null>(null);
+const containerDiv = ref<HTMLDivElement | null>(null);
 const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
 const currentTime = ref(0);
 const duration = ref(0);
@@ -87,19 +92,24 @@ const timeUpdaterId = ref<number>();
 
 const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(11, 19);
 
+const getCurrentTime = () => {
+  const time = player.value.getCurrentTime();
+  currentTime.value = time;
+  formattedCurrentTime.value = formatTime(time);
+};
+
 const clearCurrentTimeUpdater = () => {
   clearInterval(timeUpdaterId.value);
 };
 
 const startCurrentTimeUpdater = () => {
   clearCurrentTimeUpdater();
-  timeUpdaterId.value = window.setInterval(() => {
-    if (player.value) {
-      const time = player.value.getCurrentTime();
-      currentTime.value = time;
-      formattedCurrentTime.value = formatTime(time);
-    }
-  }, 100);
+  timeUpdaterId.value = window.setInterval(
+    () => {
+      getCurrentTime();
+    },
+    100,
+  );
 };
 
 const changePlaybackTime = (value: number) => {
@@ -115,30 +125,6 @@ const getSessionRows = () => {
   return rows;
 };
 
-onMounted(() => {
-  const playerOptions = {
-    fit: "height",
-    controls: false,
-    autoplay: true,
-    rows: getSessionRows(),
-  };
-
-  player.value = AsciinemaPlayer.create({ data: logs }, wrapper.value, playerOptions);
-
-  player.value.addEventListener("playing", () => {
-    // clear to prevent multiple intervals when replaying
-    clearInterval(timeUpdaterId.value);
-    startCurrentTimeUpdater();
-    duration.value = player.value.getDuration();
-    formattedDuration.value = formatTime(duration.value);
-  });
-
-  player.value.addEventListener("ended", () => {
-    isPlaying.value = false;
-    clearCurrentTimeUpdater();
-  });
-});
-
 const play = () => {
   player.value.play();
   isPlaying.value = true;
@@ -153,6 +139,33 @@ const openDialog = () => {
   pause();
   showDialog.value = true;
 };
+
+onMounted(() => {
+  const playerOptions = {
+    fit: "height",
+    controls: false,
+    autoplay: true,
+    rows: getSessionRows(),
+  };
+
+  player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
+
+  (containerDiv.value?.querySelector(".ap-wrapper") as HTMLElement).focus();
+
+  player.value.addEventListener("playing", () => {
+    getCurrentTime();
+    // clear to prevent multiple intervals when replaying
+    clearInterval(timeUpdaterId.value);
+    startCurrentTimeUpdater();
+    duration.value = player.value.getDuration();
+    formattedDuration.value = formatTime(duration.value);
+  });
+
+  player.value.addEventListener("ended", () => {
+    isPlaying.value = false;
+    clearCurrentTimeUpdater();
+  });
+});
 </script>
 
 <style lang="scss" scoped>
