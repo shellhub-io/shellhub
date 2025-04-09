@@ -132,17 +132,17 @@ const changePlaybackTime = (value: number) => {
   formattedCurrentTime.value = formatTime(value);
 };
 
-const getSessionRows = () => {
+const getSessionDimensions = () => {
   const dimensionsLine = logs?.split("\n")[1] ?? ""; // returns a string in the format of `[0.123, "r", "80x24"]`
   const dimensions = JSON.parse(dimensionsLine)[2];
-  const rows = dimensions.split("x")[1];
-  return rows;
+  const [cols, rows] = dimensions.split("x");
+  return { cols, rows };
 };
 
 const playerOptions = {
   fit: "height",
   controls: false,
-  rows: getSessionRows(),
+  ...getSessionDimensions(),
 };
 
 const play = () => {
