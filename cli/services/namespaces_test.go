@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -15,6 +13,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
+	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

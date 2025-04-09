@@ -18,8 +18,7 @@ type Service string
 const (
 	ServiceGateway Service = "gateway"
 	ServiceAgent   Service = "agent"
-	ServiceAPI     Service = "api"
-	ServiceSSH     Service = "ssh"
+	ServiceServer  Service = "server"
 	ServiceUI      Service = "ui"
 )
 
