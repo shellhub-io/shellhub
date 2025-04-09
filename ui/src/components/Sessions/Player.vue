@@ -7,7 +7,7 @@
   />
 
   <v-card-actions
-    class="text-h5 pa-3 d-flex ga-4 align-center"
+    class="text-h5 px-3 py-2 d-flex ga-4 align-center"
     @click="changeFocusToPlayer()"
   >
     <v-btn
@@ -31,12 +31,14 @@
       @click="play"
     />
 
+    <span v-if="smAndUp" id="playback-time" class="text-medium-emphasis text-body-1">{{formattedCurrentTime}} / {{formattedDuration}}</span>
+
     <v-slider
       v-model="currentTime"
       class="ml-0 flex-grow-1 flex-shrink-0"
       min="0"
       :max="duration"
-      :label="`${formattedCurrentTime} - ${formattedDuration}`"
+      aria-labelledby="playback-time"
       hide-details
       color="white"
       data-test="time-slider"
@@ -58,10 +60,12 @@
       @update:model-value="changePlaybackSpeed()"
     />
     <v-btn
+      v-if="mdAndUp"
       role="button"
       variant="text"
       icon="mdi-keyboard"
       rounded
+      density="compact"
       size="x-large"
       data-test="keyboard-icon"
       @click="openDialog"
@@ -87,6 +91,7 @@
 <script setup lang="ts">
 import * as AsciinemaPlayer from "asciinema-player";
 import { onMounted, ref, watchEffect } from "vue";
+import { useDisplay } from "vuetify/lib/framework.mjs";
 
 const { logs } = defineProps<{
   logs: string | null;
@@ -104,8 +109,9 @@ const formattedCurrentTime = ref("00:00:00");
 const formattedDuration = ref("00:00:00");
 const timeUpdaterId = ref<number>();
 const currentSpeed = ref(1);
+const { smAndUp, mdAndUp } = useDisplay();
 
-const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(11, 19);
+const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
 
 const getCurrentTime = () => {
   const time = player.value.getCurrentTime();
