@@ -94,6 +94,7 @@ const { logs } = defineProps<{
 
 const isPlaying = ref(true);
 const showDialog = ref(false);
+const sessionEnded = ref(false);
 const containerDiv = ref<HTMLDivElement | null>(null);
 const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
 const playerWrapper = ref<HTMLDivElement | null>(null);
@@ -162,6 +163,7 @@ const openDialog = () => {
 
 const setPlayerEventListeners = () => {
   player.value.addEventListener("playing", () => {
+    sessionEnded.value = false;
     getCurrentTime();
     // clear to prevent multiple intervals when replaying
     clearInterval(timeUpdaterId.value);
@@ -171,18 +173,20 @@ const setPlayerEventListeners = () => {
   });
 
   player.value.addEventListener("ended", () => {
+    sessionEnded.value = true;
     isPlaying.value = false;
     clearCurrentTimeUpdater();
   });
 };
 
 const changePlaybackSpeed = () => {
+  const newPlayerOptions = {
+    ...playerOptions,
+    speed: currentSpeed.value,
+    startAt: sessionEnded.value ? 0 : currentTime.value,
+  };
   player.value.dispose();
-  player.value = AsciinemaPlayer.create(
-    { data: logs },
-    containerDiv.value,
-    { ...playerOptions, speed: currentSpeed.value, startAt: currentTime.value },
-  );
+  player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, newPlayerOptions);
   play();
   setPlayerEventListeners();
 };
