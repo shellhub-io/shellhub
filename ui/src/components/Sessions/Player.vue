@@ -8,6 +8,7 @@
 
   <v-card-actions
     class="text-h5 pa-3 d-flex ga-4 align-center"
+    @click="changeFocusToPlayer()"
   >
     <v-btn
       v-if="isPlaying"
@@ -74,7 +75,7 @@
 
 <script setup lang="ts">
 import * as AsciinemaPlayer from "asciinema-player";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 
 const { logs } = defineProps<{
   logs: string | null;
@@ -84,6 +85,7 @@ const isPlaying = ref(true);
 const showDialog = ref(false);
 const containerDiv = ref<HTMLDivElement | null>(null);
 const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
+const playerWrapper = ref<HTMLDivElement | null>(null);
 const currentTime = ref(0);
 const duration = ref(0);
 const formattedCurrentTime = ref("00:00:00");
@@ -140,6 +142,8 @@ const openDialog = () => {
   showDialog.value = true;
 };
 
+const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
+
 onMounted(() => {
   const playerOptions = {
     fit: "height",
@@ -150,7 +154,8 @@ onMounted(() => {
 
   player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
 
-  (containerDiv.value?.querySelector(".ap-wrapper") as HTMLElement).focus();
+  playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
+  changeFocusToPlayer();
 
   player.value.addEventListener("playing", () => {
     getCurrentTime();
@@ -166,6 +171,8 @@ onMounted(() => {
     clearCurrentTimeUpdater();
   });
 });
+
+watchEffect(() => !showDialog.value && changeFocusToPlayer());
 </script>
 
 <style lang="scss" scoped>
