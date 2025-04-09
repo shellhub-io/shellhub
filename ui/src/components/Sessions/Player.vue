@@ -54,6 +54,7 @@
       flat
       prepend-inner-icon="mdi-speedometer"
       data-test="speed-select"
+      @click.stop
       @update:model-value="changePlaybackSpeed()"
     />
     <v-btn
