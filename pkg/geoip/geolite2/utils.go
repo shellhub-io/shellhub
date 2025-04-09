@@ -48,8 +48,8 @@ func fetchDB(ctx context.Context, url string) func() error {
 			return errors.New("cannot download geolite db: status " + r.Status())
 		}
 
-		format := archiver.CompressedArchive{Compression: archiver.Gz{}, Archival: archiver.Tar{}}
-		if err := format.Extract(ctx, bytes.NewReader(r.Body()), nil, saveDB()); err != nil { //nolint:revive
+		format := archiver.Archive{Compression: archiver.Gz{}, Archival: archiver.Tar{}}
+		if err := format.Extract(ctx, bytes.NewReader(r.Body()), saveDB()); err != nil { //nolint:revive
 			return err
 		}
 
@@ -60,7 +60,7 @@ func fetchDB(ctx context.Context, url string) func() error {
 // saveDB saves extracted GeoLite2 database files to [dbPath].
 // Only files with the expected [dbExtension] will be saved.
 func saveDB() archiver.FileHandler {
-	return func(_ context.Context, f archiver.File) error {
+	return func(_ context.Context, f archiver.FileInfo) error {
 		if !strings.HasSuffix(f.Name(), dbExtension) {
 			return nil
 		}

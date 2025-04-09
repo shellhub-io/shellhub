@@ -114,7 +114,7 @@ func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket
 		DefaultDialer.
 		DialContext(
 			ctx,
-			fmt.Sprintf("ws://api:8080/internal/sessions/%s/events",
+			fmt.Sprintf("ws://server:8080/internal/sessions/%s/events",
 				uid,
 			),
 			nil)

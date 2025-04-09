@@ -1,39 +1,21 @@
 services:
-  ssh:
-    image: ssh
+  server:
+    image: server
     build:
       context: .
-      dockerfile: ssh/Dockerfile
+      dockerfile: server/Dockerfile
       target: development
       network: host
       args:
         - GOPROXY=${SHELLHUB_GOPROXY:-}
     volumes:
-      - ./ssh:/go/src/github.com/shellhub-io/shellhub/ssh
+      - ./server:/go/src/github.com/shellhub-io/shellhub/server
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./.golangci.yaml:/.golangci.yaml
     environment:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_BILLING=${SHELLHUB_BILLING}
-      - SHELLHUB_ENV=${SHELLHUB_ENV}
-  api:
-    image: api
-    build:
-      context: .
-      dockerfile: api/Dockerfile
-      target: development
-      network: host
-      args:
-        - GOPROXY=${SHELLHUB_GOPROXY:-}
-    volumes:
-      - ./api:/go/src/github.com/shellhub-io/shellhub/api
-      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./.golangci.yaml:/.golangci.yaml
-    environment:
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   ui:
     image: ui
@@ -72,5 +54,5 @@ services:
     volumes:
       - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-      - ./api:/go/src/github.com/shellhub-io/shellhub/api
+      - ./server:/go/src/github.com/shellhub-io/shellhub/server/server
       - ./.golangci.yaml:/.golangci.yaml

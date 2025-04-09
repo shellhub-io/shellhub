@@ -16,9 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, agent, pkg, ssh, ui, cli]
+        project: [server, agent, pkg, ui, cli]
         include:
-          - project: api
+          - project: server
             extra_args: ""
             lint_args: ""
           - project: agent
@@ -27,9 +27,6 @@ jobs:
           - project: pkg
             extra_args: ""
             lint_args: ""
-          - project: ssh
-            extra_args: "-tags internal_api"
-            lint_args: "--build-tags internal_api"
           - project: ui
             extra_args: ""
             lint_args: ""

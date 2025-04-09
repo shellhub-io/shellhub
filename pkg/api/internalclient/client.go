@@ -39,7 +39,7 @@ var (
 
 func NewClient(opts ...clientOption) (Client, error) {
 	httpClient := resty.New()
-	httpClient.SetBaseURL("http://api:8080")
+	httpClient.SetBaseURL("http://server:8080")
 	httpClient.SetRetryCount(math.MaxInt32)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.

@@ -67,9 +67,7 @@ func NewTunnel(connectionPath, dialerPath string) *Tunnel {
 	return tunnel
 }
 
-func (t *Tunnel) Router() http.Handler {
-	e := echo.New()
-
+func (t *Tunnel) Router(e *echo.Echo) *echo.Echo {
 	e.GET(t.ConnectionPath, func(c echo.Context) error {
 		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {

@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/cli/cmd"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	"github.com/shellhub-io/shellhub/server/api/store/mongo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

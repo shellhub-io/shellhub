@@ -1,5 +1,5 @@
 # base stage
-FROM golang:1.23-alpine3.19 AS base
+FROM golang:1.23.7-alpine3.21 AS base
 
 ARG GOPROXY
 
@@ -44,7 +44,7 @@ ENV GOPROXY ${GOPROXY}
 RUN apk add --update openssl openssh-client
 RUN go install github.com/air-verse/air@v1.52.3 && \
     go install github.com/go-delve/delve/cmd/dlv@v1.23.0 && \
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.2
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 

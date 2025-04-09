@@ -1,32 +1,10 @@
 services:
-  ssh:
-    image: shellhubio/ssh:${SHELLHUB_VERSION}
+  server:
+    image: shellhubio/server:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
-      - PRIVATE_KEY=/run/secrets/ssh_private_key
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
-      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
-      - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
-      - SHELLHUB_BILLING=${SHELLHUB_BILLING}
       - ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0=${SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0}
       - BILLING_URL=${SHELLHUB_BILLING_URL}
-    ports:
-      - "${SHELLHUB_SSH_PORT}:2222"
-    secrets:
-      - ssh_private_key
-    networks:
-      - shellhub
-    healthcheck:
-      test: "curl -f http://ssh:8080/healthcheck || exit 1"
-      interval: 30s
-      start_period: 10s
-    depends_on:
-      - redis
-  api:
-    image: shellhubio/api:${SHELLHUB_VERSION}
-    restart: unless-stopped
-    environment:
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
@@ -49,21 +27,21 @@ services:
       - ASYNQ_UNIQUENESS_TIMEOUT=${SHELLHUB_ASYNQ_UNIQUENESS_TIMEOUT}
       - REDIS_CACHE_POOL_SIZE=${SHELLHUB_REDIS_CACHE_POOL_SIZE}
       - MAXIMUM_ACCOUNT_LOCKOUT=${SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT}
-    depends_on:
-      - mongo
-      - redis
-    links:
-      - mongo
-      - redis
+    ports:
+      - "${SHELLHUB_SSH_PORT}:2222"
     secrets:
       - api_private_key
       - api_public_key
+      - ssh_private_key
     networks:
       - shellhub
     healthcheck:
-      test: "curl -f http://api:8080/api/healthcheck || exit 1"
+      test: "curl -f http://server:8080/healthcheck || exit 1"
       interval: 30s
       start_period: 10s
+    depends_on:
+      - mongo
+      - redis
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     restart: unless-stopped
@@ -102,7 +80,7 @@ services:
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_AUTO_SSL=${SHELLHUB_AUTO_SSL}
     depends_on:
-      - api
+      - server
       - ui
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80
