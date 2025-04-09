@@ -46,6 +46,16 @@
       @touchstart="pause"
       @touchend="play"
     />
+    <v-select
+      class="flex-grow-0 flex-shrink-0"
+      :items="[0.5, 1, 1.5, 2]"
+      v-model="currentSpeed"
+      hide-details
+      flat
+      prepend-inner-icon="mdi-speedometer"
+      data-test="speed-select"
+      @update:model-value="changePlaybackSpeed()"
+    />
     <v-btn
       role="button"
       variant="text"
@@ -91,6 +101,7 @@ const duration = ref(0);
 const formattedCurrentTime = ref("00:00:00");
 const formattedDuration = ref("00:00:00");
 const timeUpdaterId = ref<number>();
+const currentSpeed = ref(1);
 
 const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(11, 19);
 
@@ -127,6 +138,13 @@ const getSessionRows = () => {
   return rows;
 };
 
+const playerOptions = {
+  fit: "height",
+  controls: false,
+  autoplay: true,
+  rows: getSessionRows(),
+};
+
 const play = () => {
   player.value.play();
   isPlaying.value = true;
@@ -142,21 +160,7 @@ const openDialog = () => {
   showDialog.value = true;
 };
 
-const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
-
-onMounted(() => {
-  const playerOptions = {
-    fit: "height",
-    controls: false,
-    autoplay: true,
-    rows: getSessionRows(),
-  };
-
-  player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
-
-  playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
-  changeFocusToPlayer();
-
+const setPlayerEventListeners = () => {
   player.value.addEventListener("playing", () => {
     getCurrentTime();
     // clear to prevent multiple intervals when replaying
@@ -170,6 +174,27 @@ onMounted(() => {
     isPlaying.value = false;
     clearCurrentTimeUpdater();
   });
+};
+
+const changePlaybackSpeed = () => {
+  player.value.dispose();
+  player.value = AsciinemaPlayer.create(
+    { data: logs },
+    containerDiv.value,
+    { ...playerOptions, speed: currentSpeed.value, startAt: currentTime.value },
+  );
+  setPlayerEventListeners();
+};
+
+const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
+
+onMounted(() => {
+  player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
+
+  playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
+  changeFocusToPlayer();
+
+  setPlayerEventListeners();
 });
 
 watchEffect(() => !showDialog.value && changeFocusToPlayer());
