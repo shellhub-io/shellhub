@@ -4,11 +4,13 @@
     v-if="logs"
     ref="containerDiv"
     @keydown.space.prevent="isPlaying = !isPlaying"
+    data-test="player-container"
   />
 
   <v-card-actions
     class="text-h5 px-3 py-2 d-flex ga-4 align-center"
-    @click="changeFocusToPlayer()"
+    @click="changeFocusToPlayer"
+    data-test="player-controls"
   >
     <v-btn
       v-if="isPlaying"
@@ -17,7 +19,7 @@
       size="48"
       :ripple="false"
       icon="mdi-pause"
-      data-test="pause-icon"
+      data-test="pause-btn"
       @click="pause"
     />
     <v-btn
@@ -31,7 +33,14 @@
       @click="play"
     />
 
-    <span v-if="smAndUp" id="playback-time" class="text-medium-emphasis text-body-1">{{formattedCurrentTime}} / {{formattedDuration}}</span>
+    <span
+      v-if="smAndUp"
+      id="playback-time"
+      class="text-medium-emphasis text-body-1"
+      data-test="playback-time"
+    >
+      {{formattedCurrentTime}} / {{formattedDuration}}
+    </span>
 
     <v-slider
       v-model="currentTime"
@@ -57,7 +66,7 @@
       prepend-inner-icon="mdi-speedometer"
       data-test="speed-select"
       @click.stop
-      @update:model-value="changePlaybackSpeed()"
+      @update:model-value="changePlaybackSpeed"
     />
     <v-btn
       v-if="mdAndUp"
@@ -67,7 +76,7 @@
       rounded
       density="compact"
       size="x-large"
-      data-test="keyboard-icon"
+      data-test="shortcuts-btn"
       @click="openDialog"
     />
   </v-card-actions>
@@ -207,6 +216,8 @@ onMounted(() => {
 });
 
 watchEffect(() => !showDialog.value && changeFocusToPlayer());
+
+defineExpose({ player });
 </script>
 
 <style lang="scss" scoped>
