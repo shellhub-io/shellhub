@@ -2,6 +2,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
+import { VBtn } from "vuetify/lib/components/index";
 import { store, key } from "@/store";
 import Device from "@/components/Devices/Device.vue";
 import { router } from "@/router";
@@ -159,12 +160,16 @@ describe("Device", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
+  it("Data is defined", () => {
+    expect(wrapper.vm.$data).toBeDefined();
+  });
+
   it("Renders correctly", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Contains the correct tabs", () => {
-    const tabs = wrapper.findAllComponents({ name: "VBtn" });
+    const tabs = wrapper.findAllComponents(VBtn);
     expect(tabs).toHaveLength(3); // Three tabs expected
     expect(tabs[0].text()).toBe("Accepted");
     expect(tabs[1].text()).toBe("Pending");
