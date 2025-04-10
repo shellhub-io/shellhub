@@ -185,6 +185,8 @@ const setPlayerEventListeners = () => {
   });
 };
 
+const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
+
 const changePlaybackSpeed = () => {
   const newPlayerOptions = {
     ...playerOptions,
@@ -195,9 +197,8 @@ const changePlaybackSpeed = () => {
   player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, newPlayerOptions);
   play();
   setPlayerEventListeners();
+  playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
 };
-
-const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
 onMounted(() => {
   player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
