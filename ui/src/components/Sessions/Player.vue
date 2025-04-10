@@ -89,47 +89,24 @@ const { logs } = defineProps<{
 
 const emit = defineEmits(["close"]);
 
-const isPlaying = ref(true);
-const showDialog = ref(false);
-const sessionEnded = ref(false);
 const containerDiv = ref<HTMLDivElement | null>(null);
 const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
 const playerWrapper = ref<HTMLDivElement | null>(null);
+
+const { smAndUp, mdAndUp } = useDisplay();
+const showDialog = ref(false);
+
+const isPlaying = ref(true);
+const sessionEnded = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
 const formattedCurrentTime = ref("00:00:00");
 const formattedDuration = ref("00:00:00");
 const timeUpdaterId = ref<number>();
 const currentSpeed = ref(1);
-const { smAndUp, mdAndUp } = useDisplay();
 
 const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
-
-const getCurrentTime = () => {
-  const time = player.value.getCurrentTime();
-  currentTime.value = time;
-  formattedCurrentTime.value = formatTime(time);
-};
-
-const clearCurrentTimeUpdater = () => {
-  clearInterval(timeUpdaterId.value);
-};
-
-const startCurrentTimeUpdater = () => {
-  clearCurrentTimeUpdater();
-  timeUpdaterId.value = window.setInterval(
-    () => {
-      getCurrentTime();
-    },
-    100,
-  );
-};
-
-const changePlaybackTime = (value: number) => {
-  player.value.seek(value);
-  currentTime.value = value;
-  formattedCurrentTime.value = formatTime(value);
-};
+const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
 const getSessionDimensions = () => {
   const dimensionsLine = logs?.split("\n")[1] ?? ""; // returns a string in the format of `[0.123, "r", "80x24"]`
@@ -138,10 +115,29 @@ const getSessionDimensions = () => {
   return { cols, rows };
 };
 
-const playerOptions = {
-  fit: "height",
-  controls: false,
-  ...getSessionDimensions(),
+const getCurrentTime = () => {
+  const time = player.value.getCurrentTime();
+  currentTime.value = time;
+  formattedCurrentTime.value = formatTime(time);
+};
+
+const getDuration = () => {
+  duration.value = player.value.getDuration();
+  formattedDuration.value = formatTime(duration.value);
+};
+
+const changePlaybackTime = (value: number) => {
+  player.value.seek(value);
+  getCurrentTime();
+};
+
+const clearCurrentTimeUpdater = () => {
+  clearInterval(timeUpdaterId.value);
+};
+
+const startCurrentTimeUpdater = () => {
+  clearCurrentTimeUpdater();
+  timeUpdaterId.value = window.setInterval(getCurrentTime, 100);
 };
 
 const play = () => {
@@ -159,15 +155,26 @@ const openDialog = () => {
   showDialog.value = true;
 };
 
+const createPlayer = (startAt = 0) => {
+  const playerOptions = {
+    fit: "height",
+    controls: false,
+    ...getSessionDimensions(),
+    speed: currentSpeed.value,
+    startAt,
+  };
+
+  return AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
+};
+
 const setPlayerEventListeners = () => {
   player.value.addEventListener("playing", () => {
     sessionEnded.value = false;
     getCurrentTime();
     // clear to prevent multiple intervals when replaying
-    clearInterval(timeUpdaterId.value);
+    clearCurrentTimeUpdater();
     startCurrentTimeUpdater();
-    duration.value = player.value.getDuration();
-    formattedDuration.value = formatTime(duration.value);
+    getDuration();
   });
 
   player.value.addEventListener("ended", () => {
@@ -177,35 +184,25 @@ const setPlayerEventListeners = () => {
   });
 
   containerDiv.value?.addEventListener("keydown", (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      emit("close");
-    }
+    if (event.key === "Escape") emit("close");
   });
 };
 
-const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
-
 const changePlaybackSpeed = () => {
-  const newPlayerOptions = {
-    ...playerOptions,
-    speed: currentSpeed.value,
-    startAt: sessionEnded.value ? 0 : currentTime.value,
-  };
+  const startAt = sessionEnded.value ? 0 : currentTime.value;
+
   player.value.dispose();
-  player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, newPlayerOptions);
+  player.value = createPlayer(startAt);
   play();
   setPlayerEventListeners();
   playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
 };
 
 onMounted(() => {
-  player.value = AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
-
+  player.value = createPlayer();
   playerWrapper.value = containerDiv.value?.querySelector(".ap-wrapper") as HTMLDivElement;
   changeFocusToPlayer();
-
   play();
-
   setPlayerEventListeners();
 });
 
