@@ -97,6 +97,8 @@ const { logs } = defineProps<{
   logs: string | null;
 }>();
 
+const emit = defineEmits(["close"]);
+
 const isPlaying = ref(true);
 const showDialog = ref(false);
 const sessionEnded = ref(false);
@@ -182,6 +184,12 @@ const setPlayerEventListeners = () => {
     sessionEnded.value = true;
     isPlaying.value = false;
     clearCurrentTimeUpdater();
+  });
+
+  containerDiv.value?.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      emit("close");
+    }
   });
 };
 
