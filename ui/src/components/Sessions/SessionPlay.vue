@@ -26,7 +26,7 @@
           @click="closeDialog"
         />
 
-        <Player :logs />
+        <Player :logs @close="closeDialog" />
       </v-card>
     </v-dialog>
   </div>
