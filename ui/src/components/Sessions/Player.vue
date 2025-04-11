@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import * as AsciinemaPlayer from "asciinema-player";
-import { onMounted, ref, watchEffect } from "vue";
+import { onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { useDisplay } from "vuetify";
 import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
 
@@ -213,6 +213,11 @@ onMounted(() => {
   changeFocusToPlayer();
   play();
   setPlayerEventListeners();
+});
+
+onUnmounted(() => {
+  clearCurrentTimeUpdater();
+  player.value?.dispose();
 });
 
 watchEffect(() => !showDialog.value && changeFocusToPlayer());
