@@ -193,7 +193,12 @@ const setPlayerEventListeners = () => {
   });
 
   containerDiv.value?.addEventListener("keydown", (event: KeyboardEvent) => {
+    getCurrentTime();
     if (event.key === "Escape") emit("close");
+  });
+
+  containerDiv.value?.addEventListener("keyup", () => {
+    getCurrentTime();
   });
 };
 
