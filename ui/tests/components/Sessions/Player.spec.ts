@@ -1,57 +1,46 @@
 import { mount, flushPromises, VueWrapper } from "@vue/test-utils";
-import { describe, beforeEach, vi, it, expect } from "vitest";
+import { describe, beforeEach, vi, it, expect, afterEach } from "vitest";
 import { createVuetify } from "vuetify";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 import { store, key } from "@/store";
 import Player from "@/components/Sessions/Player.vue";
 
+vi.mock("asciinema-player", () => ({
+  create: vi.fn().mockReturnValue({
+    play: vi.fn(),
+    pause: vi.fn(),
+    seek: vi.fn(),
+    getCurrentTime: vi.fn(() => 10),
+    getDuration: vi.fn(() => 100),
+    addEventListener: vi.fn(),
+    dispose: vi.fn(),
+  }),
+}));
+
 type PlayerWrapper = VueWrapper<InstanceType<typeof Player>>;
 
 describe("Asciinema Player", () => {
   let wrapper: PlayerWrapper;
-
   const vuetify = createVuetify();
 
   // eslint-disable-next-line vue/max-len
   const logsMock = "{\"version\": 2, \"width\": 80, \"height\": 24}\n[0.123, \"r\", \"80x24\"]\n[1.0, \"o\", \"Asciinema player test\"]\n[2.0, \"o\", \"logout\"]";
 
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const session = true;
-
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant");
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("security/setSecurity", session);
-
     wrapper = mount(Player, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         logs: logsMock,
       },
     });
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
+    vi.clearAllMocks();
   });
 
   it("Is a Vue instance", () => {
@@ -60,10 +49,6 @@ describe("Asciinema Player", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders components", async () => {
@@ -83,30 +68,95 @@ describe("Asciinema Player", () => {
     expect(wrapper.vm.player).toBeDefined();
   });
 
-  // it("Fails to Change Password", async () => {
-  //   mockUser.onPatch("http://localhost:3000/api/users").reply(403);
+  it("Initializes with correct default values", () => {
+    expect(wrapper.vm.isPlaying).toBe(true);
+    expect(wrapper.vm.currentTime).toBe(0);
+    expect(wrapper.vm.currentSpeed).toBe(1);
+  });
 
-  //   const StoreSpy = vi.spyOn(store, "dispatch");
+  it("Shows pause button when player is playing", async () => {
+    wrapper.vm.isPlaying = true;
+    await wrapper.vm.$nextTick();
 
-  //   wrapper.vm.show = true;
-  //   await flushPromises();
+    const pauseBtn = wrapper.find('[data-test="pause-btn"]');
 
-  //   await wrapper.findComponent('[data-test="password-input"]').setValue("xxxxxx");
-  //   await wrapper.findComponent('[data-test="new-password-input"]').setValue("x1x2x3");
-  //   await wrapper.findComponent('[data-test="confirm-new-password-input"]').setValue("x1x2x3");
+    expect(pauseBtn.exists()).toBe(true);
+    expect(wrapper.find('[data-test="play-btn"]').exists()).toBe(false);
+  });
 
-  //   await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
-  //   await flushPromises();
+  it("Shows play button when player is paused", async () => {
+    wrapper.vm.isPlaying = true;
+    await wrapper.vm.$nextTick();
+    const pauseBtn = wrapper.find('[data-test="pause-btn"]');
 
-  //   expect(StoreSpy).toHaveBeenCalledWith("users/patchPassword", {
-  //     name: "test",
-  //     username: undefined,
-  //     email: "test@test.com",
-  //     recovery_email: undefined,
-  //     currentPassword: "xxxxxx",
-  //     newPassword: "x1x2x3",
-  //   });
+    await pauseBtn.trigger("click");
+    await wrapper.vm.$nextTick();
 
-  //   expect(StoreSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
-  // });
+    expect(wrapper.find('[data-test="pause-btn"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="play-btn"]').exists()).toBe(true);
+  });
+
+  it("Updates player state when play/pause is clicked", async () => {
+    const pauseBtn = wrapper.find('[data-test="pause-btn"]');
+    await pauseBtn.trigger("click");
+
+    expect(wrapper.vm.player.pause).toHaveBeenCalled();
+    expect(wrapper.vm.isPlaying).toBe(false);
+
+    const playBtn = wrapper.find('[data-test="play-btn"]');
+    await playBtn.trigger("click");
+
+    expect(wrapper.vm.player.play).toHaveBeenCalled();
+    expect(wrapper.vm.isPlaying).toBe(true);
+  });
+
+  it("Shows keyboard shortcuts dialog when button is clicked", async () => {
+    const dialogBtn = wrapper.find('[data-test="shortcuts-btn"]');
+    await dialogBtn.trigger("click");
+
+    expect(wrapper.vm.showDialog).toBe(true);
+    expect(wrapper.vm.player.pause).toHaveBeenCalled();
+  });
+
+  it("Changes playback speed when speed selector is changed", async () => {
+    const speedSelect = wrapper.findComponent({ name: "v-select" });
+    await speedSelect.vm.$emit("update:modelValue", 2);
+
+    expect(wrapper.vm.currentSpeed).toBe(2);
+  });
+
+  it("Formats time correctly", () => {
+    expect(wrapper.vm.formatTime(3661)).toBe("01:01:01"); // hh:mm:ss if session is longer than 1 hour
+    expect(wrapper.vm.formatTime(61)).toBe("01:01"); // mm:ss otherwise
+    expect(wrapper.vm.formatTime(59)).toBe("00:59"); // Less than 1 minute
+    expect(wrapper.vm.formatTime(0)).toBe("00:00"); // Zero time
+  });
+
+  it("Updates current time when slider is moved", async () => {
+    const newTime = 50;
+    const slider = wrapper.findComponent({ name: "v-slider" });
+
+    await slider.vm.$emit("update:modelValue", newTime);
+
+    expect(wrapper.vm.player.seek).toHaveBeenCalledWith(newTime);
+  });
+
+  it("Pauses playback when slider interaction starts", async () => {
+    const slider = wrapper.find('[data-test="time-slider"]');
+    await slider.trigger("mousedown");
+
+    expect(wrapper.vm.player.pause).toHaveBeenCalled();
+  });
+
+  it("Resumes playback when slider interaction ends", async () => {
+    const slider = wrapper.find('[data-test="time-slider"]');
+    await slider.trigger("mouseup");
+
+    expect(wrapper.vm.player.play).toHaveBeenCalled();
+  });
+
+  it("Disposes player when component is unmounted", async () => {
+    wrapper.unmount();
+    expect(wrapper.vm.player.dispose).toHaveBeenCalled();
+  });
 });

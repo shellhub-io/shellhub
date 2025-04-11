@@ -222,7 +222,7 @@ onUnmounted(() => {
 
 watchEffect(() => !showDialog.value && changeFocusToPlayer());
 
-defineExpose({ player });
+defineExpose({ player, currentSpeed, currentTime, isPlaying, showDialog, formatTime, pause });
 </script>
 
 <style lang="scss" scoped>
