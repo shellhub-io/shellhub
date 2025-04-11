@@ -1,12 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Asciinema Player > Renders the component 1`] = `
-"<div data-v-f3a0259a="" class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal" data-test="player-container">
-  <div class="ap-wrapper" tabindex="-1">
-    <div class="ap-player asciinema-player-theme-asciinema" style="height: 0px;"><pre class="ap-terminal ap-cursor-on ap-blink" aria-live="polite" tabindex="0" style="width: 80ch; height: 31.9999999992em; font-size: 100%; --term-line-height: 1.3333333333em; --term-cols: 80;"></pre>
-    </div>
-  </div>
-</div>
+"<div data-v-f3a0259a="" class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal" data-test="player-container"></div>
 <div data-v-f3a0259a="" class="v-card-actions text-h5 px-3 py-2 d-flex ga-4 align-center" data-test="player-controls"><button data-v-f3a0259a="" type="button" class="v-btn v-btn--icon v-btn--slim v-theme--light v-btn--density-default rounded-circle v-btn--variant-text bg-primary" style="width: 48px; height: 48px;" data-test="pause-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-pause mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
     <!---->
