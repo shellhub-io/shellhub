@@ -536,13 +536,19 @@ func (s *Session) NewSeat() (int, error) {
 
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
-	s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
+	if err := s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
 		Session:   s.UID,
 		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
 		Data:      data,
 		Seat:      seat,
-	})
+	}); err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"event": t,
+			"data":  data,
+			"seat":  seat,
+		}).Error("failed to register a event")
+	}
 }
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
