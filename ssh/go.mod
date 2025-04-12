@@ -1,19 +1,22 @@
 module github.com/shellhub-io/shellhub/ssh
 
-go 1.22.4
+go 1.23.0
+
+toolchain go1.24.1
 
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/gliderlabs/ssh v0.3.8
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/pires/go-proxyproto v0.8.0
 	github.com/shellhub-io/shellhub v0.13.4
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.33.0
-	golang.org/x/net v0.35.0
+	golang.org/x/crypto v0.35.0
+	golang.org/x/net v0.36.0
 )
 
 require (
@@ -30,7 +33,6 @@ require (
 	github.com/go-resty/resty/v2 v2.11.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hibiken/asynq v0.24.1 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
