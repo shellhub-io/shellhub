@@ -1,22 +1,11 @@
 version: "3.7"
 
 services:
-  ssh:
-    image: ssh:test
+  server:
+    image: server:test
     build:
       context: .
-      dockerfile: ssh/Dockerfile
-      target: production 
-    healthcheck:
-      interval: 5s
-      start_period: 10s
-      retries: 20
-    ports: []
-  api:
-    image: api:test
-    build:
-      context: .
-      dockerfile: api/Dockerfile
+      dockerfile: server/Dockerfile
       target: production 
     healthcheck:
       interval: 5s

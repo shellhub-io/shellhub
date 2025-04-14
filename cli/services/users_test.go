@@ -5,8 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -14,6 +12,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
+	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

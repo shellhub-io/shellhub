@@ -2,7 +2,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { VBtn } from "vuetify/lib/components/index.mjs";
+import { VBtn } from "vuetify/lib/components/index";
 import { store, key } from "@/store";
 import Device from "@/components/Devices/Device.vue";
 import { router } from "@/router";
