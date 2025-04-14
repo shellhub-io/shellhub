@@ -13,4 +13,6 @@ type QueryOptions interface {
 	Order(query.Sorter) QueryOption
 	Filter(query.Filters) QueryOption
 	WithMember(string) QueryOption
+	InNamespace(string) QueryOption
+	WithStatus(string) QueryOption
 }

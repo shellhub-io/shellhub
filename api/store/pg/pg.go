@@ -44,7 +44,14 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 	}
 
 	// We need to register models so we can apply fixtures and relations later
-	pg.driver.RegisterModel((*entity.User)(nil), (*entity.Namespace)(nil), (*entity.Membership)(nil))
+	pg.driver.RegisterModel(
+		(*entity.User)(nil),
+		(*entity.Namespace)(nil),
+		(*entity.Membership)(nil),
+		(*entity.Device)(nil),
+		(*entity.DeviceInfo)(nil),
+		(*entity.DeviceInfo)(nil),
+	)
 
 	for _, opt := range opts {
 		if err := opt(ctx, pg.driver); err != nil {

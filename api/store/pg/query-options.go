@@ -133,6 +133,32 @@ func (*queryOptions) WithMember(userID string) store.QueryOption {
 	}
 }
 
+func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		query = query.Where("namespace_id = ?", namespaceID)
+
+		return nil
+	}
+}
+
+func (*queryOptions) WithStatus(status string) store.QueryOption {
+	return func(ctx context.Context) error {
+		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		query = query.Where("status = ?", status)
+
+		return nil
+	}
+}
+
 // parseFilterOperator converts a filter operator to its SQL representation. Supported operators are "AND" and "OR".
 // It returns the SQL operator string and a boolean indicating if the operator is valid.
 func parseFilterOperator(op *query.FilterOperator) (string, bool) {
