@@ -83,7 +83,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
-		if err := s.store.UserDelete(ctx, insertedID); err != nil {
+		if err := s.store.Delete(ctx, insertedID); err != nil {
 			return NewErrUserDelete(err)
 		}
 

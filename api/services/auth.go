@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -183,19 +184,18 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
-	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
-		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
-	}
+	// if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
+	// 	return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
+	// }
 
-	var err error
-	var user *models.User
-
+	var ident store.UserIdent
 	if req.Identifier.IsEmail() {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentEmail
 	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentUsername
 	}
 
+	user, err := s.store.UserGet(ctx, ident, strings.ToLower(string(req.Identifier)))
 	if err != nil {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
@@ -285,15 +285,15 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
+	user.LastLogin = clock.Now()
+	user.Preferences.PreferredNamespace = tenantID
 	if !strings.HasPrefix(user.PasswordDigest, "$") {
-		if pwdDigest, _ := hash.Do(req.Password); pwdDigest != "" {
-			changes.Password = pwdDigest
-		}
+		pwdDigest, _ := hash.Do(req.Password)
+		user.PasswordDigest = pwdDigest
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
+	if err := s.store.UserSave(ctx, user); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -322,7 +322,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 }
 
 func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
@@ -366,7 +366,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+			user.Preferences.PreferredNamespace = namespace.TenantID
+			_ = s.store.Save(ctx, user)
 		}
 	}
 

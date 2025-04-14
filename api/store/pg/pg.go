@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/internal/entity"
 	"github.com/shellhub-io/shellhub/api/store/pg/options"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 )
@@ -44,7 +44,7 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 	}
 
 	// We need to register models so we can apply fixtures and relations later
-	pg.driver.RegisterModel((*models.User)(nil))
+	pg.driver.RegisterModel((*entity.User)(nil))
 
 	for _, opt := range opts {
 		if err := opt(ctx, pg.driver); err != nil {

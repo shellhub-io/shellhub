@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
@@ -63,7 +64,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
@@ -85,7 +86,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		}
 	}
 
-	if err := s.store.UserDelete(ctx, user.ID); err != nil {
+	if err := s.store.UserDelete(ctx, user); err != nil {
 		return ErrFailedDeleteUser
 	}
 
@@ -98,17 +99,21 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	pwdDigest, err := hash.Do(input.Password)
-	if err != nil {
-		return ErrUserPasswordInvalid
+	if input.Password != "" {
+		pwdDigest, err := hash.Do(input.Password)
+		if err != nil {
+			return ErrUserPasswordInvalid
+		}
+
+		user.PasswordDigest = pwdDigest
 	}
 
-	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: pwdDigest}); err != nil {
+	if err := s.store.UserSave(ctx, user); err != nil {
 		return ErrFailedUpdateUser
 	}
 

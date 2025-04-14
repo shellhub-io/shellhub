@@ -68,6 +68,7 @@ type User struct {
 	// MaxNamespaces represents the count of namespaces that the user can owns.
 	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
 
@@ -145,23 +146,6 @@ type UserTokenRecover struct {
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-}
-
-// UserChanges specifies the attributes that can be updated for a user. Any zero values in this
-// struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
-type UserChanges struct {
-	LastLogin          time.Time        `bson:"last_login,omitempty"`
-	Name               string           `bson:"name,omitempty"`
-	Username           string           `bson:"username,omitempty"`
-	Email              string           `bson:"email,omitempty"`
-	RecoveryEmail      string           `bson:"recovery_email,omitempty"`
-	Password           string           `bson:"password,omitempty"`
-	Status             UserStatus       `bson:"status,omitempty"`
-	ExternalID         *string          `bson:"external_id,omitempty"`
-	PreferredNamespace *string          `bson:"preferences.preferred_namespace,omitempty"`
-	MaxNamespaces      *int             `bson:"max_namespaces,omitempty"`
-	EmailMarketing     *bool            `bson:"email_marketing,omitempty"`
-	AuthMethods        []UserAuthMethod `bson:"preferences.auth_methods,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
