@@ -10,6 +10,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	log "github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 )
 
 func (pg *pg) Save(ctx context.Context, models ...any) error {
@@ -78,4 +79,15 @@ func fromSqlError(err error) error {
 	default:
 		return err
 	}
+}
+
+func applyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) error {
+	ctxWithQuery := context.WithValue(ctx, "query", query)
+	for _, opt := range opts {
+		if err := opt(ctxWithQuery); err != nil {
+			return fromSqlError(err)
+		}
+	}
+
+	return nil
 }

@@ -105,7 +105,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	return s.store.NamespaceGet(ctx, req.TenantID)
 }
 
 // addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
@@ -228,7 +228,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 			Error("failed to uncache the token")
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices(), s.store.Options().EnrichMembersData())
+	return s.store.NamespaceGet(ctx, req.TenantID)
 }
 
 func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {

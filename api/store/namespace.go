@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -15,24 +14,24 @@ type NamespaceStore interface {
 	//
 	// It returns the list of namespaces, the total count of matching documents (ignoring pagination), and
 	// an error if any.
-	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...NamespaceQueryOption) ([]models.Namespace, int, error)
+	NamespaceList(ctx context.Context, opts ...QueryOption) ([]models.Namespace, int, error)
 
 	// NamespaceGet retrieves a namespace identified by the given tenantID. A list of options can be
 	// passed to inject additional data into the namespace.
 	//
 	// It returns the namespace or an error if any.
-	NamespaceGet(ctx context.Context, tenantID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+	NamespaceGet(ctx context.Context, tenantID string, opts ...QueryOption) (*models.Namespace, error)
 
 	// NamespaceGetByName retrieves a namespace by its name, similar to [Store.NamespaceGet], but matches by name instead
 	// of tenantID.
-	NamespaceGetByName(ctx context.Context, name string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+	NamespaceGetByName(ctx context.Context, name string, opts ...QueryOption) (*models.Namespace, error)
 
 	// NamespaceGetPreferred retrieves the user's preferred namespace. If the user has no preferred namespace it returns
 	// the first namespace where the user is a member (typically the first one the user was added to). A list of options
 	// can be passed via `opts` to inject additional data into the namespace.
 	//
 	// It returns the namespace or an error if any.
-	NamespaceGetPreferred(ctx context.Context, userID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+	NamespaceGetPreferred(ctx context.Context, userID string, opts ...QueryOption) (*models.Namespace, error)
 
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 

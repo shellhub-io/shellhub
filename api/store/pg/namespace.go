@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -12,20 +11,20 @@ func (pg *pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 	return nil, nil
 }
 
-func (pg *pg) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
+func (pg *pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	return nil, 0, nil
 }
 
-func (pg *pg) NamespaceGet(ctx context.Context, tenantID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
+func (pg *pg) NamespaceGet(ctx context.Context, tenantID string, opts ...store.QueryOption) (*models.Namespace, error) {
 	return nil, nil
 }
 
-func (pg *pg) NamespaceGetByName(ctx context.Context, name string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
+func (pg *pg) NamespaceGetByName(ctx context.Context, name string, opts ...store.QueryOption) (*models.Namespace, error) {
 	// TODO: unify get methods
 	return nil, nil
 }
 
-func (pg *pg) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
+func (pg *pg) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.QueryOption) (*models.Namespace, error) {
 	// TODO: unify get methods
 	return nil, nil
 }
