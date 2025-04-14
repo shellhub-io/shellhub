@@ -70,7 +70,10 @@ type User struct {
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
-	UserData       `bson:",inline"`
+
+	Name     string `json:"name" validate:"required,name"`
+	Username string `json:"username" bson:"username" validate:"required,username"`
+	Email    string `json:"email" bson:"email" validate:"required,email"`
 
 	// PasswordDigest stores the hashed password.
 	PasswordDigest string `json:"-"`
@@ -81,17 +84,6 @@ type User struct {
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
 	MFA         UserMFA         `json:"mfa" bson:"mfa"`
 	Preferences UserPreferences `json:"preferences" bson:"preferences"`
-}
-
-type UserData struct {
-	Name     string `json:"name" validate:"required,name"`
-	Username string `json:"username" bson:"username" validate:"required,username"`
-	Email    string `json:"email" bson:"email" validate:"required,email"`
-	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
-	// when they lose access to all other methods. It must never be equal to [UserData.Email].
-	//
-	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
-	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
 }
 
 // UserMFA represents the attributes related to MFA for a user.
@@ -110,6 +102,12 @@ type UserPreferences struct {
 
 	// AuthMethods indicates the authentication methods that the user can use to authenticate.
 	AuthMethods []UserAuthMethod `json:"auth_methods" bson:"auth_methods"`
+
+	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
+	// when they lose access to all other methods. It must never be equal to [UserData.Email].
+	//
+	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
+	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
 }
 
 // UserAuthIdentifier is an username or email used to authenticate.

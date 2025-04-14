@@ -31,17 +31,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		return NewErrSetupForbidden(err)
 	}
 
-	data := models.UserData{
-		Name:          req.Name,
-		Email:         req.Email,
-		Username:      req.Username,
-		RecoveryEmail: "",
-	}
-
-	if ok, err := s.validator.Struct(data); !ok || err != nil {
-		return NewErrUserInvalid(nil, err)
-	}
-
 	pwdDigest, err := hash.Do(req.Password)
 	if err != nil {
 		return NewErrUserPasswordInvalid(err)
@@ -53,14 +42,17 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 
 	user := &models.User{
 		Origin:         models.UserOriginLocal,
-		UserData:       data,
+		Name:           req.Name,
+		Email:          req.Email,
+		Username:       req.Username,
 		PasswordDigest: pwdDigest,
 		// NOTE: user's created from the setup screen doesn't need to be confirmed.
 		Status:        models.UserStatusConfirmed,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: -1,
 		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+			AuthMethods:   []models.UserAuthMethod{models.UserAuthMethodLocal},
+			RecoveryEmail: "",
 		},
 	}
 

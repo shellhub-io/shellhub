@@ -13,19 +13,7 @@ import (
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
-	// TODO: convert username and email to lower case.
-	userData := models.UserData{
-		Name:     input.Username,
-		Email:    input.Email,
-		Username: input.Username,
-	}
-
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(userData); !ok || err != nil {
-		return nil, ErrUserDataInvalid
-	}
-
-	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
+	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: input.Email, Username: input.Username}); has {
 		containsEmail := slices.Contains(conflicts, "email")
 		containsUsername := slices.Contains(conflicts, "username")
 
@@ -48,7 +36,9 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 	user := &models.User{
 		Origin:         models.UserOriginLocal,
-		UserData:       userData,
+		Name:           input.Username,
+		Email:          input.Email,
+		Username:       input.Username,
 		PasswordDigest: pwdDigest,
 		Status:         models.UserStatusConfirmed,
 		CreatedAt:      clock.Now(),
