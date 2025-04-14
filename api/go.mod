@@ -20,6 +20,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.35.0
 	github.com/uptrace/bun v1.2.11
+	github.com/uptrace/bun/dbfixture v1.2.11
 	github.com/uptrace/bun/dialect/pgdialect v1.2.11
 	golang.org/x/crypto v0.33.0
 )
