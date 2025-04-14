@@ -58,6 +58,23 @@ func (pg *pg) UserGetInfo(ctx context.Context, id string) (userInfo *models.User
 	return nil, nil
 }
 
+func (pg *pg) UserPreferredNamespace(ctx context.Context, ident store.UserIdent, val string) (*models.Namespace, error) {
+	ns := new(entity.Namespace)
+	if err := pg.driver.NewSelect().
+		Model(ns).
+		Relation("Memberships.User").
+		Join("JOIN users").
+		JoinOn("namespace.id = users.preferred_namespace_id OR namespace.id IN (SELECT namespace_id FROM memberships WHERE user_id = users.id)"). // TODO: subquery
+		Where("users.? = ?", bun.Ident(ident), val).
+		OrderExpr("CASE WHEN namespace.id = users.preferred_namespace_id THEN 0 ELSE 1 END"). // TODO: segunda ordenacao pela membership mais recente
+		Limit(1).
+		Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	return entity.NamespaceToModel(ns), nil
+}
+
 func (pg *pg) UserSave(ctx context.Context, user *models.User) error {
 	u := entity.UserFromModel(user)
 	u.UpdatedAt = clock.Now()

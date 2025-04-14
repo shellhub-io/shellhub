@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TYPE IF EXISTS namespace_scope;
+DROP TABLE IF EXISTS namespaces;
+
+COMMIT;

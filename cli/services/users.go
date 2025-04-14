@@ -75,16 +75,16 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 	}
 
 	for _, ns := range userInfo.OwnedNamespaces {
-		if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
+		if err := s.store.NamespaceDelete(ctx, &ns); err != nil {
 			return err
 		}
 	}
 
-	for _, ns := range userInfo.AssociatedNamespaces {
-		if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
-			return err
-		}
-	}
+	// for _, ns := range userInfo.AssociatedNamespaces {
+	// if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
+	// 	return err
+	// }
+	// }
 
 	if err := s.store.UserDelete(ctx, user); err != nil {
 		return ErrFailedDeleteUser

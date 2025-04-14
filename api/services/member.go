@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"time"
 
@@ -48,7 +47,7 @@ type MemberService interface {
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -101,12 +100,12 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 			return nil, err
 		}
 	} else {
-		if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
+		if err := s.addMember(passiveUser.ID, req)(ctx); err != nil {
 			return nil, err
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID)
+	return s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 }
 
 // addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
@@ -127,7 +126,7 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 			member.ExpiresAt = time.Time{}
 		}
 
-		if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
+		if err := s.store.NamespaceCreateMemberships(ctx, req.TenantID, *member); err != nil {
 			return err
 		}
 
@@ -145,19 +144,19 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 // specified ID.
 func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		expiresAt := clock.Now().Add(7 * (24 * time.Hour))
-		changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
+		// expiresAt := clock.Now().Add(7 * (24 * time.Hour))
+		// changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
 
-		if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {
-			return err
-		}
+		// if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {
+		// 	return err
+		// }
 
 		return s.client.InviteMember(ctx, req.TenantID, memberID, req.FowardedHost)
 	}
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -172,19 +171,20 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	if _, ok := namespace.FindMember(req.MemberID); !ok {
+	member, ok := namespace.FindMember(req.MemberID)
+	if !ok {
 		return NewErrNamespaceMemberNotFound(req.MemberID, err)
 	}
 
-	changes := &models.MemberChanges{Role: req.MemberRole}
-
-	if changes.Role != authorizer.RoleInvalid {
+	if req.MemberRole != authorizer.RoleInvalid {
 		if !active.Role.HasAuthority(req.MemberRole) {
 			return NewErrRoleInvalid()
 		}
+
+		member.Role = req.MemberRole
 	}
 
-	if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, req.MemberID, changes); err != nil {
+	if err := s.store.NamespaceSaveMembership(ctx, req.TenantID, member); err != nil {
 		return err
 	}
 
@@ -194,7 +194,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 }
 
 func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -218,7 +218,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrRoleInvalid()
 	}
 
-	if err := s.removeMember(ctx, namespace, req.MemberID); err != nil { //nolint:revive
+	if err := s.store.NamespaceDeleteMembership(ctx, req.TenantID, passive); err != nil {
 		return nil, err
 	}
 
@@ -229,11 +229,11 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 			Error("failed to uncache the token")
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID)
+	return s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 }
 
 func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
-	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -248,7 +248,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrAuthForbidden()
 	}
 
-	if err := s.removeMember(ctx, ns, user.ID); err != nil { //nolint:revive
+	if err := s.store.NamespaceDeleteMembership(ctx, req.TenantID, member); err != nil {
 		return nil, err
 	}
 
@@ -259,7 +259,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 	}
 
 	user.Preferences.PreferredNamespace = ""
-	if err := s.store.Save(ctx, user); err != nil {
+	if err := s.store.UserSave(ctx, user); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", req.TenantID).
 			WithField("user_id", req.UserID).
@@ -275,19 +275,4 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 
 	// TODO: make this method a util function
 	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
-}
-
-func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID string) error {
-	if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, userID); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return NewErrNamespaceNotFound(ns.TenantID, err)
-		// case errors.Is(err, mongo.ErrUserNotFound): // TODO: generic error
-		// 	return NewErrNamespaceMemberNotFound(userID, err)
-		default:
-			return err
-		}
-	}
-
-	return nil
 }

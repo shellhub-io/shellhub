@@ -56,9 +56,12 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		ns.Type = models.TypePersonal
 	}
 
-	ns, err = s.store.NamespaceCreate(ctx, ns)
-	if err != nil {
+	if _, err = s.store.NamespaceCreate(ctx, ns); err != nil {
 		return nil, ErrDuplicateNamespace
+	}
+
+	if err := s.store.NamespaceCreateMemberships(ctx, ns.TenantID, ns.Members...); err != nil {
+		return nil, err
 	}
 
 	return ns, nil
@@ -75,12 +78,12 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentName, input.Namespace)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
 
-	if err = s.store.NamespaceAddMember(ctx, ns.TenantID, &models.Member{ID: user.ID, Role: input.Role}); err != nil {
+	if err = s.store.NamespaceCreateMemberships(ctx, ns.TenantID, models.Member{ID: user.ID, Role: input.Role}); err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}
 
@@ -93,19 +96,19 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 		return nil, ErrInvalidFormat
 	}
 
-	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
-	if err != nil {
-		return nil, ErrUserNotFound
-	}
+	// user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
+	// if err != nil {
+	// 	return nil, ErrUserNotFound
+	// }
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentName, input.Namespace)
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
 
-	if err = s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
-		return nil, ErrFailedNamespaceRemoveMember
-	}
+	// if err = s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
+	// 	return nil, ErrFailedNamespaceRemoveMember
+	// }
 
 	return ns, nil
 }
@@ -116,12 +119,12 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 		return ErrNamespaceInvalid
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentName, input.Namespace)
 	if err != nil {
 		return ErrNamespaceNotFound
 	}
 
-	if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
+	if err := s.store.NamespaceDelete(ctx, ns); err != nil {
 		return ErrFailedDeleteNamespace
 	}
 

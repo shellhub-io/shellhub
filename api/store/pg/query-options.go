@@ -120,6 +120,19 @@ func (*queryOptions) Filter(filters query.Filters) store.QueryOption {
 	}
 }
 
+func (*queryOptions) WithMember(userID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		query = query.Where("EXISTS (SELECT 1 FROM memberships WHERE memberships.namespace_id = namespace.id AND memberships.user_id = ?)", userID)
+
+		return nil
+	}
+}
+
 // parseFilterOperator converts a filter operator to its SQL representation. Supported operators are "AND" and "OR".
 // It returns the SQL operator string and a boolean indicating if the operator is valid.
 func parseFilterOperator(op *query.FilterOperator) (string, bool) {

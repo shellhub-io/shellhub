@@ -12,4 +12,5 @@ type QueryOptions interface {
 	Paginate(query.Paginator) QueryOption
 	Order(query.Sorter) QueryOption
 	Filter(query.Filters) QueryOption
+	WithMember(string) QueryOption
 }

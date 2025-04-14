@@ -38,6 +38,8 @@ type UserStore interface {
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)
 
+	UserPreferredNamespace(ctx context.Context, ident UserIdent, val string) (*models.Namespace, error)
+
 	// UserSave updates the user. It returns an error if any.
 	UserSave(ctx context.Context, user *models.User) (err error)
 

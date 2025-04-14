@@ -14,8 +14,9 @@ const (
 )
 
 type Member struct {
-	ID      string    `json:"id,omitempty" bson:"id,omitempty"`
-	AddedAt time.Time `json:"added_at" bson:"added_at"`
+	ID        string    `json:"id,omitempty" bson:"id,omitempty"`
+	AddedAt   time.Time `json:"added_at" bson:"added_at"`
+	UpdatedAt time.Time `json:"-" bson:"u.()pdated_at"`
 
 	// ExpiresAt specifies the expiration date of the invite. This attribute is only applicable in *Cloud* instances,
 	// and it is ignored for members whose status is not 'pending'.
