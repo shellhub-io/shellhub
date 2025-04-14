@@ -19,24 +19,19 @@ type SystemService interface {
 }
 
 func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses.SystemInfo, error) {
-	system, err := s.store.SystemGet(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	apiHost := strings.Split(req.Host, ":")[0]
 	sshPort := envs.DefaultBackend.Get("SHELLHUB_SSH_PORT")
 
 	resp := &responses.SystemInfo{
 		Version: envs.DefaultBackend.Get("SHELLHUB_VERSION"),
-		Setup:   system.Setup,
+		Setup:   true,
 		Endpoints: &responses.SystemEndpointsInfo{
 			API: apiHost,
 			SSH: fmt.Sprintf("%s:%s", apiHost, sshPort),
 		},
 		Authentication: &responses.SystemAuthenticationInfo{
-			Local: system.Authentication.Local.Enabled,
-			SAML:  system.Authentication.SAML.Enabled,
+			Local: true,
+			SAML:  false,
 		},
 	}
 

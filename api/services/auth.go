@@ -16,10 +16,12 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
@@ -66,135 +68,97 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
-	var identity *models.DeviceIdentity
-	if req.Identity != nil {
-		identity = &models.DeviceIdentity{
-			MAC: req.Identity.MAC,
+	if _, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID); err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	if req.Hostname == "" {
+		if req.Identity == nil || req.Identity.MAC == "" {
+			return nil, NewErrAuthDeviceNoIdentityAndHostname()
 		}
-	}
 
-	var hostname string
-	if req.Hostname != "" {
-		hostname = req.Hostname
-	}
-
-	if hostname == "" && (identity == nil || identity.MAC == "") {
-		return nil, NewErrAuthDeviceNoIdentityAndHostname()
+		req.Hostname = strings.ReplaceAll(req.Identity.MAC, ":", "-")
 	}
 
 	auth := models.DeviceAuth{
-		Hostname:  hostname,
-		Identity:  identity,
+		Hostname:  req.Hostname,
+		Identity:  &models.DeviceIdentity{MAC: req.Identity.MAC},
 		PublicKey: req.PublicKey,
 		TenantID:  req.TenantID,
 	}
 
-	uid := sha256.Sum256(structhash.Dump(auth, 1))
-	key := hex.EncodeToString(uid[:])
+	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
+	device, err := s.store.DeviceGet(ctx, store.DeviceIdentUID, hex.EncodeToString(uidSHA[:]))
+	if err != nil {
+		if err != store.ErrNoDocuments {
+			return nil, err
+		}
 
-	claims := authorizer.DeviceClaims{
-		UID:      key,
-		TenantID: req.TenantID,
+		position, err := s.locator.GetPosition(net.ParseIP(remoteAddr))
+		if err != nil {
+			return nil, err
+		}
+
+		device = &models.Device{
+			UID:            hex.EncodeToString(uidSHA[:]),
+			TenantID:       req.TenantID,
+			LastSeen:       clock.Now(),
+			DisconnectedAt: &time.Time{},
+			Status:         models.DeviceStatusPending,
+			Name:           req.Hostname,
+			Identity:       &models.DeviceIdentity{MAC: req.Identity.MAC},
+			PublicKey:      req.PublicKey,
+			Position: &models.DevicePosition{
+				Longitude: position.Longitude,
+				Latitude:  position.Latitude,
+			},
+			Info: nil,
+		}
+
+		if req.Info != nil {
+			device.Info = &models.DeviceInfo{
+				ID:         req.Info.ID,
+				PrettyName: req.Info.PrettyName,
+				Version:    req.Info.Version,
+				Arch:       req.Info.Arch,
+				Platform:   req.Info.Platform,
+			}
+		}
+
+		if _, err := s.store.DeviceCreate(ctx, device); err != nil {
+			return nil, NewErrDeviceCreate(*device, err)
+		}
+	} else {
+		device.DisconnectedAt = nil
+		device.LastSeen = clock.Now()
+
+		if err := s.store.DeviceSave(ctx, device); err != nil {
+			log.WithError(err).Error("failed to updated device to online")
+		}
 	}
 
+	claims := authorizer.DeviceClaims{UID: device.UID, TenantID: device.TenantID}
 	token, err := jwttoken.EncodeDeviceClaims(claims, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
 
-	type Device struct {
-		Name      string
-		Namespace string
-	}
-
-	var value *Device
-
-	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
-		return &models.DeviceAuthResponse{
-			UID:       key,
-			Token:     token,
-			Name:      value.Name,
-			Namespace: value.Namespace,
-		}, nil
-	}
-	var info *models.DeviceInfo
-	if req.Info != nil {
-		info = &models.DeviceInfo{
-			ID:         req.Info.ID,
-			PrettyName: req.Info.PrettyName,
-			Version:    req.Info.Version,
-			Arch:       req.Info.Arch,
-			Platform:   req.Info.Platform,
-		}
-	}
-
-	position, err := s.locator.GetPosition(net.ParseIP(remoteAddr))
-	if err != nil {
-		return nil, err
-	}
-
-	device := models.Device{
-		UID:        key,
-		Identity:   identity,
-		Info:       info,
-		PublicKey:  req.PublicKey,
-		TenantID:   req.TenantID,
-		LastSeen:   clock.Now(),
-		RemoteAddr: remoteAddr,
-		Position: &models.DevicePosition{
-			Longitude: position.Longitude,
-			Latitude:  position.Latitude,
-		},
-	}
-
-	// The order here is critical as we don't want to register devices if the tenant id is invalid
-	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
-	if err != nil {
-		return nil, NewErrNamespaceNotFound(device.TenantID, err)
-	}
-
-	hostname = strings.ToLower(hostname)
-
-	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
-		return nil, NewErrDeviceCreate(device, err)
-	}
-
-	for _, uid := range req.Sessions {
-		if err := s.store.SessionSetLastSeen(ctx, models.UID(uid)); err != nil {
-			continue
-		}
-	}
-
-	dev, err := s.store.DeviceGetByUID(ctx, models.UID(device.UID), device.TenantID)
-	if err != nil {
-		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
-	}
-	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", key}, "/"), &Device{Name: dev.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
-		return nil, err
-	}
-
-	return &models.DeviceAuthResponse{
-		UID:       key,
-		Token:     token,
-		Name:      dev.Name,
-		Namespace: namespace.Name,
-	}, nil
+	return &models.DeviceAuthResponse{UID: device.UID, Token: token, Name: device.Name, Namespace: "dev"}, nil
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
-	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
-		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
-	}
+	// if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
+	// 	return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
+	// }
 
-	var err error
-	var user *models.User
-
+	var ident store.UserIdent
 	if req.Identifier.IsEmail() {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentEmail
 	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.Identifier)))
+		ident = store.UserIdentUsername
 	}
 
+	user, err := s.store.UserGet(ctx, ident, strings.ToLower(string(req.Identifier)))
 	if err != nil {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
@@ -226,7 +190,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, lockout, "", NewErrAuthUnathorized(nil)
 	}
 
-	if !user.Password.Compare(req.Password) {
+	if !hash.CompareWith(req.Password, user.PasswordDigest) {
 		lockout, _, err := s.cache.StoreLoginAttempt(ctx, sourceIP, user.ID)
 		if err != nil {
 			log.WithError(err).
@@ -263,7 +227,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	role := ""
 	// Populate the tenant and role when the user is associated with a namespace. If the member status is pending, we
 	// ignore the namespace.
-	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.ID); ns != nil && ns.TenantID != "" {
+	if ns, _ := s.store.UserPreferredNamespace(ctx, store.UserIdentID, user.ID); ns != nil && ns.TenantID != "" {
 		if m, _ := ns.FindMember(user.ID); m.Status != models.MemberStatusPending {
 			tenantID = ns.TenantID
 			role = m.Role.String()
@@ -284,15 +248,15 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
-	if !strings.HasPrefix(user.Password.Hash, "$") {
-		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			changes.Password = neo.Hash
-		}
+	user.LastLogin = clock.Now()
+	user.Preferences.PreferredNamespace = tenantID
+	if !strings.HasPrefix(user.PasswordDigest, "$") {
+		pwdDigest, _ := hash.Do(req.Password)
+		user.PasswordDigest = pwdDigest
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
+	if err := s.store.UserSave(ctx, user); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -309,7 +273,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
-		RecoveryEmail: user.RecoveryEmail,
+		RecoveryEmail: user.Preferences.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
@@ -321,7 +285,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 }
 
 func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
@@ -332,7 +296,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	switch req.TenantID {
 	case "":
 		// A user may not have a preferred namespace. In such cases, we create a token without it.
-		namespace, err := s.store.NamespaceGetPreferred(ctx, user.ID)
+
+		namespace, err := s.store.UserPreferredNamespace(ctx, store.UserIdentID, user.ID)
 		if err != nil {
 			break
 		}
@@ -347,7 +312,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 			role = member.Role.String()
 		}
 	default:
-		namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+		namespace, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 		if err != nil {
 			return nil, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -365,7 +330,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+			user.Preferences.PreferredNamespace = namespace.TenantID
+			_ = s.store.Save(ctx, user)
 		}
 	}
 
@@ -393,7 +359,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		User:          user.Username,
 		Name:          user.Name,
 		Email:         user.Email,
-		RecoveryEmail: user.RecoveryEmail,
+		RecoveryEmail: user.Preferences.RecoveryEmail,
 		MFA:           user.MFA.Enabled,
 		Tenant:        tenantID,
 		Role:          role,
@@ -457,7 +423,7 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 }
 
 func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (string, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, tenantID)
 	if err != nil {
 		return "", err
 	}

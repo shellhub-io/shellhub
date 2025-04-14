@@ -23,20 +23,7 @@ const DeviceMaxTags = 3
 // If the device already has the maximum number of tags, a NewErrTagLimit error will be returned.
 // A unknown error will be returned if the tag is not created.
 func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, tag string) error {
-	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil || device == nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	if len(device.Tags) == DeviceMaxTags {
-		return NewErrTagLimit(DeviceMaxTags, nil)
-	}
-
-	if contains(device.Tags, tag) {
-		return NewErrTagDuplicated(tag, nil)
-	}
-
-	return s.store.DevicePushTag(ctx, uid, tag)
+	return nil
 }
 
 // RemoveDeviceTag removes a tag from a device. UID is the device's UID and tag is the tag's name.
@@ -45,16 +32,7 @@ func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, tag strin
 // If the tag does not exist, a NewErrTagNotFound error will be returned.
 // A unknown error will be returned if the tag is not removed.
 func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag string) error {
-	device, err := s.store.DeviceGet(ctx, uid)
-	if err != nil || device == nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	if !contains(device.Tags, tag) {
-		return NewErrTagNotFound(tag, nil)
-	}
-
-	return s.store.DevicePullTag(ctx, uid, tag)
+	return nil
 }
 
 // UpdateDeviceTag updates a device's tags. UID is the device's UID and tags is the new tags.
@@ -63,31 +41,5 @@ func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag strin
 // If tags' list contains a duplicated one, it is removed and the device's tag will be updated.
 // If the device does not exist, a NewErrDeviceNotFound error will be returned.
 func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []string) error {
-	if len(tags) > DeviceMaxTags {
-		return NewErrTagLimit(DeviceMaxTags, nil)
-	}
-
-	if _, err := s.store.DeviceGet(ctx, uid); err != nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	// TODO: remove this conversion function in favor of a external package.
-	set := func(list []string) []string {
-		s := make(map[string]bool)
-		l := make([]string, 0)
-		for _, o := range list {
-			if _, ok := s[o]; !ok {
-				s[o] = true
-				l = append(l, o)
-			}
-		}
-
-		return l
-	}(tags)
-
-	if _, _, err := s.store.DeviceSetTags(ctx, uid, set); err != nil {
-		return err
-	}
-
 	return nil
 }

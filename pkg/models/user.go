@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
@@ -69,27 +68,23 @@ type User struct {
 	// MaxNamespaces represents the count of namespaces that the user can owns.
 	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
-	UserData       `bson:",inline"`
+
+	Name     string `json:"name" validate:"required,name"`
+	Username string `json:"username" bson:"username" validate:"required,username"`
+	Email    string `json:"email" bson:"email" validate:"required,email"`
+
+	// PasswordDigest stores the hashed password.
+	PasswordDigest string `json:"-"`
+
 	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
 	// check if MFA is active for the user.
 	//
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
 	MFA         UserMFA         `json:"mfa" bson:"mfa"`
 	Preferences UserPreferences `json:"preferences" bson:"preferences"`
-	Password    UserPassword    `bson:",inline"`
-}
-
-type UserData struct {
-	Name     string `json:"name" validate:"required,name"`
-	Username string `json:"username" bson:"username" validate:"required,username"`
-	Email    string `json:"email" bson:"email" validate:"required,email"`
-	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
-	// when they lose access to all other methods. It must never be equal to [UserData.Email].
-	//
-	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
-	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
 }
 
 // UserMFA represents the attributes related to MFA for a user.
@@ -108,35 +103,12 @@ type UserPreferences struct {
 
 	// AuthMethods indicates the authentication methods that the user can use to authenticate.
 	AuthMethods []UserAuthMethod `json:"auth_methods" bson:"auth_methods"`
-}
 
-type UserPassword struct {
-	// Plain contains the plain text password.
-	Plain string `json:"password" bson:"-" validate:"required,password"`
-	// Hash contains the hashed pasword from plain text.
-	Hash string `json:"-" bson:"password"`
-}
-
-// HashUserPassword receives a plain password and hash it, returning
-// a [UserPassword].
-func HashUserPassword(plain string) (UserPassword, error) {
-	p := UserPassword{
-		Plain: plain,
-	}
-
-	var err error
-	p.Hash, err = hash.Do(p.Plain)
-
-	return p, err
-}
-
-// Compare reports whether a plain password matches with hash.
-//
-// For compatibility purposes, it can compare using both SHA256 and bcrypt algorithms.
-// Hashes starting with "$" are assumed to be a bcrypt hash; otherwise, they are treated as
-// SHA256 hashes.
-func (p *UserPassword) Compare(plain string) bool {
-	return hash.CompareWith(plain, p.Hash)
+	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
+	// when they lose access to all other methods. It must never be equal to [UserData.Email].
+	//
+	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
+	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
 }
 
 // UserAuthIdentifier is an username or email used to authenticate.
@@ -174,23 +146,6 @@ type UserTokenRecover struct {
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-}
-
-// UserChanges specifies the attributes that can be updated for a user. Any zero values in this
-// struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
-type UserChanges struct {
-	LastLogin          time.Time        `bson:"last_login,omitempty"`
-	Name               string           `bson:"name,omitempty"`
-	Username           string           `bson:"username,omitempty"`
-	Email              string           `bson:"email,omitempty"`
-	RecoveryEmail      string           `bson:"recovery_email,omitempty"`
-	Password           string           `bson:"password,omitempty"`
-	Status             UserStatus       `bson:"status,omitempty"`
-	ExternalID         *string          `bson:"external_id,omitempty"`
-	PreferredNamespace *string          `bson:"preferences.preferred_namespace,omitempty"`
-	MaxNamespaces      *int             `bson:"max_namespaces,omitempty"`
-	EmailMarketing     *bool            `bson:"email_marketing,omitempty"`
-	AuthMethods        []UserAuthMethod `bson:"preferences.auth_methods,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
