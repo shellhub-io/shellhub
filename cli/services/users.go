@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -40,23 +41,18 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		}
 	}
 
-	password, err := models.HashUserPassword(input.Password)
+	pwdDigest, err := hash.Do(input.Password)
 	if err != nil {
 		return nil, ErrUserPasswordInvalid
 	}
 
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return nil, ErrUserPasswordInvalid
-	}
-
 	user := &models.User{
-		Origin:        models.UserOriginLocal,
-		UserData:      userData,
-		Password:      password,
-		Status:        models.UserStatusConfirmed,
-		CreatedAt:     clock.Now(),
-		MaxNamespaces: MaxNumberNamespacesCommunity,
+		Origin:         models.UserOriginLocal,
+		UserData:       userData,
+		PasswordDigest: pwdDigest,
+		Status:         models.UserStatusConfirmed,
+		CreatedAt:      clock.Now(),
+		MaxNamespaces:  MaxNumberNamespacesCommunity,
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
@@ -117,17 +113,12 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserNotFound
 	}
 
-	password, err := models.HashUserPassword(input.Password)
+	pwdDigest, err := hash.Do(input.Password)
 	if err != nil {
 		return ErrUserPasswordInvalid
 	}
 
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return ErrUserPasswordInvalid
-	}
-
-	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: password.Hash}); err != nil {
+	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: pwdDigest}); err != nil {
 		return ErrFailedUpdateUser
 	}
 

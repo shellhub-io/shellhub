@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
@@ -72,13 +71,16 @@ type User struct {
 	LastLogin      time.Time `json:"last_login" bson:"last_login"`
 	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
 	UserData       `bson:",inline"`
+
+	// PasswordDigest stores the hashed password.
+	PasswordDigest string `json:"-"`
+
 	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
 	// check if MFA is active for the user.
 	//
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
 	MFA         UserMFA         `json:"mfa" bson:"mfa"`
 	Preferences UserPreferences `json:"preferences" bson:"preferences"`
-	Password    UserPassword    `bson:",inline"`
 }
 
 type UserData struct {
@@ -108,35 +110,6 @@ type UserPreferences struct {
 
 	// AuthMethods indicates the authentication methods that the user can use to authenticate.
 	AuthMethods []UserAuthMethod `json:"auth_methods" bson:"auth_methods"`
-}
-
-type UserPassword struct {
-	// Plain contains the plain text password.
-	Plain string `json:"password" bson:"-" validate:"required,password"`
-	// Hash contains the hashed pasword from plain text.
-	Hash string `json:"-" bson:"password"`
-}
-
-// HashUserPassword receives a plain password and hash it, returning
-// a [UserPassword].
-func HashUserPassword(plain string) (UserPassword, error) {
-	p := UserPassword{
-		Plain: plain,
-	}
-
-	var err error
-	p.Hash, err = hash.Do(p.Plain)
-
-	return p, err
-}
-
-// Compare reports whether a plain password matches with hash.
-//
-// For compatibility purposes, it can compare using both SHA256 and bcrypt algorithms.
-// Hashes starting with "$" are assumed to be a bcrypt hash; otherwise, they are treated as
-// SHA256 hashes.
-func (p *UserPassword) Compare(plain string) bool {
-	return hash.CompareWith(plain, p.Hash)
 }
 
 // UserAuthIdentifier is an username or email used to authenticate.
