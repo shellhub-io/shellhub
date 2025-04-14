@@ -1,0 +1,32 @@
+#!/bin/sh
+
+UI_DIR="ui"
+FRONTEND_PATH="$(git rev-parse --show-toplevel)/$UI_DIR"
+
+echo "🔍 Running pre-push checks in /ui..."
+
+FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep "^$UI_DIR/")
+
+if [ -z "$FILES" ]; then
+  echo "No files to check. Skipping ESLint and Vitest."
+  exit 0
+fi
+
+cd "$FRONTEND_PATH" || { echo "❌ Failed to change to /ui"; exit 1; }
+
+RELATIVE_FILES=$(echo "$FILES" | sed "s|^$UI_DIR/||")
+
+echo "🔍 Running ESLint..."
+npx eslint $RELATIVE_FILES || { 
+    echo "❌ ESLint failed! Fix the issues before committing."
+    exit 1
+}
+
+echo "🧪 Running the tests..."
+npx vitest run || {
+  echo "❌ Tests failed! Fix the failing tests before committing."
+  exit 1
+}
+
+echo "✅ Pre-push checks passed!"
+exit 0
