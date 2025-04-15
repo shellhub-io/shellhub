@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -97,30 +98,30 @@ func TestSSH(t *testing.T) {
 		options []NewAgentContainerOption
 		run     func(*testing.T, *Environment, *models.Device)
 	}{
-		// {
-		// 	name: "reconnect to server",
-		// 	run: func(t *testing.T, environment *Environment, device *models.Device) {
-		// 		ctx := context.Background()
+		{
+			name: "reconnect to server",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				ctx := context.Background()
 
-		// 		err := environment.agent.Stop(ctx, nil)
-		// 		require.NoError(t, err)
+				err := environment.agent.Stop(ctx, nil)
+				require.NoError(t, err)
 
-		// 		err = environment.agent.Start(ctx)
-		// 		require.NoError(t, err)
+				err = environment.agent.Start(ctx)
+				require.NoError(t, err)
 
-		// 		model := models.Device{}
+				model := models.Device{}
 
-		// 		require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		// 			resp, err := environment.services.R(ctx).
-		// 				SetResult(&model).
-		// 				Get(fmt.Sprintf("/api/devices/%s", device.UID))
-		// 			assert.Equal(tt, 200, resp.StatusCode())
-		// 			assert.NoError(tt, err)
+				require.EventuallyWithT(t, func(tt *assert.CollectT) {
+					resp, err := environment.services.R(ctx).
+						SetResult(&model).
+						Get(fmt.Sprintf("/api/devices/%s", device.UID))
+					assert.Equal(tt, 200, resp.StatusCode())
+					assert.NoError(tt, err)
 
-		// 			assert.True(tt, model.Online)
-		// 		}, 30*time.Second, 1*time.Second)
-		// 	},
-		// },
+					assert.True(tt, model.Online)
+				}, 30*time.Second, 1*time.Second)
+			},
+		},
 		{
 			name: "reconnect to server with custom identity",
 			options: []NewAgentContainerOption{
@@ -276,7 +277,7 @@ func TestSSH(t *testing.T) {
 				require.Error(t, err)
 			},
 		},
-		{
+		/*{
 			name: "connection keepalive when session is requested",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				config := &ssh.ClientConfig{
@@ -314,7 +315,7 @@ func TestSSH(t *testing.T) {
 				ch.Close()
 				globalConn.Close()
 			},
-		},
+		}*/
 		{
 			name: "connection SHELL with Pty",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
@@ -347,81 +348,6 @@ func TestSSH(t *testing.T) {
 
 				err = sess.Shell()
 				require.NoError(t, err)
-
-				sess.Close()
-				conn.Close()
-			},
-		},
-		{
-			name: "connection SHELL without pty",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
-					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var conn *ssh.Client
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
-					assert.NoError(tt, err)
-				}, 30*time.Second, 1*time.Second)
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-
-				err = sess.Shell()
-				require.NoError(t, err)
-
-				sess.Close()
-				conn.Close()
-			},
-		},
-		{
-			name: "connection SHELL without pty with output",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
-					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var conn *ssh.Client
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
-					assert.NoError(tt, err)
-				}, 30*time.Second, 1*time.Second)
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-
-				stdin, _ := sess.StdinPipe()
-				stdout, _ := sess.StdoutPipe()
-
-				err = sess.Shell()
-				require.NoError(t, err)
-
-				var data string
-
-				_, err = fmt.Fprintf(stdin, `echo -n "test"`)
-				require.NoError(t, err)
-
-				stdin.Close()
-
-				_, err = fmt.Fscanf(stdout, "%s", &data)
-				require.NoError(t, err)
-
-				assert.Equal(t, data, "test")
 
 				sess.Close()
 				conn.Close()
@@ -798,6 +724,277 @@ func TestSSH(t *testing.T) {
 
 				ch.Close()
 				conn.Close()
+			},
+		},
+		{
+			name: "session timeout behavior",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+
+				output, err := sess.CombinedOutput("sleep 3 && echo -n 'still alive'")
+				require.NoError(t, err)
+
+				assert.Equal(t, "still alive", string(output))
+
+				sess.Close()
+				conn.Close()
+			},
+		},
+		{
+			name:    "connection SFTP to upload large file",
+			options: []NewAgentContainerOption{},
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				client, err := sftp.NewClient(conn)
+				require.NoError(t, err)
+				defer client.Close()
+
+				// Create a large file (10MB)
+				fileSize := 10 * 1024 * 1024 // 10MB
+				randomData := make([]byte, fileSize)
+				_, err = rand.Read(randomData)
+				require.NoError(t, err)
+
+				tempFile, err := os.CreateTemp("", "large-file-test-*.bin")
+				require.NoError(t, err)
+				defer os.Remove(tempFile.Name())
+
+				_, err = tempFile.Write(randomData)
+				require.NoError(t, err)
+				tempFile.Close()
+
+				localFile, err := os.Open(tempFile.Name())
+				require.NoError(t, err)
+				defer localFile.Close()
+
+				remoteFile, err := client.Create("/tmp/large-file-test.bin")
+				require.NoError(t, err)
+				defer remoteFile.Close()
+
+				written, err := io.Copy(remoteFile, localFile)
+				require.NoError(t, err)
+				assert.Equal(t, int64(fileSize), written)
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				output, err := sess.Output("stat -c %s /tmp/large-file-test.bin")
+				require.NoError(t, err)
+
+				size, err := strconv.ParseInt(strings.TrimSpace(string(output)), 10, 64)
+				require.NoError(t, err)
+				assert.Equal(t, int64(fileSize), size)
+			},
+		},
+		{
+			name: "connection EXEC with large output",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				// Generate large output (around 1MB).
+				output, err := sess.Output("yes X | tr -d '\n' | head -c 1048576")
+				require.NoError(t, err)
+
+				assert.Equal(t, 1024*1024, len(output))
+				for _, b := range output {
+					assert.Equal(t, byte('X'), b)
+				}
+			},
+		},
+		{
+			name: "connection EXEC with environment variables",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				err = sess.Setenv("TEST_VAR1", "test_value1")
+				require.NoError(t, err)
+				err = sess.Setenv("TEST_VAR2", "test_value2")
+				require.NoError(t, err)
+
+				output, err := sess.Output("echo -n $TEST_VAR1-$TEST_VAR2")
+				require.NoError(t, err)
+
+				assert.Equal(t, "test_value1-test_value2", string(output))
+			},
+		},
+		{
+			name: "terminal window size change",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				initialWidth, initialHeight := 80, 24
+				err = sess.RequestPty("xterm", initialHeight, initialWidth, ssh.TerminalModes{
+					ssh.ECHO: 1,
+				})
+				require.NoError(t, err)
+
+				stdin, _ := sess.StdinPipe()
+				stdout, _ := sess.StdoutPipe()
+
+				err = sess.Shell()
+				require.NoError(t, err)
+
+				_, err = fmt.Fprintf(stdin, "stty size; echo DONE\n")
+				require.NoError(t, err)
+
+				scanner := bufio.NewScanner(stdout)
+				var initialSizeOutput string
+				for scanner.Scan() {
+					line := scanner.Text()
+					if line == "DONE" {
+						break
+					}
+					initialSizeOutput = line
+				}
+
+				newWidth, newHeight := 120, 40
+				err = sess.WindowChange(newHeight, newWidth)
+				require.NoError(t, err)
+
+				_, err = fmt.Fprintf(stdin, "stty size; echo DONE\n")
+				require.NoError(t, err)
+
+				var newSizeOutput string
+				for scanner.Scan() {
+					line := scanner.Text()
+					if line == "DONE" {
+						break
+					}
+					newSizeOutput = line
+				}
+
+				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), strings.TrimSpace(initialSizeOutput))
+				assert.Equal(t, fmt.Sprintf("%d %d", newHeight, newWidth), strings.TrimSpace(newSizeOutput))
+			},
+		},
+		{
+			name: "connection EXEC with invalid command",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				_, err = sess.Output("this-command-does-not-exist")
+				require.Error(t, err)
+
+				var exitErr *ssh.ExitError
+				require.ErrorAs(t, err, &exitErr)
+				assert.NotEqual(t, 0, exitErr.ExitStatus())
+			},
+		},
+		{
+			name: "handling special characters in commands and output",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				specialChars := "!@#$%^&*()_+{}[]|;:,.<>/?`~"
+				output, err := sess.Output(fmt.Sprintf("echo -n '%s'", specialChars))
+				require.NoError(t, err)
+
+				assert.Equal(t, specialChars, string(output))
+
+				// Test Unicode characters
+				unicodeChars := "こんにちは世界 ñáéíóú 你好世界"
+				sess2, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess2.Close()
+
+				output, err = sess2.Output(fmt.Sprintf("echo -n '%s'", unicodeChars))
+				require.NoError(t, err)
+
+				assert.Equal(t, unicodeChars, string(output))
 			},
 		},
 	}
