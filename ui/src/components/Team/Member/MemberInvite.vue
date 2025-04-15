@@ -82,6 +82,7 @@
 
               <v-text-field
                 v-model="email"
+                class="mb-4"
                 label="Email"
                 :error-messages="emailError"
                 required
