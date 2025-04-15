@@ -10,14 +10,14 @@
 import { computed } from "vue";
 import SimpleLayout from "./layouts/SimpleLayout.vue";
 import AppLayout from "./layouts/AppLayout.vue";
-import { useStore } from "./store";
+import useLayoutStore from "./store/modules/layout";
 
 const components = {
   SimpleLayout,
   AppLayout,
 };
 
-const store = useStore();
+const layoutStore = useLayoutStore();
 
-const layout = computed(() => components[store.getters["layout/getLayout"]]);
+const layout = computed(() => components[layoutStore.getLayout]);
 </script>

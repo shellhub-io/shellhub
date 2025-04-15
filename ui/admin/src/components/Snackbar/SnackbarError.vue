@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 
 const props = defineProps({
   typeMessage: {
@@ -26,14 +26,15 @@ const props = defineProps({
     required: false,
   },
 });
-const store = useStore();
+
+const snackbarStore = useSnackbarStore();
 
 const snackbar = computed({
   get() {
-    return store.getters["snackbar/snackbarError"];
+    return snackbarStore.getSnackbarError;
   },
   set() {
-    store.dispatch("snackbar/unsetShowStatusSnackbarError");
+    snackbarStore.unsetShowStatusSnackbarError();
   },
 });
 

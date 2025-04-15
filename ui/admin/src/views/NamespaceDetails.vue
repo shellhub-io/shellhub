@@ -88,39 +88,31 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { INamespace } from "../interfaces/INamespace";
-import { useStore } from "../store";
+import useNamespacesStore from "@admin/store/modules/namespaces";
+import { INamespace } from "@admin/interfaces/INamespace";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const router = useRouter();
-    const loading = ref(false);
-    const namespace = ref({} as INamespace);
+const namespacesStore = useNamespacesStore();
+const route = useRoute();
+const router = useRouter();
+const loading = ref(false);
+const namespace = ref({} as INamespace);
 
-    const namespaceId = computed(() => route.params.id);
+const namespaceId = computed(() => route.params.id);
 
-    onMounted(async () => {
-      loading.value = true;
-      await store.dispatch("namespaces/get", namespaceId.value);
-      namespace.value = store.getters["namespaces/get"];
-      loading.value = false;
-    });
-
-    const goToUser = (userId: string) => {
-      router.push({ name: "userDetails", params: { id: userId } });
-    };
-
-    return {
-      namespace,
-      goToUser,
-    };
-  },
+onMounted(async () => {
+  loading.value = true;
+  await namespacesStore.get(namespaceId.value as string);
+  namespace.value = namespacesStore.getNamespace;
+  loading.value = false;
 });
+
+const goToUser = (userId: string) => {
+  router.push({ name: "userDetails", params: { id: userId } });
+};
+
 </script>
 
 <style scoped>

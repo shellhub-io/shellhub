@@ -29,26 +29,17 @@
           <td :namespaces-test="item.namespaces">
             {{ item.namespaces }}
           </td>
-          <td v-if="item.status === 'confirmed'" class="pl-0">
-            <v-chip
-              class="ma-2"
-              color="success"
-              variant="text"
-              prepend-icon="mdi-checkbox-marked-circle"
-            >
+          <td v-if="item.confirmed" class="pl-0">
+            <v-chip class="ma-2" color="success" variant="text" prepend-icon="mdi-checkbox-marked-circle">
               Confirmed
             </v-chip>
           </td>
           <td v-else class="pl-0">
-            <v-chip
-              class="ma-2"
-              color="warning"
-              variant="text"
-              prepend-icon="mdi-alert-circle"
-            >
+            <v-chip class="ma-2" color="warning" variant="text" prepend-icon="mdi-alert-circle">
               Not confirmed
             </v-chip>
           </td>
+
           <td>
             <v-tooltip bottom anchor="bottom">
               <template v-slot:activator="{ props }">
@@ -83,7 +74,7 @@
             </v-tooltip>
 
             <UserResetPassword
-              v-if="checkAuthMethods(item.preferences)"
+              v-if="checkAuthMethods(item as IUser)"
               :userId="item.id"
               @update="refreshUsers"
             />
@@ -99,7 +90,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useUsersStore from "@admin/store/modules/users";
+import { UserAdminResponse } from "@admin/api/client/api";
+import useAuthStore from "@admin/store/modules/auth";
 import DataTable from "../DataTable.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
@@ -119,15 +113,17 @@ export interface IUser {
   password: string;
 }
 
-const store = useStore();
 const router = useRouter();
+const snackbarStore = useSnackbarStore();
+const userStore = useUsersStore();
+const authStore = useAuthStore();
 
 const itemsPerPage = ref(10);
 const loading = ref(false);
 const page = ref(1);
 const filter = ref("");
-const users = computed(() => store.getters["users/users"]);
-const totalUsers = computed(() => store.getters["users/numberUsers"]);
+const users = computed(() => userStore.getUsers as unknown as IUser[]);
+const totalUsers = computed(() => userStore.numberUsers);
 
 const header = [
   {
@@ -156,18 +152,21 @@ const header = [
   },
 ];
 
-const checkAuthMethods = (user: IUser | undefined) => user?.auth_methods?.length === 1 && user.auth_methods[0] === "saml";
+// eslint-disable-next-line vue/max-len
+const checkAuthMethods = (user: IUser | undefined) => user?.auth_methods
+  && user.auth_methods.length === 1
+  && user.auth_methods[0] === "saml";
 
 onMounted(async () => {
   try {
     loading.value = true;
-    await store.dispatch("users/fetch", {
+    await userStore.fetch({
       perPage: itemsPerPage.value,
       page: page.value,
       filter: filter.value,
     });
   } catch (error) {
-    store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.userList);
+    snackbarStore.showSnackbarErrorAction(INotificationsError.userList);
   } finally {
     loading.value = false;
   }
@@ -176,7 +175,7 @@ onMounted(async () => {
 const getUsers = async (perPagaeValue: number, pageValue: number) => {
   try {
     loading.value = true;
-    const hasUsers = await store.dispatch("users/fetch", {
+    const hasUsers = await userStore.fetch({
       perPage: perPagaeValue,
       page: pageValue,
       filter: filter.value,
@@ -188,7 +187,7 @@ const getUsers = async (perPagaeValue: number, pageValue: number) => {
 
     loading.value = false;
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbarStore.showSnackbarErrorDefault();
   }
 };
 
@@ -200,7 +199,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getUsers(itemsPerPage.value, --page.value);
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbarStore.showSnackbarErrorDefault();
   }
 };
 
@@ -212,25 +211,22 @@ watch(itemsPerPage, () => {
   getUsers(itemsPerPage.value, page.value);
 });
 
-const loginToken = async (user: IUser) => {
+const loginToken = async (user) => {
   try {
-    const token = await store.dispatch("auth/loginToken", user);
+    const token = await authStore.loginToken(user);
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");
   } catch {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.errorLoginToken,
-    );
+    snackbarStore.showSnackbarErrorAction(INotificationsError.errorLoginToken);
   }
 };
 
 const refreshUsers = async () => {
-  await store.dispatch("users/refresh");
+  await userStore.refresh();
 };
 
-const redirectToUser = async (user: IUser) => {
+const redirectToUser = async (user: UserAdminResponse) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
 

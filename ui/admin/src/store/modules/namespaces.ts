@@ -1,117 +1,102 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+import { defineStore } from "pinia";
+import { INamespace } from "@admin/interfaces/INamespace";
 import * as apiNamespace from "../api/namespaces";
-import { store } from "../index";
-import { INamespace } from "./../../interfaces/INamespace";
+import { useUsersStore } from "./users";
 
-export interface NamespacesState {
-  namespaces: Array<INamespace>;
-  namespace: INamespace;
-  perPage: number;
-  page: number;
-  filter: string;
-  numberNamespaces: number;
-}
-
-export const namespaces: Module<NamespacesState, State> = {
-  namespaced: true,
-
-  state: {
-    namespaces: [],
+export const useNamespacesStore = defineStore("namespace", {
+  state: () => ({
+    namespaces: [] as INamespace[],
     namespace: {} as INamespace,
     perPage: 0,
     page: 0,
     filter: "",
     numberNamespaces: 0,
-  },
+  }),
 
   getters: {
     list: (state) => state.namespaces,
-    get: (state) => state.namespace,
-    numberOfNamespaces: (state) => state.numberNamespaces,
+    getNamespace: (state) => state.namespace,
+    getnumberOfNamespaces: (state) => state.numberNamespaces,
     getFilter: (state) => state.filter,
-    page: (state) => state.page,
-    perPage: (state) => state.perPage,
-  },
-
-  mutations: {
-    setNamespaces: (state, res) => {
-      state.namespaces = res.data;
-      state.numberNamespaces = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setNamespace: (state, res) => {
-      state.namespace = res.data;
-    },
-
-    setNamespaceFilter: (state, filter) => {
-      state.filter = filter;
-    },
-
-    setPageAndPerPage: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-    },
-
-    clearListNamespaces: (state) => {
-      state.namespaces = [];
-      store.commit("users/clearListUsers");
-    },
+    getPage: (state) => state.page,
+    getPerPage: (state) => state.perPage,
   },
 
   actions: {
-    async fetch({ commit, state }, data: NamespacesState) {
+    setNamespaces(res) {
+      this.namespaces = res.data;
+      this.numberNamespaces = parseInt(res.headers["x-total-count"], 10);
+    },
+
+    setNamespace(res) {
+      this.namespace = res.data;
+    },
+
+    setNamespaceFilter(filter: string) {
+      this.filter = filter;
+    },
+
+    setPageAndPerPage(data: { page: number; perPage: number }) {
+      this.page = data.page;
+      this.perPage = data.perPage;
+    },
+
+    clearListNamespaces() {
+      this.namespaces = [];
+      const usersStore = useUsersStore();
+      usersStore.clearListUsers?.();
+    },
+
+    async fetch(data: { page: number; perPage: number; filter: string }) {
       const res = await apiNamespace.fetchNamespaces(data.page, data.perPage, data.filter);
       if (res.data.length) {
-        commit("setPageAndPerPage", {
-          perPage: state.perPage,
-          page: state.page,
-        });
-        commit("setNamespaces", res);
-        commit("setNamespaceFilter", data.filter);
+        this.setPageAndPerPage({ perPage: data.perPage, page: data.page });
+        this.setNamespaces(res);
+        this.setNamespaceFilter(data.filter);
         return true;
       }
-
       return false;
     },
 
-    async get({ commit }, id) {
+    async get(id: string) {
       const res = await apiNamespace.getNamespace(id);
-      commit("setNamespace", res);
+      this.setNamespace(res);
     },
 
-    async exportNamespacesToCsv({ state }) {
-      const { data } = await apiNamespace.exportNamespaces(state.filter);
+    async exportNamespacesToCsv() {
+      const { data } = await apiNamespace.exportNamespaces(this.filter);
       return data;
     },
 
-    async setFilterNamespaces({ commit }, filter) {
-      commit("setNamespaceFilter", filter);
+    async setFilterNamespaces(filter: string) {
+      this.setNamespaceFilter(filter);
     },
 
-    async refresh({ commit, state }) {
+    async refresh() {
       try {
-        const res = await apiNamespace.fetchNamespaces(state.perPage, state.page, state.filter);
-        commit("setNamespaces", res);
+        const res = await apiNamespace.fetchNamespaces(this.perPage, this.page, this.filter);
+        this.setNamespaces(res);
       } catch (error) {
-        commit("clearListNamespaces");
+        this.clearListNamespaces();
         throw error;
       }
     },
 
-    async search({ commit }, data) {
+    async search(data: { perPage: number; page: number; filter: string }) {
       try {
         const res = await apiNamespace.fetchNamespaces(data.perPage, data.page, data.filter);
-        commit("setNamespaces", res);
-        commit("setNamespaceFilter", data.filter);
+        this.setNamespaces(res);
+        this.setNamespaceFilter(data.filter);
       } catch (error) {
-        commit("clearListNamespaces");
+        this.clearListNamespaces();
         throw error;
       }
     },
 
-    async put(context, data: INamespace) {
+    async put(data: INamespace) {
       await apiNamespace.updateNamespace(data);
     },
   },
-};
+});
+
+export default useNamespacesStore;

@@ -30,7 +30,7 @@
           </td>
           <td>
             <v-chip>
-              {{ displayOnlyTenCharacters(session.uid) }}
+              {{ session.uid ? displayOnlyTenCharacters(session.uid) : '—' }}
               <v-tooltip activator="parent" anchor="bottom">{{
                 session.uid
               }}</v-tooltip>
@@ -38,12 +38,12 @@
           </td>
           <td>
             <span
-              @click="redirectToDevice(session.device.uid)"
-              @keypress.enter="redirectToDevice(session.device.uid)"
+              @click="session.device?.uid && redirectToDevice(session.device.uid)"
+              @keypress.enter="session.device?.uid && redirectToDevice(session.device.uid)"
               tabindex="0"
               class="hover"
             >
-              {{ session.device.name }}
+              {{ session.device?.name || 'Unknown device' }}
             </span>
           </td>
           <td>
@@ -79,8 +79,8 @@
                   tag="a"
                   dark
                   v-bind="props"
-                  @click="goToSession(session.uid)"
-                  @keypress.enter="goToSession(session.tenant_id)"
+                  @click="session.uid && goToSession(session.uid)"
+                  @keypress.enter="session.tenant_id && goToSession(session.tenant_id)"
                   tabindex="0"
                 >mdi-information
                 </v-icon>
@@ -94,140 +94,122 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useSessionsStore from "@admin/store/modules/sessions";
 import DataTable from "../DataTable.vue";
 import { getTimeFromNow, formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
 import { INotificationsError } from "../../interfaces/INotifications";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const itemsPerPage = ref(10);
-    const loading = ref(false);
-    const page = ref(1);
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
+const sessionStore = useSessionsStore();
 
-    const getSessions = async (perPagaeValue: number, pageValue: number) => {
-      try {
-        loading.value = true;
-
-        const hasSessions = await store.dispatch("sessions/fetch", {
-          perPage: perPagaeValue,
-          page: pageValue,
-        });
-
-        if (!hasSessions) {
-          page.value--;
-        }
-
-        loading.value = false;
-      } catch (error) {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.sessionList);
-      }
-    };
-
-    onMounted(async () => {
-      try {
-        loading.value = true;
-        getSessions(itemsPerPage.value, page.value);
-      } catch (error) {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.sessionList);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const next = async () => {
-      await getSessions(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getSessions(itemsPerPage.value, --page.value);
-      } catch (error) {
-        store.dispatch("snackbar/setSnackbarErrorDefault");
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, async () => {
-      await getSessions(itemsPerPage.value, page.value);
-    });
-
-    const sessions = computed(() => store.getters["sessions/sessions"]);
-    const numberSessions = computed(() => store.getters["sessions/numberSessions"]);
-
-    const redirectToDevice = (deviceId: string) => {
-      router.push({ name: "deviceDetails", params: { id: deviceId } });
-    };
-
-    const goToSession = (sessionId: string) => {
-      router.push({ name: "sessionDetails", params: { id: sessionId } });
-    };
-
-    return {
-      headers: [
-        {
-          text: "Active",
-          value: "active",
-        },
-        {
-          text: "Id",
-          value: "uid",
-        },
-        {
-          text: "Device",
-          value: "device",
-        },
-        {
-          text: "Username",
-          value: "username",
-        },
-        {
-          text: "Authenticated",
-          value: "authenticated",
-        },
-        {
-          text: "IP Address",
-          value: "ip_address",
-        },
-        {
-          text: "Started",
-          value: "started_at",
-        },
-        {
-          text: "Last Seen",
-          value: "last_seen",
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      itemsPerPage,
-      loading,
-      page,
-      sessions,
-      numberSessions,
-      getTimeFromNow,
-      displayOnlyTenCharacters,
-      redirectToDevice,
-      formatFullDateTime,
-      goToSession,
-      changeItemsPerPage,
-      next,
-      prev,
-    };
+const headers = ref([
+  {
+    text: "Active",
+    value: "active",
   },
-  components: { DataTable },
+  {
+    text: "Id",
+    value: "uid",
+  },
+  {
+    text: "Device",
+    value: "device",
+  },
+  {
+    text: "Username",
+    value: "username",
+  },
+  {
+    text: "Authenticated",
+    value: "authenticated",
+  },
+  {
+    text: "IP Address",
+    value: "ip_address",
+  },
+  {
+    text: "Started",
+    value: "started_at",
+  },
+  {
+    text: "Last Seen",
+    value: "last_seen",
+  },
+  {
+    text: "Actions",
+    value: "actions",
+  },
+]);
+const itemsPerPage = ref(10);
+const loading = ref(false);
+const page = ref(1);
+
+const getSessions = async (perPagaeValue: number, pageValue: number) => {
+  try {
+    loading.value = true;
+
+    const hasSessions = await sessionStore.fetch({
+      perPage: perPagaeValue,
+      page: pageValue,
+    });
+
+    if (!hasSessions) {
+      page.value--;
+    }
+
+    loading.value = false;
+  } catch (error) {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.sessionList);
+  }
+};
+
+onMounted(async () => {
+  try {
+    loading.value = true;
+    getSessions(itemsPerPage.value, page.value);
+  } catch (error) {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.sessionList);
+  } finally {
+    loading.value = false;
+  }
 });
+
+const next = async () => {
+  await getSessions(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getSessions(itemsPerPage.value, --page.value);
+  } catch (error) {
+    snackbarStore.showSnackbarErrorDefault();
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async () => {
+  await getSessions(itemsPerPage.value, page.value);
+});
+
+const sessions = computed(() => sessionStore.getSessions);
+const numberSessions = computed(() => sessionStore.getNumberSessions);
+
+const redirectToDevice = (deviceId: string) => {
+  router.push({ name: "deviceDetails", params: { id: deviceId } });
+};
+
+const goToSession = (sessionId: string) => {
+  router.push({ name: "sessionDetails", params: { id: sessionId } });
+};
 </script>
 
 <style scoped>

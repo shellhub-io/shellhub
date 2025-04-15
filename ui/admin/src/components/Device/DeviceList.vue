@@ -27,7 +27,7 @@
           <td>{{ item.name }}</td>
           <td class="d-flex align-center">
             <DeviceIcon :icon="item.info.id" class="mr-2" />
-            {{ item.info.prettyName }}
+            {{ item.info.pretty_name }}
           </td>
           <td>
             <span
@@ -89,10 +89,11 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted, watch, computed } from "vue";
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useDevicesStore from "@admin/store/modules/devices";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "../../hooks/date";
@@ -100,161 +101,142 @@ import displayOnlyTenCharacters from "../../hooks/string";
 import showTag from "../../hooks/tag";
 import { INotificationsError } from "../../interfaces/INotifications";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const loading = ref(false);
-    const filter = ref("");
-    const itemsPerPage = ref(10);
-    const page = ref(1);
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
+const devicesStore = useDevicesStore();
 
-    const devices = computed(() => store.getters["devices/list"]);
-    const numberDevices = computed(() => store.getters["devices/numberDevices"]);
+const loading = ref(false);
+const filter = ref("");
+const itemsPerPage = ref(10);
+const page = ref(1);
 
-    onMounted(async () => {
-      try {
-        loading.value = true;
-        await store.dispatch("devices/fetch", {
-          perPage: itemsPerPage.value,
-          page: 1,
-          filter: "",
-          sortStatusField: "",
-          sortStatusString: "",
-        });
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceList);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const getDevices = async (perPagaeValue: number, pageValue: number) => {
-      try {
-        loading.value = true;
-
-        const hasDevices = await store.dispatch("devices/fetch", {
-          perPage: perPagaeValue,
-          page: pageValue,
-          filter: filter.value,
-          sortStatusField: store.getters["devices/sortStatusField"],
-          sortStatusString: store.getters["devices/sortStatusString"],
-        });
-
-        if (!hasDevices) {
-          page.value--;
-        }
-
-        loading.value = false;
-      } catch (error) {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceList);
-      }
-    };
-
-    const sortByItem = async (field: string) => {
-      let sortStatusString = store.getters["devices/sortStatusString"];
-      if (sortStatusString === "") {
-        sortStatusString = "asc";
-      } else if (sortStatusString === "asc") {
-        sortStatusString = "desc";
-      } else {
-        sortStatusString = "";
-      }
-      await store.dispatch("devices/setSortStatus", {
-        sortStatusField: field,
-        sortStatusString,
-      });
-      await getDevices(itemsPerPage.value, page.value);
-    };
-
-    const next = async () => {
-      await getDevices(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-      } catch (error) {
-        store.dispatch("snackbar/setSnackbarErrorDefault");
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, async () => {
-      await getDevices(itemsPerPage.value, page.value);
-    });
-
-    const goToNamespace = (namespace: string) => {
-      router.push({ name: "namespaceDetails", params: { id: namespace } });
-    };
-
-    const redirectToDevice = (deviceId: string) => {
-      router.push({ name: "deviceDetails", params: { id: deviceId } });
-    };
-
-    return {
-      headers: [
-        {
-          text: "Online",
-          value: "online",
-          sortable: true,
-        },
-        {
-          text: "Hostname",
-          value: "name",
-          sortable: true,
-        },
-        {
-          text: "Info",
-          value: "info",
-          sortable: true,
-        },
-        {
-          text: "Namespace",
-          value: "namespace",
-          sortable: true,
-        },
-        {
-          text: "Tags",
-          value: "tags",
-        },
-        {
-          text: "Last Seen",
-          value: "last_seen",
-          sortable: true,
-          align: "center",
-        },
-        {
-          text: "Status",
-          value: "status",
-          sortable: true,
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      itemsPerPage,
-      page,
-      loading,
-      devices,
-      numberDevices,
-      next,
-      prev,
-      sortByItem,
-      showTag,
-      displayOnlyTenCharacters,
-      formatFullDateTime,
-      goToNamespace,
-      redirectToDevice,
-      changeItemsPerPage,
-    };
+const headers = ref([
+  {
+    text: "Online",
+    value: "online",
+    sortable: true,
   },
-  components: { DataTable, DeviceIcon },
+  {
+    text: "Hostname",
+    value: "name",
+    sortable: true,
+  },
+  {
+    text: "Info",
+    value: "info",
+    sortable: true,
+  },
+  {
+    text: "Namespace",
+    value: "namespace",
+    sortable: true,
+  },
+  {
+    text: "Tags",
+    value: "tags",
+  },
+  {
+    text: "Last Seen",
+    value: "last_seen",
+    sortable: true,
+    align: "center",
+  },
+  {
+    text: "Status",
+    value: "status",
+    sortable: true,
+  },
+  {
+    text: "Actions",
+    value: "actions",
+  },
+]);
+
+const devices = computed(() => devicesStore.list);
+const numberDevices = computed(() => devicesStore.getNumberDevices);
+
+onMounted(async () => {
+  try {
+    loading.value = true;
+    await devicesStore.fetch({
+      perPage: itemsPerPage.value,
+      page: 1,
+      filter: "",
+      sortStatusField: "",
+      sortStatusString: undefined,
+    });
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.deviceList);
+  } finally {
+    loading.value = false;
+  }
 });
+
+const getDevices = async (perPagaeValue: number, pageValue: number) => {
+  try {
+    loading.value = true;
+
+    const hasDevices = await devicesStore.fetch({
+      perPage: perPagaeValue,
+      page: pageValue,
+      filter: filter.value,
+      sortStatusField: devicesStore.getSortStatusField,
+      sortStatusString: devicesStore.getSortStatusString,
+    });
+
+    if (!hasDevices) {
+      page.value--;
+    }
+
+    loading.value = false;
+  } catch (error) {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.deviceList);
+  }
+};
+
+const sortByItem = async (field: string) => {
+  let sortStatusString = devicesStore.getSortStatusString;
+  if (sortStatusString === undefined) {
+    sortStatusString = "asc";
+  } else if (sortStatusString === "asc") {
+    sortStatusString = "desc";
+  } else {
+    sortStatusString = undefined;
+  }
+  devicesStore.setSortStatus({
+    sortStatusField: field,
+    sortStatusString,
+  });
+  await getDevices(itemsPerPage.value, page.value);
+};
+
+const next = async () => {
+  await getDevices(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
+  } catch (error) {
+    snackbarStore.showSnackbarErrorDefault();
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async () => {
+  await getDevices(itemsPerPage.value, page.value);
+});
+
+const goToNamespace = (namespace: string) => {
+  router.push({ name: "namespaceDetails", params: { id: namespace } });
+};
+
+const redirectToDevice = (deviceId: string) => {
+  router.push({ name: "deviceDetails", params: { id: deviceId } });
+};
 </script>
 
 <style scoped>

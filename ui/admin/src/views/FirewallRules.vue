@@ -7,11 +7,6 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import FirewallRulesList from "../components/FirewallRules/FirewallRulesList.vue";
-
-export default defineComponent({
-  components: { FirewallRulesList },
-});
 </script>

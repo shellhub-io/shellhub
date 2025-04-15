@@ -153,13 +153,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useStore } from "../../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useInstanceStore from "@admin/store/modules/instance";
 import { INotificationsError, INotificationsSuccess } from "../../../interfaces/INotifications";
 
-const store = useStore();
 const checkbox = ref(false);
 const signRequest = ref(false);
 const dialog = defineModel({ default: false });
+const snackbarStore = useSnackbarStore();
+const instanceStore = useInstanceStore();
 
 const IdPMetadataURL = ref("");
 const acsUrl = ref("");
@@ -221,8 +223,18 @@ const hasError = computed(() => {
 });
 
 const updateSAMLConfiguration = async () => {
-  // eslint-disable-next-line vue/max-len
-  const mappingObject = Object.fromEntries(mappings.value.map((item) => [item.key.toLowerCase(), item.value]));
+  const mappingObject: { email: string; name: string } = {
+    email: "",
+    name: "",
+  };
+
+  mappings.value.forEach((item) => {
+    const key = item.key.toLowerCase();
+    if (key === "email" || key === "name") {
+      mappingObject[key] = item.value;
+    }
+  });
+
   const data = checkbox.value
     ? {
       enable: true,
@@ -244,11 +256,11 @@ const updateSAMLConfiguration = async () => {
     };
 
   try {
-    await store.dispatch("instance/updateSamlAuthentication", data);
-    await store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.configureSaml);
-    close();
+    await instanceStore.updateSamlAuthentication(data);
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.configureSaml);
+    dialog.value = false;
   } catch {
-    store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.namespaceLoad);
+    snackbarStore.showSnackbarErrorAction(INotificationsError.namespaceLoad);
   }
 };
 

@@ -143,7 +143,10 @@
 <script setup lang="ts">
 import { watch, ref, computed, reactive } from "vue";
 import { RouteLocationRaw, useRouter } from "vue-router";
-import { useStore } from "../store";
+import useSpinnerStore from "@admin/store/modules/spinner";
+import useLicenseStore from "@admin/store/modules/license";
+import useLayoutStore from "@admin/store/modules/layout";
+import useAuthStore from "@admin/store/modules/auth";
 import Logo from "../assets/logo-inverted.png";
 import { createNewClient } from "../api/http";
 import { envVariables } from "../envVariables";
@@ -165,16 +168,19 @@ type DrawerItem = {
   children?: DrawerItem[];
 };
 
-const store = useStore();
+const spinnerStore = useSpinnerStore();
+const licenseStore = useLicenseStore();
+const layoutStore = useLayoutStore();
+const authStore = useAuthStore();
 const router = useRouter();
-const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
+const isLoggedIn = computed(() => authStore.isLoggedIn);
 
-const expiredLicense = computed(() => store.getters["license/isExpired"]);
+const expiredLicense = computed(() => licenseStore.isExpired);
 
-const hasSpinner = computed(() => store.getters["spinner/status"]);
-const currentUser = computed(() => store.getters["auth/currentUser"]);
+const hasSpinner = computed(() => spinnerStore.getStatus);
+const currentUser = computed(() => authStore.currentUser);
 const currentRoute = computed(() => router.currentRoute);
-const getStatusDarkMode = computed(() => store.getters["layout/getStatusDarkMode"]);
+const getStatusDarkMode = computed(() => layoutStore.getStatusDarkMode);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
 const drawer = ref(true);
 
@@ -185,10 +191,10 @@ watch(drawer, () => {
 });
 
 const logout = async () => {
-  await store.dispatch("auth/logout");
+  await authStore.logout();
   await router.push("/login");
   createNewClient();
-  store.dispatch("layout/setLayout", "SimpleLayout");
+  layoutStore.setLayout("SimpleLayout");
 };
 
 const triggerClick = (item: MenuItem): void => {
@@ -205,7 +211,7 @@ const triggerClick = (item: MenuItem): void => {
 };
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
-  store.dispatch("layout/setStatusDarkMode", isDarkMode.value);
+  layoutStore.setStatusDarkMode(isDarkMode.value);
 };
 
 const items = reactive([

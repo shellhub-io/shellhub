@@ -1,5 +1,4 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+import { defineStore } from "pinia";
 import {
   postPublicKey,
   fetchPublicKeys,
@@ -9,18 +8,12 @@ import {
 } from "../api/public_keys";
 import { IPublicKey } from "../../interfaces/IPublicKey";
 
-export interface PublicKeysState {
-  publicKeys: Array<IPublicKey>;
-  publicKey: IPublicKey;
-  numberPublicKeys: number;
-}
-export const publicKeys: Module<PublicKeysState, State> = {
-  namespaced: true,
-  state: {
-    publicKeys: [],
+export const usePublicKeysStore = defineStore("publicKeys", {
+  state: () => ({
+    publicKeys: [] as Array<IPublicKey>,
     publicKey: {} as IPublicKey,
     numberPublicKeys: 0,
-  },
+  }),
 
   getters: {
     list: (state) => state.publicKeys,
@@ -28,65 +21,57 @@ export const publicKeys: Module<PublicKeysState, State> = {
     getNumberPublicKeys: (state) => state.numberPublicKeys,
   },
 
-  mutations: {
-    setPublicKeys: (state, res) => {
-      state.publicKeys = res.data;
-      state.numberPublicKeys = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setPublicKey: (state, res) => {
-      state.publicKey = res.data;
-    },
-
-    removePublicKey: (state, fingerprint) => {
-      state.publicKeys.splice(
-        state.publicKeys.findIndex((d: IPublicKey) => d.fingerprint === fingerprint),
-        1,
-      );
-    },
-
-    clearListPublicKeys: (state) => {
-      state.publicKeys = [];
-      state.numberPublicKeys = 0;
-    },
-
-    clearObjectPublicKey: (state) => {
-      state.publicKey = {} as IPublicKey;
-    },
-  },
-
   actions: {
-    post: async (context, data) => {
+    async post(data) {
       await postPublicKey(data);
     },
 
-    fetch: async ({ commit }, data) => {
+    async fetch(data: { perPage: number; page: number }) {
       try {
         const res = await fetchPublicKeys(data.perPage, data.page);
-        commit("setPublicKeys", res);
+        this.publicKeys = res.data;
+        this.numberPublicKeys = parseInt(res.headers["x-total-count"], 10);
       } catch (error) {
-        commit("clearListPublicKeys");
+        this.clearListPublicKeys();
         throw error;
       }
     },
 
-    get: async ({ commit }, id) => {
+    async get(id: string) {
       try {
         const res = await getPublicKey(id);
-        commit("setPublicKey", res);
+        this.publicKey = res.data;
       } catch (error) {
-        commit("clearObjectPublicKey");
+        this.clearObjectPublicKey();
         throw error;
       }
     },
 
-    put: async (context, data) => {
+    async put(data) {
       await putPublicKey(data);
     },
 
-    remove: async ({ commit }, fingerprint) => {
+    async remove(fingerprint: string) {
       await removePublicKey(fingerprint);
-      commit("removePublicKey", fingerprint);
+
+      const index = this.publicKeys.findIndex(
+        (d: IPublicKey) => d.fingerprint === fingerprint,
+      );
+
+      if (index !== -1) {
+        this.publicKeys.splice(index, 1);
+      }
+    },
+
+    clearListPublicKeys() {
+      this.publicKeys = [];
+      this.numberPublicKeys = 0;
+    },
+
+    clearObjectPublicKey() {
+      this.publicKey = {} as IPublicKey;
     },
   },
-};
+});
+
+export default usePublicKeysStore;

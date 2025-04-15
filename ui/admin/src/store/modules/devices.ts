@@ -1,7 +1,7 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+// stores/devices.ts
+import { defineStore } from "pinia";
 import * as apiDevice from "../api/devices";
-import { IDevice } from "./../../interfaces/IDevice";
+import { IDevice } from "../../interfaces/IDevice";
 
 export interface DevicesState {
   devices: Array<IDevice>;
@@ -14,10 +14,8 @@ export interface DevicesState {
   sortStatusString: "asc" | "desc" | undefined;
 }
 
-export const devices: Module<DevicesState, State> = {
-  namespaced: true,
-
-  state: {
+export const useDevicesStore = defineStore("devices", {
+  state: (): DevicesState => ({
     devices: [],
     device: {} as IDevice,
     numberDevices: 0,
@@ -26,54 +24,27 @@ export const devices: Module<DevicesState, State> = {
     filter: "",
     sortStatusField: "",
     sortStatusString: undefined,
-  },
+  }),
 
   getters: {
     list: (state) => state.devices,
-    get: (state) => state.device,
-    page: (state) => state.page,
-    perPage: (state) => state.perPage,
-    filter: (state) => state.filter,
-    numberDevices: (state) => state.numberDevices,
-    sortStatusField: (state) => state.sortStatusField,
-    sortStatusString: (state) => state.sortStatusString,
-  },
-
-  mutations: {
-    setDevices: (state, res) => {
-      state.devices = res.data;
-      state.numberDevices = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setDevice: (state, res) => {
-      state.device = res.data;
-    },
-
-    setPagePerpageFilter: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-      state.filter = data.filter;
-      state.sortStatusField = data.sortStatusField;
-      state.sortStatusString = data.sortStatusString;
-    },
-
-    setFilterDevices: (state, filter) => {
-      state.filter = filter;
-    },
-
-    setSortStatusDevice: (state, data) => {
-      state.sortStatusField = data.sortStatusField;
-      state.sortStatusString = data.sortStatusString;
-    },
-
-    clearListDevices: (state) => {
-      state.devices = [];
-      state.numberDevices = 0;
-    },
+    getDevice: (state) => state.device,
+    getPage: (state) => state.page,
+    getPerPage: (state) => state.perPage,
+    getFilter: (state) => state.filter,
+    getNumberDevices: (state) => state.numberDevices,
+    getSortStatusField: (state) => state.sortStatusField,
+    getSortStatusString: (state) => state.sortStatusString,
   },
 
   actions: {
-    async fetch({ commit }, data) {
+    async fetch(data: {
+      page: number;
+      perPage: number;
+      filter: string;
+      sortStatusField: string;
+      sortStatusString: "asc" | "desc" | undefined;
+    }) {
       const res = await apiDevice.fetchDevices(
         data.page,
         data.perPage,
@@ -82,59 +53,70 @@ export const devices: Module<DevicesState, State> = {
         data.sortStatusString,
       );
       if (res.data.length) {
-        commit("setDevices", res);
-        commit("setPagePerpageFilter", data);
+        this.devices = res.data as never;
+        this.numberDevices = parseInt(res.headers["x-total-count"], 10);
+        this.page = data.page;
+        this.perPage = data.perPage;
+        this.filter = data.filter;
+        this.sortStatusField = data.sortStatusField;
+        this.sortStatusString = data.sortStatusString;
         return res;
       }
-
       return false;
     },
 
-    async setFilter({ commit }, filter) {
-      commit("setFilterDevices", filter);
+    setFilter(filter: string) {
+      this.filter = filter;
     },
 
-    async setSortStatus({ commit }, data) {
-      commit("setSortStatusDevice", data);
+    setSortStatus(data: { sortStatusField: string; sortStatusString: "asc" | "desc" | undefined }) {
+      this.sortStatusField = data.sortStatusField;
+      this.sortStatusString = data.sortStatusString;
     },
 
-    async refresh({ commit, state }) {
+    async refresh() {
       try {
         const res = await apiDevice.fetchDevices(
-          state.page,
-          state.perPage,
-          state.filter,
-          state.sortStatusField,
-          state.sortStatusString,
+          this.page,
+          this.perPage,
+          this.filter,
+          this.sortStatusField,
+          this.sortStatusString,
         );
-        commit("setDevices", res);
+        this.devices = res.data as never;
+        this.numberDevices = parseInt(res.headers["x-total-count"], 10);
       } catch (error) {
-        commit("clearListDevices");
+        this.devices = [];
+        this.numberDevices = 0;
         throw error;
       }
     },
 
-    async search({ commit, state }, data) {
+    async search(data: { page: number; perPage: number; filter: string }) {
       try {
         const res = await apiDevice.fetchDevices(
           data.page,
           data.perPage,
           data.filter,
-          state.sortStatusField,
-          state.sortStatusString,
+          this.sortStatusField,
+          this.sortStatusString,
         );
-        commit("setDevices", res);
-        commit("setFilterDevices", data.filter);
+        this.devices = res.data as never;
+        this.numberDevices = parseInt(res.headers["x-total-count"], 10);
+        this.filter = data.filter;
       } catch (error) {
-        commit("clearListDevices");
+        this.devices = [];
+        this.numberDevices = 0;
         throw error;
       }
     },
 
-    async get({ commit }, uid) {
+    async get(uid: string) {
       const res = await apiDevice.getDevice(uid);
-      commit("setDevice", res);
+      this.device = res.data as never;
       return res;
     },
   },
-};
+});
+
+export default useDevicesStore;

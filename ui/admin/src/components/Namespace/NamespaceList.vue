@@ -55,123 +55,107 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useNamespacesStore from "@admin/store/modules/namespaces";
 import { INotificationsError } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const loading = ref(false);
-    const page = ref(1);
-    const itemsPerPage = ref(10);
-    const filter = ref("");
+const snackbarStore = useSnackbarStore();
+const namespacesStore = useNamespacesStore();
+const router = useRouter();
+const loading = ref(false);
+const page = ref(1);
+const itemsPerPage = ref(10);
+const filter = ref("");
 
-    onMounted(async () => {
-      try {
-        loading.value = true;
-        await store.dispatch("namespaces/fetch", {
-          perPage: itemsPerPage.value,
-          page: page.value,
-          filter: filter.value,
-        });
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.namespaceList);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const namespaces = computed(() => store.getters["namespaces/list"]);
-
-    const numberOfNamespaces = computed(() => store.getters["namespaces/numberOfNamespaces"]);
-
-    const goToNamespace = (namespace: string) => {
-      router.push({ name: "namespaceDetails", params: { id: namespace } });
-    };
-
-    const getNamespaces = async (perPagaeValue: number, pageValue: number) => {
-      try {
-        loading.value = true;
-        const hasNamespaces = await store.dispatch("namespaces/fetch", {
-          page: pageValue,
-          perPage: perPagaeValue,
-        });
-
-        if (!hasNamespaces) page.value--;
-      } catch {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceList,
-        );
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const next = async () => {
-      await getNamespaces(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getNamespaces(itemsPerPage.value, --page.value);
-      } catch (error) {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, async () => {
-      await getNamespaces(itemsPerPage.value, page.value);
-    });
-
-    return {
-      headers: [
-        {
-          text: "Name",
-          value: "name",
-        },
-        {
-          text: "Devices",
-          value: "devices",
-        },
-        {
-          text: "Tenant ID",
-          value: "tenant_id",
-        },
-        {
-          text: "Owner",
-          value: "owner",
-        },
-        {
-          text: "Session Record",
-          value: "settings",
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      namespaces,
-      numberOfNamespaces,
-      loading,
-      page,
-      itemsPerPage,
-      goToNamespace,
-      next,
-      prev,
-      changeItemsPerPage,
-    };
+const headers = ref([
+  {
+    text: "Name",
+    value: "name",
   },
-  components: { DataTable, NamespaceEdit },
+  {
+    text: "Devices",
+    value: "devices",
+  },
+  {
+    text: "Tenant ID",
+    value: "tenant_id",
+  },
+  {
+    text: "Owner",
+    value: "owner",
+  },
+  {
+    text: "Session Record",
+    value: "settings",
+  },
+  {
+    text: "Actions",
+    value: "actions",
+  },
+]);
+
+onMounted(async () => {
+  try {
+    loading.value = true;
+    await namespacesStore.fetch({
+      perPage: itemsPerPage.value,
+      page: page.value,
+      filter: filter.value,
+    });
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.namespaceList);
+  } finally {
+    loading.value = false;
+  }
+});
+
+const namespaces = computed(() => namespacesStore.list);
+
+const numberOfNamespaces = computed(() => namespacesStore.getnumberOfNamespaces);
+
+const goToNamespace = (namespace: string) => {
+  router.push({ name: "namespaceDetails", params: { id: namespace } });
+};
+
+const getNamespaces = async (perPagaeValue: number, pageValue: number) => {
+  try {
+    loading.value = true;
+    const hasNamespaces = await namespacesStore.fetch({
+      page: pageValue,
+      perPage: perPagaeValue,
+      filter: filter.value,
+    });
+
+    if (!hasNamespaces) page.value--;
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.namespaceList);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const next = async () => {
+  await getNamespaces(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getNamespaces(itemsPerPage.value, --page.value);
+  } catch (error) {
+    snackbarStore.showSnackbarErrorDefault();
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, async () => {
+  await getNamespaces(itemsPerPage.value, page.value);
 });
 </script>

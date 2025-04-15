@@ -27,51 +27,44 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import { useRouter } from "vue-router";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useUsersStore from "@admin/store/modules/users";
 import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
 
-export default defineComponent({
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-
-    redirect: {
-      type: Boolean,
-    },
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
   },
-  emits: ["update"],
-  setup(props, ctx) {
-    const dialog = ref(false);
-    const store = useStore();
-    const router = useRouter();
 
-    const remove = async () => {
-      dialog.value = !dialog.value;
-
-      try {
-        await store.dispatch("users/remove", props.id);
-
-        if (props.redirect) {
-          router.push("/users");
-        }
-
-        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.userDelete);
-        await store.dispatch("users/refresh");
-        ctx.emit("update");
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.userDelete);
-      }
-    };
-
-    return {
-      dialog,
-      remove,
-    };
+  redirect: {
+    type: Boolean,
   },
 });
+const emit = defineEmits(["update"]);
+const dialog = ref(false);
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
+const userStore = useUsersStore();
+
+const remove = async () => {
+  dialog.value = !dialog.value;
+
+  try {
+    await userStore.remove(props.id);
+
+    if (props.redirect) {
+      router.push("/users");
+    }
+
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.userDelete);
+    await userStore.refresh();
+    emit("update");
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.userDelete);
+  }
+};
 </script>
