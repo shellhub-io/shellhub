@@ -85,10 +85,13 @@ const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler() gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+		// NOTE: Lock to guarantee the sync of connection process before piping data.
+		ctx.Lock()
+
 		sess, _ := session.ObtainSession(ctx)
 
 		go func() {
-			// NOTICE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
+			// NOTE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
 			// other channel invocation. To avoid it, we wait for the connection to be closed to finish the session.
 			conn.Wait() //nolint:errcheck
 
@@ -115,6 +118,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		seat, err := sess.NewSeat()
 		if err != nil {
+			ctx.Unlock()
+
 			reject(err, "failed to create a new seat on the SSH session")
 
 			return
@@ -122,6 +127,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		client, err := sess.NewClientChannel(newChan, seat)
 		if err != nil {
+			ctx.Unlock()
+
 			reject(err, "failed to accept the channel opening")
 
 			return
@@ -131,12 +138,16 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		agent, err := sess.NewAgentChannel(SessionChannel, seat)
 		if err != nil {
+			ctx.Unlock()
+
 			reject(err, "failed to open the session channel on agent")
 
 			return
 		}
 
 		defer agent.Close()
+
+		ctx.Unlock()
 
 		go pipe(sess, client.Channel, agent.Channel, seat)
 
