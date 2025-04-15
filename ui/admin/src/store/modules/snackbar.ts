@@ -1,142 +1,91 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+// stores/snackbar.ts
+import { defineStore } from "pinia";
 
-export interface snackbarMessageAndContentType {
-  typeMessage: string;
-  typeContent: string;
+export interface SnackbarMessageAndContentType {
+  typeMessage: string
+  typeContent: string
 }
 
 export interface SnackbarState {
-  snackbarError: boolean;
-  snackbarSuccess: boolean;
-  snackbarMessageAndContentType: snackbarMessageAndContentType;
-  snackbarCopy: boolean;
+  snackbarError: boolean
+  snackbarSuccess: boolean
+  snackbarMessageAndContentType: SnackbarMessageAndContentType
+  snackbarCopy: boolean
 }
 
-export const snackbar: Module<SnackbarState, State> = {
-  namespaced: true,
-
-  state: {
+export const useSnackbarStore = defineStore("snackbar", {
+  state: (): SnackbarState => ({
     snackbarError: false,
     snackbarSuccess: false,
     snackbarMessageAndContentType: { typeMessage: "", typeContent: "" },
     snackbarCopy: false,
-  },
+  }),
 
   getters: {
-    snackbarSuccess: (state) => state.snackbarSuccess,
-    snackbarError: (state) => state.snackbarError,
-    snackbarMessageAndContentType: (state) => state.snackbarMessageAndContentType,
-    snackbarCopy: (state) => state.snackbarCopy,
-  },
-
-  mutations: {
-    setSnackbarSuccessAction: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarSuccess = true;
-    },
-
-    setSnackbarNoContent: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarSuccess = true;
-    },
-
-    setSnackbarSuccessDefault: (state) => {
-      state.snackbarMessageAndContentType = { typeMessage: "default", typeContent: "" };
-      state.snackbarSuccess = true;
-    },
-
-    unsetSnackbarSuccess: (state) => {
-      state.snackbarSuccess = false;
-    },
-
-    setSnackbarErrorLoadingOrAction: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarError = true;
-    },
-
-    setSnackbarErrorCustom: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarError = true;
-    },
-
-    setSnackbarErrorDefault: (state) => {
-      state.snackbarMessageAndContentType = { typeMessage: "default", typeContent: "" };
-      state.snackbarError = true;
-    },
-
-    setSnackbarErrorLicense: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarError = true;
-    },
-
-    unsetSnackbarError: (state) => {
-      state.snackbarError = false;
-    },
-
-    setSnackbarCopy: (state, value) => {
-      state.snackbarMessageAndContentType = { typeMessage: "", typeContent: value };
-      state.snackbarCopy = true;
-    },
-
-    unsetSnackbarCopy: (state) => {
-      state.snackbarCopy = false;
-    },
+    getSnackbarSuccess: (state) => state.snackbarSuccess,
+    getSnackbarError: (state) => state.snackbarError,
+    getSnackbarMessageAndContentType: (state) => state.snackbarMessageAndContentType,
+    getSnackbarCopy: (state) => state.snackbarCopy,
   },
 
   actions: {
-    showSnackbarSuccessAction: ({ commit }, value) => {
-      const data = { typeMessage: "action", typeContent: value };
-      commit("setSnackbarSuccessAction", data);
+    showSnackbarSuccessAction(value: string) {
+      this.snackbarMessageAndContentType = { typeMessage: "action", typeContent: value };
+      this.snackbarSuccess = true;
     },
 
-    showSnackbarSuccessDefault: ({ commit }) => {
-      commit("setSnackbarSuccessDefault");
+    showSnackbarSuccessDefault() {
+      this.snackbarMessageAndContentType = { typeMessage: "default", typeContent: "" };
+      this.snackbarSuccess = true;
     },
 
-    unsetShowStatusSnackbarSuccess: ({ commit }) => {
-      commit("unsetSnackbarSuccess");
+    unsetShowStatusSnackbarSuccess() {
+      this.snackbarSuccess = false;
     },
 
-    showSnackbarErrorLoading: ({ commit }, value) => {
-      const data = { typeMessage: "loading", typeContent: value };
-      commit("setSnackbarErrorLoadingOrAction", data);
+    showSnackbarErrorLoading(value: string) {
+      this.snackbarMessageAndContentType = { typeMessage: "loading", typeContent: value };
+      this.snackbarError = true;
     },
 
-    showSnackbarNoContent: ({ commit }) => {
-      const data = { typeMessage: "no-content", typeContent: "" };
-      commit("setSnackbarNoContent", data);
+    showSnackbarNoContent() {
+      this.snackbarMessageAndContentType = { typeMessage: "no-content", typeContent: "" };
+      this.snackbarSuccess = true;
     },
 
-    showSnackbarErrorAction: ({ commit }, value) => {
-      const data = { typeMessage: "action", typeContent: value };
-      commit("setSnackbarErrorLoadingOrAction", data);
+    showSnackbarErrorAction(value: string) {
+      this.snackbarMessageAndContentType = { typeMessage: "action", typeContent: value };
+      this.snackbarError = true;
     },
 
-    showSnackbarErrorCustom: ({ commit }, value) => {
-      const data = { typeMessage: "custom", typeContent: value };
-      commit("setSnackbarErrorCustom", data);
+    showSnackbarErrorCustom(value: string) {
+      this.snackbarMessageAndContentType = { typeMessage: "custom", typeContent: value };
+      this.snackbarError = true;
     },
 
-    showSnackbarErrorLicense: ({ commit }, value) => {
-      const data = { typeMessage: "licenseRequired", typeContent: value };
-      commit("setSnackbarErrorLicense", data);
+    showSnackbarErrorLicense(value: string) {
+      this.snackbarMessageAndContentType = { typeMessage: "licenseRequired", typeContent: value };
+      this.snackbarError = true;
     },
 
-    showSnackbarErrorDefault: ({ commit }) => {
-      commit("setSnackbarErrorDefault");
+    showSnackbarErrorDefault() {
+      this.snackbarMessageAndContentType = { typeMessage: "default", typeContent: "" };
+      this.snackbarError = true;
     },
 
-    unsetShowStatusSnackbarError: ({ commit }) => {
-      commit("unsetSnackbarError");
+    unsetShowStatusSnackbarError() {
+      this.snackbarError = false;
     },
 
-    showSnackbarCopy: ({ commit }, value) => {
-      commit("setSnackbarCopy", value);
+    showSnackbarCopy(value: string) {
+      this.snackbarMessageAndContentType = { typeMessage: "", typeContent: value };
+      this.snackbarCopy = true;
     },
 
-    unsetShowStatusSnackbarCopy: ({ commit }) => {
-      commit("unsetSnackbarCopy");
+    unsetShowStatusSnackbarCopy() {
+      this.snackbarCopy = false;
     },
   },
-};
+});
+
+export default useSnackbarStore;

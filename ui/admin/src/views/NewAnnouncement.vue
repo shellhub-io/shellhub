@@ -71,16 +71,17 @@ import TurndownService from "turndown";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useRouter } from "vue-router";
-import { useStore } from "../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useAnnouncementStore from "@admin/store/modules/announcement";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../interfaces/INotifications";
 import { envVariables } from "../envVariables";
 
-const store = useStore();
 const router = useRouter();
-
+const snackbarStore = useSnackbarStore();
+const announcementStore = useAnnouncementStore();
 const { value: title, errorMessage: titleError, setErrors: setTitleError } = useField<
       string | undefined
     >("title", yup.string().required(), {
@@ -104,29 +105,20 @@ const postAnnouncement = () => {
 
   if (titleError.value || !announcement.value) {
     announcementError.value = true;
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.announcementCreate,
-    );
+    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementCreate);
     return;
   }
 
   try {
     const contentInHtml = turndownService.turndown(announcement.value);
-    store.dispatch("announcement/postAnnouncement", {
+    announcementStore.postAnnouncement({
       title: title.value,
       content: contentInHtml,
     });
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.announcementCreate,
-    );
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.announcementCreate);
     router.push({ name: "announcements" });
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.announcementCreate,
-    );
+    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementCreate);
   }
 };
 

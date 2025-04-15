@@ -58,76 +58,66 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import { saveAs } from "file-saver";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useUsersStore from "@admin/store/modules/users";
 import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const dialog = ref(false);
-    const selected = ref("moreThan");
-    const gtNumberOfNamespaces = ref(0);
-    const eqNumberOfNamespaces = ref(0);
+const dialog = ref(false);
+const selected = ref("moreThan");
+const gtNumberOfNamespaces = ref(0);
+const eqNumberOfNamespaces = ref(0);
+const snackbarStore = useSnackbarStore();
+const userStore = useUsersStore();
 
-    const generateEncodedFilter = (encodeFilter: string) => {
-      let filter;
-      switch (encodeFilter) {
-        case "moreThan":
-          filter = [
-            {
-              type: "property",
-              params: {
-                name: "namespaces",
-                operator: "gt",
-                value: String(gtNumberOfNamespaces.value),
-              },
-            },
-          ];
-          break;
-        case "equalTo":
-          filter = [
-            {
-              type: "property",
-              params: {
-                name: "namespaces",
-                operator: "eq",
-                value: eqNumberOfNamespaces.value,
-              },
-            },
-          ];
-          break;
-        default:
-          break;
-      }
-      return btoa(JSON.stringify(filter));
-    };
+const generateEncodedFilter = (encodeFilter: string) => {
+  let filter;
+  switch (encodeFilter) {
+    case "moreThan":
+      filter = [
+        {
+          type: "property",
+          params: {
+            name: "namespaces",
+            operator: "gt",
+            value: String(gtNumberOfNamespaces.value),
+          },
+        },
+      ];
+      break;
+    case "equalTo":
+      filter = [
+        {
+          type: "property",
+          params: {
+            name: "namespaces",
+            operator: "eq",
+            value: eqNumberOfNamespaces.value,
+          },
+        },
+      ];
+      break;
+    default:
+      break;
+  }
+  return btoa(JSON.stringify(filter));
+};
 
-    const onSubmit = async () => {
-      const encodedFilter = generateEncodedFilter(selected.value);
-      try {
-        await store.dispatch("users/setFilterUsers", encodedFilter);
-        const response = await store.dispatch("users/exportUsersToCsv");
-        const blob = new Blob([response], { type: "content-disposition" });
+const onSubmit = async () => {
+  const encodedFilter = generateEncodedFilter(selected.value);
+  try {
+    await userStore.setFilterUsers(encodedFilter);
+    const response = await userStore.exportUsersToCsv();
+    const blob = new Blob([response], { type: "content-disposition" });
 
-        if (selected.value === "moreThanN") saveAs(blob, `users_more_than_${gtNumberOfNamespaces.value}_namespaces.csv`);
-        else saveAs(blob, `users_exactly_${eqNumberOfNamespaces.value}_namespaces.csv`);
+    if (selected.value === "moreThanN") saveAs(blob, `users_more_than_${gtNumberOfNamespaces.value}_namespaces.csv`);
+    else saveAs(blob, `users_exactly_${eqNumberOfNamespaces.value}_namespaces.csv`);
 
-        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.exportUsers);
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.exportUsers);
-      }
-    };
-
-    return {
-      dialog,
-      selected,
-      gtNumberOfNamespaces,
-      eqNumberOfNamespaces,
-      onSubmit,
-    };
-  },
-});
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.exportUsers);
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.exportUsers);
+  }
+};
 </script>

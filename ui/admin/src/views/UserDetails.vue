@@ -10,11 +10,11 @@
         <span>Login</span>
       </v-tooltip>
 
-      <UserDelete :id="currentUser.id" redirect />
+      <UserDelete :id="userId" redirect />
     </v-col>
   </div>
 
-  <v-card v-if="!currentUserIsEmpty" class="mt-2 pa-4">
+  <v-card v-if="currentUser" class="mt-2 pa-4">
     <v-card-text>
       <div class="text-overline mt-3">
         <h3>Status:</h3>
@@ -79,68 +79,41 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useUsersStore from "@admin/store/modules/users";
+import { IUser } from "@admin/interfaces/IUser";
+import useAuthStore from "@admin/store/modules/auth";
 import UserDelete from "../components/User/UserDelete.vue";
 import { INotificationsError } from "../interfaces/INotifications";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const route = useRoute();
+const route = useRoute();
+const userStore = useUsersStore();
+const snackbarStore = useSnackbarStore();
+const authStore = useAuthStore();
 
-    const userId = computed(() => route.params.id as string);
+const userId = computed(() => route.params.id as string);
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("users/get", userId.value);
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.userDetails);
-      }
-    });
-
-    const currentUser = computed(() => store.getters["users/user"]);
-    const currentUserIsEmpty = computed(() => store.getters["users/user"] && store.getters["users/user"].lenght === 0);
-
-    const loginToken = async () => {
-      try {
-        const token = await store.dispatch("auth/loginToken", currentUser.value);
-
-        const url = `/login?token=${token}`;
-        window.open(url, "_target");
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.errorLoginToken);
-      }
-    };
-
-    return {
-      userId,
-      currentUser,
-      headers: [
-        {
-          text: "Id",
-          value: "id",
-        },
-        {
-          text: "Email",
-          value: "email",
-        },
-        {
-          text: "Username",
-          value: "username",
-        },
-        {
-          text: "Namespaces",
-          value: "ownedNs",
-          align: "center",
-        },
-      ],
-      loginToken,
-      currentUserIsEmpty,
-    };
-  },
-  components: { UserDelete },
+onBeforeMount(async () => {
+  try {
+    await userStore.get(userId.value);
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.userDetails);
+  }
 });
+
+const currentUser = computed(() => userStore.getUser as IUser);
+
+const loginToken = async () => {
+  try {
+    const token = await authStore.loginToken(currentUser.value);
+
+    const url = `/login?token=${token}`;
+    window.open(url, "_target");
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.errorLoginToken);
+  }
+};
 </script>

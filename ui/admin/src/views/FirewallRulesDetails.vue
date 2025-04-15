@@ -91,53 +91,40 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, ref, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import { filterType, IFirewallRule } from "../interfaces/IFirewallRule";
 import { INotificationsError } from "../interfaces/INotifications";
-import { useStore } from "../store";
 import showTag from "../hooks/tag";
 import displayOnlyTenCharacters from "../hooks/string";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const route = useRoute();
+const route = useRoute();
+const snackbarStore = useSnackbarStore();
+const firewallRulesStore = useFirewallRulesStore();
 
-    const firewallRuleId = computed(() => route.params.id);
-    const firewallRule = ref({} as IFirewallRule);
+const firewallRuleId = computed(() => route.params.id as string);
+const firewallRule = ref({} as IFirewallRule);
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("firewallRules/get", firewallRuleId.value);
-        firewallRule.value = store.getters["firewallRules/get"];
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.firewallRuleDetails);
-      }
-    });
-
-    const firewallRuleIsEmpty = computed(() => store.getters["firewallRules/get"] && store.getters["firewallRules/get"].lenght === 0);
-
-    const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
-
-    const formatUsername = (username: string) => (username === ".*" ? "All users" : username);
-
-    const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
-
-    const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
-
-    return {
-      firewallRule,
-      firewallRuleIsEmpty,
-      formatSourceIP,
-      formatUsername,
-      formatHostnameFilter,
-      isHostname,
-      showTag,
-      displayOnlyTenCharacters,
-    };
-  },
+onMounted(async () => {
+  try {
+    await firewallRulesStore.get(firewallRuleId.value);
+    firewallRule.value = firewallRulesStore.getFirewall;
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.firewallRuleDetails);
+  }
 });
+
+const firewallRuleIsEmpty = computed(() => firewallRulesStore.getFirewall && firewallRulesStore.getFirewall.id.length === 0);
+
+const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
+
+const formatUsername = (username: string) => (username === ".*" ? "All users" : username);
+
+const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+
+const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 </script>
 S

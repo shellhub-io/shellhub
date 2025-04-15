@@ -1,63 +1,47 @@
-import { Module } from "vuex";
-import { State } from "./../index";
-import { ISessions } from "./../../interfaces/ISession";
+import { defineStore } from "pinia";
+import { Session } from "@admin/api/client";
 import * as apiSession from "../api/sessions";
 
-export interface SessionsState {
-  sessions: Array<ISessions>;
-  session: ISessions;
-  numberSessions: number;
-}
-
-export const sessions: Module<SessionsState, State> = {
-  namespaced: true,
-
-  state: {
-    sessions: [],
-    session: {} as ISessions,
+export const useSessionsStore = defineStore("sessions", {
+  state: () => ({
+    sessions: [] as Array<Session>,
+    session: {} as Session,
     numberSessions: 0,
-  },
+  }),
 
   getters: {
-    sessions: (state: SessionsState) => state.sessions,
-    session: (state: SessionsState) => state.session,
-    numberSessions: (state: SessionsState) => state.numberSessions,
-  },
-
-  mutations: {
-    setSessions: (state, res) => {
-      state.sessions = res.data;
-      state.numberSessions = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setSession: (state, res) => {
-      state.session = res.data;
-    },
-
-    clearListSessions: (state) => {
-      state.sessions = [];
-      state.numberSessions = 0;
-    },
-
-    clearObjectSession: (state) => {
-      state.session = {} as ISessions;
-    },
+    getSessions: (state) => state.sessions,
+    getSession: (state) => state.session,
+    getNumberSessions: (state) => state.numberSessions,
   },
 
   actions: {
-    async fetch({ commit }, data) {
+    async fetch(data: { perPage: number; page: number }) {
       const res = await apiSession.fetchSessions(data.perPage, data.page);
+
       if (res.data.length) {
-        commit("setSessions", res);
+        this.sessions = res.data;
+        this.numberSessions = parseInt(res.headers["x-total-count"], 10);
         return res;
       }
 
       return false;
     },
 
-    async get({ commit }, uid) {
+    async get(uid: string) {
       const res = await apiSession.getSession(uid);
-      commit("setSession", res);
+      this.session = res.data;
+    },
+
+    clearListSessions() {
+      this.sessions = [];
+      this.numberSessions = 0;
+    },
+
+    clearObjectSession() {
+      this.session = {} as Session;
     },
   },
-};
+});
+
+export default useSessionsStore;

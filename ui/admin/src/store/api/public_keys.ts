@@ -7,7 +7,7 @@ export const postPublicKey = async (data: IPublicKey) => http().post("/api/sshke
 });
 
 // eslint-disable-next-line vue/max-len
-export const fetchPublicKeys = async (perPage: number, page: string) => http().get(`/api/sshkeys/public_keys?per_page=${perPage}&page=${page}`);
+export const fetchPublicKeys = async (perPage: number, page: number) => http().get(`/api/sshkeys/public_keys?per_page=${perPage}&page=${page}`);
 
 export const getPublicKey = async (fingerprint: string) => http().get(`/api/sshkeys/public_keys/${fingerprint}`);
 

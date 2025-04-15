@@ -118,40 +118,30 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, ref, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useDevicesStore from "@admin/store/modules/devices";
 import { IDevice } from "../interfaces/IDevice";
 import { INotificationsError } from "../interfaces/INotifications";
-import { useStore } from "../store";
 import displayOnlyTenCharacters from "../hooks/string";
 import showTag from "../hooks/tag";
 
-export default defineComponent({
-  name: "DeviceDetails",
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const deviceId = computed(() => route.params.id);
-    const device = ref({} as IDevice);
+const route = useRoute();
+const snackbarStore = useSnackbarStore();
+const devicesStore = useDevicesStore();
+const deviceId = computed(() => route.params.id);
+const device = ref({} as IDevice);
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("devices/get", deviceId.value);
-        device.value = store.getters["devices/get"];
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceDetails);
-      }
-    });
-
-    const deviceIsEmpty = computed(() => store.getters["devices/get"] && store.getters["devices/get"].lenght === 0);
-
-    return {
-      device,
-      deviceIsEmpty,
-      displayOnlyTenCharacters,
-      showTag,
-    };
-  },
+onMounted(async () => {
+  try {
+    await devicesStore.get(deviceId.value as string);
+    device.value = devicesStore.getDevice;
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.deviceDetails);
+  }
 });
+
+const deviceIsEmpty = computed(() => devicesStore.getDevice && devicesStore.getDevice.name.length === 0);
 </script>

@@ -28,13 +28,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { watchDebounced } from "@vueuse/core";
+import useUsersStore from "@admin/store/modules/users";
 import UserList from "../components/User/UserList.vue";
-import { useStore } from "../store";
 import UserFormDialog from "../components/User/UserFormDialog.vue";
 import UserExport from "../components/User/UserExport.vue";
 
-const store = useStore();
-
+const userStore = useUsersStore();
 const filter = ref("");
 
 const searchUsers = () => {
@@ -50,9 +49,9 @@ const searchUsers = () => {
     encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
   }
 
-  store.dispatch("users/search", {
-    perPage: store.getters["users/perPage"],
-    page: store.getters["users/page"],
+  userStore.search({
+    perPage: userStore.getPerPage,
+    page: userStore.getPage,
     filter: encodedFilter,
   });
 };

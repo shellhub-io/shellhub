@@ -20,8 +20,8 @@
         </div>
         <div :data-test="session.device.uid">
           <p
-            @click="goToDevice(session.device.uid)"
-            @keyup="goToDevice(session.device.uid)"
+            @click="session.device?.uid && goToDevice(session.device.uid)"
+            @keyup="session.device?.uid && goToDevice(session.device.uid)"
             tabindex="0"
             class="link"
           >
@@ -99,44 +99,36 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, ref, defineComponent, onMounted } from "vue";
+<script setup lang="ts">
+import { computed, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import { Session } from "@admin/api/client";
+import useSessionsStore from "@admin/store/modules/sessions";
 import { INotificationsError } from "../interfaces/INotifications";
-import { ISessions } from "../interfaces/ISession";
-import { useStore } from "../store";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const router = useRouter();
+const route = useRoute();
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
+const sessionStore = useSessionsStore();
 
-    const session = ref({} as ISessions);
-    const sessionId = computed(() => route.params.id);
+const session = ref({} as Session);
+const sessionId = computed(() => route.params.id);
 
-    onMounted(async () => {
-      try {
-        await store.dispatch("sessions/get", sessionId.value);
-        session.value = store.getters["sessions/session"];
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.sessionDetails);
-      }
-    });
-
-    const goToDevice = (deviceId: string) => {
-      router.push({ name: "deviceDetails", params: { id: deviceId } });
-    };
-
-    const sessionIsEmpty = computed(() => store.getters["sessions/get"] && store.getters["sessions/get"].lenght === 0);
-
-    return {
-      session,
-      goToDevice,
-      sessionIsEmpty,
-    };
-  },
+onMounted(async () => {
+  try {
+    await sessionStore.get(sessionId.value as string);
+    session.value = sessionStore.getSession;
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.sessionDetails);
+  }
 });
+
+const goToDevice = (deviceId: string) => {
+  router.push({ name: "deviceDetails", params: { id: deviceId } });
+};
+
+const sessionIsEmpty = computed(() => sessionStore.getSession && sessionStore.getSession.device_uid?.length === 0);
 </script>
 
 <style scoped>

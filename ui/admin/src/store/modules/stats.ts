@@ -1,38 +1,27 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+import { defineStore } from "pinia";
 import getStats from "../api/stats";
 import { IStats } from "../../interfaces/IStats";
 
-export interface StatsState {
-  stats: IStats | {};
-}
-
-export const stats: Module<StatsState, State> = {
-  namespaced: true,
-
-  state: {
-    stats: {},
-  },
+export const useStatsStore = defineStore("stats", {
+  state: () => ({
+    stats: {} as IStats,
+  }),
 
   getters: {
-    stats: (state) => state.stats,
-  },
-
-  mutations: {
-    setStats: (state, res) => {
-      state.stats = res.data;
-    },
-
-    clearListState: (state) => {
-      state.stats = {};
-    },
+    getStats: (state) => state.stats,
   },
 
   actions: {
-    async get({ commit }) {
+    async get() {
       const res = await getStats();
-      commit("setStats", res);
+      this.stats = res.data as IStats;
       return res;
     },
+
+    clearListState() {
+      this.stats = {} as IStats;
+    },
   },
-};
+});
+
+export default useStatsStore;

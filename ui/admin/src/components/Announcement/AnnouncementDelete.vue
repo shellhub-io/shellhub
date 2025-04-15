@@ -36,43 +36,35 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
+import useAnnouncementStore from "@admin/store/modules/announcement";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import {
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
 
-export default defineComponent({
-  name: "AnnouncementDelete",
-  props: {
-    uuid: {
-      type: String,
-      required: true,
-    },
-  },
-  emits: ["update"],
-  setup(props, ctx) {
-    const dialog = ref(false);
-    const store = useStore();
-
-    const remove = async () => {
-      dialog.value = !dialog.value;
-
-      try {
-        await store.dispatch("announcement/deleteAnnouncement", props.uuid);
-        ctx.emit("update");
-        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.announcementDelete);
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.announcementDelete);
-      }
-    };
-
-    return {
-      dialog,
-      remove,
-    };
+const props = defineProps({
+  uuid: {
+    type: String,
+    required: true,
   },
 });
+
+const emit = defineEmits(["update"]);
+const dialog = ref(false);
+const announcement = useAnnouncementStore();
+const snackbarStore = useSnackbarStore();
+const remove = async () => {
+  dialog.value = !dialog.value;
+
+  try {
+    await announcement.deleteAnnouncement(props.uuid);
+    emit("update");
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.announcementDelete);
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementDelete);
+  }
+};
 </script>
