@@ -135,22 +135,12 @@ export const namespaces: Module<NamespacesState, State> = {
     },
 
     sendEmailInvitation: async (context, data) => {
-      try {
-        await apiNamespace.sendNamespaceLink(data);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await apiNamespace.sendNamespaceLink(data);
     },
 
     generateInvitationLink: async (context, data) => {
-      try {
-        const res = await apiNamespace.generateNamespaceLink(data);
-        context.commit("setInvitationLink", res.data.link);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await apiNamespace.generateNamespaceLink(data);
+      context.commit("setInvitationLink", res.data.link);
     },
 
     editUser: async (context, data) => {
