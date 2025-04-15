@@ -46,45 +46,34 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import MarkdownIt from "markdown-it";
 import moment from "moment";
-import { useStore } from "../store";
+import useAnnouncementStore from "@admin/store/modules/announcement";
 
-export default defineComponent({
-  name: "Announcement",
-  setup() {
-    const md = new MarkdownIt();
-    const store = useStore();
-    const route = useRoute();
-    const announcementId = computed(() => route.params.uuid);
-    const announcement = computed(
-      () => store.getters["announcement/announcement"],
-    );
-    const contentToHtml = ref("");
-    const date = ref("");
+const md = new MarkdownIt();
+const announcementStore = useAnnouncementStore();
+const route = useRoute();
+const announcementId = computed(() => route.params.uuid);
+const announcement = computed(
+  () => announcementStore.getAnnouncement,
+);
+const contentToHtml = ref("");
+const date = ref("");
 
-    onMounted(async () => {
-      await store.dispatch(
-        "announcement/getAnnouncement",
-        announcementId.value,
-      );
+onMounted(async () => {
+  await announcementStore.fetchAnnouncement(
+    announcementId.value as string,
+  );
 
-      if (announcement.value) {
-        contentToHtml.value = md.render(announcement.value.content);
-        date.value = moment(announcement.value.date).format("LL");
-      }
-    });
-
-    return {
-      announcement,
-      contentToHtml,
-      date,
-    };
-  },
+  if (announcement.value) {
+    contentToHtml.value = md.render(announcement.value.content as Required<Announcement>);
+    date.value = moment(announcement.value.date).format("LL");
+  }
 });
+
 </script>
 
 <style lang="scss">

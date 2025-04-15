@@ -51,92 +51,82 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 import { saveAs } from "file-saver";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useNamespacesStore from "@admin/store/modules/namespaces";
 import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const numberOfDevices = ref(0);
-    const dialog = ref(false);
-    const selected = ref("moreThan");
+const numberOfDevices = ref(0);
+const dialog = ref(false);
+const selected = ref("moreThan");
+const snackbarStore = useSnackbarStore();
+const namespacesStore = useNamespacesStore();
 
-    const numberOfDevicesRound = computed(() => Math.round(numberOfDevices.value));
+const numberOfDevicesRound = computed(() => Math.round(numberOfDevices.value));
 
-    const generateEncodedFilter = (encodeFilter: string) => {
-      let filter;
-      switch (encodeFilter) {
-        case "moreThan":
-          filter = [
-            {
-              type: "property",
-              params: {
-                name: "devices",
-                operator: "gt",
-                value: String(numberOfDevicesRound.value),
-              },
-            },
-          ];
-          break;
-        case "noDevices":
-          filter = [
-            {
-              type: "property",
-              params: { name: "devices", operator: "eq", value: 0 },
-            },
-          ];
-          break;
-        case "noSession":
-          filter = [
-            {
-              type: "property",
-              params: { name: "devices", operator: "gt", value: "0" },
-            },
-            {
-              type: "property",
-              params: { name: "sessions", operator: "eq", value: 0 },
-            },
-            { type: "operator", params: { name: "and" } },
-          ];
-          break;
-        default:
-          break;
-      }
-      return btoa(JSON.stringify(filter));
-    };
+const generateEncodedFilter = (encodeFilter: string) => {
+  let filter;
+  switch (encodeFilter) {
+    case "moreThan":
+      filter = [
+        {
+          type: "property",
+          params: {
+            name: "devices",
+            operator: "gt",
+            value: String(numberOfDevicesRound.value),
+          },
+        },
+      ];
+      break;
+    case "noDevices":
+      filter = [
+        {
+          type: "property",
+          params: { name: "devices", operator: "eq", value: 0 },
+        },
+      ];
+      break;
+    case "noSession":
+      filter = [
+        {
+          type: "property",
+          params: { name: "devices", operator: "gt", value: "0" },
+        },
+        {
+          type: "property",
+          params: { name: "sessions", operator: "eq", value: 0 },
+        },
+        { type: "operator", params: { name: "and" } },
+      ];
+      break;
+    default:
+      break;
+  }
+  return btoa(JSON.stringify(filter));
+};
 
-    const onSubmit = async () => {
-      const encodedFilter = generateEncodedFilter(selected.value);
-      try {
-        await store.dispatch("namespaces/setFilterNamespaces", encodedFilter);
-        const response = await store.dispatch("namespaces/exportNamespacesToCsv");
-        const blob = new Blob([response], { type: "content-disposition" });
-        saveAs(
-          blob,
-          `namespaces_${
-            selected.value === "moreThanN"
-              ? `more_than_${String(numberOfDevices.value)}_devices`
-              : selected.value
-          }.csv`,
-        );
-        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.exportNamespaces);
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.exportNamespaces);
-      }
-    };
-
-    return {
-      dialog,
-      selected,
-      numberOfDevices,
-      numberOfDevicesRound,
-      onSubmit,
-    };
-  },
-});
+const onSubmit = async () => {
+  const encodedFilter = generateEncodedFilter(selected.value);
+  try {
+    await namespacesStore.setFilterNamespaces(encodedFilter);
+    const response = await namespacesStore.exportNamespacesToCsv();
+    const blob = new Blob([response], { type: "content-disposition" });
+    saveAs(
+      blob,
+      `namespaces_${
+        selected.value === "moreThanN"
+          ? `more_than_${String(numberOfDevices.value)}_devices`
+          : selected.value
+      }.csv`,
+    );
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.exportNamespaces);
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.exportNamespaces);
+  }
+};
 </script>
 
 <style scoped>

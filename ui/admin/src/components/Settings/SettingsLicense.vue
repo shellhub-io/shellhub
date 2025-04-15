@@ -195,7 +195,7 @@
         label="Select license file"
         counter
         v-model="currentFile"
-        @change="licenseUploadStatus = !!currentFile.length"
+        @change="licenseUploadStatus = !!currentFile"
         :rules="rules"
       />
       <v-btn class="mr-2" variant="outlined" @click="uploadLicense"> Upload </v-btn>
@@ -207,28 +207,29 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import moment from "moment";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useLicenseStore from "@admin/store/modules/license";
 import { Features } from "../../interfaces/ILicense";
 import {
   INotificationsCopy,
   INotificationsError,
   INotificationsSuccess,
 } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
 
-const store = useStore();
-
-const currentFile = ref<Array<File>>([]);
+const currentFile = ref<File | null>(null);
 const licenseUploadStatus = ref(false);
+const snackbarStore = useSnackbarStore();
+const licenseStore = useLicenseStore();
 
 onMounted(async () => {
   try {
-    await store.dispatch("license/get");
+    await licenseStore.get();
   } catch {
-    store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.license);
+    snackbarStore.showSnackbarErrorAction(INotificationsError.license);
   }
 });
 
-const license = computed(() => store.getters["license/license"]);
+const license = computed(() => licenseStore.getLicense);
 
 const installedLicense = computed(() => license.value
     && license.value.grace_period !== undefined);
@@ -244,7 +245,7 @@ const formatName = (name: string) => name.charAt(0).toUpperCase() + name.slice(1
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.tenantId);
+    snackbarStore.showSnackbarCopy(INotificationsCopy.tenantId);
   }
 };
 
@@ -274,13 +275,13 @@ const rules = [validateLicenseFile];
 const uploadLicense = async () => {
   if (currentFile.value) {
     try {
-      await store.dispatch("license/post", currentFile.value);
-      await store.dispatch("license/get");
-      store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.licenseUpload);
+      await licenseStore.post(currentFile.value);
+      await licenseStore.get();
+      snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.licenseUpload);
       licenseUploadStatus.value = false;
     } catch (error) {
       console.error("License upload error:", error);
-      store.dispatch("snackbar/showSnackbarErrorLoading", INotificationsError.license);
+      snackbarStore.showSnackbarErrorLoading(INotificationsError.license);
     }
   }
 };

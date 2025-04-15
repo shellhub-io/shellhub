@@ -22,46 +22,38 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
-import { useStore } from "../store";
+<script setup lang="ts">
+import { ref } from "vue";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useDevicesStore from "@admin/store/modules/devices";
 import DeviceList from "../components/Device/DeviceList.vue";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
+const snackbarStore = useSnackbarStore();
+const devicesStore = useDevicesStore();
 
-    const filter = ref("");
+const filter = ref("");
 
-    const searchDevices = () => {
-      let encodedFilter = "";
+const searchDevices = () => {
+  let encodedFilter = "";
 
-      if (filter.value) {
-        const filterToEncodeBase64 = [
-          {
-            type: "property",
-            params: { name: "name", operator: "contains", value: filter.value },
-          },
-        ];
-        encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-      }
+  if (filter.value) {
+    const filterToEncodeBase64 = [
+      {
+        type: "property",
+        params: { name: "name", operator: "contains", value: filter.value },
+      },
+    ];
+    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
+  }
 
-      try {
-        store.dispatch("devices/search", {
-          perPage: store.getters["devices/perPage"],
-          page: store.getters["devices/page"],
-          filter: encodedFilter,
-        });
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
-      }
-    };
-
-    return {
-      filter,
-      searchDevices,
-    };
-  },
-  components: { DeviceList },
-});
+  try {
+    devicesStore.search({
+      perPage: devicesStore.getPerPage,
+      page: devicesStore.getPage,
+      filter: encodedFilter,
+    });
+  } catch {
+    snackbarStore.showSnackbarErrorDefault();
+  }
+};
 </script>

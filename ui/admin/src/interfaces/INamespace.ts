@@ -5,7 +5,7 @@ type Members = {
 }
 
 type Settings = {
-  session_record: boolean;
+  session_record?: boolean;
 }
 
 type Billing = {
@@ -21,7 +21,7 @@ type Billing = {
 }
 
 export interface INamespace {
-  billing: Billing;
+  billing?: Billing;
   created_at: string;
   devices_count: number;
   max_devices: number;

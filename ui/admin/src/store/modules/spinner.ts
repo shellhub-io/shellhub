@@ -1,25 +1,19 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+import { defineStore } from "pinia";
 
-export interface SpinnerState {
-  status: boolean;
-}
-
-export const spinner: Module<SpinnerState, State> = {
-  namespaced: true,
+export const useSpinnerStore = defineStore("spinner", {
+  state: () => ({
+    status: false,
+  }),
 
   getters: {
-    status: (state: SpinnerState) => state.status,
-  },
-  mutations: {
-    setStatus: (state, status) => {
-      state.status = status;
-    },
+    getStatus: (state) => state.status,
   },
 
   actions: {
-    setStatus: async ({ commit }, status) => {
-      commit("setStatus", status);
+    setStatus(status: boolean) {
+      this.status = status;
     },
   },
-};
+});
+
+export default useSpinnerStore;
