@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/Masterminds/semver"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
@@ -38,10 +37,13 @@ func (c *Recorder) Write(output []byte) (int, error) {
 		return read, err
 	}
 
-	// NOTE: Writes the event into the event stream to be processed and send to target endpoint.
-	c.session.Event(PtyOutputEventType, &models.SSHPtyOutput{
-		Output: string(output),
-	}, c.seat)
+	// NOTE: Writes the event to API to be processed and saved. Also, we are checking the status on each
+	// call to check if pty status has changed.
+	if c.session.Pty.Load() != nil {
+		c.session.Event(PtyOutputEventType, &models.SSHPtyOutput{
+			Output: string(output),
+		}, c.seat)
+	}
 
 	return read, nil
 }
@@ -67,7 +69,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 	go func() {
 		defer wg.Done()
 
-		if envs.IsEnterprise() || envs.IsCloud() {
+		if sess.IsRecordEnabled() {
 			recorder, err := NewRecorder(client, sess, seat)
 			if err != nil {
 				log.WithError(err).
@@ -78,14 +80,6 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 			}
 
 			defer recorder.Close() //nolint:errcheck
-
-			if err := sess.Recorded(); err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("failed to set the session as recorded")
-
-				goto normal
-			}
 
 			if _, err := io.Copy(recorder, a); err != nil && err != io.EOF {
 				log.WithError(err).Error("failed on coping data from client to agent")
