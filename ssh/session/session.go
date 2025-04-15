@@ -30,7 +30,11 @@ type Data struct {
 	// SSHID is the combination of device's name and namespace name.
 	SSHID string
 	// Device is the device connected.
-	Device    *models.Device
+	Device *models.Device
+	// Namespace contains data about the namespace where devices is located.
+	Namespace *models.Namespace
+	// IPAddress represents the device's IP address.
+	// TODO: Double-check it.
 	IPAddress string
 	// Type is the connection type.
 	Type string
@@ -39,7 +43,7 @@ type Data struct {
 	// TODO:
 	Lookup map[string]string
 	// Pty is the PTY dimension.
-	Pty models.SSHPty
+	Pty atomic.Pointer[models.SSHPty]
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
 }
@@ -216,6 +220,11 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, err
 	}
 
+	ns, errs := api.NamespaceLookup(device.TenantID)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
 	session := &Session{
 		UID:    ctx.SessionID(),
 		api:    api,
@@ -227,6 +236,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			Device:    device,
 			Lookup:    lookup,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespace, hostname),
+			Namespace: ns,
 		},
 		once: new(sync.Once),
 		Seat: new(atomic.Int32),
@@ -535,14 +545,30 @@ func (s *Session) NewSeat() (int, error) {
 }
 
 // Events register an event to the session.
-func (s *Session) Event(t string, data any, seat int) {
-	s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
+func (s *Session) Event(t string, data any, seat int) error {
+	if err := s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
 		Session:   s.UID,
 		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
 		Data:      data,
 		Seat:      seat,
-	})
+	}); err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"event": t,
+			"data":  data,
+			"seat":  seat,
+		}).Error("failed to register a event")
+
+		return err
+	}
+
+	log.WithFields(log.Fields{
+		"event": t,
+		"data":  data,
+		"seat":  seat,
+	}).Debug("event registered")
+
+	return nil
 }
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
@@ -666,4 +692,9 @@ func (s *Session) Finish() (err error) {
 	})
 
 	return nil
+}
+
+// IsRecordEnabled checks if the instance and the namespace allow recording.
+func (s *Session) IsRecordEnabled() bool {
+	return (envs.IsEnterprise() || envs.IsCloud()) && s.Namespace.Settings.SessionRecord
 }

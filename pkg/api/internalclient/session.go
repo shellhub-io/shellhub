@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -128,6 +129,10 @@ func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket
 func (c *client) SaveSession(uid string, seat int) error {
 	res, err := c.http.
 		R().
+		AddRetryCondition(func(r *resty.Response, err error) bool {
+			// TODO: Don't retry to save the session if a error happen.
+			return false
+		}).
 		SetPathParams(map[string]string{
 			"uid":  uid,
 			"seat": fmt.Sprintf("%d", seat),

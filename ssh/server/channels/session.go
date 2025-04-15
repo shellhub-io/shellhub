@@ -2,6 +2,7 @@ package channels
 
 import (
 	"strings"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -149,179 +150,251 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		ctx.Unlock()
 
-		go pipe(sess, client.Channel, agent.Channel, seat)
+		done := make(chan struct{})
+		defer close(done)
 
-		// TODO: Add middleware to block certain types of requests.
-		for {
+		oncePipe := sync.OnceFunc(func() {
+			go pipe(sess, client.Channel, agent.Channel, seat)
+		})
+
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 			select {
 			case <-ctx.Done():
 				logger.Info("context has done")
 
 				return
-			case req, ok := <-sess.Agent.Requests:
-				if !ok {
-					logger.Trace("global requests is closed")
+			case <-done:
+
+				return
+			}
+		}()
+
+		// INFO: Handle global requests from agent.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case <-done:
 
 					return
+				case req, ok := <-sess.Agent.Requests:
+					if !ok {
+						logger.Trace("global requests is closed")
+
+						return
+					}
+
+					logger.Debugf("global request from agent: %s", req.Type)
+
+					switch {
+					// NOTE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed due
+					// to inactivity. Through the time, the request type sent from agent to server changed its name, but
+					// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
+					// prefix exists and perform the necessary operations.
+					case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
+						if _, err := client.Channel.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
+							logger.Error("failed to send the keepalive request received from agent to client")
+
+							return
+						}
+
+						if err := sess.KeepAlive(); err != nil {
+							logger.WithError(err).Error("failed to send the API request to inform that the session is open")
+
+							return
+						}
+					default:
+						if req.WantReply {
+							if err := req.Reply(false, nil); err != nil {
+								logger.WithError(err).Error(err)
+							}
+						}
+					}
 				}
+			}
+		}()
 
-				logger.Debugf("global request from agent: %s", req.Type)
+		// INFO: Handle requests from agent to client.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer client.Channel.Close()
 
-				switch {
-				// NOTICE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed due
-				// to inactivity. Through the time, the request type sent from agent to server changed its name, but
-				// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
-				// prefix exists and perform the necessary operations.
-				case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
-					if _, err := client.Channel.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
-						logger.Error("failed to send the keepalive request received from agent to client")
+			for {
+				select {
+				case <-done:
+
+					return
+				case req, ok := <-agent.Requests:
+					if !ok {
+						logger.Trace("agent requests is closed")
 
 						return
 					}
 
-					if err := sess.KeepAlive(); err != nil {
-						logger.WithError(err).Error("failed to send the API request to inform that the session is open")
-
-						return
+					switch req.Type {
+					case ExitStatusRequest:
+						session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
+					case ExitSignalRequest:
+						session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
+					default:
+						sess.Event(req.Type, req.Payload, seat)
 					}
-				default:
+
+					logger.Debugf("request from agent to client: %s", req.Type)
+
+					ok, err := client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+					if err != nil {
+						logger.WithError(err).Error("failed to send the request from agent to client")
+
+						continue
+					}
+
 					if req.WantReply {
-						if err := req.Reply(false, nil); err != nil {
+						if err := req.Reply(ok, nil); err != nil {
 							logger.WithError(err).Error(err)
 						}
 					}
 				}
-			case req, ok := <-agent.Requests:
-				if !ok {
-					logger.Trace("agent requests is closed")
+			}
+		}()
+
+		// INFO: Handle requests from client to agent.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer agent.Channel.Close()
+
+			for {
+				select {
+				case <-done:
 
 					return
-				}
+				case req, ok := <-client.Requests:
+					if !ok {
+						logger.Trace("client requests is closed")
 
-				switch req.Type {
-				case ExitStatusRequest:
-					session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
-				case ExitSignalRequest:
-					session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
-				default:
-					sess.Event(req.Type, req.Payload, seat)
-				}
-
-				logger.Debugf("request from agent to client: %s", req.Type)
-
-				ok, err := client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from agent to client")
-
-					continue
-				}
-
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error(err)
+						return
 					}
-				}
-			case req, ok := <-client.Requests:
-				if !ok {
-					logger.Trace("client requests is closed")
 
-					return
-				}
-
-				switch req.Type {
-				case ShellRequestType:
-					if sess.Pty.Term != "" {
-						if err := sess.Announce(client.Channel); err != nil {
-							logger.WithError(err).Warn("failed to get the namespace announcement")
+					switch req.Type {
+					case ShellRequestType:
+						if sess.Pty.Load().Term != "" {
+							if err := sess.Announce(client.Channel); err != nil {
+								logger.WithError(err).Warn("failed to get the namespace announcement")
+							}
 						}
-					}
 
-					sess.Event(req.Type, req.Payload, seat)
-				case ExecRequestType, SubsystemRequestType:
-					session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
+						sess.Event(req.Type, req.Payload, seat) //nolint:errcheck
+					case ExecRequestType, SubsystemRequestType:
+						session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
 
-					sess.Type = ExecRequestType
-				case PtyRequestType:
-					var pty models.SSHPty
+						sess.Type = ExecRequestType
 
-					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-						reject(nil, "failed to recover the session dimensions")
-					}
+						oncePipe()
+					case PtyRequestType:
+						var pty models.SSHPty
 
-					sess.Pty = pty
-
-					sess.Event(req.Type, pty, seat) //nolint:errcheck
-				case WindowChangeRequestType:
-					var dimensions models.SSHWindowChange
-
-					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-						reject(nil, "failed to recover the session dimensions")
-					}
-
-					sess.Pty.Columns = dimensions.Columns
-					sess.Pty.Rows = dimensions.Rows
-
-					sess.Event(req.Type, dimensions, seat) //nolint:errcheck
-				case AuthRequestOpenSSHRequest:
-					gliderssh.SetAgentRequested(ctx)
-
-					sess.Event(req.Type, req.Payload, seat)
-					go func() {
-						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
-						agentChannels := sess.Agent.Client.HandleChannelOpen(AuthRequestOpenSSHChannel)
-
-						for {
-							newAgentChannel, ok := <-agentChannels
-							if !ok {
-								reject(nil, "channel for agent forwarding done")
-
-								return
-							}
-
-							agentChannel, agentReqs, err := newAgentChannel.Accept()
-							if err != nil {
-								reject(nil, "failed to accept the chanel request from agent on auth request")
-
-								return
-							}
-
-							defer agentChannel.Close()
-							go gossh.DiscardRequests(agentReqs)
-
-							clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
-							if err != nil {
-								reject(nil, "failed to open the auth request channel from agent to client")
-
-								return
-							}
-
-							defer clientChannel.Close()
-							go gossh.DiscardRequests(clientReqs)
-
-							hose(sess, agentChannel, clientChannel)
-
-							logger.WithError(err).Trace("auth request channel piping done")
+						if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
+							reject(nil, "failed to recover the session dimensions")
 						}
-					}()
-				default:
-					sess.Event(req.Type, req.Payload, seat)
-				}
 
-				logger.Debugf("request from client to agent: %s", req.Type)
+						sess.Pty.Store(&pty)
 
-				ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from client to agent")
+						if err := sess.Event(req.Type, pty, seat); err != nil {
+							log.WithError(err).Warn("failed to send the pty request event")
+						}
 
-					continue
-				}
+						oncePipe()
 
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error(err)
+						if sess.IsRecordEnabled() {
+							if err := sess.Recorded(); err != nil {
+								log.WithError(err).
+									WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
+									Warning("failed to set the session as recorded")
+							}
+						}
+					case WindowChangeRequestType:
+						var dimensions models.SSHWindowChange
+
+						if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
+							reject(nil, "failed to recover the session dimensions")
+						}
+
+						pty := sess.Pty.Load()
+						pty.Columns = dimensions.Columns
+						pty.Rows = dimensions.Rows
+						sess.Pty.Store(pty)
+
+						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
+					case AuthRequestOpenSSHRequest:
+						gliderssh.SetAgentRequested(ctx)
+
+						sess.Event(req.Type, req.Payload, seat)
+						go func() {
+							clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
+							agentChannels := sess.Agent.Client.HandleChannelOpen(AuthRequestOpenSSHChannel)
+
+							for {
+								newAgentChannel, ok := <-agentChannels
+								if !ok {
+									reject(nil, "channel for agent forwarding done")
+
+									return
+								}
+
+								agentChannel, agentReqs, err := newAgentChannel.Accept()
+								if err != nil {
+									reject(nil, "failed to accept the chanel request from agent on auth request")
+
+									return
+								}
+
+								defer agentChannel.Close()
+								go gossh.DiscardRequests(agentReqs)
+
+								clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
+								if err != nil {
+									reject(nil, "failed to open the auth request channel from agent to client")
+
+									return
+								}
+
+								defer clientChannel.Close()
+								go gossh.DiscardRequests(clientReqs)
+
+								hose(sess, agentChannel, clientChannel)
+
+								logger.WithError(err).Trace("auth request channel piping done")
+							}
+						}()
+					default:
+						sess.Event(req.Type, req.Payload, seat)
+					}
+
+					logger.Debugf("request from client to agent: %s", req.Type)
+
+					ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+					if err != nil {
+						logger.WithError(err).Error("failed to send the request from client to agent")
+
+						continue
+					}
+
+					if req.WantReply {
+						if err := req.Reply(ok, nil); err != nil {
+							logger.WithError(err).Error(err)
+						}
 					}
 				}
 			}
-		}
+		}()
+
+		wg.Wait()
 	}
 }
