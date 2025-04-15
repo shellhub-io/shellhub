@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 
 const props = defineProps({
   mainContent: {
@@ -22,14 +22,14 @@ const props = defineProps({
     required: true,
   },
 });
-const store = useStore();
+const snackbarStore = useSnackbarStore();
 
 const snackbar = computed({
   get() {
-    return store.getters["snackbar/snackbarCopy"];
+    return snackbarStore.getSnackbarCopy;
   },
   set() {
-    store.dispatch("snackbar/unsetShowStatusSnackbarCopy");
+    snackbarStore.unsetShowStatusSnackbarCopy();
   },
 });
 

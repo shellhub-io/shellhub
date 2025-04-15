@@ -1,138 +1,109 @@
-import { Module } from "vuex";
-import { State } from "../index";
+import { defineStore } from "pinia";
+import { UserAdminResponse } from "@admin/api/client";
 import * as apiUser from "../api/users";
 import { IUser } from "../../interfaces/IUser";
 
-export interface UsersState {
-  users: IUser[];
-  user: IUser;
-  filter: string;
-  numberUsers: number;
-  page: number;
-  perPage: number;
-  ownedNamespaces: number;
-  generatedPassword: string;
-}
-
-export const users: Module<UsersState, State> = {
-  namespaced: true,
-  state: {
-    users: [],
-    user: {} as IUser,
+export const useUsersStore = defineStore("users", {
+  state: () => ({
+    users: [] as UserAdminResponse[],
+    user: {} as UserAdminResponse,
     filter: "",
     numberUsers: 0,
     page: 0,
     perPage: 0,
     ownedNamespaces: 0,
     generatedPassword: "",
-  },
+  }),
+
   getters: {
-    perPage: (state) => state.perPage,
-    users: (state) => state.users,
-    user: (state) => state.user,
-    page: (state) => state.page,
-    filter: (state) => state.filter,
-    numberUsers: (state) => state.numberUsers,
-    ownedNamespaces: (state) => state.ownedNamespaces,
+    getPerPage: (state) => state.perPage,
+    getUsers: (state) => state.users,
+    getUser: (state) => state.user,
+    getPage: (state) => state.page,
+    getFilter: (state) => state.filter,
+    getNumberUsers: (state) => state.numberUsers,
+    getOwnedNamespaces: (state) => state.ownedNamespaces,
     getGeneratedPassword: (state) => state.generatedPassword,
-  },
-  mutations: {
-    setUsers: (state, res) => {
-      state.users = res.data;
-      state.numberUsers = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setUser: (state: UsersState, res) => {
-      const { user, namespacesOwned } = res.data;
-      state.user = user;
-      state.ownedNamespaces = namespacesOwned;
-    },
-
-    setPageAndPerPage: (state: UsersState, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-    },
-
-    setUserFilter: (state: UsersState, filter: string) => {
-      state.filter = filter;
-    },
-
-    setPassword: (state, password) => {
-      state.generatedPassword = password;
-    },
-
-    clearListUsers: (state: UsersState) => {
-      state.users = [];
-      state.numberUsers = 0;
-    },
   },
 
   actions: {
-    async fetch({ commit }, data) {
+    async fetch(data: { page: number; perPage: number; filter: string }) {
       const { page, perPage, filter } = data;
       const res = await apiUser.fetchUsers(perPage, page, filter);
+
       if (res.data.length) {
-        commit("setPageAndPerPage", data);
-        commit("setUsers", res);
-        commit("setUserFilter", filter);
+        this.page = data.page;
+        this.perPage = data.perPage;
+        this.users = res.data;
+        this.numberUsers = parseInt(res.headers["x-total-count"], 10);
+        this.filter = filter;
         return true;
       }
-
       return false;
     },
 
-    async exportUsersToCsv({ state }) {
-      const { data } = await apiUser.exportUsers(state.filter);
+    async exportUsersToCsv() {
+      const { data } = await apiUser.exportUsers(this.filter);
       return data;
     },
 
-    async setFilterUsers({ commit }, filter) {
-      commit("setUserFilter", filter);
+    async setFilterUsers(filter: string) {
+      this.filter = filter;
     },
 
-    async addUser(context, data) {
+    async addUser(data) {
       await apiUser.addUser(data);
     },
 
-    async search({ commit }, data) {
+    async search(data: { perPage: number; page: number; filter: string }) {
       try {
         const res = await apiUser.fetchUsers(data.perPage, data.page, data.filter);
-        commit("setUsers", res);
-        commit("setUserFilter", data.filter);
+        this.users = res.data;
+        this.numberUsers = parseInt(res.headers["x-total-count"], 10);
+        this.filter = data.filter;
       } catch (error) {
-        commit("clearListUsers");
+        this.clearListUsers();
         throw error;
       }
     },
 
-    async get(context, id) {
+    async get(id: string) {
       const res = await apiUser.getUser(id);
-      context.commit("setUser", res);
+      const { user, namespacesOwned } = res.data;
+      this.user = user as IUser;
+      this.ownedNamespaces = namespacesOwned as number;
     },
 
-    async put(context, data) {
+    async put(data) {
       const { id } = data;
       await apiUser.putUser(id, data);
     },
 
-    async remove(context, id) {
+    async remove(id: string) {
       await apiUser.removeUser(id);
     },
 
-    async resetUserPassword({ commit }, id) {
+    async resetUserPassword(id: string) {
       const res = await apiUser.resetUserPassword(id);
-      commit("setPassword", res.data.password);
+      this.generatedPassword = res.data.password as string;
     },
 
-    async refresh({ commit, state }) {
+    async refresh() {
       try {
-        const res = await apiUser.fetchUsers(state.perPage, state.page, state.filter);
-        commit("setUsers", res);
-        commit("setUserFilter", state.filter);
+        const res = await apiUser.fetchUsers(this.perPage, this.page, this.filter);
+        this.users = res.data;
+        this.numberUsers = parseInt(res.headers["x-total-count"], 10);
       } catch (error) {
-        commit("clearListUsers");
+        this.clearListUsers();
         throw error;
       }
     },
+
+    clearListUsers() {
+      this.users = [];
+      this.numberUsers = 0;
+    },
   },
-};
+});
+
+export default useUsersStore;

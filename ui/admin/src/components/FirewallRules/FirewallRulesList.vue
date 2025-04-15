@@ -80,135 +80,113 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import DataTable from "../DataTable.vue";
 import showTag from "../../hooks/tag";
 import displayOnlyTenCharacters from "../../hooks/string";
 import { filterType } from "../../interfaces/IFirewallRule";
 import { INotificationsError } from "../../interfaces/INotifications";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const loading = ref(false);
-    const page = ref(1);
-    const itemsPerPage = ref(10);
-
-    onMounted(() => {
-      try {
-        loading.value = true;
-        store.dispatch("firewallRules/fetch", {
-          page: page.value,
-          perPage: itemsPerPage.value,
-        });
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.firewallRuleList);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const numberFirewalls = computed(() => store.getters["firewallRules/numberFirewalls"]);
-
-    const getFirewallRules = async (perPagaeValue: number, pageValue: number) => {
-      try {
-        loading.value = true;
-        const hasFirewallRules = await store.dispatch("firewallRules/fetch", {
-          page: pageValue,
-          perPage: perPagaeValue,
-        });
-        if (!hasFirewallRules) page.value--;
-      } catch {
-        store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.firewallRuleList);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const next = async () => {
-      await getFirewallRules(itemsPerPage.value, ++page.value);
-    };
-
-    const prev = async () => {
-      try {
-        if (page.value > 1) await getFirewallRules(itemsPerPage.value, --page.value);
-      } catch (error) {
-        store.dispatch("snackbar/setSnackbarErrorDefault");
-      }
-    };
-
-    const changeItemsPerPage = async (newItemsPerPage: number) => {
-      itemsPerPage.value = newItemsPerPage;
-    };
-
-    watch(itemsPerPage, () => {
-      getFirewallRules(itemsPerPage.value, page.value);
-    });
-
-    const firewallRules = computed(() => store.getters["firewallRules/list"]);
-
-    const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
-
-    const formatUsername = (username: string) => username === ".*" ? "All users" : username;
-
-    const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
-
-    const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
-
-    const goToFirewallRule = (ruleId : string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
-
-    return {
-      headers: [
-        {
-          text: "Tenant Id",
-          value: "tenant_id",
-        },
-        {
-          text: "Priority",
-          value: "priority",
-        },
-        {
-          text: "Action",
-          value: "action",
-        },
-        {
-          text: "Source Ip",
-          value: "source_ip",
-        },
-        {
-          text: "Username",
-          value: "username",
-        },
-        {
-          text: "Filter",
-          value: "filter",
-        },
-        {
-          text: "Actions",
-          value: "actions",
-        },
-      ],
-      loading,
-      page,
-      itemsPerPage,
-      firewallRules,
-      numberFirewalls,
-      next,
-      prev,
-      changeItemsPerPage,
-      formatSourceIP,
-      formatUsername,
-      formatHostnameFilter,
-      isHostname,
-      showTag,
-      displayOnlyTenCharacters,
-      goToFirewallRule,
-    };
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
+const firewallRulesStore = useFirewallRulesStore();
+const loading = ref(false);
+const page = ref(1);
+const itemsPerPage = ref(10);
+const headers = ref([
+  {
+    text: "Tenant Id",
+    value: "tenant_id",
   },
-  components: { DataTable },
+  {
+    text: "Priority",
+    value: "priority",
+  },
+  {
+    text: "Action",
+    value: "action",
+  },
+  {
+    text: "Source Ip",
+    value: "source_ip",
+  },
+  {
+    text: "Username",
+    value: "username",
+  },
+  {
+    text: "Filter",
+    value: "filter",
+  },
+  {
+    text: "Actions",
+    value: "actions",
+  },
+]);
+onMounted(() => {
+  try {
+    loading.value = true;
+    firewallRulesStore.fetch({
+      page: page.value,
+      perPage: itemsPerPage.value,
+    });
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.firewallRuleList);
+  } finally {
+    loading.value = false;
+  }
 });
+
+const numberFirewalls = computed(() => firewallRulesStore.getNumberFirewalls);
+
+const getFirewallRules = async (perPagaeValue: number, pageValue: number) => {
+  try {
+    loading.value = true;
+    const hasFirewallRules = await firewallRulesStore.fetch({
+      page: pageValue,
+      perPage: perPagaeValue,
+    });
+    if (!hasFirewallRules) page.value--;
+  } catch {
+    snackbarStore.showSnackbarErrorAction(INotificationsError.firewallRuleList);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const next = async () => {
+  await getFirewallRules(itemsPerPage.value, ++page.value);
+};
+
+const prev = async () => {
+  try {
+    if (page.value > 1) await getFirewallRules(itemsPerPage.value, --page.value);
+  } catch (error) {
+    snackbarStore.showSnackbarErrorDefault();
+  }
+};
+
+const changeItemsPerPage = async (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+};
+
+watch(itemsPerPage, () => {
+  getFirewallRules(itemsPerPage.value, page.value);
+});
+
+const firewallRules = computed(() => firewallRulesStore.list);
+
+const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
+
+const formatUsername = (username: string) => username === ".*" ? "All users" : username;
+
+const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+
+const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+
+const goToFirewallRule = (ruleId : string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 </script>

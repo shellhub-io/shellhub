@@ -1,99 +1,79 @@
-import { Module } from "vuex";
-import { IAnnouncement, IAnnouncements } from "./../../interfaces/IAnnouncements";
-import { State } from "./../index";
-import { postAnnouncement, updateAnnouncement, deleteAnnouncement, getAnnouncement, getListAnnouncements } from "../api/announcement";
+// stores/announcement.ts
+import { defineStore } from "pinia";
+import { Announcement } from "@admin/api/client/api";
+import {
+  postAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  getAnnouncement,
+  getListAnnouncements,
+} from "../api/announcement";
 
-export interface AnnouncementState {
-  announcements: Array<IAnnouncements>;
-  announcement: IAnnouncement;
+interface AnnouncementState {
+  announcements: Array<Announcement>;
+  announcement: Announcement;
   numberAnnouncements: number;
   page: number;
   perPage: number;
   orderBy: "asc" | "desc";
 }
 
-export const announcement: Module<AnnouncementState, State> = {
-  namespaced: true,
-  state: {
+export const useAnnouncementStore = defineStore("announcement", {
+  state: (): AnnouncementState => ({
     announcements: [],
-    announcement: {} as IAnnouncement,
+    announcement: {} as Announcement,
     numberAnnouncements: 0,
     page: 1,
     perPage: 10,
     orderBy: "asc",
-  },
+  }),
+
   getters: {
-    announcements: (state) => state.announcements,
-    announcement: (state) => state.announcement,
-    numberAnnouncements: (state) => state.numberAnnouncements,
-    page: (state) => state.page,
-    perPage: (state) => state.perPage,
-    orderBy: (state) => state.orderBy,
+    getAnnouncements: (state) => state.announcements,
+    getAnnouncement: (state) => state.announcement,
+    getNumberAnnouncements: (state) => state.numberAnnouncements,
+    getPage: (state) => state.page,
+    getPerPage: (state) => state.perPage,
+    getOrderBy: (state) => state.orderBy,
   },
-  mutations: {
-    setAnnouncements: (state, res) => {
-      state.announcements = res.data;
-      state.numberAnnouncements = parseInt(res.headers["x-total-count"], 10);
-    },
 
-    setAnnouncement: (state, res) => {
-      state.announcement = res;
-    },
-
-    setPageAndPerPage: (state, { page, perPage }) => {
-      state.page = page;
-      state.perPage = perPage;
-    },
-
-    setOrderBy: (state, orderBy) => {
-      state.orderBy = orderBy;
-    },
-
-    clearAnnouncements: (state) => {
-      state.announcements = [];
-    },
-
-    clearAnnouncement: (state) => {
-      state.announcement = {} as IAnnouncement;
-    },
-  },
   actions: {
-    async postAnnouncement({ commit }, announcement) {
+    async postAnnouncement(announcement: Announcement) {
       try {
-        const { data } = await postAnnouncement(announcement);
-        commit("setAnnouncement", data);
+        const { data } = await postAnnouncement(announcement as Required<Announcement>);
+        this.announcement = data;
       } catch (error) {
         console.error(error);
         throw error;
       }
     },
 
-    async updateAnnouncement({ commit }, { uuid, announcement }) {
+    async updateAnnouncement(uuid: string, announcement: Announcement) {
       try {
-        const { data } = await updateAnnouncement(uuid, announcement);
-        commit("setAnnouncement", data);
+        const { data } = await updateAnnouncement(uuid, announcement as Required<Announcement>);
+        this.announcement = data;
       } catch (error) {
         console.error(error);
         throw error;
       }
     },
 
-    async getAnnouncement({ commit }, uuid) {
+    async fetchAnnouncement(uuid: string) {
       try {
         const { data } = await getAnnouncement(uuid);
-        commit("setAnnouncement", data);
+        this.announcement = data;
       } catch (error) {
         console.error(error);
         throw error;
       }
     },
 
-    async getAnnouncements({ commit }, { page, perPage, orderBy }) {
+    async fetchAnnouncements({ page, perPage, orderBy }: { page: number; perPage: number; orderBy: "asc" | "desc" }) {
       try {
         const res = await getListAnnouncements(page, perPage, orderBy);
-
         if (res.data && res.data.length) {
-          commit("setAnnouncements", res);
+          this.announcements = res.data;
+          this.numberAnnouncements = parseInt(res.headers["x-total-count"], 10);
           return res;
         }
         return false;
@@ -103,15 +83,33 @@ export const announcement: Module<AnnouncementState, State> = {
       }
     },
 
-    async deleteAnnouncement({ commit }, uuid) {
+    async deleteAnnouncement(uuid: string) {
       try {
         const { data } = await deleteAnnouncement(uuid);
-        commit("setAnnouncement", data);
+        this.announcement = data;
       } catch (error) {
         console.error(error);
         throw error;
       }
     },
 
+    setPageAndPerPage({ page, perPage }: { page: number; perPage: number }) {
+      this.page = page;
+      this.perPage = perPage;
+    },
+
+    setOrderBy(orderBy: "asc" | "desc") {
+      this.orderBy = orderBy;
+    },
+
+    clearAnnouncements() {
+      this.announcements = [];
+    },
+
+    clearAnnouncement() {
+      this.announcement = {} as Required<Announcement>;
+    },
   },
-};
+});
+
+export default useAnnouncementStore;

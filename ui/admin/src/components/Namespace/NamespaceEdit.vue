@@ -71,89 +71,77 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useField } from "vee-validate";
-import { defineComponent, ref, PropType, onMounted, watch } from "vue";
+import { ref, PropType, onMounted, watch } from "vue";
 import * as yup from "yup";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useNamespacesStore from "@admin/store/modules/namespaces";
 import { INamespace } from "../../interfaces/INamespace";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
-import { useStore } from "../../store";
 
-export default defineComponent({
-  props: {
-    namespace: {
-      type: Object as PropType<INamespace>,
-      required: true,
-      default: Object,
-    },
+const props = defineProps({
+  namespace: {
+    type: Object as PropType<INamespace>,
+    required: true,
+    default: Object,
   },
-  setup(props) {
-    const store = useStore();
+});
 
-    const dialog = ref(false);
+const snackbarStore = useSnackbarStore();
+const namespacesStore = useNamespacesStore();
 
-    const { value: name, errorMessage: nameError } = useField<string | undefined>(
-      "name",
-      yup.string().required(),
-    );
+const dialog = ref(false);
 
-    const { value: numberDevices, errorMessage: numberDevicesError } = useField<number | undefined>(
-      "name",
-      yup.number().required(),
-    );
+const { value: name, errorMessage: nameError } = useField<string | undefined>(
+  "name",
+  yup.string().required(),
+);
 
-    const { value: sessionRecord, errorMessage: sessionRecordError } = useField<
+const { value: numberDevices, errorMessage: numberDevicesError } = useField<number | undefined>(
+  "name",
+  yup.number().required(),
+);
+
+const { value: sessionRecord, errorMessage: sessionRecordError } = useField<
       boolean | undefined
     >("name", yup.boolean());
 
-    onMounted(() => {
-      name.value = props.namespace?.name;
-      numberDevices.value = props.namespace?.max_devices;
-      sessionRecord.value = props.namespace?.settings.session_record;
+onMounted(() => {
+  name.value = props.namespace?.name;
+  numberDevices.value = props.namespace?.max_devices;
+  sessionRecord.value = props.namespace?.settings.session_record;
+});
+
+const hasErrors = () => {
+  if (nameError.value || numberDevicesError.value || sessionRecordError.value) {
+    return true;
+  }
+
+  return false;
+};
+
+const onSubmit = async () => {
+  if (!hasErrors()) {
+    await namespacesStore.put({
+      ...props.namespace as INamespace,
+      name: name.value as string,
+      max_devices: numberDevices.value as number,
+      settings: { session_record: sessionRecord.value },
     });
+    await namespacesStore.refresh();
+    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.namespaceEdit);
+    dialog.value = false;
+  } else {
+    snackbarStore.showSnackbarErrorDefault();
+  }
+};
 
-    const hasErrors = () => {
-      if (nameError.value || numberDevicesError.value || sessionRecordError.value) {
-        return true;
-      }
-
-      return false;
-    };
-
-    const onSubmit = async () => {
-      if (!hasErrors()) {
-        await store.dispatch("namespaces/put", {
-          ...props.namespace,
-          name: name.value,
-          maxDevices: numberDevices.value,
-          settings: { sessionRecord: sessionRecord.value },
-        });
-        await store.dispatch("namespaces/refresh");
-        store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.namespaceEdit);
-        dialog.value = false;
-      } else {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
-      }
-    };
-
-    watch(dialog, () => {
-      if (!dialog.value) {
-        name.value = props.namespace?.name;
-        numberDevices.value = props.namespace?.max_devices;
-        sessionRecord.value = props.namespace?.settings.session_record;
-      }
-    });
-
-    return {
-      dialog,
-      name,
-      nameError,
-      numberDevices,
-      numberDevicesError,
-      sessionRecord,
-      sessionRecordError,
-      onSubmit,
-    };
-  },
+watch(dialog, () => {
+  if (!dialog.value) {
+    name.value = props.namespace?.name;
+    numberDevices.value = props.namespace?.max_devices;
+    sessionRecord.value = props.namespace?.settings.session_record;
+  }
 });
 </script>

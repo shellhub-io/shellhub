@@ -70,7 +70,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useUsersStore from "@admin/store/modules/users";
 import { INotificationsCopy } from "../../interfaces/INotifications";
 
 const props = defineProps({
@@ -83,10 +84,11 @@ const props = defineProps({
 
 const emit = defineEmits(["update"]);
 
-const store = useStore();
+const snackbarStore = useSnackbarStore();
+const userStore = useUsersStore();
 const dialog = ref(false);
 const step = ref("step-1");
-const generatedPassword = computed(() => store.getters["users/getGeneratedPassword"]);
+const generatedPassword = computed(() => userStore.generatedPassword);
 
 const close = () => {
   dialog.value = false;
@@ -97,19 +99,16 @@ const close = () => {
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.tenantId);
+    snackbarStore.showSnackbarCopy(INotificationsCopy.tenantId);
   }
 };
 
 const proceedToSecondStep = async () => {
   try {
-    await store.dispatch("users/resetUserPassword", props.userId);
+    await userStore.resetUserPassword(props.userId);
     step.value = "step-2";
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      "Failed to reset user password. Please try again.",
-    );
+    snackbarStore.showSnackbarErrorAction("Failed to reset user password. Please try again.");
   }
 };
 

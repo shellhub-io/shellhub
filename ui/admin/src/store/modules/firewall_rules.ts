@@ -1,6 +1,6 @@
-import { Module } from "vuex";
-import { State } from "./../index";
-import { IFirewallRule } from "./../../interfaces/IFirewallRule";
+// stores/firewallRules.ts
+import { defineStore } from "pinia";
+import { IFirewallRule } from "../../interfaces/IFirewallRule";
 import * as apiFirewall from "../api/firewall_rules";
 
 export interface FirewallRulesState {
@@ -9,47 +9,35 @@ export interface FirewallRulesState {
   numberFirewalls: number;
 }
 
-export const firewallRules: Module<FirewallRulesState, State> = {
-  namespaced: true,
-
-  state: {
+export const useFirewallRulesStore = defineStore("firewallRules", {
+  state: (): FirewallRulesState => ({
     firewalls: [],
     firewall: {} as IFirewallRule,
     numberFirewalls: 0,
-  },
+  }),
 
   getters: {
     list: (state): Array<IFirewallRule> => state.firewalls,
-    get: (state): IFirewallRule => state.firewall,
-    numberFirewalls: (state): number => state.numberFirewalls,
-  },
-
-  mutations: {
-    setFirewalls: (state, res) => {
-      state.firewalls = res.data;
-      state.numberFirewalls = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setFirewall: (state, res) => {
-      state.firewall = res.data;
-    },
+    getFirewall: (state): IFirewallRule => state.firewall,
+    getNumberFirewalls: (state): number => state.numberFirewalls,
   },
 
   actions: {
-    async fetch({ commit }, data) {
+    async fetch(data: { page: number; perPage: number }) {
       const res = await apiFirewall.fetchFirewalls(data.page, data.perPage);
-
       if (res.data.length) {
-        commit("setFirewalls", res);
+        this.firewalls = res.data as never;
+        this.numberFirewalls = parseInt(res.headers["x-total-count"], 10);
         return true;
       }
-
       return false;
     },
 
-    async get({ commit }, uid) {
+    async get(uid) {
       const res = await apiFirewall.getFirewall(uid);
-      commit("setFirewall", res);
+      this.firewall = res.data as never;
     },
   },
-};
+});
+
+export default useFirewallRulesStore;

@@ -1,17 +1,28 @@
 import axios from "axios";
-import { adminApi } from "./../../api/http";
+import { adminApi } from "../../api/http";
 
+// Busca a licença atual
 const getLicense = async () => adminApi.getLicense();
 
+// Faz o upload de uma nova licença
 const uploadLicense = async (file: File) => {
-  const form = new FormData();
-  form.append("file", file);
-  const postLicense = await axios.post(`${window.location.protocol}//${window.location.host}/admin/api/license`, form, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("cloud_token")}`,
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const token = localStorage.getItem("cloud_token");
+
+  const response = await axios.post(
+    `${window.location.origin}/admin/api/license`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
-  return postLicense;
+  );
+
+  return response;
 };
 
 export { getLicense, uploadLicense };
