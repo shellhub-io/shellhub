@@ -33,11 +33,10 @@
         </div>
 
         <div class="mt-2" v-if="showLoginForm">
-
           <v-card-text>
             <v-window>
               <v-window-item :value="AuthMethods.Password">
-                <v-form lazy-validation>
+                <v-form @submit.prevent="submitForm">
                   <v-container>
                     <v-row>
                       <v-col>
