@@ -96,19 +96,20 @@
                     </v-row>
                   </v-container>
 
-                  <v-card-actions>
-                    <v-spacer />
+                  <v-card-actions class="mt-4 d-flex justify-end">
                     <v-btn
-                      type="button"
+                      @click="close"
+                      data-test="cancel-btn"
+                    >
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      type="submit"
                       color="primary"
-                      class="mt-4"
-                      variant="flat"
                       data-test="connect2-btn"
-                      @click="submitForm"
                     >
                       Connect
                     </v-btn>
-                    <v-spacer />
                   </v-card-actions>
                 </v-form>
               </v-window-item>
