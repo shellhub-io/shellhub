@@ -25,7 +25,7 @@
         >
           Terminal
           <v-spacer />
-          <v-icon @click="close()" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
+          <v-icon v-if="!showLoginForm" @click="close()" data-test="close-btn" size="24">mdi-close</v-icon>
         </v-card-title>
 
         <div class="ma-0 pa-0 w-100 fill-height position-relative" v-if="!showLoginForm">
