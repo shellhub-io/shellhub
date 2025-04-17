@@ -78,10 +78,6 @@ describe("Welcome Fourth Screen", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the components", async () => {
     expect(wrapper.find('[data-test="welcome-fourth-succesfully"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="welcome-fourth-links"]').exists()).toBe(true);

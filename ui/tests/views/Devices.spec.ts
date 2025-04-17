@@ -121,10 +121,6 @@ describe("Devices View", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the template with data", async () => {
     expect(wrapper.find('[data-test="search-text"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="device-title"]').exists()).toBe(true);

@@ -95,11 +95,6 @@ describe("MfaDisable", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    // Test if component data is defined
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Dialog opens", async () => {
     // Test if the dialog opens when the button is clicked
     wrapper.vm.showDialog = true;

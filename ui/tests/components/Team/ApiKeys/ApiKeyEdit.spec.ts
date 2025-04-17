@@ -130,10 +130,6 @@ describe("Api Key Edit", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="edit-icon"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="edit-main-btn-title"]').exists()).toBe(true);

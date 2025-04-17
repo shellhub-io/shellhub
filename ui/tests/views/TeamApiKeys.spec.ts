@@ -137,10 +137,6 @@ describe("Team Api Keys", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the template with data", async () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="api-key-generate"]').exists()).toBe(true);

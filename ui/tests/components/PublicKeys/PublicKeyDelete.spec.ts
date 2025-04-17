@@ -107,10 +107,6 @@ describe("Public Key Delete", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="public-key-remove-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="remove-icon"]').exists()).toBe(true);

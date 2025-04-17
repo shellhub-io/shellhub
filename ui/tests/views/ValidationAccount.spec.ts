@@ -106,10 +106,6 @@ describe("Validation Account", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", async () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the template with data", async () => {
     expect(wrapper.find('[data-test="verification-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="processing-cardText"]').exists()).toBe(true);

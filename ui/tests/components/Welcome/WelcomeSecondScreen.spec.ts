@@ -84,10 +84,6 @@ describe("Welcome Second Screen", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the components", async () => {
     expect(wrapper.find('[data-test="welcome-second-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="welcome-second-text"]').exists()).toBe(true);

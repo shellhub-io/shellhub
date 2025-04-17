@@ -109,7 +109,8 @@ describe("Details Sessions", () => {
     recorded: true,
     type: "none",
     term: "none",
-    position: { longitude: 0, latitude: 0 } };
+    position: { longitude: 0, latitude: 0 },
+  };
 
   let router;
 
@@ -165,10 +166,6 @@ describe("Details Sessions", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders the template with data", () => {
