@@ -25,7 +25,7 @@
         >
           Terminal
           <v-spacer />
-          <v-icon @click="close()" data-test="close-btn" class="bg-primary" size="24">mdi-close</v-icon>
+          <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
         </v-card-title>
 
         <div class="ma-0 pa-0 w-100 fill-height position-relative" v-if="!showLoginForm">
@@ -33,11 +33,10 @@
         </div>
 
         <div class="mt-2" v-if="showLoginForm">
-
           <v-card-text>
             <v-window>
               <v-window-item :value="AuthMethods.Password">
-                <v-form lazy-validation>
+                <v-form @submit.prevent="submitForm">
                   <v-container>
                     <v-row>
                       <v-col>
@@ -75,7 +74,7 @@
                           label="Private Key"
                           hint="Select a private key file for authentication"
                           persistent-hint
-                          data-test="privatekeys-select"
+                          data-test="private-keys-select"
                         />
                         <v-text-field
                           color="primary"
@@ -96,19 +95,20 @@
                     </v-row>
                   </v-container>
 
-                  <v-card-actions>
-                    <v-spacer />
+                  <v-card-actions class="mt-4 d-flex justify-end">
                     <v-btn
-                      type="button"
+                      @click="close"
+                      data-test="cancel-btn"
+                    >
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      type="submit"
                       color="primary"
-                      class="mt-4"
-                      variant="flat"
-                      data-test="connect2-btn"
-                      @click="submitForm"
+                      data-test="submit-btn"
                     >
                       Connect
                     </v-btn>
-                    <v-spacer />
                   </v-card-actions>
                 </v-form>
               </v-window-item>
@@ -412,7 +412,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keyup", handleEscKey);
 });
 
-defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
+defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, submitForm, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
 
 <style lang="scss" scoped>
