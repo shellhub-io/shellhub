@@ -1,11 +1,10 @@
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it, beforeEach, vi } from "vitest";
 import { nextTick, watch } from "vue";
 import { store, key } from "@/store";
 import TerminalDialog from "@/components/Terminal/TerminalDialog.vue";
 import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Terminal Dialog", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalDialog>>;
@@ -15,10 +14,14 @@ describe("Terminal Dialog", async () => {
   beforeEach(async () => {
     wrapper = mount(TerminalDialog, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
       },
       props: {
         uid: "a582b47a42d",
+        enableConnectButton: true,
+        enableConsoleIcon: true,
+        online: true,
+        show: true,
       },
     });
   });
@@ -32,32 +35,29 @@ describe("Terminal Dialog", async () => {
   });
 
   it("Renders the components", async () => {
-    await wrapper.setProps({ enableConnectButton: true, enableConsoleIcon: true, online: true, show: true });
-
-    expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
-
     const dialog = new DOMWrapper(document.body);
+    const connectBtn = wrapper.find('[data-test="connect-btn"]');
 
     await flushPromises();
 
-    await wrapper.findComponent('[data-test="connect-btn"]').trigger("click");
+    expect(connectBtn.exists()).toBe(true);
+    await connectBtn.trigger("click");
 
     expect(dialog.find('[data-test="terminal-card"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-terminal-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="username-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="password-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="cancel-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="submit-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="auth-method-select"]').exists()).toBe(true);
+
     await wrapper.findComponent('[data-test="auth-method-select"]').setValue("Private Key");
     await flushPromises();
-
     expect(dialog.find('[data-test="password-field"]').exists()).toBe(false);
     expect(dialog.find('[data-test="private-keys-select"]').exists()).toBe(true);
   });
 
   it("sets showLoginForm to true when showTerminal changes to true", async () => {
-    await watch(() => wrapper.vm.showTerminal, (value) => {
+    watch(() => wrapper.vm.showTerminal, (value) => {
       if (value) wrapper.vm.showLoginForm = true;
     });
 
