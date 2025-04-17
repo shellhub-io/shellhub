@@ -21,22 +21,12 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import { useRouter } from "vue-router";
 import AnnouncementList from "../components/Announcement/AnnouncementList.vue";
 
-export default defineComponent({
-  name: "Announcement",
-  setup() {
-    const router = useRouter();
-    const newAnnouncement = () => {
-      router.push({ name: "new-announcement" });
-    };
-    return {
-      newAnnouncement,
-    };
-  },
-  components: { AnnouncementList },
-});
+const router = useRouter();
+const newAnnouncement = () => {
+  router.push({ name: "new-announcement" });
+};
 </script>

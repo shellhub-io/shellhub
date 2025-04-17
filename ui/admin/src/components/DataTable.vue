@@ -32,14 +32,15 @@
       <div>
         <v-combobox
           :items="comboboxOptions"
-          v-model="itemsPerPageRef"
+          :model-value="props.itemsPerPage"
+          @update:model-value="$emit('changeItemsPerPage', $event)"
           outlined
-          :update:modelValue="$emit('changeItemsPerPage', itemsPerPageRef)"
           variant="underlined"
           hide-details
           class="mb-4"
           no-filter
         />
+
       </div>
       <div class="d-flex align-center">
         <v-btn icon="mdi-chevron-left" variant="plain" @click="$emit('clickPreviousPage')" :disabled="actualPage <= 1" />
@@ -54,8 +55,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, PropType } from "vue";
+<script setup lang="ts">
+import { computed, PropType } from "vue";
 
 type HeaderItem = {
   text: string;
@@ -71,60 +72,51 @@ type UserTable = {
   namespaces: string;
 };
 
-export default defineComponent({
-  props: {
-    headers: {
-      type: Array as PropType<HeaderItem[]>,
-      default: () => [],
-      required: true,
-    },
-    items: {
-      type: Array,
-      default: () => [] as PropType<UserTable[]>,
-      required: false,
-    },
-    itemsPerPage: {
-      type: Number,
-      required: true,
-    },
-    comboboxOptions: {
-      type: Array as PropType<number[]>,
-      required: false,
-      default: () => [10, 20, 50, 100],
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    actualPage: {
-      type: Number,
-      default: 1,
-    },
-    totalCount: {
-      type: Number,
-      required: true,
-    },
-    nextPage: {
-      type: Function as PropType<() => void>,
-      default: () => true,
-    },
-    previousPage: {
-      type: Function as PropType<() => void>,
-      default: () => true,
-    },
+const props = defineProps({
+  headers: {
+    type: Array as PropType<HeaderItem[]>,
+    default: () => [],
+    required: true,
   },
-  emits: ["changeItemsPerPage", "clickNextPage", "clickPreviousPage", "clickSortableIcon"],
-  setup(props) {
-    const itemsPerPageRef = computed(() => props.itemsPerPage);
-    const pageQuantity = computed(() => Math.ceil(props.totalCount / props.itemsPerPage));
-
-    return {
-      itemsPerPageRef,
-      pageQuantity,
-    };
+  items: {
+    type: Array,
+    default: () => [] as PropType<UserTable[]>,
+    required: false,
+  },
+  itemsPerPage: {
+    type: Number,
+    required: true,
+  },
+  comboboxOptions: {
+    type: Array as PropType<number[]>,
+    required: false,
+    default: () => [10, 20, 50, 100],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+  actualPage: {
+    type: Number,
+    default: 1,
+  },
+  totalCount: {
+    type: Number,
+    required: true,
+  },
+  nextPage: {
+    type: Function as PropType<() => void>,
+    default: () => true,
+  },
+  previousPage: {
+    type: Function as PropType<() => void>,
+    default: () => true,
   },
 });
+defineEmits(["changeItemsPerPage", "clickNextPage", "clickPreviousPage", "clickSortableIcon"]);
+
+const pageQuantity = computed(() => Math.ceil(props.totalCount / props.itemsPerPage));
 </script>
 
 <style scoped>

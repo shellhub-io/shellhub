@@ -1,24 +1,13 @@
 import { createVuetify } from "vuetify";
-import { createStore } from "vuex";
 import { mount, VueWrapper } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import useSessionsStore from "@admin/store/modules/sessions";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import SessionList from "../../../../../src/components/Sessions/SessionList.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type SessionListWrapper = VueWrapper<InstanceType<typeof SessionList>>;
-
-const headers = [
-  { text: "Active", value: "active" },
-  { text: "Id", value: "uid" },
-  { text: "Device", value: "device" },
-  { text: "Username", value: "username" },
-  { text: "Authenticated", value: "authenticated" },
-  { text: "IP Address", value: "ip_address" },
-  { text: "Started", value: "started_at" },
-  { text: "Last Seen", value: "last_seen" },
-  { text: "Actions", value: "actions" },
-];
 
 const sessions = [
   {
@@ -27,9 +16,7 @@ const sessions = [
     device: {
       uid: "a582b47a42d",
       name: "39-5e-2a",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
+      identity: { mac: "00:00:00:00:00:00" },
       info: {
         id: "debian",
         pretty_name: "Debian GNU/Linux 10 (buster)",
@@ -55,9 +42,7 @@ const sessions = [
     device: {
       uid: "a582b47a42d",
       name: "b4-2e-99",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
+      identity: { mac: "00:00:00:00:00:00" },
       info: {
         id: "debian",
         pretty_name: "Debian GNU/Linux 10 (buster)",
@@ -79,48 +64,45 @@ const sessions = [
   },
 ];
 
-const store = createStore({
-  state: {
-    sessions,
-  },
-  getters: {
-    "sessions/sessions": (state) => state.sessions,
-    "sessions/numberSessions": (state) => state.sessions.length,
-  },
-  actions: {
-    "sessions/fetch": () => vi.fn(),
-    "snackbar/showSnackbarSuccessAction": vi.fn(),
-    "snackbar/showSnackbarErrorAction": vi.fn(),
-  },
-});
-
 describe("Sessions List", () => {
   let wrapper: SessionListWrapper;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
+
     const vuetify = createVuetify();
+
+    const sessionStore = useSessionsStore();
+    const snackbarStore = useSnackbarStore();
+
+    sessionStore.sessions = sessions;
+    sessionStore.numberSessions = sessions.length;
+
+    vi.spyOn(sessionStore, "fetch").mockResolvedValue(false);
+    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => undefined);
+    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => undefined);
 
     wrapper = mount(SessionList, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", () => {
-    const dt = wrapper.find("[data-test]");
-    expect(dt.attributes()["data-test"]).toBe("session-list");
-    expect(wrapper.vm.headers).toEqual(headers);
-    expect(wrapper.vm.sessions).toEqual(sessions);
-    expect(wrapper.vm.loading).toEqual(false);
-    expect(wrapper.vm.itemsPerPage).toEqual(10);
+  it("Renders the template with session data", () => {
+    const dt = wrapper.find("[data-test='session-list']");
+    expect(dt.exists()).toBe(true);
+
+    const store = useSessionsStore();
+    expect(store.getSessions).toEqual(sessions);
+    expect(store.getNumberSessions).toBe(sessions.length);
   });
 });

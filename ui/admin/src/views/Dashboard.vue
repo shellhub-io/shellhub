@@ -130,4 +130,6 @@ onMounted(async () => {
     }
   }
 });
+
+defineExpose({ items, itemsStats, hasStatus });
 </script>

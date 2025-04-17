@@ -153,4 +153,6 @@ const redirectToAnnouncement = (announcement: IAnnouncements) => {
     params: { uuid: announcement.uuid },
   });
 };
+
+defineExpose({ itemsPerPage, page, loading, numberAnnouncements, announcements });
 </script>

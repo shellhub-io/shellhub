@@ -52,4 +52,6 @@ const searchNamespaces = () => {
     filter: encodedFilter,
   });
 };
+
+defineExpose({ filter });
 </script>

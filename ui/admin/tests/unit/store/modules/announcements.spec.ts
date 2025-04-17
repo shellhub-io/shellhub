@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { store } from "../../../../src/store";
+import { describe, expect, it, beforeEach } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import useAnnouncementStore from "@admin/store/modules/announcement";
 
-describe("Announcement", () => {
+describe("Announcement Store (Pinia)", () => {
+  let announcementStore: ReturnType<typeof useAnnouncementStore>;
+
   const announcements = [
     {
       uuid: "52088548-2b99-4f38-ac09-3a8f8988476f",
@@ -26,45 +29,51 @@ describe("Announcement", () => {
     date: "2022-12-15T19:45:45.618Z",
   };
 
-  it("Return device default variables", () => {
-    expect(store.getters["announcement/announcements"]).toEqual([]);
-    expect(store.getters["announcement/announcement"]).toEqual({});
-    expect(store.getters["announcement/page"]).toEqual(1);
-    expect(store.getters["announcement/perPage"]).toEqual(10);
-    expect(store.getters["announcement/orderBy"]).toEqual("asc");
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    announcementStore = useAnnouncementStore();
   });
 
-  it("Verify initial states change for mutation setAnnouncements", () => {
-    store.commit("announcement/setAnnouncements", {
-      data: announcements,
-      headers: { "x-total-count": numberAnnouncements },
-    });
-    expect(store.getters["announcement/announcements"]).toEqual(announcements);
+  it("Returns default state", () => {
+    expect(announcementStore.getAnnouncements).toEqual([]);
+    expect(announcementStore.getAnnouncement).toEqual({});
+    expect(announcementStore.getPage).toBe(1);
+    expect(announcementStore.getPerPage).toBe(10);
+    expect(announcementStore.getOrderBy).toBe("asc");
   });
 
-  it("Verify initial state change for mutation setAnnouncement", () => {
-    store.commit("announcement/setAnnouncement", announcement);
-    expect(store.getters["announcement/announcement"]).toEqual(announcement);
+  it("Sets announcements and updates count", () => {
+    announcementStore.announcements = announcements;
+    announcementStore.numberAnnouncements = numberAnnouncements;
+    expect(announcementStore.getAnnouncements).toEqual(announcements);
+    expect(announcementStore.getNumberAnnouncements).toBe(numberAnnouncements);
   });
 
-  it("Verify initial state change for mutation setPageAndPerPage", () => {
-    store.commit("announcement/setPageAndPerPage", { page: 2, perPage: 20 });
-    expect(store.getters["announcement/page"]).toEqual(2);
-    expect(store.getters["announcement/perPage"]).toEqual(20);
+  it("Sets a single announcement", () => {
+    announcementStore.announcement = announcement;
+    expect(announcementStore.getAnnouncement).toEqual(announcement);
   });
 
-  it("Verify initial state change for mutation setOrderBy", () => {
-    store.commit("announcement/setOrderBy", "desc");
-    expect(store.getters["announcement/orderBy"]).toEqual("desc");
+  it("Updates page and perPage values", () => {
+    announcementStore.setPageAndPerPage({ page: 2, perPage: 20 });
+    expect(announcementStore.getPage).toBe(2);
+    expect(announcementStore.getPerPage).toBe(20);
   });
 
-  it("Verify initial state change for mutation clearAnnouncements", () => {
-    store.commit("announcement/clearAnnouncements");
-    expect(store.getters["announcement/announcements"]).toEqual([]);
+  it("Updates orderBy value", () => {
+    announcementStore.setOrderBy("desc");
+    expect(announcementStore.getOrderBy).toBe("desc");
   });
 
-  it("Verify initial state change for mutation clearAnnouncement", () => {
-    store.commit("announcement/clearAnnouncement");
-    expect(store.getters["announcement/announcement"]).toEqual({});
+  it("Clears announcements array", () => {
+    announcementStore.announcements = announcements;
+    announcementStore.clearAnnouncements();
+    expect(announcementStore.getAnnouncements).toEqual([]);
+  });
+
+  it("Clears single announcement", () => {
+    announcementStore.announcement = announcement;
+    announcementStore.clearAnnouncement();
+    expect(announcementStore.getAnnouncement).toEqual({});
   });
 });

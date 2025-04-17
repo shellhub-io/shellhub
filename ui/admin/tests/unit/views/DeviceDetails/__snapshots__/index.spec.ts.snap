@@ -69,24 +69,8 @@ exports[`Device Details > Renders the component 1`] = `
       <div class="text-overline mt-3">
         <h3>Public Key:</h3>
       </div>
-      <div data-test="-----BEGIN RSA PUBLIC KEY-----
-  MIIBCgKCAQEAx2C95p3s9OpwHdSwV8xP5dS39jGBCM+VMChiqJViaaVoJJ2tTK/i
-  zCEH6+jAuKSfvXjM3jql59RD0o7lFqd9bixiGN8/KvXZ/6hlDrdKniatIGHmGw6z
-  N9EfKbTqJh0vHX/yRzRWlfAlLHoWjg0lV+Y6RpAiV1u6Gd4ZnDyz62u82fpQYqLu
-  IFrhfOP52qbVZHMT6Vn/q8U26wysrDlVbF1k8RDR79Ib9i1Bu3mBPn0r5AEJOpQQ
-  NqODe3Wjntgy8i0/iFaUV+9K17u50Pmm4uPfVfMEPmZSXpAwfpgWFPFInA9hLefq
-  9XLjOj93MwVWN4iXLbLOoLI/9MQw5zZSYQIDAQAB
-  -----END RSA PUBLIC KEY-----
-  ">
-        <p>-----BEGIN RSA PUBLIC KEY-----
-          MIIBCgKCAQEAx2C95p3s9OpwHdSwV8xP5dS39jGBCM+VMChiqJViaaVoJJ2tTK/i
-          zCEH6+jAuKSfvXjM3jql59RD0o7lFqd9bixiGN8/KvXZ/6hlDrdKniatIGHmGw6z
-          N9EfKbTqJh0vHX/yRzRWlfAlLHoWjg0lV+Y6RpAiV1u6Gd4ZnDyz62u82fpQYqLu
-          IFrhfOP52qbVZHMT6Vn/q8U26wysrDlVbF1k8RDR79Ib9i1Bu3mBPn0r5AEJOpQQ
-          NqODe3Wjntgy8i0/iFaUV+9K17u50Pmm4uPfVfMEPmZSXpAwfpgWFPFInA9hLefq
-          9XLjOj93MwVWN4iXLbLOoLI/9MQw5zZSYQIDAQAB
-          -----END RSA PUBLIC KEY-----
-        </p>
+      <div data-test="---BEGIN RSA KEY---">
+        <p>---BEGIN RSA KEY---</p>
       </div>
     </div>
     <div>

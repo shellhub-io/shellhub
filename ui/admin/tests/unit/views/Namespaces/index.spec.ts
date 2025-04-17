@@ -1,37 +1,41 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useNamespacesStore from "@admin/store/modules/namespaces";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import routes from "../../../../src/router";
 import Namespaces from "../../../../src/views/Namespaces.vue";
 
 type NamespacesWrapper = VueWrapper<InstanceType<typeof Namespaces>>;
 
 describe("Namespaces", () => {
-  const store = createStore({
-    state: {},
-    getters: {
-      "namespaces/perPage": () => 10,
-      "namespaces/page": () => 1,
-      "namespaces/numberOfNamespaces": () => 1,
-    },
-    actions: {
-      "namespaces/search": vi.fn(),
-      "namespaces/fetch": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
   let wrapper: NamespacesWrapper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const namespacesStore = useNamespacesStore();
+    vi.spyOn(namespacesStore, "getPerPage", "get").mockReturnValue(10);
+    vi.spyOn(namespacesStore, "getPage", "get").mockReturnValue(1);
+    vi.spyOn(namespacesStore, "getnumberOfNamespaces", "get").mockReturnValue(1);
+
+    namespacesStore.search = vi.fn();
+    namespacesStore.fetch = vi.fn();
+
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+
     const vuetify = createVuetify();
 
     wrapper = mount(Namespaces, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
       },
     });
+
+    await flushPromises();
   });
 
   it("Is a Vue instance", () => {
@@ -42,14 +46,15 @@ describe("Namespaces", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with default data", async () => {
+  it("Renders the template with default data", () => {
     expect(wrapper.vm.filter).toBe("");
   });
 
   it("Must change the filter value when input change", async () => {
-    expect(wrapper.vm.filter).toEqual("");
-    await wrapper.find("input").setValue("ShellHub");
-    expect(wrapper.vm.filter).toEqual("ShellHub");
+    expect(wrapper.vm.filter).toBe("");
+    const input = wrapper.find("input");
+    await input.setValue("ShellHub");
+    expect(wrapper.vm.filter).toBe("ShellHub");
   });
 
   it("Should render all the components in the screen", () => {

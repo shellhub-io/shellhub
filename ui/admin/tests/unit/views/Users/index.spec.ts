@@ -1,35 +1,37 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useUsersStore from "@admin/store/modules/users";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import routes from "../../../../src/router";
 import Users from "../../../../src/views/Users.vue";
 
 type UsersWrapper = VueWrapper<InstanceType<typeof Users>>;
 
 describe("Users", () => {
-  const store = createStore({
-    state: {},
-    getters: {
-      "users/perPage": () => 10,
-      "users/page": () => 1,
-      "users/numberUsers": () => 1,
-    },
-    actions: {
-      "users/search": vi.fn(),
-      "users/fetch": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
   let wrapper: UsersWrapper;
 
   beforeEach(() => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const userStore = useUsersStore();
+    const snackbarStore = useSnackbarStore();
+
+    vi.spyOn(userStore, "getPerPage", "get").mockReturnValue(10);
+    vi.spyOn(userStore, "getPage", "get").mockReturnValue(1);
+    vi.spyOn(userStore, "getNumberUsers", "get").mockReturnValue(1);
+
+    userStore.search = vi.fn();
+    userStore.fetch = vi.fn();
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+
     const vuetify = createVuetify();
 
     wrapper = mount(Users, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
       },
     });
   });
@@ -42,14 +44,15 @@ describe("Users", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with default data", async () => {
+  it("Renders the template with default data", () => {
     expect(wrapper.vm.filter).toBe("");
   });
 
   it("Must change the filter value when input change", async () => {
-    expect(wrapper.vm.filter).toEqual("");
-    await wrapper.find("input").setValue("ShellHub");
-    expect(wrapper.vm.filter).toEqual("ShellHub");
+    expect(wrapper.vm.filter).toBe("");
+    const input = wrapper.find("input");
+    await input.setValue("ShellHub");
+    expect(wrapper.vm.filter).toBe("ShellHub");
   });
 
   it("Should render all the components in the screen", () => {

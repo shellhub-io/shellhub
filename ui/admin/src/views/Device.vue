@@ -56,4 +56,6 @@ const searchDevices = () => {
     snackbarStore.showSnackbarErrorDefault();
   }
 };
+
+defineExpose({ filter });
 </script>

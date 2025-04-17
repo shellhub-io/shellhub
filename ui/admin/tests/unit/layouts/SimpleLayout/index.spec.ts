@@ -1,45 +1,31 @@
-import { createStore } from "vuex";
-import { createVuetify } from "vuetify";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
-import { key } from "../../../../src/store";
-import routes from "../../../../src/router";
+import { createVuetify } from "vuetify";
+import { createPinia, setActivePinia } from "pinia";
 import SimpleLayout from "../../../../src/layouts/SimpleLayout.vue";
+import routes from "../../../../src/router";
 
 type SimpleLayoutWrapper = VueWrapper<InstanceType<typeof SimpleLayout>>;
-
-const layout = "simpleLayout";
-
-const store = createStore({
-  state: {
-    layout,
-  },
-  getters: {
-    "layout/getLayout": (state) => state.layout,
-  },
-  actions: {
-    "layout/setLayout": vi.fn(),
-    "auth/logout": vi.fn(),
-    "snackbar/showSnackbarErrorAction": vi.fn(),
-  },
-});
 
 describe("SimpleLayout", () => {
   let wrapper: SimpleLayoutWrapper;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
+
     const vuetify = createVuetify();
 
     wrapper = shallowMount(SimpleLayout, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
-    }) as unknown as SimpleLayoutWrapper;
+    }) as SimpleLayoutWrapper;
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
+
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });

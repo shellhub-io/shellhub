@@ -152,7 +152,6 @@ const header = [
   },
 ];
 
-// eslint-disable-next-line vue/max-len
 const checkAuthMethods = (user: IUser | undefined) => user?.auth_methods
   && user.auth_methods.length === 1
   && user.auth_methods[0] === "saml";
