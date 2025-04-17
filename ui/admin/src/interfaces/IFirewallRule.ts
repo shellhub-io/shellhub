@@ -12,7 +12,7 @@ export interface IFirewallRule {
   username: string;
   priority: number;
   active: boolean;
-  action: boolean;
+  action: string;
   filter: {
     hostname?: string;
     tags?: string[];

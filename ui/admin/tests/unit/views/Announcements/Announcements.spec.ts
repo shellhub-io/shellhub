@@ -1,8 +1,8 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { beforeEach, describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import { useAnnouncementStore } from "@admin/store/modules/announcement";
 import routes from "../../../../src/router";
 import Announcements from "../../../../src/views/Announcements.vue";
 
@@ -20,28 +20,21 @@ const announcements = [
 const numberAnnouncements = 1;
 
 describe("Announcement Details", () => {
-  const store = createStore({
-    state: {
-      announcements,
-    },
-    getters: {
-      "announcement/announcements": () => announcements,
-      "announcement/numberAnnouncements": () => numberAnnouncements,
-    },
-    actions: {
-      "announcement/getAnnouncements": vi.fn(),
-      "announcement/announcements": vi.fn(),
-    },
-  });
-
-  const vuetify = createVuetify();
-
   let wrapper: AnnouncementsWrapper;
 
   beforeEach(() => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const announcementStore = useAnnouncementStore();
+    announcementStore.announcements = announcements;
+    announcementStore.numberAnnouncements = numberAnnouncements;
+
+    const vuetify = createVuetify();
+
     wrapper = mount(Announcements, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
       },
     });
   });

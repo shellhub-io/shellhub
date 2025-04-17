@@ -126,5 +126,6 @@ const formatUsername = (username: string) => (username === ".*" ? "All users" : 
 const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
 const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+
+defineExpose({ firewallRule });
 </script>
-S

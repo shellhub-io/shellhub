@@ -1,9 +1,11 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useAnnouncementStore from "@admin/store/modules/announcement";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import { INotificationsError } from "@admin/interfaces/INotifications";
 import AnnouncementList from "../../../../../src/components/Announcement/AnnouncementList.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type AnnouncementListWrapper = VueWrapper<InstanceType<typeof AnnouncementList>>;
@@ -23,38 +25,30 @@ const announcements = [
   },
 ];
 
-const numberAnnouncements = 2;
-
 describe("Announcement List", () => {
-  const store = createStore({
-    state: {
-      announcements,
-    },
-    getters: {
-      "announcement/announcements": () => announcements,
-      "announcement/numberAnnouncements": () => numberAnnouncements,
-    },
-    actions: {
-      "announcement/getAnnouncements": vi.fn(),
-      "announcement/announcements": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-
   const vuetify = createVuetify();
-
   let wrapper: AnnouncementListWrapper;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
+
+    const announcementStore = useAnnouncementStore();
+    const snackbarStore = useSnackbarStore();
+
+    announcementStore.announcements = announcements;
+    announcementStore.numberAnnouncements = announcements.length;
+
+    vi.spyOn(announcementStore, "fetchAnnouncements").mockResolvedValue(false);
+    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.announcementList);
     wrapper = mount(AnnouncementList, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
@@ -68,8 +62,8 @@ describe("Announcement List", () => {
   });
 
   it("Renders the correct computed", () => {
-    expect(wrapper.vm.numberAnnouncements).toBe(numberAnnouncements);
-    expect(wrapper.vm.announcements).toBe(announcements);
+    expect(wrapper.vm.numberAnnouncements).toBe(2);
+    expect(wrapper.vm.announcements).toEqual(announcements);
   });
 
   it("Renders the correct HTML", () => {

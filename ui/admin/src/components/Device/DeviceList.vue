@@ -237,6 +237,8 @@ const goToNamespace = (namespace: string) => {
 const redirectToDevice = (deviceId: string) => {
   router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
+
+defineExpose({ headers, devices, loading, itemsPerPage });
 </script>
 
 <style scoped>

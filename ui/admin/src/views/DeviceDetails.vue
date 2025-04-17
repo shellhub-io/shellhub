@@ -144,4 +144,6 @@ onMounted(async () => {
 });
 
 const deviceIsEmpty = computed(() => devicesStore.getDevice && devicesStore.getDevice.name.length === 0);
+
+defineExpose({ device });
 </script>

@@ -1,8 +1,8 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useAnnouncementStore from "@admin/store/modules/announcement";
 import routes from "../../../../src/router";
 import AnnouncementDetails from "../../../../src/views/AnnouncementDetails.vue";
 
@@ -25,51 +25,46 @@ const announcementContentInHtml = `<h2>ShellHub new features</h2>
 
 const mockRoute = {
   params: {
-    uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
+    uuid: announcementDetail.uuid,
   },
 };
 
 describe("Announcement Details", () => {
-  const store = createStore({
-    state: {
-      announcement: announcementDetail,
-    },
-    getters: {
-      "announcement/announcement": () => announcementDetail,
-    },
-    actions: {
-      "announcement/getAnnouncement": vi.fn(),
-      "announcement/announcements": vi.fn(),
-    },
-  });
-
-  const vuetify = createVuetify();
-
   let wrapper: AnnouncementDetailsWrapper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const announcementStore = useAnnouncementStore();
+
+    vi.spyOn(announcementStore, "getAnnouncement", "get").mockReturnValue(announcementDetail);
+    announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(announcementDetail);
+
+    const vuetify = createVuetify();
+
     wrapper = mount(AnnouncementDetails, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
         mocks: {
           $route: mockRoute,
-          $router: {
-            push: vi.fn(),
-          },
+          $router: { push: vi.fn() },
         },
       },
     });
+
+    await flushPromises();
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBeTruthy();
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", async () => {
+  it("Has the correct data", () => {
     expect(wrapper.vm.announcement).toEqual(announcementDetail);
   });
 
@@ -82,8 +77,8 @@ describe("Announcement Details", () => {
     expect(wrapper.find(`[data-test='${announcementDetail.title}']`).text()).toContain(announcementDetail.title);
   });
 
-  it("Shoud render the markdown content in HTML", () => {
-    expect(wrapper.vm.contentToHtml).toBe(announcementContentInHtml);
+  it("Should render the markdown content in HTML", () => {
+    expect(wrapper.vm.contentToHtml.trim()).toBe(announcementContentInHtml.trim());
   });
 
   it("Should render the date in the correct format", () => {

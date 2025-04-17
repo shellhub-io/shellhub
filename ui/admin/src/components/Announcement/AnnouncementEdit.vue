@@ -170,6 +170,8 @@ const onSubmit = async () => {
     snackbarStore.showSnackbarErrorAction(INotificationsError.announcementEdit);
   }
 };
+
+defineExpose({ dialog, announcement, contentInHtml, contentError, title });
 </script>
 
 <style lang="scss">

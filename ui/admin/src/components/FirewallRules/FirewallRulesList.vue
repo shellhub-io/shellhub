@@ -189,4 +189,17 @@ const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? 
 const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 
 const goToFirewallRule = (ruleId : string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
+
+defineExpose({
+  headers,
+  loading,
+  itemsPerPage,
+  page,
+  firewallRules,
+  formatSourceIP,
+  formatUsername,
+  formatHostnameFilter,
+  displayOnlyTenCharacters,
+  showTag,
+});
 </script>
