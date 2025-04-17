@@ -30,7 +30,7 @@
         class="bg-v-theme-surface"
       >
         <div class="mt-4 mb-4">
-          <div class="d-flex justify-center align-center bg-whitea">
+          <div class="d-flex justify-center align-center">
             <v-avatar
               class="-right-32 z-0"
               size="46"
@@ -82,6 +82,7 @@
 
               <v-text-field
                 v-model="email"
+                class="mb-4"
                 label="Email"
                 :error-messages="emailError"
                 required
@@ -251,8 +252,9 @@ const handleInviteError = (error: unknown) => {
         setEmailError("This user does not exist.");
         break;
       default:
-        handleError(error);
+        setEmailError("An error occurred while sending the invitation.");
     }
+    handleError(error);
   }
 };
 
