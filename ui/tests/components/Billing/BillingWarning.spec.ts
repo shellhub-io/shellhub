@@ -158,12 +158,6 @@ describe("BillingWarning", () => {
         expect(wrapper.html()).toMatchSnapshot();
       });
 
-      ///////
-      // Data checking
-      //////
-      it("Data is defined", () => {
-        expect(wrapper.vm.$data).toBeDefined();
-      });
       it("Process data in the computed", () => {
         Reflect.ownKeys(test.computed).forEach((c) => {
           expect(wrapper.vm[c]).toEqual(test.computed[c]);

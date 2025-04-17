@@ -114,10 +114,6 @@ describe("Billing Payment", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the correct html", async () => {
     await flushPromises();
     expect(wrapper.findComponent('[data-test="customer-name"]').exists()).toBe(true);

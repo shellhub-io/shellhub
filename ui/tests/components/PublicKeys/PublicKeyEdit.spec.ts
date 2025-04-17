@@ -112,10 +112,6 @@ describe("Public Key Edit", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="public-key-edit-title-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="public-key-edit-icon"]').exists()).toBe(true);
@@ -140,15 +136,17 @@ describe("Public Key Edit", () => {
   });
 
   it("Allows editing a public key with username restriction", async () => {
-    await wrapper.setProps({ keyObject: {
-      data: "fake key",
-      filter: {
-        hostname: ".*",
+    await wrapper.setProps({
+      keyObject: {
+        data: "fake key",
+        filter: {
+          hostname: ".*",
+        },
+        name: "my edited public key",
+        username: ".*",
+        fingerprint: "fingerprint123",
       },
-      name: "my edited public key",
-      username: ".*",
-      fingerprint: "fingerprint123",
-    } });
+    });
     mockSsh.onPut("http://localhost:3000/api/sshkeys/public-keys/fingerprint123").reply(200);
     const pkEdit = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="public-key-edit-title-btn"]').trigger("click");

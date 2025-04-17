@@ -168,10 +168,6 @@ describe("Device Chooser", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the component data table", async () => {
     const wrapper = new DOMWrapper(document.body);
     expect(wrapper.find('[data-test="dialog"]').exists()).toBe(true);

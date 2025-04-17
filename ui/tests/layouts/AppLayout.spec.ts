@@ -40,11 +40,6 @@ describe("App Layout Component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    // Test if the component's data is defined
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders internal components", () => {
     expect(wrapper.find('[data-test="navigation-drawer"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="drawer-toolbar"]').exists()).toBe(true);

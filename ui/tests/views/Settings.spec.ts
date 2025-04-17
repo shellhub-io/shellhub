@@ -34,8 +34,4 @@ describe("Settings View", () => {
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
 });

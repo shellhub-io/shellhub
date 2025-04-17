@@ -129,10 +129,6 @@ describe("Firewall Rules", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="firewall-rules"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="help-icon"]').exists()).toBe(true);

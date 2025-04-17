@@ -100,10 +100,6 @@ describe("Setting Security", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="security-switch"]').exists()).toBe(true);
   });

@@ -173,10 +173,6 @@ describe("Device Action Button", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the component data table", async () => {
     await wrapper.setProps({ name: "test-device", uid: "test-uid", notificationStatus: true, show: true });
     expect(wrapper.find('[data-test="notification-item"]').exists()).toBe(true);

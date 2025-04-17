@@ -158,10 +158,6 @@ describe("Details Device", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="deviceUid-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="deviceMac-field"]').exists()).toBe(true);

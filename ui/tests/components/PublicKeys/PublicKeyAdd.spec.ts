@@ -104,10 +104,6 @@ describe("Public Key Add", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="public-key-add-btn"]').exists()).toBe(true);
     await wrapper.findComponent('[data-test="public-key-add-btn"]').trigger("click");
