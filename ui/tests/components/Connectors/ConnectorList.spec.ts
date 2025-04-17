@@ -71,28 +71,29 @@ describe("Connector List", () => {
     },
   ];
 
-  const connectors = { data: [
-    {
-
-      uid: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
-      tenant_id: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
-      enable: true,
-      address: "127.0.0.1",
-      port: 2375,
-      secure: false,
-      status:
-
+  const connectors = {
+    data: [
       {
-        State: "connected",
-        Message: "",
-      },
-      tls: null,
 
+        uid: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
+        tenant_id: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
+        enable: true,
+        address: "127.0.0.1",
+        port: 2375,
+        secure: false,
+        status:
+
+        {
+          State: "connected",
+          Message: "",
+        },
+        tls: null,
+
+      },
+    ],
+    headers: {
+      "x-total-count": 1,
     },
-  ],
-  headers: {
-    "x-total-count": 1,
-  },
   };
 
   const billingData = {
@@ -200,10 +201,6 @@ describe("Connector List", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders the component HTML", async () => {

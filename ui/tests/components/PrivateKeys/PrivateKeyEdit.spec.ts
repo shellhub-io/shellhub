@@ -107,10 +107,6 @@ describe("Private Key Edit", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="privatekey-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="privatekey-icon"]').exists()).toBe(true);

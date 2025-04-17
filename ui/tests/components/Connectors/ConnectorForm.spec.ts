@@ -107,10 +107,6 @@ describe("Connector Form", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("renders the component", async () => {
     wrapper.vm.localDialog = true;
     await flushPromises();

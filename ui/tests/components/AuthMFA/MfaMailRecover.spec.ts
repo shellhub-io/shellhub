@@ -91,11 +91,6 @@ describe("Mfa Mail Recover ", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    // Test if component data is defined
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the components", async () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);

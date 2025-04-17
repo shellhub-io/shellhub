@@ -101,10 +101,6 @@ describe("Namespace Edit", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     const dialog = new DOMWrapper(document.body);
     wrapper.vm.show = true;

@@ -30,19 +30,20 @@ describe("Team Members", () => {
     },
   ];
 
-  const namespaceData = { data: {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
+  const namespaceData = {
+    data: {
+      name: "test",
+      owner: "test",
+      tenant_id: "fake-tenant",
+      members,
+      settings: {
+        session_record: true,
+        connection_announcement: "",
+      },
+      max_devices: 3,
+      devices_count: 3,
+      created_at: "",
     },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  },
   };
 
   const authData = {
@@ -122,10 +123,6 @@ describe("Team Members", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders the template with data", async () => {

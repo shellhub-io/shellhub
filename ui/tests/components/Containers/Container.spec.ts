@@ -161,10 +161,6 @@ describe("Device", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders correctly", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });

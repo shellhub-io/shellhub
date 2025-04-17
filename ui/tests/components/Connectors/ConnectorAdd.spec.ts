@@ -100,10 +100,6 @@ describe("Connector Add", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     await wrapper.findComponent('[data-test="connector-add-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);

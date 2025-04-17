@@ -18,7 +18,7 @@ describe("Welcome Third Screen", () => {
 
   let mockNamespace: MockAdapter;
 
-  let mockDevices : MockAdapter;
+  let mockDevices: MockAdapter;
 
   const members = [
     {
@@ -107,10 +107,6 @@ describe("Welcome Third Screen", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders the components", async () => {

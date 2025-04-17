@@ -30,19 +30,20 @@ describe("Setting Namespace", () => {
     },
   ];
 
-  const namespaceData = { data: {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
+  const namespaceData = {
+    data: {
+      name: "test",
+      owner: "test",
+      tenant_id: "fake-tenant",
+      members,
+      settings: {
+        session_record: true,
+        connection_announcement: "",
+      },
+      max_devices: 3,
+      devices_count: 3,
+      created_at: "",
     },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  },
   };
 
   const authData = {
@@ -127,14 +128,6 @@ describe("Setting Namespace", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   const dataTests = [

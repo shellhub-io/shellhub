@@ -140,10 +140,6 @@ describe("Namespace Invite Dialog", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders dialog elements with correct data-test attributes", async () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="message"]').exists()).toBe(true);

@@ -166,10 +166,6 @@ describe("Device List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the component HTML", async () => {
     expect(wrapper.findComponent('[data-test="device-table"]').exists()).toBe(true);
   });

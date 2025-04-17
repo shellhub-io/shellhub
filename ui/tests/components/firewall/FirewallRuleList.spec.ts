@@ -117,10 +117,6 @@ describe("Firewall Rule List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the Firewall List", async () => {
     expect(wrapper.find('[data-test="firewallRules-list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-active"]').exists()).toBe(true);

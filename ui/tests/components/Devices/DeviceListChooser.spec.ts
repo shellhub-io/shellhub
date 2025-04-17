@@ -152,10 +152,6 @@ describe("Device Chooser List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("renders the component data table", async () => {
     expect(wrapper.findComponent('[data-test="devices-dataTable"]').exists()).toBe(true);
   });
