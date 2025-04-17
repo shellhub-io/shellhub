@@ -25,7 +25,7 @@
         >
           Terminal
           <v-spacer />
-          <v-icon v-if="!showLoginForm" @click="close()" data-test="close-btn" size="24">mdi-close</v-icon>
+          <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
         </v-card-title>
 
         <div class="ma-0 pa-0 w-100 fill-height position-relative" v-if="!showLoginForm">
@@ -74,7 +74,7 @@
                           label="Private Key"
                           hint="Select a private key file for authentication"
                           persistent-hint
-                          data-test="privatekeys-select"
+                          data-test="private-keys-select"
                         />
                         <v-text-field
                           color="primary"
@@ -105,7 +105,7 @@
                     <v-btn
                       type="submit"
                       color="primary"
-                      data-test="connect2-btn"
+                      data-test="submit-btn"
                     >
                       Connect
                     </v-btn>

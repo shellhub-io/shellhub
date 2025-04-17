@@ -31,7 +31,7 @@ describe("Terminal Dialog", async () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component table", async () => {
+  it("Renders the components", async () => {
     await wrapper.setProps({ enableConnectButton: true, enableConsoleIcon: true, online: true, show: true });
 
     expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
@@ -43,16 +43,17 @@ describe("Terminal Dialog", async () => {
     await wrapper.findComponent('[data-test="connect-btn"]').trigger("click");
 
     expect(dialog.find('[data-test="terminal-card"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="close-terminal-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="username-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="password-field"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="connect2-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="cancel-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="submit-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="auth-method-select"]').exists()).toBe(true);
     await wrapper.findComponent('[data-test="auth-method-select"]').setValue("Private Key");
     await flushPromises();
 
     expect(dialog.find('[data-test="password-field"]').exists()).toBe(false);
-    expect(dialog.find('[data-test="privatekeys-select"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="private-keys-select"]').exists()).toBe(true);
   });
 
   it("sets showLoginForm to true when showTerminal changes to true", async () => {
