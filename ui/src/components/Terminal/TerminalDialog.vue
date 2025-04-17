@@ -404,9 +404,7 @@ const handleEscKey = (event: KeyboardEvent) => {
   }
 };
 
-onMounted(() => {
-  window.addEventListener("keyup", handleEscKey);
-});
+useEventListener("keyup", handleEscKey);
 
 onBeforeUnmount(() => {
   window.removeEventListener("keyup", handleEscKey);
