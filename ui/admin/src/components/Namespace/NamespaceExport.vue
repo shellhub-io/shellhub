@@ -5,7 +5,7 @@
     <v-card>
       <v-card-title class="text-h5 pb-2"> Export namespaces data </v-card-title>
       <v-divider />
-      <v-form @submit.prevent="onSubmit">
+      <v-form @submit.prevent="onSubmit" data-test="form">
         <v-card-text>
           <v-container>
             <v-radio-group v-model="selected">

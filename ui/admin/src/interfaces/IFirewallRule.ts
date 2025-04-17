@@ -3,16 +3,15 @@ export type filterType = {
   tags?: Array<string>
 }
 
-// interfaces/IFirewallRule.ts
 export interface IFirewallRule {
   id: string;
   tenant_id: string;
-  tenant_ip?: string; // <-- agora opcional
+  tenant_ip?: string;
   source_ip: string;
   username: string;
   priority: number;
   active: boolean;
-  action: boolean;
+  action: string;
   filter: {
     hostname?: string;
     tags?: string[];

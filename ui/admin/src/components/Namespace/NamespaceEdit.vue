@@ -8,6 +8,7 @@
         v-bind="props"
         tabindex="0"
         aria-label="Editar Namespace"
+        data-test="dialog-btn"
         @keypress.enter="dialog = !dialog"
       >mdi-pencil
       </v-icon>
@@ -144,4 +145,6 @@ watch(dialog, () => {
     sessionRecord.value = props.namespace?.settings.session_record;
   }
 });
+
+defineExpose({ dialog, onSubmit });
 </script>

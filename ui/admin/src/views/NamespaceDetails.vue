@@ -113,6 +113,7 @@ const goToUser = (userId: string) => {
   router.push({ name: "userDetails", params: { id: userId } });
 };
 
+defineExpose({ namespace });
 </script>
 
 <style scoped>

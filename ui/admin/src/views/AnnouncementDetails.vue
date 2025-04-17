@@ -57,23 +57,20 @@ const md = new MarkdownIt();
 const announcementStore = useAnnouncementStore();
 const route = useRoute();
 const announcementId = computed(() => route.params.uuid);
-const announcement = computed(
-  () => announcementStore.getAnnouncement,
-);
+const announcement = computed(() => announcementStore.getAnnouncement);
 const contentToHtml = ref("");
 const date = ref("");
 
 onMounted(async () => {
-  await announcementStore.fetchAnnouncement(
-    announcementId.value as string,
-  );
+  await announcementStore.fetchAnnouncement(announcementId.value as string);
 
   if (announcement.value) {
-    contentToHtml.value = md.render(announcement.value.content as Required<Announcement>);
+    contentToHtml.value = md.render(announcement.value?.content || "");
     date.value = moment(announcement.value.date).format("LL");
   }
 });
 
+defineExpose({ announcement, contentToHtml, date });
 </script>
 
 <style lang="scss">

@@ -2,23 +2,25 @@ import MockAdapter from "axios-mock-adapter";
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
+import { createPinia, setActivePinia } from "pinia";
 import { adminApi } from "@admin/api/http";
-import { store, key } from "../../../../../src/store";
+import useInstanceStore from "@admin/store/modules/instance";
 import ConfigureSSO from "../../../../../src/components/Instance/SSO/ConfigureSSO.vue";
 
 type ConfigureSSOWrapper = VueWrapper<InstanceType<typeof ConfigureSSO>>;
 
 describe("Configure SSO", () => {
   let wrapper: ConfigureSSOWrapper;
-
   let adminMock: MockAdapter;
 
   const vuetify = createVuetify();
 
   beforeEach(async () => {
+    setActivePinia(createPinia());
+
     wrapper = mount(ConfigureSSO, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify],
       },
     });
 
@@ -27,7 +29,7 @@ describe("Configure SSO", () => {
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
@@ -39,11 +41,12 @@ describe("Configure SSO", () => {
     wrapper.vm.IdPMetadataURL = "https://example.com/metadata";
 
     await wrapper.findComponent("[data-test='close-btn']").trigger("click");
+
     expect(wrapper.vm.IdPMetadataURL).toBe("");
     expect(wrapper.vm.checkbox).toBe(false);
   });
 
-  it("disables save button if required fields are empty", async () => {
+  it("disables save button if required fields are empty", () => {
     wrapper.vm.checkbox = true;
     wrapper.vm.IdPMetadataURL = "";
 
@@ -61,29 +64,31 @@ describe("Configure SSO", () => {
 
     await wrapper.findComponent("[data-test='advanced-settings-title']").trigger("click");
     await wrapper.findComponent("[data-test='remove-mapping-btn']").trigger("click");
+
     expect(wrapper.vm.mappings.length).toBe(0);
   });
 
-  it("calls Vuex action on save", async () => {
+  it("calls store action on save", async () => {
     adminMock = new MockAdapter(adminApi.getAxios());
     adminMock.onPut("http://localhost:3000/admin/api/authentication/saml").reply(200);
+
+    const instanceStore = useInstanceStore();
+    const storeSpy = vi.spyOn(instanceStore, "updateSamlAuthentication").mockResolvedValue();
+
     await wrapper.findComponent('[data-test="checkbox-idp-metadata"]').setValue(true);
-
     await wrapper.findComponent('[data-test="idp-metadata-url"]').setValue("https://example.co/metadata");
-
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent("[data-test='save-btn']").trigger("click");
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith("instance/updateSamlAuthentication", {
+    expect(storeSpy).toHaveBeenCalledWith({
       enable: true,
       idp: {
-        mappings: {
-          "": "",
-        },
         metadata_url: "https://example.co/metadata",
+        mappings: {
+          email: "",
+          name: "",
+        },
       },
       sp: {
         sign_requests: false,

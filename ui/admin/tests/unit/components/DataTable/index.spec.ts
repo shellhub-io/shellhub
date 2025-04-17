@@ -93,26 +93,24 @@ describe("DataTable", () => {
     expect(wrapper.vm.items).toEqual(itemsTable);
   });
 
-  it("Should be emmited 'clickNextPage' function when click on next page button", async () => {
-    const emmited = wrapper.emitted();
+  it("Should emit 'clickNextPage' when clicking the next page button", async () => {
     await wrapper.find(".mdi-chevron-right").trigger("click");
-    expect(emmited.clickNextPage.length).toBeTruthy();
-    expect(emmited.clickNextPage.length).toBe(1);
+    const emitted = wrapper.emitted("clickNextPage");
+    expect(emitted).toBeTruthy();
+    expect(emitted?.length).toBe(1);
   });
 
-  it("Should be emmited 'clickPrevPage' function when click on next page button", async () => {
-    const emmited = wrapper.emitted();
-    await wrapper.find(".mdi-chevron-right").trigger("click");
-    expect(emmited.clickNextPage.length).toBeTruthy();
-    expect(emmited.clickNextPage.length).toBe(1);
+  it("Should emit 'clickPreviousPage' when clicking the previous page button", async () => {
+    await wrapper.find(".mdi-chevron-left").trigger("click");
+    const emitted = wrapper.emitted("clickPreviousPage");
+    expect(emitted).toBeTruthy();
+    expect(emitted?.length).toBe(1);
   });
 
-  it("Should be emmited 'changeItemsPerPage' function when click on next page button", async () => {
-    const emmited = wrapper.emitted();
-    await wrapper.find("div.v-combobox").trigger("click");
-    await wrapper.setProps({
-      itemsPerPage: 20,
-    });
-    expect(emmited.changeItemsPerPage.length).toBeTruthy();
+  it("Should emit 'changeItemsPerPage' when a new itemsPerPage is selected", async () => {
+    await wrapper.findComponent({ name: "VCombobox" }).vm.$emit("update:modelValue", 20);
+    const emitted = wrapper.emitted("changeItemsPerPage");
+    expect(emitted).toBeTruthy();
+    expect(emitted?.[0]).toEqual([20]);
   });
 });

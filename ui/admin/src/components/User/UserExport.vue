@@ -120,4 +120,6 @@ const onSubmit = async () => {
     snackbarStore.showSnackbarErrorAction(INotificationsError.exportUsers);
   }
 };
+
+defineExpose({ gtNumberOfNamespaces, eqNumberOfNamespaces, dialog, selected });
 </script>

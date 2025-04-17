@@ -1,9 +1,10 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+
 import SnackbarCopy from "../../../../../src/components/Snackbar/SnackbarCopy.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type SnackbarCopyWrapper = VueWrapper<InstanceType<typeof SnackbarCopy>>;
@@ -12,45 +13,51 @@ const mainContent = "Command";
 const snackbarCopy = true;
 const message = `${mainContent} copied to clipboard.`;
 
-const vuetify = createVuetify();
-
-const store = createStore({
-  state: {
-    snackbarCopy,
-  },
-  getters: {
-    "snackbar/snackbarCopy": (state) => state.snackbarCopy,
-  },
-  actions: {
-    "snackbar/unsetShowStatusSnackbarCopy": vi.fn(),
-  },
-});
-
-describe("Device Icon", () => {
+describe("SnackbarCopy", () => {
   let wrapper: SnackbarCopyWrapper;
+  let snackbarStore: ReturnType<typeof useSnackbarStore>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    setActivePinia(createPinia());
+    const vuetify = createVuetify();
+
+    snackbarStore = useSnackbarStore();
+    snackbarStore.snackbarCopy = snackbarCopy;
+    vi.spyOn(snackbarStore, "unsetShowStatusSnackbarCopy");
+
     wrapper = shallowMount(SnackbarCopy, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
-      propsData: { mainContent },
+      props: {
+        mainContent,
+      },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Receive data in props", () => {
+  it("Receives data in props", () => {
     expect(wrapper.vm.mainContent).toEqual(mainContent);
   });
-  it("Process data in the computed", async () => {
-    expect(wrapper.vm.snackbar).toEqual(snackbarCopy);
+
+  it("Processes data in computed properties", () => {
+    expect(wrapper.vm.snackbar).toBe(true);
     expect(wrapper.vm.message).toEqual(message);
+  });
+
+  it("Calls unsetShowStatusSnackbarCopy after timeout", async () => {
+    wrapper.vm.snackbar = false;
+
+    vi.runAllTimers();
+
+    expect(snackbarStore.unsetShowStatusSnackbarCopy).toHaveBeenCalled();
   });
 });

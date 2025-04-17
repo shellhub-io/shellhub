@@ -1,9 +1,11 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import { INotificationsError } from "@admin/interfaces/INotifications";
 import FirewallRulesList from "../../../../../src/components/FirewallRules/FirewallRulesList.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type FirewallRulesListWrapper = VueWrapper<InstanceType<typeof FirewallRulesList>>;
@@ -23,7 +25,7 @@ const firewallRules = [
     action: "allow",
     active: true,
     filter: {
-      tag: ["xxxx", "yyyy"],
+      tags: ["xxxx", "yyyy"],
     },
     id: "5f1996c84d2190a22d5857bb",
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -34,36 +36,31 @@ const firewallRules = [
   },
 ];
 
-const firewallRulesTest = firewallRules;
-
-const store = createStore({
-  state: {
-    firewallRules,
-  },
-  getters: {
-    "firewallRules/list": (state) => state.firewallRules,
-    "firewallRules/numberFirewalls": (state) => state.firewallRules.length,
-  },
-  actions: {
-    "firewallRules/fetch": vi.fn(),
-  },
-});
-
 describe("Firewall Rules List", () => {
   let wrapper: FirewallRulesListWrapper;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
+
     const vuetify = createVuetify();
+    const firewallRulesStore = useFirewallRulesStore();
+    const snackbarStore = useSnackbarStore();
+
+    firewallRulesStore.firewalls = firewallRules;
+    firewallRulesStore.numberFirewalls = firewallRules.length;
+
+    vi.spyOn(firewallRulesStore, "fetch").mockResolvedValue(true);
+    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.firewallRuleList);
 
     wrapper = mount(FirewallRulesList, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
@@ -80,8 +77,7 @@ describe("Firewall Rules List", () => {
   });
 
   it("Renders data in the computed", async () => {
-    const firewallRules = await wrapper.vm.firewallRules;
-    expect(firewallRules).toEqual(firewallRulesTest);
+    expect(wrapper.vm.firewallRules).toEqual(firewallRules);
   });
 
   it('should show "Any Ip" when column is "source Ip" and regex is ".*"', () => {

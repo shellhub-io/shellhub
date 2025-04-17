@@ -1,47 +1,43 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import Snackbar from "../../../../src/components/Snackbar/Snackbar.vue";
-import { key } from "../../../../src/store";
 import router from "../../../../src/router";
 
 type SnackbarWrapper = VueWrapper<InstanceType<typeof Snackbar>>;
 
-const snackbarMessageAndContentType = {
-  typeMessage: "",
-  typeContent: "",
-};
-const store = createStore({
-  state: {
-    snackbarMessageAndContentType,
-  },
-  getters: {
-    "snackbar/snackbarMessageAndContentType": (state) => state.snackbarMessageAndContentType,
-  },
-  actions: {},
-});
-
-describe("Device Icon", () => {
+describe("Snackbar.vue", () => {
   let wrapper: SnackbarWrapper;
+  const vuetify = createVuetify();
 
   beforeEach(() => {
-    const vuetify = createVuetify();
+    setActivePinia(createPinia());
+
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.snackbarMessageAndContentType = {
+      typeMessage: "",
+      typeContent: "",
+    };
 
     wrapper = shallowMount(Snackbar, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
       },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
+
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it("Process data in the computed", () => {
-    expect(wrapper.vm.message).toEqual(snackbarMessageAndContentType);
+
+  it("Processes data from the computed property", () => {
+    const store = useSnackbarStore();
+    expect(wrapper.vm.message).toEqual(store.getSnackbarMessageAndContentType);
   });
 });

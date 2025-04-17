@@ -129,6 +129,8 @@ const goToDevice = (deviceId: string) => {
 };
 
 const sessionIsEmpty = computed(() => sessionStore.getSession && sessionStore.getSession.device_uid?.length === 0);
+
+defineExpose({ session });
 </script>
 
 <style scoped>

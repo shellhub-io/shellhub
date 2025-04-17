@@ -1,62 +1,59 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import SnackbarSucess from "../../../../../src/components/Snackbar/SnackbarSucess.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type SnackbarSucessWrapper = VueWrapper<InstanceType<typeof SnackbarSucess>>;
 
-const snackbarSuccess = true;
-let typeMessage = "action";
-const mainContent = "renaming device";
-const actionMessage = `The ${mainContent} has succeeded.`;
-const defaultMessage = "The request has succeeded.";
-const vuetify = createVuetify();
-
-const store = createStore({
-  state: {
-    snackbarSuccess,
-  },
-  getters: {
-    "snackbar/snackbarSuccess": (state) => state.snackbarSuccess,
-  },
-  actions: {
-    "snackbar/unsetShowStatusSnackbarSuccess": () => vi.fn(),
-  },
-});
-
-describe("Device Icon", () => {
+describe("SnackbarSucess", () => {
   let wrapper: SnackbarSucessWrapper;
+  const vuetify = createVuetify();
+
+  const mountComponent = (typeMessage: string, mainContent: string) => {
+    const store = useSnackbarStore();
+    store.snackbarSuccess = true;
+
+    return shallowMount(SnackbarSucess, {
+      global: {
+        plugins: [vuetify, routes],
+      },
+      props: {
+        typeMessage,
+        mainContent,
+      },
+    });
+  };
 
   beforeEach(() => {
-    wrapper = shallowMount(SnackbarSucess, {
-      global: {
-        plugins: [[store, key], vuetify, routes],
-      },
-      propsData: { typeMessage, mainContent },
-    });
+    setActivePinia(createPinia());
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    wrapper = mountComponent("action", "renaming device");
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
+    wrapper = mountComponent("action", "renaming device");
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the correct message", () => {
-    expect(wrapper.vm.snackbar).toEqual(snackbarSuccess);
-    expect(wrapper.vm.message).toEqual(actionMessage);
-    typeMessage = "default";
-    wrapper = shallowMount(SnackbarSucess, {
-      global: {
-        plugins: [[store, key], vuetify, routes],
-      },
-      propsData: { typeMessage, mainContent },
-    });
-    expect(wrapper.vm.message).toEqual(defaultMessage);
+  it("Processes message for 'action'", () => {
+    wrapper = mountComponent("action", "renaming device");
+    expect(wrapper.vm.snackbar).toBe(true);
+    expect(wrapper.vm.message).toBe("The renaming device has succeeded.");
+  });
+
+  it("Processes message for 'default'", () => {
+    wrapper = mountComponent("default", "renaming device");
+    expect(wrapper.vm.message).toBe("The request has succeeded.");
+  });
+
+  it("Processes message for 'no-content'", () => {
+    wrapper = mountComponent("no-content", "export");
+    expect(wrapper.vm.message).toBe("There is no content to export");
   });
 });
