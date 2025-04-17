@@ -6,6 +6,7 @@ import { State } from "..";
 export interface SessionsState {
   sessions: Array<ISessions>;
   session: ISessions;
+  sessionLogs: string | null;
   numberSessions: number;
   page: number;
   perPage: number;
@@ -16,6 +17,7 @@ export const sessions: Module<SessionsState, State> = {
   state: {
     sessions: [],
     session: {} as ISessions,
+    sessionLogs: null,
     numberSessions: 0,
     page: 1,
     perPage: 10,
@@ -24,6 +26,7 @@ export const sessions: Module<SessionsState, State> = {
   getters: {
     list: (state) => state.sessions,
     get: (state) => state.session,
+    getLogs: (state) => state.sessionLogs,
     getNumberSessions: (state) => state.numberSessions,
     getPage: (state) => state.page,
     getPerPage: (state) => state.perPage,
@@ -37,6 +40,10 @@ export const sessions: Module<SessionsState, State> = {
 
     setSession: (state, res) => {
       state.session = res.data;
+    },
+
+    setSessionLogs: (state, res) => {
+      state.sessionLogs = res.data;
     },
 
     setPagePerpage: (state, data) => {
@@ -54,8 +61,12 @@ export const sessions: Module<SessionsState, State> = {
       state.numberSessions = 0;
     },
 
-    clearObjectSession: (state) => {
+    clearSession: (state) => {
       state.session = {} as ISessions;
+    },
+
+    clearSessionLogs: (state) => {
+      state.sessionLogs = null;
     },
 
     removeRecordedSession: (state) => {
@@ -105,12 +116,12 @@ export const sessions: Module<SessionsState, State> = {
       }
     },
 
-    getLogSession: async (context, uid) => {
+    getSessionLogs: async (context, uid) => {
       try {
         const res = await apiSession.getLog(uid);
-        context.commit("setSession", res);
+        context.commit("setSessionLogs", res);
       } catch (error) {
-        context.commit("clearObjectSession");
+        context.commit("clearSessionLogs");
         throw error;
       }
     },

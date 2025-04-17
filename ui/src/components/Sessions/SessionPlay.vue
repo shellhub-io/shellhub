@@ -67,16 +67,16 @@ const store = useStore();
 const logs = ref<string | null>(null);
 const isCommunity = computed(() => envVariables.isCommunity);
 
-const getSessions = async () => {
+const getSessionLogs = async () => {
   if (props.recorded) {
-    await store.dispatch("sessions/getLogSession", props.uid);
-    logs.value = store.getters["sessions/get"];
+    await store.dispatch("sessions/getSessionLogs", props.uid);
+    logs.value = store.getters["sessions/getLogs"];
   }
 };
 
 const displayDialog = async () => {
   try {
-    await getSessions();
+    await getSessionLogs();
     showDialog.value = true;
   } catch (error: unknown) {
     store.dispatch(
