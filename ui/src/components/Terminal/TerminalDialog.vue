@@ -412,7 +412,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keyup", handleEscKey);
 });
 
-defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, connect, privateKey, xterm, fitAddon, ws, close });
+defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, submitForm, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
 
 <style lang="scss" scoped>
