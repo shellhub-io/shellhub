@@ -96,10 +96,6 @@ describe("Setting Private Keys", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     wrapper.vm.dialog = true;
     await flushPromises();

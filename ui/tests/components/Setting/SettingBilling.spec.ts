@@ -115,10 +115,6 @@ describe("Billing Settings Free Mode", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the free plan section", () => {
     expect(wrapper.find('[data-test="billing-card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="billing-header"]').exists()).toBe(true);

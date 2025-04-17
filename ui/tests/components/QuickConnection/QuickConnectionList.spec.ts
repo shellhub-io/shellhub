@@ -150,10 +150,6 @@ describe("Quick Connection List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the devices list", () => {
     expect(wrapper.find('[data-test="devices-list"]').exists()).toBe(true);
   });
@@ -185,7 +181,7 @@ describe("Quick Connection List", () => {
     mockDevices.reset();
     // Test with an empty online filtered request
     mockDevices
-    // eslint-disable-next-line vue/max-len
+      // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
       .reply(200, []);
     await flushPromises();

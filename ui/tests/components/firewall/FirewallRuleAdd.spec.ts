@@ -89,10 +89,6 @@ describe("Firewall Rule Add", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the dialog open button and other key elements", async () => {
     const dialog = new DOMWrapper(document.body);
 

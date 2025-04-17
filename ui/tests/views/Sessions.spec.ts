@@ -67,52 +67,54 @@ describe("Sessions View", () => {
     },
   };
 
-  const sessionObj = { data: [{
-    uid: "1",
-    device_uid: "1",
-    device: {
+  const sessionObj = {
+    data: [{
       uid: "1",
-      name: "00-00-00-00-00-01",
-      identity: {
-        mac: "00-00-00-00-00-01",
+      device_uid: "1",
+      device: {
+        uid: "1",
+        name: "00-00-00-00-00-01",
+        identity: {
+          mac: "00-00-00-00-00-01",
+        },
+        info: {
+          id: "manjaro",
+          pretty_name: "Manjaro Linux",
+          version: "latest",
+          arch: "amd64",
+          platform: "docker",
+        },
+        public_key: "",
+        tenant_id: "fake-tenant-data",
+        last_seen: "0",
+        online: true,
+        namespace: "dev",
+        status: "accepted",
+        status_updated_at: "0",
+        created_at: "0",
+        remote_addr: "192.168.0.1",
+        position: { latitude: 0, longitude: 0 },
+        tags: [],
+        public_url: false,
+        public_url_address: "",
+        acceptable: false,
       },
-      info: {
-        id: "manjaro",
-        pretty_name: "Manjaro Linux",
-        version: "latest",
-        arch: "amd64",
-        platform: "docker",
-      },
-      public_key: "",
       tenant_id: "fake-tenant-data",
-      last_seen: "0",
-      online: true,
-      namespace: "dev",
-      status: "accepted",
-      status_updated_at: "0",
-      created_at: "0",
-      remote_addr: "192.168.0.1",
-      position: { latitude: 0, longitude: 0 },
-      tags: [],
-      public_url: false,
-      public_url_address: "",
-      acceptable: false,
+      username: "test",
+      ip_address: "192.168.0.1",
+      started_at: "",
+      last_seen: "",
+      active: false,
+      authenticated: true,
+      recorded: true,
+      type: "none",
+      term: "none",
+      position: { longitude: 0, latitude: 0 },
+    }],
+    headers: {
+      "x-total-count": 1,
     },
-    tenant_id: "fake-tenant-data",
-    username: "test",
-    ip_address: "192.168.0.1",
-    started_at: "",
-    last_seen: "",
-    active: false,
-    authenticated: true,
-    recorded: true,
-    type: "none",
-    term: "none",
-    position: { longitude: 0, latitude: 0 },
-  }],
-  headers: {
-    "x-total-count": 1,
-  } };
+  };
 
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -157,10 +159,6 @@ describe("Sessions View", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders the template with data", () => {

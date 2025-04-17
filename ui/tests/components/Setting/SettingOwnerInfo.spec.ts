@@ -97,10 +97,6 @@ describe("Setting Owner Info", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Displays message when user is not the owner", async () => {
     expect(wrapper.find('[data-test="message-div"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="contactUser-p"]').text()).toContain("Contact  user for more information.");

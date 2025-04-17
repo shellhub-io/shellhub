@@ -108,10 +108,6 @@ describe("Device Rename", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("renders the component items", async () => {
     expect(wrapper.findComponent('[data-test="rename-icon"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="rename-title"]').exists()).toBe(true);

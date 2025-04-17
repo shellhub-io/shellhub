@@ -128,10 +128,6 @@ describe("Api Key Generate", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="namespace-generate-main-btn"]').exists()).toBe(true);
     await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");

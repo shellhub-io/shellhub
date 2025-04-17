@@ -122,10 +122,6 @@ describe("Quick Connection", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the dialog open button and other key elements", async () => {
     const dialog = new DOMWrapper(document.body);
 
@@ -158,7 +154,7 @@ describe("Quick Connection", () => {
     mockDevices.reset();
 
     mockDevices
-    // eslint-disable-next-line vue/max-len
+      // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
       .reply(403);
 

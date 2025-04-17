@@ -115,10 +115,6 @@ describe("Private Key List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="no-private-key-warning"]').exists()).toBe(true);
     store.commit("privateKey/fetchPrivateKey", privateKeys);

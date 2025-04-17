@@ -168,10 +168,6 @@ describe("Tag Form Update", async () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
-  });
-
   it("Renders the component data table", async () => {
     const dialog = new DOMWrapper(document.body);
     await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });

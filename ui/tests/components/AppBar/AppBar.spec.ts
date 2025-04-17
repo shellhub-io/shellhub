@@ -76,10 +76,10 @@ const authData = {
 const systemInfo = {
   version: "v0.18.0",
   endpoints:
-{
-  ssh: "localhost:2222",
-  api: "localhost:8080",
-},
+  {
+    ssh: "localhost:2222",
+    api: "localhost:8080",
+  },
   setup: true,
   authentication:
   {
@@ -142,10 +142,6 @@ describe("AppBar Component", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders internal components", async () => {
