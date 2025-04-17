@@ -1,12 +1,15 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
+import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
+import useInstanceStore from "@admin/store/modules/instance";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import { INotificationsCopy } from "@admin/interfaces/INotifications";
 import { adminApi } from "../../../../../src/api/http";
-import { store, key } from "../../../../../src/store";
 import SettingsAuthentication from "../../../../../src/components/Settings/SettingsAuthentication.vue";
+import routes from "../../../../../src/router";
 
-// Mock for clipboard
 Object.assign(navigator, {
   clipboard: {
     writeText: vi.fn(),
@@ -33,7 +36,7 @@ const authData = {
       },
     },
     sp: {
-      sign_auth_requests: true,
+      sign_requests: true,
       certificate: "test",
     },
   },
@@ -41,8 +44,6 @@ const authData = {
 
 describe("Authentication", () => {
   let wrapper: SettingsAuthenticationWrapper;
-
-  const vuetify = createVuetify();
   let mockAdminApi: MockAdapter;
 
   beforeEach(async () => {
@@ -57,12 +58,28 @@ describe("Authentication", () => {
       dispatchEvent: vi.fn(),
     }));
 
+    setActivePinia(createPinia());
+
+    const vuetify = createVuetify();
+
     mockAdminApi = new MockAdapter(adminApi.getAxios());
     mockAdminApi.onGet("http://localhost:3000/admin/api/authentication").reply(200, authData);
 
+    const instanceStore = useInstanceStore();
+    const snackbarStore = useSnackbarStore();
+
+    vi.spyOn(instanceStore, "fetchAuthenticationSettings").mockResolvedValue(undefined);
+    vi.spyOn(instanceStore, "updateLocalAuthentication").mockResolvedValue(undefined);
+    vi.spyOn(instanceStore, "updateSamlAuthentication").mockResolvedValue(undefined);
+    vi.spyOn(snackbarStore, "showSnackbarCopy").mockImplementation(() => INotificationsCopy.authenticationURL);
+    vi.spyOn(snackbarStore, "showSnackbarErrorCustom").mockImplementation(() => "You cannot disable all authentication methods.");
+    vi.spyOn(snackbarStore, "showSnackbarErrorDefault").mockImplementation(() => vi.fn());
+
+    instanceStore.authenticationSettings = authData;
+
     wrapper = mount(SettingsAuthentication, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify, routes],
       },
     });
 
@@ -70,7 +87,7 @@ describe("Authentication", () => {
   });
 
   it("is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("renders correctly", () => {
@@ -78,47 +95,36 @@ describe("Authentication", () => {
   });
 
   it("shows the SSO dialog when 'Configure' is clicked", async () => {
-    await wrapper.findComponent("[data-test='sso-config-btn']").trigger("click");
+    await wrapper.find("[data-test='sso-config-btn']").trigger("click");
     expect(wrapper.vm.dialogSSO).toBe(true);
   });
 
-  it("disables Local Authentication switch when action fails", async () => {
-    const errorSpy = vi.spyOn(store, "dispatch");
-    await wrapper.findComponent("[data-test='local-auth-switch']").trigger("click");
+  it("calls updateLocalAuthentication when clicking switch", async () => {
+    const instanceStore = useInstanceStore();
+    const spy = vi.spyOn(instanceStore, "updateLocalAuthentication");
 
-    expect(errorSpy).toHaveBeenCalledWith("instance/updateLocalAuthentication", true);
+    await wrapper.find("[data-test='local-auth-switch']").trigger("click");
+
+    expect(spy).toHaveBeenCalledWith(true);
   });
 
-  it("renders SAML settings when enabled", async () => {
-    wrapper.vm.samlEnabled = true;
-    await flushPromises();
-
-    expect(wrapper.findComponent("[data-test='idp-signon-value']").exists()).toBe(true);
-    expect(wrapper.findComponent("[data-test='idp-entity-value']").exists()).toBe(true);
+  it("renders SAML settings when enabled", () => {
+    expect(wrapper.find("[data-test='idp-signon-value']").exists()).toBe(true);
+    expect(wrapper.find("[data-test='idp-entity-value']").exists()).toBe(true);
   });
 
-  it("renders SP certificate when it has value", async () => {
-    expect(wrapper.findComponent("[data-test='download-certificate-btn']").exists()).toBe(true);
+  it("renders SP certificate button when certificate exists", () => {
+    expect(wrapper.find("[data-test='download-certificate-btn']").exists()).toBe(true);
   });
 
-  it("copies Assertion URL to clipboard when 'Copy URL' button is clicked", async () => {
-    const copyBtn = wrapper.find("[data-test='copy-assertion-btn']");
-    expect(copyBtn.exists()).toBe(true);
-
-    await copyBtn.trigger("click");
-
+  it("copies assertion URL to clipboard", async () => {
+    await wrapper.find("[data-test='copy-assertion-btn']").trigger("click");
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(authData.saml.assertion_url);
   });
 
-  it("redirects to Authentication URL when 'Redirect' button is clicked", async () => {
-    const redirectBtn = wrapper.find("[data-test='redirect-auth-btn']");
-    expect(redirectBtn.exists()).toBe(true);
-
-    const windowOpenSpy = vi.spyOn(window, "open");
-    windowOpenSpy.mockImplementation(() => null);
-
-    await redirectBtn.trigger("click");
-
-    expect(windowOpenSpy).toHaveBeenCalledWith(authData.saml.auth_url, "_blank");
+  it("opens authentication URL in new tab when 'Redirect' is clicked", async () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    await wrapper.find("[data-test='redirect-auth-btn']").trigger("click");
+    expect(openSpy).toHaveBeenCalledWith(authData.saml.auth_url, "_blank");
   });
 });

@@ -1,35 +1,35 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useAnnouncementStore from "@admin/store/modules/announcement";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import routes from "../../../../src/router";
 import NewAnnouncement from "../../../../src/views/NewAnnouncement.vue";
 
 type NewAnnouncementWrapper = VueWrapper<InstanceType<typeof NewAnnouncement>>;
 
 describe("New Announcement", () => {
-  const store = createStore({
-    state: {
-    },
-    getters: {
-    },
-    actions: {
-      "announcement/postAnnouncement": vi.fn(),
-      "announcement/getAnnouncements": vi.fn(),
-      "announcement/announcements": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
-
-  const vuetify = createVuetify();
-
   let wrapper: NewAnnouncementWrapper;
 
   beforeEach(() => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const announcementStore = useAnnouncementStore();
+    const snackbarStore = useSnackbarStore();
+
+    announcementStore.postAnnouncement = vi.fn();
+    announcementStore.fetchAnnouncements = vi.fn();
+
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+    snackbarStore.showSnackbarSuccessAction = vi.fn();
+
+    const vuetify = createVuetify();
+
     wrapper = mount(NewAnnouncement, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
       },
     });
   });
@@ -54,12 +54,12 @@ describe("New Announcement", () => {
     expect(wrapper.find("[data-test='announcement-btn-post']").exists()).toBeTruthy();
   });
 
-  it("Renders the error message when the Title are empty", async () => {
+  it("Renders the error message when the Title is empty", async () => {
     await wrapper.find("[data-test='announcement-btn-post']").trigger("click");
     expect(wrapper.vm.titleError).toBeTruthy();
   });
 
-  it("Renders the error message when the announcement are empty", async () => {
+  it("Renders the error message when the announcement is empty", async () => {
     wrapper.vm.title = "News ShellHub";
     await wrapper.find("[data-test='announcement-btn-post']").trigger("click");
     expect(wrapper.find("[data-test='announcement-error']").exists()).toBeTruthy();

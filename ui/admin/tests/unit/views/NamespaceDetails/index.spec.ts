@@ -1,14 +1,16 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useNamespacesStore from "@admin/store/modules/namespaces";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import { INamespace } from "@admin/interfaces/INamespace";
 import routes from "../../../../src/router";
 import NamespaceDetails from "../../../../src/views/NamespaceDetails.vue";
 
 type NamespaceDetailsWrapper = VueWrapper<InstanceType<typeof NamespaceDetails>>;
 
-const namespaceDetail = {
+const namespaceDetail: INamespace = {
   name: "dev",
   owner: "6256b739302b50b6cc5eafcc",
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -21,7 +23,7 @@ const namespaceDetail = {
     {
       id: "7326b239302b50b6cc5eafdd",
       username: "test",
-      role: "admin",
+      role: "administrator",
     },
   ],
   settings: {
@@ -30,7 +32,7 @@ const namespaceDetail = {
   max_devices: 0,
   devices_count: 1,
   created_at: "2022-04-13T11:43:24.668Z",
-  billing: null,
+  billing: undefined,
 };
 
 const mockRoute = {
@@ -39,43 +41,43 @@ const mockRoute = {
   },
 };
 
-describe("Firewall Rule Details", () => {
-  const store = createStore({
-    state: {
-      namespace: namespaceDetail,
-    },
-    getters: {
-      "namespaces/get": () => namespaceDetail,
-    },
-    actions: {
-      "namespaces/get": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
+describe("Namespace Details", () => {
   let wrapper: NamespaceDetailsWrapper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const namespaceStore = useNamespacesStore();
+    namespaceStore.get = vi.fn().mockResolvedValue(undefined);
+    namespaceStore.namespace = namespaceDetail;
+
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+
     const vuetify = createVuetify();
 
     wrapper = mount(NamespaceDetails, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
         mocks: {
           $route: mockRoute,
         },
       },
     });
+
+    await namespaceStore.get(mockRoute.params.id);
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBeTruthy();
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", async () => {
+  it("Has the correct data", () => {
     expect(wrapper.vm.namespace).toEqual(namespaceDetail);
   });
 
@@ -83,13 +85,13 @@ describe("Firewall Rule Details", () => {
     expect(wrapper.find("h1").text()).toEqual("Namespace Details");
   });
 
-  it("Should render the props of the FirewallRule in the Screen", () => {
+  it("Should render the props of the Namespace on screen", () => {
     expect(wrapper.find(`[data-test='${namespaceDetail.name}']`).text()).toContain(namespaceDetail.name);
-    expect(wrapper.find(`[data-test='${namespaceDetail.devices_count}']`).text()).toContain(namespaceDetail.devices_count);
+    expect(wrapper.find(`[data-test='${namespaceDetail.devices_count}']`).text()).toContain(String(namespaceDetail.devices_count));
     expect(wrapper.find(`[data-test='${namespaceDetail.owner}']`).text()).toContain(namespaceDetail.owner);
     expect(wrapper.find(`[data-test='${namespaceDetail.tenant_id}']`).text()).toContain(namespaceDetail.tenant_id);
     expect(wrapper.find(`[data-test='${namespaceDetail.settings.session_record}']`).text())
-      .toContain(namespaceDetail.settings.session_record);
+      .toContain(String(namespaceDetail.settings.session_record));
   });
 
   it("Should render the correct members list", () => {

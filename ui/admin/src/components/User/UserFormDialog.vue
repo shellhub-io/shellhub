@@ -139,7 +139,8 @@ import { ref, computed, watch, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
-import { useStore } from "../../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useUsersStore from "@admin/store/modules/users";
 import { INotificationsSuccess } from "../../interfaces/INotifications";
 
 type UserLocal = {
@@ -168,12 +169,13 @@ const props = defineProps({
 });
 
 const dialog = ref(false);
-const store = useStore();
 const showPassword = ref(false);
 const changeNamespaceLimit = ref(false);
 const disableNamespaceCreation = ref(false);
 const maxNamespaces = ref<number | undefined>(props.user?.max_namespaces || 0);
 const emailIsConfirmed = computed(() => props.user?.confirmed);
+const snackbarStore = useSnackbarStore();
+const userStore = useUsersStore();
 
 const { value: name,
   errorMessage: nameError,
@@ -265,21 +267,21 @@ const handleErrors = (error: AxiosError) => {
 const submitUser = async (isCreating: boolean, userData: Record<string, unknown>) => {
   try {
     if (isCreating) {
-      await store.dispatch("users/addUser", userData);
-      store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.addUser);
+      await userStore.addUser(userData);
+      snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.addUser);
     } else {
-      await store.dispatch("users/put", userData);
-      store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.userEdit);
+      await userStore.put(userData);
+      snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.userEdit);
     }
 
-    await store.dispatch("users/refresh");
+    await userStore.refresh();
     dialog.value = false;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       handleErrors(error as AxiosError);
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbarStore.showSnackbarErrorDefault();
     } else {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbarStore.showSnackbarErrorDefault();
     }
   }
 };
@@ -301,7 +303,7 @@ const onSubmit = handleSubmit(async () => {
     const userData = prepareUserData();
     await submitUser(!!props.createUser, userData);
   } else {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbarStore.showSnackbarErrorDefault();
   }
 });
 

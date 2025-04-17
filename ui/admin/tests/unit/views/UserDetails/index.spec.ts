@@ -1,12 +1,20 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
-import routes from "../../../../src/router";
+import { createPinia, setActivePinia } from "pinia";
+import useUsersStore from "@admin/store/modules/users";
+import useAuthStore from "@admin/store/modules/auth";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import UserDetails from "../../../../src/views/UserDetails.vue";
+import routes from "../../../../src/router";
 
 type UserDetailsWrapper = VueWrapper<InstanceType<typeof UserDetails>>;
+
+const mockRoute = {
+  params: {
+    id: "6256b739302b50b6cc5eafcc",
+  },
+};
 
 const user = {
   confirmed: true,
@@ -16,36 +24,32 @@ const user = {
   last_login: "0001-01-01T00:00:00Z",
   name: "antony",
   namespaces: 0,
-  password: "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+  password: "somepassword",
   username: "antony",
 };
 
-const mockRoute = {
-  params: {
-    id: "6256b739302b50b6cc5eafcc",
-  },
-};
-
 describe("User Details", () => {
-  const store = createStore({
-    state: {},
-    getters: {
-      "users/user": () => user,
-    },
-    actions: {
-      "users/get": vi.fn(),
-      "auth/loginToken": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
   let wrapper: UserDetailsWrapper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const usersStore = useUsersStore();
+    usersStore.get = vi.fn().mockResolvedValue(undefined);
+    usersStore.user = user;
+
+    const authStore = useAuthStore();
+    authStore.loginToken = vi.fn().mockResolvedValue("mock-token");
+
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+
     const vuetify = createVuetify();
 
     wrapper = mount(UserDetails, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
         mocks: {
           $route: mockRoute,
         },
@@ -61,7 +65,7 @@ describe("User Details", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", async () => {
+  it("Has the correct data", () => {
     expect(wrapper.vm.currentUser).toEqual(user);
   });
 
@@ -69,11 +73,11 @@ describe("User Details", () => {
     expect(wrapper.find("h1").text()).toEqual("User Details");
   });
 
-  it("Should render the props of the user in the Screen", () => {
-    expect(wrapper.find("[data-test='antony']").text()).toContain(user.name);
-    expect(wrapper.find("[data-test='antony@gmail.com']").text()).toContain(user.email);
-    expect(wrapper.find("[data-test='antony']").text()).toContain(user.username);
-    expect(wrapper.find("[data-test='0']").text()).toContain(user.namespaces);
+  it("Should render the props of the user in the screen", () => {
+    expect(wrapper.find(`[data-test='${user.id}']`).text()).toContain(user.id);
+    expect(wrapper.find(`[data-test='${user.email}']`).text()).toContain(user.email);
+    expect(wrapper.find(`[data-test='${user.username}']`).text()).toContain(user.username);
+    expect(wrapper.find(`[data-test='${user.namespaces}']`).text()).toContain(`${user.namespaces}`);
   });
 
   it("Should render the correct buttons", () => {

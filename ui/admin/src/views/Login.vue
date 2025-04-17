@@ -69,12 +69,14 @@ import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "../store";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useAuthStore from "@admin/store/modules/auth";
 import Logo from "../assets/logo-inverted.png";
 import { createNewClient } from "../api/http";
 
 const showPassword = ref(false);
-const store = useStore();
+const snackbarStore = useSnackbarStore();
+const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -90,8 +92,6 @@ const { value: password, errorMessage: passwordError } = useField<string | undef
   { initialValue: "" },
 );
 
-// const required = (value: string) => !!value || "Required.";
-
 const hasErrors = () => {
   if (usernameError.value || passwordError.value) {
     return true;
@@ -103,7 +103,7 @@ const hasErrors = () => {
 const login = async () => {
   if (!hasErrors() && username.value && password.value) {
     try {
-      await store.dispatch("auth/login", {
+      await authStore.login({
         username: username.value,
         password: password.value,
       });
@@ -114,10 +114,10 @@ const login = async () => {
         router.push("/");
       }
     } catch (error) {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbarStore.showSnackbarErrorDefault();
     }
   } else {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbarStore.showSnackbarErrorDefault();
   }
 };
 
