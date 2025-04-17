@@ -68,6 +68,37 @@ describe("Terminal Dialog", async () => {
     expect(wrapper.vm.showLoginForm).toBe(true);
   });
 
+  it("shows X button when terminal is open", async () => {
+    const dialog = new DOMWrapper(document.body);
+    const connectBtn = wrapper.find('[data-test="connect-btn"]');
+    await connectBtn.trigger("click");
+
+    wrapper.vm.showLoginForm = false;
+
+    await flushPromises();
+
+    const closeBtn = dialog.find('[data-test="close-terminal-btn"]');
+    expect(closeBtn.exists()).toBe(true);
+  });
+
+  it("submits form when Enter is pressed", async () => {
+    const submitFormSpy = vi.spyOn(wrapper.vm, "submitForm").mockImplementation(vi.fn());
+    const dialog = new DOMWrapper(document.body);
+    const connectBtn = wrapper.find('[data-test="connect-btn"]');
+
+    await connectBtn.trigger("click");
+
+    const usernameField = dialog.find('[data-test="username-field"] input');
+    const passwordField = dialog.find('[data-test="password-field"] input');
+
+    await usernameField.setValue("testuser");
+    await passwordField.setValue("testpass");
+
+    passwordField.trigger("keydown.enter.prevent");
+    await nextTick();
+    expect(submitFormSpy).toBeTruthy();
+  });
+
   it("encodes URL params correctly", () => {
     const params = { key1: "value1", key2: "value2" };
     const encodedParams = wrapper.vm.encodeURLParams(params);
