@@ -1,9 +1,9 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useAnnouncementStore from "@admin/store/modules/announcement";
 import AnnouncementEdit from "../../../../../src/components/Announcement/AnnouncementEdit.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type AnnouncementEditWrapper = VueWrapper<InstanceType<typeof AnnouncementEdit>>;
@@ -22,37 +22,30 @@ const propAnnouncement = {
 };
 
 describe("Announcement Edit", () => {
-  const store = createStore({
-    state: {
-      announcement,
-    },
-    getters: {
-      "announcement/announcement": () => announcement,
-    },
-    actions: {
-      "announcement/updateAnnouncement": vi.fn(),
-      "announcement/getAnnouncement": vi.fn(),
-      "announcement/announcement": vi.fn(),
-    },
-  });
-
   const vuetify = createVuetify();
-
   let wrapper: AnnouncementEditWrapper;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
+
+    const store = useAnnouncementStore();
+    store.announcement = announcement;
+    vi.spyOn(store, "fetchAnnouncement").mockImplementation(async () => {
+      store.announcement = announcement;
+    });
+
     wrapper = mount(AnnouncementEdit, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
       props: {
-        announcement: propAnnouncement,
+        announcementItem: propAnnouncement,
       },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
@@ -61,7 +54,9 @@ describe("Announcement Edit", () => {
 
   it("Renders the correct data", () => {
     expect(wrapper.vm.dialog).toBe(false);
-    expect(wrapper.vm.announcement).toStrictEqual(propAnnouncement);
+    expect(wrapper.vm.announcement.uuid).toBe(propAnnouncement.uuid);
+    expect(wrapper.vm.announcement.title).toBe(propAnnouncement.title);
+    expect(wrapper.vm.announcement.date).toBe(propAnnouncement.date);
     expect(wrapper.vm.contentInHtml).toBe("");
     expect(wrapper.vm.contentError).toBe(false);
     expect(wrapper.vm.title).toBe(announcement.title);

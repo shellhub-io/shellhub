@@ -92,8 +92,6 @@ const { value: password, errorMessage: passwordError } = useField<string | undef
   { initialValue: "" },
 );
 
-// const required = (value: string) => !!value || "Required.";
-
 const hasErrors = () => {
   if (usernameError.value || passwordError.value) {
     return true;

@@ -67,4 +67,6 @@ const remove = async () => {
     snackbarStore.showSnackbarErrorAction(INotificationsError.userDelete);
   }
 };
+
+defineExpose({ dialog });
 </script>

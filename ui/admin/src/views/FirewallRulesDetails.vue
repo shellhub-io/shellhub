@@ -117,7 +117,7 @@ onMounted(async () => {
   }
 });
 
-const firewallRuleIsEmpty = computed(() => firewallRulesStore.getFirewall && firewallRulesStore.getFirewall.id.length === 0);
+const firewallRuleIsEmpty = computed(() => !firewallRulesStore.getFirewall || !firewallRulesStore.getFirewall.id);
 
 const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
 
@@ -126,5 +126,6 @@ const formatUsername = (username: string) => (username === ".*" ? "All users" : 
 const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
 const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+
+defineExpose({ firewallRule });
 </script>
-S

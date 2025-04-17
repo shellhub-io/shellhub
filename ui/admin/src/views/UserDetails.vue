@@ -116,4 +116,6 @@ const loginToken = async () => {
     snackbarStore.showSnackbarErrorAction(INotificationsError.errorLoginToken);
   }
 };
+
+defineExpose({ currentUser });
 </script>

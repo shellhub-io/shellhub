@@ -8,26 +8,30 @@ import { store } from "../store";
 import router from "../router/index";
 
 setActivePinia(createPinia());
-const spinnerStore = useSpinnerStore();
-const authStore = useAuthStore();
-
 
 const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
+  const spinnerStore = useSpinnerStore();
   spinnerStore.setStatus(true);
   return config;
 };
 
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
+  const spinnerStore = useSpinnerStore();
+
   spinnerStore.setStatus(false);
   Promise.reject(error)
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
+  const spinnerStore = useSpinnerStore();
+
   spinnerStore.setStatus(false);
   return response;
 };
 
 const onResponseError = async (error: AxiosError): Promise<AxiosError> => {
+  const spinnerStore = useSpinnerStore();
+  const authStore = useAuthStore();
   spinnerStore.setStatus(false);
   if (error.response.status === 401) {
     await authStore.logout();
