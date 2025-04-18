@@ -39,13 +39,13 @@ func main() {
 				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
 			}
 
-			if os.Geteuid() == 0 && cfg.SingleUserPassword != "" {
+			if os.Geteuid() == 0 && cfg.SingleUserPassword != "" && cfg.EnablePasswordAuth {
 				log.Error("ShellHub agent cannot run as root when single-user mode is enabled.")
 				log.Error("To disable single-user mode unset SHELLHUB_SINGLE_USER_PASSWORD env.")
 				os.Exit(1)
 			}
 
-			if os.Geteuid() != 0 && cfg.SingleUserPassword == "" {
+			if os.Geteuid() != 0 && cfg.SingleUserPassword == "" && cfg.EnablePasswordAuth {
 				log.Error("When running as non-root user you need to set password for single-user mode by SHELLHUB_SINGLE_USER_PASSWORD environment variable.")
 				log.Error("You can use openssl passwd utility to generate password hash. The following algorithms are supported: bsd1, apr1, sha256, sha512.")
 				log.Error("Example: SHELLHUB_SINGLE_USER_PASSWORD=$(openssl passwd -6)")
