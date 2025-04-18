@@ -45,9 +45,10 @@ func (m *HostMode) Serve(agent *Agent) {
 			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
 		},
 		&server.Config{
-			PrivateKey:        agent.config.PrivateKey,
-			KeepAliveInterval: agent.config.KeepAliveInterval,
-			Features:          server.LocalPortForwardFeature,
+			PrivateKey:         agent.config.PrivateKey,
+			KeepAliveInterval:  agent.config.KeepAliveInterval,
+			Features:           server.LocalPortForwardFeature,
+			EnablePasswordAuth: agent.config.EnablePasswordAuth,
 		},
 	)
 

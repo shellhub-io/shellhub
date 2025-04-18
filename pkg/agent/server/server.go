@@ -95,6 +95,8 @@ type Config struct {
 	KeepAliveInterval uint32
 	// Features list of featues on SSH server.
 	Features Feature
+	// EnablePasswordAuth enables the password handler.
+	EnablePasswordAuth bool
 }
 
 // NewServer creates a new server SSH agent server.
@@ -112,7 +114,8 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 	}
 
 	server.sshd = &gliderssh.Server{
-		PasswordHandler:        server.passwordHandler,
+		// Activate PasswordHandler conditionally.
+		// It will be set below if cfg.EnablePasswordHandler is true.
 		PublicKeyHandler:       server.publicKeyHandler,
 		Handler:                server.sessionHandler,
 		SessionRequestCallback: server.sessionRequestCallback,
@@ -142,6 +145,10 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 			ChannelSession:     gliderssh.DefaultSessionHandler,
 			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
 		},
+	}
+
+	if cfg.EnablePasswordAuth {
+		server.sshd.PasswordHandler = server.passwordHandler
 	}
 
 	err := server.sshd.SetOption(gliderssh.HostKeyFile(cfg.PrivateKey))

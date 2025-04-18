@@ -127,6 +127,11 @@ type Config struct {
 	// MaxRetryConnectionTimeout specifies the maximum time, in seconds, that an agent will wait
 	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
 	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
+
+	// EnablePasswordHandler enables the password handler.
+	// This is used to enable the password authentication for the SSH server.
+	// This is required.
+	EnablePasswordAuth bool `env:"ENABLE_PASSWORD_AUTH,default=false"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
