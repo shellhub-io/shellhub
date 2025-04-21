@@ -163,29 +163,57 @@ func (a *Adapter) Ping() chan bool {
 }
 
 func (a *Adapter) Read(b []byte) (int, error) {
-	// Read() can be called concurrently, and we mutate some internal state here
-	a.readMutex.Lock()
-	defer a.readMutex.Unlock()
-
 	if a.reader == nil {
+		// Read() can be called concurrently, and we mutate some internal state here
+		a.Logger.Trace("Acquiring read mutex")
+		a.readMutex.Lock()
+		defer func() {
+			defer a.readMutex.Unlock()
+			a.Logger.Trace("Released read mutex")
+		}()
+
+		a.Logger.Debug("No active reader, getting next reader from WebSocket connection")
+
+		a.conn.SetReadDeadline(time.Now().Add(pongTimeout - pingInterval))
+
 		messageType, reader, err := a.conn.NextReader()
 		if err != nil {
+			a.Logger.WithError(err).Error("Failed to get next reader from WebSocket connection")
+
+			a.reader = nil
+
 			return 0, err
 		}
 
 		if messageType != websocket.BinaryMessage {
+			a.Logger.Error("Unexpected WebSocket message type", log.Fields{
+				"expected": websocket.BinaryMessage,
+				"received": messageType,
+			})
+
 			return 0, ErrUnexpectedMessageType
 		}
 
+		a.Logger.Debug("Successfully got binary message reader")
 		a.reader = reader
+
+		a.conn.SetReadDeadline(time.Time{})
 	}
+
+	a.Logger.Trace("Reading bytes from current WebSocket frame", log.Fields{
+		"buffer_size": len(b),
+	})
 
 	bytesRead, err := a.reader.Read(b)
 	if err != nil {
+		a.Logger.WithError(err).Debug("Error reading from WebSocket frame", log.Fields{
+			"bytes_read": bytesRead,
+		})
 		a.reader = nil
 
 		// EOF for the current Websocket frame, more will probably come so..
 		if errors.Is(err, io.EOF) {
+			a.Logger.Debug("End of current WebSocket frame reached, expecting more frames")
 			// .. we must hide this from the caller since our semantics are a
 			// stream of bytes across many frames
 			err = nil
@@ -194,7 +222,7 @@ func (a *Adapter) Read(b []byte) (int, error) {
 
 	a.Logger.WithError(err).
 		WithField("bytes", bytesRead).
-		Trace("bytes read from wsconnadapter")
+		Debug("Completed read operation")
 
 	return bytesRead, err
 }
