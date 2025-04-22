@@ -14,17 +14,16 @@
     </template>
 
     <v-dialog
-      v-model="showTerminal"
-      :fullscreen="!showLoginForm || $vuetify.display.smAndDown"
-      :max-width="$vuetify.display.smAndDown || !showLoginForm ? undefined : $vuetify.display.thresholds.sm"
+      v-model="showDialog"
+      :fullscreen="!showLoginForm || smAndDown"
+      :max-width="smAndDown || !showLoginForm ? undefined : thresholds.sm"
       @click:outside="close"
     >
       <v-card data-test="terminal-card" class="bg-v-theme-surface">
         <v-card-title
-          class="text-h5 pa-4 bg-primary d-flex align-center justify-center"
+          class="text-h5 pa-4 bg-primary d-flex align-center justify-space-between"
         >
           Terminal
-          <v-spacer />
           <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
         </v-card-title>
 
@@ -33,87 +32,71 @@
         </div>
 
         <div class="mt-2" v-if="showLoginForm">
-          <v-card-text>
-            <v-window>
-              <v-window-item :value="AuthMethods.Password">
-                <v-form @submit.prevent="submitForm">
-                  <v-container>
-                    <v-row>
-                      <v-col>
-                        <v-text-field
-                          v-model="username"
-                          :error-messages="usernameError"
-                          label="Username"
-                          autofocus
-                          hint="Enter an existing user on the device"
-                          persistent-hint
-                          persistent-placeholder
-                          :validate-on-blur="true"
-                          data-test="username-field"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col>
-                        <v-select
-                          v-model="authenticationMethod"
-                          :items="[AuthMethods.Password, AuthMethods.PrivateKey]"
-                          label="Authentication method"
-                          data-test="auth-method-select"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col>
-                        <v-select
-                          v-model="privateKey"
-                          v-if="authenticationMethod === AuthMethods.PrivateKey"
-                          :items="nameOfPrivateKeys"
-                          item-text="name"
-                          item-value="data"
-                          label="Private Key"
-                          hint="Select a private key file for authentication"
-                          persistent-hint
-                          data-test="private-keys-select"
-                        />
-                        <v-text-field
-                          color="primary"
-                          :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                          v-model="password"
-                          v-if="authenticationMethod === AuthMethods.Password"
-                          :error-messages="passwordError"
-                          label="Password"
-                          required
-                          hint="Enter a valid password for the user on the device"
-                          persistent-hint
-                          persistent-placeholder
-                          data-test="password-field"
-                          :type="showPassword ? 'text' : 'password'"
-                          @click:append-inner="showPassword = !showPassword"
-                        />
-                      </v-col>
-                    </v-row>
-                  </v-container>
+          <v-form @submit.prevent="submitForm" class="pa-4 d-flex flex-column ga-4">
+            <v-text-field
+              v-model="username"
+              :error-messages="usernameError"
+              label="Username"
+              autofocus
+              hint="Enter an existing user on the device"
+              persistent-hint
+              persistent-placeholder
+              :validate-on-blur="true"
+              data-test="username-field"
+            />
 
-                  <v-card-actions class="mt-4 d-flex justify-end">
-                    <v-btn
-                      @click="close"
-                      data-test="cancel-btn"
-                    >
-                      Cancel
-                    </v-btn>
-                    <v-btn
-                      type="submit"
-                      color="primary"
-                      data-test="submit-btn"
-                    >
-                      Connect
-                    </v-btn>
-                  </v-card-actions>
-                </v-form>
-              </v-window-item>
-            </v-window>
-          </v-card-text>
+            <v-select
+              class="mt-2"
+              v-model="authenticationMethod"
+              :items="[AuthMethods.Password, AuthMethods.PrivateKey]"
+              label="Authentication method"
+              data-test="auth-method-select"
+            />
+
+            <v-select
+              v-model="privateKey"
+              v-if="authenticationMethod === AuthMethods.PrivateKey"
+              :items="nameOfPrivateKeys"
+              item-text="name"
+              item-value="data"
+              label="Private Key"
+              hint="Select a private key file for authentication"
+              persistent-hint
+              data-test="private-keys-select"
+            />
+
+            <v-text-field
+              color="primary"
+              :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+              v-model="password"
+              v-if="authenticationMethod === AuthMethods.Password"
+              :error-messages="passwordError"
+              label="Password"
+              required
+              hint="Enter a valid password for the user on the device"
+              persistent-hint
+              persistent-placeholder
+              data-test="password-field"
+              :type="showPassword ? 'text' : 'password'"
+              @click:append-inner="showPassword = !showPassword"
+            />
+
+            <v-card-actions class="mt-4 d-flex justify-end">
+              <v-btn
+                @click="close"
+                data-test="cancel-btn"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                type="submit"
+                color="primary"
+                data-test="submit-btn"
+              >
+                Connect
+              </v-btn>
+            </v-card-actions>
+          </v-form>
         </div>
       </v-card>
     </v-dialog>
@@ -135,6 +118,7 @@ import * as yup from "yup";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
+import { useDisplay } from "vuetify";
 import { useStore } from "@/store";
 import {
   createKeyFingerprint,
