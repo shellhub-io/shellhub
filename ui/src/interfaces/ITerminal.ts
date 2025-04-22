@@ -3,3 +3,8 @@ export interface IConnectToTerminal {
   signature?: string;
   fingerprint?: string;
 }
+
+export enum TerminalAuthMethods {
+  Password = "Password",
+  PrivateKey = "Private Key",
+}

@@ -128,12 +128,8 @@ import {
 } from "@/utils/validate";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { IParams } from "@/interfaces/IParams";
-import { IConnectToTerminal } from "@/interfaces/ITerminal";
-
-enum AuthMethods {
-  Password = "Password",
-  PrivateKey = "Private Key",
-}
+import { IConnectToTerminal, TerminalAuthMethods } from "@/interfaces/ITerminal";
+import TerminalLoginForm from "./TerminalLoginForm.vue";
 
 enum MessageKind {
   Input = 1,
