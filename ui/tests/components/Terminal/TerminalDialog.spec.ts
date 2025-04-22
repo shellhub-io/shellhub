@@ -56,12 +56,12 @@ describe("Terminal Dialog", async () => {
     expect(dialog.find('[data-test="private-keys-select"]').exists()).toBe(true);
   });
 
-  it("sets showLoginForm to true when showTerminal changes to true", async () => {
-    watch(() => wrapper.vm.showTerminal, (value) => {
+  it("sets showLoginForm to true when showDialog changes to true", async () => {
+    watch(() => wrapper.vm.showDialog, (value) => {
       if (value) wrapper.vm.showLoginForm = true;
     });
 
-    wrapper.vm.showTerminal = true;
+    wrapper.vm.showDialog = true;
 
     await nextTick();
 
@@ -109,7 +109,7 @@ describe("Terminal Dialog", async () => {
   it("opens terminal and initializes xterm", () => {
     wrapper.vm.open();
 
-    expect(wrapper.vm.showTerminal).toBe(true);
+    expect(wrapper.vm.showDialog).toBe(true);
     expect(wrapper.vm.privateKey).toBe("");
     expect(wrapper.vm.xterm).toBeTruthy();
     expect(wrapper.vm.fitAddon).toBeTruthy();

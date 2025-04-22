@@ -184,7 +184,8 @@ const ws = ref<WebSocket>({} as WebSocket);
 const fitAddon = ref<FitAddon>({} as FitAddon);
 const terminal = ref<HTMLElement>({} as HTMLElement);
 const uid = computed(() => props.uid);
-const showTerminal = ref(store.getters["modal/terminal"] === uid.value);
+const showDialog = ref(store.getters["modal/terminal"] === uid.value);
+const { smAndDown, thresholds } = useDisplay();
 
 const {
   value: username,
@@ -220,7 +221,7 @@ useEventListener(window, "resize", () => {
   });
 });
 
-watch(showTerminal, (value) => {
+watch(showDialog, (value) => {
   if (!value) showLoginForm.value = true;
 });
 
@@ -313,7 +314,7 @@ const connect = async (params: IConnectToTerminal) => {
 };
 
 const open = () => {
-  showTerminal.value = true;
+  showDialog.value = true;
   privateKey.value = "";
 
   xterm.value = new Terminal({
@@ -384,7 +385,7 @@ const close = () => {
   if (ws.value.OPEN) {
     ws.value.close();
   }
-  showTerminal.value = false;
+  showDialog.value = false;
   xterm.value.clear();
   resetFieldValidation();
   store.dispatch("modal/toggleTerminal", "");
