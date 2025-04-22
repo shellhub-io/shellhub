@@ -135,6 +135,16 @@ enum AuthMethods {
   PrivateKey = "Private Key",
 }
 
+enum MessageKind {
+  Input = 1,
+  Resize,
+}
+
+interface Message {
+  kind: MessageKind;
+  data: unknown;
+}
+
 const { uid } = defineProps({
   enableConnectButton: {
     type: Boolean,
@@ -247,45 +257,35 @@ const connect = async (params: IConnectToTerminal) => {
       }/ws/ssh?${encodeURLParams(wsInfo)}`,
     );
 
-      enum MessageKind {
-        Input = 1,
-        Resize,
-      }
+    ws.value.onopen = () => {
+      fitAddon.value.fit();
+    };
 
-      interface Message {
-        kind: MessageKind;
-        data: unknown;
-      }
+    ws.value.onmessage = (ev) => {
+      xterm.value.write(ev.data);
+    };
 
-      ws.value.onopen = () => {
-        fitAddon.value.fit();
+    xterm.value.onData((data) => {
+      const message: Message = {
+        kind: MessageKind.Input,
+        data: [...enc.encode(data)],
       };
 
-      ws.value.onmessage = (ev) => {
-        xterm.value.write(ev.data);
+      ws.value.send(JSON.stringify(message));
+    });
+
+    xterm.value.onResize((data) => {
+      const message: Message = {
+        kind: MessageKind.Resize,
+        data: { cols: data.cols, rows: data.rows },
       };
 
-      xterm.value.onData((data) => {
-        const message: Message = {
-          kind: MessageKind.Input,
-          data: [...enc.encode(data)],
-        };
+      ws.value.send(JSON.stringify(message));
+    });
 
-        ws.value.send(JSON.stringify(message));
-      });
-
-      xterm.value.onResize((data) => {
-        const message: Message = {
-          kind: MessageKind.Resize,
-          data: { cols: data.cols, rows: data.rows },
-        };
-
-        ws.value.send(JSON.stringify(message));
-      });
-
-      ws.value.onclose = () => {
-        xterm.value.write("\r\nConnection ended");
-      };
+    ws.value.onclose = () => {
+      xterm.value.write("\r\nConnection ended");
+    };
   });
 };
 
