@@ -56,7 +56,7 @@
             <v-select
               v-model="privateKey"
               v-if="authenticationMethod === AuthMethods.PrivateKey"
-              :items="nameOfPrivateKeys"
+              :items="privateKeysNames"
               item-text="name"
               item-value="data"
               label="Private Key"
@@ -187,12 +187,9 @@ const webTermDimensions = computed(() => ({
   rows: xterm.value.rows,
 }));
 
-const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
+const privateKeys = store.getters["privateKey/list"];
 
-const nameOfPrivateKeys = computed(() => {
-  const list = getListPrivateKeys.value;
-  return list.map((item: IPrivateKey) => item.name);
-});
+const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 
 useEventListener(window, "resize", () => {
   nextTick(() => {
@@ -329,10 +326,7 @@ const connectWithPassword = () => {
   connect({ password: password.value });
 };
 
-const findPrivateKeyByName = (name: string) => {
-  const list = getListPrivateKeys.value;
-  return list.find((item: IPrivateKey) => item.name === name);
-};
+const findPrivateKeyByName = (name: string) => privateKeys.find((item: IPrivateKey) => item.name === name);
 
 const connectWithPrivateKey = async () => {
   const privateKeyData = findPrivateKeyByName(privateKey.value);
