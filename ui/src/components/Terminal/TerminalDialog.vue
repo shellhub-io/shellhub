@@ -126,8 +126,6 @@ import {
   computed,
   nextTick,
   watch,
-  onMounted,
-  onBeforeUnmount,
 } from "vue";
 import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
@@ -406,11 +404,7 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 useEventListener("keyup", handleEscKey);
 
-onBeforeUnmount(() => {
-  window.removeEventListener("keyup", handleEscKey);
-});
-
-defineExpose({ open, showTerminal, showLoginForm, encodeURLParams, submitForm, connect, privateKey, xterm, fitAddon, ws, close });
+defineExpose({ open, showDialog, showLoginForm, encodeURLParams, submitForm, connect, privateKey, xterm, fitAddon, ws, close });
 </script>
 
 <style lang="scss" scoped>
