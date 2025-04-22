@@ -31,73 +31,12 @@
           <div ref="terminal" class="terminal" />
         </div>
 
-        <div class="mt-2" v-if="showLoginForm">
-          <v-form @submit.prevent="submitForm" class="pa-5 d-flex flex-column ga-4">
-            <v-text-field
-              v-model="username"
-              :error-messages="usernameError"
-              label="Username"
-              autofocus
-              hint="Enter an existing user on the device"
-              persistent-hint
-              persistent-placeholder
-              :validate-on-blur="true"
-              data-test="username-field"
-            />
-
-            <v-select
-              class="mt-2"
-              v-model="authenticationMethod"
-              :items="[AuthMethods.Password, AuthMethods.PrivateKey]"
-              label="Authentication method"
-              data-test="auth-method-select"
-            />
-
-            <v-select
-              v-model="privateKey"
-              v-if="authenticationMethod === AuthMethods.PrivateKey"
-              :items="privateKeysNames"
-              item-text="name"
-              item-value="data"
-              label="Private Key"
-              hint="Select a private key file for authentication"
-              persistent-hint
-              data-test="private-keys-select"
-            />
-
-            <v-text-field
-              color="primary"
-              :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              v-model="password"
-              v-if="authenticationMethod === AuthMethods.Password"
-              :error-messages="passwordError"
-              label="Password"
-              required
-              hint="Enter a valid password for the user on the device"
-              persistent-hint
-              persistent-placeholder
-              data-test="password-field"
-              :type="showPassword ? 'text' : 'password'"
-              @click:append-inner="showPassword = !showPassword"
-            />
-
-            <v-card-actions class="mt-4 d-flex justify-end">
-              <v-btn
-                @click="close"
-                data-test="cancel-btn"
-              >
-                Cancel
-              </v-btn>
-              <v-btn
-                type="submit"
-                color="primary"
-                data-test="submit-btn"
-              >
-                Connect
-              </v-btn>
-            </v-card-actions>
-          </v-form>
-        </div>
+        <TerminalLoginForm
+          v-if="showLoginForm"
+          v-model:authenticationMethod="authenticationMethod"
+          @submit="(params) => submitForm(params)"
+          @close="close()"
+        />
       </v-card>
     </v-dialog>
   </div>
@@ -110,11 +49,9 @@ import {
   nextTick,
   watch,
 } from "vue";
-import { useField } from "vee-validate";
 import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
-import * as yup from "yup";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
@@ -126,7 +63,6 @@ import {
   createSignerPrivateKey,
   parsePrivateKeySsh,
 } from "@/utils/validate";
-import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { IParams } from "@/interfaces/IParams";
 import { IConnectToTerminal, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import TerminalLoginForm from "./TerminalLoginForm.vue";
@@ -161,10 +97,8 @@ const { uid } = defineProps({
 });
 const store = useStore();
 const route = useRoute();
-const authenticationMethod = ref(AuthMethods.Password);
-const showPassword = ref(false);
+const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showLoginForm = ref(true);
-const privateKey = ref("");
 const xterm = ref<(Terminal)>({} as Terminal);
 const ws = ref<WebSocket>({} as WebSocket);
 const fitAddon = ref<FitAddon>({} as FitAddon);
@@ -172,36 +106,10 @@ const terminal = ref<HTMLElement>({} as HTMLElement);
 const showDialog = ref(store.getters["modal/terminal"] === uid);
 const { smAndDown, thresholds } = useDisplay();
 
-const {
-  value: username,
-  errorMessage: usernameError,
-  resetField: resetUsername,
-} = useField<string>("username", yup.string().required(), {
-  initialValue: "",
-});
-
-const {
-  value: password,
-  errorMessage: passwordError,
-  resetField: resetPassword,
-} = useField<string>("password", yup.string().required(), {
-  initialValue: "",
-});
-
 const webTermDimensions = computed(() => ({
   cols: xterm.value.cols,
   rows: xterm.value.rows,
 }));
-
-const privateKeys = store.getters["privateKey/list"];
-
-const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
-
-useEventListener(window, "resize", () => {
-  nextTick(() => {
-    fitAddon.value.fit();
-  });
-});
 
 watch(showDialog, (value) => {
   if (!value) showLoginForm.value = true;
@@ -212,17 +120,8 @@ const encodeURLParams = (params: IParams) => Object.entries(params)
   .join("&");
 
 const connect = async (params: IConnectToTerminal) => {
-  if (params.password && !username.value && !password.value) {
-    return;
-  }
-
-  if (params.signature && !username.value && !privateKey.value) {
-    return;
-  }
-
   const response = await axios.post("/ws/ssh", {
     device: uid,
-    username: username.value,
     ...params,
   });
 
@@ -287,7 +186,6 @@ const connect = async (params: IConnectToTerminal) => {
 
 const open = () => {
   showDialog.value = true;
-  privateKey.value = "";
 
   xterm.value = new Terminal({
     cursorBlink: true,
@@ -313,41 +211,29 @@ watch(() => route.path, (path) => {
   }
 }, { immediate: true });
 
-const resetFieldValidation = () => {
-  resetUsername();
-  resetPassword();
-};
+const connectWithPrivateKey = async (params: IConnectToTerminal) => {
+  const { username, privateKey } = params;
+  const parsedPrivateKey = parsePrivateKeySsh(privateKey);
+  const fingerprint = await createKeyFingerprint(parsedPrivateKey);
 
-const connectWithPassword = () => {
-  connect({ password: password.value });
-};
-
-const findPrivateKeyByName = (name: string) => privateKeys.find((item: IPrivateKey) => item.name === name);
-
-const connectWithPrivateKey = async () => {
-  const privateKeyData = findPrivateKeyByName(privateKey.value);
-  const pk = parsePrivateKeySsh(privateKeyData.data);
   let signature;
-
-  if (pk.type === "ed25519") {
-    const signer = createSignerPrivateKey(pk, username.value);
+  if (parsedPrivateKey.type === "ed25519") {
+    const signer = createSignerPrivateKey(parsedPrivateKey, username);
     signature = signer;
   } else {
     signature = decodeURIComponent(await createSignatureOfPrivateKey(
-      privateKeyData.data,
-      username.value,
+      parsedPrivateKey,
+      username,
     ));
   }
-  const fingerprint = await createKeyFingerprint(privateKeyData.data);
-  connect({ fingerprint, signature });
+
+  connect({ username, fingerprint, signature });
 };
 
-const submitForm = () => {
-  if (authenticationMethod.value === AuthMethods.Password) {
-    connectWithPassword();
-  } else if (authenticationMethod.value === AuthMethods.PrivateKey) {
-    connectWithPrivateKey();
-  }
+const submitForm = (params) => {
+  if (params.authenticationMethod === TerminalAuthMethods.Password) {
+    connect(params);
+  } else connectWithPrivateKey(params);
 };
 
 const close = () => {
@@ -356,7 +242,6 @@ const close = () => {
   }
   showDialog.value = false;
   xterm.value.clear();
-  resetFieldValidation();
   store.dispatch("modal/toggleTerminal", "");
 };
 
@@ -374,7 +259,13 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 useEventListener("keyup", handleEscKey);
 
-defineExpose({ open, showDialog, showLoginForm, encodeURLParams, submitForm, connect, privateKey, xterm, fitAddon, ws, close });
+useEventListener(window, "resize", () => {
+  nextTick(() => {
+    fitAddon.value.fit();
+  });
+});
+
+defineExpose({ open, showDialog, showLoginForm, encodeURLParams, submitForm, connect, xterm, fitAddon, ws, close });
 </script>
 
 <style lang="scss" scoped>
