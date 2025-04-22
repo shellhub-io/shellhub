@@ -32,7 +32,7 @@
         </div>
 
         <div class="mt-2" v-if="showLoginForm">
-          <v-form @submit.prevent="submitForm" class="pa-4 d-flex flex-column ga-4">
+          <v-form @submit.prevent="submitForm" class="pa-5 d-flex flex-column ga-4">
             <v-text-field
               v-model="username"
               :error-messages="usernameError"
@@ -135,7 +135,7 @@ enum AuthMethods {
   PrivateKey = "Private Key",
 }
 
-const props = defineProps({
+const { uid } = defineProps({
   enableConnectButton: {
     type: Boolean,
     default: false,
@@ -152,10 +152,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  show: {
-    type: Boolean,
-    default: false,
-  },
 });
 const store = useStore();
 const route = useRoute();
@@ -167,8 +163,7 @@ const xterm = ref<(Terminal)>({} as Terminal);
 const ws = ref<WebSocket>({} as WebSocket);
 const fitAddon = ref<FitAddon>({} as FitAddon);
 const terminal = ref<HTMLElement>({} as HTMLElement);
-const uid = computed(() => props.uid);
-const showDialog = ref(store.getters["modal/terminal"] === uid.value);
+const showDialog = ref(store.getters["modal/terminal"] === uid);
 const { smAndDown, thresholds } = useDisplay();
 
 const {
@@ -223,7 +218,7 @@ const connect = async (params: IConnectToTerminal) => {
   }
 
   const response = await axios.post("/ws/ssh", {
-    device: props.uid,
+    device: uid,
     username: username.value,
     ...params,
   });
@@ -312,7 +307,7 @@ const open = () => {
   fitAddon.value = new FitAddon();
   xterm.value.loadAddon(fitAddon.value);
 
-  store.dispatch("modal/toggleTerminal", props.uid);
+  store.dispatch("modal/toggleTerminal", uid);
 
   if (xterm.value.element) {
     xterm.value.reset();
@@ -320,7 +315,7 @@ const open = () => {
 };
 
 watch(() => route.path, (path) => {
-  if (path === `/devices/${props.uid}/terminal`) {
+  if (path === `/devices/${uid}/terminal`) {
     open();
   }
 }, { immediate: true });
