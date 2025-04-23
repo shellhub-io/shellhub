@@ -27,14 +27,14 @@
           <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
         </v-card-title>
 
-        <div class="ma-0 pa-0 w-100 fill-height position-relative" v-if="!showLoginForm">
-          <div ref="terminal" class="terminal" />
-        </div>
-
         <TerminalLoginForm
           v-if="showLoginForm"
           @submit="(params) => handleSubmit(params)"
-          @close="close()"
+          @close="close"
+        />
+        <Terminal
+          v-else
+          :token
         />
       </v-card>
     </v-dialog>
@@ -42,15 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  nextTick,
-  watch,
-} from "vue";
-import "xterm/css/xterm.css";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
+import { ref, watch } from "vue";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
@@ -62,19 +54,9 @@ import {
   createSignerPrivateKey,
   parsePrivateKeySsh,
 } from "@/utils/validate";
-import { IParams } from "@/interfaces/IParams";
 import { IConnectToTerminal, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import TerminalLoginForm from "./TerminalLoginForm.vue";
-
-enum MessageKind {
-  Input = 1,
-  Resize,
-}
-
-interface Message {
-  kind: MessageKind;
-  data: unknown;
-}
+import Terminal from "./Terminal.vue";
 
 const { uid } = defineProps({
   enableConnectButton: {
@@ -94,29 +76,17 @@ const { uid } = defineProps({
     default: false,
   },
 });
+
 const store = useStore();
 const route = useRoute();
-const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showLoginForm = ref(true);
-const xterm = ref<(Terminal)>({} as Terminal);
-const ws = ref<WebSocket>({} as WebSocket);
-const fitAddon = ref<FitAddon>({} as FitAddon);
-const terminal = ref<HTMLElement>({} as HTMLElement);
 const showDialog = ref(store.getters["modal/terminal"] === uid);
 const { smAndDown, thresholds } = useDisplay();
-
-const webTermDimensions = computed(() => ({
-  cols: xterm.value.cols,
-  rows: xterm.value.rows,
-}));
+const token = ref("");
 
 watch(showDialog, (value) => {
   if (!value) showLoginForm.value = true;
 });
-
-const encodeURLParams = (params: IParams) => Object.entries(params)
-  .map(([key, value]) => `${key}=${value}`)
-  .join("&");
 
 const connect = async (params: IConnectToTerminal) => {
   const response = await axios.post("/ws/ssh", {
@@ -124,84 +94,14 @@ const connect = async (params: IConnectToTerminal) => {
     ...params,
   });
 
-  const { token } = response.data;
+  token.value = response.data.token;
 
   showLoginForm.value = false;
-  nextTick(() => {
-    if (!xterm.value.element) {
-      xterm.value.open(terminal.value);
-    }
-
-    xterm.value.focus();
-
-    let protocolConnectionURL = "";
-
-    if (window.location.protocol === "http:") {
-      protocolConnectionURL = "ws";
-    } else {
-      protocolConnectionURL = "wss";
-    }
-
-    const wsInfo = { token, ...webTermDimensions.value };
-
-    const enc = new TextEncoder();
-    ws.value = new WebSocket(
-      `${protocolConnectionURL}://${
-        window.location.host
-      }/ws/ssh?${encodeURLParams(wsInfo)}`,
-    );
-
-    ws.value.onopen = () => {
-      fitAddon.value.fit();
-    };
-
-    ws.value.onmessage = (ev) => {
-      xterm.value.write(ev.data);
-    };
-
-    xterm.value.onData((data) => {
-      const message: Message = {
-        kind: MessageKind.Input,
-        data: [...enc.encode(data)],
-      };
-
-      ws.value.send(JSON.stringify(message));
-    });
-
-    xterm.value.onResize((data) => {
-      const message: Message = {
-        kind: MessageKind.Resize,
-        data: { cols: data.cols, rows: data.rows },
-      };
-
-      ws.value.send(JSON.stringify(message));
-    });
-
-    ws.value.onclose = () => {
-      xterm.value.write("\r\nConnection ended");
-    };
-  });
 };
 
 const open = () => {
   showDialog.value = true;
-
-  xterm.value = new Terminal({
-    cursorBlink: true,
-    fontFamily: "monospace",
-    theme: {
-      background: "#0f1526",
-    },
-  });
-
-  fitAddon.value = new FitAddon();
-  xterm.value.loadAddon(fitAddon.value);
-
   store.dispatch("modal/toggleTerminal", uid);
-
-  if (xterm.value.element) {
-    xterm.value.reset();
-  }
 };
 
 watch(() => route.path, (path) => {
@@ -213,7 +113,7 @@ watch(() => route.path, (path) => {
 const connectWithPrivateKey = async (params: IConnectToTerminal) => {
   const { username, privateKey } = params;
   const parsedPrivateKey = parsePrivateKeySsh(privateKey);
-  const fingerprint = await createKeyFingerprint(parsedPrivateKey);
+  const fingerprint = await createKeyFingerprint(privateKey);
 
   let signature;
   if (parsedPrivateKey.type === "ed25519") {
@@ -236,11 +136,7 @@ const handleSubmit = (params) => {
 };
 
 const close = () => {
-  if (ws.value.OPEN) {
-    ws.value.close();
-  }
   showDialog.value = false;
-  xterm.value.clear();
   store.dispatch("modal/toggleTerminal", "");
 };
 
@@ -258,22 +154,5 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 useEventListener("keyup", handleEscKey);
 
-useEventListener(window, "resize", () => {
-  nextTick(() => {
-    fitAddon.value.fit();
-  });
-});
-
-defineExpose({ open, showDialog, showLoginForm, encodeURLParams, handleSubmit, connect, xterm, fitAddon, ws, close });
+defineExpose({ open, showDialog, showLoginForm, handleSubmit, connect, close });
 </script>
-
-<style lang="scss" scoped>
-.terminal {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0;
-  right:0;
-  margin-right: 0px;
-}
-</style>
