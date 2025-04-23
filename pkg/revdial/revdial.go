@@ -32,6 +32,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	log "github.com/sirupsen/logrus"
 )
@@ -57,10 +58,12 @@ type Dialer struct {
 
 	incomingConn chan net.Conn
 	pickupFailed chan error
-	connReady    chan bool
+	connReady    chan string
 	donec        chan struct{}
 	closeOnce    sync.Once
 	logger       *log.Entry
+
+	mu sync.Mutex
 }
 
 var dialers = sync.Map{}
@@ -77,7 +80,7 @@ func NewDialer(logger *log.Entry, c net.Conn, connPath string) *Dialer {
 		uniqID:       newUniqID(),
 		conn:         c,
 		donec:        make(chan struct{}),
-		connReady:    make(chan bool),
+		connReady:    make(chan string, 8),
 		incomingConn: make(chan net.Conn),
 		pickupFailed: make(chan error),
 		logger:       logger,
@@ -132,11 +135,25 @@ func (d *Dialer) close() {
 	close(d.donec)
 }
 
+func isEqual(c net.Conn, uuid string) bool {
+	adapter, ok := c.(*wsconnadapter.Adapter)
+	if !ok {
+		return false
+	}
+
+	return adapter.UUID == uuid
+}
+
 // Dial creates a new connection back to the Listener.
 func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	uuid := uuid.Generate()
+
 	// First, tell serve that we want a connection:
 	select {
-	case d.connReady <- true:
+	case d.connReady <- uuid:
 		d.logger.Debug("message true to conn ready channel")
 	case <-d.donec:
 		d.logger.Debug("dial done")
@@ -149,23 +166,35 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 	}
 
 	// Then pick it up:
-	select {
-	case c := <-d.incomingConn:
-		d.logger.Debug("new incoming connection")
+	for {
+		select {
+		case c := <-d.incomingConn:
+			d.logger.Debug("new incoming connection")
 
-		return c, nil
-	case err := <-d.pickupFailed:
-		d.logger.Debug("failed to pick-up connection")
+			if !isEqual(c, uuid) {
+				d.logger.Debug("skipping unmatch connection")
 
-		return nil, err
-	case <-d.donec:
-		d.logger.Debug("dial done on pick-up")
+				_ = c.Close()
 
-		return nil, ErrDialerClosed
-	case <-ctx.Done():
-		d.logger.Debug("dial done on pick-up due context cancellation")
+				continue
+			}
 
-		return nil, ctx.Err()
+			d.logger.Debug("using fresh connection")
+
+			return c, nil
+		case err := <-d.pickupFailed:
+			d.logger.Debug("failed to pick-up connection")
+
+			return nil, err
+		case <-d.donec:
+			d.logger.Debug("dial done on pick-up")
+
+			return nil, ErrDialerClosed
+		case <-ctx.Done():
+			d.logger.Debug("dial done on pick-up due context cancellation")
+
+			return nil, ctx.Err()
+		}
 	}
 }
 
@@ -233,11 +262,11 @@ func (d *Dialer) serve() error {
 		select {
 		case <-t.C:
 			continue
-		case <-d.connReady:
+		case uuid := <-d.connReady:
 			t.Stop()
 			if err := d.sendMessage(controlMsg{
 				Command:  "conn-ready",
-				ConnPath: d.pickupPath,
+				ConnPath: d.pickupPath + fmt.Sprintf("&uuid=%s", uuid),
 			}); err != nil {
 				d.logger.WithError(err).Debug("failed to send conn-ready message to device")
 
@@ -481,6 +510,7 @@ func (fakeAddr) String() string  { return "revdialconn" }
 func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		dialerUniq := r.FormValue(dialerUniqParam)
+		uuid := r.FormValue("uuid")
 
 		d, ok := dialers.Load(dialerUniq)
 		if !ok {
@@ -496,6 +526,9 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 			return
 		}
 
-		d.(*Dialer).matchConn(wsconnadapter.New(wsConn))
+		c := wsconnadapter.New(wsConn)
+		c.UUID = uuid
+
+		d.(*Dialer).matchConn(c)
 	})
 }

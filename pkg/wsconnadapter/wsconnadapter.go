@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -23,6 +24,7 @@ const (
 )
 
 type Adapter struct {
+	UUID       string
 	conn       *websocket.Conn
 	readMutex  sync.Mutex
 	writeMutex sync.Mutex
@@ -30,6 +32,7 @@ type Adapter struct {
 	stopPingCh chan struct{}
 	pongCh     chan bool
 	Logger     *log.Entry
+	CreatedAt  time.Time
 }
 
 func (a *Adapter) WithID(requestID string) *Adapter {
@@ -58,6 +61,7 @@ func New(conn *websocket.Conn) *Adapter {
 			Hooks:     log.StandardLogger().Hooks,
 			Level:     log.StandardLogger().Level,
 		}),
+		CreatedAt: clock.Now(),
 	}
 
 	return adapter
