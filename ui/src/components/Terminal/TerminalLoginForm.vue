@@ -74,10 +74,21 @@ import { TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { useStore } from "@/store";
 
-const emit = defineEmits(["submit", "close"]);
+interface FormData {
+  username: string;
+  password: string;
+  authenticationMethod: TerminalAuthMethods;
+  privateKey?: string;
+}
+
+const emit = defineEmits<{
+  submit: [formData: FormData];
+  close: [];
+}>();
+
 const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showPassword = ref(false);
-const privateKeys = useStore().getters["privateKey/list"];
+const privateKeys: Array<IPrivateKey> = useStore().getters["privateKey/list"];
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 
@@ -104,12 +115,12 @@ const submitForm = () => {
   }
 
   const selectedPrivateKey = privateKeys.find((item: IPrivateKey) => item.name === selectedPrivateKeyName.value);
-  const params = {
+  const formData = {
     username: username.value,
     password: password.value,
     authenticationMethod: authenticationMethod.value,
     privateKey: selectedPrivateKey?.data,
   };
-  emit("submit", params);
+  emit("submit", formData);
 };
 </script>
