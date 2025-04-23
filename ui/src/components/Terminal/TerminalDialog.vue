@@ -33,8 +33,7 @@
 
         <TerminalLoginForm
           v-if="showLoginForm"
-          v-model:authenticationMethod="authenticationMethod"
-          @submit="(params) => submitForm(params)"
+          @submit="(params) => handleSubmit(params)"
           @close="close()"
         />
       </v-card>
@@ -230,7 +229,7 @@ const connectWithPrivateKey = async (params: IConnectToTerminal) => {
   connect({ username, fingerprint, signature });
 };
 
-const submitForm = (params) => {
+const handleSubmit = (params) => {
   if (params.authenticationMethod === TerminalAuthMethods.Password) {
     connect(params);
   } else connectWithPrivateKey(params);
@@ -265,7 +264,7 @@ useEventListener(window, "resize", () => {
   });
 });
 
-defineExpose({ open, showDialog, showLoginForm, encodeURLParams, submitForm, connect, xterm, fitAddon, ws, close });
+defineExpose({ open, showDialog, showLoginForm, encodeURLParams, handleSubmit, connect, xterm, fitAddon, ws, close });
 </script>
 
 <style lang="scss" scoped>
