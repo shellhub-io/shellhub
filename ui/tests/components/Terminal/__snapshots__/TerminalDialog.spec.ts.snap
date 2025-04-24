@@ -1,12 +1,3 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Terminal Dialog > Renders the component 1`] = `
-"<div data-v-abcb598c=""><button data-v-abcb598c="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Connect</span>
-    <!---->
-    <!---->
-  </button>
-  <!---->
-  <!---->
-</div>"
-`;
+exports[`Terminal Dialog > Renders the component 1`] = `""`;

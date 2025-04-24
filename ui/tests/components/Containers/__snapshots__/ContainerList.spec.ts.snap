@@ -19,15 +19,13 @@ exports[`Container List > Renders the component 1`] = `
           </thead>
           <tbody data-v-046d4556="">
             <tr data-v-787abe29="">
-              <td data-v-787abe29="" class="text-center">
-                <div data-v-abcb598c="" data-v-787abe29="" data-test="terminalDialog-component"><button data-v-abcb598c="" type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" disabled="" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                    <!----><span class="v-btn__content" data-no-activator="">Offline</span>
-                    <!---->
-                    <!---->
-                  </button>
+              <td data-v-787abe29="" class="text-center"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" disabled="" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator="">Offline</span>
                   <!---->
                   <!---->
-                </div>
+                </button>
+                <!---->
+                <!---->
               </td>
               <td data-v-787abe29="" class="text-center">39-5e-2a</td>
               <td data-v-787abe29="" class="text-center"><i data-v-787abe29="" data-test="deviceIcon-component" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-787abe29="">Linux Mint 19.3</span></td>
@@ -62,15 +60,13 @@ exports[`Container List > Renders the component 1`] = `
               </td>
             </tr>
             <tr data-v-787abe29="">
-              <td data-v-787abe29="" class="text-center">
-                <div data-v-abcb598c="" data-v-787abe29="" data-test="terminalDialog-component"><button data-v-abcb598c="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                    <!----><span class="v-btn__content" data-no-activator="">Connect</span>
-                    <!---->
-                    <!---->
-                  </button>
+              <td data-v-787abe29="" class="text-center"><button data-v-35d3a308="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator="">Connect</span>
                   <!---->
                   <!---->
-                </div>
+                </button>
+                <!---->
+                <!---->
               </td>
               <td data-v-787abe29="" class="text-center">39-5e-2b</td>
               <td data-v-787abe29="" class="text-center"><i data-v-787abe29="" data-test="deviceIcon-component" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-787abe29="">Linux Mint 19.3</span></td>
