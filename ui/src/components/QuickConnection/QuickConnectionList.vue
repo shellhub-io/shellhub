@@ -10,7 +10,7 @@
       </v-card-title>
       <v-row>
         <v-col class="text-center d-flex justify-center pa-5">
-          <p data-test="no-online-devices-message">No online device was found!</p>
+          <p data-test="no-online-devices-message">There are currently no devices online.</p>
         </v-col>
       </v-row>
     </v-card>
