@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -243,11 +244,42 @@ func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
 
 		defer out.Close()
 
-		if _, err := io.Copy(out, in); errors.Is(err, io.ErrUnexpectedEOF) {
-			logger.WithError(err).Error("failed to copy the response to the client")
+		// Bidirectional copy between the client and the device.
+		var wg sync.WaitGroup
+		wg.Add(2)
 
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
-		}
+		done := sync.OnceFunc(func() {
+			defer in.Close()
+			defer out.Close()
+
+			logger.Trace("close called on in and out connections")
+		})
+
+		go func() {
+			defer done()
+			defer wg.Done()
+
+			if _, err := io.Copy(in, out); err != nil {
+				logger.WithError(err).Debug("in and out done returned a error")
+			}
+
+			logger.Trace("in and out done")
+		}()
+
+		go func() {
+			defer done()
+			defer wg.Done()
+
+			if _, err := io.Copy(out, in); err != nil {
+				logger.WithError(err).Debug("out and in done returned a error")
+			}
+
+			logger.Trace("out and in done")
+		}()
+
+		wg.Wait()
+
+		logger.Debug("http proxy is done")
 
 		return nil
 	})
