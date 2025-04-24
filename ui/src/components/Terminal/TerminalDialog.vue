@@ -50,7 +50,6 @@ const { deviceUid } = defineProps<{
 const store = useStore();
 const route = useRoute();
 const showLoginForm = ref(true);
-// const showDialog = ref(store.getters["modal/terminal"] === deviceUid);
 const showDialog = defineModel<boolean>();
 const { smAndDown, thresholds } = useDisplay();
 const token = ref("");
@@ -69,17 +68,6 @@ const connect = async (params: IConnectToTerminal) => {
 
   showLoginForm.value = false;
 };
-
-const open = () => {
-  showDialog.value = true;
-  store.dispatch("modal/toggleTerminal", deviceUid);
-};
-
-watch(() => route.path, (path) => {
-  if (path === `/devices/${deviceUid}/terminal`) {
-    open();
-  }
-}, { immediate: true });
 
 const connectWithPrivateKey = async (params: IConnectToTerminal) => {
   const { username, privateKey } = params;
@@ -125,5 +113,9 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 useEventListener("keyup", handleEscKey);
 
-defineExpose({ open, showDialog, showLoginForm, handleSubmit, connect, close });
+watch(() => route.path, (path) => {
+  if (path === `/devices/${deviceUid}/terminal`) showDialog.value = true;
+}, { immediate: true });
+
+defineExpose({ showDialog, showLoginForm, handleSubmit, connect, close });
 </script>
