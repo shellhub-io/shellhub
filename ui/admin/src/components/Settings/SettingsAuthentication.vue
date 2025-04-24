@@ -43,23 +43,24 @@
           />
         </v-col>
       </v-row>
-      <v-row>
-        <v-divider class="mt-4 mb-4" />
-      </v-row>
 
-      <v-row>
-        <v-col>
-          <v-card-title class="text-h6 text-center" data-test="sso-header">Single Sign-on (SSO)</v-card-title>
-          <v-card-subtitle
-            class="text-center"
-            data-test="sso-subtitle"
-          >
-            Single Sign-On (SSO) simplifies access by enabling users to authenticate
-            once and securely access multiple applications.
-          </v-card-subtitle>
-        </v-col>
-      </v-row>
       <div v-if="samlEnabled">
+        <v-row>
+          <v-divider class="mt-4 mb-4" />
+        </v-row>
+
+        <v-row>
+          <v-col>
+            <v-card-title class="text-h6 text-center" data-test="sso-header">Single Sign-on (SSO)</v-card-title>
+            <v-card-subtitle
+              class="text-center"
+              data-test="sso-subtitle"
+            >
+              Single Sign-On (SSO) simplifies access by enabling users to authenticate
+              once and securely access multiple applications.
+            </v-card-subtitle>
+          </v-col>
+        </v-row>
 
         <v-row cols="12" class="mt-2">
           <v-col md="10" sm="8">
@@ -158,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
 import { useStore } from "../../store";
@@ -171,11 +172,38 @@ onMounted(async () => {
   await store.dispatch("instance/fetchAuthenticationSettings");
 });
 
-const ssoSettings = ref(store.getters["instance/authenticationSettings"]);
-const certificate = ref(ssoSettings.value.saml.sp.certificate);
+const ssoSettings = computed(() => store.getters["instance/authenticationSettings"]);
+const certificate = computed(() => ssoSettings.value.saml.sp.certificate);
 
-const localEnabled = ref(store.getters["instance/isLocalAuthEnabled"]);
-const samlEnabled = ref(store.getters["instance/isSamlEnabled"]);
+const localEnabled = computed({
+  get: () => store.getters["instance/isLocalAuthEnabled"],
+  set: (val: boolean) => {
+    store.dispatch("instance/updateLocalAuthentication", val);
+  },
+});
+
+const samlEnabled = computed({
+  get: () => store.getters["instance/isSamlEnabled"],
+  set: (val: boolean) => {
+    if (val === false) {
+      const payload = {
+        enable: false,
+        idp: {
+          entity_id: "",
+          signon_url: "",
+          certificate: "",
+        },
+        sp: {
+          sign_requests: false,
+        },
+      };
+
+      store.dispatch("instance/updateSamlAuthentication", payload);
+    } else {
+      dialogSSO.value = true;
+    }
+  },
+});
 
 const changeLocalAuthStatus = async () => {
   try {

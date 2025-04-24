@@ -130,16 +130,16 @@ exports[`Authentication > renders correctly 1`] = `
         </div>
       </div>
     </div>
-    <div class="v-row">
-      <hr class="v-divider v-theme--light mt-4 mb-4" aria-orientation="horizontal" role="separator">
-    </div>
-    <div class="v-row">
-      <div class="v-col">
-        <div class="v-card-title text-h6 text-center" data-test="sso-header">Single Sign-on (SSO)</div>
-        <div class="v-card-subtitle text-center" data-test="sso-subtitle"> Single Sign-On (SSO) simplifies access by enabling users to authenticate once and securely access multiple applications. </div>
-      </div>
-    </div>
     <div>
+      <div class="v-row">
+        <hr class="v-divider v-theme--light mt-4 mb-4" aria-orientation="horizontal" role="separator">
+      </div>
+      <div class="v-row">
+        <div class="v-col">
+          <div class="v-card-title text-h6 text-center" data-test="sso-header">Single Sign-on (SSO)</div>
+          <div class="v-card-subtitle text-center" data-test="sso-subtitle"> Single Sign-On (SSO) simplifies access by enabling users to authenticate once and securely access multiple applications. </div>
+        </div>
+      </div>
       <div class="v-row mt-2" cols="12">
         <div class="v-col-sm-8 v-col-md-10 v-col">
           <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-label">
