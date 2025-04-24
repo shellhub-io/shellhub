@@ -5,12 +5,11 @@
   <v-card class="mt-2 bg-v-theme-surface" v-if="!deviceIsEmpty">
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <TerminalDialog
+        <TerminalConnectButton
           v-if="device.status === 'accepted'"
-          :enable-connect-button="true"
-          :uid="device.uid"
+          :deviceUid="device.uid"
           :online="device.online"
-          data-test="terminalDialog-component"
+          data-test="terminal-connect-btn"
         />
         <span class="ml-2">{{ device.name }}</span>
       </div>
@@ -144,7 +143,7 @@ import TunnelList from "../components/Tunnels/TunnelList.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import { INotificationsError } from "../interfaces/INotifications";
-import TerminalDialog from "../components/Terminal/TerminalDialog.vue";
+import TerminalConnectButton from "../components/Terminal/TerminalConnectButton.vue";
 import { formatFullDateTime } from "@/utils/date";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
@@ -194,5 +193,4 @@ const refreshUsers = async () => {
 const receiveName = (params: string) => {
   device.value.name = params;
 };
-
 </script>
