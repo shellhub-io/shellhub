@@ -1,44 +1,29 @@
 <template>
-  <div>
-    <template v-if="enableConnectButton">
-      <v-btn
-        :disabled="!online"
-        :color="online ? 'success' : 'normal'"
-        variant="outlined"
-        density="comfortable"
-        data-test="connect-btn"
-        @click="open()"
+  <v-dialog
+    v-model="showDialog"
+    :fullscreen="!showLoginForm || smAndDown"
+    :max-width="smAndDown || !showLoginForm ? undefined : thresholds.sm"
+    @click:outside="close"
+  >
+    <v-card data-test="terminal-card" class="bg-v-theme-surface">
+      <v-card-title
+        class="text-h5 pa-4 bg-primary d-flex align-center justify-space-between"
       >
-        {{ online ? "Connect" : "Offline" }}
-      </v-btn>
-    </template>
+        Terminal
+        <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
+      </v-card-title>
 
-    <v-dialog
-      v-model="showDialog"
-      :fullscreen="!showLoginForm || smAndDown"
-      :max-width="smAndDown || !showLoginForm ? undefined : thresholds.sm"
-      @click:outside="close"
-    >
-      <v-card data-test="terminal-card" class="bg-v-theme-surface">
-        <v-card-title
-          class="text-h5 pa-4 bg-primary d-flex align-center justify-space-between"
-        >
-          Terminal
-          <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
-        </v-card-title>
-
-        <TerminalLoginForm
-          v-if="showLoginForm"
-          @submit="(params) => handleSubmit(params)"
-          @close="close"
-        />
-        <Terminal
-          v-else
-          :token
-        />
-      </v-card>
-    </v-dialog>
-  </div>
+      <TerminalLoginForm
+        v-if="showLoginForm"
+        @submit="(params) => handleSubmit(params)"
+        @close="close"
+      />
+      <Terminal
+        v-else
+        :token
+      />
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -58,29 +43,15 @@ import { IConnectToTerminal, TerminalAuthMethods } from "@/interfaces/ITerminal"
 import TerminalLoginForm from "./TerminalLoginForm.vue";
 import Terminal from "./Terminal.vue";
 
-const { uid } = defineProps({
-  enableConnectButton: {
-    type: Boolean,
-    default: false,
-  },
-  enableConsoleIcon: {
-    type: Boolean,
-    default: false,
-  },
-  uid: {
-    type: String,
-    required: true,
-  },
-  online: {
-    type: Boolean,
-    default: false,
-  },
-});
+const { deviceUid } = defineProps<{
+  deviceUid: string;
+}>();
 
 const store = useStore();
 const route = useRoute();
 const showLoginForm = ref(true);
-const showDialog = ref(store.getters["modal/terminal"] === uid);
+// const showDialog = ref(store.getters["modal/terminal"] === deviceUid);
+const showDialog = defineModel<boolean>();
 const { smAndDown, thresholds } = useDisplay();
 const token = ref("");
 
@@ -90,7 +61,7 @@ watch(showDialog, (value) => {
 
 const connect = async (params: IConnectToTerminal) => {
   const response = await axios.post("/ws/ssh", {
-    device: uid,
+    device: deviceUid,
     ...params,
   });
 
@@ -101,11 +72,11 @@ const connect = async (params: IConnectToTerminal) => {
 
 const open = () => {
   showDialog.value = true;
-  store.dispatch("modal/toggleTerminal", uid);
+  store.dispatch("modal/toggleTerminal", deviceUid);
 };
 
 watch(() => route.path, (path) => {
-  if (path === `/devices/${uid}/terminal`) {
+  if (path === `/devices/${deviceUid}/terminal`) {
     open();
   }
 }, { immediate: true });
