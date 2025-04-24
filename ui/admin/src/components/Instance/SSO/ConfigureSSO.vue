@@ -246,7 +246,7 @@ const updateSAMLConfiguration = async () => {
   try {
     await store.dispatch("instance/updateSamlAuthentication", data);
     await store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.configureSaml);
-    dialog.value = false;
+    close();
   } catch {
     store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.namespaceLoad);
   }
