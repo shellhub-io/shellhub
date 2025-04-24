@@ -131,7 +131,7 @@ describe("Quick Connection", () => {
 
     expect(dialog.find('[data-test="search-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="hostname-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="os-header"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="operating-system-header"]').exists()).toBe(true);
     expect(dialog.find('[data-test="sshid-header"]').exists()).toBe(true);
     expect(dialog.find('[data-test="tags-header"]').exists()).toBe(true);
     expect(dialog.find('[data-test="connect-icon"]').exists()).toBe(true);
