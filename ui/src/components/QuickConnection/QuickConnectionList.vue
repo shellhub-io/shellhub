@@ -18,13 +18,14 @@
   <v-list ref="rootEl" nav bg-color="transparent" class="content-card" data-test="devices-list">
     <v-col v-for="(item, i) in onlineDevices" :key="i" class="ma-0 mb-3 pa-0">
       <v-card :key="i" data-test="device-card">
-        <v-list-item @click="open(i)" @keydown="copyMacro(sshidAddress(item))" :key="i" class="ma-0 pa-0 card" data-test="device-list-item">
+        <v-list-item
+          @click="openDialog(item.uid)"
+          @keydown="copyMacro(sshidAddress(item))"
+          :key="i"
+          class="ma-0 pa-0 card"
+          data-test="device-list-item"
+        >
           <v-row align="center" no-gutters>
-            <TerminalDialog
-              :uid="item.uid"
-              :online="item.online"
-              ref="terminalFn"
-              data-test="terminalDialog-component" />
             <v-col class="text-center" md="3" data-test="device-name">
               {{ item.name }}
             </v-col>
@@ -74,6 +75,12 @@
       </v-card>
     </v-col>
   </v-list>
+
+  <TerminalDialog
+    v-model="showDialog"
+    :deviceUid="selectedDeviceUid"
+    data-test="terminalDialog-component"
+  />
 </template>
 
 <script setup lang="ts">
@@ -93,15 +100,16 @@ import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 
 interface Device {
-      online: boolean
-    }
+  online: boolean
+}
 
-const terminalFn = ref<InstanceType<typeof TerminalDialog>>();
 const store = useStore();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref();
 const rootEl = ref<VList>();
+const selectedDeviceUid = ref("");
+const showDialog = ref(false);
 
 defineExpose({ rootEl });
 
@@ -121,12 +129,9 @@ const devices = computed(() => store.getters["devices/listQuickConnection"]);
 
 const onlineDevices = computed(() => devices.value.filter((item: Device) => item.online));
 
-const open = (i: number) => {
-  if (terminalFn.value !== undefined) {
-    const items = terminalFn.value;
-    const item = items[i];
-    item.open();
-  }
+const openDialog = (deviceUid: string) => {
+  selectedDeviceUid.value = deviceUid;
+  showDialog.value = true;
 };
 
 onMounted(async () => {
