@@ -1,6 +1,5 @@
 <template>
   <v-btn
-    width="100%"
     :disabled="!online"
     :color="online ? 'success' : 'normal'"
     variant="outlined"
@@ -34,5 +33,7 @@ const showDialog = ref(false);
 </script>
 
 <style scoped lang="scss">
-
+button {
+  width: min(100%, 120px);
+}
 </style>
