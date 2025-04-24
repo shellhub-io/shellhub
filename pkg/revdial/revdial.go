@@ -56,14 +56,12 @@ type Dialer struct {
 	uniqID     string
 	pickupPath string // path + uniqID: "/revdial?revdial.dialer="+uniqID
 
-	incomingConn chan net.Conn
+	incomingConn *sync.Map
 	pickupFailed chan error
 	connReady    chan string
 	donec        chan struct{}
 	closeOnce    sync.Once
 	logger       *log.Entry
-
-	mu sync.Mutex
 }
 
 var dialers = sync.Map{}
@@ -81,7 +79,7 @@ func NewDialer(logger *log.Entry, c net.Conn, connPath string) *Dialer {
 		conn:         c,
 		donec:        make(chan struct{}),
 		connReady:    make(chan string, 8),
-		incomingConn: make(chan net.Conn),
+		incomingConn: new(sync.Map),
 		pickupFailed: make(chan error),
 		logger:       logger,
 	}
@@ -135,26 +133,17 @@ func (d *Dialer) close() {
 	close(d.donec)
 }
 
-func isEqual(c net.Conn, uuid string) bool {
-	adapter, ok := c.(*wsconnadapter.Adapter)
-	if !ok {
-		return false
-	}
-
-	return adapter.UUID == uuid
-}
-
 // Dial creates a new connection back to the Listener.
 func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
 	uuid := uuid.Generate()
 
 	// First, tell serve that we want a connection:
 	select {
 	case d.connReady <- uuid:
 		d.logger.Debug("message true to conn ready channel")
+
+		d.incomingConn.Store(uuid, make(chan net.Conn))
+		defer d.incomingConn.Delete(uuid)
 	case <-d.donec:
 		d.logger.Debug("dial done")
 
@@ -165,42 +154,48 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 		return nil, ctx.Err()
 	}
 
+	ch, ok := d.incomingConn.Load(uuid)
+	if !ok {
+		return nil, errors.New("failed to load the incoming connection map")
+	}
+
+	connection := ch.(chan net.Conn)
+
 	// Then pick it up:
-	for {
-		select {
-		case c := <-d.incomingConn:
-			d.logger.Debug("new incoming connection")
+	select {
+	case c := <-connection:
+		d.logger.Debug("new incoming connection")
 
-			if !isEqual(c, uuid) {
-				d.logger.Debug("skipping unmatch connection")
+		return c, nil
+	case err := <-d.pickupFailed:
+		d.logger.Debug("failed to pick-up connection")
 
-				_ = c.Close()
+		return nil, err
+	case <-d.donec:
+		d.logger.Debug("dial done on pick-up")
 
-				continue
-			}
+		return nil, ErrDialerClosed
+	case <-ctx.Done():
+		d.logger.Debug("dial done on pick-up due context cancellation")
 
-			d.logger.Debug("using fresh connection")
-
-			return c, nil
-		case err := <-d.pickupFailed:
-			d.logger.Debug("failed to pick-up connection")
-
-			return nil, err
-		case <-d.donec:
-			d.logger.Debug("dial done on pick-up")
-
-			return nil, ErrDialerClosed
-		case <-ctx.Done():
-			d.logger.Debug("dial done on pick-up due context cancellation")
-
-			return nil, ctx.Err()
-		}
+		return nil, ctx.Err()
 	}
 }
 
 func (d *Dialer) matchConn(c net.Conn) {
+	uuid := c.(*wsconnadapter.Adapter).UUID
+
+	ch, ok := d.incomingConn.Load(uuid)
+	if !ok {
+		d.logger.Debug("failed to find the incoming connection channel")
+
+		return
+	}
+
+	connection := ch.(chan net.Conn)
+
 	select {
-	case d.incomingConn <- c:
+	case connection <- c:
 	case <-d.donec:
 	}
 }
