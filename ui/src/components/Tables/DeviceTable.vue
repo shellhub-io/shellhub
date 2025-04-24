@@ -24,11 +24,10 @@
         :key="i"
       >
         <td class="text-center">
-          <TerminalDialog
-            :enable-connect-button="true"
-            :uid="item.uid"
+          <TerminalConnectButton
+            :deviceUid="item.uid"
             :online="item.online"
-            data-test="terminalDialog-component"
+            data-test="terminal-connect-btn"
           />
         </td>
         <td class="text-center">{{ item.name }}</td>
@@ -251,7 +250,7 @@ import DeviceIcon from "../Devices/DeviceIcon.vue";
 import DeviceActionButton from "../Devices/DeviceActionButton.vue";
 import DeviceDelete from "../Devices/DeviceDelete.vue";
 import TagFormUpdate from "../Tags/TagFormUpdate.vue";
-import TerminalDialog from "../Terminal/TerminalDialog.vue";
+import TerminalConnectButton from "../Terminal/TerminalConnectButton.vue";
 import { INotificationsCopy } from "@/interfaces/INotifications";
 import { IDevice, IDeviceMethods } from "@/interfaces/IDevice";
 import hasPermission from "@/utils/permission";
