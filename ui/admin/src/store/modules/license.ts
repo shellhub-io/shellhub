@@ -1,38 +1,29 @@
-import { Module } from "vuex";
-import { State } from "./../index";
-import { ILicense } from "./../../interfaces/ILicense";
+import { defineStore } from "pinia";
+import { GetLicense200Response } from "@admin/api/client/api";
 import * as apiLicense from "../api/license";
 
-export interface LicenseState {
-  license: ILicense;
-}
-
-export const license: Module<LicenseState, State> = {
-  namespaced: true,
-  state: {
-    license: {} as ILicense,
-  },
+export const useLicenseStore = defineStore("license", {
+  state: (): { license: GetLicense200Response } => ({
+    license: {} as GetLicense200Response,
+  }),
 
   getters: {
-    isExpired: (state) => (state.license && state.license.expired)
+    isExpired: (state): boolean => (state.license && state.license.expired)
       || (state.license && state.license.expired === undefined),
-    license: (state) => state.license,
-  },
 
-  mutations: {
-    setLicense: (state, res) => {
-      state.license = res.data;
-    },
+    getLicense: (state): GetLicense200Response => state.license,
   },
 
   actions: {
-    async get({ commit }) {
+    async get() {
       const res = await apiLicense.getLicense();
-      commit("setLicense", res);
+      this.license = res.data;
     },
 
-    async post(context, file: File) {
+    async post(file: File) {
       await apiLicense.uploadLicense(file);
     },
   },
-};
+});
+
+export default useLicenseStore;

@@ -16,14 +16,14 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import SnackbarSucess from "./SnackbarSucess.vue";
 import SnackbarError from "./SnackbarError.vue";
 import SnackbarCopy from "./SnackbarCopy.vue";
-import { useStore } from "../../store";
 
-const store = useStore();
+const snackbarStore = useSnackbarStore();
 
-const message = computed(() => store.getters["snackbar/snackbarMessageAndContentType"]);
+const message = computed(() => snackbarStore.getSnackbarMessageAndContentType);
 
 defineExpose({ message });
 </script>

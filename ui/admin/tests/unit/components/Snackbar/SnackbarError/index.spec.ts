@@ -1,76 +1,74 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import SnackbarError from "../../../../../src/components/Snackbar/SnackbarError.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type SnackbarErrorWrapper = VueWrapper<InstanceType<typeof SnackbarError>>
 
+const mainContent = "dashboard";
 const snackbarError = true;
-let typeMessage = "loading";
-let mainContent = "dashboard";
-const loadingMessage = `Loading the ${mainContent} has failed, please try again.`;
-let actionMessage = `The ${mainContent} request has failed, please try again.`;
 const defaultMessage = "The request has failed, please try again.";
 
-const vuetify = createVuetify();
-
-const store = createStore({
-  state: {
-    snackbarError,
-  },
-  getters: {
-    "snackbar/snackbarError": (state) => state.snackbarError,
-  },
-  actions: {
-    "snackbar/unsetShowStatusSnackbarError": vi.fn(),
-  },
-});
-
-describe("Device Icon", () => {
+describe("SnackbarError", () => {
   let wrapper: SnackbarErrorWrapper;
 
+  const vuetify = createVuetify();
+
   beforeEach(() => {
-    wrapper = shallowMount(SnackbarError, {
-      global: {
-        plugins: [[store, key], vuetify, routes],
-      },
-      propsData: { typeMessage, mainContent },
-    });
+    setActivePinia(createPinia());
   });
 
+  const mountComponent = (typeMessage: string, mainContent: string) => {
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.snackbarError = snackbarError;
+
+    return shallowMount(SnackbarError, {
+      global: {
+        plugins: [vuetify, routes],
+      },
+      props: {
+        typeMessage,
+        mainContent,
+      },
+    });
+  };
+
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    wrapper = mountComponent("loading", mainContent);
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
+    wrapper = mountComponent("loading", mainContent);
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Process data in the computed", async () => {
-    expect(wrapper.vm.snackbar).toEqual(snackbarError);
-    expect(wrapper.vm.message).toEqual(loadingMessage);
+  it("Processes computed message for 'loading'", () => {
+    wrapper = mountComponent("loading", mainContent);
+    expect(wrapper.vm.snackbar).toEqual(true);
+    expect(wrapper.vm.message).toEqual(`Loading the ${mainContent} has failed, please try again.`);
+  });
 
-    typeMessage = "action";
-    mainContent = "deviceDelete";
-    actionMessage = `The ${mainContent} request has failed, please try again.`;
-    wrapper = shallowMount(SnackbarError, {
-      global: {
-        plugins: [[store, key], vuetify, routes],
-      },
-      propsData: { typeMessage, mainContent },
-    });
-    expect(wrapper.vm.message).toEqual(actionMessage);
+  it("Processes computed message for 'action'", () => {
+    wrapper = mountComponent("action", "deviceDelete");
+    expect(wrapper.vm.message).toEqual("The deviceDelete request has failed, please try again.");
+  });
 
-    typeMessage = "default";
-    wrapper = shallowMount(SnackbarError, {
-      global: {
-        plugins: [[store, key], vuetify, routes],
-      },
-      propsData: { typeMessage, mainContent },
-    });
+  it("Processes computed message for 'default'", () => {
+    wrapper = mountComponent("default", mainContent);
     expect(wrapper.vm.message).toEqual(defaultMessage);
+  });
+
+  it("Processes computed message for 'licenseRequired'", () => {
+    wrapper = mountComponent("licenseRequired", "license feature");
+    expect(wrapper.vm.message).toEqual("The license feature request has failed, license required.");
+  });
+
+  it("Processes computed message for 'custom'", () => {
+    wrapper = mountComponent("custom", "Custom error message here");
+    expect(wrapper.vm.message).toEqual("Custom error message here");
   });
 });

@@ -1,16 +1,17 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+// stores/instance.ts
+import { defineStore } from "pinia";
 import * as apiInstance from "../api/instance";
 import { IConfigureSAML } from "../../interfaces/IInstance";
 
 export interface InstanceState {
   authenticationSettings: {
-    local: {
+    local?: {
       enabled: boolean;
     };
-    saml: {
+    saml?: {
       enabled: boolean;
       auth_url: string;
+      assertion_url: string;
       idp: {
         entity_id: string;
         signon_url: string;
@@ -18,14 +19,14 @@ export interface InstanceState {
       };
       sp: {
         sign_requests: boolean;
+        certificate?: string;
       };
     };
-  } | null;
+  };
 }
 
-export const instance: Module<InstanceState, State> = {
-  namespaced: true,
-  state: {
+export const useInstanceStore = defineStore("instance", {
+  state: (): InstanceState => ({
     authenticationSettings: {
       local: {
         enabled: false,
@@ -33,6 +34,7 @@ export const instance: Module<InstanceState, State> = {
       saml: {
         enabled: false,
         auth_url: "",
+        assertion_url: "",
         idp: {
           entity_id: "",
           signon_url: "",
@@ -40,37 +42,35 @@ export const instance: Module<InstanceState, State> = {
         },
         sp: {
           sign_requests: false,
+          certificate: "",
         },
       },
     },
-  },
+  }),
 
   getters: {
-    authenticationSettings: (state) => state.authenticationSettings,
-    isLocalAuthEnabled: (state) => state.authenticationSettings?.local.enabled,
-    isSamlEnabled: (state) => state.authenticationSettings?.saml.enabled,
-  },
+    getAuthenticationSettings: (state) => state.authenticationSettings,
+    isLocalAuthEnabled: (state) => state.authenticationSettings?.local?.enabled,
+    isSamlEnabled: (state) => state.authenticationSettings?.saml?.enabled,
 
-  mutations: {
-    setAuthenticationSettings(state, settings) {
-      state.authenticationSettings = settings;
-    },
   },
 
   actions: {
-    async fetchAuthenticationSettings({ commit }) {
+    async fetchAuthenticationSettings() {
       const response = await apiInstance.getAuthenticationSettings();
-      await commit("setAuthenticationSettings", response.data);
+      this.authenticationSettings = response.data as never;
     },
 
-    async updateLocalAuthentication({ dispatch }, status: boolean) {
+    async updateLocalAuthentication(status: boolean) {
       await apiInstance.configureLocalAuthentication(status);
-      await dispatch("fetchAuthenticationSettings");
+      await this.fetchAuthenticationSettings();
     },
 
-    async updateSamlAuthentication({ dispatch }, data: IConfigureSAML) {
+    async updateSamlAuthentication(data: IConfigureSAML) {
       await apiInstance.configureSAMLAuthentication(data);
-      await dispatch("fetchAuthenticationSettings");
+      await this.fetchAuthenticationSettings();
     },
   },
-};
+});
+
+export default useInstanceStore;

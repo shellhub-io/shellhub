@@ -73,7 +73,7 @@
           <v-spacer />
           <v-col md="2" sm="4" class="ml-auto d-flex w-100 justify-end align-center">
             <v-btn
-              @click="copyAssertionURL(ssoSettings.saml.assertion_url)"
+              @click="copyAssertionURL(ssoSettings.saml?.assertion_url)"
               data-test="copy-assertion-btn"
             >
               Copy Assertion URL
@@ -88,7 +88,7 @@
           <v-spacer />
           <v-col md="auto" sm="auto" class="ml-auto">
             <v-card tile :elevation="0" data-test="idp-signon-value">
-              {{ ssoSettings.saml.idp.signon_url }}
+              {{ ssoSettings.saml?.idp.signon_url }}
             </v-card>
           </v-col>
         </v-row>
@@ -100,7 +100,7 @@
           <v-spacer />
           <v-col md="auto" sm="auto" class="ml-auto mb-3">
             <v-card tile :elevation="0" data-test="idp-entity-value">
-              {{ ssoSettings.saml.idp.entity_id }}
+              {{ ssoSettings.saml?.idp.entity_id }}
             </v-card>
           </v-col>
         </v-row>
@@ -136,7 +136,7 @@
                   <v-col>
                     <v-btn
                       v-bind="props"
-                      @click="redirectToAuthURL(ssoSettings.saml.auth_url)"
+                      @click="redirectToAuthURL(ssoSettings.saml?.auth_url)"
                       data-test="redirect-auth-btn"
                     >
                       Test Auth Integration
@@ -149,7 +149,7 @@
             </v-tooltip>
           </v-col>
           <v-col md="1" sm="3" class="ml-auto d-flex w-100 justify-end align-center">
-            <v-btn @click="dialogSSO = true" data-test="sso-config-btn">{{ ssoSettings.saml.enabled ? "Edit" : "Configure" }}</v-btn>
+            <v-btn @click="dialogSSO = true" data-test="sso-config-btn">{{ ssoSettings.saml?.enabled ? "Edit" : "Configure" }}</v-btn>
           </v-col>
         </v-row>
       </div>
@@ -158,41 +158,38 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import axios from "axios";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useInstanceStore from "@admin/store/modules/instance";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
-import { useStore } from "../../store";
 import { INotificationsCopy } from "../../interfaces/INotifications";
 
-const store = useStore();
 const dialogSSO = ref(false);
+const snackbarStore = useSnackbarStore();
+const instanceStore = useInstanceStore();
 
 onMounted(async () => {
-  await store.dispatch("instance/fetchAuthenticationSettings");
+  await instanceStore.fetchAuthenticationSettings();
 });
 
-const ssoSettings = ref(store.getters["instance/authenticationSettings"]);
-const certificate = ref(ssoSettings.value.saml.sp.certificate);
+const ssoSettings = computed(() => instanceStore.getAuthenticationSettings);
+const certificate = computed(() => instanceStore.getAuthenticationSettings?.saml?.sp?.certificate);
 
-const localEnabled = ref(store.getters["instance/isLocalAuthEnabled"]);
-const samlEnabled = ref(store.getters["instance/isSamlEnabled"]);
+const localEnabled = computed(() => instanceStore.isLocalAuthEnabled);
+const samlEnabled = computed(() => instanceStore.isSamlEnabled);
 
 const changeLocalAuthStatus = async () => {
   try {
-    await store.dispatch("instance/updateLocalAuthentication", !localEnabled.value);
+    await instanceStore.updateLocalAuthentication(!localEnabled.value);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       switch (error.status) {
         case 400:
-          await store.dispatch(
-            "snackbar/showSnackbarErrorCustom",
-            "You cannot disable all authentication methods.",
-          );
+          snackbarStore.showSnackbarErrorCustom("You cannot disable all authentication methods.");
           break;
         default:
-          await store.dispatch(
-            "snackbar/showSnackbarErrorDefault",
-          );
+          snackbarStore.showSnackbarErrorDefault();
           break;
       }
     }
@@ -214,7 +211,7 @@ const changeSamlAuthStatus = async () => {
         },
       };
 
-      await store.dispatch("instance/updateSamlAuthentication", payload);
+      await instanceStore.updateSamlAuthentication(payload);
     } else {
       dialogSSO.value = true;
     }
@@ -222,15 +219,10 @@ const changeSamlAuthStatus = async () => {
     if (axios.isAxiosError(error)) {
       switch (error.status) {
         case 400:
-          await store.dispatch(
-            "snackbar/showSnackbarErrorCustom",
-            "You cannot disable all authentication methods.",
-          );
+          snackbarStore.showSnackbarErrorCustom("You cannot disable all authentication methods.");
           break;
         default:
-          await store.dispatch(
-            "snackbar/showSnackbarErrorDefault",
-          );
+          snackbarStore.showSnackbarErrorDefault();
           break;
       }
     }
@@ -263,7 +255,7 @@ const redirectToAuthURL = (value: string | undefined) => {
 const copyAssertionURL = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.authenticationURL);
+    snackbarStore.showSnackbarCopy(INotificationsCopy.authenticationURL);
   }
 };
 

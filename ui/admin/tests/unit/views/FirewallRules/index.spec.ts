@@ -1,32 +1,33 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import routes from "../../../../src/router";
 import FirewallRules from "../../../../src/views/FirewallRules.vue";
 
 type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
 
 describe("Firewall Rules", () => {
-  const store = createStore({
-    state: {},
-    getters: {
-      "firewallRules/numberFirewalls": () => 1,
-    },
-    actions: {
-      "firewallRules/fetch": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
   let wrapper: FirewallRulesWrapper;
 
   beforeEach(() => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const firewallStore = useFirewallRulesStore();
+    vi.spyOn(firewallStore, "getNumberFirewalls", "get").mockReturnValue(1);
+    firewallStore.fetch = vi.fn();
+
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+
     const vuetify = createVuetify();
 
     wrapper = mount(FirewallRules, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
       },
     });
   });

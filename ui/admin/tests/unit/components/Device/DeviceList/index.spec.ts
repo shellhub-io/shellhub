@@ -1,9 +1,9 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useDevicesStore from "@admin/store/modules/devices";
 import DeviceList from "../../../../../src/components/Device/DeviceList.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type DeviceListWrapper = VueWrapper<InstanceType<typeof DeviceList>>;
@@ -27,7 +27,7 @@ const devices = [
       arch: "x86_64",
       id: "linuxmint",
       platform: "linuxmint",
-      prettyName: "Linux Mint 19.3",
+      pretty_name: "Linux Mint 19.3",
       version: "18.4.2",
     },
     last_seen: "2020-05-20T19:58:53.276Z",
@@ -39,7 +39,7 @@ const devices = [
       longitude: 12,
     },
     public_key: "xxxxxxxxxxxxxxxx",
-    remote_addr: "127.0.0.1",
+    remoteAddr: "127.0.0.1",
     status: "accepted",
     tags: ["xxxx", "yyyyy"],
     tenant_id: "00000000",
@@ -47,39 +47,28 @@ const devices = [
   },
 ];
 
-const store = createStore({
-  state: {
-    devices,
-  },
-  getters: {
-    "devices/list": (state) => state.devices,
-    "devices/numberDevices": (state) => state.devices.length,
-    "auth/isLoggedIn": () => false,
-  },
-  actions: {
-    "modals/showAddDevice": vi.fn(),
-    "devices/fetch": vi.fn(),
-    "devices/rename": vi.fn(),
-    "devices/resetListDevices": vi.fn(),
-    "stats/get": vi.fn(),
-  },
-});
-
 describe("Device List", () => {
   let wrapper: DeviceListWrapper;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
     const vuetify = createVuetify();
+
+    const devicesStore = useDevicesStore();
+    devicesStore.devices = devices;
+    devicesStore.numberDevices = devices.length;
+
+    vi.spyOn(devicesStore, "fetch").mockResolvedValue(false);
 
     wrapper = mount(DeviceList, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
     });
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
@@ -96,7 +85,6 @@ describe("Device List", () => {
   });
 
   it("Renders data in the computed", async () => {
-    const componentDevices = await wrapper.vm.devices;
-    expect(componentDevices).toEqual(devices);
+    expect(wrapper.vm.devices).toEqual(devices);
   });
 });

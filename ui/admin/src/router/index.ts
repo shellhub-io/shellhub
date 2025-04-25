@@ -6,10 +6,12 @@ import SettingsLicense from "@admin/components/Settings/SettingsLicense.vue";
 import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
 import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
-
 import { INotificationsError } from "@admin/interfaces/INotifications";
 import { computed } from "vue";
-import { store } from "../store";
+import useLicenseStore from "@admin/store/modules/license";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import useLayoutStore from "@admin/store/modules/layout";
+import useAuthStore from "@admin/store/modules/auth";
 
 const routes = [
   {
@@ -128,32 +130,36 @@ const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
+    const snackbarStore = useSnackbarStore();
+    const licenseStore = useLicenseStore();
+    const layoutStore = useLayoutStore();
+    const authStore = useAuthStore();
+
     const requiresAuth = to.meta.requiresAuth ?? true;
 
     const layout = to.meta.layout || "AppLayout";
-    await store.dispatch("layout/setLayout", layout);
+    layoutStore.setLayout(layout as string);
 
-    if (!isLoggedIn && requiresAuth) {
+    if (!authStore.isLoggedIn && requiresAuth) {
       return next({
         name: "login",
         query: { redirect: to.fullPath },
       });
     }
 
-    if (isLoggedIn && !to.meta.requiresAuth) {
-      const license = computed(() => store.getters["license/license"]);
+    if (authStore.isLoggedIn && !to.meta.requiresAuth) {
+      const license = computed(() => licenseStore.getLicense);
 
       try {
-        await store.dispatch("license/get");
+        await licenseStore.get();
 
         if (license.value.expired && to.name !== "SettingLicense") {
-          store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.license);
+          snackbarStore.showSnackbarErrorAction(INotificationsError.license);
           return next({ name: "SettingLicense" });
         }
       } catch {
         if (to.name !== "SettingLicense") {
-          store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.license);
+          snackbarStore.showSnackbarErrorAction(INotificationsError.license);
           return next({ name: "SettingLicense" });
         }
       }

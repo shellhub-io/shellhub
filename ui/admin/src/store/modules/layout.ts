@@ -1,39 +1,28 @@
-import { Module } from "vuex";
-import { State } from "./../index";
+// stores/layout.ts
+import { defineStore } from "pinia";
 
-export interface LayoutState {
-  layout: string;
-  statusDarkMode: string;
-}
+export const useLayoutStore = defineStore("layout", {
+  state: () => ({
+    layout: "appLayout" as string,
+    statusDarkMode: (localStorage.getItem("statusDarkMode") || "dark") as string,
+  }),
 
-export const layout: Module<LayoutState, State> = {
-  namespaced: true,
-  state: {
-    layout: "appLayout",
-    statusDarkMode: localStorage.getItem("statusDarkMode") || "dark",
-  },
   getters: {
     getLayout: (state) => state.layout,
     getStatusDarkMode: (state) => state.statusDarkMode,
   },
-  mutations: {
-    setLayout: (state, layout) => {
-      state.layout = layout;
-    },
-    setStatusDarkMode: (state, status) => {
-      state.statusDarkMode = status;
-    },
-  },
 
   actions: {
-    setLayout({ commit }, layout) {
-      commit("setLayout", layout);
+    setLayout(layout: string) {
+      this.layout = layout;
     },
 
-    setStatusDarkMode({ commit }, status: boolean) {
+    setStatusDarkMode(status: boolean) {
       const statusDarkMode = status ? "dark" : "light";
-      commit("setStatusDarkMode", statusDarkMode);
+      this.statusDarkMode = statusDarkMode;
       localStorage.setItem("statusDarkMode", statusDarkMode);
     },
   },
-};
+});
+
+export default useLayoutStore;

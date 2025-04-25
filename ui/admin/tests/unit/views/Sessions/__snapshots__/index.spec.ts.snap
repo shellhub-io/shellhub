@@ -102,7 +102,7 @@ exports[`Sessions > Renders the component 1`] = `
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
-          </button><span data-v-90b5158f="" class="text-subtitle-2">0 of 1</span><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><span data-v-90b5158f="" class="text-subtitle-2">0 of 0</span><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->

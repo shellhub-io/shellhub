@@ -1,8 +1,9 @@
-import { createStore } from "vuex";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { key } from "../../../../src/store";
+import { createPinia, setActivePinia } from "pinia";
+import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import useSnackbarStore from "@admin/store/modules/snackbar";
 import routes from "../../../../src/router";
 import FirewallRulesDetails from "../../../../src/views/FirewallRulesDetails.vue";
 
@@ -28,26 +29,24 @@ const mockRoute = {
 };
 
 describe("Firewall Rule Details", () => {
-  const store = createStore({
-    state: {
-      device: firewallRuleDetail,
-    },
-    getters: {
-      "firewallRules/get": () => firewallRuleDetail,
-    },
-    actions: {
-      "firewallRules/get": vi.fn(),
-      "snackbar/showSnackbarErrorAction": vi.fn(),
-    },
-  });
   let wrapper: FirewallRulesDetailsWrapper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const firewallStore = useFirewallRulesStore();
+    vi.spyOn(firewallStore, "getFirewall", "get").mockReturnValue(firewallRuleDetail);
+    firewallStore.get = vi.fn().mockResolvedValue(firewallRuleDetail);
+
+    const snackbarStore = useSnackbarStore();
+    snackbarStore.showSnackbarErrorAction = vi.fn();
+
     const vuetify = createVuetify();
 
     wrapper = mount(FirewallRulesDetails, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [pinia, vuetify, routes],
         mocks: {
           $route: mockRoute,
         },
@@ -56,7 +55,7 @@ describe("Firewall Rule Details", () => {
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBeTruthy();
   });
 
   it("Renders the component", () => {
@@ -68,13 +67,13 @@ describe("Firewall Rule Details", () => {
   });
 
   it("Render the correct title", () => {
-    expect(wrapper.find("h1").text()).toEqual("Firewall Details");
+    expect(wrapper.find("h1").text()).toBe("Firewall Details");
   });
 
   it("Should render the props of the FirewallRule in the Screen", () => {
     expect(wrapper.find(`[data-test='${firewallRuleDetail.id}']`).text()).toContain(firewallRuleDetail.id);
     expect(wrapper.find(`[data-test='${firewallRuleDetail.tenant_id}']`).text()).toContain(firewallRuleDetail.tenant_id);
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.priority}']`).text()).toContain(firewallRuleDetail.priority);
+    expect(wrapper.find(`[data-test='${firewallRuleDetail.priority}']`).text()).toContain(String(firewallRuleDetail.priority));
     expect(wrapper.find(`[data-test='${firewallRuleDetail.action}']`).text()).toContain(firewallRuleDetail.action);
     expect(wrapper.find(`[data-test='${firewallRuleDetail.source_ip}']`).exists()).toBe(true);
     expect(wrapper.find(`[data-test='${firewallRuleDetail.username}']`).exists()).toBe(true);

@@ -1,14 +1,16 @@
 import { createVuetify } from "vuetify";
-import { createStore } from "vuex";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import useUsersStore from "@admin/store/modules/users";
+import useSnackbarStore from "@admin/store/modules/snackbar";
+import { INotificationsError } from "@admin/interfaces/INotifications";
 import UserList from "../../../../../src/components/User/UserList.vue";
-import { key } from "../../../../../src/store";
 import routes from "../../../../../src/router";
 
 type UserListWrapper = VueWrapper<InstanceType<typeof UserList>>;
 
-const users = [
+const mockUsers = [
   {
     confirmed: true,
     created_at: "2022-04-13T11:42:49.578Z",
@@ -17,58 +19,55 @@ const users = [
     last_login: "0001-01-01T00:00:00Z",
     name: "antony",
     namespaces: 2,
-    password: "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+    password: "dummy",
     username: "antony",
+    auth_methods: ["saml"],
   },
 ];
-
-const store = createStore({
-  state: {
-    users,
-  },
-  getters: {
-    "users/users": (state) => state.users,
-    "users/numberUsers": (state) => state.users.length,
-  },
-  actions: {
-    "snackbar/showSnackbarErrorAction": vi.fn(),
-    "snackbar/setSnackbarErrorDefault": vi.fn(),
-    "users/refresh": vi.fn(),
-    "users/fetch": vi.fn(),
-  },
-});
 
 describe("UserList", () => {
   let wrapper: UserListWrapper;
 
-  beforeEach(() => {
-    const vuetify = createVuetify({
-    });
+  beforeEach(async () => {
+    setActivePinia(createPinia());
+    const vuetify = createVuetify();
+
+    const usersStore = useUsersStore();
+    const snackbarStore = useSnackbarStore();
+
+    usersStore.users = mockUsers;
+    usersStore.numberUsers = mockUsers.length;
+
+    vi.spyOn(usersStore, "fetch").mockResolvedValue(true);
+    vi.spyOn(usersStore, "refresh").mockResolvedValue();
+    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.errorLoginToken);
+    vi.spyOn(snackbarStore, "showSnackbarErrorDefault").mockImplementation(() => vi.fn());
 
     wrapper = mount(UserList, {
       global: {
-        plugins: [[store, key], vuetify, routes],
+        plugins: [vuetify, routes],
       },
     });
+
+    await wrapper.vm.$nextTick();
   });
 
   it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+    expect(wrapper.exists()).toBe(true);
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders data in the computed", async () => {
-    const componentUsers = await wrapper.vm.users;
-    expect(componentUsers).toEqual(users);
+  it("Renders users in computed property", () => {
+    expect(wrapper.vm.users).toEqual(mockUsers);
   });
 
-  it("Should render the props of the user in the table", () => {
-    expect(wrapper.find("[name-test]").text()).toContain(users[0].name);
-    expect(wrapper.find("[email-test]").text()).toContain(users[0].email);
-    expect(wrapper.find("[username-test]").text()).toContain(users[0].username);
-    expect(wrapper.find("[namespaces-test]").text()).toContain(users[0].namespaces);
+  it("Should render user props correctly in the table", () => {
+    expect(wrapper.find("[name-test]").text()).toContain(mockUsers[0].name);
+    expect(wrapper.find("[email-test]").text()).toContain(mockUsers[0].email);
+    expect(wrapper.find("[username-test]").text()).toContain(mockUsers[0].username);
+    expect(wrapper.find("[namespaces-test]").text()).toContain(String(mockUsers[0].namespaces));
   });
 });
