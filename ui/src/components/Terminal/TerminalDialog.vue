@@ -52,10 +52,6 @@ const showDialog = defineModel<boolean>();
 const { smAndDown, thresholds } = useDisplay();
 const token = ref("");
 
-watch(showDialog, (value) => {
-  if (!value) showLoginForm.value = true;
-});
-
 const connect = async (params: IConnectToTerminal) => {
   const response = await axios.post("/ws/ssh", {
     device: deviceUid,
