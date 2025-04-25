@@ -1,6 +1,6 @@
 <template>
   <div class="ma-0 pa-0 w-100 fill-height position-relative">
-    <div ref="terminal" class="terminal" />
+    <div ref="terminal" class="terminal" data-test="terminal-container" />
   </div>
 </template>
 
@@ -119,6 +119,8 @@ onUnmounted(() => {
   if (ws.value.OPEN) ws.value.close();
   xterm.value.clear();
 });
+
+defineExpose({ xterm, ws });
 </script>
 
 <style scoped lang="scss">
