@@ -32,7 +32,6 @@ import axios from "axios";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
-import { useStore } from "@/store";
 import {
   createKeyFingerprint,
   createSignatureOfPrivateKey,
@@ -47,7 +46,6 @@ const { deviceUid } = defineProps<{
   deviceUid: string;
 }>();
 
-const store = useStore();
 const route = useRoute();
 const showLoginForm = ref(true);
 const showDialog = defineModel<boolean>();
