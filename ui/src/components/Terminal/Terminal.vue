@@ -56,6 +56,8 @@ const getWebTermDimensions = (): WebTermDimensions => ({
 
 const encodeURLParams = (params: IParams): string => Object.entries(params).map(([key, value]) => `${key}=${value}`).join("&");
 
+const isWebSocketOpen = () => ws.value.readyState === WebSocket.OPEN;
+
 const getWebSocketUrl = (dimensions: WebTermDimensions): string => {
   const protocol = window.location.protocol === "http:" ? "ws" : "wss";
   const wsInfo = { token, ...dimensions };
@@ -65,6 +67,8 @@ const getWebSocketUrl = (dimensions: WebTermDimensions): string => {
 
 const setupTerminalEvents = () => {
   xterm.value.onData((data) => {
+    if (!isWebSocketOpen()) return;
+
     const message: Message = {
       kind: MessageKind.Input,
       data: [...textEncoder.encode(data)],
@@ -73,6 +77,8 @@ const setupTerminalEvents = () => {
   });
 
   xterm.value.onResize((data) => {
+    if (!isWebSocketOpen()) return;
+
     const message: Message = {
       kind: MessageKind.Resize,
       data: { cols: data.cols, rows: data.rows },
@@ -116,8 +122,7 @@ useEventListener(window, "resize", () => {
 });
 
 onUnmounted(() => {
-  if (ws.value.OPEN) ws.value.close();
-  xterm.value.clear();
+  if (isWebSocketOpen()) ws.value.close();
 });
 
 defineExpose({ xterm, ws });
