@@ -94,7 +94,8 @@ const handleSubmit = (params) => {
 
 const close = () => {
   showDialog.value = false;
-  store.dispatch("modal/toggleTerminal", "");
+  showLoginForm.value = true;
+  token.value = "";
 };
 
 let lastEscPress = 0;
