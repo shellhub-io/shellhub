@@ -46,6 +46,7 @@
       data-test="password-field"
       :type="showPassword ? 'text' : 'password'"
       @click:append-inner="showPassword = !showPassword"
+      @keydown.enter.prevent="submitForm"
     />
 
     <v-card-actions class="mt-4 d-flex justify-end">
@@ -123,6 +124,9 @@ const submitForm = () => {
     authenticationMethod: authenticationMethod.value,
     privateKey: selectedPrivateKey?.data,
   };
+
   emit("submit", formData);
 };
+
+defineExpose({ authenticationMethod });
 </script>
