@@ -36,7 +36,7 @@
       color="primary"
       :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
       v-model="password"
-      v-if="authenticationMethod === TerminalAuthMethods.Password"
+      v-else
       :error-messages="passwordError"
       label="Password"
       required
@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
@@ -89,7 +89,9 @@ const emit = defineEmits<{
 const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showPassword = ref(false);
 const privateKeys: Array<IPrivateKey> = useStore().getters["privateKey/list"];
-const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
+const selectedPrivateKeyName = computed(() => (
+  authenticationMethod.value === TerminalAuthMethods.PrivateKey ? privateKeys[0]?.name || "" : undefined
+));
 const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 
 const {
