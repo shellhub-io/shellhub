@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
@@ -90,9 +90,7 @@ const emit = defineEmits<{
 const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showPassword = ref(false);
 const privateKeys: Array<IPrivateKey> = useStore().getters["privateKey/list"];
-const selectedPrivateKeyName = computed(() => (
-  authenticationMethod.value === TerminalAuthMethods.PrivateKey ? privateKeys[0]?.name || "" : undefined
-));
+const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 
 const {
@@ -109,6 +107,8 @@ const {
   initialValue: "",
 });
 
+const getSelectedPrivateKeyData = () => privateKeys.find((item: IPrivateKey) => item.name === selectedPrivateKeyName.value)?.data;
+
 const submitForm = () => {
   if (usernameError.value || passwordError.value) {
     return;
@@ -117,12 +117,13 @@ const submitForm = () => {
     return;
   }
 
-  const selectedPrivateKey = privateKeys.find((item: IPrivateKey) => item.name === selectedPrivateKeyName.value);
+  const privateKey = authenticationMethod.value === TerminalAuthMethods.PrivateKey ? getSelectedPrivateKeyData() : undefined;
+
   const formData = {
     username: username.value,
     password: password.value,
     authenticationMethod: authenticationMethod.value,
-    privateKey: selectedPrivateKey?.data,
+    privateKey,
   };
 
   emit("submit", formData);
