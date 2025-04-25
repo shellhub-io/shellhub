@@ -31,8 +31,6 @@ const { token } = defineProps<{
   token: string;
 }>();
 
-// const emit = defineEmits(["close"]);
-
 const terminal = ref<HTMLElement>({} as HTMLElement);
 const xterm = ref<Terminal>({} as Terminal);
 const fitAddon = ref<FitAddon>(new FitAddon());
@@ -106,15 +104,7 @@ const initializeWebSocket = () => {
 
 onMounted(() => {
   initializeTerminal();
-
-  if (xterm.value.element) {
-    xterm.value.reset();
-  }
-
-  if (!xterm.value.element) {
-    xterm.value.open(terminal.value);
-  }
-
+  xterm.value.open(terminal.value);
   xterm.value.focus();
 
   setupTerminalEvents();
