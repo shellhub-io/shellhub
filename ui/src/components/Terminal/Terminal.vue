@@ -11,21 +11,7 @@ import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { IParams } from "@/interfaces/IParams";
-
-enum MessageKind {
-  Input = 1,
-  Resize,
-}
-
-interface Message {
-  kind: MessageKind;
-  data: unknown;
-}
-
-interface WebTermDimensions {
-  cols: number;
-  rows: number;
-}
+import { InputMessage, MessageKind, ResizeMessage, WebTermDimensions } from "@/interfaces/ITerminal";
 
 const { token } = defineProps<{
   token: string;
@@ -69,7 +55,7 @@ const setupTerminalEvents = () => {
   xterm.value.onData((data) => {
     if (!isWebSocketOpen()) return;
 
-    const message: Message = {
+    const message: InputMessage = {
       kind: MessageKind.Input,
       data: [...textEncoder.encode(data)],
     };
@@ -79,7 +65,7 @@ const setupTerminalEvents = () => {
   xterm.value.onResize((data) => {
     if (!isWebSocketOpen()) return;
 
-    const message: Message = {
+    const message: ResizeMessage = {
       kind: MessageKind.Resize,
       data: { cols: data.cols, rows: data.rows },
     };
