@@ -112,5 +112,5 @@ watch(() => route.path, (path) => {
   if (path === `/devices/${deviceUid}/terminal`) showDialog.value = true;
 }, { immediate: true });
 
-defineExpose({ showDialog, showLoginForm, handleSubmit, connect, close });
+defineExpose({ token, handleSubmit, showDialog, showLoginForm, close });
 </script>
