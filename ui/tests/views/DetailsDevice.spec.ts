@@ -165,7 +165,7 @@ describe("Details Device", () => {
     expect(wrapper.find('[data-test="deviceVersion-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="deviceTags-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="deviceConvertDate-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="terminalDialog-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="tunnel-list"]').exists()).toBe(false);
   });
 
