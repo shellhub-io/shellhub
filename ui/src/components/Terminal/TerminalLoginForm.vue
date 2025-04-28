@@ -1,5 +1,5 @@
 <template>
-  <v-form @submit.prevent="submitForm" class="mt-2 pa-5 d-flex flex-column ga-4">
+  <v-form @submit.prevent="submitForm" class="mt-2 pa-5 d-flex flex-column ga-4" data-test="terminal-login-form">
     <v-text-field
       v-model="username"
       :error-messages="usernameError"
