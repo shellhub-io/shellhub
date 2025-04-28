@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Terminal Connect Button > Renders the component 1`] = `
+"<button data-v-35d3a308="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  <!----><span class="v-btn__content" data-no-activator="">Connect</span>
+  <!---->
+  <!---->
+</button>"
+`;
