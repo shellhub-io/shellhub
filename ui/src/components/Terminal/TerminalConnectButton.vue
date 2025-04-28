@@ -30,6 +30,8 @@ defineProps<{
 }>();
 
 const showDialog = ref(false);
+
+defineExpose({ showDialog });
 </script>
 
 <style scoped lang="scss">
