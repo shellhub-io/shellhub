@@ -15,7 +15,6 @@ import { security, SecurityState } from "./modules/security";
 import { publicKeys, PublicKeysState } from "./modules/public_keys";
 import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
-import { modal, ModalState } from "./modules/modal";
 import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
 import { container, ContainerState } from "./modules/container";
@@ -39,7 +38,6 @@ export interface State {
   container: ContainerState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
-  modal: ModalState;
   namespaces: NamespacesState;
   tunnels: TunnelsState;
   notifications: NotificationsState;
@@ -70,7 +68,6 @@ export const store = createStore<State>({
     devices,
     firewallRules,
     layout,
-    modal,
     namespaces,
     tunnels,
     notifications,
