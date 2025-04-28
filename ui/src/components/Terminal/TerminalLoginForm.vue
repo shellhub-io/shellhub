@@ -71,19 +71,12 @@
 import { ref } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
-import { TerminalAuthMethods } from "@/interfaces/ITerminal";
+import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { useStore } from "@/store";
 
-interface FormData {
-  username: string;
-  password: string;
-  authenticationMethod: TerminalAuthMethods;
-  privateKey?: string;
-}
-
 const emit = defineEmits<{
-  submit: [formData: FormData];
+  submit: [formData: LoginFormData];
   close: [];
 }>();
 
@@ -119,7 +112,7 @@ const submitForm = () => {
 
   const privateKey = authenticationMethod.value === TerminalAuthMethods.PrivateKey ? getSelectedPrivateKeyData() : undefined;
 
-  const formData = {
+  const formData: LoginFormData = {
     username: username.value,
     password: password.value,
     authenticationMethod: authenticationMethod.value,

@@ -38,7 +38,7 @@ import {
   createSignerPrivateKey,
   parsePrivateKeySsh,
 } from "@/utils/validate";
-import { IConnectToTerminal, TerminalAuthMethods } from "@/interfaces/ITerminal";
+import { IConnectToTerminal, LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import TerminalLoginForm from "./TerminalLoginForm.vue";
 import Terminal from "./Terminal.vue";
 
@@ -82,7 +82,7 @@ const connectWithPrivateKey = async (params: IConnectToTerminal) => {
   connect({ username, fingerprint, signature });
 };
 
-const handleSubmit = (params) => {
+const handleSubmit = (params: LoginFormData) => {
   if (params.authenticationMethod === TerminalAuthMethods.Password) {
     connect(params);
   } else connectWithPrivateKey(params);

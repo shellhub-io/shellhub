@@ -11,6 +11,13 @@ export enum TerminalAuthMethods {
   PrivateKey = "Private Key",
 }
 
+export interface LoginFormData {
+  username: string;
+  password: string;
+  authenticationMethod: TerminalAuthMethods;
+  privateKey?: string;
+}
+
 export interface WebTermDimensions {
   cols: number;
   rows: number;
