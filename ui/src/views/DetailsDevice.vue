@@ -9,7 +9,7 @@
           v-if="device.status === 'accepted'"
           :deviceUid="device.uid"
           :online="device.online"
-          data-test="terminal-connect-btn"
+          data-test="connect-btn"
         />
         <span class="ml-2">{{ device.name }}</span>
       </div>
