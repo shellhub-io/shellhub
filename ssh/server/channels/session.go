@@ -2,6 +2,7 @@ package channels
 
 import (
 	"strings"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -138,7 +139,9 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		defer agent.Close()
 
-		go pipe(sess, client.Channel, agent.Channel, seat)
+		oncePipe := sync.OnceFunc(func() {
+			go pipe(sess, client.Channel, agent.Channel, seat)
+		})
 
 		// TODO: Add middleware to block certain types of requests.
 		for {
@@ -309,6 +312,11 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					if err := req.Reply(ok, nil); err != nil {
 						logger.WithError(err).Error(err)
 					}
+				}
+
+				switch req.Type {
+				case PtyRequestType, ExecRequestType, SubsystemRequestType:
+					oncePipe()
 				}
 			}
 		}
