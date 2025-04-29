@@ -90,6 +90,7 @@
 import * as AsciinemaPlayer from "asciinema-player";
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { useDisplay } from "vuetify";
+import { isNumber } from "@vueuse/core";
 import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
 
 const { logs } = defineProps<{
@@ -114,16 +115,16 @@ const formattedDuration = ref("00:00:00");
 const timeUpdaterId = ref<number>();
 const currentSpeed = ref(1);
 
+const defaultDimensions = { cols: 80, rows: 24 };
+
 const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
 const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
 const getSessionDimensions = () => {
-  const dimensionsLine = logs?.split("\n")[1] ?? ""; // returns a string in the format of `[0.123, "r", "80x24"]`
-  if (!dimensionsLine.includes("\"r\"")) return { cols: 80, rows: 24 };
-
-  const dimensions = JSON.parse(dimensionsLine)[2];
-  const [cols, rows] = dimensions.split("x");
-  return { cols, rows };
+  const line = logs?.split("\n")[1] || "";
+  const dimensions = JSON.parse(line)[2];
+  const [cols, rows] = dimensions.split("x").map(Number);
+  return isNumber(cols) && isNumber(rows) ? { cols, rows } : defaultDimensions;
 };
 
 const getCurrentTime = () => {
