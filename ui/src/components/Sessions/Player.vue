@@ -119,6 +119,8 @@ const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
 const getSessionDimensions = () => {
   const dimensionsLine = logs?.split("\n")[1] ?? ""; // returns a string in the format of `[0.123, "r", "80x24"]`
+  if (!dimensionsLine.includes("\"r\"")) return { cols: 80, rows: 24 };
+
   const dimensions = JSON.parse(dimensionsLine)[2];
   const [cols, rows] = dimensions.split("x");
   return { cols, rows };
