@@ -117,13 +117,6 @@ const currentSpeed = ref(1);
 const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
 const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
-const getSessionDimensions = () => {
-  const dimensionsLine = logs?.split("\n")[1] ?? ""; // returns a string in the format of `[0.123, "r", "80x24"]`
-  const dimensions = JSON.parse(dimensionsLine)[2];
-  const [cols, rows] = dimensions.split("x");
-  return { cols, rows };
-};
-
 const getCurrentTime = () => {
   const time = player.value.getCurrentTime();
   currentTime.value = time;
@@ -168,7 +161,6 @@ const createPlayer = (startAt = 0) => {
   const playerOptions = {
     fit: "both",
     controls: false,
-    ...getSessionDimensions(),
     speed: currentSpeed.value,
     startAt,
   };
