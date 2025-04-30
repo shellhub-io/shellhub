@@ -166,7 +166,7 @@ const openDialog = () => {
 
 const createPlayer = (startAt = 0) => {
   const playerOptions = {
-    fit: "height",
+    fit: "both",
     controls: false,
     ...getSessionDimensions(),
     speed: currentSpeed.value,
