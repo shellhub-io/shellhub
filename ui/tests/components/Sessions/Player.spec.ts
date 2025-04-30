@@ -1,5 +1,6 @@
-import { mount, flushPromises, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { describe, beforeEach, vi, it, expect, afterEach } from "vitest";
+import { nextTick } from "vue";
 import { createVuetify } from "vuetify";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
@@ -40,7 +41,6 @@ describe("Asciinema Player", () => {
 
   afterEach(() => {
     wrapper.unmount();
-    vi.clearAllMocks();
   });
 
   it("Is a Vue instance", () => {
@@ -52,7 +52,6 @@ describe("Asciinema Player", () => {
   });
 
   it("Renders components", async () => {
-    await flushPromises();
     expect(wrapper.find('[data-test="player-container"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="player-controls"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="pause-btn"]').exists()).toBe(true);
@@ -64,7 +63,6 @@ describe("Asciinema Player", () => {
   });
 
   it("Creates player on mount", async () => {
-    await flushPromises();
     expect(wrapper.vm.player).toBeDefined();
   });
 
@@ -76,7 +74,7 @@ describe("Asciinema Player", () => {
 
   it("Shows pause button when player is playing", async () => {
     wrapper.vm.isPlaying = true;
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const pauseBtn = wrapper.find('[data-test="pause-btn"]');
 
@@ -86,11 +84,11 @@ describe("Asciinema Player", () => {
 
   it("Shows play button when player is paused", async () => {
     wrapper.vm.isPlaying = true;
-    await wrapper.vm.$nextTick();
+    await nextTick();
     const pauseBtn = wrapper.find('[data-test="pause-btn"]');
 
     await pauseBtn.trigger("click");
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.find('[data-test="pause-btn"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="play-btn"]').exists()).toBe(true);
