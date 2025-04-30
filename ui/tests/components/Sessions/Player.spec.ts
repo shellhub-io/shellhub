@@ -24,8 +24,11 @@ describe("Asciinema Player", () => {
   let wrapper: PlayerWrapper;
   const vuetify = createVuetify();
 
-  // eslint-disable-next-line vue/max-len
-  const logsMock = "{\"version\": 2, \"width\": 80, \"height\": 24}\n[0.123, \"r\", \"80x24\"]\n[1.0, \"o\", \"Asciinema player test\"]\n[2.0, \"o\", \"logout\"]";
+  const logsMock = [
+    // eslint-disable-next-line vue/max-len
+    "{\"version\": 2, \"width\": 80, \"height\": 24}\n[0.123, \"r\", \"147x50\"]\n[1.0, \"o\", \"Asciinema player test\"]\n[2.0, \"o\", \"logout\"]",
+    "{\"version\": 2, \"width\": 80, \"height\": 24}\n[1.0, \"o\", \"Asciinema player test\"]\n[2.0, \"o\", \"logout\"]",
+  ];
 
   beforeEach(async () => {
     wrapper = mount(Player, {
@@ -33,7 +36,7 @@ describe("Asciinema Player", () => {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
       props: {
-        logs: logsMock,
+        logs: logsMock[0],
       },
     });
   });
@@ -153,6 +156,23 @@ describe("Asciinema Player", () => {
     await slider.trigger("mouseup");
 
     expect(wrapper.vm.player.play).toHaveBeenCalled();
+  });
+
+  it("Gets session dimensions from logs", () => {
+    const sessionDimensions = wrapper.vm.getSessionDimensions();
+    expect(sessionDimensions).toEqual({
+      cols: 147,
+      rows: 50,
+    });
+  });
+
+  it("Gets default dimensions when logs don't have resize event at the start", async () => {
+    await wrapper.setProps({ logs: logsMock[1] });
+    const { defaultDimensions, getSessionDimensions } = wrapper.vm;
+
+    const sessionDimensions = getSessionDimensions();
+
+    expect(sessionDimensions).toEqual(defaultDimensions);
   });
 
   it("Disposes player when component is unmounted", async () => {
