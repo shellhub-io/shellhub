@@ -154,6 +154,7 @@ import {
   onMounted,
   reactive,
 } from "vue";
+import { useEventListener } from "@vueuse/core";
 import axios from "axios";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
@@ -188,7 +189,7 @@ const hasAuthorization = computed(() => {
   return false;
 });
 
-window.addEventListener("pageshow", (event) => {
+useEventListener("pageshow", (event) => {
   const historyPage = event.persisted
   || (typeof window.performance !== "undefined"
   && (window.performance.getEntries()[0] as PerformanceNavigationTiming).type === "back_forward");

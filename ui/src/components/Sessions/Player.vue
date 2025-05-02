@@ -89,6 +89,7 @@
 <script setup lang="ts">
 import * as AsciinemaPlayer from "asciinema-player";
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { useDisplay } from "vuetify";
 import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
 
@@ -184,12 +185,12 @@ const setPlayerEventListeners = () => {
     clearCurrentTimeUpdater();
   });
 
-  containerDiv.value?.addEventListener("keydown", (event: KeyboardEvent) => {
+  useEventListener(containerDiv.value, "keydown", (event: KeyboardEvent) => {
     getCurrentTime();
     if (event.key === "Escape") emit("close");
   });
 
-  containerDiv.value?.addEventListener("keyup", () => {
+  useEventListener(containerDiv.value, "keyup", () => {
     getCurrentTime();
   });
 };
