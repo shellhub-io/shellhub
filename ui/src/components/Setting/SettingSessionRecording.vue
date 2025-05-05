@@ -46,26 +46,23 @@ const updateSessionRecordingStatus = async (value: boolean) => {
 const sessionRecordingStatus = computed({
   get: () => store.getters["sessionRecording/isEnabled"],
   set: async (value: boolean) => {
-    updateSessionRecordingStatus(value);
+    await updateSessionRecordingStatus(value);
   },
 });
 
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.namespace.enableSessionRecord,
-    );
-  }
-  return false;
+  if (role === "") return false;
+
+  return hasPermission(
+    authorizer.role[role],
+    actions.namespace.enableSessionRecord,
+  );
 });
 
 onMounted(async () => {
   try {
-    if (props.hasTenant) {
-      await store.dispatch("sessionRecording/getStatus");
-    }
+    if (props.hasTenant) await store.dispatch("sessionRecording/getStatus");
   } catch (error: unknown) {
     store.dispatch("snackbar/showSnackbarErrorDefault");
     handleError(error);
