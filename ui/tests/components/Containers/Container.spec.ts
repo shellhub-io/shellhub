@@ -2,7 +2,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { VBtn } from "vuetify/lib/components/index.mjs";
 import { store, key } from "@/store";
 import Containers from "@/components/Containers/Container.vue";
 import { router } from "@/router";
@@ -166,7 +165,7 @@ describe("Device", () => {
   });
 
   it("Contains the correct tabs", () => {
-    const tabs = wrapper.findAllComponents(VBtn);
+    const tabs = wrapper.findAllComponents({ name: "VBtn" });
     expect(tabs).toHaveLength(3); // Three tabs expected
     expect(tabs[0].text()).toBe("Accepted");
     expect(tabs[1].text()).toBe("Pending");
