@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted } from "vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
@@ -23,11 +23,10 @@ const props = defineProps({
     default: false,
   },
 });
+
 const store = useStore();
 
-const sessionRecordingStatus = ref(store.getters["sessionRecording/getStatus"]);
-
-watch(sessionRecordingStatus, async (value: boolean) => {
+const updateSessionRecordingStatus = async (value: boolean) => {
   const data = {
     id: localStorage.getItem("tenant"),
     status: value,
@@ -42,6 +41,13 @@ watch(sessionRecordingStatus, async (value: boolean) => {
     store.dispatch("snackbar/showSnackbarErrorDefault");
     handleError(error);
   }
+};
+
+const sessionRecordingStatus = computed({
+  get: () => store.getters["sessionRecording/isEnabled"],
+  set: async (value: boolean) => {
+    updateSessionRecordingStatus(value);
+  },
 });
 
 const hasAuthorization = computed(() => {
@@ -65,5 +71,6 @@ onMounted(async () => {
     handleError(error);
   }
 });
+
 defineExpose({ sessionRecordingStatus });
 </script>
