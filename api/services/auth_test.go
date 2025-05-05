@@ -82,10 +82,24 @@ func TestAuthDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails to authenticate device due to no identity and hostname",
+			description: "fails to authenticate device due to no identity",
 			req: requests.DeviceAuth{
 				Hostname: "",
 				Identity: nil,
+			},
+			requiredMocks: func(_ context.Context) {},
+			expected: Expected{
+				authRes: nil,
+				err:     NewErrAuthDeviceNoIdentity(),
+			},
+		},
+		{
+			description: "fails to authenticate device due to no identity and hostname",
+			req: requests.DeviceAuth{
+				Hostname: "",
+				Identity: &requests.DeviceIdentity{
+					MAC: "",
+				},
 			},
 			requiredMocks: func(_ context.Context) {},
 			expected: Expected{
@@ -98,6 +112,9 @@ func TestAuthDevice(t *testing.T) {
 			req: requests.DeviceAuth{
 				Hostname: "hostname",
 				TenantID: "tenant",
+				Identity: &requests.DeviceIdentity{
+					MAC: "mac",
+				},
 			},
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
