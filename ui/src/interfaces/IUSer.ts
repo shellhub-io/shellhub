@@ -35,7 +35,7 @@ export interface IUserUpdatePassword {
   password: string;
 }
 
-export interface IUserPutSecurity {
+export interface IUserPutSessionRecording {
   id: string;
   status: boolean;
 }
