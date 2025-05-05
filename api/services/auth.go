@@ -66,11 +66,12 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
-	var identity *models.DeviceIdentity
-	if req.Identity != nil {
-		identity = &models.DeviceIdentity{
-			MAC: req.Identity.MAC,
-		}
+	if req.Identity == nil {
+		return nil, NewErrAuthDeviceNoIdentity()
+	}
+
+	identity := &models.DeviceIdentity{
+		MAC: req.Identity.MAC,
 	}
 
 	var hostname string
@@ -78,7 +79,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		hostname = req.Hostname
 	}
 
-	if hostname == "" && (identity == nil || identity.MAC == "") {
+	if hostname == "" && identity.MAC == "" {
 		return nil, NewErrAuthDeviceNoIdentityAndHostname()
 	}
 

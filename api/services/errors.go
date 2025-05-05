@@ -138,6 +138,7 @@ var (
 	ErrSetupForbidden                  = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
+	ErruthDeviceNoIdentity             = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
 )
 
 func NewErrRoleInvalid() error {
@@ -499,4 +500,8 @@ func NewErrSetupForbidden(err error) error {
 
 func NewErrAuthDeviceNoIdentityAndHostname() error {
 	return NewErrInvalid(ErrAuthDeviceNoIdentityAndHostname, map[string]interface{}{}, nil)
+}
+
+func NewErrAuthDeviceNoIdentity() error {
+	return NewErrInvalid(ErruthDeviceNoIdentity, map[string]interface{}{"identity": true}, nil)
 }
