@@ -1,5 +1,5 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import SettingSessionRecording from "@/components/Setting/SettingSessionRecording.vue";
@@ -54,10 +54,8 @@ describe("Setting Session Recording", () => {
   it("Changes status in store when ref is mutated", async () => {
     mockUser.onPut("http://localhost:3000/api/users/security/fake-tenant-data").reply(200);
 
-    wrapper.vm.sessionRecordingStatus = false;
-
     const dispatchSpy = vi.spyOn(store, "dispatch");
-    await flushPromises();
+    wrapper.vm.sessionRecordingStatus = false;
 
     expect(dispatchSpy).toHaveBeenCalledWith("sessionRecording/setStatus", { id: "fake-tenant-data", status: false });
   });

@@ -1,16 +1,16 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Setting Session Recording > Renders the component 1`] = `
-"<div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--disabled v-switch v-switch--inset" data-test="session-recording-switch">
+"<div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-switch v-switch--inset" data-test="session-recording-switch">
   <!---->
   <div class="v-input__control">
-    <div class="v-selection-control v-selection-control--disabled v-selection-control--density-default">
+    <div class="v-selection-control v-selection-control--dirty v-selection-control--disabled v-selection-control--density-default">
       <div class="v-selection-control__wrapper">
         <div class="v-switch__track">
           <!---->
           <!---->
         </div>
-        <div class="v-selection-control__input"><input disabled="" id="switch-v-0" aria-disabled="true" type="checkbox" aria-describedby="switch-v-0-messages" value="true">
+        <div class="v-selection-control__input"><input checked="" disabled="" id="switch-v-0" aria-disabled="true" type="checkbox" aria-describedby="switch-v-0-messages" value="true">
           <div class="v-switch__thumb">
             <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
               <!---->
