@@ -64,8 +64,6 @@ describe("Api Key Delete", () => {
     },
   };
 
-  const session = true;
-
   const getKeyResponse = [
     {
       id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
@@ -95,7 +93,6 @@ describe("Api Key Delete", () => {
     mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getKeyResponse, { "x-total-count": 2 });
@@ -103,7 +100,6 @@ describe("Api Key Delete", () => {
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
     store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
     wrapper = mount(ApiKeyDelete, {

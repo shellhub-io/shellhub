@@ -59,8 +59,6 @@ describe("Team Api Keys", () => {
     },
   };
 
-  const session = true;
-
   const res = {
     data: [namespaceData],
     headers: {
@@ -104,7 +102,6 @@ describe("Team Api Keys", () => {
     mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, apiKeys);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);

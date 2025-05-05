@@ -79,8 +79,6 @@ describe("Billing Dialog", () => {
     ],
   };
 
-  const session = true;
-
   beforeEach(async () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
@@ -93,7 +91,6 @@ describe("Billing Dialog", () => {
     mockBilling = new MockAdapter(billingApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockBilling.onPost("http://localhost:3000/api/billing/customer").reply(200);
     mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
@@ -101,7 +98,6 @@ describe("Billing Dialog", () => {
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
 
     wrapper = mount(BillingDialog, {
       global: {

@@ -61,8 +61,6 @@ describe("Setting Owner Info", () => {
     },
   };
 
-  const session = true;
-
   beforeEach(async () => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
@@ -72,13 +70,11 @@ describe("Setting Owner Info", () => {
     mockUser = new MockAdapter(usersApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
     wrapper = mount(SettingOwnerInfo, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
