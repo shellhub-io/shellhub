@@ -60,8 +60,6 @@ describe("Details Device", () => {
     },
   };
 
-  const session = true;
-
   const res = {
     data: [namespaceData],
     headers: {
@@ -125,7 +123,6 @@ describe("Details Device", () => {
     mockDevices.onGet("http://localhost:3000/api/devices/123456")
       .reply(200, device);
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);

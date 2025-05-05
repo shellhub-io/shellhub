@@ -59,8 +59,6 @@ describe("Public Key List", () => {
     },
   };
 
-  const session = true;
-
   const res = {
     data: [
       {
@@ -90,7 +88,6 @@ describe("Public Key List", () => {
     mockSsh = new MockAdapter(sshApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockSsh.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, res);
@@ -99,7 +96,6 @@ describe("Public Key List", () => {
     store.commit("publicKeys/setPublicKeys", res);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
     wrapper = mount(PublicKeysList, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],

@@ -56,8 +56,6 @@ describe("Validation Account", () => {
     },
   };
 
-  const session = true;
-
   const res = {
     data: [namespaceData],
     headers: {
@@ -75,7 +73,6 @@ describe("Validation Account", () => {
     mockUser = new MockAdapter(usersApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockUser.onGet("http://localhost:3000/api/user/validation_account?email=test%40test.com&token=test-token").reply(200);
 

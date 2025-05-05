@@ -67,8 +67,6 @@ describe("Home", () => {
     rejected_devices: 0,
   };
 
-  const session = true;
-
   const res = {
     data: [namespaceData],
     headers: {
@@ -86,7 +84,6 @@ describe("Home", () => {
     mockDevices = new MockAdapter(devicesApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
 

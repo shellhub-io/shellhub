@@ -57,8 +57,6 @@ const authData = {
   },
 };
 
-const session = true;
-
 describe("Namespace Invite Dialog (Invalid User)", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -70,13 +68,11 @@ describe("Namespace Invite Dialog (Invalid User)", () => {
     mockUser = new MockAdapter(usersApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
 
     wrapper = mount(NamespaceInviteCard, {
       global: {
@@ -114,13 +110,11 @@ describe("Namespace Invite Dialog", () => {
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData);
     mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant/members/accept-invite").reply(200);
     mockNamespace.onGet("http://localhost:3000/api/auth/token/fake-tenant").reply(200);
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
 
     wrapper = mount(NamespaceInviteCard, {
       global: {
