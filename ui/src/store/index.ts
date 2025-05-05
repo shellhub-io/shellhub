@@ -11,7 +11,7 @@ import { support, SupportState } from "./modules/support";
 import { spinner, SpinnerState } from "./modules/spinner";
 import { snackbar, SnackbarState } from "./modules/snackbar";
 import { sessions, SessionsState } from "./modules/sessions";
-import { security, SecurityState } from "./modules/security";
+import { sessionRecording, SessionRecordingState } from "./modules/session_recording";
 import { publicKeys, PublicKeysState } from "./modules/public_keys";
 import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
@@ -43,7 +43,7 @@ export interface State {
   notifications: NotificationsState;
   privateKey: PrivateKeyState;
   publicKeys: PublicKeysState;
-  security: SecurityState;
+  sessionRecording: SessionRecordingState;
   sessions: SessionsState;
   snackbar: SnackbarState;
   spinner: SpinnerState;
@@ -73,7 +73,7 @@ export const store = createStore<State>({
     notifications,
     privateKey,
     publicKeys,
-    security,
+    sessionRecording,
     sessions,
     snackbar,
     spinner,

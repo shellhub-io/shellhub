@@ -16,7 +16,10 @@ export const postRecoverPassword = async (username: string) => usersApi.recoverP
 
 export const postValidationAccount = async (data: IUser) => usersApi.getValidateAccount(data.email, data.token);
 
-export const setSessionRecordStatus = async (data: IUserPutSecurity) => usersApi.setSessionRecord(data.id, { session_record: data.status });
+export const setSessionRecordStatus = async (data: IUserPutSessionRecording) => usersApi.setSessionRecord(
+  data.id,
+  { session_record: data.status },
+);
 
 export const getSessionRecordStatus = async () => usersApi.checkSessionRecord();
 

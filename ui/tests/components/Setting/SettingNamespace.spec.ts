@@ -3,7 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
-import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
+import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
@@ -17,10 +17,7 @@ describe("Setting Namespace", () => {
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
-
   let mockUser: MockAdapter;
-
-  let mockApiKeys: MockAdapter;
 
   const members = [
     {
@@ -61,25 +58,6 @@ describe("Setting Namespace", () => {
     },
   };
 
-  const session = true;
-
-  const getKeyResponse = [
-    {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
-    },
-    {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df2",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
-    },
-  ];
-
   beforeEach(async () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
@@ -98,19 +76,13 @@ describe("Setting Namespace", () => {
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
-    mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/users/security").reply(200, session);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getKeyResponse, { "x-total-count": 2 });
 
     store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("security/setSecurity", session);
-    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
 
     wrapper = mount(SettingNamespace, {
       global: {
@@ -154,7 +126,7 @@ describe("Setting Namespace", () => {
     "record-icon",
     "record-title",
     "record-description",
-    "security-setting-component",
+    "session-recording-setting-component",
     "delete-leave-item",
     "delete-leave-icon",
     "delete-leave-title",

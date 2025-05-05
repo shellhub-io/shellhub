@@ -145,7 +145,10 @@
               </template>
             </v-card>
             <v-col class="d-flex align-center justify-end bg-background">
-              <SettingSecurity :hasTenant="hasTenant()" data-test="security-setting-component" />
+              <SettingSessionRecording
+                :hasTenant="hasTenant()"
+                data-test="session-recording-setting-component"
+              />
             </v-col>
           </v-row>
           <v-divider />
@@ -187,7 +190,7 @@ import { useField } from "vee-validate";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
-import SettingSecurity from "./SettingSecurity.vue";
+import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
 import {

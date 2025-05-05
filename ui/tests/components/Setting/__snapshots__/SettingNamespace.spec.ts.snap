@@ -170,16 +170,16 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <!----><span class="v-card__underlay"></span>
           </div>
           <div data-v-80a16399="" class="v-col d-flex align-center justify-end bg-background">
-            <div data-v-80a16399="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset" data-test="security-setting-component">
+            <div data-v-80a16399="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-switch v-switch--inset" data-test="session-recording-setting-component">
               <!---->
               <div class="v-input__control">
-                <div class="v-selection-control v-selection-control--dirty v-selection-control--density-default">
-                  <div class="v-selection-control__wrapper text-primary">
-                    <div class="v-switch__track bg-primary">
+                <div class="v-selection-control v-selection-control--density-default">
+                  <div class="v-selection-control__wrapper">
+                    <div class="v-switch__track">
                       <!---->
                       <!---->
                     </div>
-                    <div class="v-selection-control__input"><input checked="" id="switch-v-6" aria-disabled="false" type="checkbox" aria-describedby="switch-v-6-messages" value="true">
+                    <div class="v-selection-control__input"><input id="switch-v-6" aria-disabled="false" type="checkbox" aria-describedby="switch-v-6-messages" value="true">
                       <div class="v-switch__thumb">
                         <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->

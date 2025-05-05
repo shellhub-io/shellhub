@@ -2,10 +2,10 @@
   <v-switch
     hide-details
     inset
-    v-model="sessionRecord"
+    v-model="sessionRecordingStatus"
     :disabled="!hasAuthorization"
     color="primary"
-    data-test="security-switch"
+    data-test="session-recording-switch"
   />
 </template>
 
@@ -25,15 +25,15 @@ const props = defineProps({
 });
 const store = useStore();
 
-const sessionRecord = ref(store.getters["security/get"]);
+const sessionRecordingStatus = ref(store.getters["sessionRecording/getStatus"]);
 
-watch(sessionRecord, async (value: boolean) => {
+watch(sessionRecordingStatus, async (value: boolean) => {
   const data = {
     id: localStorage.getItem("tenant"),
     status: value,
   };
   try {
-    await store.dispatch("security/set", data);
+    await store.dispatch("sessionRecording/setStatus", data);
     store.dispatch(
       "snackbar/showSnackbarSuccessAction",
       INotificationsSuccess.namespaceEdit,
@@ -58,12 +58,12 @@ const hasAuthorization = computed(() => {
 onMounted(async () => {
   try {
     if (props.hasTenant) {
-      await store.dispatch("security/get");
+      await store.dispatch("sessionRecording/getStatus");
     }
   } catch (error: unknown) {
     store.dispatch("snackbar/showSnackbarErrorDefault");
     handleError(error);
   }
 });
-defineExpose({ sessionRecord });
+defineExpose({ sessionRecordingStatus });
 </script>
