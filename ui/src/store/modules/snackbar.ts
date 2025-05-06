@@ -47,19 +47,6 @@ export const snackbar: Module<SnackbarState, State> = {
       state.snackbarSuccess = true;
     },
 
-    setSnackbarNoContent: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarSuccess = true;
-    },
-
-    setSnackbarSuccessDefault: (state) => {
-      state.snackbarMessageAndContentType = {
-        typeMessage: "default",
-        typeContent: "",
-      };
-      state.snackbarSuccess = true;
-    },
-
     unsetSnackbarSuccess: (state) => {
       state.snackbarSuccess = false;
     },
@@ -82,11 +69,6 @@ export const snackbar: Module<SnackbarState, State> = {
       state.snackbarError = true;
     },
 
-    setSnackbarErrorLicense: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarError = true;
-    },
-
     unsetSnackbarError: (state) => {
       state.snackbarError = false;
     },
@@ -97,11 +79,6 @@ export const snackbar: Module<SnackbarState, State> = {
         typeContent: value,
       };
       state.snackbarCopy = true;
-    },
-
-    setSnackbarErrorIncorrect: (state, data) => {
-      state.snackbarMessageAndContentType = data;
-      state.snackbarError = true;
     },
 
     unsetSnackbarCopy: (state) => {
@@ -116,10 +93,6 @@ export const snackbar: Module<SnackbarState, State> = {
         typeContent: value,
       };
       commit("setSnackbarSuccessAction", data);
-    },
-
-    showSnackbarSuccessDefault: ({ commit }) => {
-      commit("setSnackbarSuccessDefault");
     },
 
     unsetShowStatusSnackbarSuccess: ({ commit }) => {
@@ -142,28 +115,12 @@ export const snackbar: Module<SnackbarState, State> = {
       commit("setSnackbarErrorLoadingOrAction", data);
     },
 
-    showSnackbarNoContent: ({ commit }) => {
-      const data = {
-        typeMessage: "no-content",
-        typeContent: "",
-      };
-      commit("setSnackbarNoContent", data);
-    },
-
     showSnackbarErrorAction: ({ commit }, value) => {
       const data = {
         typeMessage: "action",
         typeContent: value,
       };
       commit("setSnackbarErrorLoadingOrAction", data);
-    },
-
-    showSnackbarErrorLicense: ({ commit }, value) => {
-      const data = {
-        typeMessage: "licenseRequired",
-        typeContent: value,
-      };
-      commit("setSnackbarErrorLicense", data);
     },
 
     showSnackbarErrorDefault: ({ commit }) => {
@@ -180,14 +137,6 @@ export const snackbar: Module<SnackbarState, State> = {
 
     unsetShowStatusSnackbarCopy: ({ commit }) => {
       commit("unsetSnackbarCopy");
-    },
-
-    showSnackbarErrorIncorrect: (context, value) => {
-      const data = {
-        typeMessage: "incorrect",
-        typeContent: value,
-      };
-      context.commit("setSnackbarErrorIncorrect", data);
     },
   },
 };
