@@ -118,6 +118,7 @@
     </v-navigation-drawer>
 
     <Snackbar />
+    <SnackbarNew />
 
     <AppBar v-model="showNavigationDrawer" data-test="app-bar" />
 
@@ -164,6 +165,7 @@ import Namespace from "@/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
+import SnackbarNew from "@/components/Snackbar/SnackbarNew.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 
 const router = useRouter();
