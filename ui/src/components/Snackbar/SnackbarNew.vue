@@ -3,27 +3,20 @@
     v-model="show"
     location="top"
     :timeout="4000"
-    :color="type"
-    ransition="slide-x-transition"
+    :color="color"
+    transition="slide-x-transition"
   >
-    {{ message }}
+    <p class="w-100 text-center">{{ message }}</p>
   </v-snackbar>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useStore } from "@/store";
+import { computed } from "vue";
+import { plugin } from "@/plugins/snackbar";
 
-const store = useStore();
-const show = ref(false);
-const message = ref("");
-const type = ref("");
+const show = computed(() => plugin.getShow());
 
-store.subscribe((mutation, state) => {
-  if (mutation.type === "snackbar/showMessage") {
-    message.value = state.snackbar.message;
-    type.value = state.snackbar.type;
-    show.value = true;
-  }
-});
+const message = computed(() => plugin.getMessage());
+const type = computed(() => plugin.getType());
+const color = computed(() => type.value);
 </script>

@@ -1,35 +1,56 @@
-import { App, Plugin } from "vue";
+import { App, Plugin, reactive } from "vue";
 
-const InjectionKey = "snackbar";
+const InjectionKey = Symbol("snackbar");
 
-interface PluginInterface {
-  showInfo(message: string);
-  showSuccess(message: string);
-  showWarning(message: string);
-  showError(message: string);
+type SnackbarType = "success" | "error" | "info" | "warning";
+
+interface SnackbarState {
+  message: string;
+  type: SnackbarType;
+  show: boolean;
 }
+
+interface ISnackbarPlugin {
+  showSuccess: (msg: string) => void;
+  showError: (msg: string) => void;
+  showInfo: (msg: string) => void;
+  showWarning: (msg: string) => void;
+  getMessage: () => string;
+  getType: () => SnackbarType;
+  getShow: () => boolean;
+}
+
+const state = reactive<SnackbarState>({
+  message: "",
+  type: "info",
+  show: false,
+});
+
+const showSnackbar = (type: SnackbarType, message: string) => {
+  state.message = message;
+  state.type = type;
+  state.show = true;
+
+  setTimeout(() => {
+    state.show = false;
+  }, 4000);
+};
+
+const plugin: ISnackbarPlugin = {
+  showSuccess: (msg: string) => showSnackbar("success", msg),
+  showError: (msg: string) => showSnackbar("error", msg),
+  showInfo: (msg: string) => showSnackbar("info", msg),
+  showWarning: (msg: string) => showSnackbar("warning", msg),
+  getMessage: () => state.message,
+  getType: () => state.type,
+  getShow: () => state.show,
+};
 
 const SnackbarPlugin: Plugin = {
   install(app: App) {
-    const store = app.config.globalProperties.$store;
-
-    const plugin = {
-      showInfo(message: string) {
-        store.commit("snackbar/showMessage", { type: "info", message });
-      },
-      showSuccess(message: string) {
-        store.commit("snackbar/showMessage", { type: "success", message });
-      },
-      showWarning(message: string) {
-        store.commit("snackbar/showMessage", { type: "warning", message });
-      },
-      showError(message: string) {
-        store.commit("snackbar/showMessage", { type: "error", message });
-      },
-    } as PluginInterface;
-
     app.provide(InjectionKey, plugin);
   },
 };
 
-export { InjectionKey, type PluginInterface, SnackbarPlugin };
+export { SnackbarPlugin, InjectionKey, plugin };
+export type { SnackbarState, ISnackbarPlugin };

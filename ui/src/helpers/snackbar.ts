@@ -1,8 +1,6 @@
 import { inject } from "vue";
-import { PluginInterface, InjectionKey } from "@/plugins/snackbar";
+import { InjectionKey, type ISnackbarPlugin } from "@/plugins/snackbar";
 
-function useSnackbar(): PluginInterface {
-  return inject(InjectionKey) as PluginInterface;
-}
+const useSnackbar = (): ISnackbarPlugin => inject(InjectionKey) as ISnackbarPlugin;
 
 export default useSnackbar;
