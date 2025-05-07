@@ -145,17 +145,30 @@ standalone_install() {
     echo "If it takes too long, please check the logs with the command:"
     echo "journalctl -f -u shellhub-agent"
 
-    $SUDO journalctl -f -u shellhub-agent --since "$(systemctl show -p ActiveEnterTimestamp shellhub-agent | cut -d= -f2)" | while read -r line; do
+    timeout 15s bash -c '
+      journalctl -f -u shellhub-agent --since "$(systemctl show -p ActiveEnterTimestamp shellhub-agent | cut -d= -f2)" | while read -r line; do
         if echo "$line" | grep -Eq "Listening for connections"; then
             echo "✅ Success: $line"
-            break
+            exit 0
         elif echo "$line" | grep -Eq "fatal"; then
             echo "❌ Failure: $line"
-            echo "Disabling shellhub-agent service..."
-            $SUDO systemctl disable --now shellhub-agent
-            exit 1
+            exit 2
         fi
-    done
+      done
+    '
+
+    exit_code=$?
+
+    if [ $exit_code -eq 124 ]; then
+        echo "❌ Timeout: Service took too long to start."
+        echo "Disabling shellhub-agent service..."
+        $SUDO systemctl disable --now shellhub-agent
+        exit 1
+    elif [ $exit_code -eq 2 ]; then
+        echo "Disabling shellhub-agent service..."
+        $SUDO systemctl disable --now shellhub-agent
+        exit 1
+    fi
 
     $SUDO rm -rf $INSTALL_DIR
     $SUDO mv $TMP_DIR $INSTALL_DIR
