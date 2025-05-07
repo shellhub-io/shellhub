@@ -97,8 +97,8 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
 import useCountdown from "@/utils/countdownTimeout";
+import useSnackbar from "@/helpers/snackbar";
 
 const dialog = ref(false);
 const checkbox = ref(false);
@@ -106,6 +106,7 @@ const invalid = reactive({ title: "", msg: "", timeout: false });
 const tokenCountdownAlert = ref(true);
 const isCountdownFinished = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const disableTimeout = computed(() => store.getters["auth/getDisableTokenTimeout"]);
 const recoveryCode = computed(() => store.getters["auth/stateRecoveryCode"]);
 const { startCountdown, countdown } = useCountdown();
@@ -124,16 +125,11 @@ watch(countdown, (newValue) => {
 const disableMFA = async () => {
   try {
     await store.dispatch("auth/disableMfa", { recovery_code: recoveryCode.value });
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.recoveryHelper,
-    );
+    snackbar.showSuccess("MFA disabled successfully.");
     store.commit("auth/accountRecoveryHelper");
     dialog.value = false;
   } catch (error) {
-    store.commit(
-      "snackbar/setSnackbarErrorDefault",
-    );
+    snackbar.showError("An error occurred while disabling MFA.");
     handleError(error);
   }
 };
