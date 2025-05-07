@@ -8,6 +8,7 @@ import AppBar from "@/components/AppBar/AppBar.vue";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const Component = {
   template: "<v-layout><AppBar /></v-layout>",
@@ -121,7 +122,7 @@ describe("AppBar Component", () => {
 
     wrapper = mount(Component, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [[store, key], vuetify, router, SnackbarPlugin],
         components: {
           "v-layout": VLayout,
           AppBar,
