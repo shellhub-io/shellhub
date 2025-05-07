@@ -56,11 +56,12 @@ import { useField } from "vee-validate";
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const dialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const email = computed(() => store.getters["auth/email"]);
 const {
   value: recoveryEmail,
@@ -91,10 +92,7 @@ const updateUserData = async () => {
   try {
     await store.dispatch("users/patchData", data);
     store.dispatch("auth/changeUserData", data);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.profileData,
-    );
+    snackbar.showSuccess("Recovery email updated successfully.");
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;

@@ -165,9 +165,10 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Logo from "@/assets/logo-inverted.png";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const verificationCode = ref("");
 const recoveryCode = ref("");
 const el = ref<number>(1);
@@ -188,10 +189,7 @@ const mfaValidate = async () => {
       default:
         break;
     }
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.cancelMfa,
-    );
+    snackbar.showSuccess("MFA disabled successfully.");
     showDialog.value = false;
   } catch (error) {
     if (axios.isAxiosError(error)) {

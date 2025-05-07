@@ -255,9 +255,10 @@ import axios, { AxiosError } from "axios";
 import { useClipboard } from "@vueuse/core";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { INotificationsCopy, INotificationsSuccess } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const el = ref<number>(1);
 const emit = defineEmits(["enabled", "resetForm"]);
 const showDialog = defineModel({ default: false });
@@ -300,10 +301,7 @@ const updateUserData = async () => {
   try {
     await store.dispatch("users/patchData", data);
     store.dispatch("auth/changeRecoveryEmail", data.recovery_email);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.profileData,
-    );
+    snackbar.showSuccess("Recovery email updated successfully.");
     emit("resetForm");
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -349,10 +347,7 @@ const copyRecoveryCodes = () => {
   const { copy } = useClipboard();
   copy(codesText);
 
-  store.dispatch(
-    "snackbar/showSnackbarCopy",
-    INotificationsCopy.recoveryCodes,
-  );
+  snackbar.showInfo("Recovery codes copied to clipboard.");
 };
 
 const downloadRecoveryCodes = () => {
