@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Login > Renders the component 1`] = `
+exports[`Confirm Account > Renders the component 1`] = `
 "<div class="v-container v-locale--is-ltr">
   <div class="v-card-title d-flex justify-center" data-test="title"> Account Activation Required </div>
   <div class="v-card-text d-flex align-center justify-center text-center" data-test="subtitle"> Thank you for registering an account on ShellHub. An email was sent with a confirmation link. You need to click on the link to activate your account. If you haven't received the email, click on Resend Email button. </div>

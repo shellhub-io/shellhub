@@ -45,9 +45,11 @@ import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
+const snackbar = useSnackbar();
 const filter = ref("");
 const show = computed(() => store.getters["devices/getShowDevices"]);
 
@@ -72,7 +74,7 @@ const searchDevices = () => {
       status: store.getters["devices/getStatus"],
     });
   } catch {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("Failed to load devices.");
   }
 };
 

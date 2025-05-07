@@ -7,11 +7,17 @@ import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type ConfirmAccountWrapper = VueWrapper<InstanceType<typeof ConfirmAccount>>;
 const username = "test";
-describe("Login", () => {
+
+const mockSnackbar = {
+  showError: vi.fn(),
+  showSuccess: vi.fn(),
+};
+
+describe("Confirm Account", () => {
   let wrapper: ConfirmAccountWrapper;
   const vuetify = createVuetify();
 
@@ -27,7 +33,8 @@ describe("Login", () => {
 
     wrapper = mount(ConfirmAccount, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -68,12 +75,10 @@ describe("Login", () => {
   });
 
   it("Error case on resends an email to the user", async () => {
-    const resendEmailSpy = vi.spyOn(store, "dispatch");
-
     mock.onPost("http://localhost:3000/api/user/resend_email").reply(400);
     await wrapper.findComponent('[data-test="resendEmail-btn"]').trigger("click");
     await flushPromises();
 
-    expect(resendEmailSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault", "resend email");
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while sending the email. Please try again.");
   });
 });

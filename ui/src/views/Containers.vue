@@ -54,12 +54,14 @@ import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import handleError from "@/utils/handleError";
 import ContainerAdd from "../components/Containers/ContainerAdd.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
 const filter = ref("");
 const loading = ref(false);
 const show = computed(() => store.getters["container/getShowContainers"]);
+const snackbar = useSnackbar();
 
 const searchDevices = () => {
   let encodedFilter = "";
@@ -82,7 +84,7 @@ const searchDevices = () => {
       status: store.getters["container/getStatus"],
     });
   } catch {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("An error occurred while searching for containers.");
   }
 };
 

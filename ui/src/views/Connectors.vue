@@ -32,10 +32,11 @@ import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import ConnectorList from "../components/Connector/ConnectorList.vue";
 import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const router = useRouter();
 const store = useStore();
+const snackbar = useSnackbar();
 
 const getConnectors = async () => {
   try {
@@ -47,14 +48,11 @@ const getConnectors = async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("The request has failed, please try again.");
         handleError(error);
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.connectorLoad,
-      );
+      snackbar.showError("Error loading the connectors.");
       handleError(error);
     }
   }

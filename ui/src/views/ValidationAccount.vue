@@ -58,16 +58,14 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "../interfaces/INotifications";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const snackbar = useSnackbar();
 
 const activationProcessingStatus = ref("processing");
 
@@ -76,19 +74,12 @@ const verifyActivationProcessingStatus = computed(() => activationProcessingStat
 const validationAccount = async (data: unknown) => {
   try {
     await store.dispatch("users/validationAccount", data);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.validationAccount,
-    );
-
+    snackbar.showSuccess("Your account has been activated successfully.");
     // Only set to "success" if validation is successful
     activationProcessingStatus.value = "success";
     setTimeout(() => router.push({ path: "/login" }), 4000);
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.validationAccount,
-    );
+    snackbar.showError("There was a problem activating your account.");
     if (error && axios.isAxiosError(error) && error.response) {
       switch (error.response.status) {
         case 400:
