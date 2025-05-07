@@ -41,29 +41,21 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "../store";
-import {
-  INotificationsSuccess,
-  INotificationsError,
-} from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const snackbar = useSnackbar();
 
 const resendEmail = async () => {
   try {
     await store.dispatch("users/resendEmail", route.query.username);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.resendEmail,
-    );
+    snackbar.showSuccess("The email has been sent.");
     await router.push({ name: "Login" });
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorDefault",
-      INotificationsError.resendEmail,
-    );
+    snackbar.showError("An error occurred while sending the email. Please try again.");
     handleError(error);
   }
 };

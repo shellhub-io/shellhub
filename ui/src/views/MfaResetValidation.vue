@@ -84,16 +84,14 @@ import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "../interfaces/INotifications";
 import { useStore } from "../store";
 import handleError from "../utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const snackbar = useSnackbar();
 const errorMsg = ref("");
 
 const {
@@ -119,11 +117,10 @@ const validationAccount = async () => {
     await store.dispatch("auth/resetMfa", {
       id: route.query.id,
       main_email_code: primaryEmail.value,
-      recovery_email_code: recoveryEmail.value });
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.cancelMfa,
-    );
+      recovery_email_code: recoveryEmail.value,
+    });
+
+    snackbar.showSuccess("Successfully disabled multi-factor authentication");
 
     disableProcessingStatus.value = "success";
     setTimeout(() => router.push({ path: "/" }), 5000);
@@ -143,10 +140,7 @@ const validationAccount = async () => {
           break;
       }
     }
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.cancelMfa,
-    );
+    snackbar.showError("Failed to disable multi-factor authentication");
     handleError(error);
   }
 };

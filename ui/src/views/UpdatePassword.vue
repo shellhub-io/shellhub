@@ -74,12 +74,9 @@ import { useField } from "vee-validate";
 import { onMounted, ref, watch } from "vue";
 import { LocationQueryValue, useRoute, useRouter } from "vue-router";
 import * as yup from "yup";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "../interfaces/INotifications";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 type TUpdatePassword = {
   id: LocationQueryValue | LocationQueryValue[];
@@ -90,6 +87,7 @@ type TUpdatePassword = {
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
+const snackbar = useSnackbar();
 const data = ref({} as TUpdatePassword);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
@@ -179,15 +177,9 @@ const updatePassword = async () => {
     };
     await store.dispatch("users/updatePassword", data.value);
     await router.push({ name: "Login" });
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.updatingAccount,
-    );
+    snackbar.showSuccess("Password updated successfully.");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.updatingAccount,
-    );
+    snackbar.showError("Failed to update password.");
     handleError(error);
   }
 };

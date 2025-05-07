@@ -7,10 +7,15 @@ import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type UpdatePasswordWrapper = VueWrapper<InstanceType<typeof UpdatePassword>>;
 const uid = "testID";
+
+const mockSnackbar = {
+  showError: vi.fn(),
+  showSuccess: vi.fn(),
+};
 
 describe("Update Password", () => {
   let wrapper: UpdatePasswordWrapper;
@@ -27,7 +32,8 @@ describe("Update Password", () => {
 
     wrapper = mount(UpdatePassword, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -84,8 +90,6 @@ describe("Update Password", () => {
   it("Error in updating password", async () => {
     mock.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(400);
 
-    const updatePasswordSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="password-text"]').setValue("12345");
     await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("12345");
 
@@ -93,6 +97,6 @@ describe("Update Password", () => {
 
     await flushPromises();
 
-    expect(updatePasswordSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorAction", "updating account");
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update password.");
   });
 });

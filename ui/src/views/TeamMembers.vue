@@ -18,12 +18,13 @@
 import { computed, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import MemberInvite from "@/components/Team/Member/MemberInvite.vue";
 import MemberList from "@/components/Team/Member/MemberList.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const tenant = computed(() => localStorage.getItem("tenant"));
 
 const getNamespace = async () => {
@@ -33,13 +34,10 @@ const getNamespace = async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You don't have permission to access this resource.");
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.namespaceLoad,
-      );
+      snackbar.showError("Failed to load namespaces.");
       handleError(error);
     }
   }

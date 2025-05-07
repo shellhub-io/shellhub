@@ -142,15 +142,16 @@ import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import TunnelList from "../components/Tunnels/TunnelList.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 import TerminalConnectButton from "../components/Terminal/TerminalConnectButton.vue";
 import { formatFullDateTime } from "@/utils/date";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const route = useRoute();
+const snackbar = useSnackbar();
 const deviceId = computed(() => route.params.id);
 const device = computed(() => store.getters["devices/get"]);
 
@@ -158,10 +159,7 @@ onMounted(async () => {
   try {
     await store.dispatch("devices/get", deviceId.value);
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceDetails,
-    );
+    snackbar.showError("There was an error loading the device details.");
     handleError(error);
   }
 });
@@ -182,10 +180,7 @@ const refreshUsers = async () => {
       await store.dispatch("tunnels/get", deviceId.value);
     }
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceDetails,
-    );
+    snackbar.showError("There was an error loading the device details.");
     handleError(error);
   }
 };
