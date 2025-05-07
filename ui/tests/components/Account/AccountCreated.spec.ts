@@ -7,9 +7,14 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey, SnackbarPlugin } from "@/plugins/snackbar";
 
 type AccountCreatedWrapper = VueWrapper<InstanceType<typeof AccountCreated>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Account Created", () => {
   let wrapper: AccountCreatedWrapper;
@@ -36,7 +41,8 @@ describe("Account Created", () => {
     beforeEach(() => {
       wrapper = mount(AccountCreated, {
         global: {
-          plugins: [[store, key], vuetify, router, SnackbarPlugin],
+          plugins: [[store, key], vuetify, router],
+          provide: { [SnackbarInjectionKey]: mockSnackbar },
         },
         props: {
           messageKind: "normal",
@@ -72,14 +78,13 @@ describe("Account Created", () => {
       await flushPromises();
 
       expect(storeSpy).toHaveBeenCalledWith("users/resendEmail", "testUser");
-      expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarSuccessAction", "resend email");
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Email successfully sent.");
     });
   });
 
   describe("With messageKind = 'sig'", () => {
     namespacesMock = new MockAdapter(namespacesApi.getAxios());
     namespacesMock.onGet("http://localhost:3000/api/namespaces/fake-tenant/members/fake-id/accept-invite?sig=fake-sig").reply(200);
-    // http://localhost:3000/api/namespaces/fake-tenant/members/fake-id/accept-invite?sig=fake-sig
 
     beforeEach(() => {
       wrapper = mount(AccountCreated, {
