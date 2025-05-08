@@ -44,12 +44,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   keyId: {
@@ -61,6 +58,7 @@ const props = defineProps({
     required: true,
   },
 });
+const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
@@ -76,15 +74,9 @@ const remove = async () => {
       key: props.keyId,
     });
     update();
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.deleteKey,
-    );
+    snackbar.showSuccess("Api Key deleted successfully.");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deleteKey,
-    );
+    snackbar.showError("Failed to delete Api Key.");
     handleError(error);
   }
 };

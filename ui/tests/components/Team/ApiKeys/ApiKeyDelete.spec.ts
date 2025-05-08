@@ -7,12 +7,16 @@ import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type ApiKeyDeleteWrapper = VueWrapper<InstanceType<typeof ApiKeyDelete>>;
 
@@ -104,7 +108,8 @@ describe("Api Key Delete", () => {
 
     wrapper = mount(ApiKeyDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -153,15 +158,10 @@ describe("Api Key Delete", () => {
   it("Fails to delete Api Key", async () => {
     mockApiKeys.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(404);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="delete-main-btn-title"]').trigger("click");
 
     await wrapper.findComponent('[data-test="delete-btn"]').trigger("click");
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deleteKey,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to delete Api Key.");
   });
 });
