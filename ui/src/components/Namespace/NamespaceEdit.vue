@@ -52,13 +52,11 @@ import { useField } from "vee-validate";
 import axios from "axios";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const namespace = computed(() => store.getters["namespaces/get"]);
 const tenant = computed(() => store.getters["auth/tenant"]);
 const show = defineModel({ default: false });
@@ -99,18 +97,12 @@ const handleUpdateNameError = (error: unknown): void => {
         setConnectionAnnouncementError("This message is not valid");
         break;
       default:
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceEdit,
-        );
+        snackbar.showError("An error occurred while updating the connection announcement.");
         handleError(error);
     }
   }
 
-  store.dispatch(
-    "snackbar/showSnackbarErrorAction",
-    INotificationsError.namespaceEdit,
-  );
+  snackbar.showError("An error occurred while updating the connection announcement.");
   handleError(error);
 };
 
@@ -130,10 +122,8 @@ const updateAnnouncement = async () => {
     });
 
     emit("update");
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceEdit,
-    );
+    snackbar.showSuccess("Connection announcement updated successfully.");
+
     show.value = false;
   } catch (error) {
     handleUpdateNameError(error);
