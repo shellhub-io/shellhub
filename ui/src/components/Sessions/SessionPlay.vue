@@ -39,9 +39,9 @@ import {
 } from "vue";
 import { envVariables } from "@/envVariables";
 import { useStore } from "@/store";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -64,6 +64,7 @@ const props = defineProps({
 
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const logs = ref<string | null>(null);
 const isCommunity = computed(() => envVariables.isCommunity);
 
@@ -79,10 +80,7 @@ const displayDialog = async () => {
     await getSessionLogs();
     showDialog.value = true;
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.sessionPlay,
-    );
+    snackbar.showError("Failed to play the session.");
     handleError(error);
   }
 };
