@@ -165,18 +165,15 @@ import multiavatar from "@multiavatar/multiavatar";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
-import {
-  INotificationsCopy,
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
+import useSnackbar from "@/helpers/snackbar";
 
 const items = ["administrator", "operator", "observer"];
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const dialog = ref(false);
 const getInvitationCheckbox = ref(false);
 const invitationLink = computed(() => store.getters["namespaces/getInvitationLink"]);
@@ -232,15 +229,12 @@ const update = () => {
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.invitationLink);
+    snackbar.showInfo("Invitation link copied to clipboard.");
   }
 };
 
 const handleInviteError = (error: unknown) => {
-  store.dispatch(
-    "snackbar/showSnackbarErrorAction",
-    INotificationsError.namespaceNewMember,
-  );
+  snackbar.showError("Failed to send invitation.");
 
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
@@ -266,10 +260,7 @@ const generateLinkInvite = async () => {
       role: selectedRole.value,
     });
 
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceNewMember,
-    );
+    snackbar.showSuccess("Invitation link generated successfully.");
 
     formWindow.value = "form-2";
   } catch (error) {
@@ -285,10 +276,7 @@ const sendEmailInvite = async () => {
       role: selectedRole.value,
     });
 
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceNewMember,
-    );
+    snackbar.showSuccess("Invitation email sent successfully.");
 
     update();
     resetFields();
