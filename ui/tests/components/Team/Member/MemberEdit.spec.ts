@@ -7,10 +7,14 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type MemberEditWrapper = VueWrapper<InstanceType<typeof MemberEdit>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Member Edit", () => {
   const node = document.createElement("div");
@@ -81,7 +85,8 @@ describe("Member Edit", () => {
 
     wrapper = mount(MemberEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       attachTo: el,
       props: {
@@ -132,7 +137,7 @@ describe("Member Edit", () => {
       user_id: "xxxxxxxx",
     });
 
-    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarErrorAction", INotificationsError.namespaceEditMember);
+    expect(mockSnackbar.showError).toBeCalledWith("Failed to update user role.");
   });
 
   it("Edit Member Success Validation", async () => {

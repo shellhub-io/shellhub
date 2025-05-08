@@ -61,13 +61,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import axios from "axios";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { IMember } from "@/interfaces/IMember";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   member: {
@@ -82,6 +79,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const showDialog = ref(false);
 const memberLocal = ref({} as IMember);
 const errorMessage = ref("");
@@ -121,15 +119,10 @@ const handleEditMemberError = (error: unknown) => {
       default:
         handleError(error);
     }
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.namespaceEditMember,
-    );
+
+    snackbar.showError("Failed to update user role.");
   } else {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.namespaceEditMember,
-    );
+    snackbar.showError("Failed to update user role.");
     handleError(error);
   }
 };
@@ -142,10 +135,7 @@ const editMember = async () => {
       role: memberLocal.value.selectedRole,
     });
 
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceEditMember,
-    );
+    snackbar.showSuccess("Successfully updated user role.");
     update();
   } catch (error: unknown) {
     handleEditMemberError(error);

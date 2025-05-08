@@ -7,10 +7,15 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type MemberInviteWrapper = VueWrapper<InstanceType<typeof MemberInvite>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+  showInfo: vi.fn(),
+};
 
 describe("Member Invite", () => {
   const node = document.createElement("div");
@@ -80,7 +85,8 @@ describe("Member Invite", () => {
 
     wrapper = mount(MemberInvite, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       attachTo: el,
     });
@@ -153,7 +159,7 @@ describe("Member Invite", () => {
       role: "administrator",
     });
 
-    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarSuccessAction", INotificationsSuccess.namespaceNewMember);
+    expect(mockSnackbar.showSuccess).toBeCalledWith("Invitation email sent successfully.");
 
     expect(wrapper.vm.emailError).toBeUndefined();
   });
