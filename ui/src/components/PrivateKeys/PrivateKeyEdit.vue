@@ -63,12 +63,9 @@ import { ref, PropType, onMounted } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
 import { IPublicKey } from "@/interfaces/IPublicKey";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { parsePrivateKeySsh } from "@/utils/validate";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   show: {
@@ -87,6 +84,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const {
   value: keyLocal,
   errorMessage: keyLocalDataError,
@@ -150,16 +148,10 @@ const edit = async () => {
 
     try {
       await store.dispatch("privateKey/edit", keySend);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.privateKeyEditing,
-      );
+      snackbar.showSuccess("Private key updated successfully.");
       update();
     } catch (error: unknown) {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.privateKeyEditing,
-      );
+      snackbar.showError("Failed to update private key.");
     }
   }
 };
