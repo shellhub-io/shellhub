@@ -135,6 +135,9 @@ standalone_install() {
 
     $SUDO cp $TMP_DIR/shellhub-agent.service /etc/systemd/system/shellhub-agent.service
     $SUDO systemctl enable --now shellhub-agent || { rm -rf $TMP_DIR && echo "❌ Failed to enable systemd service."; exit 1; }
+    # Wait, as the service normally activates and after a few seconds it fails.
+    sleep 5s
+    $SUDO systemctl is-active --quiet shellhub-agent || { rm -rf $TMP_DIR && echo "❌ Failed to enable systemd service."; exit 1; }
 
     trap 'echo "❗ Interrupted. Disabling shellhub-agent..."; $SUDO systemctl disable --now shellhub-agent; exit 1' INT
 
