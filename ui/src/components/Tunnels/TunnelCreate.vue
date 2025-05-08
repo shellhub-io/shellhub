@@ -99,11 +99,12 @@ import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({ uid: { type: String, required: true } });
 const emit = defineEmits(["update"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const dialog = ref(false);
 const alertText = ref();
 const customTimeout = ref<number>(60);
@@ -156,14 +157,14 @@ const addTunnel = async () => {
   if (!hasErrors()) {
     try {
       await store.dispatch("tunnels/create", { uid: props.uid, host: host.value, port: port.value, ttl: timeout.value });
-      store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.tunnelCreate);
+      snackbar.showSuccess("Tunnel created successfully.");
       update();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         if ((error as AxiosError).response?.status === 403) {
           alertText.value = "This device has reached the maximum allowed number of tunnels";
         } else {
-          store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.tunnelCreate);
+          snackbar.showError("Failed to create tunnel.");
           handleError(error);
         }
       }
