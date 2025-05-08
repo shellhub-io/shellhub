@@ -92,18 +92,16 @@ import { useStore } from "@/store";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
-import {
-  INotificationsCopy,
-  INotificationsError,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
+import useSnackbar from "@/helpers/snackbar";
 
 interface Device {
   online: boolean
 }
 
 const store = useStore();
+const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref();
@@ -146,10 +144,7 @@ onMounted(async () => {
       sortStatusString: "",
     });
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceList,
-    );
+    snackbar.showError("An error occurred while loading devices.");
     handleError(error);
   } finally {
     loading.value = false;
@@ -171,10 +166,7 @@ const getDevices = async (perPagaeValue: number, pageValue: number) => {
 
     loading.value = false;
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceList,
-    );
+    snackbar.showError("An error occurred while loading devices.");
     handleError(error);
   }
 };
@@ -188,10 +180,7 @@ const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch(
-      "snackbar/showSnackbarCopy",
-      INotificationsCopy.deviceSSHID,
-    );
+    snackbar.showInfo("Device SSHID copied to clipboard.");
   }
 };
 
@@ -204,10 +193,7 @@ const copyMacro = (value: string | undefined) => {
       if (!executed && value && e.ctrlKey && e.key === "c" && e.type === "keydown") {
         executed = true;
         navigator.clipboard.writeText(value);
-        store.dispatch(
-          "snackbar/showSnackbarCopy",
-          INotificationsCopy.deviceSSHID,
-        );
+        snackbar.showInfo("Device SSHID copied to clipboard.");
         e.preventDefault();
       }
     },
