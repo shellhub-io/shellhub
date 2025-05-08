@@ -145,7 +145,7 @@ standalone_install() {
     echo "If it takes too long, please check the logs with the command:"
     echo "journalctl -f -u shellhub-agent"
 
-    timeout 15s bash -c '
+    timeout 15s sh -c '
       journalctl -f -u shellhub-agent --since "$(systemctl show -p ActiveEnterTimestamp shellhub-agent | cut -d= -f2)" | while read -r line; do
         if echo "$line" | grep -Eq "Listening for connections"; then
             echo "✅ Success: $line"
