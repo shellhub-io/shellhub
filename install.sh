@@ -134,16 +134,29 @@ standalone_install() {
     echo "🚀 Starting ShellHub system service..."
 
     $SUDO cp $TMP_DIR/shellhub-agent.service /etc/systemd/system/shellhub-agent.service
-    $SUDO systemctl enable --now shellhub-agent || { rm -rf $TMP_DIR && echo "❌ Failed to enable systemd service."; exit 1; }
+
+    # NOTE: As we need to check if the service is running to indicate it was installed correctly, we need to copy the
+    # values to install directory before enable it, to a correctly check the status.
+    $SUDO rm -rf $INSTALL_DIR
+    $SUDO mv $TMP_DIR $INSTALL_DIR
+
+    uninstall() {
+        echo "Please check the logs with the command:"
+        echo "journalctl -f -u shellhub-agent"
+        echo ""
+        echo "❗ Uninstalling ShellHub agent..."
+        $SUDO rm -rf $TMP_DIR
+        $SUDO rm -rf $INSTALL_DIR
+        $SUDO rm /etc/systemd/system/shellhub-agent.service
+    }
+
+    $SUDO systemctl enable --now shellhub-agent || { uninstall && echo "❌ Failed to enable systemd service."; exit 1; }
 
     trap 'echo "❗ Interrupted. Disabling shellhub-agent..."; $SUDO systemctl disable --now shellhub-agent; exit 1' INT
 
     echo "🔍 Checking service status..."
     echo "Please wait for the service to start. This may take a few seconds."
     echo "Press Ctrl+C to cancel the installation."
-    echo ""
-    echo "If it takes too long, please check the logs with the command:"
-    echo "journalctl -f -u shellhub-agent"
 
     timeout 15s sh -c '
       journalctl -f -u shellhub-agent --since "$(systemctl show -p ActiveEnterTimestamp shellhub-agent | cut -d= -f2)" | while read -r line; do
@@ -163,15 +176,15 @@ standalone_install() {
         echo "❌ Timeout: Service took too long to start."
         echo "Disabling shellhub-agent service..."
         $SUDO systemctl disable --now shellhub-agent
+        uninstall
         exit 1
     elif [ $exit_code -eq 2 ]; then
         echo "Disabling shellhub-agent service..."
         $SUDO systemctl disable --now shellhub-agent
+        uninstall
         exit 1
     fi
 
-    $SUDO rm -rf $INSTALL_DIR
-    $SUDO mv $TMP_DIR $INSTALL_DIR
     $SUDO rm -rf $TMP_DIR
 }
 
