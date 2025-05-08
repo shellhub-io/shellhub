@@ -71,11 +71,11 @@ import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
-
+const snackbar = useSnackbar();
 const headers = ref([
   {
     text: "Name",
@@ -113,10 +113,7 @@ const getTags = async () => {
   try {
     await store.dispatch("tags/fetch");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.deviceTagList,
-    );
+    snackbar.showError("Failed to load tags.");
     handleError(error);
   }
 };

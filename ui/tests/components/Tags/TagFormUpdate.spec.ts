@@ -6,12 +6,16 @@ import { store, key } from "@/store";
 import TagFormUpdate from "@/components/Tags/TagFormUpdate.vue";
 import { router } from "@/router";
 import { namespacesApi, devicesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 const devices = [
   {
@@ -150,7 +154,8 @@ describe("Tag Form Update", async () => {
 
     wrapper = mount(TagFormUpdate, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
         deviceUid: devices[0].uid,
@@ -200,12 +205,11 @@ describe("Tag Form Update", async () => {
     await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
     mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(403);
     const dialog = new DOMWrapper(document.body);
-    const StoreSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="deviceTag-combobox"').setValue(["tag-test"]);
     await dialog.find('[data-test="save-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorAction", INotificationsError.deviceTagUpdate);
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("You are not authorized to update this tag.");
   });
 });

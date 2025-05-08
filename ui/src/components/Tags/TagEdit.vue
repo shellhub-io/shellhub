@@ -54,11 +54,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   tag: {
@@ -72,6 +69,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const showDialog = ref(false);
 
 const inputTags = ref<string>("");
@@ -111,15 +109,9 @@ const edit = async () => {
       });
 
       update();
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.deviceTagEdit,
-      );
+      snackbar.showSuccess("Tag updated successfully.");
     } catch (error: unknown) {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.deviceTagEdit,
-      );
+      snackbar.showError("Failed to update tag.");
       handleError(error);
     }
   }
