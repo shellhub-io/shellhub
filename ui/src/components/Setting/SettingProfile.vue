@@ -231,7 +231,6 @@ import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
@@ -239,10 +238,12 @@ import UserDelete from "../User/UserDelete.vue";
 import UserIcon from "../User/UserIcon.vue";
 import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 type ErrorResponseData = { field: string; message: string }[];
 
 const store = useStore();
+const snackbar = useSnackbar();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
 const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
@@ -368,11 +369,11 @@ const handleUpdateUserDataError = (
         });
       }
     } else {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbar.showError("An error occurred while updating user data.");
       handleError(error);
     }
   } else {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("An error occurred while updating user data.");
     handleError(error);
   }
 };
@@ -389,10 +390,7 @@ const updateUserData = async () => {
     try {
       await store.dispatch("users/patchData", data);
       store.dispatch("auth/changeUserData", data);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.profileData,
-      );
+      snackbar.showSuccess("Profile data updated successfully.");
       enableEdit("data");
     } catch (error: unknown) {
       handleUpdateUserDataError(
