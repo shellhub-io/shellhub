@@ -8,10 +8,14 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
@@ -78,7 +82,8 @@ describe("Namespace Edit", () => {
 
     wrapper = mount(NamespaceEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -154,13 +159,12 @@ describe("Namespace Edit", () => {
     await flushPromises();
     mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
 
-    const changeDataSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
 
     vi.runOnlyPendingTimers();
 
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorAction", INotificationsError.namespaceEdit);
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while updating the connection announcement.");
   });
 });
