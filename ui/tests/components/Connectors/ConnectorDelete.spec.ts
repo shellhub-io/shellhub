@@ -7,11 +7,16 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type ConnectorDeleteWrapper = VueWrapper<InstanceType<typeof ConnectorDelete>>;
 
@@ -80,7 +85,8 @@ describe("Connector Delete", () => {
     store.commit("namespaces/setNamespace", namespaceData);
     wrapper = mount(ConnectorDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -126,9 +132,8 @@ describe("Connector Delete", () => {
     await wrapper.setProps({ uid: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
     mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(404); // non-existent key
-    const showSnackbarErrorSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     await flushPromises();
-    expect(showSnackbarErrorSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorAction", expect.anything());
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove connector.");
   });
 });

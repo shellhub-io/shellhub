@@ -112,15 +112,12 @@ import * as yup from "yup";
 import { computed, ref, watch } from "vue";
 import { envVariables } from "@/envVariables";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { IConnectorPayload } from "@/interfaces/IConnector";
 import { parseCertificate, parsePrivateKeySsh } from "@/utils/validate";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   isEditing: {
@@ -154,7 +151,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update", "close"]);
-
+const snackbar = useSnackbar();
 const localDialog = ref(props.showDialog);
 
 watch(() => props.showDialog, (newValue) => {
@@ -344,18 +341,12 @@ const saveConnector = async () => {
   }
   try {
     await props.storeMethod(payload);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      props.isEditing ? INotificationsSuccess.connectorEdit : INotificationsSuccess.connectorAdd,
-    );
+    snackbar.showSuccess(props.isEditing ? "Connector edited successfully" : "Connector added successfully");
     emit("update");
     emit("close");
     localDialog.value = false;
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      props.isEditing ? INotificationsError.connectorEdit : INotificationsError.connectorAdd,
-    );
+    snackbar.showError(props.isEditing ? "Failed to edit connector" : "Failed to add connector");
     handleError(error);
   }
 };
