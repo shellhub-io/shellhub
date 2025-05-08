@@ -177,12 +177,9 @@ import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { filterType } from "@/interfaces/IFirewallRule";
+import useSnackbar from "@/helpers/snackbar";
 
 export interface FirewallRuleType {
   action?: string;
@@ -195,6 +192,7 @@ export interface FirewallRuleType {
   filter?: filterType;
 }
 
+const snackbar = useSnackbar();
 const store = useStore();
 const emit = defineEmits(["update"]);
 const dialog = ref(false);
@@ -451,16 +449,10 @@ const create = async () => {
     constructFilterObject();
     try {
       await store.dispatch("firewallRules/post", ruleFirewall.value);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.firewallRuleCreating,
-      );
+      snackbar.showSuccess("Successfully created a new firewall rule.");
       update();
     } catch (error: unknown) {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.firewallRuleCreating,
-      );
+      snackbar.showError("Failed to create a new firewall rule.");
       handleError(error);
     }
   }

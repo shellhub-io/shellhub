@@ -142,8 +142,8 @@ import hasPermission from "@/utils/permission";
 import DataTable from "../DataTable.vue";
 import FirewallRuleDelete from "./FirewallRuleDelete.vue";
 import FirewallRuleEdit from "./FirewallRuleEdit.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const headers = [
   {
@@ -177,6 +177,7 @@ const headers = [
 ];
 
 const store = useStore();
+const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
@@ -204,14 +205,11 @@ const getFirewalls = async (perPagaeValue: number, pageValue: number) => {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
         if (axiosError.response?.status === 403) {
-          store.dispatch("snackbar/showSnackbarErrorAssociation");
+          snackbar.showError("You don't have permission to access this resource.");
           handleError(error);
         }
       } else {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.firewallRuleList,
-        );
+        snackbar.showError("An error occurred while loading the firewall rules.");
         handleError(error);
       }
     } finally {
@@ -231,7 +229,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getFirewalls(itemsPerPage.value, --page.value);
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("An error occurred while loading the firewall rules.");
   }
 };
 
@@ -248,7 +246,7 @@ const refreshFirewallRules = async () => {
     await store.dispatch("firewallRules/refresh");
     // getFirewalls(itemsPerPage.value, page.value);
   } catch (error: unknown) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("An error occurred while refreshing the firewall rules.");
     handleError(error);
   }
 };
