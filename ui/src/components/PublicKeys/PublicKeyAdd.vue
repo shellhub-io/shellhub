@@ -131,11 +131,8 @@ import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { validateKey } from "@/utils/validate";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   size: {
@@ -148,6 +145,7 @@ const size = computed(() => props.size);
 const emit = defineEmits(["update"]);
 const store = useStore();
 const dialog = ref(false);
+const snackbar = useSnackbar();
 const validateLength = ref(true);
 const choiceFilter = ref("all");
 const choiceUsername = ref("all");
@@ -360,10 +358,7 @@ const create = async () => {
         name: name.value,
       };
       await store.dispatch("publicKeys/post", keySend);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.publicKeyCreating,
-      );
+      snackbar.showSuccess("Public key created successfully.");
       update();
       resetFields();
     } catch (error: unknown) {
@@ -373,10 +368,7 @@ const create = async () => {
           setPublicKeyDataError("Public Key data already exists");
         }
       } else {
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.publicKeyCreating,
-        );
+        snackbar.showError("Failed to create the public key.");
         handleError(error);
       }
     }

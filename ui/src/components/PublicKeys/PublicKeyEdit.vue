@@ -137,11 +137,8 @@ import {
 import * as yup from "yup";
 import { useStore } from "@/store";
 import { IPublicKey } from "@/interfaces/IPublicKey";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   show: {
@@ -161,6 +158,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const choiceFilter = ref("hostname");
 const validateLength = ref(true);
 const errMsg = ref("");
@@ -395,16 +393,10 @@ const edit = async () => {
 
     try {
       await store.dispatch("publicKeys/put", keySend);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.publicKeyEditing,
-      );
+      snackbar.showSuccess("Public key updated successfully.");
       update();
     } catch (error: unknown) {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.publicKeyEditing,
-      );
+      snackbar.showError("Failed to update public key.");
       handleError(error);
     }
   }
