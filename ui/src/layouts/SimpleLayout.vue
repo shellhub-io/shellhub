@@ -1,6 +1,5 @@
 <template>
   <v-app>
-    <snackbar-component />
     <SnackbarNew />
     <v-main class="d-flex justify-center align-center">
       <v-container
