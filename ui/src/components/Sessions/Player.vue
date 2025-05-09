@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import * as AsciinemaPlayer from "asciinema-player";
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useDisplay } from "vuetify";
 import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
@@ -110,24 +110,17 @@ const isPlaying = ref(true);
 const sessionEnded = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
-const formattedCurrentTime = ref("00:00:00");
-const formattedDuration = ref("00:00:00");
+const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
+const formattedCurrentTime = computed(() => formatTime(currentTime.value));
+const formattedDuration = computed(() => formatTime(duration.value));
 const timeUpdaterId = ref<number>();
 const currentSpeed = ref(1);
 
-const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
 const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
-const getCurrentTime = () => {
-  const time = player.value.getCurrentTime();
-  currentTime.value = time;
-  formattedCurrentTime.value = formatTime(time);
-};
+const getCurrentTime = () => { currentTime.value = player.value.getCurrentTime(); };
 
-const getDuration = () => {
-  duration.value = player.value.getDuration();
-  formattedDuration.value = formatTime(duration.value);
-};
+const getDuration = () => { duration.value = player.value.getDuration(); };
 
 const changePlaybackTime = (value: number) => {
   player.value.seek(value);
