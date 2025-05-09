@@ -42,8 +42,7 @@
 
 <script setup lang="ts">
 import { useClipboard } from "@vueuse/core";
-import { INotificationsCopy } from "@/interfaces/INotifications";
-import { useStore } from "@/store";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   command: {
@@ -51,12 +50,13 @@ const props = defineProps({
     required: true,
   },
 });
-const store = useStore();
 
+const snackbar = useSnackbar();
 const { copy } = useClipboard();
+
 const copyCommand = () => {
   copy(props.command);
-  store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.tenantId);
+  snackbar.showInfo("Tenant ID copied to clipboard.");
 };
 
 defineExpose({ copyCommand });
