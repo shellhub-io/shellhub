@@ -132,7 +132,7 @@ const clearCurrentTimeUpdater = () => {
 };
 
 const startCurrentTimeUpdater = () => {
-  clearCurrentTimeUpdater();
+  clearCurrentTimeUpdater(); // clear to prevent multiple intervals when replaying
   timeUpdaterId.value = window.setInterval(getCurrentTime, 100);
 };
 
@@ -166,8 +166,6 @@ const setPlayerEventListeners = () => {
   player.value.addEventListener("playing", () => {
     sessionEnded.value = false;
     getCurrentTime();
-    // clear to prevent multiple intervals when replaying
-    clearCurrentTimeUpdater();
     startCurrentTimeUpdater();
     getDuration();
   });
