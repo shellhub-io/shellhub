@@ -6,7 +6,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-pause mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
     <!---->
     <!---->
-  </button><span data-v-f3a0259a="" id="playback-time" class="text-medium-emphasis text-body-1" data-test="playback-time">00:00:00 / 00:00:00</span>
+  </button><span data-v-f3a0259a="" id="playback-time" class="text-medium-emphasis text-body-1" data-test="playback-time">00:00 / 00:00</span>
   <div data-v-f3a0259a="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-slider v-locale--is-ltr ml-0 flex-grow-1 flex-shrink-0" aria-labelledby="playback-time" data-test="time-slider">
     <!---->
     <div class="v-input__control">
