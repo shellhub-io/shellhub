@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <SnackbarNew />
+    <Snackbar />
     <v-main class="d-flex justify-center align-center">
       <v-container
         class="full-height d-flex justify-center align-center"
@@ -46,7 +46,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "../assets/logo-inverted.png";
-import SnackbarNew from "@/components/Snackbar/SnackbarNew.vue";
+import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import { envVariables } from "../envVariables";
 
 const router = useRouter();
