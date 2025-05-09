@@ -2,7 +2,7 @@
 import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized, NavigationGuardNext } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   try {
@@ -42,10 +42,7 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
     }
     next();
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.routeAcceptInvite,
-    );
+    snackbar.showError("Failed to accept invitation.");
     next({ name: "Login" });
   }
 };
