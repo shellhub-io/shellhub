@@ -7,12 +7,16 @@ import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type UserDeleteWrapper = VueWrapper<InstanceType<typeof UserDelete>>;
 
@@ -48,14 +52,14 @@ describe("User Delete", () => {
     mockUser = new MockAdapter(usersApi.getAxios());
 
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
 
     wrapper = mount(UserDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -99,16 +103,11 @@ describe("User Delete", () => {
   it("Fails to add Delete User", async () => {
     mockUser.onDelete("http://localhost:3000/api/user").reply(400);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
-
     wrapper.vm.show = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="delete-user-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deleteAccount,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to delete account.");
   });
 });

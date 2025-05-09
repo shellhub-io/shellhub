@@ -75,12 +75,11 @@ import { useField } from "vee-validate";
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import {
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const show = defineModel({ default: false });
 
 const {
@@ -165,10 +164,7 @@ const updatePassword = async () => {
 
     try {
       await store.dispatch("users/patchPassword", data);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.profilePassword,
-      );
+      snackbar.showSuccess("Password updated successfully.");
       close();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -176,10 +172,10 @@ const updatePassword = async () => {
         if (axiosError.response?.status === 403) {
           setNewPasswordError("Your password doesn't match");
           setNewPasswordConfirmError("Your password doesn't match");
-          store.dispatch("snackbar/showSnackbarErrorDefault");
+          snackbar.showError("An error occurred while updating the password.");
         }
       } else {
-        store.dispatch("snackbar/showSnackbarErrorDefault");
+        snackbar.showError("An error occurred while updating the password.");
         handleError(error);
       }
     }

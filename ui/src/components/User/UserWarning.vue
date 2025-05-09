@@ -56,7 +56,6 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import { envVariables } from "@/envVariables";
 import BillingWarning from "../Billing/BillingWarning.vue";
@@ -67,11 +66,13 @@ import DeviceAcceptWarning from "../Devices/DeviceAcceptWarning.vue";
 import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 defineOptions({
   inheritAttrs: false,
 });
 
+const snackbar = useSnackbar();
 const store = useStore();
 const router = useRouter();
 const showInstructions = ref(false);
@@ -186,10 +187,7 @@ const showDialogs = async () => {
       showInstructions.value = true;
     }
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.namespaceList,
-    );
+    snackbar.showError("An error occurred while fetching the namespaces.");
     handleError(error);
   }
 };
