@@ -36,31 +36,21 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const router = useRouter();
 const show = defineModel<boolean>({ default: false });
 
 const deleteAccount = async () => {
   try {
     await store.dispatch("auth/deleteUser");
-
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.deleteAccount,
-    );
-
+    snackbar.showSuccess("Account deleted successfully.");
     router.push({ name: "Login" });
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deleteAccount,
-    );
+    snackbar.showError("Failed to delete account.");
     handleError(error);
   }
 };
