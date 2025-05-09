@@ -27,7 +27,7 @@ import axios, { AxiosError } from "axios";
 import Card from "../components/Card/Card.vue";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
-import { INotificationsError } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 type ItemCard = {
   id: number;
@@ -42,6 +42,7 @@ type ItemCard = {
 };
 
 const store = useStore();
+const snackbar = useSnackbar();
 const hasStatus = ref(false);
 const itemsStats = computed(() => store.getters["stats/stats"]);
 const hasNamespace = computed(
@@ -98,10 +99,7 @@ onMounted(async () => {
         }
         default: {
           hasStatus.value = true;
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.home,
-          );
+          snackbar.showError("Failed to load the home page.");
           break;
         }
       }

@@ -7,10 +7,14 @@ import FirewallRuleDelete from "@/components/firewall/FirewallRuleDelete.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
 import { namespacesApi, rulesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type FirewallRuleDeleteWrapper = VueWrapper<InstanceType<typeof FirewallRuleDelete>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Firewall Rule Delete", () => {
   const node = document.createElement("div");
@@ -72,7 +76,8 @@ describe("Firewall Rule Delete", () => {
 
     wrapper = mount(FirewallRuleDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -120,17 +125,12 @@ describe("Firewall Rule Delete", () => {
   });
 
   it("Fails on removing firewall rules", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     mockFirewall.onDelete("http://localhost:3000/api/firewall/rules/1000").reply(403);
 
     await wrapper.findComponent('[data-test="firewall-delete-dialog-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.firewallRuleDeleting,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to delete firewall rule.");
   });
 });

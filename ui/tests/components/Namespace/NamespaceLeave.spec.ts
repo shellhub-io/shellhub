@@ -7,12 +7,16 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type NamespaceLeaveWrapper = VueWrapper<InstanceType<typeof NamespaceLeave>>;
 
@@ -81,7 +85,8 @@ describe("Namespace Leave", () => {
 
     wrapper = mount(NamespaceLeave, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -130,15 +135,10 @@ describe("Namespace Leave", () => {
 
     mockNamespace.onDelete("http://localhost/api/namespaces/fake-tenant/members").reply(400);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.namespaceLeave,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to leave the namespace.");
   });
 });

@@ -170,11 +170,8 @@ import { ref, watch, computed } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
 import { FirewallRuleType } from "./FirewallRuleAdd.vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   firewallRule: {
@@ -193,6 +190,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const choiceUsername = ref("all");
@@ -483,16 +481,10 @@ const edit = async () => {
     selectRestriction();
     try {
       await store.dispatch("firewallRules/put", ruleFirewallLocal.value);
-      store.dispatch(
-        "snackbar/showSnackbarSuccessAction",
-        INotificationsSuccess.firewallRuleCreating,
-      );
+      snackbar.showSuccess("Firewall rule updated successfully.");
       update();
     } catch (error: unknown) {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.firewallRuleCreating,
-      );
+      snackbar.showError("Error while updating firewall rule.");
       handleError(error);
     }
   }

@@ -48,9 +48,9 @@
 import { ref, computed, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import { INotificationsError } from "@/interfaces/INotifications";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 interface NamespaceItem {
   tenant_id: string;
@@ -61,6 +61,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
+const snackbar = useSnackbar();
 const store = useStore();
 const namespaceList = computed(() => store.getters["namespaces/list"]);
 const selectedNamespace = computed(() => store.getters["namespaces/get"]);
@@ -76,10 +77,7 @@ const changeNamespace = async (tenantId: string) => {
     });
     window.location.reload();
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.namespaceSwitch,
-    );
+    snackbar.showError("An error occurred while switching namespaces.");
     handleError(error);
   }
 };
@@ -104,10 +102,7 @@ const fetchNamespace = async () => {
           break;
         }
         default: {
-          store.dispatch(
-            "snackbar/showSnackbarErrorLoading",
-            INotificationsError.namespaceLoad,
-          );
+          snackbar.showError("An error occurred while loading the namespace.");
           handleError(error);
         }
       }

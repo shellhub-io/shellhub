@@ -16,16 +16,16 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useStore } from "@/store";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { INamespace } from "@/interfaces/INamespace";
+import useSnackbar from "@/helpers/snackbar";
 
 defineOptions({
   inheritAttrs: false,
 });
 
 const store = useStore();
-
+const snackbar = useSnackbar();
 const namespace = computed(() => store.getters["namespaces/get"]);
 
 const namespaces = computed(() => store.getters["namespaces/list"].filter(
@@ -40,10 +40,7 @@ const switchIn = async (tenant: string) => {
 
     window.location.reload();
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.namespaceSwitch,
-    );
+    snackbar.showError("An error occurred while switching namespaces.");
     handleError(error);
   }
 };

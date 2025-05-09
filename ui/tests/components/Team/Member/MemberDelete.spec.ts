@@ -7,10 +7,14 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type MemberDeleteWrapper = VueWrapper<InstanceType<typeof MemberDelete>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Member Delete", () => {
   const node = document.createElement("div");
@@ -80,7 +84,8 @@ describe("Member Delete", () => {
 
     wrapper = mount(MemberDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -131,7 +136,7 @@ describe("Member Delete", () => {
       user_id: "xxxxxxxx",
     });
 
-    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarErrorAction", INotificationsError.namespaceRemoveUser);
+    expect(mockSnackbar.showError).toBeCalledWith("Failed to remove user from namespace.");
   });
 
   it("Delete Member Success Validation", async () => {
@@ -150,6 +155,6 @@ describe("Member Delete", () => {
       user_id: "xxxxxxxx",
     });
 
-    expect(storeSpy).toBeCalledWith("snackbar/showSnackbarSuccessAction", INotificationsSuccess.namespaceRemoveUser);
+    expect(mockSnackbar.showSuccess).toBeCalledWith("Successfully removed user from namespace.");
   });
 });

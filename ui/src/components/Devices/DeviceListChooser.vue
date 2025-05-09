@@ -60,17 +60,15 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import {
-  INotificationsError,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps(["isSelectable"]);
-
+const snackbar = useSnackbar();
 const store = useStore();
 
 const headers = [
@@ -141,14 +139,11 @@ const getDevices = async (perPagaeValue: number, pageValue: number) => {
     const axiosError = error as AxiosError;
     switch (axios.isAxiosError(error)) {
       case axiosError.response?.status === 403: {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You do not have permission to access this resource.");
         break;
       }
       default: {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.deviceList,
-        );
+        snackbar.showError("An error occurred while fetching devices.");
         break;
       }
     }
@@ -164,7 +159,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("An error occurred while fetching devices.");
   }
 };
 

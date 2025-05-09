@@ -52,8 +52,10 @@ import { useStore } from "@/store";
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 import FirewallRuleAdd from "../firewall/FirewallRuleAdd.vue";
 import PublicKeyAdd from "../PublicKeys/PublicKeyAdd.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
+
+const snackbar = useSnackbar();
 
 const items = {
   device: {
@@ -204,10 +206,7 @@ const refreshFirewallRule = async () => {
   try {
     await store.dispatch("firewallRules/refresh");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.firewallRuleList,
-    );
+    snackbar.showError("Failed to refresh firewall rules list.");
     handleError(error);
   }
 };
@@ -216,10 +215,7 @@ const refreshPublicKey = async () => {
   try {
     await store.dispatch("publicKeys/refresh");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.publicKeyList,
-    );
+    snackbar.showError("Failed to refresh public keys list.");
     handleError(error);
   }
 };

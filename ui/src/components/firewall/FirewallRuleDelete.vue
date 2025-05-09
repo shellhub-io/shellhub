@@ -53,12 +53,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   id: {
@@ -73,21 +70,15 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 
 const remove = async () => {
   try {
     await store.dispatch("firewallRules/remove", props.id);
-
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.firewallRuleDeleting,
-    );
+    snackbar.showSuccess("Firewall rule deleted successfully.");
     emit("update");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.firewallRuleDeleting,
-    );
+    snackbar.showError("Failed to delete firewall rule.");
     handleError(error);
   } finally {
     showDialog.value = false;

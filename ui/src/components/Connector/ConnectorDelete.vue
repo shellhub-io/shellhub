@@ -46,12 +46,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -67,20 +64,15 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const remove = async () => {
   try {
     await store.dispatch("connectors/remove", props.uid);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.connectorDelete,
-    );
+    snackbar.showSuccess("Successfully removed connector.");
     showDialog.value = false;
     emit("update");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.connectorDelete,
-    );
+    snackbar.showError("Failed to remove connector.");
     handleError(error);
   }
 };

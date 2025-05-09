@@ -7,14 +7,18 @@ import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
 type PrivateKeyEditWrapper = VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Private Key Edit", () => {
   let wrapper: PrivateKeyEditWrapper;
@@ -81,7 +85,8 @@ describe("Private Key Edit", () => {
 
     wrapper = mount(PrivateKeyEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -140,14 +145,13 @@ describe("Private Key Edit", () => {
     const keySend = { name: wrapper.vm.name, data: wrapper.vm.keyLocal };
     await wrapper.vm.edit();
     expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", keySend);
-    expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarSuccessAction", INotificationsSuccess.privateKeyEditing);
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Private key updated successfully.");
   });
 
   it("Checks if the edit function handles error on failure", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
     await wrapper.vm.setPrivateKey();
     await wrapper.vm.edit();
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorAction", INotificationsError.privateKeyEditing);
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update private key.");
   });
 });

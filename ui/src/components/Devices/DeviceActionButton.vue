@@ -56,9 +56,9 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
-import { INotificationsError } from "@/interfaces/INotifications";
 import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   name: {
@@ -90,7 +90,7 @@ const props = defineProps({
 
 const emit = defineEmits(["update"]);
 const store = useStore();
-
+const snackbar = useSnackbar();
 const billingActive = computed(() => store.getters["billing/active"]);
 
 const hasAuthorization = computed(() => {
@@ -125,10 +125,7 @@ const refreshDevices = () => {
 
     close();
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.deviceList,
-    );
+    snackbar.showError("Failed to refresh devices.");
     handleError(error);
   }
 };
@@ -139,11 +136,7 @@ const removeDevice = async () => {
     refreshDevices();
   } catch (error: unknown) {
     close();
-
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceDelete,
-    );
+    snackbar.showError("Failed to remove device.");
     handleError(error);
   }
 };
@@ -155,10 +148,7 @@ const rejectDevice = async () => {
   } catch (error: unknown) {
     close();
 
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceRejecting,
-    );
+    snackbar.showError("Failed to reject device.");
     handleError(error);
   }
 };
@@ -184,10 +174,7 @@ const acceptDevice = async () => {
     }
     close();
 
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceAccepting,
-    );
+    snackbar.showError("Failed to accept device.");
     handleError(error);
   }
 };
@@ -207,7 +194,7 @@ const doAction = () => {
       default:
     }
   } else {
-    store.dispatch("snackbar/showSnackbarErrorAssociation");
+    snackbar.showError("You don't have this kind of authorization.");
   }
 };
 

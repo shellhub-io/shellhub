@@ -41,12 +41,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 defineOptions({
   inheritAttrs: false,
@@ -66,21 +63,15 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 
 const remove = async () => {
   try {
     await store.dispatch("tags/remove", props.tag);
-
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.deviceTagDelete,
-    );
+    snackbar.showSuccess(`Tag ${props.tag} removed successfully.`);
     emit("update");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceTagDelete,
-    );
+    snackbar.showError("Failed to remove tag.");
     handleError(error);
   } finally {
     showDialog.value = false;

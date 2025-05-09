@@ -52,12 +52,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -79,16 +76,9 @@ const props = defineProps({
 });
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
+const snackbar = useSnackbar();
 const store = useStore();
 const router = useRouter();
-
-const showSuccessNotification = (message: string): void => {
-  store.dispatch("snackbar/showSnackbarSuccessAction", message);
-};
-
-const showErrorNotification = (message: string): void => {
-  store.dispatch("snackbar/showSnackbarErrorAction", message);
-};
 
 const emitUpdate = (): void => {
   emit("update");
@@ -108,10 +98,10 @@ const removeDevice = async (uid: string, redirect: boolean): Promise<void> => {
       await store.dispatch("tags/fetch");
     }
 
-    showSuccessNotification(INotificationsSuccess.deviceDelete);
+    snackbar.showSuccess("Successfully removed device.");
     emitUpdate();
   } catch (error: unknown) {
-    showErrorNotification(INotificationsError.deviceDelete);
+    snackbar.showError("Failed to remove device.");
     handleError(error);
   } finally {
     closeDialog();

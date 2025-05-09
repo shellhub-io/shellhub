@@ -46,12 +46,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   fingerprint: {
@@ -65,21 +62,15 @@ const props = defineProps({
 });
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
+const snackbar = useSnackbar();
 const store = useStore();
 const remove = async () => {
   try {
     await store.dispatch("publicKeys/remove", props.fingerprint);
-
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.publicKeyDeleting,
-    );
+    snackbar.showSuccess("The public key was removed successfully");
     emit("update");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.publicKeyDeleting,
-    );
+    snackbar.showError("Failed to remove the public key.");
     handleError(error);
   } finally {
     showDialog.value = false;

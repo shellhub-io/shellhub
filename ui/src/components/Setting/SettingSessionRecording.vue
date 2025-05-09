@@ -14,8 +14,8 @@ import { computed, onMounted } from "vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   hasTenant: {
@@ -25,6 +25,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const snackbar = useSnackbar();
 
 const updateSessionRecordingStatus = async (value: boolean) => {
   const data = {
@@ -33,12 +34,9 @@ const updateSessionRecordingStatus = async (value: boolean) => {
   };
   try {
     await store.dispatch("sessionRecording/setStatus", data);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceEdit,
-    );
+    snackbar.showSuccess(`Session recording was successfully ${value ? "enabled" : "disabled"}.`);
   } catch (error: unknown) {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("Failed to update session recording status.");
     handleError(error);
   }
 };
@@ -64,7 +62,7 @@ onMounted(async () => {
   try {
     if (props.hasTenant) await store.dispatch("sessionRecording/getStatus");
   } catch (error: unknown) {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("Failed to fetch session recording status.");
     handleError(error);
   }
 });

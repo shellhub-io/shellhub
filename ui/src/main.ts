@@ -12,7 +12,6 @@ import "asciinema-player/dist/bundle/asciinema-player.css";
 
 import { loadFonts } from "./plugins/webfontloader";
 
-import SnackbarComponent from "./components/Snackbar/Snackbar.vue";
 import { SnackbarPlugin } from "./plugins/snackbar";
 
 const app = createApp(App);
@@ -59,5 +58,4 @@ if ((envVariables.isCloud) && (envVariables.chatWootWebsiteToken && envVariables
 }
 
 app.use(SnackbarPlugin);
-app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");

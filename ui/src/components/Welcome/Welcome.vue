@@ -85,13 +85,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 type Timer = ReturnType<typeof setInterval>;
 
@@ -103,6 +103,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const el = ref<number>(1);
 const polling = ref<Timer | undefined>(undefined);
 const enable = ref(false);
@@ -131,8 +132,7 @@ const pollingDevices = () => {
         clearTimeout(polling.value);
       }
     } catch (error: unknown) {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
-      handleError(error);
+      snackbar.showError("Failed to fetch devices.");
     }
   }, 3000);
 };
@@ -154,10 +154,7 @@ const acceptDevice = async () => {
       el.value = 4;
     }
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceAccepting,
-    );
+    snackbar.showError("Failed to accept device.");
     handleError(error);
   }
 };

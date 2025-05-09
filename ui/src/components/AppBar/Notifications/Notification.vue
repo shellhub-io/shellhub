@@ -111,11 +111,12 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
-import { INotificationsError } from "@/interfaces/INotifications";
 import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 defineProps({
   style: {
     type: [String, Object],
@@ -180,23 +181,17 @@ const getNotifications = async () => {
             break;
           }
           case axiosError.response?.status === 403: {
-            store.dispatch("snackbar/showSnackbarErrorAssociation");
+            snackbar.showError("You don't have permission to view notifications.");
             handleError(error);
             break;
           }
           default: {
-            store.dispatch(
-              "snackbar/showSnackbarErrorLoading",
-              INotificationsError.notificationList,
-            );
+            snackbar.showError("Failed to load notifications.");
             handleError(error);
           }
         }
       } else {
-        store.dispatch(
-          "snackbar/showSnackbarErrorLoading",
-          INotificationsError.notificationList,
-        );
+        snackbar.showError("Failed to load notifications.");
         handleError(error);
       }
     }

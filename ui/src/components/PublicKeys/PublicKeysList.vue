@@ -135,8 +135,8 @@ import showTag from "@/utils/tag";
 import DataTable from "../DataTable.vue";
 import PublicKeyDelete from "./PublicKeyDelete.vue";
 import PublicKeyEdit from "./PublicKeyEdit.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const headers = [
   {
@@ -165,6 +165,7 @@ const headers = [
   },
 ];
 const store = useStore();
+const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
@@ -210,10 +211,7 @@ const getPublicKeysList = async (
       }
       loading.value = false;
     } catch (error: unknown) {
-      store.dispatch(
-        "snackbar/showSnackbarErrorLoading",
-        INotificationsError.publicKeyList,
-      );
+      snackbar.showError("Failed to load public keys.");
       handleError(error);
     }
   } else {
@@ -229,7 +227,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getPublicKeysList(itemsPerPage.value, --page.value);
   } catch (error: unknown) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("Failed to load public keys.");
     handleError(error);
   }
 };

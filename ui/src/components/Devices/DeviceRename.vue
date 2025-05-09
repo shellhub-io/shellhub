@@ -54,11 +54,8 @@ import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -68,6 +65,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["new-hostname"]);
 const showDialog = ref(false);
+const snackbar = useSnackbar();
 const messages = ref(
   "Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)",
 );
@@ -106,10 +104,7 @@ const rename = async () => {
 
     emit("new-hostname", editName.value);
     close();
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.deviceRename,
-    );
+    snackbar.showSuccess("Device renamed successfully.");
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -120,10 +115,7 @@ const rename = async () => {
       }
       handleError(error);
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.deviceRename,
-      );
+      snackbar.showError("Failed to rename the device.");
       handleError(error);
     }
   }

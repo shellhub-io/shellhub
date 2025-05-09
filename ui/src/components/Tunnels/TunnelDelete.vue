@@ -36,14 +36,11 @@
 </template>
 
 <script setup lang="ts">
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -59,6 +56,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = defineModel({ default: false });
 const store = useStore();
+const snackbar = useSnackbar();
 
 const update = () => {
   emit("update");
@@ -83,15 +81,9 @@ const remove = async () => {
       address: props.address,
     });
     update();
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.tunnelDelete,
-    );
+    snackbar.showSuccess("Tunnel deleted successfully.");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.tunnelDelete,
-    );
+    snackbar.showError("Failed to delete tunnel.");
     handleError(error);
   }
 };

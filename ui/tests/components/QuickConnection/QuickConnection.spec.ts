@@ -7,9 +7,13 @@ import QuickConnection from "@/components/QuickConnection/QuickConnection.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
 import { namespacesApi, devicesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type QuickConnectionWrapper = VueWrapper<InstanceType<typeof QuickConnection>>;
+
+const mockSnackbar = {
+  showError: vi.fn(),
+};
 
 describe("Quick Connection", () => {
   const node = document.createElement("div");
@@ -106,7 +110,8 @@ describe("Quick Connection", () => {
 
     wrapper = mount(QuickConnection, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -158,12 +163,10 @@ describe("Quick Connection", () => {
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
       .reply(403);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="quick-connection-open-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while loading devices.");
   });
 });

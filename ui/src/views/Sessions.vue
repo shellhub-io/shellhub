@@ -21,10 +21,11 @@ import { computed, onMounted, ref } from "vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import { useStore } from "../store";
 import SessionList from "../components/Sessions/SessionList.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const show = ref(false);
 
 onMounted(async () => {
@@ -35,10 +36,7 @@ onMounted(async () => {
     await store.dispatch("sessions/refresh");
     show.value = true;
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.sessionList,
-    );
+    snackbar.showError("Failed to load the sessions list.");
     handleError(error);
   }
 });

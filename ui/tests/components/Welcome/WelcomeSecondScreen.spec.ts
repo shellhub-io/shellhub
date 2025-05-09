@@ -7,10 +7,13 @@ import WelcomeSecondScreen from "@/components/Welcome/WelcomeSecondScreen.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
 import { namespacesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsCopy } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type WelcomeSecondScreenWrapper = VueWrapper<InstanceType<typeof WelcomeSecondScreen>>;
+
+const mockSnackbar = {
+  showInfo: vi.fn(),
+};
 
 describe("Welcome Second Screen", () => {
   let wrapper: WelcomeSecondScreenWrapper;
@@ -65,7 +68,8 @@ describe("Welcome Second Screen", () => {
 
     wrapper = mount(WelcomeSecondScreen, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -93,9 +97,8 @@ describe("Welcome Second Screen", () => {
   });
 
   it("Should copy the command to clipboard when copyCommand is called", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
     wrapper.vm.copyCommand();
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("snackbar/showSnackbarCopy", INotificationsCopy.tenantId);
+    expect(mockSnackbar.showInfo).toHaveBeenCalledWith("Tenant ID copied to clipboard.");
   });
 });

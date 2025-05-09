@@ -68,16 +68,14 @@ import { useField } from "vee-validate";
 import { ref } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { parsePrivateKeySsh, validateKey } from "@/utils/validate";
 import { IPrivateKeyError } from "@/interfaces/IPrivateKey";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const dialog = defineModel({ default: false });
 const supportedKeys = ref(
   "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
@@ -152,10 +150,7 @@ const create = async () => {
         name: name.value,
         data: privateKeyData.value,
       });
-      store.dispatch(
-        "snackbar/showSnackbarSuccessNotRequest",
-        INotificationsSuccess.privateKeyCreating,
-      );
+      snackbar.showSuccess("Private key created successfully.");
       emit("update");
       close();
     } catch (error) {
@@ -175,10 +170,7 @@ const create = async () => {
           break;
         }
         default: {
-          store.dispatch(
-            "snackbar/showSnackbarErrorNotRequest",
-            INotificationsError.privateKeyCreating,
-          );
+          snackbar.showError("Failed to create private key.");
           handleError(error);
         }
       }

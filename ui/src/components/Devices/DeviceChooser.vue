@@ -116,10 +116,10 @@ import { actions, authorizer } from "@/authorizer";
 import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermision from "@/utils/permission";
 import handleError from "@/utils/handleError";
-import { INotificationsSuccess, INotificationsError } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
-
+const snackbar = useSnackbar();
 const show = computed({
   get() {
     return store.getters["devices/getDeviceChooserStatus"];
@@ -172,18 +172,18 @@ const searchDevices = () => {
       status: store.getters["devices/getStatus"],
     });
   } catch {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("An error occurred while searching for devices.");
   }
 };
 
 const sendDevicesChoice = async (devices: Array<string>) => {
   try {
     await store.dispatch("devices/postDevicesChooser", { devices });
-    store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.deviceChooser);
+    snackbar.showSuccess("Devices selected successfully.");
     store.dispatch("devices/refresh");
     close();
   } catch (error: unknown) {
-    store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.deviceChooser);
+    snackbar.showError("An error occurred while selecting devices.");
     handleError(error);
   }
 
@@ -275,8 +275,8 @@ onMounted(async () => {
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     switch (axios.isAxiosError(error)) {
-      case axiosError.response?.status === 403: store.dispatch("snackbar/showSnackbarErrorAssociation"); break;
-      default: store.dispatch("snackbar/showSnackbarErrorDefault"); break;
+      case axiosError.response?.status === 403: snackbar.showError("You don't have this kindd of authorization."); break;
+      default: snackbar.showError("An error occurred."); break;
     }
     handleError(error);
   }

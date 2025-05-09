@@ -1,6 +1,6 @@
 import { App, Plugin, reactive } from "vue";
 
-const InjectionKey = Symbol("snackbar");
+const SnackbarInjectionKey = Symbol("snackbar");
 
 type SnackbarType = "success" | "error" | "info" | "warning";
 
@@ -48,9 +48,9 @@ const plugin: ISnackbarPlugin = {
 
 const SnackbarPlugin: Plugin = {
   install(app: App) {
-    app.provide(InjectionKey, plugin);
+    app.provide(SnackbarInjectionKey, plugin);
   },
 };
 
-export { SnackbarPlugin, InjectionKey, plugin };
+export { SnackbarPlugin, SnackbarInjectionKey, plugin };
 export type { SnackbarState, ISnackbarPlugin };

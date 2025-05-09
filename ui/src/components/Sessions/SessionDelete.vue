@@ -48,12 +48,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -71,7 +68,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update"]);
-
+const snackbar = useSnackbar();
 const showDialog = ref(false);
 const store = useStore();
 
@@ -79,16 +76,10 @@ const deleteRecord = async () => {
   try {
     await store.dispatch("sessions/deleteSessionLogs", props.uid);
     showDialog.value = false;
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.sessionRemoveRecord,
-    );
+    snackbar.showSuccess("Successfully deleted the session logs.");
     emit("update");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.sessionRemoveRecord,
-    );
+    snackbar.showError("An error occurred while deleting the session logs.");
     handleError(error);
   }
 };

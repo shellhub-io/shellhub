@@ -94,10 +94,10 @@ import { useStore } from "@/store";
 import DataTable from "@/components/DataTable.vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import ApiKeyDelete from "./ApiKeyDelete.vue";
 import ApiKeyEdit from "./ApiKeyEdit.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const headers = [
   {
@@ -123,6 +123,7 @@ const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
 const store = useStore();
+const snackbar = useSnackbar();
 const numberKeys = computed<number>(
   () => store.getters["apiKeys/getNumberApiKeys"],
 );
@@ -176,14 +177,11 @@ const getKey = async (perPagaeValue: number, pageValue: number) => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You are not authorized to view this API key.");
         handleError(error);
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.namespaceLoad,
-      );
+      snackbar.showError("Failed to load API keys.");
       handleError(error);
     }
   } finally {
@@ -207,7 +205,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getKey(itemsPerPage.value, --page.value);
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("Failed to get API keys.");
   }
 };
 

@@ -96,8 +96,10 @@ import axios, { AxiosError } from "axios";
 import QuickConnectionList from "./QuickConnectionList.vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const dialog = ref(false);
+const snackbar = useSnackbar();
 const filter = ref("");
 const listRef = ref<InstanceType<typeof QuickConnectionList> | null>(null);
 const store = useStore();
@@ -147,7 +149,7 @@ const searchDevices = () => {
     filter: encodedFilter,
     status: store.getters["devices/getStatus"],
   }).catch(() => {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("An error occurred while searching for devices.");
   });
 };
 
@@ -159,9 +161,9 @@ watch(dialog, async (isOpen) => {
   } catch (err: unknown) {
     const error = err as AxiosError;
     if (axios.isAxiosError(error) && error.response?.status === 403) {
-      store.dispatch("snackbar/showSnackbarErrorAssociation");
+      snackbar.showError("You don't have permission to access this feature.");
     } else {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbar.showError("An error occurred while fetching stats.");
     }
     handleError(error);
   }

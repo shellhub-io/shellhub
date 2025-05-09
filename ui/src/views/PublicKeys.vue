@@ -28,10 +28,11 @@ import { useStore } from "../store";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
 import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const show = ref(false);
 const hasPublicKey = computed(
   () => store.getters["publicKeys/getNumberPublicKeys"] > 0,
@@ -42,10 +43,7 @@ const refresh = async () => {
   try {
     await store.dispatch("publicKeys/refresh");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.firewallRuleList,
-    );
+    snackbar.showError("Failed to load the public keys list.");
     handleError(error);
   }
 };

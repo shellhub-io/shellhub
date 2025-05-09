@@ -6,10 +6,14 @@ import { store, key } from "@/store";
 import FirewallRuleAdd from "@/components/firewall/FirewallRuleAdd.vue";
 import { router } from "@/router";
 import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type FirewallRuleAddWrapper = VueWrapper<InstanceType<typeof FirewallRuleAdd>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Firewall Rule Add", () => {
   const node = document.createElement("div");
@@ -73,7 +77,8 @@ describe("Firewall Rule Add", () => {
 
     wrapper = mount(FirewallRuleAdd, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -153,8 +158,6 @@ describe("Firewall Rule Add", () => {
   });
 
   it("Fails on adding firewall rules", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     mockFirewall.onPost("http://localhost:3000/api/firewall/rules").reply(400);
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
@@ -162,9 +165,6 @@ describe("Firewall Rule Add", () => {
     await wrapper.findComponent('[data-test="firewall-rule-save-btn"]').trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.firewallRuleCreating,
-    );
+    expect(mockSnackbar.showError).toBeCalledWith("Failed to create a new firewall rule.");
   });
 });

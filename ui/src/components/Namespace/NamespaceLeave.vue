@@ -39,13 +39,11 @@ import { computed } from "vue";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const dialog = defineModel({ default: false });
 const tenant = computed(() => localStorage.getItem("tenant"));
 
@@ -67,16 +65,9 @@ const leave = async () => {
     await store.dispatch("namespaces/leave", tenant.value).then(() => {
       window.location.reload();
     });
-
-    await store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceLeave,
-    );
+    snackbar.showSuccess("You have left the namespace.");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.namespaceLeave,
-    );
+    snackbar.showError("Failed to leave the namespace.");
     handleError(error);
   }
 };

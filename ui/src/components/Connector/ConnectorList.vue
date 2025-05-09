@@ -131,7 +131,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useStore } from "@/store";
 import { envVariables } from "@/envVariables";
 import DataTable from "../DataTable.vue";
@@ -139,9 +139,9 @@ import ConnectorDelete from "../Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../Connector/ConnectorEdit.vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import { INotificationsCopy, INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import { router } from "@/router";
+import useSnackbar from "@/helpers/snackbar";
 
 const headers = [
   {
@@ -165,7 +165,7 @@ const headers = [
     value: "actions",
   },
 ];
-
+const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
@@ -209,16 +209,9 @@ const getConnectors = async (perPagaeValue: number, pageValue: number) => {
     });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
-        handleError(error);
-      }
+      snackbar.showError("An error occurred while loading connectors");
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.namespaceLoad,
-      );
+      snackbar.showError("An unexpected error occurred");
       handleError(error);
     }
   } finally {
@@ -245,7 +238,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getConnectors(itemsPerPage.value, --page.value);
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("An error occurred while loading connectors");
   }
 };
 
@@ -264,7 +257,7 @@ const redirectToDetails = (uid: string) => {
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.connector);
+    snackbar.showInfo("Connector host copied to clipboard.");
   }
 };
 
@@ -275,16 +268,10 @@ const switchConnector = async (uid: string, enable: boolean) => {
       enable: !enable,
     };
     await store.dispatch("connectors/edit", payload);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.connectorEdit,
-    );
+    snackbar.showSuccess("Connector updated successfully.");
     refresh();
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.connectorEdit,
-    );
+    snackbar.showError("An error occurred while updating the connector.");
     handleError(error);
   }
 };

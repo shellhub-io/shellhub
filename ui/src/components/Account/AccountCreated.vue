@@ -39,9 +39,9 @@
 <script setup lang="ts">
 import { computed, PropType, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { INotificationsSuccess } from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   messageKind: {
@@ -62,6 +62,7 @@ const emit = defineEmits(["show"]);
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const snackbar = useSnackbar();
 
 const token = computed(() => store.getters["users/getSignToken"]);
 
@@ -78,9 +79,9 @@ const buttonDataTest = computed(() => (isNormalMessage.value ? "resendEmail-btn"
 const resendEmail = async () => {
   try {
     await store.dispatch("users/resendEmail", props.username);
-    store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.resendEmail);
+    snackbar.showSuccess("Email successfully sent.");
   } catch (error) {
-    store.dispatch("snackbar/showSnackbarErrorDefault");
+    snackbar.showError("Failed to send email.");
     handleError(error);
   }
 };

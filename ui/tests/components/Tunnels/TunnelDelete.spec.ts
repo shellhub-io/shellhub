@@ -6,14 +6,18 @@ import { store, key } from "@/store";
 import TunnelDelete from "@/components/Tunnels/TunnelDelete.vue";
 import { router } from "@/router";
 import { namespacesApi, devicesApi, tunnelApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type TunnelDeleteWrapper = VueWrapper<InstanceType<typeof TunnelDelete>>;
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 const devices = [
   {
@@ -123,7 +127,8 @@ describe("Tunnel Delete", async () => {
 
     wrapper = mount(TunnelDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -177,17 +182,12 @@ describe("Tunnel Delete", async () => {
   it("Successfully delete tunnel", async () => {
     mockTunnels.onDelete("http://localhost:3000/api/devices/fake-uid/tunnels/fake-address").reply(403);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="tunnel-delete-dialog-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="delete-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.tunnelDelete,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to delete tunnel.");
   });
 });

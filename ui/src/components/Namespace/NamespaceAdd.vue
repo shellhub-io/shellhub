@@ -73,10 +73,11 @@ import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import { INotificationsError, INotificationsSuccess } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const model = defineModel({ default: false });
 const openVersion = ref(false);
 
@@ -111,14 +112,14 @@ const changeNamespace = async (tenantId: string) => {
     await store.dispatch("namespaces/switchNamespace", { tenant_id: tenantId });
     window.location.reload();
   } catch (error) {
-    store.dispatch("snackbar/showSnackbarErrorLoading", INotificationsError.namespaceSwitch);
+    snackbar.showError("An error occurred while switching namespaces.");
     handleError(error);
   }
 };
 
 // Handle unknown errors and display notifications
 const handleErrorAndNotify = (error: unknown) => {
-  store.dispatch("snackbar/showSnackbarErrorAction", INotificationsError.namespaceCreating);
+  snackbar.showError("An error occurred while creating the namespace.");
   handleError(error);
 };
 
@@ -128,7 +129,7 @@ const addNamespace = async () => {
     const response = await store.dispatch("namespaces/post", namespaceName.value);
     await changeNamespace(response.data.tenant_id);
     close();
-    store.dispatch("snackbar/showSnackbarSuccessAction", INotificationsSuccess.namespaceCreating);
+    snackbar.showSuccess("Namespace created successfully");
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;

@@ -7,14 +7,18 @@ import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
 type ApiKeyEditWrapper = VueWrapper<InstanceType<typeof ApiKeyEdit>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Api Key Edit", () => {
   let wrapper: ApiKeyEditWrapper;
@@ -104,7 +108,8 @@ describe("Api Key Edit", () => {
 
     wrapper = mount(ApiKeyEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -157,16 +162,11 @@ describe("Api Key Edit", () => {
   it("Fails to Edit Api Key", async () => {
     mockApiKeys.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(400);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
 
     await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.editKey,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to edit Api Key.");
   });
 
   it("Fails to Edit Api Key (409)", async () => {

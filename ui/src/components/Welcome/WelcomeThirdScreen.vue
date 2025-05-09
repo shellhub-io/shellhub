@@ -50,10 +50,11 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useStore } from "@/store";
-import { INotificationsError } from "@/interfaces/INotifications";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const getPendingDevice = computed(
   () => store.getters["devices/getFirstPending"],
 );
@@ -61,10 +62,7 @@ onMounted(() => {
   try {
     store.dispatch("devices/setFirstPending");
   } catch {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.devicePending,
-    );
+    snackbar.showError("Failed to get pending device.");
   }
 });
 </script>

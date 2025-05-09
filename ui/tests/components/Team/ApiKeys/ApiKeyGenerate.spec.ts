@@ -7,14 +7,18 @@ import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
 
 type ApiKeyGenerateWrapper = VueWrapper<InstanceType<typeof ApiKeyGenerate>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Api Key Generate", () => {
   let wrapper: ApiKeyGenerateWrapper;
@@ -108,7 +112,8 @@ describe("Api Key Generate", () => {
 
     wrapper = mount(ApiKeyGenerate, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -161,8 +166,6 @@ describe("Api Key Generate", () => {
   it("Fails to Generate Api Key", async () => {
     mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(500);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
 
@@ -170,10 +173,7 @@ describe("Api Key Generate", () => {
 
     await wrapper.findComponent('[data-test="add-btn"]').trigger("click");
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.generateKey,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to generate API Key.");
 
     expect(wrapper.vm.errorMessage).toBe("An error occurred while generating your API key. Please try again later.");
 

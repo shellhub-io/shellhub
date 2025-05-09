@@ -46,11 +46,12 @@ import BoxMessage from "../components/Box/BoxMessage.vue";
 import { envVariables } from "../envVariables";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const showHelp = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const show = ref(false);
 const hasFirewallRule = computed(
   () => store.getters["firewallRules/getNumberFirewalls"] > 0,
@@ -61,10 +62,7 @@ const refresh = async () => {
   try {
     await store.dispatch("firewallRules/refresh");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorLoading",
-      INotificationsError.firewallRuleList,
-    );
+    snackbar.showError("Failed to load the firewall rules list.");
     handleError(error);
   }
 };

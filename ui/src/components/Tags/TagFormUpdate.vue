@@ -65,11 +65,8 @@
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   deviceUid: {
@@ -88,6 +85,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update"]);
+const snackbar = useSnackbar();
 const store = useStore();
 const showDialog = ref(false);
 const hasTags = computed(() => props.tagsList.length > 0);
@@ -128,10 +126,7 @@ const save = async () => {
       },
     });
     showDialog.value = false;
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.deviceTagUpdate,
-    );
+    snackbar.showSuccess("Tags updated successfully.");
 
     emit("update");
   } catch (error: unknown) {
@@ -145,10 +140,7 @@ const save = async () => {
         }
         // when the user is not authorized.
         case 403: {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.deviceTagUpdate,
-          );
+          snackbar.showError("You are not authorized to update this tag.");
           break;
         }
         // When the array tag size reached the max capacity.
@@ -157,18 +149,12 @@ const save = async () => {
           break;
         }
         default: {
-          store.dispatch(
-            "snackbar/showSnackbarErrorAction",
-            INotificationsError.deviceTagUpdate,
-          );
+          snackbar.showError("Failed to update tags.");
           handleError(axiosError);
         }
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.deviceTagUpdate,
-      );
+      snackbar.showError("Failed to update tags.");
       handleError(error);
     }
   }

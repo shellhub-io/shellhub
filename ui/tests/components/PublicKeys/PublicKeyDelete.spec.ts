@@ -7,11 +7,16 @@ import { namespacesApi, usersApi, sshApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type PublicKeyDeleteWrapper = VueWrapper<InstanceType<typeof PublicKeyDelete>>;
 
@@ -76,14 +81,14 @@ describe("Public Key Delete", () => {
 
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
     store.commit("auth/authSuccess", authData);
     store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
     wrapper = mount(PublicKeyDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -127,9 +132,8 @@ describe("Public Key Delete", () => {
   it("Shows error snackbar if removing a Public Key fails", async () => {
     await wrapper.findComponent('[data-test="public-key-remove-btn"]').trigger("click");
     mockSsh.onDelete("http://localhost:3000/api/sshkeys/public-keys/fake-fingerprint").reply(404); // non-existent key
-    const showSnackbarErrorSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
     await flushPromises();
-    expect(showSnackbarErrorSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorAction", expect.anything());
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove the public key.");
   });
 });

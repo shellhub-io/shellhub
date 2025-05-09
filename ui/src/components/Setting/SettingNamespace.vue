@@ -193,15 +193,12 @@ import { useStore } from "@/store";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
-import {
-  INotificationsCopy,
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
+const snackbar = useSnackbar();
 const namespace = computed(() => store.getters["namespaces/get"]);
 const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
 const tenant = computed(() => store.getters["auth/tenant"]);
@@ -238,10 +235,7 @@ const cancel = (type: string) => {
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch(
-      "snackbar/showSnackbarCopy",
-      INotificationsCopy.tenantId,
-    );
+    snackbar.showInfo("Tenant ID copied to clipboard.");
   }
 };
 
@@ -252,13 +246,10 @@ const getNamespace = async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You are not authorized to access this resource.");
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.namespaceLoad,
-      );
+      snackbar.showError("Failed to load namespace.");
       handleError(error);
     }
   }
@@ -274,18 +265,11 @@ const handleUpdateNameError = (error: unknown): void => {
         setNameError("Name used already");
         break;
       default:
-        store.dispatch(
-          "snackbar/showSnackbarErrorAction",
-          INotificationsError.namespaceEdit,
-        );
+        snackbar.showError("Failed to update name.");
         handleError(error);
     }
   }
-
-  store.dispatch(
-    "snackbar/showSnackbarErrorAction",
-    INotificationsError.namespaceEdit,
-  );
+  snackbar.showError("Failed to update name.");
   handleError(error);
 };
 
@@ -305,10 +289,7 @@ const updateName = async () => {
     });
 
     getNamespace();
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceEdit,
-    );
+    snackbar.showSuccess("Namespace name updated successfully.");
     editDataStatus.value = true;
   } catch (error) {
     handleUpdateNameError(error);
@@ -333,7 +314,6 @@ onMounted(async () => {
 });
 
 const hasTenant = () => tenant.value !== "";
-
 </script>
 
 <style scoped>

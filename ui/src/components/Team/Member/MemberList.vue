@@ -125,8 +125,8 @@ import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import MemberDelete from "./MemberDelete.vue";
 import MemberEdit from "./MemberEdit.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const headers = [
   {
@@ -152,6 +152,7 @@ const headers = [
 ];
 
 const store = useStore();
+const snackbar = useSnackbar();
 const tenant = computed(() => store.getters["auth/tenant"]);
 const namespace = computed(() => store.getters["namespaces/get"].members);
 
@@ -182,14 +183,11 @@ const getNamespace = async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You don't have permission to view this namespace.");
         handleError(error);
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorAction",
-        INotificationsError.namespaceLoad,
-      );
+      snackbar.showError("Failed to fetch namespace members.");
       handleError(error);
     }
   }

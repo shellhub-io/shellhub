@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useStore } from "@/store";
-import { INotificationsCopy } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   size: {
@@ -84,7 +84,7 @@ const props = defineProps({
   },
 });
 const store = useStore();
-
+const snackbar = useSnackbar();
 const dialog = ref(false);
 
 const tenant = computed(() => store.getters["auth/tenant"]);
@@ -99,7 +99,7 @@ const command = () => {
 
 const copyCommand = () => {
   navigator.clipboard.writeText(command());
-  store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.command);
+  snackbar.showInfo("Command copied to clipboard");
 };
 </script>
 

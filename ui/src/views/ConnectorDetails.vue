@@ -162,12 +162,13 @@ import ConnectorDelete from "../components/Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../components/Connector/ConnectorEdit.vue";
 import hasPermission from "../utils/permission";
 import { actions, authorizer } from "../authorizer";
-import { INotificationsError, INotificationsSuccess } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const snackbar = useSnackbar();
 const connectorUid = computed(() => route.params.id);
 const connector = computed(() => store.getters["connectors/get"]);
 const connectorInfo = computed(() => store.getters["connectors/getInfo"]);
@@ -244,10 +245,7 @@ const getConnector = async () => {
   try {
     await store.dispatch("connectors/get", connectorUid.value);
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.connectorDetail,
-    );
+    snackbar.showError("Error loading the connector.");
     handleError(error);
   }
 };
@@ -256,10 +254,7 @@ const getConnectorInfo = async () => {
   try {
     await store.dispatch("connectors/getConnectorInfo", connectorUid.value);
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.connectorDetail,
-    );
+    snackbar.showError("Failed to load the connector info.");
     handleError(error);
   }
 };
@@ -276,16 +271,10 @@ const switchConnector = async (uid: string, enable: boolean) => {
       enable: !enable,
     };
     await store.dispatch("connectors/edit", payload);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.connectorEdit,
-    );
+    snackbar.showSuccess("The connector has been updated.");
     refresh();
   } catch (error) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.connectorEdit,
-    );
+    snackbar.showError("Failed to update the connector.");
     handleError(error);
   }
 };

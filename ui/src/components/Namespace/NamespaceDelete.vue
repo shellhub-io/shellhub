@@ -56,11 +56,8 @@ import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { envVariables } from "@/envVariables";
 import { displayOnlyTenCharacters } from "@/utils/string";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   tenant: {
@@ -70,6 +67,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["billing-in-debt"]);
 const store = useStore();
+const snackbar = useSnackbar();
 const router = useRouter();
 const dialog = defineModel({ default: false });
 const name = ref("");
@@ -94,7 +92,7 @@ const getSubscriptionInfo = async () => {
     try {
       await store.dispatch("billing/getSubscription");
     } catch (error: unknown) {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbar.showError("An error occurred while fetching subscription information.");
       handleError(error);
     }
   }
@@ -114,10 +112,7 @@ const remove = async () => {
     await store.dispatch("namespaces/remove", tenant.value);
     await store.dispatch("auth/logout");
     await router.push({ name: "Login" });
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceDelete,
-    );
+    snackbar.showSuccess("Namespace deleted successfully.");
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -129,10 +124,7 @@ const remove = async () => {
           break;
       }
     }
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.namespaceDelete,
-    );
+    snackbar.showError("An error occurred while deleting the namespace.");
     handleError(error);
   }
 };

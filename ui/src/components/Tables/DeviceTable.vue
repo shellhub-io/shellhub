@@ -251,13 +251,13 @@ import DeviceActionButton from "../Devices/DeviceActionButton.vue";
 import DeviceDelete from "../Devices/DeviceDelete.vue";
 import TagFormUpdate from "../Tags/TagFormUpdate.vue";
 import TerminalConnectButton from "../Terminal/TerminalConnectButton.vue";
-import { INotificationsCopy } from "@/interfaces/INotifications";
 import { IDevice, IDeviceMethods } from "@/interfaces/IDevice";
 import hasPermission from "@/utils/permission";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   storeMethods: {
@@ -281,6 +281,7 @@ const props = defineProps({
 const { fetchDevices, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
 
 const router = useRouter();
+const snackbar = useSnackbar();
 const loading = ref(false);
 const filter = computed(() => getFilter());
 const items = computed(() => getList());
@@ -429,7 +430,7 @@ const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch("snackbar/showSnackbarCopy", INotificationsCopy.deviceSSHID);
+    snackbar.showInfo("Device SSHID copied to clipboard.");
   }
 };
 

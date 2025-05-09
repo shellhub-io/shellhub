@@ -7,11 +7,16 @@ import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type ChangePasswordWrapper = VueWrapper<InstanceType<typeof ChangePassword>>;
 
@@ -54,7 +59,8 @@ describe("Change Password", () => {
 
     wrapper = mount(ChangePassword, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -110,7 +116,7 @@ describe("Change Password", () => {
   it("Fails to Change Password", async () => {
     mockUser.onPatch("http://localhost:3000/api/users").reply(403);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(store, "dispatch");
 
     wrapper.vm.show = true;
     await flushPromises();
@@ -122,7 +128,7 @@ describe("Change Password", () => {
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith("users/patchPassword", {
+    expect(storeSpy).toHaveBeenCalledWith("users/patchPassword", {
       name: "test",
       username: undefined,
       email: "test@test.com",
@@ -131,6 +137,6 @@ describe("Change Password", () => {
       newPassword: "x1x2x3",
     });
 
-    expect(StoreSpy).toHaveBeenCalledWith("snackbar/showSnackbarErrorDefault");
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while updating the password.");
   });
 });

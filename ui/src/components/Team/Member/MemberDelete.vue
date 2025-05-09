@@ -43,12 +43,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   member: {
@@ -64,6 +61,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 
 const update = () => {
   emit("update");
@@ -79,15 +77,9 @@ const remove = async () => {
     });
 
     update();
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.namespaceRemoveUser,
-    );
+    snackbar.showSuccess("Successfully removed user from namespace.");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.namespaceRemoveUser,
-    );
+    snackbar.showError("Failed to remove user from namespace.");
     handleError(error);
   }
 };

@@ -152,8 +152,8 @@ import { formatShortDateTime } from "@/utils/date";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
-import { INotificationsError } from "@/interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const headers = [
   {
@@ -191,6 +191,7 @@ const headers = [
 ];
 const store = useStore();
 const router = useRouter();
+const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
@@ -214,13 +215,10 @@ const getSessions = async (perPagaeValue: number, pageValue: number) => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You don't have permission to access this resource.");
       }
     } else {
-      store.dispatch(
-        "snackbar/showSnackbarErrorLoading",
-        INotificationsError.sessionList,
-      );
+      snackbar.showError("Failed to load the session list.");
       handleError(error);
     }
   } finally {
@@ -240,7 +238,7 @@ const prev = async () => {
   try {
     if (page.value > 1) await getSessions(itemsPerPage.value, --page.value);
   } catch (error) {
-    store.dispatch("snackbar/setSnackbarErrorDefault");
+    snackbar.showError("Failed to load the session list.");
   }
 };
 

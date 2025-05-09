@@ -60,6 +60,7 @@ import { computed, onMounted, ref, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   variant: {
@@ -68,7 +69,7 @@ const props = defineProps({
   },
 });
 const store = useStore();
-
+const snackbar = useSnackbar();
 const prevSelectedLength = ref(0);
 
 const getListTags = computed(() => store.getters["tags/list"]);
@@ -117,11 +118,11 @@ const getItems = async (item: Array<string>) => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        store.dispatch("snackbar/showSnackbarErrorAssociation");
+        snackbar.showError("You do not have permission to perform this action.");
         handleError(error);
       }
     } else {
-      store.dispatch("snackbar/showSnackbarErrorDefault");
+      snackbar.showError("Failed to load items.");
       handleError(error);
     }
   }

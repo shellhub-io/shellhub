@@ -1,18 +1,22 @@
 <template>
-  <snackbar-success :type-message="message.typeMessage" :main-content="message.typeContent" />
-
-  <snackbar-error :type-message="message.typeMessage" :main-content="message.typeContent" />
-
-  <snackbar-copy :main-content="message.typeContent" />
+  <v-snackbar
+    v-model="show"
+    location="top"
+    :timeout="4000"
+    :color="color"
+    transition="slide-x-transition"
+  >
+    <p class="w-100 text-center">{{ message }}</p>
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import SnackbarSuccess from "./SnackbarSuccess.vue";
-import SnackbarError from "./SnackbarError.vue";
-import SnackbarCopy from "./SnackbarCopy.vue";
-import { useStore } from "@/store";
+import { plugin } from "@/plugins/snackbar";
 
-const store = useStore();
-const message = computed(() => store.getters["snackbar/snackbarMessageAndContentType"]);
+const show = computed(() => plugin.getShow());
+
+const message = computed(() => plugin.getMessage());
+const type = computed(() => plugin.getType());
+const color = computed(() => type.value);
 </script>

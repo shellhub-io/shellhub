@@ -69,12 +69,9 @@ import { computed, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 defineOptions({
   inheritAttrs: false,
@@ -101,6 +98,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 const keyGetter = computed(() => props.keyName);
 const isOwner = computed(() => store.getters["auth/role"] === "owner");
 const {
@@ -163,15 +161,9 @@ const edit = async () => {
   try {
     await store.dispatch("apiKeys/editApiKey", payload);
     update();
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.editKey,
-    );
+    snackbar.showSuccess("Api Key edited successfully.");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.editKey,
-    );
+    snackbar.showError("Failed to edit Api Key.");
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       switch (axiosError.response?.status) {

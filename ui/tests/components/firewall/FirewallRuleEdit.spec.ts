@@ -7,10 +7,14 @@ import FirewallRuleEdit from "@/components/firewall/FirewallRuleEdit.vue";
 import { envVariables } from "@/envVariables";
 import { router } from "@/router";
 import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type FirewallRuleEditWrapper = VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("Firewall Rule Edit", () => {
   const node = document.createElement("div");
@@ -87,7 +91,8 @@ describe("Firewall Rule Edit", () => {
 
     wrapper = mount(FirewallRuleEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -172,8 +177,6 @@ describe("Firewall Rule Edit", () => {
   it("Fails on editing firewall rules", async () => {
     await wrapper.setProps({ firewallRule });
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-
     mockFirewall.onPut("http://localhost:3000/api/firewall/rules/1000").reply(403);
 
     await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
@@ -181,9 +184,6 @@ describe("Firewall Rule Edit", () => {
     await wrapper.findComponent('[data-test="firewall-rule-save-btn"]').trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.firewallRuleCreating,
-    );
+    expect(mockSnackbar.showError).toBeCalledWith("Error while updating firewall rule.");
   });
 });

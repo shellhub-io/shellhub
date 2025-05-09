@@ -114,10 +114,10 @@ import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
-import { INotificationsCopy, INotificationsError } from "@/interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const emit = defineEmits(["update"]);
-
+const snackbar = useSnackbar();
 const store = useStore();
 
 const hasAuthorization = computed(() => {
@@ -157,10 +157,7 @@ const {
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    store.dispatch(
-      "snackbar/showSnackbarCopy",
-      INotificationsCopy.copyKey,
-    );
+    snackbar.showInfo("API Key copied to clipboard.");
   }
 };
 
@@ -237,10 +234,7 @@ watch(selectedDate, (newVal) => {
 const handleGenerateKeyError = (error: unknown) => {
   failKey.value = true;
   successKey.value = false;
-  store.dispatch(
-    "snackbar/showSnackbarErrorAction",
-    INotificationsError.generateKey,
-  );
+  snackbar.showError("Failed to generate API Key.");
 
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;

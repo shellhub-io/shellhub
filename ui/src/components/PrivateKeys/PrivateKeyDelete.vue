@@ -43,10 +43,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { useStore } from "@/store";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   id: {
@@ -54,6 +52,7 @@ const props = defineProps({
     required: true,
   },
 });
+const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
@@ -61,10 +60,7 @@ const store = useStore();
 const remove = async () => {
   try {
     await store.dispatch("privateKey/remove", props.id);
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.privateKeyDeleting,
-    );
+    snackbar.showSuccess("The private key was removed successfully");
     emit("update");
   } finally {
     showDialog.value = false;

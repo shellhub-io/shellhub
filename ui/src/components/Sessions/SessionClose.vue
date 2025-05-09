@@ -49,13 +49,10 @@
 
 <script setup lang="ts">
 import { PropType, ref } from "vue";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "@/interfaces/INotifications";
 import { IDevice } from "@/interfaces/IDevice";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uid: {
@@ -79,6 +76,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
+const snackbar = useSnackbar();
 
 const closeSession = async () => {
   try {
@@ -87,16 +85,10 @@ const closeSession = async () => {
       device_uid: props.device.uid,
     });
     showDialog.value = false;
-    store.dispatch(
-      "snackbar/showSnackbarSuccessAction",
-      INotificationsSuccess.sessionClose,
-    );
+    snackbar.showSuccess("Session closed successfully.");
     emit("update");
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.sessionClose,
-    );
+    snackbar.showError("Failed to close session.");
     handleError(error);
   }
 };

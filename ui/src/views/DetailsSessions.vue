@@ -173,11 +173,12 @@ import { authorizer, actions } from "../authorizer";
 import SessionDelete from "../components/Sessions/SessionDelete.vue";
 import SessionClose from "../components/Sessions/SessionClose.vue";
 import SessionPlay from "../components/Sessions/SessionPlay.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const route = useRoute();
+const snackbar = useSnackbar();
 const sessionId = computed(() => route.params.id);
 const session = ref({} as ISessions);
 
@@ -186,10 +187,7 @@ onMounted(async () => {
     await store.dispatch("sessions/get", sessionId.value);
     session.value = store.getters["sessions/get"];
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.sessionDetails,
-    );
+    snackbar.showError("Failed to load session details.");
     handleError(error);
   }
 });
@@ -204,10 +202,7 @@ const refreshSessions = async () => {
     await store.dispatch("sessions/get", sessionId.value);
     session.value = store.getters["sessions/get"];
   } catch (error: unknown) {
-    store.dispatch(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.sessionDetails,
-    );
+    snackbar.showError("Failed to load session details.");
     handleError(error);
   }
 };

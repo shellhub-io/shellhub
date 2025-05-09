@@ -9,7 +9,6 @@ import { tags, TagsState } from "./modules/tags";
 import { stats, StatsState } from "./modules/stats";
 import { support, SupportState } from "./modules/support";
 import { spinner, SpinnerState } from "./modules/spinner";
-import { snackbar, SnackbarState } from "./modules/snackbar";
 import { sessions, SessionsState } from "./modules/sessions";
 import { sessionRecording, SessionRecordingState } from "./modules/session_recording";
 import { publicKeys, PublicKeysState } from "./modules/public_keys";
@@ -45,7 +44,6 @@ export interface State {
   publicKeys: PublicKeysState;
   sessionRecording: SessionRecordingState;
   sessions: SessionsState;
-  snackbar: SnackbarState;
   spinner: SpinnerState;
   stats: StatsState;
   support: SupportState;
@@ -75,7 +73,6 @@ export const store = createStore<State>({
     publicKeys,
     sessionRecording,
     sessions,
-    snackbar,
     spinner,
     stats,
     support,

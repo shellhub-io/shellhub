@@ -6,12 +6,16 @@ import { store, key } from "@/store";
 import TagEdit from "@/components/Tags/TagEdit.vue";
 import { router } from "@/router";
 import { namespacesApi, devicesApi, tagsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { INotificationsError } from "@/interfaces/INotifications";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 const devices = [
   {
@@ -121,7 +125,8 @@ describe("Tag Form Edit", async () => {
 
     wrapper = mount(TagEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         config: {
           errorHandler: () => { /* ignore global error handler */ },
         },
@@ -174,15 +179,10 @@ describe("Tag Form Edit", async () => {
   it("Failed to add tags", async () => {
     mockTags.onPut("http://localhost:3000/api/tags/tag-test").reply(409);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
-
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 
     await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith(
-      "snackbar/showSnackbarErrorAction",
-      INotificationsError.deviceTagEdit,
-    );
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update tag.");
   });
 });
