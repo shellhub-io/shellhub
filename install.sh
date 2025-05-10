@@ -1,6 +1,70 @@
 #!/bin/sh
 
 # Overridden variables from Go template: {{.Overrides}}
+podman_install() {
+    [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
+    [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
+    [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
+
+    echo "📥 Downloading ShellHub container image..."
+
+    {
+        $SUDO podman pull -q shellhubio/agent:$AGENT_VERSION
+    } || { echo "❌ Failed to download shellhub container image."; exit 1; }
+
+    MODE=""
+    DEFAULT_CONTAINER_NAME="shellhub"
+
+    case "$1" in
+        "")
+            ;;
+        "agent")
+            shift 1
+            ;;
+        "connector")
+            MODE="connector"
+            DEFAULT_CONTAINER_NAME="shellhub-connector"
+            ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
+
+            echo "🚀 Starting ShellHub container in Docker Connector mode..."
+            shift 1
+            ;;
+        *)
+            echo "❌ Invalid mode: $2"
+            exit 1
+            ;;
+    esac
+
+    if [ -z "$MODE" ]; then
+        ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+
+        echo "🚀 Starting ShellHub container in Agent mode..."
+    fi
+
+    CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
+
+    $SUDO podman run -d \
+       --name=$CONTAINER_NAME \
+       --replace \
+       --restart=on-failure \
+       --privileged \
+       --pid=host \
+       --security-opt label=disable \
+       -v /:/host \
+       -v /dev:/dev \
+       -v /var/run/podman/podman.sock:/var/run/docker.sock \
+       -v /etc/passwd:/etc/passwd \
+       -v /etc/group:/etc/group \
+       -v /proc:/proc \
+       -v /var/run:/var/run \
+       -v /var/log:/var/log \
+       -v /tmp:/tmp \
+       -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
+       -e SHELLHUB_TENANT_ID=$TENANT_ID \
+       $ARGS \
+       docker.io/shellhubio/agent:$AGENT_VERSION \
+       $MODE
+}
 
 docker_install() {
     [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
@@ -249,7 +313,18 @@ RUNC_ARCH=$RUNC_ARCH
 INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 TMP_DIR="${TMP_DIR:-`mktemp -d -t shellhub-installer-XXXXXX`}"
 
-if type docker > /dev/null 2>&1; then
+# Checking for podman first as it can be aliased for docker in some systems
+# Always running podman as root as we need to mount system directories
+if type podman > /dev/null 2>&1; then
+        if [ "$(id -u)" -ne 0 ]; then
+            [ -z "$SUDO" ] && SUDO="sudo" || { SUDO=""; }
+        fi
+        if $SUDO podman info > /dev/null 2>&1; then
+            INSTALL_METHOD="${INSTALL_METHOD:-podman}"
+        fi
+fi
+
+if [ -z "$INSTALL_METHOD" ] && type docker > /dev/null 2>&1; then
     while :; do
         if $SUDO docker info > /dev/null 2>&1; then
             INSTALL_METHOD="${INSTALL_METHOD:-docker}"
@@ -310,6 +385,10 @@ echo "- Agent version: $AGENT_VERSION"
 echo
 
 case "$INSTALL_METHOD" in
+    podman)
+        echo "🐳 Installing ShellHub using podman method..."
+        podman_install "$@"
+        ;;
     docker)
         echo "🐳 Installing ShellHub using docker method..."
         docker_install "$@"
