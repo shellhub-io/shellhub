@@ -1,6 +1,7 @@
 export interface ITunnel {
   address: string,
-  namespace: string,
+  full_address: string,
+  expires_in: string,
   device: string,
   host: string,
   port: number
