@@ -8,8 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/services"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/shellhub-io/shellhub/api/store/mongo/options"
+	"github.com/shellhub-io/shellhub/api/store/pg"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip/geolite2"
@@ -21,6 +20,17 @@ import (
 type env struct {
 	// MongoURI specifies the connection string for MongoDB.
 	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
+
+	// PostgresHost specifies the host for PostgreSQL.
+	PostgresHost string `env:"POSTGRES_HOST,default=postgres"`
+	// PostgresPort specifies the port for PostgreSQL.
+	PostgresPort string `env:"POSTGRES_PORT,default=5432"`
+	// PostgresUser specifies the username for authenticate PostgreSQL.
+	PostgresUser string `env:"POSTGRES_USER,default=admin"`
+	// PostgresUser specifies the password for authenticate PostgreSQL.
+	PostgresPassword string `env:"POSTGRES_PASSWORD,default=admin"`
+	// PostgresDB especifica o nome do banco de dados PostgreSQL a ser utilizado.
+	PostgresDB string `env:"POSTGRES_DB,default=main"`
 
 	// RedisURI specifies the connection string for Redis.
 	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
@@ -72,14 +82,16 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("Redis cache initialized successfully")
 
-	store, err := mongo.NewStore(ctx, s.env.MongoURI, cache, options.RunMigatrions)
+	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUser, s.env.PostgresPassword, s.env.PostgresDB)
+	store, err := pg.New(ctx, uri)
 	if err != nil {
 		log.
 			WithError(err).
 			Fatal("failed to create the store")
+		return err
 	}
 
-	log.Debug("MongoDB store connected successfully")
+	log.Debug("Posgres store connected successfully")
 
 	apiClient, err := internalclient.NewClient(internalclient.WithAsynqWorker(s.env.RedisURI))
 	if err != nil {
