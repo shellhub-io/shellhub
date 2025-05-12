@@ -26,5 +26,7 @@ type goUUID struct{}
 
 // This function is responsible for generating UUID v4 of the google package.
 func (g *goUUID) Generate() string {
-	return uuid.NewString()
+	uuid, _ := uuid.NewV7()
+
+	return uuid.String()
 }

@@ -502,9 +502,9 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		if err := sess.register(); err != nil {
-			return err
-		}
+		// if err := sess.register(); err != nil {
+		// 	return err
+		// }
 
 		snap.save(sess, StateRegistered)
 
@@ -514,9 +514,9 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		if err := sess.authenticate(); err != nil {
-			return err
-		}
+		// if err := sess.authenticate(); err != nil {
+		// 	return err
+		// }
 	default:
 		// The default arm is intended to avoid [StateNil] and [StateCreated], what are used before the authentication.
 		return errors.New("invalid session state")

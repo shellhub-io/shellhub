@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 )
 
@@ -35,6 +36,14 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 	}
 
 	req.Paginator.Normalize()
+
+	if req.Sorter.By == "" {
+		req.Sorter.By = "created_at"
+	}
+	if req.Sorter.Order == "" {
+		req.Sorter.Order = query.OrderAsc
+	}
+
 	if err := req.Filters.Unmarshal(); err != nil {
 		return err
 	}

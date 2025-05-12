@@ -4,8 +4,12 @@ import (
 	"context"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type UserService interface {
@@ -22,7 +26,7 @@ type UserService interface {
 }
 
 func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, req.UserID)
 	if err != nil {
 		return []string{}, NewErrUserNotFound(req.UserID, nil)
 	}
@@ -37,24 +41,33 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 		return conflicts, NewErrUserDuplicated(conflicts, nil)
 	}
 
-	changes := &models.UserChanges{
-		Name:          req.Name,
-		Username:      strings.ToLower(req.Username),
-		Email:         strings.ToLower(req.Email),
-		RecoveryEmail: strings.ToLower(req.RecoveryEmail),
+	if req.Name != "" {
+		user.Name = cases.Title(language.AmericanEnglish).String(strings.ToLower(req.Name))
+	}
+
+	if req.Username != "" {
+		user.Username = strings.ToLower(req.Username)
+	}
+
+	if req.Email != "" {
+		user.Email = strings.ToLower(req.Email)
+	}
+
+	if req.RecoveryEmail != "" {
+		user.Preferences.RecoveryEmail = strings.ToLower(req.RecoveryEmail)
 	}
 
 	if req.Password != "" {
 		// TODO: test
-		if !user.Password.Compare(req.CurrentPassword) {
+		if !hash.CompareWith(req.CurrentPassword, user.PasswordDigest) {
 			return []string{}, NewErrUserPasswordNotMatch(nil)
 		}
 
-		neo, _ := models.HashUserPassword(req.Password)
-		changes.Password = neo.Hash
+		pwdDigest, _ := hash.Do(req.Password)
+		user.PasswordDigest = pwdDigest
 	}
 
-	if err := s.store.UserUpdate(ctx, req.UserID, changes); err != nil {
+	if err := s.store.UserSave(ctx, user); err != nil {
 		return []string{}, NewErrUserUpdate(user, err)
 	}
 
@@ -65,21 +78,23 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 //
 // Deprecated, use [Service.UpdateUser] instead.
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
-	user, _, err := s.store.UserGetByID(ctx, id, false)
+	user, err := s.store.UserGet(ctx, store.UserIdentID, id)
 	if user == nil {
 		return NewErrUserNotFound(id, err)
 	}
 
-	if !user.Password.Compare(currentPassword) {
+	if !hash.CompareWith(currentPassword, user.PasswordDigest) {
 		return NewErrUserPasswordNotMatch(nil)
 	}
 
-	neo, err := models.HashUserPassword(newPassword)
+	pwdDigest, err := hash.Do(newPassword)
 	if err != nil {
 		return NewErrUserPasswordInvalid(err)
 	}
 
-	if err := s.store.UserUpdate(ctx, id, &models.UserChanges{Password: neo.Hash}); err != nil {
+	user.PasswordDigest = pwdDigest
+
+	if err := s.store.UserSave(ctx, user); err != nil {
 		return NewErrUserUpdate(user, err)
 	}
 
