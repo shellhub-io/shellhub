@@ -22,13 +22,13 @@
         >
           <td class="text-center" data-test="device-tunnel-url">
             <a
-              :href="`${urlProtocol}//${tunnel.address}`"
+              :href="`${urlProtocol}//${tunnel.full_address}`"
               target="_blank"
               rel="noopener noreferrer"
               :data-test="`device-tunnel-link-${i}`"
               @click="handleTunnelLinkClick"
             >
-              {{ `${urlProtocol}//${tunnel.address}` }}
+              {{ `${urlProtocol}//${tunnel.full_address}` }}
             </a>
           </td>
 
