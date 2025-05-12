@@ -7,7 +7,7 @@ exports[`Setup Account > Renders the component 1`] = `
     <div class="v-card-title text-center" data-test="welcome-title">Welcome to ShellHub!</div>
     <div class="v-window v-theme--light">
       <div class="v-window__container">
-        <transition-stub appear="false" persisted="false" css="true" disabled="true">
+        <transition-stub name="" appear="false" persisted="false" css="true">
           <div class="v-window-item v-window-item--active">
             <div class="v-card-subtitle" style="white-space: normal;" data-test="subtitle-1"> To set up your account, please run <code>/bin/setup</code> in your terminal to generate a signature. Use the generated signature in the "Sign" field below to proceed. </div>
             <div class="v-container v-locale--is-ltr">
@@ -64,7 +64,7 @@ exports[`Setup Account > Renders the component 1`] = `
             </div>
           </div>
         </transition-stub>
-        <transition-stub appear="false" persisted="false" css="true" disabled="true">
+        <transition-stub name="" appear="false" persisted="false" css="true">
           <div class="v-window-item" style="display: none;">
             <!---->
           </div>
