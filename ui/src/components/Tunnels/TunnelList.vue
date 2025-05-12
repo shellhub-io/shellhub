@@ -71,10 +71,11 @@ import moment from "moment";
 import { useStore } from "@/store";
 import TunnelDelete from "./TunnelDelete.vue";
 import { envVariables } from "@/envVariables";
+import { ITunnel } from "@/interfaces/ITunnel";
 
 const store = useStore();
 const route = useRoute();
-const tunnelList = computed(() => store.getters["tunnels/listTunnels"]);
+const tunnelList = computed<Array<ITunnel>>(() => store.getters["tunnels/listTunnels"]);
 const deviceId = computed(() => route.params.id);
 const urlProtocol = ref(window.location.protocol);
 
