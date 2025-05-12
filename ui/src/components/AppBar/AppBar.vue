@@ -108,6 +108,7 @@ import UserIcon from "../User/UserIcon.vue";
 import Notification from "./Notifications/Notification.vue";
 import PaywallChat from "../User/PaywallChat.vue";
 import { envVariables } from "@/envVariables";
+import useSnackbar from "@/helpers/snackbar";
 
 type MenuItem = {
   title: string;
@@ -129,6 +130,7 @@ defineOptions({
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const snackbar = useSnackbar();
 const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
@@ -173,26 +175,31 @@ const toggleDarkMode = () => {
 };
 
 const openChatwoot = async (): Promise<void> => {
-  const { setUser, setConversationCustomAttributes, toggle } = useChatWoot();
+  try {
+    const { setUser, setConversationCustomAttributes, toggle } = useChatWoot();
 
-  await store.dispatch("support/get", tenant.value);
+    await store.dispatch("support/get", tenant.value);
 
-  setUser(userId.value, {
-    name: currentUser.value,
-    email: userEmail.value,
-    identifier_hash: identifier.value,
-  });
-
-  useEventListener(window, "chatwoot:on-message", () => {
-    setConversationCustomAttributes({
-      namespace: store.getters["namespaces/get"].name,
-      tenant: tenant.value,
-      domain: window.location.hostname,
+    setUser(userId.value, {
+      name: currentUser.value,
+      email: userEmail.value,
+      identifier_hash: identifier.value,
     });
-  });
 
-  store.commit("support/setCreatedStatus", true);
-  toggle("open");
+    useEventListener(window, "chatwoot:on-message", () => {
+      setConversationCustomAttributes({
+        namespace: store.getters["namespaces/get"].name,
+        tenant: tenant.value,
+        domain: window.location.hostname,
+      });
+    });
+
+    store.commit("support/setCreatedStatus", true);
+    toggle("open");
+  } catch (error) {
+    snackbar.showError("Failed to open chat support. Please check your account's billing and try again later.");
+    handleError(error);
+  }
 };
 
 const openPaywall = (): void => {
