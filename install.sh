@@ -9,7 +9,7 @@ podman_install() {
     echo "📥 Downloading ShellHub container image..."
 
     {
-        $SUDO podman pull -q shellhubio/agent:$AGENT_VERSION
+        $SUDO podman pull -q docker.io/shellhubio/agent:$AGENT_VERSION
     } || { echo "❌ Failed to download shellhub container image."; exit 1; }
 
     MODE=""
