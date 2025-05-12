@@ -95,6 +95,6 @@ describe("PaywallChat", () => {
   it("ensures the upgrade button has correct href", () => {
     wrapper.vm.dialog = true;
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="upgrade-btn"]').attributes("href")).toBe("www.shellhub.io/pricing");
+    expect(dialog.find('[data-test="upgrade-btn"]').attributes("href")).toBe("https://www.shellhub.io/pricing");
   });
 });

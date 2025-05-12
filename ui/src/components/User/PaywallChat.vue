@@ -47,7 +47,7 @@
           <v-btn
             color="primary"
             variant="flat"
-            href="www.shellhub.io/pricing"
+            href="https://www.shellhub.io/pricing"
             target="_blank"
             rel="noreferrer noopener"
             data-test="upgrade-btn">
