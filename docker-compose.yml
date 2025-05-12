@@ -71,8 +71,6 @@ services:
       test: "curl -f http://api:8080/api/healthcheck || exit 1"
       interval: 30s
       start_period: 10s
-    volumes:
-      - ./api/store/pg/migrations:/migrations
   ui:
     image: shellhubio/ui:${SHELLHUB_VERSION}
     restart: unless-stopped

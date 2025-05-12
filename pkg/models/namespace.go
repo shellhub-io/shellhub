@@ -2,6 +2,29 @@ package models
 
 import "time"
 
+// default Announcement Message for the shellhub namespace
+const DefaultAnnouncementMessage = `
+******************************************************************
+*                                                                *
+*             Welcome to ShellHub Community Edition!             *
+*                                                                *
+* ShellHub is a next-generation SSH server, providing a          *
+* seamless, secure, and user-friendly solution for remote        *
+* access management. With ShellHub, you can manage all your      *
+* devices effortlessly from a single platform, ensuring optimal  *
+* security and productivity.                                     *
+*                                                                *
+* Want to learn more about ShellHub and explore other editions?  *
+* Visit: https://shellhub.io                                     *
+*                                                                *
+* Join our community and contribute to our open-source project:  *
+* https://github.com/shellhub-io/shellhub                        *
+*                                                                *
+* For assistance, please contact the system administrator.       *
+*                                                                *
+******************************************************************
+`
+
 type Namespace struct {
 	Name         string             `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`
 	Owner        string             `json:"owner"`
@@ -13,6 +36,7 @@ type Namespace struct {
 	MaxDevices   int                `json:"max_devices" bson:"max_devices"`
 	DevicesCount int                `json:"devices_count" bson:"devices_count,omitempty"`
 	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt    time.Time          `json:"-" bson:"updated_at"`
 	Billing      *Billing           `json:"billing" bson:"billing,omitempty"`
 	Type         Type               `json:"type" bson:"type"`
 }
@@ -53,31 +77,15 @@ type NamespaceSettings struct {
 	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
 }
 
-type NamespaceChanges struct {
-	Name                   string  `bson:"name,omitempty"`
-	SessionRecord          *bool   `bson:"settings.session_record,omitempty"`
-	ConnectionAnnouncement *string `bson:"settings.connection_announcement,omitempty"`
+// NamespaceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
+// to identify conflicts.
+type NamespaceConflicts struct {
+	Name string
 }
 
-// default Announcement Message for the shellhub namespace
-const DefaultAnnouncementMessage = `
-******************************************************************
-*                                                                *
-*             Welcome to ShellHub Community Edition!             *
-*                                                                *
-* ShellHub is a next-generation SSH server, providing a          *
-* seamless, secure, and user-friendly solution for remote        *
-* access management. With ShellHub, you can manage all your      *
-* devices effortlessly from a single platform, ensuring optimal  *
-* security and productivity.                                     *
-*                                                                *
-* Want to learn more about ShellHub and explore other editions?  *
-* Visit: https://shellhub.io                                     *
-*                                                                *
-* Join our community and contribute to our open-source project:  *
-* https://github.com/shellhub-io/shellhub                        *
-*                                                                *
-* For assistance, please contact the system administrator.       *
-*                                                                *
-******************************************************************
-`
+// Distinct removes the c attributes whether it's equal to the namespace's attributes.
+func (c *NamespaceConflicts) Distinct(namespace *Namespace) {
+	if c.Name == namespace.Name {
+		c.Name = ""
+	}
+}

@@ -34,9 +34,11 @@ func (p *PublicKeyFields) Validate() error {
 }
 
 type PublicKey struct {
+	ID              string    `json:"-"`
 	Data            []byte    `json:"data"`
 	Fingerprint     string    `json:"fingerprint"`
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
 	TenantID        string    `json:"tenant_id" bson:"tenant_id"`
 	PublicKeyFields `bson:",inline"`
 }

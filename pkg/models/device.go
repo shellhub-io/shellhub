@@ -24,6 +24,9 @@ type Device struct {
 	PublicKey string          `json:"public_key" bson:"public_key"`
 	TenantID  string          `json:"tenant_id" bson:"tenant_id"`
 
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
 	// LastSeen represents the timestamp of the most recent ping from the device to the server.
 	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
 	// DisconnectedAt stores the timestamp when the device disconnected from the server.
@@ -41,7 +44,6 @@ type Device struct {
 	Namespace       string          `json:"namespace" bson:",omitempty"`
 	Status          DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
 	StatusUpdatedAt time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
-	CreatedAt       time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr      string          `json:"remote_addr" bson:"remote_addr"`
 	Position        *DevicePosition `json:"position" bson:"position"`
 	Tags            []string        `json:"tags" bson:"tags,omitempty"`

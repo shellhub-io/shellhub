@@ -5,9 +5,8 @@ import (
 	"bytes"
 	"context"
 	"slices"
+	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	log "github.com/sirupsen/logrus"
 )
@@ -39,7 +38,7 @@ func (s *service) DevicesHeartbeat() worker.TaskHandler {
 		slices.Sort(uids)
 		uids = slices.Compact(uids)
 
-		mCount, err := s.store.DeviceBulkUpdate(ctx, uids, &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil})
+		mCount, err := s.store.DeviceUpdateSeenAt(ctx, uids, time.Now())
 		if err != nil {
 			log.WithField("task", TaskDevicesHeartbeat.String()).
 				WithError(err).

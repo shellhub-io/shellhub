@@ -3,56 +3,67 @@ package pg
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/entity"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/uptrace/bun"
 )
 
-func (pg *pg) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
-	return nil
+func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) (string, error) {
+	publicKey.ID = uuid.Generate()
+	publicKey.CreatedAt = clock.Now()
+	publicKey.UpdatedAt = clock.Now()
+
+	if _, err := pg.driver.NewInsert().Model(entity.PublicKeyFromModel(publicKey)).Exec(ctx); err != nil {
+		return "", fromSqlError(err)
+	}
+
+	return publicKey.ID, nil
 }
 
-func (pg *pg) PublicKeyList(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
-	return nil, 0, nil
+func (pg *Pg) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
+	entities := make([]entity.PublicKey, 0)
+
+	query := pg.driver.NewSelect().Model(&entities)
+	if err := applyOptions(ctx, query, opts...); err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	count, err := query.ScanAndCount(ctx)
+	if err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	publicKeys := make([]models.PublicKey, len(entities))
+	for i, e := range entities {
+		publicKeys[i] = *entity.PublicKeyToModel(&e)
+	}
+
+	return publicKeys, count, nil
 }
 
-func (pg *pg) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
-	return nil, nil
+func (pg *Pg) PublicKeyGet(ctx context.Context, ident store.PublicKeyIdent, val string, tenantID string) (*models.PublicKey, error) {
+	a := new(entity.PublicKey)
+	if err := pg.driver.NewSelect().Model(a).Where("? = ?", bun.Ident(ident), val).Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	return entity.PublicKeyToModel(a), nil
 }
 
-func (pg *pg) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	return nil, nil
+func (pg *Pg) PublicKeySave(ctx context.Context, publicKey *models.PublicKey) error {
+	a := entity.PublicKeyFromModel(publicKey)
+	a.UpdatedAt = clock.Now()
+	_, err := pg.driver.NewUpdate().Model(a).WherePK().Exec(ctx)
+
+	return fromSqlError(err)
 }
 
-func (pg *pg) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
-	return nil
-}
+func (pg *Pg) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) error {
+	a := entity.PublicKeyFromModel(publicKey)
+	_, err := pg.driver.NewDelete().Model(a).WherePK().Exec(ctx)
 
-func (pg *pg) PublicKeyPushTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	// TODO: refactor tags entirely
-	return nil
-}
-
-func (pg *pg) PublicKeyPullTag(ctx context.Context, tenant, fingerprint, tag string) error {
-	// TODO: refactor tags entirely
-	return nil
-}
-
-func (pg *pg) PublicKeySetTags(ctx context.Context, tenant, fingerprint string, tags []string) (matchedCount int64, updatedCount int64, err error) {
-	// TODO: refactor tags entirely
-	return 0, 0, nil
-}
-
-func (pg *pg) PublicKeyBulkRenameTag(ctx context.Context, tenant, currentTag, newTag string) (updatedCount int64, err error) {
-	// TODO: refactor tags entirely
-	return 0, nil
-}
-
-func (pg *pg) PublicKeyBulkDeleteTag(ctx context.Context, tenant, tag string) (updatedCount int64, err error) {
-	// TODO: refactor tags entirely
-	return 0, nil
-}
-
-func (pg *pg) PublicKeyGetTags(ctx context.Context, tenant string) (tag []string, size int, err error) {
-	// TODO: refactor tags entirely
-	return nil, 0, nil
+	return fromSqlError(err)
 }

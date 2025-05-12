@@ -4,65 +4,121 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/api/store/pg/entity"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/uptrace/bun"
 )
 
-func (pg *pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
-	return nil, nil
+func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
+	if namespace.TenantID == "" {
+		namespace.TenantID = uuid.Generate()
+	}
+
+	namespace.CreatedAt = clock.Now()
+	namespace.UpdatedAt = clock.Now()
+
+	if _, err := pg.driver.NewInsert().Model(entity.NamespaceFromModel(namespace)).Exec(ctx); err != nil {
+		return "", fromSqlError(err)
+	}
+
+	return namespace.TenantID, nil
 }
 
-func (pg *pg) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
-	return nil, 0, nil
-}
+func (pg *Pg) NamespaceCreateMemberships(ctx context.Context, tenantID string, memberships ...models.Member) error {
+	entities := make([]entity.Membership, len(memberships))
+	for i, m := range memberships {
+		m.AddedAt = clock.Now()
+		m.UpdatedAt = clock.Now()
+		entities[i] = *entity.MembershipFromModel(&m, tenantID)
+	}
 
-func (pg *pg) NamespaceGet(ctx context.Context, tenantID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	return nil, nil
-}
+	if _, err := pg.driver.NewInsert().Model(&entities).Exec(ctx); err != nil {
+		return fromSqlError(err)
+	}
 
-func (pg *pg) NamespaceGetByName(ctx context.Context, name string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	// TODO: unify get methods
-	return nil, nil
-}
-
-func (pg *pg) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	// TODO: unify get methods
-	return nil, nil
-}
-
-func (pg *pg) NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
-	// TODO: unify update methods
 	return nil
 }
 
-func (pg *pg) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {
-	// TODO: unify update methods
-	return nil
+func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
+	namespaces := make([]map[string]any, 0)
+	if err := pg.driver.NewSelect().Model((*entity.Namespace)(nil)).Column("name").Where("name = ?", target.Name).Scan(ctx, &namespaces); err != nil {
+		return nil, false, fromSqlError(err)
+	}
+
+	conflicts := make([]string, 0)
+	for _, user := range namespaces {
+		if user["name"] == target.Name {
+			conflicts = append(conflicts, "name")
+		}
+	}
+
+	return conflicts, len(conflicts) > 0, nil
 }
 
-func (pg *pg) NamespaceDelete(ctx context.Context, tenantID string) error {
-	return nil
+func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
+	entities := make([]entity.Namespace, 0)
+	query := pg.driver.NewSelect().Model(&entities).Relation("Memberships.User")
+	if err := applyOptions(ctx, query, opts...); err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	count, err := query.ScanAndCount(ctx)
+	if err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	namespaces := make([]models.Namespace, len(entities))
+	for i, e := range entities {
+		namespaces[i] = *entity.NamespaceToModel(&e)
+	}
+
+	return namespaces, count, nil
 }
 
-// TODO: members must be an association N:N between users and namespaces now
-func (pg *pg) NamespaceAddMember(ctx context.Context, tenantID string, member *models.Member) error {
-	return nil
+func (pg *Pg) NamespaceGet(ctx context.Context, ident store.NamespaceIdent, val string, opts ...store.QueryOption) (*models.Namespace, error) {
+	ns := new(entity.Namespace)
+
+	query := pg.driver.NewSelect().Model(ns).Relation("Memberships.User").Where("? = ?", bun.Ident(ident), val)
+	if err := applyOptions(ctx, query, opts...); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	return entity.NamespaceToModel(ns), nil
 }
 
-func (pg *pg) NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error {
-	return nil
+func (pg *Pg) NamespaceSave(ctx context.Context, namespace *models.Namespace) error {
+	n := entity.NamespaceFromModel(namespace)
+	n.UpdatedAt = clock.Now()
+
+	_, err := pg.driver.NewUpdate().Model(n).WherePK().Exec(ctx)
+
+	return fromSqlError(err)
 }
 
-func (pg *pg) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error {
-	return nil
+func (pg *Pg) NamespaceSaveMembership(ctx context.Context, tenantID string, member *models.Member) error {
+	e := entity.MembershipFromModel(member, tenantID)
+	e.UpdatedAt = clock.Now()
+	_, err := pg.driver.NewUpdate().Model(e).WherePK().Exec(ctx)
+
+	return fromSqlError(err)
 }
 
-func (pg *pg) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
-	// TODO: these methods are not used anymore
-	return nil
+func (pg *Pg) NamespaceDelete(ctx context.Context, namespace *models.Namespace) error {
+	n := entity.NamespaceFromModel(namespace)
+	_, err := pg.driver.NewDelete().Model(n).WherePK().Exec(ctx)
+
+	return fromSqlError(err)
 }
 
-func (pg *pg) NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	// TODO: these methods are not used anymore
-	return false, nil
+func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, tenantID string, member *models.Member) error {
+	e := entity.MembershipFromModel(member, tenantID)
+	_, err := pg.driver.NewDelete().Model(e).WherePK().Exec(ctx)
+
+	return fromSqlError(err)
 }

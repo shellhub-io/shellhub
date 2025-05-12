@@ -3,36 +3,81 @@ package pg
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/pg/entity"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/uptrace/bun"
 )
 
-func (pg *pg) APIKeyCreate(ctx context.Context, APIKey *models.APIKey) (string, error) {
-	return "", nil
+func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, error) {
+	apiKey.CreatedAt = clock.Now()
+	apiKey.UpdatedAt = clock.Now()
+
+	if _, err := pg.driver.NewInsert().Model(entity.APIKeyFromModel(apiKey)).Exec(ctx); err != nil {
+		return "", fromSqlError(err)
+	}
+
+	return apiKey.ID, nil
 }
 
-func (pg *pg) APIKeyConflicts(ctx context.Context, tenantID string, target *models.APIKeyConflicts) (conflicts []string, has bool, err error) {
-	return nil, false, nil
+func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *models.APIKeyConflicts) ([]string, bool, error) {
+	apiKeys := make([]map[string]any, 0)
+	if err := pg.driver.NewSelect().Model((*entity.Namespace)(nil)).Column("name").Where("name = ?", target.Name).Scan(ctx, &apiKeys); err != nil {
+		return nil, false, fromSqlError(err)
+	}
+
+	conflicts := make([]string, 0)
+	for _, apiKey := range apiKeys {
+		if apiKey["name"] == target.Name {
+			conflicts = append(conflicts, "name")
+		}
+	}
+
+	return conflicts, len(conflicts) > 0, nil
 }
 
-func (pg *pg) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) (apiKeys []models.APIKey, count int, err error) {
-	return nil, 0, nil
+func (pg *Pg) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error) {
+	entities := make([]entity.APIKey, 0)
+
+	query := pg.driver.NewSelect().Model(&entities)
+	if err := applyOptions(ctx, query, opts...); err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	count, err := query.ScanAndCount(ctx)
+	if err != nil {
+		return nil, 0, fromSqlError(err)
+	}
+
+	apiKeys := make([]models.APIKey, len(entities))
+	for i, e := range entities {
+		apiKeys[i] = *entity.APIKeyToModel(&e)
+	}
+
+	return apiKeys, count, nil
 }
 
-func (pg *pg) APIKeyGet(ctx context.Context, id string) (apiKey *models.APIKey, err error) {
-	// TODO: unify get methods
-	return nil, nil
+func (pg *Pg) APIKeyGet(ctx context.Context, ident store.APIKeyIdent, val string, tenantID string) (*models.APIKey, error) {
+	a := new(entity.APIKey)
+	if err := pg.driver.NewSelect().Model(a).Where("? = ?", bun.Ident(ident), val).Scan(ctx); err != nil {
+		return nil, fromSqlError(err)
+	}
+
+	return entity.APIKeyToModel(a), nil
 }
 
-func (pg *pg) APIKeyGetByName(ctx context.Context, tenantID string, name string) (apiKey *models.APIKey, err error) {
-	// TODO: unify get methods
-	return nil, nil
+func (pg *Pg) APIKeySave(ctx context.Context, apiKey *models.APIKey) error {
+	a := entity.APIKeyFromModel(apiKey)
+	a.UpdatedAt = clock.Now()
+	_, err := pg.driver.NewUpdate().Model(a).WherePK().Exec(ctx)
+
+	return fromSqlError(err)
 }
 
-func (pg *pg) APIKeyUpdate(ctx context.Context, tenantID, name string, changes *models.APIKeyChanges) (err error) {
-	return nil
-}
+func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
+	a := entity.APIKeyFromModel(apiKey)
+	_, err := pg.driver.NewDelete().Model(a).WherePK().Exec(ctx)
 
-func (pg *pg) APIKeyDelete(ctx context.Context, tenantID, name string) (err error) {
-	return nil
+	return fromSqlError(err)
 }

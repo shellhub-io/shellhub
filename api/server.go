@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/pg"
+	"github.com/shellhub-io/shellhub/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip/geolite2"
@@ -83,7 +84,7 @@ func (s *Server) Setup(ctx context.Context) error {
 	log.Debug("Redis cache initialized successfully")
 
 	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUser, s.env.PostgresPassword, s.env.PostgresDB)
-	store, err := pg.New(ctx, uri)
+	store, err := pg.New(ctx, uri, options.Log("DEBUG", true), options.Migrate())
 	if err != nil {
 		log.
 			WithError(err).

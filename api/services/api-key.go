@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -31,7 +32,7 @@ type APIKeyService interface {
 }
 
 func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
-	if _, err := s.store.NamespaceGet(ctx, req.TenantID); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
@@ -86,20 +87,34 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 
 	// As we need to return the plain key in the create service, we temporarily set
 	// the apiKey.ID to the plain key here.
-	apiKey, _ := s.store.APIKeyGet(ctx, hashedKey)
+	apiKey, _ := s.store.APIKeyGet(ctx, store.APIKeyIdentID, hashedKey, req.TenantID)
 	apiKey.ID = req.Key
 
 	return responses.CreateAPIKeyFromModel(apiKey), nil
 }
 
 func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
-	return s.store.APIKeyList(ctx, req.TenantID, req.Paginator, req.Sorter)
+	return s.store.APIKeyList(
+		ctx,
+		s.store.Options().InNamespace(req.TenantID),
+		s.store.Options().Paginate(req.Paginator),
+		s.store.Options().Order(req.Sorter),
+	)
 }
 
 func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
-	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+	ns, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, req.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{Name: req.Name}); has {
+		return NewErrAPIKeyDuplicated(conflicts)
+	}
+
+	apiKey, err := s.store.APIKeyGet(ctx, store.APIKeyIdentName, req.CurrentName, req.TenantID)
+	if err != nil {
+		return err
 	}
 
 	// If req.Role is not empty, it must be lower than the user's role.
@@ -107,14 +122,15 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		if m, ok := ns.FindMember(req.UserID); !ok || !m.Role.HasAuthority(req.Role) {
 			return NewErrRoleInvalid()
 		}
+
+		apiKey.Role = req.Role
 	}
 
-	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{Name: req.Name}); has {
-		return NewErrAPIKeyDuplicated(conflicts)
+	if req.Name != "" {
+		apiKey.Name = req.Name
 	}
 
-	change := &models.APIKeyChanges{Name: req.Name, Role: req.Role}
-	if err := s.store.APIKeyUpdate(ctx, req.TenantID, req.CurrentName, change); err != nil {
+	if err := s.store.APIKeySave(ctx, apiKey); err != nil {
 		return NewErrAPIKeyNotFound(req.CurrentName, err)
 	}
 
@@ -122,7 +138,12 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 }
 
 func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
-	if err := s.store.APIKeyDelete(ctx, req.TenantID, req.Name); err != nil {
+	apiKey, err := s.store.APIKeyGet(ctx, store.APIKeyIdentName, req.Name, req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.store.APIKeyDelete(ctx, apiKey); err != nil {
 		return NewErrAPIKeyNotFound(req.Name, err)
 	}
 
