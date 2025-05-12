@@ -1,5 +1,7 @@
 package requests
 
+import "github.com/shellhub-io/shellhub/pkg/api/query"
+
 // FingerprintParam is a structure to represent and validate a public key fingerprint as path param.
 type FingerprintParam struct {
 	Fingerprint string `param:"fingerprint" validate:"required"`
@@ -28,6 +30,12 @@ type PublicKeyCreate struct {
 	Username    string          `json:"username" validate:"required,regexp"`
 	TenantID    string          `json:"-"`
 	Fingerprint string          `json:"-"`
+}
+
+type PublicKeyList struct {
+	TenantID string `header:"X-Tenant-ID"`
+	query.Paginator
+	query.Sorter
 }
 
 // PublicKeyUpdate is the structure to represent the request data for update public key endpoint.

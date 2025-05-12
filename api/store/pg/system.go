@@ -8,10 +8,10 @@ import (
 
 // TODO: maybe systems config can be an file?
 
-func (pg *pg) SystemGet(ctx context.Context) (*models.System, error) {
+func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 	return nil, nil
 }
 
-func (pg *pg) SystemSet(ctx context.Context, key string, value any) error {
+func (pg *Pg) SystemSet(ctx context.Context, key string, value any) error {
 	return nil
 }

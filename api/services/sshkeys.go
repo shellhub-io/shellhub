@@ -9,7 +9,6 @@ import (
 	"regexp"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -20,7 +19,7 @@ import (
 type SSHKeysService interface {
 	EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
 	EvaluateKeyUsername(ctx context.Context, key *models.PublicKey, username string) (bool, error)
-	ListPublicKeys(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error)
+	ListPublicKeys(ctx context.Context, req *requests.PublicKeyList) ([]models.PublicKey, int, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error)
 	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error)
@@ -67,11 +66,11 @@ func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, 
 }
 
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
-	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, tenant); err != nil {
 		return nil, NewErrNamespaceNotFound(tenant, err)
 	}
 
-	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	return s.store.PublicKeyGet(ctx, store.PublicKeyIdentFingerprint, fingerprint, tenant)
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
@@ -97,7 +96,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 
 	req.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	returnedKey, err := s.store.PublicKeyGet(ctx, req.Fingerprint, tenant)
+	returnedKey, err := s.store.PublicKeyGet(ctx, store.PublicKeyIdentFingerprint, req.Fingerprint, tenant)
 	if err != nil && err != store.ErrNoDocuments {
 		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
 	}
@@ -121,8 +120,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 		},
 	}
 
-	err = s.store.PublicKeyCreate(ctx, &model)
-	if err != nil {
+	if _, err := s.store.PublicKeyCreate(ctx, &model); err != nil {
 		return nil, err
 	}
 
@@ -136,14 +134,36 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 	}, nil
 }
 
-func (s *service) ListPublicKeys(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
-	return s.store.PublicKeyList(ctx, paginator)
+func (s *service) ListPublicKeys(ctx context.Context, req *requests.PublicKeyList) ([]models.PublicKey, int, error) {
+	return s.store.PublicKeyList(
+		ctx,
+		s.store.Options().InNamespace(req.TenantID),
+		s.store.Options().Paginate(req.Paginator),
+		s.store.Options().Order(req.Sorter),
+	)
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
-	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
-	// filter and if the all tags exist on database.
-	if key.Filter.Tags != nil {
+	publicKey, err := s.store.PublicKeyGet(ctx, store.PublicKeyIdentFingerprint, fingerprint, tenant)
+	if err != nil {
+		return nil, NewErrPublicKeyNotFound(fingerprint, err)
+	}
+
+	if key.Name != "" {
+		publicKey.Name = key.Name
+	}
+
+	if key.Username != "" {
+		publicKey.Username = key.Username
+	}
+
+	if key.Filter.Hostname != "" {
+		publicKey.Filter.Hostname = key.Filter.Hostname
+	}
+
+	if len(key.Filter.Tags) > 0 {
+		// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
+		// filter and if the all tags exist on database.
 		tags, _, err := s.store.TagsGet(ctx, tenant)
 		if err != nil {
 			return nil, NewErrTagEmpty(tenant, err)
@@ -156,30 +176,24 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		}
 	}
 
-	model := models.PublicKeyUpdate{
-		PublicKeyFields: models.PublicKeyFields{
-			Name:     key.Name,
-			Username: key.Username,
-			Filter: models.PublicKeyFilter{
-				Hostname: key.Filter.Hostname,
-				Tags:     key.Filter.Tags,
-			},
-		},
+	if err := s.store.PublicKeySave(ctx, publicKey); err != nil {
+		return nil, err
 	}
 
-	return s.store.PublicKeyUpdate(ctx, fingerprint, tenant, &model)
+	return publicKey, nil
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
-	if _, err := s.store.NamespaceGet(ctx, tenant); err != nil {
+	if _, err := s.store.NamespaceGet(ctx, store.NamespaceIdentTenantID, tenant); err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	if _, err := s.store.PublicKeyGet(ctx, fingerprint, tenant); err != nil {
+	publicKey, err := s.store.PublicKeyGet(ctx, store.PublicKeyIdentFingerprint, fingerprint, tenant)
+	if err != nil {
 		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
-	return s.store.PublicKeyDelete(ctx, fingerprint, tenant)
+	return s.store.PublicKeyDelete(ctx, publicKey)
 }
 
 func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {

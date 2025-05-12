@@ -22,8 +22,10 @@ type MemberParam struct {
 
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceList struct {
+	UserID string `header:"X-ID" validate:"required"`
 	query.Paginator
 	query.Filters
+	query.Sorter
 }
 
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
@@ -46,7 +48,7 @@ type NamespaceDelete struct {
 
 // NamespaceEdit is the structure to represent the request data for edit namespace endpoint.
 type NamespaceEdit struct {
-	TenantParam
+	TenantID string `param:"tenant" validate:"required,uuid"`
 	Name     string `json:"name" validate:"omitempty,hostname_rfc1123,excludes=."`
 	Settings struct {
 		SessionRecord          *bool   `json:"session_record" validate:"omitempty"`

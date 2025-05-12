@@ -54,7 +54,6 @@ COPY ./api/entrypoint-dev.sh /entrypoint.sh
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
 RUN mkdir -p /templates
-RUN mkdir -p /migrations
 
 COPY ./install.sh /templates/install.sh
 
@@ -68,7 +67,6 @@ RUN apk add curl
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/api/api /api
 
 RUN mkdir -p /templates
-RUN mkdir -p /migrations
 
 COPY ./install.sh /templates/install.sh
 

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -44,45 +43,45 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 		return err
 	}
 
-	if c.QueryParam("connector") != "" {
-		filter := []query.Filter{
-			{
-				Type: query.FilterTypeProperty,
-				Params: &query.FilterProperty{
-					Name:     "info.platform",
-					Operator: "eq",
-					Value:    "connector",
-				},
-			},
-			{
-				Type: query.FilterTypeOperator,
-				Params: &query.FilterOperator{
-					Name: "and",
-				},
-			},
-		}
-
-		req.Filters.Data = append(req.Filters.Data, filter...)
-	} else {
-		filter := []query.Filter{
-			{
-				Type: query.FilterTypeProperty,
-				Params: &query.FilterProperty{
-					Name:     "info.platform",
-					Operator: "ne",
-					Value:    "connector",
-				},
-			},
-			{
-				Type: query.FilterTypeOperator,
-				Params: &query.FilterOperator{
-					Name: "and",
-				},
-			},
-		}
-
-		req.Filters.Data = append(req.Filters.Data, filter...)
-	}
+	// if c.QueryParam("connector") != "" {
+	// 	filter := []query.Filter{
+	// 		{
+	// 			Type: query.FilterTypeProperty,
+	// 			Params: &query.FilterProperty{
+	// 				Name:     "info.platform",
+	// 				Operator: "eq",
+	// 				Value:    "connector",
+	// 			},
+	// 		},
+	// 		{
+	// 			Type: query.FilterTypeOperator,
+	// 			Params: &query.FilterOperator{
+	// 				Name: "and",
+	// 			},
+	// 		},
+	// 	}
+	//
+	// 	req.Filters.Data = append(req.Filters.Data, filter...)
+	// } else {
+	// 	filter := []query.Filter{
+	// 		{
+	// 			Type: query.FilterTypeProperty,
+	// 			Params: &query.FilterProperty{
+	// 				Name:     "info.platform",
+	// 				Operator: "ne",
+	// 				Value:    "connector",
+	// 			},
+	// 		},
+	// 		{
+	// 			Type: query.FilterTypeOperator,
+	// 			Params: &query.FilterOperator{
+	// 				Name: "and",
+	// 			},
+	// 		},
+	// 	}
+	//
+	// 	req.Filters.Data = append(req.Filters.Data, filter...)
+	// }
 
 	if err := c.Validate(req); err != nil {
 		return err

@@ -4,27 +4,17 @@ import (
 	"context"
 	"slices"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/hash"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
-	// TODO: convert username and email to lower case.
-	userData := models.UserData{
-		Name:     input.Username,
-		Email:    input.Email,
-		Username: input.Username,
-	}
-
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(userData); !ok || err != nil {
-		return nil, ErrUserDataInvalid
-	}
-
-	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
+	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: input.Email, Username: input.Username}); has {
 		containsEmail := slices.Contains(conflicts, "email")
 		containsUsername := slices.Contains(conflicts, "username")
 
@@ -40,23 +30,20 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		}
 	}
 
-	password, err := models.HashUserPassword(input.Password)
+	pwdDigest, err := hash.Do(input.Password)
 	if err != nil {
 		return nil, ErrUserPasswordInvalid
 	}
 
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return nil, ErrUserPasswordInvalid
-	}
-
 	user := &models.User{
-		Origin:        models.UserOriginLocal,
-		UserData:      userData,
-		Password:      password,
-		Status:        models.UserStatusConfirmed,
-		CreatedAt:     clock.Now(),
-		MaxNamespaces: MaxNumberNamespacesCommunity,
+		Origin:         models.UserOriginLocal,
+		Name:           input.Username,
+		Email:          input.Email,
+		Username:       input.Username,
+		PasswordDigest: pwdDigest,
+		Status:         models.UserStatusConfirmed,
+		CreatedAt:      clock.Now(),
+		MaxNamespaces:  MaxNumberNamespacesCommunity,
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
@@ -77,7 +64,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
@@ -88,18 +75,18 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 	}
 
 	for _, ns := range userInfo.OwnedNamespaces {
-		if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
+		if err := s.store.NamespaceDelete(ctx, &ns); err != nil {
 			return err
 		}
 	}
 
-	for _, ns := range userInfo.AssociatedNamespaces {
-		if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
-			return err
-		}
-	}
+	// for _, ns := range userInfo.AssociatedNamespaces {
+	// if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
+	// 	return err
+	// }
+	// }
 
-	if err := s.store.UserDelete(ctx, user.ID); err != nil {
+	if err := s.store.UserDelete(ctx, user); err != nil {
 		return ErrFailedDeleteUser
 	}
 
@@ -112,22 +99,21 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserGet(ctx, store.UserIdentUsername, input.Username)
 	if err != nil {
 		return ErrUserNotFound
 	}
 
-	password, err := models.HashUserPassword(input.Password)
-	if err != nil {
-		return ErrUserPasswordInvalid
+	if input.Password != "" {
+		pwdDigest, err := hash.Do(input.Password)
+		if err != nil {
+			return ErrUserPasswordInvalid
+		}
+
+		user.PasswordDigest = pwdDigest
 	}
 
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return ErrUserPasswordInvalid
-	}
-
-	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Password: password.Hash}); err != nil {
+	if err := s.store.UserSave(ctx, user); err != nil {
 		return ErrFailedUpdateUser
 	}
 
