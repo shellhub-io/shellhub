@@ -31,7 +31,7 @@
               v-else
               :key="`item-${i}`"
               :value="item"
-              active-color="primary"
+              color="primary"
               @click="selectTag(item)"
             >
               <template v-slot:default="{}">
