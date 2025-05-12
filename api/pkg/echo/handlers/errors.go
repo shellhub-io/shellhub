@@ -10,7 +10,6 @@ import (
 	routes "github.com/shellhub-io/shellhub/api/routes/errors"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
@@ -35,15 +34,6 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 		// NOTE(r): The early return approach here, despite it being a bit verbose, is the best way to clarify what
 		// happens in each case, avoiding the use of else statements, which would make the code more confusing or a big
 		// switch statement, which would make the code less readable.
-
-		// Every Mongo error that isn't mapped as a store error must be reported to Sentry and responded with HTTP
-		// status code 500.
-		if errors.Is(err, mongo.ErrMongo) {
-			report(reporter, err, ctx.Request())
-			ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
-
-			return
-		}
 
 		// On HTTP errors, anything related to the HTTP protocol, we just return the error code, avoiding a 500 error.
 		var herr *echo.HTTPError
