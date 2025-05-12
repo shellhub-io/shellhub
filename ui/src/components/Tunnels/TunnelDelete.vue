@@ -42,6 +42,10 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = defineProps({
   uid: {
     type: String,
