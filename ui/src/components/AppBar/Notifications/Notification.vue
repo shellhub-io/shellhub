@@ -1,10 +1,9 @@
 <template>
-  <v-menu :close-on-content-click="false">
+  <v-menu :close-on-content-click="true">
     <template v-slot:activator="{ props }">
       <v-badge
-        v-bind="$props"
-        v-if="showNumberNotifications > 0"
-        :content="showNumberNotifications"
+        v-if="showNotifications"
+        :content="notificationCount"
         offset-y="-5"
         location="top right"
         color="success"
@@ -15,8 +14,7 @@
         <v-icon
           v-bind="props"
           color="primary"
-          aria-label="notifications-icon"
-          @click="getNotifications()"
+          aria-label="Open notifications menu"
         >
           mdi-bell
         </v-icon>
@@ -24,40 +22,35 @@
       <v-icon
         v-bind="props"
         v-else
-        class="ml-2 mr-2"
+        class="ml-2 mr-1"
         color="primary"
-        aria-label="notifications-icon"
-        @click="getNotifications()"
+        aria-label="Open notifications menu"
       >
         mdi-bell
       </v-icon>
     </template>
 
     <v-card
-      v-if="!getStatusNotifications"
-      data-test="hasNotifications-subheader"
+      v-if="showNotifications"
+      data-test="notifications-card"
       offset-x="20"
     >
-
-      <v-list
-        class="pa-0"
-        density="compact"
-      >
+      <v-list @click.stop class="pa-0" density="compact">
         <v-list-subheader>Pending Devices</v-list-subheader>
         <v-divider />
 
         <v-list-item
           class="pr-0"
-          v-for="item in listNotifications"
-          :key="item.uid"
+          v-for="notification in notificationList"
+          :key="notification.uid"
         >
           <template v-slot:prepend>
             <v-list-item-title>
               <router-link
-                :to="{ name: 'DeviceDetails', params: { id: item.uid } }"
-                :data-test="item.uid + '-field'"
+                :to="{ name: 'DeviceDetails', params: { id: notification.uid } }"
+                :data-test="notification.uid + '-field'"
               >
-                {{ item.name }}
+                {{ notification.name }}
               </router-link>
             </v-list-item-title>
           </template>
@@ -65,20 +58,20 @@
           <template v-slot:append>
             <v-list-item-action class="ma-0">
               <DeviceActionButton
-                v-if="hasAuthorization"
-                :uid="item.uid"
-                :name="item.name"
+                :uid="notification.uid"
+                :name="notification.name"
                 variant="device"
                 :notification-status="true"
-                :show="!getStatusNotifications"
+                :show="true"
                 action="accept"
-                :data-test="item.uid + '-btn'"
-                @update="refresh"
+                :data-test="notification.uid + '-btn'"
+                @update="fetchNotifications"
               />
             </v-list-item-action>
           </template>
         </v-list-item>
       </v-list>
+
       <v-btn
         to="/devices/pending"
         variant="tonal"
@@ -86,7 +79,6 @@
         block
         size="small"
         data-test="show-btn"
-        @click="show = false"
       >
         Show all Pending Devices
       </v-btn>
@@ -94,21 +86,16 @@
 
     <v-card
       v-else
-      data-test="noNotifications-subheader"
+      data-test="empty-card"
       class="pa-2 bg-v-theme-surface"
     >
-      <v-card-subtitle> You don't have notifications </v-card-subtitle>
+      <v-card-subtitle>{{ emptyCardMessage }}</v-card-subtitle>
     </v-card>
   </v-menu>
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  watch,
-} from "vue";
-import axios, { AxiosError } from "axios";
+import { computed, onBeforeMount } from "vue";
 import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
@@ -118,93 +105,29 @@ import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const snackbar = useSnackbar();
-defineProps({
-  style: {
-    type: [String, Object],
-    default: undefined,
-  },
-});
-const show = ref(false);
-const inANamespace = ref(false);
-
-const listNotifications = computed(
-  () => store.getters["notifications/list"],
-);
-
-const getNumberNotifications = computed(
-  () => store.getters["notifications/getNumberNotifications"],
-);
-
-const showNumberNotifications = computed(() => {
-  const numberNotifications = getNumberNotifications.value;
-  const pendingDevices = store.getters["stats/stats"].pending_devices;
-  if (numberNotifications === 0 && pendingDevices !== undefined) {
-    return store.getters["stats/stats"].pending_devices;
-  }
-  return numberNotifications;
-});
-
-const getStatusNotifications = computed(() => {
-  if (getNumberNotifications.value === 0) return true;
-  return false;
-});
-
-const hasNamespace = computed(
-  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-);
-
-const hasAuthorization = computed(() => {
+const notifications = computed(() => store.getters["notifications/list"]);
+const notificationCount = computed(() => store.getters["notifications/getNumberNotifications"]);
+const canViewNotifications = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.notification.view,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.notification.view);
 });
+const showNotifications = computed(() => notificationCount.value > 0 && canViewNotifications.value);
+const emptyCardMessage = computed(() => (
+  canViewNotifications.value ? "You don't have notifications" : "You don't have permission to view notifications"
+));
 
-watch(hasNamespace, (status) => {
-  inANamespace.value = status;
-});
-
-const getNotifications = async () => {
-  if (hasNamespace.value) {
-    try {
-      await store.dispatch("notifications/fetch");
-      show.value = true;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        switch (true) {
-          case !inANamespace.value && axiosError.response?.status === 403: {
-            // dialog pops
-            break;
-          }
-          case axiosError.response?.status === 403: {
-            snackbar.showError("You don't have permission to view notifications.");
-            handleError(error);
-            break;
-          }
-          default: {
-            snackbar.showError("Failed to load notifications.");
-            handleError(error);
-          }
-        }
-      } else {
-        snackbar.showError("Failed to load notifications.");
-        handleError(error);
-      }
+const fetchNotifications = async () => {
+  try {
+    await store.dispatch("notifications/fetch");
+  } catch (error: unknown) {
+    if (canViewNotifications.value) {
+      snackbar.showError("Failed to load notifications.");
+      handleError(error);
     }
   }
 };
 
-const refresh = () => {
-  if (hasNamespace.value) {
-    getNotifications();
-    if (getNumberNotifications.value === 0) {
-      store.dispatch("stats/get");
-    }
-  }
-};
+onBeforeMount(async () => {
+  await fetchNotifications();
+});
 </script>
