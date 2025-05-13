@@ -60,7 +60,7 @@
             </div>
           </td>
           <td>
-            {{ formatDate(item.last_seen) }}
+            {{ formatFullDateTime(item.last_seen) }}
           </td>
           <td>
             <v-chip size="small">
@@ -95,7 +95,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
-import { formatDate } from "../../hooks/formateDate";
+import { formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
 import showTag from "../../hooks/tag";
 import { INotificationsError } from "../../interfaces/INotifications";
@@ -247,7 +247,7 @@ export default defineComponent({
       sortByItem,
       showTag,
       displayOnlyTenCharacters,
-      formatDate,
+      formatFullDateTime,
       goToNamespace,
       redirectToDevice,
       changeItemsPerPage,

@@ -25,7 +25,7 @@
               <template v-slot:activator="{ props }">
                 <v-icon v-bind="props"> mdi-check-circle </v-icon>
               </template>
-              <span>{{ lastSeen(session.last_seen) }}</span>
+              <span>{{ getTimeFromNow(session.last_seen) }}</span>
             </v-tooltip>
           </td>
           <td>
@@ -67,10 +67,10 @@
             <v-chip density="compact" label>{{ session.ip_address }}</v-chip>
           </td>
           <td>
-            <span>{{ formatDate(session.started_at) }}</span>
+            <span>{{ formatFullDateTime(session.started_at) }}</span>
           </td>
           <td>
-            {{ formatDate(session.last_seen) }}
+            {{ formatFullDateTime(session.last_seen) }}
           </td>
           <td>
             <v-tooltip bottom anchor="bottom">
@@ -99,7 +99,7 @@ import { computed, defineComponent, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "../../store";
 import DataTable from "../DataTable.vue";
-import { lastSeen, formatDate } from "../../hooks/formateDate";
+import { getTimeFromNow, formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
 import { INotificationsError } from "../../interfaces/INotifications";
 
@@ -216,10 +216,10 @@ export default defineComponent({
       page,
       sessions,
       numberSessions,
-      lastSeen,
+      getTimeFromNow,
       displayOnlyTenCharacters,
       redirectToDevice,
-      formatDate,
+      formatFullDateTime,
       goToSession,
       changeItemsPerPage,
       next,
