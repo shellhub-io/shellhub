@@ -10,6 +10,7 @@
         color="success"
         size="x-small"
         data-test="notifications-badge"
+        class="ml-2 mr-2"
       >
         <v-icon
           v-bind="props"
@@ -46,36 +47,36 @@
         <v-divider />
 
         <v-list-item
-          class="d-flex"
+          class="pr-0"
           v-for="item in listNotifications"
           :key="item.uid"
         >
           <template v-slot:prepend>
             <v-list-item-title>
-
               <router-link
                 :to="{ name: 'DeviceDetails', params: { id: item.uid } }"
                 :data-test="item.uid + '-field'"
               >
                 {{ item.name }}
               </router-link>
-
             </v-list-item-title>
           </template>
 
-          <v-list-item-action>
-            <DeviceActionButton
-              v-if="hasAuthorization"
-              :uid="item.uid"
-              :name="item.name"
-              variant="device"
-              :notification-status="true"
-              :show="!getStatusNotifications"
-              action="accept"
-              :data-test="item.uid + '-btn'"
-              @update="refresh"
-            />
-          </v-list-item-action>
+          <template v-slot:append>
+            <v-list-item-action class="ma-0">
+              <DeviceActionButton
+                v-if="hasAuthorization"
+                :uid="item.uid"
+                :name="item.name"
+                variant="device"
+                :notification-status="true"
+                :show="!getStatusNotifications"
+                action="accept"
+                :data-test="item.uid + '-btn'"
+                @update="refresh"
+              />
+            </v-list-item-action>
+          </template>
         </v-list-item>
       </v-list>
       <v-btn
