@@ -41,6 +41,9 @@ func (cb *CertBot) ensureCertificates() {
 	}
 
 	if cb.tunnels != nil {
+		// NOTE: We are recreating the INI file every time to ensure it has the latest token from the environment.
+		cb.generateProviderCredentialsFile(DigitalOceanDNSProvider)
+
 		certPath := fmt.Sprintf("%s/live/*.%s/fullchain.pem", cb.rootDir, cb.tunnels.domain)
 		if _, err := os.Stat(certPath); os.IsNotExist(err) {
 			cb.generateCertificateFromDNS(DigitalOceanDNSProvider)
@@ -84,14 +87,27 @@ func (cb *CertBot) generateCertificate() {
 	cb.stopACMEServer(acmeServer)
 }
 
+func (cb *CertBot) generateProviderCredentialsFile(provider DNSProvider) (*os.File, error) {
+	token := fmt.Sprintf("dns_%s_token = %s", provider, cb.tunnels.token)
+	file, err := os.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(provider)))
+	if err != nil {
+		return nil, err
+	}
+
+	file.Write([]byte(token))
+
+	return file, nil
+}
+
 func (cb *CertBot) generateCertificateFromDNS(provider DNSProvider) {
 	fmt.Println("Generating SSL certificate with DNS")
 
-	token := fmt.Sprintf("dns_%s_token = %s", provider, cb.tunnels.token)
-	file, _ := os.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(provider)))
-	file.Write([]byte(token))
+	file, err := cb.generateProviderCredentialsFile(provider)
+	if err != nil {
+		log.Fatalf("Failed to generate INI file: %v", err)
+	}
 
-	cmd := exec.Command(
+	cmd := exec.Command( //nolint:gosec
 		"certbot",
 		"certonly",
 		"--non-interactive",
@@ -177,6 +193,8 @@ func (cb *CertBot) executeRenewCertificates() error {
 
 // renewCertificates periodically renews the SSL certificates.
 func (cb *CertBot) renewCertificates() {
+	fmt.Println("Starting SSL certificate renewal process")
+
 	ticker := time.NewTicker(24 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {
