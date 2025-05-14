@@ -55,6 +55,7 @@ podman_install() {
        --privileged \
        --pid=host \
        --security-opt label=disable \
+       --network host \
        -v /:/host \
        -v /dev:/dev \
        -v /var/run/podman/podman.sock:/var/run/docker.sock \
