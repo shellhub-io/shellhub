@@ -37,6 +37,8 @@ func main() {
 		}
 
 		certBot.ensureCertificates()
+		certBot.executeRenewCertificates()
+
 		go certBot.renewCertificates()
 	}
 
