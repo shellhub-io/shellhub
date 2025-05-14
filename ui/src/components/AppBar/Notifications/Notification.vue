@@ -62,8 +62,8 @@ import NotificationList from "./NotificationList.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
-const notifications = computed(() => store.getters["notifications/list"]);
-const notificationCount = computed(() => store.getters["notifications/getNumberNotifications"]);
+const notifications = computed(() => store.getters["notifications/notifications"]);
+const notificationCount = computed(() => store.getters["notifications/total"]);
 const canViewNotifications = computed(() => {
   const role = store.getters["auth/role"];
   return !!role && hasPermission(authorizer.role[role], actions.notification.view);

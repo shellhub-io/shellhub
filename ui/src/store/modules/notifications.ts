@@ -3,33 +3,34 @@ import * as apiDevice from "../api/devices";
 import * as apiContainer from "../api/container";
 import { IDevice } from "@/interfaces/IDevice";
 import { State } from "..";
+import { IContainer } from "@/interfaces/IContainer";
 
 export interface NotificationsState {
-  notifications: Array<IDevice>;
-  numberNotifications: number;
+  notifications: Array<IDevice | IContainer>;
+  total: number;
 }
 
 export const notifications: Module<NotificationsState, State> = {
   namespaced: true,
   state: {
     notifications: [],
-    numberNotifications: 0,
+    total: 0,
   },
 
   getters: {
-    list: (state) => state.notifications,
-    getNumberNotifications: (state) => state.numberNotifications,
+    notifications: (state) => state.notifications,
+    total: (state) => state.total,
   },
 
   mutations: {
     setNotifications: (state, res) => {
       state.notifications = res.data;
-      state.numberNotifications = parseInt(res.headers["x-total-count"], 10);
+      state.total = parseInt(res.headers["x-total-count"], 10);
     },
 
-    clearListNotifications: (state) => {
+    clearNotifications: (state) => {
       state.notifications = [];
-      state.numberNotifications = 0;
+      state.total = 0;
     },
   },
 
@@ -46,12 +47,11 @@ export const notifications: Module<NotificationsState, State> = {
           ...containerRes.data,
         ];
 
-        const combinedCount = parseInt(deviceRes.headers["x-total-count"], 10)
-                              + parseInt(containerRes.headers["x-total-count"], 10);
+        const combinedCount = parseInt(deviceRes.headers["x-total-count"], 10) + parseInt(containerRes.headers["x-total-count"], 10);
 
         context.commit("setNotifications", { data: combinedData, headers: { "x-total-count": combinedCount } });
       } catch (error) {
-        context.commit("clearListNotifications");
+        context.commit("clearNotifications");
         throw error;
       }
     },
