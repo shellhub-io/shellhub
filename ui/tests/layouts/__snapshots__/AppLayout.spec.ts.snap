@@ -261,7 +261,12 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
         </button>
         <!--teleport start-->
-        <!--teleport end--><i class="mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable ml-2 mr-1" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8" aria-label="Open notifications menu"></i>
+        <!--teleport end-->
+        <div class="v-badge ml-3 mr-2" size="x-small" data-test="notifications-badge">
+          <div class="v-badge__wrapper"><i class="mdi-bell mdi v-icon notranslate v-theme--dark v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8" aria-label="Open notifications menu"></i>
+            <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--dark bg-success" style="bottom: calc(100% - 7px); left: calc(100% - 12px); display: none;" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">0</span></transition-stub>
+          </div>
+        </div>
         <!----><button type="button" class="v-btn v-theme--dark text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--dark bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
       </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span>
