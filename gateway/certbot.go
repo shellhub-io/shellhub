@@ -153,25 +153,38 @@ func (cb *CertBot) stopACMEServer(server *http.Server) {
 	}
 }
 
+func (cb *CertBot) executeRenewCertificates() error {
+	cmd := exec.Command( //nolint:gosec
+		"certbot",
+		"renew",
+		"--webroot",
+		"--webroot-path",
+		cb.rootDir,
+	)
+
+	if cb.staging {
+		cmd.Args = append(cmd.Args, "--staging")
+	}
+
+	if err := cmd.Run(); err != nil {
+		log.Println("Failed to renew SSL certificate")
+
+		return err
+	}
+
+	return nil
+}
+
 // renewCertificates periodically renews the SSL certificates.
 func (cb *CertBot) renewCertificates() {
 	ticker := time.NewTicker(24 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {
 		fmt.Println("Checking if SSL certificate needs to be renewed")
-		cmd := exec.Command(
-			"certbot",
-			"renew",
-			"--webroot",
-			"--webroot-path",
-			cb.rootDir,
-		)
-		if cb.staging {
-			cmd.Args = append(cmd.Args, "--staging")
-		}
-		if err := cmd.Run(); err != nil {
+		if err := cb.executeRenewCertificates(); err != nil {
 			log.Fatal("Failed to renew SSL certificate")
 		}
+
 		fmt.Println("SSL certificate successfully renewed")
 		cb.renewedCallback()
 	}
