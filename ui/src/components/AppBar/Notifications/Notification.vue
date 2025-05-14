@@ -2,32 +2,22 @@
   <v-menu :close-on-content-click="true">
     <template v-slot:activator="{ props }">
       <v-badge
-        v-if="showNotifications"
+        :model-value="showNotifications"
         :content="notificationCount"
         offset-y="-5"
         location="top right"
         color="success"
         size="x-small"
         data-test="notifications-badge"
-        class="ml-2 mr-2"
+        class="ml-3 mr-2"
       >
         <v-icon
           v-bind="props"
           color="primary"
           aria-label="Open notifications menu"
-        >
-          mdi-bell
-        </v-icon>
+          icon="mdi-bell"
+        />
       </v-badge>
-      <v-icon
-        v-bind="props"
-        v-else
-        class="ml-2 mr-1"
-        color="primary"
-        aria-label="Open notifications menu"
-      >
-        mdi-bell
-      </v-icon>
     </template>
 
     <v-card
