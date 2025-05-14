@@ -43,6 +43,11 @@ podman_install() {
 
     CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
 
+    if ! $SUDO systemctl is-active --quiet podman.socket; then
+        echo "❌ Podman is not running as a systemd unit service. Please start it and try again."
+        exit 1
+    fi
+
     $SUDO podman run -d \
        --name=$CONTAINER_NAME \
        --replace \
