@@ -1,17 +1,20 @@
 import { Module } from "vuex";
-import * as apiDevice from "../api/devices";
-import * as apiContainer from "../api/container";
-import { IDevice } from "@/interfaces/IDevice";
+import { fetchDevices } from "../api/devices";
+import { fetchContainers } from "../api/container";
 import { State } from "..";
+import { deviceToNotification, containerToNotification } from "@/utils/notificationAdapters";
+import { IDevice } from "@/interfaces/IDevice";
 import { IContainer } from "@/interfaces/IContainer";
+import { INotification } from "@/interfaces/INotification";
 
 export interface NotificationsState {
-  notifications: Array<IDevice | IContainer>;
+  notifications: INotification[];
   total: number;
 }
 
 export const notifications: Module<NotificationsState, State> = {
   namespaced: true,
+
   state: {
     notifications: [],
     total: 0,
@@ -20,12 +23,13 @@ export const notifications: Module<NotificationsState, State> = {
   getters: {
     notifications: (state) => state.notifications,
     total: (state) => state.total,
+    notificationsByType: (state) => (type: string) => state.notifications.filter((notification) => notification.type === type),
   },
 
   mutations: {
-    setNotifications: (state, res) => {
-      state.notifications = res.data;
-      state.total = parseInt(res.headers["x-total-count"], 10);
+    setNotifications: (state, notifications) => {
+      state.notifications = notifications;
+      state.total = notifications.length;
     },
 
     clearNotifications: (state) => {
@@ -38,18 +42,22 @@ export const notifications: Module<NotificationsState, State> = {
     fetch: async (context) => {
       try {
         const [deviceRes, containerRes] = await Promise.all([
-          apiDevice.fetchDevices(1, 10, "", "pending", undefined, ""),
-          apiContainer.fetchContainers(1, 10, "", "pending", undefined, ""),
+          fetchDevices(1, 10, "", "pending", undefined, ""),
+          fetchContainers(1, 10, "", "pending", undefined, ""),
         ]);
 
-        const combinedData = [
-          ...deviceRes.data,
-          ...containerRes.data,
+        const devices = deviceRes.data as IDevice[];
+        const containers = containerRes.data as IContainer[];
+
+        const deviceNotifications = devices.map(deviceToNotification);
+        const containerNotifications = containers.map(containerToNotification);
+
+        const combinedNotifications = [
+          ...deviceNotifications,
+          ...containerNotifications,
         ];
 
-        const combinedCount = parseInt(deviceRes.headers["x-total-count"], 10) + parseInt(containerRes.headers["x-total-count"], 10);
-
-        context.commit("setNotifications", { data: combinedData, headers: { "x-total-count": combinedCount } });
+        context.commit("setNotifications", combinedNotifications);
       } catch (error) {
         context.commit("clearNotifications");
         throw error;
