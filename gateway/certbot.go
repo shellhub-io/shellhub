@@ -173,9 +173,6 @@ func (cb *CertBot) executeRenewCertificates() error {
 	cmd := exec.Command( //nolint:gosec
 		"certbot",
 		"renew",
-		"--webroot",
-		"--webroot-path",
-		cb.rootDir,
 	)
 
 	if cb.staging {
