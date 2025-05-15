@@ -174,17 +174,17 @@ describe("Device Action Button", () => {
   });
 
   it("Renders the component data table", async () => {
-    await wrapper.setProps({ name: "test-device", uid: "test-uid", notificationStatus: true, show: true });
-    expect(wrapper.find('[data-test="notification-item"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="notification-btn"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="notification-btn"]').trigger("click");
+    await wrapper.setProps({ name: "test-device", uid: "test-uid", isInNotification: true, show: true });
+    const notificationButton = wrapper.find('[data-test="notification-action-button"]');
+    expect(notificationButton.exists()).toBe(true);
+    await notificationButton.trigger("click");
     const dialog = new DOMWrapper(document.body);
     expect(dialog.find('[data-test="dialog"]').exists()).toBe(true);
   });
 
   it("Clicking on notification button toggles dialog visibility", async () => {
-    await wrapper.setProps({ notificationStatus: true });
-    const notificationButton = wrapper.find('[data-test="notification-btn"]');
+    await wrapper.setProps({ isInNotification: true });
+    const notificationButton = wrapper.find('[data-test="notification-action-button"]');
     await notificationButton.trigger("click");
     expect(wrapper.vm.dialog).toBe(true);
     await notificationButton.trigger("click");
@@ -204,7 +204,7 @@ describe("Device Action Button", () => {
 
   it("Close button in dialog emits 'update' event with false", async () => {
     wrapper.vm.dialog = true;
-    await wrapper.setProps({ notificationStatus: true });
+    await wrapper.setProps({ isInNotification: true });
     const closeButton = wrapper.findComponent('[data-test="close-btn"]');
     await closeButton.trigger("click");
     expect(wrapper.emitted("update")).toBeTruthy();
