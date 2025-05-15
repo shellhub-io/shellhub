@@ -7,16 +7,14 @@
       v-for="notification in notifications"
       :key="notification.id"
     >
-      <template v-slot:prepend>
-        <v-list-item-title>
-          <router-link
-            :to="{ name: 'DeviceDetails', params: { id: notification.data.uid } }"
-            :data-test="notification.data.uid + '-field'"
-          >
-            {{ notification.data.name }}
-          </router-link>
-        </v-list-item-title>
-      </template>
+      <v-list-item-title>
+        <router-link
+          :to="{ name: 'DeviceDetails', params: { id: notification.data.uid } }"
+          :data-test="notification.data.uid + '-field'"
+        >
+          {{ notification.data.name }}
+        </router-link>
+      </v-list-item-title>
 
       <template v-slot:append>
         <v-list-item-action>
