@@ -26,7 +26,6 @@
     >
       <NotificationList
         :notifications
-        @update="fetchNotifications"
       />
 
       <v-btn

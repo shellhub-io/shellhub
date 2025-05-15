@@ -1,17 +1,16 @@
 <template>
   <div>
-    <v-list-item v-if="notificationStatus" data-test="notification-item">
-      <v-btn
-        v-bind="$attrs"
-        size="x-small"
-        color="primary"
-        data-test="notification-btn"
-        @click="dialog = !dialog"
-      >
-        <v-icon>{{ icon }}</v-icon>
-        Accept
-      </v-btn>
-    </v-list-item>
+    <v-btn
+      v-bind="$attrs"
+      size="x-small"
+      color="primary"
+      v-if="isInNotification"
+      data-test="notification-action-button"
+      @click="dialog = !dialog"
+    >
+      <v-icon>{{ icon }}</v-icon>
+      Accept
+    </v-btn>
     <v-list-item v-else @click="dialog = !dialog" data-test="list-item">
       <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
         <template v-slot:activator="{ props }">
@@ -70,7 +69,7 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  notificationStatus: {
+  isInNotification: {
     type: Boolean,
     default: false,
   },
@@ -112,16 +111,13 @@ const close = () => {
   emit("update", false);
 };
 
-const refreshDevices = () => {
+const refreshDevices = async () => {
   try {
     emit("update");
-    if (
-      window.location.pathname === "/devices/pending"
-          || window.location.pathname === "/devices"
-    ) {
-      store.dispatch("devices/refresh");
-      store.dispatch("notifications/fetch");
-    }
+    if (window.location.pathname.includes("devices")) await store.dispatch("devices/refresh");
+    else await store.dispatch("container/refresh");
+
+    await store.dispatch("notifications/fetch");
 
     close();
   } catch (error: unknown) {

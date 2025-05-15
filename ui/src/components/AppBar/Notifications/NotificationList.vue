@@ -4,7 +4,6 @@
     <v-divider />
 
     <v-list-item
-      class="pr-0"
       v-for="notification in notifications"
       :key="notification.id"
     >
@@ -20,16 +19,15 @@
       </template>
 
       <template v-slot:append>
-        <v-list-item-action class="ma-0">
+        <v-list-item-action>
           <DeviceActionButton
             :uid="notification.data.uid"
             :name="notification.data.name"
-            variant="device"
-            :notification-status="true"
+            :variant="notification.type"
+            :isInNotification="true"
             :show="true"
             action="accept"
             :data-test="notification.data.uid + '-btn'"
-            @update="$emit('update')"
           />
         </v-list-item-action>
       </template>
