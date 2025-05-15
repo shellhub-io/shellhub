@@ -24,7 +24,7 @@
       v-if="showNotifications"
       data-test="notifications-card"
     >
-      <NotificationList
+      <NotificationsList
         :notifications
       />
 
@@ -57,7 +57,7 @@ import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import NotificationList from "./NotificationList.vue";
+import NotificationsList from "./NotificationsList.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();

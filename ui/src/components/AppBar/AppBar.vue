@@ -40,7 +40,7 @@
       <span>Need assistance? Click here for support.</span>
     </v-tooltip>
 
-    <Notification data-test="notification-component" />
+    <NotificationsMenu data-test="notification-component" />
 
     <v-menu>
       <template v-slot:activator="{ props }">
@@ -104,7 +104,7 @@ import { useEventListener } from "@vueuse/core";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
-import Notification from "./Notifications/Notification.vue";
+import NotificationsMenu from "./Notifications/NotificationsMenu.vue";
 import PaywallChat from "../User/PaywallChat.vue";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
