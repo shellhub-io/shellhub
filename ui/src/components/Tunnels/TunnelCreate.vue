@@ -68,10 +68,9 @@
             <v-col>
               <v-text-field
                 v-model.number="customTimeout"
+                :error-messages="customTimeoutError"
                 label="Custom Timeout (in seconds)"
                 type="number"
-                min="1"
-                max="2624016"
                 variant="outlined"
                 data-test="custom-timeout"
               />
@@ -107,7 +106,6 @@ const store = useStore();
 const snackbar = useSnackbar();
 const dialog = ref(false);
 const alertText = ref();
-const customTimeout = ref<number>(60);
 
 const predefinedTimeouts = ref([
   { value: -1, text: "Unlimited Timeout" },
@@ -120,9 +118,6 @@ const predefinedTimeouts = ref([
   { value: 2624016, text: "1 month" },
   { value: "custom", text: "Custom Expiration" },
 ]);
-
-const selectedTimeout = ref<number | "custom">(-1);
-const timeout = computed(() => (selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value));
 
 const { value: host, errorMessage: hostError, resetField: resetHost } = useField<string>(
   "host",
@@ -142,14 +137,28 @@ const { value: port, errorMessage: portError, resetField: resetPort } = useField
   { initialValue: undefined },
 );
 
+const { value: customTimeout, errorMessage: customTimeoutError, resetField: resetCustomTimeout } = useField<number>(
+  "port",
+  yup
+    .number()
+    .integer()
+    .min(1)
+    .max(9223372036)
+    .required(),
+  { initialValue: 60 },
+);
+
+const selectedTimeout = ref<number | "custom">(-1);
+const timeout = computed(() => (selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value));
+
 const hasAuthorizationCreateTunnel = () => {
   const role = store.getters["auth/role"];
   return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 
-const hasErrors = () => !!(portError.value || hostError.value || !port.value || !host.value || !timeout.value);
+const hasErrors = () => !!(portError.value || hostError.value || customTimeoutError.value || !port.value || !host.value || !timeout.value);
 
-const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; customTimeout.value = 60; };
+const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; resetCustomTimeout(); };
 const close = () => { resetFields(); dialog.value = false; };
 const update = () => { emit("update"); close(); };
 
