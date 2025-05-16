@@ -34,7 +34,7 @@
         link
         block
         size="small"
-        data-test="show-btn"
+        data-test="pending-devices-btn"
       >
         Show all Pending Devices
       </v-btn>
@@ -86,4 +86,6 @@ const fetchNotifications = async () => {
 onBeforeMount(async () => {
   await fetchNotifications();
 });
+
+defineExpose({ fetchNotifications });
 </script>
