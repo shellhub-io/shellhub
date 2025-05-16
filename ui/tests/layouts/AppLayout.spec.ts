@@ -1,3 +1,4 @@
+import MockAdapter from "axios-mock-adapter";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -6,8 +7,12 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { containersApi, devicesApi } from "@/api/http";
 
 type AppLayoutWrapper = VueWrapper<InstanceType<typeof AppLayout>>;
+
+let mockDevices: MockAdapter;
+let mockContainers: MockAdapter;
 
 describe("App Layout Component", () => {
   let wrapper: AppLayoutWrapper;
@@ -16,6 +21,12 @@ describe("App Layout Component", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     store.dispatch("spinner/setStatus", true);
+
+    mockDevices = new MockAdapter(devicesApi.getAxios());
+    mockContainers = new MockAdapter(containersApi.getAxios());
+
+    mockDevices.onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending").reply(200);
+    mockContainers.onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending").reply(200);
 
     wrapper = mount(AppLayout, {
       global: {

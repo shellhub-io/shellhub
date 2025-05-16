@@ -3,7 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { VLayout } from "vuetify/components";
-import { namespacesApi, systemApi, usersApi } from "@/api/http";
+import { containersApi, devicesApi, namespacesApi, systemApi, usersApi } from "@/api/http";
 import AppBar from "@/components/AppBar/AppBar.vue";
 import { store, key } from "@/store";
 import { router } from "@/router";
@@ -23,9 +23,9 @@ vi.mock("@productdevbook/chatwoot/vue", () => ({
 }));
 
 let mockNamespace: MockAdapter;
-
+let mockDevices: MockAdapter;
+let mockContainers: MockAdapter;
 let mockUser: MockAdapter;
-
 let mockSystem: MockAdapter;
 
 const members = [
@@ -112,6 +112,8 @@ describe("AppBar Component", () => {
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockUser = new MockAdapter(usersApi.getAxios());
     mockSystem = new MockAdapter(systemApi.getAxios());
+    mockDevices = new MockAdapter(devicesApi.getAxios());
+    mockContainers = new MockAdapter(containersApi.getAxios());
 
     store.commit("auth/userInfo", { tenant: "fake-tenant-data" });
     store.commit("billing/setSubscription", namespaceData.billing);
@@ -119,6 +121,8 @@ describe("AppBar Component", () => {
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockSystem.onGet("http://localhost:3000/info").reply(200, systemInfo);
+    mockDevices.onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending").reply(200);
+    mockContainers.onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending").reply(200);
 
     wrapper = mount(Component, {
       global: {
