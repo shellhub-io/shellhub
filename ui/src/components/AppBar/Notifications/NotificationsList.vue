@@ -10,7 +10,7 @@
       <v-list-item-title>
         <router-link
           :to="{ name: 'DeviceDetails', params: { id: notification.data.uid } }"
-          :data-test="notification.data.uid + '-field'"
+          :data-test="notification.data.uid + '-title'"
         >
           {{ notification.data.name }}
         </router-link>
