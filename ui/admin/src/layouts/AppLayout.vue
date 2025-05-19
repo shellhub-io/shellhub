@@ -120,6 +120,7 @@
     </v-navigation-drawer>
 
     <SnackbarComponent />
+    <Snackbar />
 
     <v-main>
       <slot>
@@ -147,6 +148,7 @@ import useSpinnerStore from "@admin/store/modules/spinner";
 import useLicenseStore from "@admin/store/modules/license";
 import useLayoutStore from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
+import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import Logo from "../assets/logo-inverted.png";
 import { createNewClient } from "../api/http";
 import { envVariables } from "../envVariables";
