@@ -9,7 +9,7 @@ export enum NotificationType {
 type NotificationData = IDevice | IContainer;
 
 export interface INotification {
-  id: string | number;
+  id: string;
   type: NotificationType;
   data: NotificationData;
 }
