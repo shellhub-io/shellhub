@@ -114,8 +114,10 @@ const close = () => {
 const refreshDevices = async () => {
   try {
     emit("update");
-    if (window.location.pathname.includes("devices")) await store.dispatch("devices/refresh");
-    else await store.dispatch("container/refresh");
+
+    const { pathname } = window.location;
+    if (pathname.startsWith("/devices")) await store.dispatch("devices/refresh");
+    else if (pathname.startsWith("/containers")) await store.dispatch("container/refresh");
 
     await store.dispatch("notifications/fetch");
 
