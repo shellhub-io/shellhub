@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, computed, PropType } from "vue";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
@@ -147,7 +147,6 @@ const rejectDevice = async () => {
     refreshDevices();
   } catch (error: unknown) {
     close();
-
     snackbar.showError("Failed to reject device.");
     handleError(error);
   }
@@ -158,24 +157,25 @@ const acceptDevice = async () => {
     await store.dispatch("devices/accept", props.uid);
     refreshDevices();
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      switch (axiosError.response?.status) {
-        case 402:
-          store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
-          break;
-        case 409:
-          store.dispatch("devices/setDeviceToBeRenamed", props.name);
-          store.dispatch("users/setDeviceDuplicationOnAcceptance", true);
-          break;
-        default:
-          return;
-      }
+    const axiosError = error as AxiosError;
+    switch (axiosError.response?.status) {
+      case 402:
+        store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
+        snackbar.showError("Couldn't accept the device. Check your billing status and try again.");
+        break;
+      case 403:
+        snackbar.showError("You reached the maximum amount of accepted devices in this namespace.");
+        break;
+      case 409:
+        store.dispatch("devices/setDeviceToBeRenamed", props.name);
+        store.dispatch("users/setDeviceDuplicationOnAcceptance", true);
+        snackbar.showError("A device with that name already exists in the namespace. Rename it and try again.");
+        break;
+      default:
+        snackbar.showError("Failed to accept device.");
+        handleError(error);
     }
     close();
-
-    snackbar.showError("Failed to accept device.");
-    handleError(error);
   }
 };
 
