@@ -122,12 +122,12 @@ const goToNamespace = (namespace: string) => {
   router.push({ name: "namespaceDetails", params: { id: namespace } });
 };
 
-const getNamespaces = async (perPagaeValue: number, pageValue: number) => {
+const getNamespaces = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
     const hasNamespaces = await namespacesStore.fetch({
       page: pageValue,
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       filter: filter.value,
     });
 

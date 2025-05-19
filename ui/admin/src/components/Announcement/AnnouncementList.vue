@@ -94,12 +94,12 @@ const headers = ref([
 ]);
 
 const getAnnouncements = async (
-  perPagaeValue: number,
+  perPageValue: number,
   pageValue: number,
 ) => {
   try {
     loading.value = true;
-    const hasAnnouncements = await announcementStore.fetchAnnouncements({ perPage: perPagaeValue, page: pageValue, orderBy: "desc" });
+    const hasAnnouncements = await announcementStore.fetchAnnouncements({ perPage: perPageValue, page: pageValue, orderBy: "desc" });
     if (!hasAnnouncements && page.value > 1) {
       page.value--;
     }

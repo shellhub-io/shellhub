@@ -151,12 +151,12 @@ onMounted(async () => {
   }
 });
 
-const getDevices = async (perPagaeValue: number, pageValue: number) => {
+const getDevices = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
 
     await store.dispatch("devices/fetchQuickDevices", {
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
       status: "accepted",
       filter: filter.value,

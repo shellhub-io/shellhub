@@ -194,12 +194,12 @@ const hasAuthorizationFormDialogRemove = computed(() => {
 });
 
 const getPublicKeysList = async (
-  perPagaeValue: number,
+  perPageValue: number,
   pageValue: number,
 ) => {
   if (store.getters["box/getStatus"]) {
     const data = {
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
     };
     try {

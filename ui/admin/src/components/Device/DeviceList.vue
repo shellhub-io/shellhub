@@ -172,12 +172,12 @@ onMounted(async () => {
   }
 });
 
-const getDevices = async (perPagaeValue: number, pageValue: number) => {
+const getDevices = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
 
     const hasDevices = await devicesStore.fetch({
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
       filter: filter.value,
       sortStatusField: devicesStore.getSortStatusField,

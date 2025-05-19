@@ -143,12 +143,12 @@ onMounted(() => {
 
 const numberFirewalls = computed(() => firewallRulesStore.getNumberFirewalls);
 
-const getFirewallRules = async (perPagaeValue: number, pageValue: number) => {
+const getFirewallRules = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
     const hasFirewallRules = await firewallRulesStore.fetch({
       page: pageValue,
-      perPage: perPagaeValue,
+      perPage: perPageValue,
     });
     if (!hasFirewallRules) page.value--;
   } catch {

@@ -200,12 +200,12 @@ const numberSessions = computed(
   () => store.getters["sessions/getNumberSessions"],
 );
 
-const getSessions = async (perPagaeValue: number, pageValue: number) => {
+const getSessions = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
     const hasSessions = await store.dispatch("sessions/fetch", {
       page: pageValue,
-      perPage: perPagaeValue,
+      perPage: perPageValue,
     });
 
     if (!hasSessions) {

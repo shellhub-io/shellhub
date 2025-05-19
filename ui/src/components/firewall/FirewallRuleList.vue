@@ -188,10 +188,10 @@ const getNumberFirewallRules = computed(
   () => store.getters["firewallRules/getNumberFirewalls"],
 );
 
-const getFirewalls = async (perPagaeValue: number, pageValue: number) => {
+const getFirewalls = async (perPageValue: number, pageValue: number) => {
   if (!store.getters["boxs/getStatus"]) {
     const data = {
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
     };
 
