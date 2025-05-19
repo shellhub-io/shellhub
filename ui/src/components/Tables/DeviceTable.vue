@@ -361,11 +361,11 @@ onMounted(async () => {
   }
 });
 
-const getDevices = async (perPagaeValue: number, pageValue: number, filter: string) => {
+const getDevices = async (perPageValue: number, pageValue: number, filter: string) => {
   try {
     loading.value = true;
     await fetchDevices({
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
       status: props.status,
       filter,

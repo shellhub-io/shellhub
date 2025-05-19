@@ -200,12 +200,12 @@ const hasAuthorizationRemove = () => {
   return false;
 };
 
-const getConnectors = async (perPagaeValue: number, pageValue: number) => {
+const getConnectors = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
     await store.dispatch("connectors/fetch", {
       page: pageValue,
-      perPage: perPagaeValue,
+      perPage: perPageValue,
     });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

@@ -115,14 +115,14 @@ const selected = computed({
   },
 });
 
-const getDevices = async (perPagaeValue: number, pageValue: number) => {
+const getDevices = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
 
     const hasDevices = await store.dispatch(
       "devices/setDevicesForUserToChoose",
       {
-        perPage: perPagaeValue,
+        perPage: perPageValue,
         page: pageValue,
         filter: filter.value,
         sortStatusField: store.getters["devices/getSortStatusField"],

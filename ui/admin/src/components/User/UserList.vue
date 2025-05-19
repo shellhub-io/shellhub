@@ -171,11 +171,11 @@ onMounted(async () => {
   }
 });
 
-const getUsers = async (perPagaeValue: number, pageValue: number) => {
+const getUsers = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
     const hasUsers = await userStore.fetch({
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
       filter: filter.value,
     });

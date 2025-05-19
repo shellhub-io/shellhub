@@ -164,12 +164,12 @@ const formatDate = (unixTime: number): string => {
     : `Expires on ${expiryDate.format(format)}.`;
 };
 
-const getKey = async (perPagaeValue: number, pageValue: number) => {
+const getKey = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
     await store.dispatch("apiKeys/getApiKey", {
       page: pageValue,
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       sortStatusField: store.getters["apiKeys/getSortStatusField"],
       sortStatusString: store.getters["apiKeys/getSortStatusString"],
     });

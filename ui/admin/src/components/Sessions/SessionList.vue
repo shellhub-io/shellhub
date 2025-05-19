@@ -150,12 +150,12 @@ const itemsPerPage = ref(10);
 const loading = ref(false);
 const page = ref(1);
 
-const getSessions = async (perPagaeValue: number, pageValue: number) => {
+const getSessions = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
 
     const hasSessions = await sessionStore.fetch({
-      perPage: perPagaeValue,
+      perPage: perPageValue,
       page: pageValue,
     });
 

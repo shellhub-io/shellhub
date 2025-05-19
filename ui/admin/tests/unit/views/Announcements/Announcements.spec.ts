@@ -1,8 +1,10 @@
+import MockAdapter from "axios-mock-adapter";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useAnnouncementStore } from "@admin/store/modules/announcement";
+import { adminApi } from "@admin/api/http";
 import routes from "../../../../src/router";
 import Announcements from "../../../../src/views/Announcements.vue";
 
@@ -21,6 +23,9 @@ const numberAnnouncements = 1;
 
 describe("Announcement Details", () => {
   let wrapper: AnnouncementsWrapper;
+
+  const mockAdminApi = new MockAdapter(adminApi.getAxios());
+  mockAdminApi.onGet("http://localhost:3000/admin/api/announcements?page=1&per_page=10&order_by=desc").reply(200);
 
   beforeEach(() => {
     const pinia = createPinia();
