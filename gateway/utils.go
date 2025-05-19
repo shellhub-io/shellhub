@@ -37,3 +37,10 @@ func getSysctl(sysctl string) int {
 
 	return value
 }
+
+// halfString return the halfString of the string.
+func halfString(s string) string {
+	runes := []rune(s)
+	n := len(runes) / 2
+	return string(runes[:n]) + "..."
+}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 )
 
 // DNSProvider represents a DNS provider to generate certificates.
@@ -19,45 +20,67 @@ type DNSProvider string
 // DigitalOceanDNSProvider represents the Digital Ocean DNS provider.
 const DigitalOceanDNSProvider = "digitalocean"
 
-type tunnels struct {
-	domain string
-	token  string
+type Tunnels struct {
+	// Domain is the default domain used to generate certificate for Tunnels.
+	Domain string
+	// Provider is the DNS provider used to generate wildcard certificates.
+	Provider DNSProvider
+	// Token is a DNS token used to generate wildcard certificates.
+	Token string
+}
+
+type Config struct {
+	// RootDir is the root directory for CertBot configurations.
+	RootDir string
+	// Domain is the default domain used to generate certificate for ShellHub.
+	Domain string
+	// Staging defines if the CertBot will use the staging server to generate certificates.
+	Staging bool
+	// RenewedCallback is a callback called after certificate renew.
+	RenewedCallback func()
+
+	Tunnels *Tunnels
 }
 
 // CertBot handles the generation and renewal of SSL certificates.
 type CertBot struct {
-	rootDir         string
-	domain          string
-	staging         bool
-	renewedCallback func()
-	tunnels         *tunnels
+	Config *Config
+
+	fs afero.Fs
+}
+
+func newCertBot(config *Config) *CertBot {
+	return &CertBot{
+		Config: config,
+		fs:     afero.NewOsFs(),
+	}
 }
 
 // ensureCertificates checks if the SSL certificate exists and generates it if not.
 func (cb *CertBot) ensureCertificates() {
-	certPath := fmt.Sprintf("%s/live/%s/fullchain.pem", cb.rootDir, cb.domain)
-	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+	certPath := fmt.Sprintf("%s/live/%s/fullchain.pem", cb.Config.RootDir, cb.Config.Domain)
+	if _, err := cb.fs.Stat(certPath); os.IsNotExist(err) {
 		cb.generateCertificate()
 	}
 
-	if cb.tunnels != nil {
+	if cb.Config.Tunnels != nil {
 		// NOTE: We are recreating the INI file every time to ensure it has the latest token from the environment.
-		cb.generateProviderCredentialsFile(DigitalOceanDNSProvider)
+		cb.generateProviderCredentialsFile()
 
-		certPath := fmt.Sprintf("%s/live/*.%s/fullchain.pem", cb.rootDir, cb.tunnels.domain)
-		if _, err := os.Stat(certPath); os.IsNotExist(err) {
-			cb.generateCertificateFromDNS(DigitalOceanDNSProvider)
+		certPath := fmt.Sprintf("%s/live/*.%s/fullchain.pem", cb.Config.RootDir, cb.Config.Tunnels.Domain)
+		if _, err := cb.fs.Stat(certPath); os.IsNotExist(err) {
+			cb.generateCertificateFromDNS()
 		}
 	}
 }
 
 // generateCertificate generates a new SSL certificate using Certbot.
 func (cb *CertBot) generateCertificate() {
-	fmt.Println("Generating SSL certificate")
+	log.Info("generating SSL certificate")
 
-	challengeDir := fmt.Sprintf("%s/.well-known/acme-challenge", cb.rootDir)
-	if err := os.MkdirAll(challengeDir, 0o755); err != nil {
-		log.Fatal(err)
+	challengeDir := fmt.Sprintf("%s/.well-known/acme-challenge", cb.Config.RootDir)
+	if err := cb.fs.MkdirAll(challengeDir, 0o755); err != nil {
+		log.WithError(err).Fatal("failed to create acme challenge on filesystem")
 	}
 
 	acmeServer := cb.startACMEServer()
@@ -69,13 +92,15 @@ func (cb *CertBot) generateCertificate() {
 		"--agree-tos",
 		"--register-unsafely-without-email",
 		"--webroot",
-		"--webroot-path", cb.rootDir,
+		"--webroot-path", cb.Config.RootDir,
 		"--preferred-challenges", "http",
 		"-n",
 		"-d",
-		cb.domain,
+		cb.Config.Domain,
 	)
-	if cb.staging {
+	if cb.Config.Staging {
+		log.Info("running generate with staging")
+
 		cmd.Args = append(cmd.Args, "--staging")
 	}
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
@@ -85,12 +110,16 @@ func (cb *CertBot) generateCertificate() {
 	}
 
 	cb.stopACMEServer(acmeServer)
+
+	log.Info("generate run")
 }
 
-func (cb *CertBot) generateProviderCredentialsFile(provider DNSProvider) (*os.File, error) {
-	token := fmt.Sprintf("dns_%s_token = %s", provider, cb.tunnels.token)
-	file, err := os.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(provider)))
+func (cb *CertBot) generateProviderCredentialsFile() (afero.File, error) {
+	token := fmt.Sprintf("dns_%s_token = %s", cb.Config.Tunnels.Provider, cb.Config.Tunnels.Token)
+	file, err := cb.fs.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(cb.Config.Tunnels.Provider)))
 	if err != nil {
+		log.WithError(err).Error("failed to create shellhub-gateway file with dns provider token")
+
 		return nil, err
 	}
 
@@ -99,12 +128,12 @@ func (cb *CertBot) generateProviderCredentialsFile(provider DNSProvider) (*os.Fi
 	return file, nil
 }
 
-func (cb *CertBot) generateCertificateFromDNS(provider DNSProvider) {
-	fmt.Println("Generating SSL certificate with DNS")
+func (cb *CertBot) generateCertificateFromDNS() {
+	log.Info("generating SSL certificate with DNS")
 
-	file, err := cb.generateProviderCredentialsFile(provider)
+	file, err := cb.generateProviderCredentialsFile()
 	if err != nil {
-		log.Fatalf("Failed to generate INI file: %v", err)
+		log.WithError(err).Fatal("failed to generate INI file")
 	}
 
 	cmd := exec.Command( //nolint:gosec
@@ -114,21 +143,26 @@ func (cb *CertBot) generateCertificateFromDNS(provider DNSProvider) {
 		"--agree-tos",
 		"--register-unsafely-without-email",
 		"--cert-name",
-		fmt.Sprintf("*.%s", cb.tunnels.domain),
-		fmt.Sprintf("--dns-%s", provider),
-		fmt.Sprintf("--dns-%s-credentials", provider),
+		fmt.Sprintf("*.%s", cb.Config.Tunnels.Domain),
+		fmt.Sprintf("--dns-%s", cb.Config.Tunnels.Provider),
+		fmt.Sprintf("--dns-%s-credentials", cb.Config.Tunnels.Provider),
 		file.Name(),
 		"-d",
-		fmt.Sprintf("*.%s", cb.tunnels.domain),
+		fmt.Sprintf("*.%s", cb.Config.Tunnels.Domain),
 	)
-	if cb.staging {
+	if cb.Config.Staging {
+		log.Info("running generate with staging on dns")
+
 		cmd.Args = append(cmd.Args, "--staging")
 	}
+
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Fatal("Failed to generate SSL certificate")
+		log.WithError(err).Fatal("failed to generate SSL certificate")
 	}
+
+	log.Info("generate run on dns")
 }
 
 // startACMEServer starts a local HTTP server for the ACME challenge.
@@ -139,7 +173,7 @@ func (cb *CertBot) startACMEServer() *http.Server {
 		http.StripPrefix(
 			"/.well-known/acme-challenge/",
 			http.FileServer(
-				http.Dir(filepath.Join(cb.rootDir, ".well-known/acme-challenge")),
+				http.Dir(filepath.Join(cb.Config.RootDir, ".well-known/acme-challenge")),
 			),
 		),
 	)
@@ -150,12 +184,12 @@ func (cb *CertBot) startACMEServer() *http.Server {
 
 	listener, err := net.Listen("tcp", ":80")
 	if err != nil {
-		log.Fatalf("Failed to start ACME server listener: %v", err)
+		log.WithError(err).Fatal("failed to start ACME server listener")
 	}
 
 	go func() {
 		if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("ACME server error: %v", err)
+			log.WithError(err).Fatal("acme server error")
 		}
 	}()
 
@@ -165,7 +199,7 @@ func (cb *CertBot) startACMEServer() *http.Server {
 // stopACMEServer stops the local ACME server.
 func (cb *CertBot) stopACMEServer(server *http.Server) {
 	if err := server.Close(); err != nil {
-		log.Fatalf("Could not stop ACME server: %v", err)
+		log.WithError(err).Fatal("could not stop ACME server")
 	}
 }
 
@@ -175,32 +209,37 @@ func (cb *CertBot) executeRenewCertificates() error {
 		"renew",
 	)
 
-	if cb.staging {
+	if cb.Config.Staging {
+		log.Info("running renew with staging")
+
 		cmd.Args = append(cmd.Args, "--staging")
 	}
 
 	if err := cmd.Run(); err != nil {
-		log.Println("Failed to renew SSL certificate")
+		log.WithError(err).Error("failed to renew SSL certificate")
 
 		return err
 	}
+
+	log.Info("renew run")
 
 	return nil
 }
 
 // renewCertificates periodically renews the SSL certificates.
 func (cb *CertBot) renewCertificates() {
-	fmt.Println("Starting SSL certificate renewal process")
+	log.Info("starting SSL certificate renewal process")
 
 	ticker := time.NewTicker(24 * time.Hour)
 	defer ticker.Stop()
+
 	for range ticker.C {
-		fmt.Println("Checking if SSL certificate needs to be renewed")
+		log.Info("checking if SSL certificate needs to be renewed")
 		if err := cb.executeRenewCertificates(); err != nil {
-			log.Fatal("Failed to renew SSL certificate")
+			log.Fatal("failed to renew SSL certificate")
 		}
 
-		fmt.Println("SSL certificate successfully renewed")
-		cb.renewedCallback()
+		log.Info("ssl certificate successfully renewed")
+		cb.Config.RenewedCallback()
 	}
 }

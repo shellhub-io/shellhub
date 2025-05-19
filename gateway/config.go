@@ -15,6 +15,7 @@ type GatewayConfig struct {
 	Domain                  string `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
 	Tunnels                 bool   `env:"SHELLHUB_TUNNELS,default=false"`
 	TunnelsDomain           string `env:"SHELLHUB_TUNNELS_DOMAIN"`
+	TunnelsDNSProvider      string `env:"SHELLHUB_TUNNELS_DNS_PROVIDER,default=digitalocean"`
 	TunnelsDNSProviderToken string `env:"SHELLHUB_TUNNELS_DNS_PROVIDER_TOKEN"`
 	WorkerProcesses         string `env:"WORKER_PROCESSES,default=auto"`
 	MaxWorkerOpenFiles      int    `env:"MAX_WORKER_OPEN_FILES,default=0"`
@@ -44,7 +45,7 @@ func loadGatewayConfig() (*GatewayConfig, error) {
 	return &config, nil
 }
 
-// ApplyDefaults sets default values for the GatewayConfig if not provided.
+// applyDefaults sets default values for the GatewayConfig if not provided.
 func (gc *GatewayConfig) applyDefaults() {
 	if gc.WorkerProcesses == "auto" {
 		gc.WorkerProcesses = fmt.Sprintf("%d", runtime.NumCPU())
