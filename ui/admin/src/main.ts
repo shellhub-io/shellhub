@@ -5,6 +5,7 @@ import App from "./App.vue";
 import { loadFonts } from "./plugins/webfontloader";
 import router from "./router";
 import SnackbarComponent from "./components/Snackbar/Snackbar.vue";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const pinia = createPinia();
 const app = createApp(App);
@@ -13,6 +14,6 @@ loadFonts();
 app.use(vuetify);
 app.use(router);
 app.use(pinia);
-
+app.use(SnackbarPlugin);
 app.component("SnackbarComponent", SnackbarComponent);
 app.mount("#app");
