@@ -83,16 +83,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import showTag from "../../hooks/tag";
 import displayOnlyTenCharacters from "../../hooks/string";
 import { filterType } from "../../interfaces/IFirewallRule";
-import { INotificationsError } from "../../interfaces/INotifications";
 
 const router = useRouter();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
 const loading = ref(false);
 const page = ref(1);
@@ -135,7 +134,7 @@ onMounted(() => {
       perPage: itemsPerPage.value,
     });
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.firewallRuleList);
+    snackbar.showError("Failed to fetch firewall rules.");
   } finally {
     loading.value = false;
   }
@@ -152,7 +151,7 @@ const getFirewallRules = async (perPageValue: number, pageValue: number) => {
     });
     if (!hasFirewallRules) page.value--;
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.firewallRuleList);
+    snackbar.showError("Failed to fetch firewall rules.");
   } finally {
     loading.value = false;
   }
@@ -163,11 +162,7 @@ const next = async () => {
 };
 
 const prev = async () => {
-  try {
-    if (page.value > 1) await getFirewallRules(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbarStore.showSnackbarErrorDefault();
-  }
+  if (page.value > 1) await getFirewallRules(itemsPerPage.value, --page.value);
 };
 
 const changeItemsPerPage = async (newItemsPerPage: number) => {
