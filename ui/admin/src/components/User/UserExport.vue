@@ -61,15 +61,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { saveAs } from "file-saver";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useUsersStore from "@admin/store/modules/users";
-import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const dialog = ref(false);
 const selected = ref("moreThan");
 const gtNumberOfNamespaces = ref(0);
 const eqNumberOfNamespaces = ref(0);
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const userStore = useUsersStore();
 
 const generateEncodedFilter = (encodeFilter: string) => {
@@ -115,9 +114,9 @@ const onSubmit = async () => {
     if (selected.value === "moreThanN") saveAs(blob, `users_more_than_${gtNumberOfNamespaces.value}_namespaces.csv`);
     else saveAs(blob, `users_exactly_${eqNumberOfNamespaces.value}_namespaces.csv`);
 
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.exportUsers);
+    snackbar.showSuccess("Exported users successfully.");
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.exportUsers);
+    snackbar.showError("Failed to export users.");
   }
 };
 

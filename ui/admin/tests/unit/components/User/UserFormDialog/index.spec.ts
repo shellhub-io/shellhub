@@ -3,9 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import UserFormDialog from "@admin/components/User/UserFormDialog.vue";
-import { INotificationsSuccess } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type UserFormDialogWrapper = VueWrapper<InstanceType<typeof UserFormDialog>>;
@@ -27,13 +25,9 @@ describe("UserFormDialog With prop 'createUser' equals false", () => {
     const vuetify = createVuetify();
 
     const userStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(userStore, "put").mockResolvedValue(undefined);
     vi.spyOn(userStore, "refresh").mockResolvedValue(undefined);
-    // eslint-disable-next-line vue/max-len
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => INotificationsSuccess.addUser || INotificationsSuccess.userEdit);
-    vi.spyOn(snackbarStore, "showSnackbarErrorDefault").mockImplementation(() => vi.fn());
 
     wrapper = mount(UserFormDialog, {
       props: {

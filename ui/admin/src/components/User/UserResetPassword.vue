@@ -70,9 +70,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useUsersStore from "@admin/store/modules/users";
-import { INotificationsCopy } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   userId: {
@@ -84,7 +83,7 @@ const props = defineProps({
 
 const emit = defineEmits(["update"]);
 
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const userStore = useUsersStore();
 const dialog = ref(false);
 const step = ref("step-1");
@@ -99,7 +98,7 @@ const close = () => {
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    snackbarStore.showSnackbarCopy(INotificationsCopy.tenantId);
+    snackbar.showInfo("Tenant ID copied to clipboard.");
   }
 };
 
@@ -108,7 +107,7 @@ const proceedToSecondStep = async () => {
     await userStore.resetUserPassword(props.userId);
     step.value = "step-2";
   } catch (error) {
-    snackbarStore.showSnackbarErrorAction("Failed to reset user password. Please try again.");
+    snackbar.showError("Failed to reset user password. Please try again.");
   }
 };
 

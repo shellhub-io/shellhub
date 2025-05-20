@@ -3,8 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError, INotificationsSuccess } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../../src/router";
 import UserDelete from "../../../../../src/components/User/UserDelete.vue";
@@ -20,12 +18,9 @@ describe("User Delete", () => {
     const vuetify = createVuetify();
 
     const usersStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(usersStore, "remove").mockResolvedValue(undefined);
     vi.spyOn(usersStore, "refresh").mockResolvedValue(undefined);
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => INotificationsSuccess.userDelete);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.userDelete);
 
     wrapper = mount(UserDelete, {
       props: {

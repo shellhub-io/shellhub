@@ -90,14 +90,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useUsersStore from "@admin/store/modules/users";
 import { UserAdminResponse } from "@admin/api/client/api";
 import useAuthStore from "@admin/store/modules/auth";
+import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
-import { INotificationsError } from "../../interfaces/INotifications";
 import UserResetPassword from "./UserResetPassword.vue";
 
 export interface IUser {
@@ -114,7 +113,7 @@ export interface IUser {
 }
 
 const router = useRouter();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const userStore = useUsersStore();
 const authStore = useAuthStore();
 
@@ -165,7 +164,7 @@ onMounted(async () => {
       filter: filter.value,
     });
   } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.userList);
+    snackbar.showError("Failed to fetch users.");
   } finally {
     loading.value = false;
   }
@@ -186,7 +185,7 @@ const getUsers = async (perPageValue: number, pageValue: number) => {
 
     loading.value = false;
   } catch (error) {
-    snackbarStore.showSnackbarErrorDefault();
+    snackbar.showError("Failed to fetch users.");
   }
 };
 
@@ -195,11 +194,7 @@ const next = async () => {
 };
 
 const prev = async () => {
-  try {
-    if (page.value > 1) await getUsers(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbarStore.showSnackbarErrorDefault();
-  }
+  if (page.value > 1) await getUsers(itemsPerPage.value, --page.value);
 };
 
 const changeItemsPerPage = async (newItemsPerPage: number) => {
@@ -217,7 +212,7 @@ const loginToken = async (user) => {
     const url = `/login?token=${token}`;
     window.open(url, "_target");
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.errorLoginToken);
+    snackbar.showError("Failed to get the login token.");
   }
 };
 
