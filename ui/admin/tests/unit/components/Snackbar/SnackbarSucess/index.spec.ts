@@ -3,6 +3,7 @@ import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useSnackbarStore from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import SnackbarSucess from "../../../../../src/components/Snackbar/SnackbarSucess.vue";
 import routes from "../../../../../src/router";
 
@@ -18,7 +19,7 @@ describe("SnackbarSucess", () => {
 
     return shallowMount(SnackbarSucess, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
       props: {
         typeMessage,

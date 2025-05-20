@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsError } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserList from "../../../../../src/components/User/UserList.vue";
 import routes from "../../../../../src/router";
 
@@ -45,7 +46,7 @@ describe("UserList", () => {
 
     wrapper = mount(UserList, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
 

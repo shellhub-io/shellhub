@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import useLicenseStore from "@admin/store/modules/license";
 import { adminApi } from "@admin/api/http";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import License from "../../../../../src/components/Settings/SettingsLicense.vue";
 import routes from "../../../../../src/router";
 
@@ -50,7 +51,7 @@ describe("License", () => {
 
     wrapper = await mount(License, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });

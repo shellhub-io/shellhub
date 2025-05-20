@@ -3,6 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import AnnouncementDetails from "../../../../src/views/AnnouncementDetails.vue";
 
@@ -45,7 +46,7 @@ describe("Announcement Details", () => {
 
     wrapper = mount(AnnouncementDetails, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
         mocks: {
           $route: mockRoute,
           $router: { push: vi.fn() },

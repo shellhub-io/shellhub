@@ -1,6 +1,7 @@
 import { createVuetify } from "vuetify";
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import Card from "../../../../src/components/Card.vue";
 
 describe("Card", () => {
@@ -22,7 +23,7 @@ describe("Card", () => {
         nameUseTest: "viewUsers-btn",
       },
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

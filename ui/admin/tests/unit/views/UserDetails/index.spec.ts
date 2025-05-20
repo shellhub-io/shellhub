@@ -6,6 +6,7 @@ import useUsersStore from "@admin/store/modules/users";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { createMemoryHistory, createRouter } from "vue-router";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserDetails from "../../../../src/views/UserDetails.vue";
 
 type UserDetailsWrapper = VueWrapper<InstanceType<typeof UserDetails>>;
@@ -57,7 +58,7 @@ describe("User Details", () => {
 
     wrapper = mount(UserDetails, {
       global: {
-        plugins: [pinia, vuetify, router],
+        plugins: [pinia, vuetify, router, SnackbarPlugin],
       },
     });
   });

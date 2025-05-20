@@ -6,6 +6,7 @@ import MockAdapter from "axios-mock-adapter";
 import useInstanceStore from "@admin/store/modules/instance";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsCopy } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import { adminApi } from "../../../../../src/api/http";
 import SettingsAuthentication from "../../../../../src/components/Settings/SettingsAuthentication.vue";
 import routes from "../../../../../src/router";
@@ -79,7 +80,7 @@ describe("Authentication", () => {
 
     wrapper = mount(SettingsAuthentication, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
 

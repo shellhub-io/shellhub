@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsError, INotificationsSuccess } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserExport from "../../../../../src/components/User/UserExport.vue";
 
 type UserExportWrapper = VueWrapper<InstanceType<typeof UserExport>>;
@@ -26,7 +27,7 @@ describe("User Export", () => {
 
     wrapper = mount(UserExport, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

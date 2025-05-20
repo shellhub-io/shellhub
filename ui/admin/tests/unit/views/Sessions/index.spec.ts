@@ -3,7 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useSessionsStore } from "@admin/store/modules/sessions";
-import { useSnackbarStore } from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import Sessions from "../../../../src/views/Sessions.vue";
 
@@ -26,7 +26,7 @@ describe("Sessions", () => {
 
     wrapper = mount(Sessions, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
   });

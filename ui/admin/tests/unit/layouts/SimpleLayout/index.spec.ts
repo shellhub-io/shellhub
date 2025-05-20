@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import SimpleLayout from "../../../../src/layouts/SimpleLayout.vue";
 import routes from "../../../../src/router";
 
@@ -17,7 +18,7 @@ describe("SimpleLayout", () => {
 
     wrapper = shallowMount(SimpleLayout, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     }) as SimpleLayoutWrapper;
   });

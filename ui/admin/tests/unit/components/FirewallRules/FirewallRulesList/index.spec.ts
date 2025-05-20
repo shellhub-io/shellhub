@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsError } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import FirewallRulesList from "../../../../../src/components/FirewallRules/FirewallRulesList.vue";
 import routes from "../../../../../src/router";
 
@@ -54,7 +55,7 @@ describe("Firewall Rules List", () => {
 
     wrapper = mount(FirewallRulesList, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });

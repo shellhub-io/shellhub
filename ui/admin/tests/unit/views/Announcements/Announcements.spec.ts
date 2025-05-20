@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useAnnouncementStore } from "@admin/store/modules/announcement";
 import { adminApi } from "@admin/api/http";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import Announcements from "../../../../src/views/Announcements.vue";
 
@@ -39,7 +40,7 @@ describe("Announcement Details", () => {
 
     wrapper = mount(Announcements, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
   });

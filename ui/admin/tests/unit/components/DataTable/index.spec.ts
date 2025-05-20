@@ -1,6 +1,7 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import DataTable from "../../../../src/components/DataTable.vue";
 
 type DataTableWrapper = VueWrapper<InstanceType<typeof DataTable>>;
@@ -66,7 +67,7 @@ describe("DataTable", () => {
         previousPage: vi.fn(),
       },
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

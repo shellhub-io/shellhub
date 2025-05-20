@@ -3,7 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
-import useSnackbarStore from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import Users from "../../../../src/views/Users.vue";
 
@@ -31,7 +31,7 @@ describe("Users", () => {
 
     wrapper = mount(Users, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
   });

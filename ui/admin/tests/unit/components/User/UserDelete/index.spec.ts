@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsError, INotificationsSuccess } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../../src/router";
 import UserDelete from "../../../../../src/components/User/UserDelete.vue";
 
@@ -32,7 +33,7 @@ describe("User Delete", () => {
         redirect: false,
       },
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });

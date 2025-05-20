@@ -3,7 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import useSnackbarStore from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import Namespaces from "../../../../src/views/Namespaces.vue";
 
@@ -31,7 +31,7 @@ describe("Namespaces", () => {
 
     wrapper = mount(Namespaces, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
 

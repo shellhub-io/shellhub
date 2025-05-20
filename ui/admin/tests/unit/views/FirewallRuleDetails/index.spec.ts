@@ -3,7 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
-import useSnackbarStore from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import FirewallRulesDetails from "../../../../src/views/FirewallRulesDetails.vue";
 
@@ -46,7 +46,7 @@ describe("Firewall Rule Details", () => {
 
     wrapper = mount(FirewallRulesDetails, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
         mocks: {
           $route: mockRoute,
         },

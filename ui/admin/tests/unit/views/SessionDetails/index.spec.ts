@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { useSessionsStore } from "@admin/store/modules/sessions";
 import { useSnackbarStore } from "@admin/store/modules/snackbar";
 import { DeviceInfoPlatformEnum, Session } from "@admin/api/client";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import SessionDetails from "../../../../src/views/SessionDetails.vue";
 
@@ -70,7 +71,7 @@ describe("Session Details", () => {
 
     wrapper = mount(SessionDetails, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
         mocks: {
           $route: mockRoute,
         },

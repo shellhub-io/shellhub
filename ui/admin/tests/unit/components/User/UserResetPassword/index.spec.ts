@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsCopy } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserResetPassword from "../../../../../src/components/User/UserResetPassword.vue";
 
 type UserResetPasswordWrapper = VueWrapper<InstanceType<typeof UserResetPassword>>;
@@ -34,7 +35,7 @@ describe("User Reset Password", () => {
 
     wrapper = mount(UserResetPassword, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: mockProps,
     });

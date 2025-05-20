@@ -3,7 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useStatsStore from "@admin/store/modules/stats";
-import useSnackbarStore from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import Dashboard from "../../../../src/views/Dashboard.vue";
 
@@ -116,7 +116,7 @@ describe("Dashboard", () => {
 
     wrapper = mount(Dashboard, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
 
