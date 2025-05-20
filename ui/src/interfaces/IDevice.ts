@@ -1,4 +1,5 @@
-import { CreateDeviceTagRequest, UpdateDeviceRequest, UpdateTagsDeviceRequest } from "@/api/client";
+import { UpdateDeviceRequest } from "@/api/client";
+import { Tags } from "./ITags";
 
 type identity = {
     mac: string;
@@ -31,22 +32,12 @@ export interface IDevice {
   created_at: string;
   remote_addr: string;
   position: position;
-  tags: Array<string>;
-}
-
-export interface IUpdateDeviceTags {
-  uid: string;
-  tags: UpdateTagsDeviceRequest;
+  tags: Array<Tags>;
 }
 
 export interface IDeviceRename {
   uid: string;
   name: UpdateDeviceRequest;
-}
-
-export interface IDevicePostTag {
-  uid: string;
-  name: CreateDeviceTagRequest;
 }
 
 export interface FetchDevicesParams {

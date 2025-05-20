@@ -358,10 +358,6 @@ export const devices: Module<DevicesState, State> = {
       context.commit("clearListDevices");
     },
 
-    updateDeviceTag: async (context, data) => {
-      await apiDevice.updateDeviceTags(data);
-    },
-
     setDeviceToBeRenamed(context, device) {
       context.commit("updateDeviceToBeRenamed", device);
     },
