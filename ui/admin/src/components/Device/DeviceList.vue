@@ -92,17 +92,16 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useDevicesStore from "@admin/store/modules/devices";
+import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
 import showTag from "../../hooks/tag";
-import { INotificationsError } from "../../interfaces/INotifications";
 
 const router = useRouter();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 
 const loading = ref(false);
@@ -166,7 +165,7 @@ onMounted(async () => {
       sortStatusString: undefined,
     });
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.deviceList);
+    snackbar.showError("Failed to fetch devices.");
   } finally {
     loading.value = false;
   }
@@ -190,7 +189,7 @@ const getDevices = async (perPageValue: number, pageValue: number) => {
 
     loading.value = false;
   } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.deviceList);
+    snackbar.showError("Failed to fetch devices.");
   }
 };
 
@@ -215,11 +214,7 @@ const next = async () => {
 };
 
 const prev = async () => {
-  try {
-    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbarStore.showSnackbarErrorDefault();
-  }
+  if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
 };
 
 const changeItemsPerPage = async (newItemsPerPage: number) => {
