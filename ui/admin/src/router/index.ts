@@ -6,12 +6,11 @@ import SettingsLicense from "@admin/components/Settings/SettingsLicense.vue";
 import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
 import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
-import { INotificationsError } from "@admin/interfaces/INotifications";
 import { computed } from "vue";
 import useLicenseStore from "@admin/store/modules/license";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useLayoutStore from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
+import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
 const routes = [
   {
@@ -130,7 +129,6 @@ const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    const snackbarStore = useSnackbarStore();
     const licenseStore = useLicenseStore();
     const layoutStore = useLayoutStore();
     const authStore = useAuthStore();
@@ -154,12 +152,12 @@ router.beforeEach(
         await licenseStore.get();
 
         if (license.value.expired && to.name !== "SettingLicense") {
-          snackbarStore.showSnackbarErrorAction(INotificationsError.license);
+          snackbar.showError("Your license has expired. Please update it and try again.");
           return next({ name: "SettingLicense" });
         }
       } catch {
         if (to.name !== "SettingLicense") {
-          snackbarStore.showSnackbarErrorAction(INotificationsError.license);
+          snackbar.showError("Failed to get your license info. Please check it and try again.");
           return next({ name: "SettingLicense" });
         }
       }
