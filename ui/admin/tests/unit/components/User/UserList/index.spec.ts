@@ -3,8 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserList from "../../../../../src/components/User/UserList.vue";
 import routes from "../../../../../src/router";
@@ -34,15 +32,12 @@ describe("UserList", () => {
     const vuetify = createVuetify();
 
     const usersStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     usersStore.users = mockUsers;
     usersStore.numberUsers = mockUsers.length;
 
     vi.spyOn(usersStore, "fetch").mockResolvedValue(true);
     vi.spyOn(usersStore, "refresh").mockResolvedValue();
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.errorLoginToken);
-    vi.spyOn(snackbarStore, "showSnackbarErrorDefault").mockImplementation(() => vi.fn());
 
     wrapper = mount(UserList, {
       global: {

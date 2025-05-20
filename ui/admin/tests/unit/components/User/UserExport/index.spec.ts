@@ -3,8 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError, INotificationsSuccess } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserExport from "../../../../../src/components/User/UserExport.vue";
 
@@ -18,12 +16,9 @@ describe("User Export", () => {
     const vuetify = createVuetify();
 
     const userStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(userStore, "setFilterUsers").mockResolvedValue(undefined);
     vi.spyOn(userStore, "exportUsersToCsv").mockResolvedValue("fake-csv-data");
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => INotificationsSuccess.exportUsers);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.exportUsers);
 
     wrapper = mount(UserExport, {
       global: {

@@ -139,9 +139,8 @@ import { ref, computed, watch, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useUsersStore from "@admin/store/modules/users";
-import { INotificationsSuccess } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 type UserLocal = {
   id?: string;
@@ -174,7 +173,7 @@ const changeNamespaceLimit = ref(false);
 const disableNamespaceCreation = ref(false);
 const maxNamespaces = ref<number | undefined>(props.user?.max_namespaces || 0);
 const emailIsConfirmed = computed(() => props.user?.confirmed);
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const userStore = useUsersStore();
 
 const { value: name,
@@ -266,23 +265,18 @@ const handleErrors = (error: AxiosError) => {
 
 const submitUser = async (isCreating: boolean, userData: Record<string, unknown>) => {
   try {
-    if (isCreating) {
-      await userStore.addUser(userData);
-      snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.addUser);
-    } else {
-      await userStore.put(userData);
-      snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.userEdit);
-    }
+    const userStoreAction = isCreating ? userStore.addUser : userStore.put;
+    await userStoreAction(userData);
+
+    snackbar.showSuccess(`User ${isCreating ? "added" : "updated"} successfully.`);
 
     await userStore.refresh();
     dialog.value = false;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       handleErrors(error as AxiosError);
-      snackbarStore.showSnackbarErrorDefault();
-    } else {
-      snackbarStore.showSnackbarErrorDefault();
     }
+    snackbar.showError("Failed to submit the user data.");
   }
 };
 
@@ -303,7 +297,7 @@ const onSubmit = handleSubmit(async () => {
     const userData = prepareUserData();
     await submitUser(!!props.createUser, userData);
   } else {
-    snackbarStore.showSnackbarErrorDefault();
+    snackbar.showError("Please fill in all required fields.");
   }
 });
 

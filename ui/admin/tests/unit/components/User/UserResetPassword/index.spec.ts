@@ -3,9 +3,7 @@ import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsCopy } from "@admin/interfaces/INotifications";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import UserResetPassword from "../../../../../src/components/User/UserResetPassword.vue";
 
 type UserResetPasswordWrapper = VueWrapper<InstanceType<typeof UserResetPassword>>;
@@ -13,6 +11,11 @@ type UserResetPasswordWrapper = VueWrapper<InstanceType<typeof UserResetPassword
 const node = document.createElement("div");
 node.setAttribute("id", "app");
 document.body.appendChild(node);
+
+const mockSnackbar = {
+  showInfo: vi.fn(),
+  showError: vi.fn(),
+};
 
 describe("User Reset Password", () => {
   let wrapper: UserResetPasswordWrapper;
@@ -25,17 +28,15 @@ describe("User Reset Password", () => {
     setActivePinia(createPinia());
 
     const userStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     userStore.generatedPassword = "mocked-password";
     vi.spyOn(userStore, "resetUserPassword").mockResolvedValue(undefined);
     vi.spyOn(userStore, "refresh").mockResolvedValue(undefined);
-    vi.spyOn(snackbarStore, "showSnackbarCopy").mockImplementation(() => INotificationsCopy.tenantId);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => "Failed to reset user password. Please try again.");
 
     wrapper = mount(UserResetPassword, {
       global: {
-        plugins: [vuetify, SnackbarPlugin],
+        plugins: [vuetify],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: mockProps,
     });
@@ -88,7 +89,6 @@ describe("User Reset Password", () => {
     const dialog = new DOMWrapper(document.body);
 
     const userStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(userStore, "resetUserPassword").mockRejectedValueOnce(new Error("Failure"));
 
@@ -96,7 +96,7 @@ describe("User Reset Password", () => {
     await dialog.find("[data-test='enable-btn']").trigger("click");
     await flushPromises();
 
-    expect(snackbarStore.showSnackbarErrorAction).toHaveBeenCalled();
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to reset user password. Please try again.");
     expect(wrapper.vm.step).toBe("step-1");
   });
 

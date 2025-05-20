@@ -30,9 +30,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useUsersStore from "@admin/store/modules/users";
-import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   id: {
@@ -47,7 +46,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const dialog = ref(false);
 const router = useRouter();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const userStore = useUsersStore();
 
 const remove = async () => {
@@ -60,11 +59,11 @@ const remove = async () => {
       router.push("/users");
     }
 
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.userDelete);
+    snackbar.showSuccess("User removed successfully.");
     await userStore.refresh();
     emit("update");
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.userDelete);
+    snackbar.showError("Failed to remove the user.");
   }
 };
 
