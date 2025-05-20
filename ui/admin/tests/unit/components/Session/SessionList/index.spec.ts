@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useSessionsStore from "@admin/store/modules/sessions";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import SessionList from "../../../../../src/components/Sessions/SessionList.vue";
 import routes from "../../../../../src/router";
@@ -74,14 +73,11 @@ describe("Sessions List", () => {
     const vuetify = createVuetify();
 
     const sessionStore = useSessionsStore();
-    const snackbarStore = useSnackbarStore();
 
     sessionStore.sessions = sessions;
     sessionStore.numberSessions = sessions.length;
 
     vi.spyOn(sessionStore, "fetch").mockResolvedValue(false);
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => undefined);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => undefined);
 
     wrapper = mount(SessionList, {
       global: {
