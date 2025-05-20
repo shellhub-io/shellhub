@@ -71,8 +71,8 @@ import TurndownService from "turndown";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useRouter } from "vue-router";
-import useSnackbar from "@/helpers/snackbar";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "../envVariables";
 
 const router = useRouter();
