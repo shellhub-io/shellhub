@@ -153,14 +153,13 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useInstanceStore from "@admin/store/modules/instance";
-import { INotificationsError, INotificationsSuccess } from "../../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const checkbox = ref(false);
 const signRequest = ref(false);
 const dialog = defineModel({ default: false });
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
 
 const IdPMetadataURL = ref("");
@@ -257,10 +256,10 @@ const updateSAMLConfiguration = async () => {
 
   try {
     await instanceStore.updateSamlAuthentication(data);
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.configureSaml);
+    snackbar.showSuccess("Successfully updated SAML configuration.");
     dialog.value = false;
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.namespaceLoad);
+    snackbar.showError("Failed to update SAML configuration.");
   }
 };
 
