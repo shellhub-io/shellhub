@@ -14,7 +14,6 @@
                 <span class="mt-6 text-overline">Admin</span>
               </v-card-title>
               <v-card-item>
-                <SnackbarComponent />
                 <form @submit.prevent="login">
                   <v-container>
                     <v-text-field

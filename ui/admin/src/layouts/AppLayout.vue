@@ -119,7 +119,6 @@
       </v-list>
     </v-navigation-drawer>
 
-    <SnackbarComponent />
     <Snackbar />
 
     <v-main>
