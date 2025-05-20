@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import useAuthStore from "@admin/store/modules/auth";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import UserDetails from "../../../../src/views/UserDetails.vue";
@@ -36,9 +35,6 @@ describe("User Details", () => {
 
     const authStore = useAuthStore();
     authStore.loginToken = vi.fn().mockResolvedValue("mock-token");
-
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
 
     const vuetify = createVuetify();
 

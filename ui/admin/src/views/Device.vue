@@ -24,11 +24,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useDevicesStore from "@admin/store/modules/devices";
+import useSnackbar from "@/helpers/snackbar";
 import DeviceList from "../components/Device/DeviceList.vue";
 
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 
 const filter = ref("");
@@ -52,9 +52,7 @@ const searchDevices = () => {
       page: devicesStore.getPage,
       filter: encodedFilter,
     });
-  } catch {
-    snackbarStore.showSnackbarErrorDefault();
-  }
+  } catch { snackbar.showError("Failed to fetch the devices."); }
 };
 
 defineExpose({ filter });

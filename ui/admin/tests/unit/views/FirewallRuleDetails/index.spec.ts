@@ -39,9 +39,6 @@ describe("Firewall Rule Details", () => {
     vi.spyOn(firewallStore, "getFirewall", "get").mockReturnValue(firewallRuleDetail);
     firewallStore.get = vi.fn().mockResolvedValue(firewallRuleDetail);
 
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
-
     const vuetify = createVuetify();
 
     wrapper = mount(FirewallRulesDetails, {

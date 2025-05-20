@@ -102,14 +102,13 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import { Session } from "@admin/api/client";
+import useSnackbar from "@/helpers/snackbar";
 import useSessionsStore from "@admin/store/modules/sessions";
-import { INotificationsError } from "../interfaces/INotifications";
 
 const route = useRoute();
 const router = useRouter();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const sessionStore = useSessionsStore();
 
 const session = ref({} as Session);
@@ -120,7 +119,7 @@ onMounted(async () => {
     await sessionStore.get(sessionId.value as string);
     session.value = sessionStore.getSession;
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.sessionDetails);
+    snackbar.showError("Failed to get session details.");
   }
 });
 

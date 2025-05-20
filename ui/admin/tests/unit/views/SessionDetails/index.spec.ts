@@ -3,7 +3,6 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useSessionsStore } from "@admin/store/modules/sessions";
-import { useSnackbarStore } from "@admin/store/modules/snackbar";
 import { DeviceInfoPlatformEnum, Session } from "@admin/api/client";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
@@ -63,9 +62,6 @@ describe("Session Details", () => {
 
     const sessionsStore = useSessionsStore();
     sessionsStore.get = vi.fn().mockResolvedValue(sessionDetail);
-
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
 
     const vuetify = createVuetify();
 

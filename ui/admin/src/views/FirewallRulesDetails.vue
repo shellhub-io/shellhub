@@ -94,15 +94,14 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import useSnackbar from "@/helpers/snackbar";
 import { filterType, IFirewallRule } from "../interfaces/IFirewallRule";
-import { INotificationsError } from "../interfaces/INotifications";
 import showTag from "../hooks/tag";
 import displayOnlyTenCharacters from "../hooks/string";
 
 const route = useRoute();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
 
 const firewallRuleId = computed(() => route.params.id as string);
@@ -113,7 +112,7 @@ onMounted(async () => {
     await firewallRulesStore.get(firewallRuleId.value);
     firewallRule.value = firewallRulesStore.getFirewall;
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.firewallRuleDetails);
+    snackbar.showError("Failed to get firewall rule details.");
   }
 });
 

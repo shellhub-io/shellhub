@@ -17,19 +17,15 @@ describe("New Announcement", () => {
     setActivePinia(pinia);
 
     const announcementStore = useAnnouncementStore();
-    const snackbarStore = useSnackbarStore();
 
     announcementStore.postAnnouncement = vi.fn();
     announcementStore.fetchAnnouncements = vi.fn();
-
-    snackbarStore.showSnackbarErrorAction = vi.fn();
-    snackbarStore.showSnackbarSuccessAction = vi.fn();
 
     const vuetify = createVuetify();
 
     wrapper = mount(NewAnnouncement, {
       global: {
-        plugins: [pinia, vuetify, routes],
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
   });

@@ -121,15 +121,14 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useDevicesStore from "@admin/store/modules/devices";
+import useSnackbar from "@/helpers/snackbar";
 import { IDevice } from "../interfaces/IDevice";
-import { INotificationsError } from "../interfaces/INotifications";
 import displayOnlyTenCharacters from "../hooks/string";
 import showTag from "../hooks/tag";
 
 const route = useRoute();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 const deviceId = computed(() => route.params.id);
 const device = ref({} as IDevice);
@@ -139,7 +138,7 @@ onMounted(async () => {
     await devicesStore.get(deviceId.value as string);
     device.value = devicesStore.getDevice;
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.deviceDetails);
+    snackbar.showError("Failed to get device details.");
   }
 });
 
