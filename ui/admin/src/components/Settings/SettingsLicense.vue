@@ -207,25 +207,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import moment from "moment";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useLicenseStore from "@admin/store/modules/license";
+import useSnackbar from "@/helpers/snackbar";
 import { Features } from "../../interfaces/ILicense";
-import {
-  INotificationsCopy,
-  INotificationsError,
-  INotificationsSuccess,
-} from "../../interfaces/INotifications";
 
 const currentFile = ref<File | null>(null);
 const licenseUploadStatus = ref(false);
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const licenseStore = useLicenseStore();
 
 onMounted(async () => {
   try {
     await licenseStore.get();
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.license);
+    snackbar.showError("Error loading license.");
   }
 });
 
@@ -245,7 +240,7 @@ const formatName = (name: string) => name.charAt(0).toUpperCase() + name.slice(1
 const copyText = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    snackbarStore.showSnackbarCopy(INotificationsCopy.tenantId);
+    snackbar.showInfo("Tenant ID copied to clipboard.");
   }
 };
 
@@ -277,11 +272,11 @@ const uploadLicense = async () => {
     try {
       await licenseStore.post(currentFile.value);
       await licenseStore.get();
-      snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.licenseUpload);
+      snackbar.showSuccess("License uploaded successfully.");
       licenseUploadStatus.value = false;
     } catch (error) {
       console.error("License upload error:", error);
-      snackbarStore.showSnackbarErrorLoading(INotificationsError.license);
+      snackbar.showError("Failed to upload the license.");
     }
   }
 };
