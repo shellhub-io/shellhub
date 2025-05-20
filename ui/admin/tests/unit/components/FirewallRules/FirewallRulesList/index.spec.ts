@@ -3,8 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import FirewallRulesList from "../../../../../src/components/FirewallRules/FirewallRulesList.vue";
 import routes from "../../../../../src/router";
@@ -45,13 +43,11 @@ describe("Firewall Rules List", () => {
 
     const vuetify = createVuetify();
     const firewallRulesStore = useFirewallRulesStore();
-    const snackbarStore = useSnackbarStore();
 
     firewallRulesStore.firewalls = firewallRules;
     firewallRulesStore.numberFirewalls = firewallRules.length;
 
     vi.spyOn(firewallRulesStore, "fetch").mockResolvedValue(true);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.firewallRuleList);
 
     wrapper = mount(FirewallRulesList, {
       global: {
