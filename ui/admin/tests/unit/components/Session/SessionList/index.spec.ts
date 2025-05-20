@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useSessionsStore from "@admin/store/modules/sessions";
 import useSnackbarStore from "@admin/store/modules/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import SessionList from "../../../../../src/components/Sessions/SessionList.vue";
 import routes from "../../../../../src/router";
 
@@ -84,7 +85,7 @@ describe("Sessions List", () => {
 
     wrapper = mount(SessionList, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });

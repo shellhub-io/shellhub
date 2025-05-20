@@ -5,6 +5,7 @@ import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import { adminApi } from "@admin/api/http";
 import useInstanceStore from "@admin/store/modules/instance";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import ConfigureSSO from "../../../../../src/components/Instance/SSO/ConfigureSSO.vue";
 
 type ConfigureSSOWrapper = VueWrapper<InstanceType<typeof ConfigureSSO>>;
@@ -20,7 +21,7 @@ describe("Configure SSO", () => {
 
     wrapper = mount(ConfigureSSO, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
 

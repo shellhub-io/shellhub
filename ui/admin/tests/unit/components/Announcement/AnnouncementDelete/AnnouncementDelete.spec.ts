@@ -3,6 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import AnnouncementDelete from "../../../../../src/components/Announcement/AnnouncementDelete.vue";
 import routes from "../../../../../src/router";
 
@@ -26,7 +27,7 @@ describe("Announcement Delete", () => {
 
     wrapper = mount(AnnouncementDelete, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
       props: {
         uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",

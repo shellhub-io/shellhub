@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsSuccess } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import NamespaceEdit from "../../../../../src/components/Namespace/NamespaceEdit.vue";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
@@ -64,7 +65,7 @@ describe("Namespace Edit", () => {
 
     wrapper = mount(NamespaceEdit, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         namespace,

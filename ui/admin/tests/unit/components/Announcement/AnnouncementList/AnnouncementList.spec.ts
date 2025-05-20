@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsError } from "@admin/interfaces/INotifications";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import AnnouncementList from "../../../../../src/components/Announcement/AnnouncementList.vue";
 import routes from "../../../../../src/router";
 
@@ -42,7 +43,7 @@ describe("Announcement List", () => {
     vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.announcementList);
     wrapper = mount(AnnouncementList, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });

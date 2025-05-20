@@ -7,6 +7,7 @@ import useAuthStore from "@admin/store/modules/auth";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import useLayoutStore from "@admin/store/modules/layout";
 import useLicenseStore from "@admin/store/modules/license";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import SnackbarComponent from "../../../../src/components/Snackbar/Snackbar.vue";
 import Login from "../../../../src/views/Login.vue";
 
@@ -36,7 +37,7 @@ describe("Login", () => {
 
     wrapper = shallowMount(Login, {
       global: {
-        plugins: [pinia, vuetify, router],
+        plugins: [pinia, vuetify, router, SnackbarPlugin],
         components: { SnackbarComponent },
       },
     });

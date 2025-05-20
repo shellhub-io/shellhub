@@ -6,6 +6,7 @@ import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INotificationsSuccess, INotificationsError } from "@admin/interfaces/INotifications";
 import { saveAs } from "file-saver";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import NamespaceExport from "../../../../../src/components/Namespace/NamespaceExport.vue";
 
 vi.mock("file-saver", () => ({
@@ -38,7 +39,7 @@ describe("NamespaceExport", () => {
     wrapper = mount(NamespaceExport, {
       attachTo: document.body,
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

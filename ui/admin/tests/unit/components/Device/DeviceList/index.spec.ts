@@ -3,6 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useDevicesStore from "@admin/store/modules/devices";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import DeviceList from "../../../../../src/components/Device/DeviceList.vue";
 import routes from "../../../../../src/router";
 
@@ -62,7 +63,7 @@ describe("Device List", () => {
 
     wrapper = mount(DeviceList, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });

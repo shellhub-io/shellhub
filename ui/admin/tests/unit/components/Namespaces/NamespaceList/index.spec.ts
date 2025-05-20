@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INamespace } from "@admin/interfaces/INamespace";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../../src/router";
 import NamespaceList from "../../../../../src/components/Namespace/NamespaceList.vue";
 
@@ -90,7 +91,7 @@ describe("Namespace List", () => {
 
     wrapper = mount(NamespaceList, {
       global: {
-        plugins: [vuetify, routes],
+        plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
   });
