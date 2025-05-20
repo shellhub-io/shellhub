@@ -58,13 +58,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { INotificationsError } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
 
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const loading = ref(false);
@@ -108,7 +107,7 @@ onMounted(async () => {
       filter: filter.value,
     });
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.namespaceList);
+    snackbar.showError("Failed to fetch namespaces.");
   } finally {
     loading.value = false;
   }
@@ -133,7 +132,7 @@ const getNamespaces = async (perPageValue: number, pageValue: number) => {
 
     if (!hasNamespaces) page.value--;
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.namespaceList);
+    snackbar.showError("Failed to fetch namespaces.");
   } finally {
     loading.value = false;
   }
@@ -144,11 +143,7 @@ const next = async () => {
 };
 
 const prev = async () => {
-  try {
-    if (page.value > 1) await getNamespaces(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbarStore.showSnackbarErrorDefault();
-  }
+  if (page.value > 1) await getNamespaces(itemsPerPage.value, --page.value);
 };
 
 const changeItemsPerPage = async (newItemsPerPage: number) => {

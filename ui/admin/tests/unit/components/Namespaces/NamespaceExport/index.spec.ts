@@ -3,15 +3,18 @@ import { flushPromises, mount, VueWrapper, DOMWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsSuccess, INotificationsError } from "@admin/interfaces/INotifications";
 import { saveAs } from "file-saver";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import NamespaceExport from "../../../../../src/components/Namespace/NamespaceExport.vue";
 
 vi.mock("file-saver", () => ({
   saveAs: vi.fn(),
 }));
+
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
 
 type NamespaceExportWrapper = VueWrapper<InstanceType<typeof NamespaceExport>>;
 
@@ -29,17 +32,15 @@ describe("NamespaceExport", () => {
     const vuetify = createVuetify();
 
     const namespaceStore = useNamespacesStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(namespaceStore, "setFilterNamespaces").mockResolvedValue(undefined);
     vi.spyOn(namespaceStore, "exportNamespacesToCsv").mockResolvedValue("csv_content");
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => INotificationsSuccess.exportNamespaces);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.exportNamespaces);
 
     wrapper = mount(NamespaceExport, {
       attachTo: document.body,
       global: {
-        plugins: [vuetify, SnackbarPlugin],
+        plugins: [vuetify],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
   });
@@ -67,6 +68,6 @@ describe("NamespaceExport", () => {
     expect(useNamespacesStore().exportNamespacesToCsv).toHaveBeenCalled();
     expect(saveAs).toHaveBeenCalled();
 
-    expect(useSnackbarStore().showSnackbarSuccessAction).toHaveBeenCalledWith(INotificationsSuccess.exportNamespaces);
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespaces exported successfully.");
   });
 });

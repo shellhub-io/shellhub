@@ -3,9 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsSuccess } from "@admin/interfaces/INotifications";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import NamespaceEdit from "../../../../../src/components/Namespace/NamespaceEdit.vue";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
@@ -45,6 +43,11 @@ const namespace = {
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 };
 
+const mockSnackbar = {
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+};
+
 describe("Namespace Edit", () => {
   let wrapper: NamespaceEditWrapper;
 
@@ -56,16 +59,14 @@ describe("Namespace Edit", () => {
     const vuetify = createVuetify();
 
     const namespaceStore = useNamespacesStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(namespaceStore, "put").mockResolvedValue(undefined);
     vi.spyOn(namespaceStore, "refresh").mockResolvedValue(undefined);
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => INotificationsSuccess.namespaceEdit);
-    vi.spyOn(snackbarStore, "showSnackbarErrorDefault").mockImplementation(() => vi.fn());
 
     wrapper = mount(NamespaceEdit, {
       global: {
-        plugins: [vuetify, SnackbarPlugin],
+        plugins: [vuetify],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
         namespace,
@@ -81,9 +82,8 @@ describe("Namespace Edit", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Calls store methods on form submission", async () => {
+  it("Calls namespace store and snackbar on form submission", async () => {
     const namespaceStore = useNamespacesStore();
-    const snackbarStore = useSnackbarStore();
 
     wrapper.vm.onSubmit();
 
@@ -91,6 +91,6 @@ describe("Namespace Edit", () => {
 
     expect(namespaceStore.put).toHaveBeenCalled();
     expect(namespaceStore.refresh).toHaveBeenCalled();
-    expect(snackbarStore.showSnackbarSuccessAction).toHaveBeenCalled();
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace updated successfully.");
   });
 });
