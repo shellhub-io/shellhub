@@ -4,8 +4,6 @@ import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import useInstanceStore from "@admin/store/modules/instance";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsCopy } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { adminApi } from "../../../../../src/api/http";
 import SettingsAuthentication from "../../../../../src/components/Settings/SettingsAuthentication.vue";
@@ -67,14 +65,10 @@ describe("Authentication", () => {
     mockAdminApi.onGet("http://localhost:3000/admin/api/authentication").reply(200, authData);
 
     const instanceStore = useInstanceStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(instanceStore, "fetchAuthenticationSettings").mockResolvedValue(undefined);
     vi.spyOn(instanceStore, "updateLocalAuthentication").mockResolvedValue(undefined);
     vi.spyOn(instanceStore, "updateSamlAuthentication").mockResolvedValue(undefined);
-    vi.spyOn(snackbarStore, "showSnackbarCopy").mockImplementation(() => INotificationsCopy.authenticationURL);
-    vi.spyOn(snackbarStore, "showSnackbarErrorCustom").mockImplementation(() => "You cannot disable all authentication methods.");
-    vi.spyOn(snackbarStore, "showSnackbarErrorDefault").mockImplementation(() => vi.fn());
 
     instanceStore.authenticationSettings = authData;
 

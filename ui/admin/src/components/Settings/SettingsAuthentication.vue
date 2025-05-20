@@ -161,13 +161,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import axios from "axios";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useInstanceStore from "@admin/store/modules/instance";
+import useSnackbar from "@/helpers/snackbar";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
-import { INotificationsCopy } from "../../interfaces/INotifications";
 
 const dialogSSO = ref(false);
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
 
 onMounted(async () => {
@@ -214,10 +213,10 @@ const changeLocalAuthStatus = async () => {
     if (axios.isAxiosError(error)) {
       switch (error.status) {
         case 400:
-          snackbarStore.showSnackbarErrorCustom("You cannot disable all authentication methods.");
+          snackbar.showError("You cannot disable all authentication methods.");
           break;
         default:
-          snackbarStore.showSnackbarErrorDefault();
+          snackbar.showError("An error occurred while updating local authentication.");
           break;
       }
     }
@@ -247,11 +246,10 @@ const changeSamlAuthStatus = async () => {
     if (axios.isAxiosError(error)) {
       switch (error.status) {
         case 400:
-          snackbarStore.showSnackbarErrorCustom("You cannot disable all authentication methods.");
+          snackbar.showError("You cannot disable all authentication methods.");
           break;
         default:
-          snackbarStore.showSnackbarErrorDefault();
-          break;
+          snackbar.showError("An error occurred while updating SAML authentication.");
       }
     }
   }
@@ -283,7 +281,7 @@ const redirectToAuthURL = (value: string | undefined) => {
 const copyAssertionURL = (value: string | undefined) => {
   if (value) {
     navigator.clipboard.writeText(value);
-    snackbarStore.showSnackbarCopy(INotificationsCopy.authenticationURL);
+    snackbar.showInfo("Authentication URL copied to clipboard.");
   }
 };
 
