@@ -57,8 +57,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";
 import AnnouncementEdit from "./AnnouncementEdit.vue";
@@ -66,7 +65,7 @@ import { IAnnouncements } from "../../interfaces/IAnnouncements";
 
 const router = useRouter();
 const announcementStore = useAnnouncementStore();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const itemsPerPage = ref(10);
 const loading = ref(false);
 const page = ref(1);
@@ -105,38 +104,35 @@ const getAnnouncements = async (
     }
     loading.value = false;
   } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementList);
+    snackbar.showError("Failed to fetch announcements.");
   }
 };
+
 onMounted(async () => {
-  try {
-    loading.value = true;
-    getAnnouncements(itemsPerPage.value, page.value);
-  } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementList);
-  } finally {
-    loading.value = false;
-  }
+  await getAnnouncements(itemsPerPage.value, page.value);
+  loading.value = false;
 });
+
 const next = async () => {
   await getAnnouncements(itemsPerPage.value, ++page.value);
 };
+
 const prev = async () => {
-  try {
-    if (page.value > 1) await getAnnouncements(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementList);
-  }
+  if (page.value > 1) await getAnnouncements(itemsPerPage.value, --page.value);
 };
+
 const changeItemsPerPage = async (newItemsPerPage: number) => {
   itemsPerPage.value = newItemsPerPage;
 };
+
 watch(itemsPerPage, async () => {
   await getAnnouncements(itemsPerPage.value, page.value);
 });
+
 const announcements = computed(
   () => announcementStore.getAnnouncements as Array<IAnnouncements>,
 );
+
 const numberAnnouncements = computed(
   () => announcementStore.getNumberAnnouncements,
 );

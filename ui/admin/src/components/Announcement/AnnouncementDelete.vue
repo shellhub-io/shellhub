@@ -39,11 +39,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const props = defineProps({
   uuid: {
@@ -55,16 +51,16 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const dialog = ref(false);
 const announcement = useAnnouncementStore();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const remove = async () => {
   dialog.value = !dialog.value;
 
   try {
     await announcement.deleteAnnouncement(props.uuid);
     emit("update");
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.announcementDelete);
+    snackbar.showSuccess("Announcement deleted successfully.");
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementDelete);
+    snackbar.showError("Failed to delete announcement.");
   }
 };
 

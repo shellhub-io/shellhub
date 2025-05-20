@@ -106,8 +106,7 @@ import MarkdownIt from "markdown-it";
 import TurndownService from "turndown";
 import * as yup from "yup";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "../../envVariables";
 
 const props = defineProps({
@@ -119,7 +118,7 @@ const props = defineProps({
 
 const emit = defineEmits(["update"]);
 const announcementStore = useAnnouncementStore();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const dialog = ref(false);
 const md = new MarkdownIt();
 const turndownService = new TurndownService();
@@ -156,18 +155,18 @@ watch(contentInHtml, () => {
 const onSubmit = async () => {
   if (titleError.value || !contentInHtml.value) {
     contentError.value = true;
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementEdit);
+    snackbar.showError("Please fill in all required fields.");
     return;
   }
 
   try {
     const contentInMarkdown = turndownService.turndown(contentInHtml.value);
     await announcementStore.updateAnnouncement(announcement.value.uuid as string, { title: title.value ?? "", content: contentInMarkdown });
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.announcementEdit);
+    snackbar.showSuccess("Announcement updated successfully.");
     dialog.value = false;
     emit("update");
   } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementEdit);
+    snackbar.showError("Failed to update announcement.");
   }
 };
 

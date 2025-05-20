@@ -3,8 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import useSnackbarStore from "@admin/store/modules/snackbar";
-import { INotificationsError } from "@admin/interfaces/INotifications";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import AnnouncementList from "../../../../../src/components/Announcement/AnnouncementList.vue";
 import routes from "../../../../../src/router";
@@ -34,13 +32,11 @@ describe("Announcement List", () => {
     setActivePinia(createPinia());
 
     const announcementStore = useAnnouncementStore();
-    const snackbarStore = useSnackbarStore();
 
     announcementStore.announcements = announcements;
     announcementStore.numberAnnouncements = announcements.length;
 
     vi.spyOn(announcementStore, "fetchAnnouncements").mockResolvedValue(false);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => INotificationsError.announcementList);
     wrapper = mount(AnnouncementList, {
       global: {
         plugins: [vuetify, routes, SnackbarPlugin],
