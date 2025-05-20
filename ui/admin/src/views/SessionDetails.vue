@@ -103,8 +103,8 @@
 import { computed, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Session } from "@admin/api/client";
-import useSnackbar from "@/helpers/snackbar";
 import useSessionsStore from "@admin/store/modules/sessions";
+import useSnackbar from "@/helpers/snackbar";
 
 const route = useRoute();
 const router = useRouter();
