@@ -54,14 +54,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { saveAs } from "file-saver";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { INotificationsError, INotificationsSuccess } from "../../interfaces/INotifications";
+import useSnackbar from "@/helpers/snackbar";
 
 const numberOfDevices = ref(0);
 const dialog = ref(false);
 const selected = ref("moreThan");
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 
 const numberOfDevicesRound = computed(() => Math.round(numberOfDevices.value));
@@ -122,9 +121,9 @@ const onSubmit = async () => {
           : selected.value
       }.csv`,
     );
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.exportNamespaces);
+    snackbar.showSuccess("Namespaces exported successfully.");
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.exportNamespaces);
+    snackbar.showError("Error exporting namespaces.");
   }
 };
 </script>

@@ -7,7 +7,7 @@
         dark
         v-bind="props"
         tabindex="0"
-        aria-label="Editar Namespace"
+        aria-label="Edit Namespace"
         data-test="dialog-btn"
         @keypress.enter="dialog = !dialog"
       >mdi-pencil
@@ -76,10 +76,9 @@
 import { useField } from "vee-validate";
 import { ref, PropType, onMounted, watch } from "vue";
 import * as yup from "yup";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useNamespacesStore from "@admin/store/modules/namespaces";
+import useSnackbar from "@/helpers/snackbar";
 import { INamespace } from "../../interfaces/INamespace";
-import { INotificationsSuccess } from "../../interfaces/INotifications";
 
 const props = defineProps({
   namespace: {
@@ -89,7 +88,7 @@ const props = defineProps({
   },
 });
 
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 
 const dialog = ref(false);
@@ -114,13 +113,7 @@ onMounted(() => {
   sessionRecord.value = props.namespace?.settings.session_record;
 });
 
-const hasErrors = () => {
-  if (nameError.value || numberDevicesError.value || sessionRecordError.value) {
-    return true;
-  }
-
-  return false;
-};
+const hasErrors = () => nameError.value || numberDevicesError.value || sessionRecordError.value;
 
 const onSubmit = async () => {
   if (!hasErrors()) {
@@ -131,10 +124,10 @@ const onSubmit = async () => {
       settings: { session_record: sessionRecord.value },
     });
     await namespacesStore.refresh();
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.namespaceEdit);
+    snackbar.showSuccess("Namespace updated successfully.");
     dialog.value = false;
   } else {
-    snackbarStore.showSnackbarErrorDefault();
+    snackbar.showError("Please fill in all required fields.");
   }
 };
 

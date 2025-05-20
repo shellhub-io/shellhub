@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INamespace } from "@admin/interfaces/INamespace";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../../src/router";
@@ -80,14 +79,11 @@ describe("Namespace List", () => {
     const vuetify = createVuetify();
 
     const namespaceStore = useNamespacesStore();
-    const snackbarStore = useSnackbarStore();
 
     namespaceStore.namespaces = namespaces;
     namespaceStore.numberNamespaces = namespaces.length;
 
     vi.spyOn(namespaceStore, "fetch").mockResolvedValue(true);
-    vi.spyOn(snackbarStore, "showSnackbarSuccessAction").mockImplementation(() => undefined);
-    vi.spyOn(snackbarStore, "showSnackbarErrorAction").mockImplementation(() => undefined);
 
     wrapper = mount(NamespaceList, {
       global: {
