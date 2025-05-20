@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import SnackbarComponent from "../../../../src/components/Snackbar/Snackbar.vue";
 import routes from "../../../../src/router";
 import AppLayout from "../../../../src/layouts/AppLayout.vue";
 
@@ -71,7 +70,6 @@ describe("AppLayout", () => {
     wrapper = shallowMount(AppLayout, {
       global: {
         plugins: [vuetify, routes, SnackbarPlugin],
-        components: { SnackbarComponent },
       },
     });
   });
