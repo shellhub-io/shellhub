@@ -17,7 +17,6 @@ describe("Users", () => {
     setActivePinia(pinia);
 
     const userStore = useUsersStore();
-    const snackbarStore = useSnackbarStore();
 
     vi.spyOn(userStore, "getPerPage", "get").mockReturnValue(10);
     vi.spyOn(userStore, "getPage", "get").mockReturnValue(1);
@@ -25,7 +24,6 @@ describe("Users", () => {
 
     userStore.search = vi.fn();
     userStore.fetch = vi.fn();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
 
     const vuetify = createVuetify();
 

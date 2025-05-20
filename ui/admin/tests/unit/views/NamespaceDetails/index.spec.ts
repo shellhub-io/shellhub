@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import { INamespace } from "@admin/interfaces/INamespace";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
@@ -52,9 +51,6 @@ describe("Namespace Details", () => {
     const namespaceStore = useNamespacesStore();
     namespaceStore.get = vi.fn().mockResolvedValue(undefined);
     namespaceStore.namespace = namespaceDetail;
-
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
 
     const vuetify = createVuetify();
 

@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import router from "@admin/router";
 import useAuthStore from "@admin/store/modules/auth";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useLayoutStore from "@admin/store/modules/layout";
 import useLicenseStore from "@admin/store/modules/license";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -28,10 +27,6 @@ describe("Login", () => {
 
     const licenseStore = useLicenseStore();
     licenseStore.get = vi.fn();
-
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorDefault = vi.fn();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
 
     const vuetify = createVuetify();
 

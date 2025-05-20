@@ -82,16 +82,15 @@
 <script setup lang="ts">
 import { computed, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useUsersStore from "@admin/store/modules/users";
 import { IUser } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
+import useSnackbar from "@/helpers/snackbar";
 import UserDelete from "../components/User/UserDelete.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 
 const route = useRoute();
+const snackbar = useSnackbar();
 const userStore = useUsersStore();
-const snackbarStore = useSnackbarStore();
 const authStore = useAuthStore();
 
 const userId = computed(() => route.params.id as string);
@@ -100,7 +99,7 @@ onBeforeMount(async () => {
   try {
     await userStore.get(userId.value);
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.userDetails);
+    snackbar.showError("Failed to get user details.");
   }
 });
 
@@ -113,7 +112,7 @@ const loginToken = async () => {
     const url = `/login?token=${token}`;
     window.open(url, "_target");
   } catch {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.errorLoginToken);
+    snackbar.showError("Failed to get the login token.");
   }
 };
 

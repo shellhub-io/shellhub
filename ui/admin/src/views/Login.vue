@@ -69,13 +69,13 @@ import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useRoute, useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useAuthStore from "@admin/store/modules/auth";
+import useSnackbar from "@/helpers/snackbar";
 import Logo from "../assets/logo-inverted.png";
 import { createNewClient } from "../api/http";
 
 const showPassword = ref(false);
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
@@ -114,10 +114,10 @@ const login = async () => {
         router.push("/");
       }
     } catch (error) {
-      snackbarStore.showSnackbarErrorDefault();
+      snackbar.showError("Failed to log in. Please check your credentials and try again.");
     }
   } else {
-    snackbarStore.showSnackbarErrorDefault();
+    snackbar.showError("Failed to log in. Please check your credentials and try again.");
   }
 };
 

@@ -36,7 +36,7 @@
         class="mt-2"
         data-test="announcement-error"
       >
-        The announcement cannot be empty !
+        The announcement cannot be empty!
       </v-alert>
 
       <v-alert
@@ -71,16 +71,12 @@ import TurndownService from "turndown";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useRouter } from "vue-router";
-import useSnackbarStore from "@admin/store/modules/snackbar";
+import useSnackbar from "@/helpers/snackbar";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import {
-  INotificationsError,
-  INotificationsSuccess,
-} from "../interfaces/INotifications";
 import { envVariables } from "../envVariables";
 
 const router = useRouter();
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const announcementStore = useAnnouncementStore();
 const { value: title, errorMessage: titleError, setErrors: setTitleError } = useField<
       string | undefined
@@ -99,13 +95,13 @@ watch(announcement, (val) => {
 
 const postAnnouncement = () => {
   if (!title.value) {
-    setTitleError("Title cannot be empty !");
+    setTitleError("Title cannot be empty!");
     return;
   }
 
   if (titleError.value || !announcement.value) {
     announcementError.value = true;
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementCreate);
+    snackbar.showError("Failed to create announcement.");
     return;
   }
 
@@ -115,10 +111,10 @@ const postAnnouncement = () => {
       title: title.value,
       content: contentInHtml,
     });
-    snackbarStore.showSnackbarSuccessAction(INotificationsSuccess.announcementCreate);
+    snackbar.showSuccess("Successfully created announcement.");
     router.push({ name: "announcements" });
   } catch (error) {
-    snackbarStore.showSnackbarErrorAction(INotificationsError.announcementCreate);
+    snackbar.showError("Failed to create announcement.");
   }
 };
 

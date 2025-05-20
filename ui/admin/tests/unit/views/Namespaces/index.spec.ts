@@ -24,9 +24,6 @@ describe("Namespaces", () => {
     namespacesStore.search = vi.fn();
     namespacesStore.fetch = vi.fn();
 
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
-
     const vuetify = createVuetify();
 
     wrapper = mount(Namespaces, {

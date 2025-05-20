@@ -109,9 +109,6 @@ describe("Dashboard", () => {
     statsStore.get = vi.fn().mockResolvedValue(undefined);
     statsStore.stats = stats;
 
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
-
     const vuetify = createVuetify();
 
     wrapper = mount(Dashboard, {

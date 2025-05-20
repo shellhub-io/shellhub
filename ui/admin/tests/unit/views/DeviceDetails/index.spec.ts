@@ -49,9 +49,6 @@ describe("Device Details", () => {
     vi.spyOn(deviceStore, "getDevice", "get").mockReturnValue(deviceDetail);
     deviceStore.get = vi.fn().mockResolvedValue(deviceDetail);
 
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
-
     const vuetify = createVuetify();
 
     wrapper = mount(DeviceDetails, {

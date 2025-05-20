@@ -19,9 +19,6 @@ describe("Sessions", () => {
     const sessionsStore = useSessionsStore();
     sessionsStore.fetch = vi.fn();
 
-    const snackbarStore = useSnackbarStore();
-    snackbarStore.showSnackbarErrorAction = vi.fn();
-
     const vuetify = createVuetify();
 
     wrapper = mount(Sessions, {

@@ -24,10 +24,9 @@
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
 import { computed, onMounted, ref } from "vue";
-import useSnackbarStore from "@admin/store/modules/snackbar";
 import useStatsStore from "@admin/store/modules/stats";
+import useSnackbar from "@/helpers/snackbar";
 import Card from "../components/Card.vue";
-import { INotificationsError } from "../interfaces/INotifications";
 
 type ItemCard = {
   id: number;
@@ -41,7 +40,7 @@ type ItemCard = {
   stats: number;
 };
 
-const snackbarStore = useSnackbarStore();
+const snackbar = useSnackbar();
 const statsStore = useStatsStore();
 const items = ref<ItemCard[]>([]);
 const hasStatus = ref(false);
@@ -123,9 +122,9 @@ onMounted(async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 402) {
-        snackbarStore.showSnackbarErrorAction(INotificationsError.license);
+        snackbar.showError("Failed to load the dashboard stats. Check your license and try again.");
       } else {
-        snackbarStore.showSnackbarErrorAction(INotificationsError.dashboard);
+        snackbar.showError("Failed to load the dashboard stats. Please try again.");
       }
     }
   }
