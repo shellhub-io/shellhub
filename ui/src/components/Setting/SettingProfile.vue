@@ -420,12 +420,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.v-container {
-  max-width: 960px;
-  margin-left: 0;
-  padding: 0;
-}
-
 :deep(.v-field--variant-plain) {
   --v-field-padding-start: 16px;
   --v-field-padding-end: 16px;
