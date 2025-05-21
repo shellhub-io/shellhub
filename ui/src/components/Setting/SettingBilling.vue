@@ -289,10 +289,4 @@ p {
 .hover-text:hover {
   text-decoration: underline;
 }
-
-.v-container {
-  max-width: 960px;
-  margin-left: 0;
-  padding: 0;
-}
 </style>
