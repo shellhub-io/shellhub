@@ -1,6 +1,5 @@
 <template>
   <v-container fluid>
-    <PrivateKeyAdd v-model="privateKeyAdd" @update="getPrivateKeys" />
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -25,20 +24,5 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import PrivateKeyAdd from "../PrivateKeys/PrivateKeyAdd.vue";
 import TagList from "../Tags/TagList.vue";
-import { useStore } from "@/store";
-import handleError from "@/utils/handleError";
-
-const store = useStore();
-const privateKeyAdd = ref(false);
-
-const getPrivateKeys = async () => {
-  try {
-    await store.dispatch("privateKey/fetch");
-  } catch (error: unknown) {
-    handleError(error);
-  }
-};
 </script>
