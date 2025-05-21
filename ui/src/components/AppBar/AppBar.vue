@@ -223,6 +223,7 @@ const openShellhubHelp = async (): Promise<void> => {
       break;
 
     default:
+      snackbar.showError("Your environment configuration is not supported.");
       throw new Error("Unsupported environment configuration.");
   }
 };
