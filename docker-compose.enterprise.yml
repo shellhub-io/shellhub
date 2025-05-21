@@ -1,26 +1,15 @@
 services:
-  api:
-    image: registry.infra.ossystems.io/cache/shellhubio/api:${SHELLHUB_VERSION}
-
-  ui:
-    image: registry.infra.ossystems.io/cache/shellhubio/ui:${SHELLHUB_VERSION}
-
   gateway:
     image: registry.infra.ossystems.io/cache/shellhubio/gateway:${SHELLHUB_VERSION}
+
+  server:
+    image: registry.infra.ossystems.io/cache/shellhubio/server:${SHELLHUB_VERSION}
 
   cli:
     image: registry.infra.ossystems.io/cache/shellhubio/cli:${SHELLHUB_VERSION}
 
-  mongo:
-    image: registry.infra.ossystems.io/cache/mongo:4.4.8
-
-  redis:
-    image: registry.infra.ossystems.io/cache/redis
-
-  ssh:
-    image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
-    environment:
-      - BILLING_URL=cloud:8080
+  ui:
+    image: registry.infra.ossystems.io/cache/shellhubio/ui:${SHELLHUB_VERSION}
 
   cloud:
     image: registry.infra.ossystems.io/shellhub/cloud:${SHELLHUB_VERSION}
@@ -47,6 +36,12 @@ services:
       - api_public_key
     networks:
       - shellhub
+
+  mongo:
+    image: registry.infra.ossystems.io/cache/mongo:4.4.8
+
+  redis:
+    image: registry.infra.ossystems.io/cache/redis
 
   minio:
     image: minio/minio:latest

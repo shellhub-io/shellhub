@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine3.19 AS base
+FROM golang:1.23.7-alpine3.21 AS base
 
 ARG SHELLHUB_VERSION=latest
 
