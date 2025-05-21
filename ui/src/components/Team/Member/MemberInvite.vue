@@ -94,13 +94,28 @@
               <v-select
                 v-model="selectedRole"
                 :items="items"
+                item-title="value"
+                item-value="value"
                 label="Role"
                 :error-messages="selectedRoleError"
                 required
                 data-test="role-select"
-              />
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-subtitle class="description-text">
+                      {{ item.raw.description }}
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                </template>
+
+                <template v-slot:selection="{ item }">
+                  <span>{{ item.value }}</span>
+                </template>
+              </v-select>
 
               <v-checkbox
+                v-if="envVariables.isCloud"
                 v-model="getInvitationCheckbox"
                 label="Get the invite link instead of sending an e-mail"
                 hide-details
@@ -169,7 +184,22 @@ import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 
-const items = ["administrator", "operator", "observer"];
+const items = [
+  {
+    value: "Administrator",
+    // eslint-disable-next-line vue/max-len
+    description: "Full access to the namespace, can perform all actions except managing billing.\nThis includes user and device management, but excludes billing-related operations.",
+  },
+  {
+    value: "Operator",
+    // eslint-disable-next-line vue/max-len
+    description: "Can manage and operate devices, but has limited administrative privileges.\nOperators cannot change billing or ownership settings.",
+  },
+  {
+    value: "Observer",
+    description: "Can view device details and sessions but cannot make any changes.\nObservers have read-only access to monitor activity.",
+  },
+];
 
 const emit = defineEmits(["update"]);
 const store = useStore();
@@ -273,7 +303,7 @@ const sendEmailInvite = async () => {
     await store.dispatch("namespaces/sendEmailInvitation", {
       email: email.value,
       tenant_id: store.getters["auth/tenant"],
-      role: selectedRole.value,
+      role: selectedRole.value.toLocaleLowerCase(),
     });
 
     snackbar.showSuccess("Invitation email sent successfully.");
@@ -304,4 +334,12 @@ defineExpose({ emailError, formWindow, invitationLink });
     z-index: #{$i};
   }
 }
+
+.description-text {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 400px;
+  display: block;
+}
+
 </style>
