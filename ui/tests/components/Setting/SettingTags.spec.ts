@@ -4,14 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import SettingTags from "@/components/Setting/SettingTags.vue";
 import { namespacesApi, tagsApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
-import { router } from "@/router";
+import { key, store } from "@/store";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type SettingTagsWrapper = VueWrapper<InstanceType<typeof SettingTags>>;
 
-describe("Setting Owner Info", () => {
+describe("Setting Tags", () => {
   let wrapper: SettingTagsWrapper;
 
   const vuetify = createVuetify();
@@ -77,7 +76,7 @@ describe("Setting Owner Info", () => {
 
     wrapper = mount(SettingTags, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, SnackbarPlugin],
       },
     });
   });
