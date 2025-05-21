@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Setting Namespace > Renders the component 1`] = `
-"<div data-v-80a16399="" class="v-container v-container--fluid v-locale--is-ltr">
+"<div data-v-80a16399="" class="v-container v-container--fluid v-locale--is-ltr ml-0 pa-0" style="max-width: 960px;">
   <!---->
   <!---->
   <!---->

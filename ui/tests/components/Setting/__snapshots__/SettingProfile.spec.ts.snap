@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Settings Namespace > Renders the component 1`] = `
-"<div data-v-b3fa301d="" class="v-container v-container--fluid v-locale--is-ltr" data-test="account-profile-container">
+"<div data-v-b3fa301d="" class="v-container v-container--fluid v-locale--is-ltr ml-0 pa-0" style="max-width: 960px;" data-test="account-profile-container">
   <!---->
   <!---->
   <div data-v-b3fa301d="" class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="account-profile-card">

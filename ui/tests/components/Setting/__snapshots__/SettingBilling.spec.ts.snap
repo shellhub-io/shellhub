@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Billing Settings Free Mode > Renders the component 1`] = `
-"<div data-v-d7a09f69="" class="v-container v-container--fluid v-locale--is-ltr">
+"<div data-v-d7a09f69="" class="v-container v-container--fluid v-locale--is-ltr ml-0 pa-0" style="max-width: 960px;">
   <!---->
   <!---->
   <div data-v-d7a09f69="" class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="billing-card">

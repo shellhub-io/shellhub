@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid class="ml-0 pa-0" max-width="960">
     <PrivateKeyAdd v-model="privateKeyAdd" @update="getPrivateKeys" />
     <v-card
       variant="flat"

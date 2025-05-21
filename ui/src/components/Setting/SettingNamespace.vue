@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid class="ml-0 pa-0" max-width="960">
     <NamespaceDelete :tenant="tenant" @billing-in-debt="billingInDebt = true" v-model="namespaceDelete" />
     <NamespaceLeave :tenant="tenant" v-model="namespaceLeave" />
     <NamespaceEdit v-model="editAnnouncement" @update="getNamespace" />
@@ -323,12 +323,6 @@ const hasTenant = () => tenant.value !== "";
 
 .hover-text:hover {
   text-decoration: underline;
-}
-
-.v-container {
-  max-width: 960px;
-  margin-left: 0;
-  padding: 0;
 }
 
 :deep(.v-field--variant-plain) {

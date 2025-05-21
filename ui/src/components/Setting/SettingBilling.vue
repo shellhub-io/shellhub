@@ -1,6 +1,6 @@
 <template>
   <SettingOwnerInfo :is-owner="hasAuthorization" v-if="!hasAuthorization" data-test="settings-owner-info-component" />
-  <v-container fluid v-else>
+  <v-container fluid class="ml-0 pa-0" max-width="960" v-else>
     <BillingDialog v-model="dialogCheckout" @reload="reload" />
     <v-card
       variant="flat"
@@ -288,11 +288,5 @@ p {
 
 .hover-text:hover {
   text-decoration: underline;
-}
-
-.v-container {
-  max-width: 960px;
-  margin-left: 0;
-  padding: 0;
 }
 </style>
