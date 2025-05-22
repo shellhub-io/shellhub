@@ -69,6 +69,12 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 		return NewErrSessionNotFound(uid, err)
 	}
 
+	// FIXME: The store function that retrieves a session sets the `Active` field based on the existence of a document
+	// in another collection. When that document exists, `Active` is set to `true`. However since we reuse the same
+	// [models.Session] struct and modify it in the update method, it is persisted in the database wrongly. Something
+	// similar happens with the field `Device`, but it is ignored by the BSON, it isn't persistented on the database.
+	sess.Active = false
+
 	var insertActiveSession bool
 
 	if model.Authenticated != nil {
