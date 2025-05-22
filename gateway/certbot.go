@@ -216,8 +216,6 @@ func (cb *CertBot) ExecuteRenewCertificates() error {
 	}
 
 	if err := cmd.Run(); err != nil {
-		log.WithError(err).Error("failed to renew SSL certificate")
-
 		return err
 	}
 
@@ -236,7 +234,9 @@ func (cb *CertBot) RenewCertificates() {
 	for range ticker.C {
 		log.Info("checking if SSL certificate needs to be renewed")
 		if err := cb.ExecuteRenewCertificates(); err != nil {
-			log.Fatal("failed to renew SSL certificate")
+			log.WithError(err).Error("failed to renew SSL certificate")
+
+			continue
 		}
 
 		log.Info("ssl certificate successfully renewed")
