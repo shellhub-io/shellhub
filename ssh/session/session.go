@@ -366,6 +366,15 @@ func (s *Session) authenticate() error {
 func (s *Session) Recorded() error {
 	value := true
 
+	namespace, errs := s.api.NamespaceLookup(s.Device.TenantID)
+	if len(errs) > 1 {
+		return errs[0]
+	}
+
+	if !namespace.Settings.SessionRecord {
+		return errors.New("record is disable for this namespace")
+	}
+
 	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
 		Recorded: &value,
 	})
