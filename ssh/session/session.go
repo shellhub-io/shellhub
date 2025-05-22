@@ -30,7 +30,9 @@ type Data struct {
 	// SSHID is the combination of device's name and namespace name.
 	SSHID string
 	// Device is the device connected.
-	Device    *models.Device
+	Device *models.Device
+	// Namespace is the namespace where device is located.
+	Namespace *models.Namespace
 	IPAddress string
 	// Type is the connection type.
 	Type string
@@ -161,9 +163,9 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, err
 	}
 
-	var namespace, hostname string
+	var domain, hostname string
 	if target.IsSSHID() {
-		namespace, hostname, err = target.SplitSSHID()
+		domain, hostname, err = target.SplitSSHID()
 		if err != nil {
 			return nil, err
 		}
@@ -195,17 +197,22 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			return nil, err
 		}
 
-		namespace = device.Namespace
+		domain = device.Namespace
 		hostname = device.Name
 	}
 
 	lookup := map[string]string{
-		"domain": namespace,
+		"domain": domain,
 		"name":   hostname,
 	}
 
 	device, errs := api.DeviceLookup(lookup)
 	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	namespace, errs := api.NamespaceLookup(device.TenantID)
+	if len(errs) > 1 {
 		return nil, errs[0]
 	}
 
@@ -225,8 +232,9 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			IPAddress: hos.Host,
 			Target:    target,
 			Device:    device,
+			Namespace: namespace,
 			Lookup:    lookup,
-			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespace, hostname),
+			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, domain, hostname),
 		},
 		once: new(sync.Once),
 		Seat: new(atomic.Int32),
@@ -366,12 +374,7 @@ func (s *Session) authenticate() error {
 func (s *Session) Recorded() error {
 	value := true
 
-	namespace, errs := s.api.NamespaceLookup(s.Device.TenantID)
-	if len(errs) > 1 {
-		return errs[0]
-	}
-
-	if !namespace.Settings.SessionRecord {
+	if !s.Namespace.Settings.SessionRecord {
 		return errors.New("record is disable for this namespace")
 	}
 
@@ -590,15 +593,7 @@ func (s *Session) Announce(client gossh.Channel) error {
 		return err
 	}
 
-	namespace, errs := s.api.
-		NamespaceLookup(s.Device.TenantID)
-	if len(errs) > 0 {
-		log.WithError(errs[0]).Warn("unable to retrieve the namespace's connection announcement")
-
-		return errs[0]
-	}
-
-	announcement := namespace.Settings.ConnectionAnnouncement
+	announcement := s.Namespace.Settings.ConnectionAnnouncement
 
 	if announcement == "" {
 		return nil
