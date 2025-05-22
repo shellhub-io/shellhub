@@ -378,6 +378,10 @@ func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord boo
 		return store.ErrNoDocuments
 	}
 
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
+		log.Error(err)
+	}
+
 	return nil
 }
 
