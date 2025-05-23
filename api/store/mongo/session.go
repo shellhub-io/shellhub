@@ -322,6 +322,10 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 
 	defer session.EndSession(ctx)
 
+	txnOpts := options.Transaction().
+		SetReadConcern(readconcern.Snapshot()).
+		SetWriteConcern(writeconcern.New(writeconcern.WMajority())) //nolint:staticcheck
+
 	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
 		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
 			bson.M{"uid": uid},
@@ -332,15 +336,15 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 				},
 			},
 		); err != nil {
-			return nil, FromMongoError(err)
+			return nil, err
 		}
 
 		if _, err := s.db.Collection("sessions_events").InsertOne(ctx, event); err != nil {
-			return nil, FromMongoError(err)
+			return nil, err
 		}
 
 		return nil, nil
-	}); err != nil {
+	}, txnOpts); err != nil {
 		return FromMongoError(err)
 	}
 
