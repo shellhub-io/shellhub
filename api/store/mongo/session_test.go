@@ -373,27 +373,62 @@ func TestSessionUpdateDeviceUID(t *testing.T) {
 	}
 }
 
+// ptrBool and ptrString are helpers for creating pointer values in tests.
+func ptrBool(b bool) *bool       { return &b }
+func ptrString(s string) *string { return &s }
+
+// TestSessionUpdate exercises different update paths for the SessionUpdate method.
 func TestSessionUpdate(t *testing.T) {
+	type args struct {
+		sess   *models.Session
+		update *models.SessionUpdate
+	}
 	cases := []struct {
-		description  string
-		UID          models.UID
-		authenticate bool
-		fixtures     []string
-		expected     error
+		description string
+		UID         models.UID
+		args        args
+		fixtures    []string
+		expected    error
 	}{
 		{
-			description:  "fails when session is not found",
-			UID:          models.UID("nonexistent"),
-			authenticate: false,
-			fixtures:     []string{fixtureSessions},
-			expected:     store.ErrNoDocuments,
+			description: "succeeds when session is found and no update fields",
+			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			args: args{
+				sess:   &models.Session{Authenticated: true},
+				update: &models.SessionUpdate{},
+			},
+			fixtures: []string{fixtureSessions},
+			expected: nil,
 		},
 		{
-			description:  "succeeds when session is found",
-			UID:          models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			authenticate: false,
-			fixtures:     []string{fixtureSessions},
-			expected:     nil,
+			description: "succeeds when setting Authenticated to true",
+			UID:         models.UID("e7f3a56d8b9e1dc4c285c98c8ea9c33032a17bda5b6c6b05a6213c2a02f97824"),
+			args: args{
+				sess:   &models.Session{Authenticated: false, StartedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC), TenantID: "00000000-0000-4000-0000-000000000000"},
+				update: &models.SessionUpdate{Authenticated: ptrBool(true)},
+			},
+			fixtures: []string{fixtureSessions},
+			expected: nil,
+		},
+		{
+			description: "succeeds when updating Type field",
+			UID:         models.UID("fc2e1493d8b6a4c17bf6a2f7f9e55629e384b2d3a21e0c3d90f6e35b0c946178a"),
+			args: args{
+				sess:   &models.Session{},
+				update: &models.SessionUpdate{Type: ptrString("exec")},
+			},
+			fixtures: []string{fixtureSessions},
+			expected: nil,
+		},
+		{
+			description: "succeeds when updating Recorded flag",
+			UID:         models.UID("bc3d75821a29cfe70bf7986f9ee5629e384b2d3a21e0c3d90f6e35b0c946178a"),
+			args: args{
+				sess:   &models.Session{},
+				update: &models.SessionUpdate{Recorded: ptrBool(true)},
+			},
+			fixtures: []string{fixtureSessions},
+			expected: nil,
 		},
 	}
 
@@ -406,7 +441,7 @@ func TestSessionUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.SessionUpdate(ctx, tc.UID, &models.Session{})
+			err := s.SessionUpdate(ctx, tc.UID, tc.args.sess, tc.args.update)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

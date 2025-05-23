@@ -270,95 +270,58 @@ func TestDeactivateSession(t *testing.T) {
 }
 
 func TestUpdateSession(t *testing.T) {
-	mock := new(mocks.Store)
-
-	ctx := context.TODO()
-
+	mockStore := new(mocks.Store)
+	ctx := context.Background()
+	uid := models.UID("test-uid")
+	updateModel := models.SessionUpdate{}
 	theTrue := true
+	updateModel.Authenticated = &theTrue
+
+	sess := &models.Session{UID: string(uid)}
 
 	cases := []struct {
-		name          string
-		uid           models.UID
-		model         models.SessionUpdate
+		description   string
 		requiredMocks func()
-		expected      error
+		expectedErr   error
 	}{
 		{
-			name:  "fails when cannot get the session",
-			uid:   models.UID("_uid"),
-			model: models.SessionUpdate{},
+			description: "fails when SessionGet returns error",
 			requiredMocks: func() {
-				mock.On("SessionGet", ctx, models.UID("_uid")).Return(nil, goerrors.New("error")).Once()
+				mockStore.On("SessionGet", ctx, uid).
+					Return(nil, goerrors.New("get error")).Once()
 			},
-			expected: NewErrSessionNotFound(models.UID("_uid"), goerrors.New("error")),
+			expectedErr: NewErrSessionNotFound(uid, goerrors.New("get error")),
 		},
 		{
-			name:  "fails to update the session",
-			uid:   models.UID("_uid"),
-			model: models.SessionUpdate{},
+			description: "fails when SessionUpdate returns error",
 			requiredMocks: func() {
-				sess := &models.Session{}
-
-				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
-
-				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(goerrors.New("error")).Once()
+				mockStore.On("SessionGet", ctx, uid).
+					Return(sess, nil).Once()
+				mockStore.On("SessionUpdate", ctx, uid, sess, &updateModel).
+					Return(goerrors.New("update error")).Once()
 			},
-			expected: goerrors.New("error"),
+			expectedErr: goerrors.New("update error"),
 		},
 		{
-			name:  "success to update the session",
-			uid:   models.UID("_uid"),
-			model: models.SessionUpdate{},
+			description: "succeeds when no errors",
 			requiredMocks: func() {
-				sess := &models.Session{}
-
-				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
-
-				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(nil).Once()
+				mockStore.On("SessionGet", ctx, uid).
+					Return(sess, nil).Once()
+				mockStore.On("SessionUpdate", ctx, uid, sess, &updateModel).
+					Return(nil).Once()
 			},
-			expected: nil,
-		},
-		{
-			name: "fails to update the session when authenticated field is updated",
-			uid:  models.UID("_uid"),
-			model: models.SessionUpdate{
-				Authenticated: &theTrue,
-			},
-			requiredMocks: func() {
-				sess := &models.Session{}
-
-				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
-				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(nil).Once()
-				mock.On("SessionActiveCreate", ctx, models.UID("_uid"), sess).Return(goerrors.New("error")).Once()
-			},
-			expected: goerrors.New("error"),
-		},
-		{
-			name: "success to update the session when authenticated field is updated",
-			uid:  models.UID("_uid"),
-			model: models.SessionUpdate{
-				Authenticated: &theTrue,
-			},
-			requiredMocks: func() {
-				sess := &models.Session{}
-
-				mock.On("SessionGet", ctx, models.UID("_uid")).Return(sess, nil).Once()
-				mock.On("SessionUpdate", ctx, models.UID("_uid"), sess).Return(nil).Once()
-				mock.On("SessionActiveCreate", ctx, models.UID("_uid"), sess).Return(nil).Once()
-			},
-			expected: nil,
+			expectedErr: nil,
 		},
 	}
 
+	service := NewService(store.Store(mockStore), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			err := service.UpdateSession(ctx, tc.uid, tc.model)
-			assert.Equal(t, tc.expected, err)
+			err := service.UpdateSession(ctx, uid, updateModel)
+			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
 
-	mock.AssertExpectations(t)
+	mockStore.AssertExpectations(t)
 }
