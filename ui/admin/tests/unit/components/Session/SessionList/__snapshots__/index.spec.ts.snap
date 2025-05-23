@@ -39,7 +39,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="" tabindex="0" class="hover">39-5e-2a</span></td>
               <td data-v-d900b695="">user</td>
-              <td data-v-d900b695="" class="d-flex justify-center align-center"><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-3"></i>
+              <td data-v-d900b695="" class="text-center"><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-3"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -75,7 +75,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="" tabindex="0" class="hover">b4-2e-99</span></td>
               <td data-v-d900b695="">user</td>
-              <td data-v-d900b695="" class="d-flex justify-center align-center"><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-9"></i>
+              <td data-v-d900b695="" class="text-center"><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-9"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
