@@ -69,33 +69,7 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 		return NewErrSessionNotFound(uid, err)
 	}
 
-	var insertActiveSession bool
-
-	if model.Authenticated != nil {
-		if !sess.Authenticated {
-			sess.Authenticated = *model.Authenticated
-
-			insertActiveSession = true
-		}
-	}
-
-	if model.Type != nil {
-		sess.Type = *model.Type
-	}
-
-	if model.Recorded != nil {
-		sess.Recorded = *model.Recorded
-	}
-
-	if err := s.store.SessionUpdate(ctx, uid, sess); err != nil {
-		return err
-	}
-
-	if insertActiveSession {
-		return s.store.SessionActiveCreate(ctx, uid, sess)
-	}
-
-	return nil
+	return s.store.SessionUpdate(ctx, uid, sess, &model)
 }
 
 func (s *service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {

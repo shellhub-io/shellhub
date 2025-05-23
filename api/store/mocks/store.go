@@ -1895,17 +1895,35 @@ func (_m *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorde
 	return r0
 }
 
-// SessionUpdate provides a mock function with given fields: ctx, uid, model
-func (_m *Store) SessionUpdate(ctx context.Context, uid models.UID, model *models.Session) error {
-	ret := _m.Called(ctx, uid, model)
+// SessionSetType provides a mock function with given fields: ctx, uid, kind
+func (_m *Store) SessionSetType(ctx context.Context, uid models.UID, kind string) error {
+	ret := _m.Called(ctx, uid, kind)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionSetType")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
+		r0 = rf(ctx, uid, kind)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SessionUpdate provides a mock function with given fields: ctx, uid, sess, update
+func (_m *Store) SessionUpdate(ctx context.Context, uid models.UID, sess *models.Session, update *models.SessionUpdate) error {
+	ret := _m.Called(ctx, uid, sess, update)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.Session) error); ok {
-		r0 = rf(ctx, uid, model)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.Session, *models.SessionUpdate) error); ok {
+		r0 = rf(ctx, uid, sess, update)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -12,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
@@ -143,14 +145,42 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 	return session, nil
 }
 
-func (s *Store) SessionUpdate(ctx context.Context, uid models.UID, model *models.Session) error {
-	result, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": model})
+func (s *Store) SessionUpdate(ctx context.Context, uid models.UID, sess *models.Session, update *models.SessionUpdate) error {
+	clientSession, err := s.db.Client().StartSession()
 	if err != nil {
-		return FromMongoError(err)
+		return err
+	}
+	defer clientSession.EndSession(ctx)
+
+	if update.Authenticated != nil && !sess.Authenticated {
+		if err := s.SessionActiveCreate(ctx, uid, sess); err != nil {
+			return err
+		}
 	}
 
-	if result.MatchedCount < 1 {
-		return store.ErrNoDocuments
+	fields := bson.M{}
+	if update.Authenticated != nil {
+		fields["authenticated"] = *update.Authenticated
+	}
+	if update.Type != nil {
+		fields["type"] = *update.Type
+	}
+	if update.Recorded != nil {
+		fields["recorded"] = *update.Recorded
+	}
+
+	if len(fields) > 0 {
+		res, err := s.db.Collection("sessions").
+			UpdateOne(ctx,
+				bson.M{"uid": uid},
+				bson.M{"$set": fields},
+			)
+		if err != nil {
+			return FromMongoError(err)
+		}
+		if res.MatchedCount < 1 {
+			return store.ErrNoDocuments
+		}
 	}
 
 	return nil
@@ -158,6 +188,19 @@ func (s *Store) SessionUpdate(ctx context.Context, uid models.UID, model *models
 
 func (s *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
 	session, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"recorded": recorded}})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if session.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
+func (s *Store) SessionSetType(ctx context.Context, uid models.UID, kind string) error {
+	session, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"type": kind}})
 	if err != nil {
 		return FromMongoError(err)
 	}
