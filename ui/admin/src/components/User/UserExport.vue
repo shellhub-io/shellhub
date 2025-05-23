@@ -11,7 +11,7 @@
             <v-radio-group v-model="selected">
               <v-row no-gutters class="first-row">
                 <v-col class="pt-8" cols="12">
-                  <v-radio label="Namespaces with more than:" value="moreThan" />
+                  <v-radio label="Users with more than:" value="moreThan" />
                 </v-col>
               </v-row>
               <v-row no-gutters class="d-flex justify-center align-center ml-3 mt-2">
@@ -29,7 +29,7 @@
 
               <v-row no-gutters class="first-row">
                 <v-col class="pt-8" cols="12">
-                  <v-radio label="Namespaces with more than:" value="equalTo" />
+                  <v-radio label="Users with exactly:" value="equalTo" />
                 </v-col>
               </v-row>
               <v-row no-gutters class="d-flex justify-center align-center ml-3 mt-2">
@@ -111,7 +111,7 @@ const onSubmit = async () => {
     const response = await userStore.exportUsersToCsv();
     const blob = new Blob([response], { type: "content-disposition" });
 
-    if (selected.value === "moreThanN") saveAs(blob, `users_more_than_${gtNumberOfNamespaces.value}_namespaces.csv`);
+    if (selected.value === "moreThan") saveAs(blob, `users_more_than_${gtNumberOfNamespaces.value}_namespaces.csv`);
     else saveAs(blob, `users_exactly_${eqNumberOfNamespaces.value}_namespaces.csv`);
 
     snackbar.showSuccess("Exported users successfully.");
