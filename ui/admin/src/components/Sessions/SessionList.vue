@@ -49,7 +49,7 @@
           <td>
             {{ session.username }}
           </td>
-          <td class="d-flex justify-center align-center">
+          <td class="text-center">
             <v-tooltip anchor="bottom" v-if="session.authenticated">
               <template v-slot:activator="{ props }">
                 <v-icon v-bind="props">mdi-shield-check </v-icon>
