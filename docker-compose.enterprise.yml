@@ -53,7 +53,7 @@ services:
       - shellhub
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-05-24T17-08-30Z
     restart: unless-stopped
     command: server /data
     environment:
