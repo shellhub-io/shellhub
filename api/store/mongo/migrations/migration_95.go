@@ -3,7 +3,6 @@ package migrations
 import (
 	"context"
 	"fmt"
-	"runtime"
 	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -14,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/sync/semaphore"
 )
 
 var migration95 = migrate.Migration{
@@ -28,6 +26,8 @@ var migration95 = migrate.Migration{
 		}).Info("Applying migration")
 
 		if !envs.IsEnterprise() {
+			log.Info("skipping migration as the ShellHub instance isn't enterprise")
+
 			return nil
 		}
 
@@ -47,134 +47,195 @@ var migration95 = migrate.Migration{
 
 		defer cursor.Close(ctx)
 
-		var (
-			maxWorkers = runtime.GOMAXPROCS(0)
-			sem        = semaphore.NewWeighted(int64(maxWorkers))
-		)
-
 		for cursor.Next(ctx) {
-			if err := sem.Acquire(ctx, 1); err != nil {
-				log.Printf("Failed to acquire semaphore: %v", err)
-
-				break
-			}
-
 			var result struct {
 				UID string `bson:"_id"`
 			}
 
 			if err := cursor.Decode(&result); err != nil {
 				log.WithError(err).Error("Failed to decode UID result")
-				sem.Release(1)
 
 				return err
 			}
 
-			go func(uid string) {
-				defer sem.Release(1)
+			uid := result.UID
 
-				log.WithField("uid", uid).Debug("Processing session")
+			log.WithField("uid", uid).Debug("Processing session")
 
-				logger := log.WithFields(log.Fields{
-					"uid": uid,
-				})
+			logger := log.WithFields(log.Fields{
+				"uid": uid,
+			})
 
-				query := []bson.M{
-					{
-						"$match": bson.M{
-							"uid": uid,
-						},
-					},
-					{
-						"$sort": bson.M{
-							"time": 1,
-						},
-					},
-				}
-
-				cursor, err := db.Collection("recorded_sessions").Aggregate(ctx, query)
-				if err != nil {
-					logger.WithError(err).Error("Failed to query session records")
-
-					return
-				}
-
-				defer cursor.Close(ctx)
-
-				s := db.Collection("sessions").FindOne(ctx, bson.M{
-					"uid": uid,
-				})
-				if err != nil {
-					logger.WithError(err).Error("Failed to query session records")
-
-					return
-				}
-
-				if s.Err() != nil {
-					if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{
+			query := []bson.M{
+				{
+					"$match": bson.M{
 						"uid": uid,
-					}); err != nil {
-						logger.WithError(err).Error("failed to delete the recorded session when session isn't found")
+					},
+				},
+				{
+					"$sort": bson.M{
+						"time": 1,
+					},
+				},
+			}
 
-						return
-					}
+			cursor, err := db.Collection("recorded_sessions").Aggregate(ctx, query)
+			if err != nil {
+				logger.WithError(err).Error("Failed to query session records")
 
-					return
+				return err
+			}
+
+			defer cursor.Close(ctx)
+
+			s := db.Collection("sessions").FindOne(ctx, bson.M{
+				"uid": uid,
+			})
+			if err != nil {
+				logger.WithError(err).Error("Failed to query session records")
+
+				return err
+			}
+
+			if s.Err() != nil {
+				if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{
+					"uid": uid,
+				}); err != nil {
+					logger.WithError(err).Error("failed to delete the recorded session when session isn't found")
+
+					return err
 				}
 
-				session := &models.Session{}
-				if err := s.Decode(session); err != nil {
-					logger.WithError(err).Error("failed to decode the session")
+				log.WithField("uid", uid).Debug("Deleted recorded session for a not found session")
 
-					return
+				continue
+			}
+
+			session := &models.Session{}
+			if err := s.Decode(session); err != nil {
+				logger.WithError(err).Error("failed to decode the session")
+
+				return err
+			}
+
+			record := &models.RecordedSession{}
+
+			if cursor.Next(ctx) {
+				if err := cursor.Decode(record); err != nil {
+					logger.WithError(err).Error("Failed to decode session record")
+
+					return err
+				}
+			}
+
+			if !slices.Contains(session.Events.Types, string(models.SessionEventTypePtyRequest)) {
+				if _, err := db.Collection("sessions").UpdateOne(ctx,
+					bson.M{"uid": uid},
+					bson.M{
+						"$addToSet": bson.M{
+							"events.types": models.SessionEventTypePtyRequest,
+							"events.seats": 0,
+						},
+					},
+				); err != nil {
+					logger.WithError(err).Error("Failed to update session events types to pty-req")
+
+					return err
 				}
 
-				record := &models.RecordedSession{}
+				if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
+					Session:   uid,
+					Type:      models.SessionEventTypePtyRequest,
+					Timestamp: record.Time,
+					Data: &models.SSHPty{
+						Term:     "",
+						Columns:  uint32(record.Width),
+						Rows:     uint32(record.Height),
+						Width:    0,
+						Height:   0,
+						Modelist: []byte{},
+					},
+					Seat: 0,
+				}); err != nil {
+					logger.WithError(err).Error("Failed to insert session event pty-req")
 
-				if cursor.Next(ctx) {
-					if err := cursor.Decode(record); err != nil {
-						logger.WithError(err).Error("Failed to decode session record")
+					return err
+				}
+			}
 
-						return
-					}
+			lastWidth, lastHeight := record.Width, record.Height
+
+			if _, err := db.Collection("sessions").UpdateOne(ctx,
+				bson.M{"uid": uid},
+				bson.M{
+					"$addToSet": bson.M{
+						"events.types": models.SessionEventTypePtyOutput,
+						"events.seats": 0,
+					},
+				},
+			); err != nil {
+				logger.WithError(err).Error("Failed to update session events types to pty-output")
+
+				return err
+			}
+
+			if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
+				Session:   uid,
+				Type:      models.SessionEventTypePtyOutput,
+				Timestamp: record.Time,
+				Data: &models.SSHPtyOutput{
+					Output: record.Message,
+				},
+				Seat: 0,
+			}); err != nil {
+				logger.WithError(err).Error("Failed to insert session event pty-output")
+
+				return err
+			}
+
+			for cursor.Next(ctx) {
+				if err := cursor.Decode(record); err != nil {
+					logger.WithError(err).Error("Failed to decode session record")
+
+					return err
 				}
 
-				if !slices.Contains(session.Events.Types, string(models.SessionEventTypePtyRequest)) {
-					if _, err := db.Collection("sessions").UpdateOne(ctx,
-						bson.M{"uid": uid},
-						bson.M{
-							"$addToSet": bson.M{
-								"events.types": models.SessionEventTypePtyRequest,
-								"events.seats": 0,
+				if record.Width != lastWidth || record.Height != lastHeight {
+					if !slices.Contains(session.Events.Types, string(models.SessionEventTypeWindowChange)) {
+						if _, err := db.Collection("sessions").UpdateOne(ctx,
+							bson.M{"uid": uid},
+							bson.M{
+								"$addToSet": bson.M{
+									"events.types": models.SessionEventTypeWindowChange,
+									"events.seats": 0,
+								},
 							},
-						},
-					); err != nil {
-						logger.WithError(err).Error("Failed to update session events types to pty-req")
+						); err != nil {
+							logger.WithError(err).Error("Failed to update session events types to window-change")
 
-						return
+							return err
+						}
+
+						if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
+							Session:   uid,
+							Type:      models.SessionEventTypeWindowChange,
+							Timestamp: record.Time,
+							Data: &models.SSHWindowChange{
+								Columns: uint32(record.Width),
+								Rows:    uint32(record.Height),
+								Width:   0,
+								Height:  0,
+							},
+							Seat: 0,
+						}); err != nil {
+							logger.WithError(err).Error("Failed to insert session event window-change")
+
+							return err
+						}
 					}
 
-					if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
-						Session:   uid,
-						Type:      models.SessionEventTypePtyRequest,
-						Timestamp: record.Time,
-						Data: &models.SSHPty{
-							Term:     "",
-							Columns:  uint32(record.Width),
-							Rows:     uint32(record.Height),
-							Width:    0,
-							Height:   0,
-							Modelist: []byte{},
-						},
-						Seat: 0,
-					}); err != nil {
-						logger.WithError(err).Error("Failed to insert session event pty-req")
-
-						return
-					}
+					lastWidth, lastHeight = record.Width, record.Height
 				}
-
-				lastWidth, lastHeight := record.Width, record.Height
 
 				if _, err := db.Collection("sessions").UpdateOne(ctx,
 					bson.M{"uid": uid},
@@ -187,7 +248,7 @@ var migration95 = migrate.Migration{
 				); err != nil {
 					logger.WithError(err).Error("Failed to update session events types to pty-output")
 
-					return
+					return err
 				}
 
 				if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
@@ -201,97 +262,20 @@ var migration95 = migrate.Migration{
 				}); err != nil {
 					logger.WithError(err).Error("Failed to insert session event pty-output")
 
-					return
+					return err
 				}
 
-				for cursor.Next(ctx) {
-					if err := cursor.Decode(record); err != nil {
-						logger.WithError(err).Error("Failed to decode session record")
+			}
 
-						return
-					}
+			if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{
+				"uid": uid,
+			}); err != nil {
+				logger.WithError(err).Error("failed to delete the recorded session")
 
-					if record.Width != lastWidth || record.Height != lastHeight {
-						if !slices.Contains(session.Events.Types, string(models.SessionEventTypeWindowChange)) {
-							if _, err := db.Collection("sessions").UpdateOne(ctx,
-								bson.M{"uid": uid},
-								bson.M{
-									"$addToSet": bson.M{
-										"events.types": models.SessionEventTypeWindowChange,
-										"events.seats": 0,
-									},
-								},
-							); err != nil {
-								logger.WithError(err).Error("Failed to update session events types to window-change")
+				return err
+			}
 
-								return
-							}
-
-							if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
-								Session:   uid,
-								Type:      models.SessionEventTypeWindowChange,
-								Timestamp: record.Time,
-								Data: &models.SSHWindowChange{
-									Columns: uint32(record.Width),
-									Rows:    uint32(record.Height),
-									Width:   0,
-									Height:  0,
-								},
-								Seat: 0,
-							}); err != nil {
-								logger.WithError(err).Error("Failed to insert session event window-change")
-
-								return
-							}
-						}
-
-						lastWidth, lastHeight = record.Width, record.Height
-					}
-
-					if _, err := db.Collection("sessions").UpdateOne(ctx,
-						bson.M{"uid": uid},
-						bson.M{
-							"$addToSet": bson.M{
-								"events.types": models.SessionEventTypePtyOutput,
-								"events.seats": 0,
-							},
-						},
-					); err != nil {
-						logger.WithError(err).Error("Failed to update session events types to pty-output")
-
-						return
-					}
-
-					if _, err := db.Collection("sessions_events").InsertOne(ctx, &models.SessionEvent{
-						Session:   uid,
-						Type:      models.SessionEventTypePtyOutput,
-						Timestamp: record.Time,
-						Data: &models.SSHPtyOutput{
-							Output: record.Message,
-						},
-						Seat: 0,
-					}); err != nil {
-						logger.WithError(err).Error("Failed to insert session event pty-output")
-
-						return
-					}
-
-				}
-
-				if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{
-					"uid": uid,
-				}); err != nil {
-					logger.WithError(err).Error("failed to delete the recorded session")
-
-					return
-				}
-
-				logger.Debug("Successfully processed session")
-			}(result.UID)
-		}
-
-		if err := sem.Acquire(ctx, int64(maxWorkers)); err != nil {
-			log.Printf("Failed to acquire semaphore: %v", err)
+			logger.Debug("Successfully processed session")
 		}
 
 		return nil
@@ -322,145 +306,126 @@ var migration95 = migrate.Migration{
 
 		defer cursor.Close(ctx)
 
-		var (
-			maxWorkers = runtime.GOMAXPROCS(0)
-			sem        = semaphore.NewWeighted(int64(maxWorkers))
-		)
-
 		for cursor.Next(ctx) {
-			if err := sem.Acquire(ctx, 1); err != nil {
-				log.Printf("Failed to acquire semaphore: %v", err)
-
-				break
+			var session struct {
+				UID string `bson:"uid"`
 			}
 
-			go func() {
-				defer sem.Release(1)
+			if err := cursor.Decode(&session); err != nil {
+				log.WithError(err).Error("Failed to decode session")
 
-				var session struct {
-					UID string `bson:"uid"`
-				}
+				return err
+			}
 
-				if err := cursor.Decode(&session); err != nil {
-					log.WithError(err).Error("Failed to decode session")
+			uid := session.UID
+			log.WithField("uid", uid).Debug("Reverting session")
 
-					return
-				}
-
-				uid := session.UID
-				log.WithField("uid", uid).Debug("Reverting session")
-
-				eventsCursor, err := db.Collection("sessions_events").Find(ctx, bson.M{
-					"session": uid,
-					"type": bson.M{
-						"$in": []models.SessionEventType{
-							models.SessionEventTypePtyRequest,
-							models.SessionEventTypePtyOutput,
-							models.SessionEventTypeWindowChange,
-						},
+			eventsCursor, err := db.Collection("sessions_events").Find(ctx, bson.M{
+				"session": uid,
+				"type": bson.M{
+					"$in": []models.SessionEventType{
+						models.SessionEventTypePtyRequest,
+						models.SessionEventTypePtyOutput,
+						models.SessionEventTypeWindowChange,
 					},
-				}, options.Find().SetSort(bson.D{{Key: "timestamp", Value: 1}}))
-				if err != nil {
-					log.WithError(err).WithField("uid", uid).Error("Failed to query session events")
+				},
+			}, options.Find().SetSort(bson.D{{Key: "timestamp", Value: 1}}))
+			if err != nil {
+				log.WithError(err).WithField("uid", uid).Error("Failed to query session events")
 
-					return
+				return err
+			}
+
+			defer eventsCursor.Close(ctx)
+
+			var lastWidth, lastHeight uint32
+			for eventsCursor.Next(ctx) {
+				var event models.SessionEvent
+				if err := eventsCursor.Decode(&event); err != nil {
+					log.WithError(err).WithField("uid", uid).Error("Failed to decode event")
+
+					continue
 				}
 
-				defer eventsCursor.Close(ctx)
+				switch event.Type {
+				case models.SessionEventTypePtyRequest:
+					d := &models.SSHPty{}
 
-				var lastWidth, lastHeight uint32
-				for eventsCursor.Next(ctx) {
-					var event models.SessionEvent
-					if err := eventsCursor.Decode(&event); err != nil {
-						log.WithError(err).WithField("uid", uid).Error("Failed to decode event")
-
-						continue
+					data, _ := bson.Marshal(event.Data.(primitive.D))
+					if err := bson.Unmarshal(data, &d); err != nil {
+						return err
 					}
 
-					switch event.Type {
-					case models.SessionEventTypePtyRequest:
-						d := &models.SSHPty{}
+					ptyReq := d
 
-						data, _ := bson.Marshal(event.Data.(primitive.D))
-						if err := bson.Unmarshal(data, &d); err != nil {
-							return
-						}
+					lastWidth, lastHeight = ptyReq.Columns, ptyReq.Rows
+				case models.SessionEventTypeWindowChange:
+					d := &models.SSHWindowChange{}
 
-						ptyReq := d
+					data, _ := bson.Marshal(event.Data.(primitive.D))
+					if err := bson.Unmarshal(data, &d); err != nil {
+						return err
+					}
 
-						lastWidth, lastHeight = ptyReq.Columns, ptyReq.Rows
-					case models.SessionEventTypeWindowChange:
-						d := &models.SSHWindowChange{}
+					winChange := d
 
-						data, _ := bson.Marshal(event.Data.(primitive.D))
-						if err := bson.Unmarshal(data, &d); err != nil {
-							return
-						}
+					lastWidth, lastHeight = winChange.Columns, winChange.Rows
+				case models.SessionEventTypePtyOutput:
+					d := &models.SSHPtyOutput{}
 
-						winChange := d
+					data, _ := bson.Marshal(event.Data.(primitive.D))
+					if err := bson.Unmarshal(data, &d); err != nil {
+						return err
+					}
 
-						lastWidth, lastHeight = winChange.Columns, winChange.Rows
-					case models.SessionEventTypePtyOutput:
-						d := &models.SSHPtyOutput{}
+					ptyOutput := d
 
-						data, _ := bson.Marshal(event.Data.(primitive.D))
-						if err := bson.Unmarshal(data, &d); err != nil {
-							return
-						}
-
-						ptyOutput := d
-
-						_, err := db.Collection("recorded_sessions").InsertOne(ctx, bson.M{
-							"uid":     uid,
-							"message": ptyOutput.Output,
-							"time":    event.Timestamp,
-							"width":   lastWidth,
-							"height":  lastHeight,
-						})
-						if err != nil {
-							log.WithError(err).WithField("uid", uid).Error("Failed to insert recorded session")
-						}
+					_, err := db.Collection("recorded_sessions").InsertOne(ctx, bson.M{
+						"uid":     uid,
+						"message": ptyOutput.Output,
+						"time":    event.Timestamp,
+						"width":   lastWidth,
+						"height":  lastHeight,
+					})
+					if err != nil {
+						log.WithError(err).WithField("uid", uid).Error("Failed to insert recorded session")
 					}
 				}
+			}
 
-				_, err = db.Collection("sessions_events").DeleteMany(ctx, bson.M{
-					"session": uid,
-					"type": bson.M{
-						"$in": []models.SessionEventType{
-							models.SessionEventTypePtyRequest,
-							models.SessionEventTypePtyOutput,
-							models.SessionEventTypeWindowChange,
-						},
+			_, err = db.Collection("sessions_events").DeleteMany(ctx, bson.M{
+				"session": uid,
+				"type": bson.M{
+					"$in": []models.SessionEventType{
+						models.SessionEventTypePtyRequest,
+						models.SessionEventTypePtyOutput,
+						models.SessionEventTypeWindowChange,
 					},
-				})
-				if err != nil {
-					log.WithError(err).WithField("uid", uid).Error("Failed to delete session events")
-				}
+				},
+			})
+			if err != nil {
+				log.WithError(err).WithField("uid", uid).Error("Failed to delete session events")
+			}
 
-				_, err = db.Collection("sessions").UpdateOne(ctx,
-					bson.M{"uid": uid},
-					bson.M{
-						"$pull": bson.M{
-							"events.types": bson.M{
-								"$in": []models.SessionEventType{
-									models.SessionEventTypePtyRequest,
-									models.SessionEventTypePtyOutput,
-									models.SessionEventTypeWindowChange,
-								},
+			_, err = db.Collection("sessions").UpdateOne(ctx,
+				bson.M{"uid": uid},
+				bson.M{
+					"$pull": bson.M{
+						"events.types": bson.M{
+							"$in": []models.SessionEventType{
+								models.SessionEventTypePtyRequest,
+								models.SessionEventTypePtyOutput,
+								models.SessionEventTypeWindowChange,
 							},
 						},
 					},
-				)
-				if err != nil {
-					log.WithError(err).WithField("uid", uid).Error("Failed to update session")
-				}
+				},
+			)
+			if err != nil {
+				log.WithError(err).WithField("uid", uid).Error("Failed to update session")
+			}
 
-				log.WithField("uid", uid).Debug("Successfully reverted session")
-			}()
-		}
-
-		if err := sem.Acquire(ctx, int64(maxWorkers)); err != nil {
-			log.WithError(err).Printf("Failed to acquire semaphore")
+			log.WithField("uid", uid).Debug("Successfully reverted session")
 		}
 
 		return nil
