@@ -79,7 +79,8 @@ var migration95 = migrate.Migration{
 				},
 			}
 
-			cursor, err := db.Collection("recorded_sessions").Aggregate(ctx, query)
+			cursor, err := db.Collection("recorded_sessions").Aggregate(ctx, query, options.Aggregate().
+				SetAllowDiskUse(true))
 			if err != nil {
 				logger.WithError(err).Error("Failed to query session records")
 
@@ -266,6 +267,8 @@ var migration95 = migrate.Migration{
 				}
 
 			}
+
+			logger.Debug("Deleting recorded sessions")
 
 			if _, err := db.Collection("recorded_sessions").DeleteMany(ctx, bson.M{
 				"uid": uid,
