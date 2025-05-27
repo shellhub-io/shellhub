@@ -3,7 +3,6 @@ package migrations
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,7 +11,7 @@ import (
 
 var migration98 = migrate.Migration{
 	Version:     98,
-	Description: "Set namespace type to team when type is empty",
+	Description: "Convert the username's to nil when it's a blank string",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
@@ -20,27 +19,19 @@ var migration98 = migrate.Migration{
 			"action":    "Up",
 		}).Info("Applying migration")
 
-		if _, err := db.
-			Collection("namespaces").
-			UpdateMany(ctx, bson.M{
-				"type": "",
-			}, bson.M{
-				"$set": bson.M{
-					"type": models.TypePersonal,
-				},
-			}); err != nil {
-			return err
-		}
+		_, err := db.Collection("users").UpdateMany(ctx, bson.M{"username": ""}, bson.M{"$set": bson.M{"username": nil}})
 
-		return nil
+		return err
 	}),
-	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
+	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
 			"version":   98,
 			"action":    "Down",
 		}).Info("Cannot undo migration")
 
-		return nil
+		_, err := db.Collection("users").UpdateMany(ctx, bson.M{"username": nil}, bson.M{"$set": bson.M{"username": ""}})
+
+		return err
 	}),
 }

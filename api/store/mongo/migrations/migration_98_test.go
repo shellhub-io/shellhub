@@ -19,116 +19,22 @@ func TestMigration98Up(t *testing.T) {
 		verify      func(tt *testing.T)
 	}{
 		{
-			description: "Session with empty type should be updated to personal",
+			description: "succeeds",
 			setup: func() error {
 				_, err := c.
 					Database("test").
-					Collection("namespaces").
-					InsertOne(ctx, bson.M{
-						"tenant_id": "empty-type-test",
-						"type":      "",
-					})
+					Collection("users").
+					InsertOne(ctx, bson.M{"email": "john.doe@test.com", "username": ""})
 
 				return err
 			},
 			verify: func(tt *testing.T) {
-				query := c.
-					Database("test").
-					Collection("namespaces").
-					FindOne(ctx, bson.M{"tenant_id": "empty-type-test"})
-				namespace := make(map[string]any)
-				require.NoError(tt, query.Decode(&namespace))
+				user := make(map[string]any)
+				require.NoError(tt, c.Database("test").Collection("users").FindOne(ctx, bson.M{"email": "john.doe@test.com"}).Decode(&user))
 
-				assert.Equal(tt, "personal", namespace["type"],
-					"Session type should be updated to 'personal' when originally empty")
-			},
-		},
-		{
-			description: "Session with non-empty type should remain unchanged",
-			setup: func() error {
-				_, err := c.
-					Database("test").
-					Collection("namespaces").
-					InsertOne(ctx, bson.M{
-						"tenant_id": "existing-type-test",
-						"type":      "existing",
-					})
-
-				return err
-			},
-			verify: func(tt *testing.T) {
-				query := c.
-					Database("test").
-					Collection("namespaces").
-					FindOne(ctx, bson.M{"tenant_id": "existing-type-test"})
-				namespace := make(map[string]any)
-				require.NoError(tt, query.Decode(&namespace))
-
-				assert.Equal(tt, "existing", namespace["type"],
-					"Session type should remain unchanged when not empty")
-			},
-		},
-		{
-			description: "Multiple namespaces with empty type should be updated",
-			setup: func() error {
-				_, err := c.
-					Database("test").
-					Collection("namespaces").
-					InsertMany(ctx, []any{
-						bson.M{
-							"tenant_id": "multi-empty-1",
-							"type":      "",
-						},
-						bson.M{
-							"tenant_id": "multi-empty-2",
-							"type":      "",
-						},
-						bson.M{
-							"tenant_id": "multi-existing",
-							"type":      "existing",
-						},
-					})
-
-				return err
-			},
-			verify: func(tt *testing.T) {
-				query := c.
-					Database("test").
-					Collection("namespaces").
-					FindOne(ctx, bson.M{"tenant_id": "multi-empty-1"})
-				namespace1 := make(map[string]any)
-				require.NoError(tt, query.Decode(&namespace1))
-				assert.Equal(tt, "personal", namespace1["type"])
-
-				query = c.
-					Database("test").
-					Collection("namespaces").
-					FindOne(ctx, bson.M{"tenant_id": "multi-empty-2"})
-				namespace2 := make(map[string]any)
-				require.NoError(tt, query.Decode(&namespace2))
-				assert.Equal(tt, "personal", namespace2["type"])
-
-				query = c.
-					Database("test").
-					Collection("namespaces").
-					FindOne(ctx, bson.M{"tenant_id": "multi-existing"})
-				namespaceExisting := make(map[string]any)
-				require.NoError(tt, query.Decode(&namespaceExisting))
-				assert.Equal(tt, "existing", namespaceExisting["type"])
-			},
-		},
-		{
-			description: "No namespaces with empty type should handle gracefully",
-			setup: func() error {
-				return nil
-			},
-			verify: func(tt *testing.T) {
-				count, err := c.
-					Database("test").
-					Collection("namespaces").
-					CountDocuments(ctx, bson.M{"type": ""})
-				require.NoError(tt, err)
-				assert.Equal(tt, int64(0), count)
+				username, ok := user["username"]
+				require.Equal(tt, true, ok)
+				require.Equal(tt, nil, username)
 			},
 		},
 	}
@@ -143,6 +49,52 @@ func TestMigration98Up(t *testing.T) {
 
 			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[97])
 			require.NoError(tt, migrates.Up(ctx, migrate.AllAvailable))
+
+			tc.verify(tt)
+		})
+	}
+}
+
+func TestMigration98Down(t *testing.T) {
+	ctx := context.Background()
+
+	cases := []struct {
+		description string
+		setup       func() error
+		verify      func(tt *testing.T)
+	}{
+		{
+			description: "succeeds",
+			setup: func() error {
+				_, err := c.
+					Database("test").
+					Collection("users").
+					InsertOne(ctx, bson.M{"email": "john.doe@test.com", "username": nil})
+
+				return err
+			},
+			verify: func(tt *testing.T) {
+				user := make(map[string]any)
+				require.NoError(tt, c.Database("test").Collection("users").FindOne(ctx, bson.M{"email": "john.doe@test.com"}).Decode(&user))
+
+				username, ok := user["username"]
+				require.Equal(tt, true, ok)
+				require.Equal(tt, "", username)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			tt.Cleanup(func() {
+				assert.NoError(tt, srv.Reset())
+			})
+
+			require.NoError(tt, tc.setup())
+
+			migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[97])
+			require.NoError(tt, migrates.Up(ctx, migrate.AllAvailable))
+			require.NoError(tt, migrates.Down(ctx, migrate.AllAvailable))
 
 			tc.verify(tt)
 		})
