@@ -54,7 +54,7 @@
 
       <div>
         <div class="text-overline mt-3">
-          <h3>Tenat Id:</h3>
+          <h3>Tenant Id:</h3>
         </div>
         <div :data-test="device.tenant_id">
           <p>{{ device.tenant_id }}</p>
@@ -142,7 +142,7 @@ onMounted(async () => {
   }
 });
 
-const deviceIsEmpty = computed(() => devicesStore.getDevice && devicesStore.getDevice.name.length === 0);
+const deviceIsEmpty = computed(() => !device.value || Object.keys(device.value).length === 0);
 
 defineExpose({ device });
 </script>
