@@ -34,16 +34,6 @@ var migration91 = migrate.Migration{
 			return err
 		}
 
-		typeIndex := mongo.IndexModel{
-			Keys: bson.M{
-				"type": 1,
-			},
-		}
-
-		if _, err := db.Collection("sessions_events").Indexes().CreateOne(ctx, typeIndex); err != nil {
-			return err
-		}
-
 		cursor, err := db.Collection("sessions").Find(ctx, bson.M{"events.items": bson.M{"$exists": true}})
 		if err != nil {
 			return err
