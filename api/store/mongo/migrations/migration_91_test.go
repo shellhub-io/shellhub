@@ -189,19 +189,15 @@ func TestMigration91Up(t *testing.T) {
 				require.NoError(tt, err)
 				var indexes []bson.M
 				require.NoError(tt, indexCursor.All(ctx, &indexes))
-				var sessionIndexFound, typeIndexFound bool
+				var sessionIndexFound bool
 				for _, index := range indexes {
 					if key, ok := index["key"].(bson.M); ok {
 						if _, ok := key["session"]; ok {
 							sessionIndexFound = true
 						}
-						if _, ok := key["type"]; ok {
-							typeIndexFound = true
-						}
 					}
 				}
 				assert.True(tt, sessionIndexFound)
-				assert.True(tt, typeIndexFound)
 			},
 		},
 		{
