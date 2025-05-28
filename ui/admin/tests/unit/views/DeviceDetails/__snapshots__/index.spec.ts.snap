@@ -75,7 +75,7 @@ exports[`Device Details > Renders the component 1`] = `
     </div>
     <div>
       <div class="text-overline mt-3">
-        <h3>Tenat Id:</h3>
+        <h3>Tenant Id:</h3>
       </div>
       <div data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
         <p>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
