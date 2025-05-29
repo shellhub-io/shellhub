@@ -36,9 +36,14 @@ describe("User Export", () => {
   });
 
   it("Has default values set correctly", () => {
-    expect(wrapper.vm.gtNumberOfNamespaces).toBe(0);
-    expect(wrapper.vm.eqNumberOfNamespaces).toBe(0);
-    expect(wrapper.vm.dialog).toBe(false);
-    expect(wrapper.vm.selected).toBe("moreThan");
+    expect(wrapper.vm.numberOfNamespaces).toBe(0);
+    expect(wrapper.vm.showDialog).toBe(false);
+    expect(wrapper.vm.selectedFilter).toBe("moreThan");
+  });
+
+  it("Renders the dialog when showDialog is true", async () => {
+    wrapper.vm.showDialog = true;
+    await wrapper.vm.$nextTick();
+    expect(wrapper.findComponent({ name: "VDialog" }).exists()).toBe(true);
   });
 });
