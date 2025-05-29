@@ -92,6 +92,89 @@ func TestGetDevice(t *testing.T) {
 	}
 }
 
+func TestResolveDevice(t *testing.T) {
+	mock := new(mocks.Service)
+
+	type Expected struct {
+		device *models.Device
+		status int
+	}
+
+	cases := []struct {
+		description   string
+		hostname      string
+		uid           string
+		headers       map[string]string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "succeeds when resolver is uid",
+			hostname:    "",
+			uid:         "uid",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Role":       authorizer.RoleOwner.String(),
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				mock.
+					On("ResolveDevice", gomock.Anything, &requests.ResolveDevice{TenantID: "00000000-0000-4000-0000-000000000000", UID: "uid"}).
+					Return(&models.Device{}, nil).
+					Once()
+			},
+			expected: Expected{
+				device: &models.Device{},
+				status: http.StatusOK,
+			},
+		},
+		{
+			description: "succeeds when resolver is hostname",
+			hostname:    "hostname",
+			uid:         "",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Role":       authorizer.RoleOwner.String(),
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				mock.
+					On("ResolveDevice", gomock.Anything, &requests.ResolveDevice{TenantID: "00000000-0000-4000-0000-000000000000", Hostname: "hostname"}).
+					Return(&models.Device{}, nil).
+					Once()
+			},
+			expected: Expected{
+				device: &models.Device{},
+				status: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/devices/resolve?hostname=%s&uid=%s", tc.hostname, tc.uid), nil)
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
+			rec := httptest.NewRecorder()
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected.status, rec.Result().StatusCode)
+
+			var session *models.Device
+			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
+				assert.ErrorIs(t, io.EOF, err)
+			}
+
+			assert.Equal(t, tc.expected.device, session)
+		})
+	}
+}
+
 func TestDeleteDevice(t *testing.T) {
 	mock := new(mocks.Service)
 

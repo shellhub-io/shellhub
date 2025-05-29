@@ -13,6 +13,7 @@ import (
 const (
 	GetDeviceListURL      = "/devices"
 	GetDeviceURL          = "/devices/:uid"
+	ResolveDeviceURL      = "/devices/resolve"
 	DeleteDeviceURL       = "/devices/:uid"
 	RenameDeviceURL       = "/devices/:uid"
 	OfflineDeviceURL      = "/devices/:uid/offline"
@@ -109,6 +110,24 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 	}
 
 	device, err := h.service.GetDevice(c.Ctx(), models.UID(req.UID))
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, device)
+}
+
+func (h *Handler) ResolveDevice(c gateway.Context) error {
+	var req requests.ResolveDevice
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	device, err := h.service.ResolveDevice(c.Ctx(), &req)
 	if err != nil {
 		return err
 	}
