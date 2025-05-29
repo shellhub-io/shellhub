@@ -138,7 +138,7 @@ const { value: port, errorMessage: portError, resetField: resetPort } = useField
 );
 
 const { value: customTimeout, errorMessage: customTimeoutError, resetField: resetCustomTimeout } = useField<number>(
-  "port",
+  "customTimeout",
   yup
     .number()
     .integer()
