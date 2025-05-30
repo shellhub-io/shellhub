@@ -68,18 +68,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import { envVariables } from "@/envVariables";
 
 const store = useStore();
 const snackbar = useSnackbar();
 const model = defineModel({ default: false });
-const openVersion = ref(false);
+const openVersion = computed(() => envVariables.isCommunity);
 
 // Validation schema for namespace name
 const namespaceSchema = yup
