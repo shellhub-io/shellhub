@@ -29,6 +29,12 @@ type DeviceGet struct {
 	DeviceParam
 }
 
+type ResolveDevice struct {
+	TenantID string `header:"X-Tenant-ID" validate:"required"`
+	UID      string `query:"uid" validate:"omitempty"`
+	Hostname string `query:"hostname" validate:"omitempty"`
+}
+
 // DeviceDelete is the structure to represent the request data for delete device endpoint.
 type DeviceDelete struct {
 	DeviceParam

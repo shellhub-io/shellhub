@@ -586,6 +586,141 @@ func TestGetDevice(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
+func TestResolveDevice(t *testing.T) {
+	mock := new(storemock.Store)
+
+	ctx := context.TODO()
+
+	type Expected struct {
+		device *models.Device
+		err    error
+	}
+
+	cases := []struct {
+		description   string
+		requiredMocks func()
+		req           *requests.ResolveDevice
+		expected      Expected
+	}{
+		{
+			description: "fails when namespace does not exists",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
+			requiredMocks: func() {
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrNamespaceNotFound("00000000-0000-0000-0000-000000000000", errors.New("error", "", 0)),
+			},
+		},
+		{
+			description: "fails when cannot retrieve a device with the specified UID",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
+			requiredMocks: func() {
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace"}, nil).
+					Once()
+				mock.
+					On("DeviceGet", ctx, models.UID("uid")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrDeviceNotFound(models.UID(""), errors.New("error", "", 0)),
+			},
+		},
+		{
+			description: "succeeds to fetch a device using UID",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
+			requiredMocks: func() {
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace"}, nil).
+					Once()
+				mock.
+					On("DeviceGet", ctx, models.UID("uid")).
+					Return(&models.Device{UID: "uid"}, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Device{UID: "uid"},
+				nil,
+			},
+		},
+		{
+			description: "fails when cannot retrieve a device with the specified hostname",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: "hostname"},
+			requiredMocks: func() {
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace"}, nil).
+					Once()
+				mock.
+					On("DeviceLookup", ctx, "namespace", "hostname").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrDeviceNotFound(models.UID(""), errors.New("error", "", 0)),
+			},
+		},
+		{
+			description: "succeeds to fetch a device using hostname",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: "hostname"},
+			requiredMocks: func() {
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace"}, nil).
+					Once()
+				mock.
+					On("DeviceLookup", ctx, "namespace", "hostname").
+					Return(&models.Device{UID: "uid"}, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Device{UID: "uid"},
+				nil,
+			},
+		},
+		{
+			description: "succeeds to fetch a device using uid when both are provided",
+			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: "hostname"},
+			requiredMocks: func() {
+				mock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{Name: "namespace"}, nil).
+					Once()
+				mock.
+					On("DeviceGet", ctx, models.UID("uid")).
+					Return(&models.Device{UID: "uid"}, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Device{UID: "uid"},
+				nil,
+			},
+		},
+	}
+
+	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			device, err := s.ResolveDevice(ctx, tc.req)
+			assert.Equal(t, tc.expected, Expected{device, err})
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
 func TestDeleteDevice(t *testing.T) {
 	storeMock := new(storemock.Store)
 

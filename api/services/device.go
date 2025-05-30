@@ -18,6 +18,13 @@ const StatusAccepted = "accepted"
 type DeviceService interface {
 	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
+
+	// ResolveDevice attempts to resolve a device by searching for either its UID or hostname. When both are provided,
+	// UID takes precedence over hostname. The search is scoped to the namespace's tenant ID to limit results.
+	//
+	// It returns the resolved device and any error encountered.
+	ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error)
+
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
@@ -77,6 +84,28 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 	device, err := s.store.DeviceGet(ctx, uid)
 	if err != nil {
 		return nil, NewErrDeviceNotFound(uid, err)
+	}
+
+	return device, nil
+}
+
+func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error) {
+	n, err := s.store.NamespaceGet(ctx, req.TenantID)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	var device *models.Device
+	switch {
+	case req.UID != "":
+		device, err = s.store.DeviceGet(ctx, models.UID(req.UID))
+	case req.Hostname != "":
+		device, err = s.store.DeviceLookup(ctx, n.Name, req.Hostname)
+	}
+
+	if err != nil {
+		// TODO: refactor this error to accept a string instead of models.UID
+		return nil, NewErrDeviceNotFound(models.UID(""), err)
 	}
 
 	return device, nil
