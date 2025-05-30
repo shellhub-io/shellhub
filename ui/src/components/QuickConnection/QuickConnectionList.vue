@@ -39,12 +39,13 @@
                   <template v-slot:activator="{ props }">
                     <span
                       v-bind="props"
-                      @click="copyText(sshidAddress(item))"
-                      @keypress="copyText(sshidAddress(item))"
+                      @click.stop="copyText(sshidAddress(item))"
+                      @keypress.stop="copyText(sshidAddress(item))"
                       class="hover-text"
                       data-test="copy-id-button">
                       {{ sshidAddress(item) }}
                     </span>
+
                   </template>
                   <span>Copy ID</span>
                 </v-tooltip>
