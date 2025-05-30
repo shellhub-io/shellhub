@@ -1,51 +1,87 @@
 package main
 
 import (
-	"log"
+	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	log "github.com/sirupsen/logrus"
+)
+
+const (
+	// DefaultNginxRootDir is the default base directory for Nginx configuration files.
+	DefaultNginxRootDir = "/etc/nginx"
+	// DefaultNginxTemplateDir is the default directory where Nginx template files are stored.
+	DefaultNginxTemplateDir = "/templates"
+	// DefaultCertBotRootDir is the default directory where Certbot keeps
+	// generated certificates, keys, and related assets.
+	DefaultCertBotRootDir = "/etc/letsencrypt"
 )
 
 func main() {
-	config, err := loadGatewayConfig()
+	loglevel.UseEnvs()
+
+	config, err := LoadGatewayConfig()
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
+	log.WithField("config", config).Info("configuration loaded")
+
 	nginxController := &NginxController{
-		rootDir:       "/etc/nginx",
-		templatesDir:  "/templates",
-		gatewayConfig: config,
+		RootDir:       DefaultNginxRootDir,
+		TemplatesDir:  DefaultNginxTemplateDir,
+		GatewayConfig: config,
 	}
 
 	if config.Env != "development" && config.EnableAutoSSL {
-		certBot := &CertBot{
-			domain:          config.Domain,
-			rootDir:         "/etc/letsencrypt",
-			renewedCallback: nginxController.reload,
-		}
+		log.Info("auto ssl enabled")
+
+		certBot := NewCertBot(&Config{
+			Domain:          config.Domain,
+			RootDir:         DefaultCertBotRootDir,
+			RenewedCallback: nginxController.Reload,
+		})
 
 		if config.Tunnels {
+			log.Info("tunnels enabled")
+
 			domain := config.Domain
 
 			if config.TunnelsDomain != "" {
 				domain = config.TunnelsDomain
 			}
 
-			certBot.tunnels = &tunnels{
-				domain: domain,
-				token:  config.TunnelsDNSProviderToken,
+			log.WithFields(log.Fields{
+				"domain":   domain,
+				"provider": config.TunnelsDNSProvider,
+				"token":    half(config.TunnelsDNSProviderToken),
+			}).Info("tunnels info")
+
+			certBot.Config.Tunnels = &Tunnels{
+				Domain:   domain,
+				Provider: DigitalOceanDNSProvider,
+				Token:    config.TunnelsDNSProviderToken,
 			}
 		}
 
-		certBot.ensureCertificates()
-		certBot.executeRenewCertificates()
+		certBot.EnsureCertificates()
+		log.Info("certificates ensured")
 
-		go certBot.renewCertificates()
+		certBot.ExecuteRenewCertificates()
+		log.Info("renew executed")
+
+		go certBot.RenewCertificates()
 	}
 
 	if config.Env == "development" {
-		go nginxController.watchConfigTemplates()
+		log.Info("shellhub environment is developer")
+
+		go nginxController.WatchConfigTemplates()
 	}
 
-	nginxController.generateConfigs()
-	nginxController.start()
+	log.Info("generating configurations")
+
+	nginxController.GenerateConfigs()
+	log.Info("configuration generated")
+
+	log.Info("nginx controller running")
+	nginxController.Start()
 }
