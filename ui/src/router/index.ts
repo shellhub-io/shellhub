@@ -310,7 +310,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: ConnectorDetails,
   },
   {
-    path: "/devices/:id",
+    path: "/devices/:identifier",
     name: "DeviceDetails",
     component: DeviceDetails,
   },

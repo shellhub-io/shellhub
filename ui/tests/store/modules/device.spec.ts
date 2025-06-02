@@ -118,10 +118,20 @@ describe("Devices store", () => {
     const uid = "a582b47a42d";
     const device = { uid, name: "Device 1" };
 
-    // Mock the API call
-    mockDevices.onGet(`http://localhost:3000/api/devices/${uid}`).reply(200, device);
+    mockDevices.onGet(`http://localhost:3000/api/devices/resolve?uid=${uid}`).reply(200, device);
 
-    await store.dispatch("devices/get", uid);
+    await store.dispatch("devices/get", { uid });
+
+    expect(store.getters["devices/get"]).toEqual(device);
+  });
+
+  it("Gets a device by its name and updates state", async () => {
+    const name = "Device1";
+    const device = { uid: "a582b47a42d", name };
+
+    mockDevices.onGet(`http://localhost:3000/api/devices/resolve?hostname=${name}`).reply(200, device);
+
+    await store.dispatch("devices/get", { hostname: name });
 
     expect(store.getters["devices/get"]).toEqual(device);
   });

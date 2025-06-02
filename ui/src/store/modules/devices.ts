@@ -1,5 +1,4 @@
 import { Module } from "vuex";
-
 import * as apiDevice from "../api/devices";
 import * as apiBilling from "../api/billing";
 import { IDevice } from "@/interfaces/IDevice";
@@ -23,7 +22,7 @@ export interface DevicesState {
   numberdevicesForUserToChoose: number;
   devicesSelected: Array<IDevice>;
   deviceName: string;
-  }
+}
 
 export const devices: Module<DevicesState, State> = {
   namespaced: true,
@@ -185,9 +184,10 @@ export const devices: Module<DevicesState, State> = {
       context.commit("renameDevice", data);
     },
 
-    get: async (context, uid) => {
+    get: async (context, identifiers: { hostname?: string, uid?: string }) => {
       try {
-        const res = await apiDevice.getDevice(uid);
+        const { hostname, uid } = identifiers;
+        const res = await apiDevice.resolveDevice(hostname, uid);
         context.commit("setDevice", res.data);
       } catch (error) {
         context.commit("clearObjectDevice");
