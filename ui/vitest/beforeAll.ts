@@ -1,5 +1,5 @@
 import MockAdapter from "axios-mock-adapter";
-import { beforeAll } from "vitest";
+import { beforeAll, vi } from "vitest";
 import ResizeObserver from "resize-observer-polyfill";
 import { systemApi } from "../src/api/http";
 
@@ -18,6 +18,8 @@ const mockedSystemInfo = {
 
 const systemApiMock = new MockAdapter(systemApi.getAxios());
 systemApiMock.onGet("http://localhost:3000/info").reply(200, mockedSystemInfo);
+
+vi.stubGlobal("visualViewport", new EventTarget());
 
 global.CSS = { supports: () => false } as never;
 global.ResizeObserver = ResizeObserver;

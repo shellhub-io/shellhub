@@ -700,7 +700,7 @@ exports[`License > Renders the component 1`] = `
             </div>
           </div>
           <transition-stub name="expand-x-transition" appear="false" persisted="false" css="true">
-            <div class="v-field__clearable" style="display: none;"><i class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Clear Select license file"></i></div>
+            <div class="v-field__clearable" style="display: none;"><i class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="-1" aria-label="Clear Select license file"></i></div>
           </transition-stub>
           <div class="v-field__append-inner">
             <!---->
