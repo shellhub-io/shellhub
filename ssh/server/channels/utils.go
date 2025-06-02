@@ -13,17 +13,14 @@ import (
 )
 
 type Recorder struct {
-	// channels is the source of data read, recorded and redirected to client.
-	channel gossh.Channel
 	// session is the session between Agent and Client.
 	session *session.Session
 	// seat is the current identifier of session's.
 	seat int
 }
 
-func NewRecorder(channel gossh.Channel, session *session.Session, seat int) (io.WriteCloser, error) {
+func NewRecorder(session *session.Session, seat int) (io.Writer, error) {
 	return &Recorder{
-		channel: channel,
 		session: session,
 		seat:    seat,
 	}, nil
@@ -33,22 +30,12 @@ func NewRecorder(channel gossh.Channel, session *session.Session, seat int) (io.
 const PtyOutputEventType = "pty-output"
 
 func (c *Recorder) Write(output []byte) (int, error) {
-	read, err := c.channel.Write(output)
-	if err != nil {
-		return read, err
-	}
-
 	// NOTE: Writes the event into the event stream to be processed and send to target endpoint.
 	c.session.Event(PtyOutputEventType, &models.SSHPtyOutput{
 		Output: string(output),
 	}, c.seat)
 
-	return read, nil
-}
-
-// Close closes the internal channel.
-func (c *Recorder) Close() error {
-	return c.channel.CloseWrite()
+	return len(output), nil // len output
 }
 
 // pipe function pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are
@@ -66,41 +53,27 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 
 	go func() {
 		defer wg.Done()
+		defer client.CloseWrite()
 
+		writers := io.MultiWriter(client)
 		if envs.IsEnterprise() || envs.IsCloud() {
-			recorder, err := NewRecorder(client, sess, seat)
+			recorder, err := NewRecorder(sess, seat)
 			if err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 					Warning("failed to connect to session record endpoint")
-
-				goto normal
 			}
-
-			defer recorder.Close() //nolint:errcheck
 
 			if err := sess.Recorded(); err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 					Warning("failed to set the session as recorded")
-
-				goto normal
 			}
 
-			if _, err := io.Copy(recorder, a); err != nil && err != io.EOF {
-				log.WithError(err).Error("failed on coping data from client to agent")
-			}
-
-			return
+			writers = io.MultiWriter(client, recorder)
 		}
 
-		// NOTE: "normal" labels indicate the default way of copying data between clients and the agent without recording.
-		// Their idea was, if something goes wrong with the recording flow, the session will continue, even without the
-		// recording.
-	normal:
-		defer client.CloseWrite() //nolint:errcheck
-
-		if _, err := io.Copy(client, a); err != nil && err != io.EOF {
+		if _, err := io.Copy(writers, a); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
 		}
 
