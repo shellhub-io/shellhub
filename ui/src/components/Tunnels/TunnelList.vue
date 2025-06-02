@@ -66,21 +66,22 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
 import moment from "moment";
 import { useStore } from "@/store";
 import TunnelDelete from "./TunnelDelete.vue";
 import { envVariables } from "@/envVariables";
 import { ITunnel } from "@/interfaces/ITunnel";
 
+const { deviceUid } = defineProps<{
+  deviceUid: string;
+}>();
+
 const store = useStore();
-const route = useRoute();
 const tunnelList = computed<Array<ITunnel>>(() => store.getters["tunnels/listTunnels"]);
-const deviceId = computed(() => route.params.id);
 const urlProtocol = ref(window.location.protocol);
 
 const getTunnels = async () => {
-  await store.dispatch("tunnels/get", deviceId.value);
+  await store.dispatch("tunnels/get", deviceUid);
 };
 
 onMounted(() => {

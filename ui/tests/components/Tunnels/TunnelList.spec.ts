@@ -142,6 +142,9 @@ describe("Tunnel List", () => {
           errorHandler: () => { /* ignore global error handler */ },
         },
       },
+      props: {
+        deviceUid: "a582b47a42d",
+      },
     });
   });
 
@@ -178,7 +181,8 @@ describe("Tunnel List", () => {
   });
 
   it("Renders empty state if no tunnels", async () => {
-    await mockTunnels.onGet("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, []);
+    await wrapper.setProps({ deviceUid: "fake-uid" });
+    mockTunnels.onGet("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, []);
     await wrapper.vm.getTunnels();
     await nextTick();
 

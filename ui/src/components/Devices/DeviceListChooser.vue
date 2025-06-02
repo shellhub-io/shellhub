@@ -28,7 +28,7 @@
           </td>
           <td class="text-center">
             <router-link
-              :to="{ name: 'DeviceDetails', params: { id: item.uid } }"
+              :to="{ name: 'DeviceDetails', params: { identifier: item.uid } }"
             >
               {{ item.name }}
             </router-link>

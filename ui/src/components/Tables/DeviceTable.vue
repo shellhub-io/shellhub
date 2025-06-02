@@ -173,7 +173,7 @@
       >
         <td class="text-center">
           <router-link
-            :to="{ name: 'DeviceDetails', params: { id: item.uid } }"
+            :to="{ name: 'DeviceDetails', params: { identifier: item.uid } }"
             :data-test="item.uid + '-field'"
           >
             {{ item.name }}
@@ -422,7 +422,7 @@ watch(itemsPerPage, async () => {
 });
 
 const redirectToDevice = (deviceId: string) => {
-  router.push({ name: "DeviceDetails", params: { id: deviceId } });
+  router.push({ name: "DeviceDetails", params: { identifier: deviceId } });
 };
 
 const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;

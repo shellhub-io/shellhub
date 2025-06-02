@@ -2614,6 +2614,19 @@ export interface ResendEmailRequest {
 /**
  * 
  * @export
+ * @interface ResolveDevice404Response
+ */
+export interface ResolveDevice404Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof ResolveDevice404Response
+     */
+    'message'?: string;
+}
+/**
+ * 
+ * @export
  * @interface RuleAddTagRequest
  */
 export interface RuleAddTagRequest {
@@ -8515,6 +8528,53 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Retrieve a device using flexible resolution methods. The device can be identified by either its unique identifier (UID) or hostname. The endpoint automatically scopes results to the authenticated tenant\'s namespace for security isolation.  When both UID and hostname are provided, UID takes precedence over hostname. 
+         * @summary Resolve Device
+         * @param {string} [hostname] The UID of the device
+         * @param {string} [uid] The hostname of the device
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resolveDevice: async (hostname?: string, uid?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/devices/resolve`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (hostname !== undefined) {
+                localVarQueryParameter['hostname'] = hostname;
+            }
+
+            if (uid !== undefined) {
+                localVarQueryParameter['uid'] = uid;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update device\'s data.
          * @summary Update device
          * @param {string} uid Device\&#39;s UID
@@ -8845,6 +8905,18 @@ export const DevicesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Retrieve a device using flexible resolution methods. The device can be identified by either its unique identifier (UID) or hostname. The endpoint automatically scopes results to the authenticated tenant\'s namespace for security isolation.  When both UID and hostname are provided, UID takes precedence over hostname. 
+         * @summary Resolve Device
+         * @param {string} [hostname] The UID of the device
+         * @param {string} [uid] The hostname of the device
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async resolveDevice(hostname?: string, uid?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Device>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.resolveDevice(hostname, uid, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Update device\'s data.
          * @summary Update device
          * @param {string} uid Device\&#39;s UID
@@ -9032,6 +9104,17 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          */
         listTunnels(uid: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Tunnel>> {
             return localVarFp.listTunnels(uid, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieve a device using flexible resolution methods. The device can be identified by either its unique identifier (UID) or hostname. The endpoint automatically scopes results to the authenticated tenant\'s namespace for security isolation.  When both UID and hostname are provided, UID takes precedence over hostname. 
+         * @summary Resolve Device
+         * @param {string} [hostname] The UID of the device
+         * @param {string} [uid] The hostname of the device
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resolveDevice(hostname?: string, uid?: string, options?: any): AxiosPromise<Device> {
+            return localVarFp.resolveDevice(hostname, uid, options).then((request) => request(axios, basePath));
         },
         /**
          * Update device\'s data.
@@ -9240,6 +9323,19 @@ export class DevicesApi extends BaseAPI {
      */
     public listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig) {
         return DevicesApiFp(this.configuration).listTunnels(uid, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieve a device using flexible resolution methods. The device can be identified by either its unique identifier (UID) or hostname. The endpoint automatically scopes results to the authenticated tenant\'s namespace for security isolation.  When both UID and hostname are provided, UID takes precedence over hostname. 
+     * @summary Resolve Device
+     * @param {string} [hostname] The UID of the device
+     * @param {string} [uid] The hostname of the device
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DevicesApi
+     */
+    public resolveDevice(hostname?: string, uid?: string, options?: AxiosRequestConfig) {
+        return DevicesApiFp(this.configuration).resolveDevice(hostname, uid, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

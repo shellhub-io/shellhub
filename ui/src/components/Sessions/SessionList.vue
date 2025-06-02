@@ -255,7 +255,7 @@ const redirectToSession = (sessionUid: string) => {
 };
 
 const redirectDevice = (deviceUid: string) => {
-  router.push({ name: "DeviceDetails", params: { id: deviceUid } });
+  router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
 };
 
 const refreshSessions = async () => {

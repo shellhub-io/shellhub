@@ -121,7 +121,7 @@
       </div>
       <div v-if="envVariables.hasTunnels && envVariables.isEnterprise">
         <div class="text-overline mt-3" data-test="tunnel-list">Tunnel List:</div>
-        <TunnelList />
+        <TunnelList :deviceUid />
       </div>
 
     </v-card-text>
@@ -149,15 +149,19 @@ import { envVariables } from "@/envVariables";
 import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";
 import useSnackbar from "@/helpers/snackbar";
 
+type DeviceResolver = "uid" | "hostname";
+
 const store = useStore();
 const route = useRoute();
 const snackbar = useSnackbar();
-const deviceId = computed(() => route.params.id);
+const { identifier } = route.params;
+const resolver = route.query.resolver as DeviceResolver || "uid";
 const device = computed(() => store.getters["devices/get"]);
+const deviceUid = computed(() => device.value.uid);
 
 onMounted(async () => {
   try {
-    await store.dispatch("devices/get", deviceId.value);
+    await store.dispatch("devices/get", { [resolver]: identifier });
   } catch (error: unknown) {
     snackbar.showError("There was an error loading the device details.");
     handleError(error);
@@ -170,14 +174,14 @@ const deviceIsEmpty = computed(
 );
 
 const getTunnels = async () => {
-  await store.dispatch("tunnels/get", deviceId.value);
+  await store.dispatch("tunnels/get", deviceUid.value);
 };
 
 const refreshUsers = async () => {
   try {
-    await store.dispatch("devices/get", deviceId.value);
+    await store.dispatch("devices/get", deviceUid.value);
     if (envVariables.isEnterprise) {
-      await store.dispatch("tunnels/get", deviceId.value);
+      await store.dispatch("tunnels/get", deviceUid.value);
     }
   } catch (error: unknown) {
     snackbar.showError("There was an error loading the device details.");
