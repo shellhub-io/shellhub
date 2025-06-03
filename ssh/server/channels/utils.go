@@ -40,7 +40,7 @@ func (c *Recorder) Write(output []byte) (int, error) {
 
 // pipe function pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are
 // Cloud or Enterprise.
-func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int) {
+func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int, done chan bool) {
 	defer log.
 		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 		Trace("data pipe between client and agent has done")
@@ -54,6 +54,9 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 	go func() {
 		defer wg.Done()
 		defer client.CloseWrite()
+		defer func() {
+			done <- true
+		}()
 
 		writers := io.MultiWriter(client)
 		if envs.IsEnterprise() || envs.IsCloud() {
