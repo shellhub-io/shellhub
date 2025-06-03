@@ -410,6 +410,12 @@ func (s *Session) Recorded() error {
 		return errors.New("record is disable for this namespace")
 	}
 
+	// NOTE: For now, [s.Pty] helps to indicate if the session is recorded.
+	// TODO: After seats refactoring, [pty-req] event on session will indicate if it was recorded.
+	if s.Pty.Columns == 0 && s.Pty.Rows == 0 {
+		return errors.New("session won't be recorded because there is no pty")
+	}
+
 	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
 		Recorded: &value,
 	})

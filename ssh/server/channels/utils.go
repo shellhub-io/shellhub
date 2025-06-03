@@ -58,7 +58,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 			done <- true
 		}()
 
-		writers := io.MultiWriter(client)
+		writers := []io.Writer{client}
 		if envs.IsEnterprise() || envs.IsCloud() {
 			recorder, err := NewRecorder(sess, seat)
 			if err != nil {
@@ -71,12 +71,18 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 					Warning("failed to set the session as recorded")
+
+				// NOTE: When we fail to update the session status to record, we don't send session's chunks to storage.
+				recorder = nil
 			}
 
-			writers = io.MultiWriter(client, recorder)
+			if recorder != nil {
+				writers = append(writers, recorder)
+			}
 		}
 
-		if _, err := io.Copy(writers, a); err != nil && err != io.EOF {
+		multi := io.MultiWriter(writers...)
+		if _, err := io.Copy(multi, a); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
 		}
 
