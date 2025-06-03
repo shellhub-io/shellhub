@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/sirupsen/logrus"
 )
 
 // sessionAPI defines methods for interacting with session-related functionality.
@@ -140,6 +142,15 @@ func (c *client) SaveSession(uid string, seat int) error {
 	switch {
 	case res.StatusCode() == 404:
 		return ErrNotFound
+	case res.StatusCode() == http.StatusNotAcceptable:
+		// NOTE: [http.StatusNotAcceptable] indicates that session's seat shouldn't be save, but also shouldn't
+		// represent an error.
+		logrus.WithFields(logrus.Fields{
+			"uid":  uid,
+			"seat": fmt.Sprintf("%d", seat),
+		}).Debug("save session not acceptable")
+
+		return nil
 	case res.StatusCode() != 200:
 		return errors.New("failed to save the Asciinema due status code")
 	}
