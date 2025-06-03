@@ -1,4 +1,4 @@
-package routes
+package v0
 
 import (
 	"net/http"
@@ -164,8 +164,11 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}
 
-	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
 	router.Pre(echoMiddleware.Rewrite(map[string]string{
+		// NOTE: Rewrites request to /api/v0 and /internal/v0 to uri without version.
+		"/api/v0/*":      "/api/$1",
+		"/internal/v0/*": "/internal/$1",
+		// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
 		"/api/containers":   "/api/devices?connector=true",
 		"/api/containers?*": "/api/devices?$1&connector=true",
 		"/api/containers/*": "/api/devices/$1",

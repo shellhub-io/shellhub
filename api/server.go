@@ -6,7 +6,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/api/routes"
+	"github.com/shellhub-io/shellhub/api/routes/v0"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
@@ -97,7 +97,7 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)
-	s.router = routes.NewRouter(service, routerOptions...)
+	s.router = v0.NewRouter(service, routerOptions...)
 
 	s.worker = asynq.NewServer(
 		s.env.RedisURI,
@@ -167,8 +167,8 @@ func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) 
 }
 
 // routerOptions returns configuration options for the HTTP router.
-func (s *Server) routerOptions() ([]routes.Option, error) {
-	opts := []routes.Option{}
+func (s *Server) routerOptions() ([]v0.Option, error) {
+	opts := []v0.Option{}
 
 	if s.env.SentryDSN != "" {
 		log.Info("Initializing Sentry error reporting")
@@ -187,7 +187,7 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 
 		log.Info("Sentry error reporting initialized successfully")
 
-		opts = append(opts, routes.WithReporter(reporter))
+		opts = append(opts, v0.WithReporter(reporter))
 	}
 
 	return opts, nil

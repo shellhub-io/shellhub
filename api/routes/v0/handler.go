@@ -1,4 +1,4 @@
-package routes
+package v0
 
 import (
 	svc "github.com/shellhub-io/shellhub/api/services"
