@@ -6,6 +6,7 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 import { store, key } from "@/store";
 import Player from "@/components/Sessions/Player.vue";
+import formatPlaybackTime from "@/utils/playerPlayback";
 
 vi.mock("asciinema-player", () => ({
   create: vi.fn().mockReturnValue({
@@ -124,10 +125,13 @@ describe("Asciinema Player", () => {
   });
 
   it("Formats time correctly", () => {
-    expect(wrapper.vm.formatTime(3661)).toBe("01:01:01"); // hh:mm:ss if session is longer than 1 hour
-    expect(wrapper.vm.formatTime(61)).toBe("01:01"); // mm:ss otherwise
-    expect(wrapper.vm.formatTime(59)).toBe("00:59"); // Less than 1 minute
-    expect(wrapper.vm.formatTime(0)).toBe("00:00"); // Zero time
+    expect(formatPlaybackTime(3661)).toBe("1:01:01"); // hh:mm:ss if session is longer than 1 hour
+    expect(formatPlaybackTime(61)).toBe("01:01"); // mm:ss otherwise
+    expect(formatPlaybackTime(59)).toBe("00:59"); // Less than 1 minute
+    expect(formatPlaybackTime(0)).toBe("00:00"); // Zero time
+    expect(formatPlaybackTime(90061)).toBe("25:01:01");
+    expect(formatPlaybackTime(172800)).toBe("48:00:00");
+    expect(formatPlaybackTime(363599)).toBe("100:59:59");
   });
 
   it("Updates current time when slider is moved", async () => {

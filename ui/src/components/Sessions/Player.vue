@@ -92,6 +92,7 @@ import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useDisplay } from "vuetify";
 import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
+import formatPlaybackTime from "@/utils/playerPlayback";
 
 const { logs } = defineProps<{
   logs: string | null;
@@ -110,9 +111,8 @@ const isPlaying = ref(true);
 const sessionEnded = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
-const formatTime = (time: number) => new Date(time * 1000).toISOString().slice(time >= 3600 ? 11 : 14, 19);
-const formattedCurrentTime = computed(() => formatTime(currentTime.value));
-const formattedDuration = computed(() => formatTime(duration.value));
+const formattedCurrentTime = computed(() => formatPlaybackTime(currentTime.value));
+const formattedDuration = computed(() => formatPlaybackTime(duration.value));
 const timeUpdaterId = ref<number>();
 const currentSpeed = ref(1);
 
@@ -211,7 +211,7 @@ onUnmounted(() => {
 
 watchEffect(() => !showDialog.value && changeFocusToPlayer());
 
-defineExpose({ player, currentSpeed, currentTime, isPlaying, showDialog, formatTime, pause });
+defineExpose({ player, currentSpeed, currentTime, isPlaying, showDialog, pause });
 </script>
 
 <style lang="scss" scoped>
