@@ -110,6 +110,35 @@ func (c *Client) Close() error {
 	return nil
 }
 
+type Events struct {
+	mu   sync.Mutex
+	conn *websocket.Conn
+}
+
+func (e *Events) WriteJSON(v any) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	return e.conn.WriteJSON(v)
+}
+
+func (e *Events) Close() error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	err := e.conn.Close()
+	e.conn = nil
+
+	return err
+}
+
+func (e *Events) Closed() bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	return e.conn == nil
+}
+
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
 type Session struct {
 	// UID is the session's UID.
@@ -123,7 +152,7 @@ type Session struct {
 	api    internalclient.Client
 	tunnel *httptunnel.Tunnel
 	// Events is a connection to the endpoint to save session's events.
-	Events *websocket.Conn
+	Events *Events
 
 	once *sync.Once
 
@@ -227,7 +256,10 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		UID:    ctx.SessionID(),
 		api:    api,
 		tunnel: tunnel,
-		Events: events,
+		Events: &Events{
+			mu:   sync.Mutex{},
+			conn: events,
+		},
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -548,6 +580,10 @@ func (s *Session) NewSeat() (int, error) {
 
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
+	if s.Events.Closed() {
+		return
+	}
+
 	s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
 		Session:   s.UID,
 		Type:      models.SessionEventType(t),
@@ -558,6 +594,10 @@ func (s *Session) Event(t string, data any, seat int) {
 }
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
+	if sess.Events.Closed() {
+		return
+	}
+
 	d := new(D)
 	if err := gossh.Unmarshal(data, d); err != nil {
 		return
