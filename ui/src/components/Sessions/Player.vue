@@ -118,20 +118,20 @@ const currentSpeed = ref(1);
 
 const changeFocusToPlayer = () => { playerWrapper.value?.focus(); };
 
-const getCurrentTime = () => { currentTime.value = player.value.getCurrentTime(); };
+const getCurrentTime = async () => { currentTime.value = await player.value.getCurrentTime(); };
 
-const getDuration = () => { duration.value = player.value.getDuration(); };
+const getDuration = async () => { duration.value = await player.value.getDuration(); };
 
-const changePlaybackTime = (value: number) => {
+const changePlaybackTime = async (value: number) => {
   player.value.seek(value);
-  getCurrentTime();
+  await getCurrentTime();
 };
 
 const clearCurrentTimeUpdater = () => {
   clearInterval(timeUpdaterId.value);
 };
 
-const startCurrentTimeUpdater = () => {
+const startCurrentTimeUpdater = async () => {
   clearCurrentTimeUpdater(); // clear to prevent multiple intervals when replaying
   timeUpdaterId.value = window.setInterval(getCurrentTime, 100);
 };
@@ -163,11 +163,11 @@ const createPlayer = (startAt = 0) => {
 };
 
 const setPlayerEventListeners = () => {
-  player.value.addEventListener("playing", () => {
+  player.value.addEventListener("playing", async () => {
     sessionEnded.value = false;
-    getCurrentTime();
+    await getCurrentTime();
     startCurrentTimeUpdater();
-    getDuration();
+    await getDuration();
   });
 
   player.value.addEventListener("ended", () => {
@@ -176,13 +176,13 @@ const setPlayerEventListeners = () => {
     clearCurrentTimeUpdater();
   });
 
-  useEventListener(containerDiv.value, "keydown", (event: KeyboardEvent) => {
-    getCurrentTime();
+  useEventListener(containerDiv.value, "keydown", async (event: KeyboardEvent) => {
+    await getCurrentTime();
     if (event.key === "Escape") emit("close");
   });
 
-  useEventListener(containerDiv.value, "keyup", () => {
-    getCurrentTime();
+  useEventListener(containerDiv.value, "keyup", async () => {
+    await getCurrentTime();
   });
 };
 
