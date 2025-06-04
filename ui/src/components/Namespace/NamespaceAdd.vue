@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="model" @click:outside="close" :max-width="dialogMaxWidth">
     <v-card data-test="namespaceAdd-card" class="bg-v-theme-surface rounded" rounded>
-      <template v-if="!openVersion">
+      <template v-if="!isCommunityVersion">
         <v-card-title class="bg-primary d-flex justify-space-between align-center text-h5 pa-4">
           New Namespace
           <v-btn
@@ -68,18 +68,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import { envVariables } from "@/envVariables";
 
 const store = useStore();
 const snackbar = useSnackbar();
 const model = defineModel({ default: false });
-const openVersion = ref(false);
+const isCommunityVersion = computed(() => envVariables.isCommunity);
 
 // Validation schema for namespace name
 const namespaceSchema = yup
@@ -98,7 +99,7 @@ const {
   meta: fieldMeta,
 } = useField<string>("namespaceName", namespaceSchema, { initialValue: "" });
 
-const dialogMaxWidth = computed(() => (!openVersion.value ? "500" : "650"));
+const dialogMaxWidth = computed(() => (!isCommunityVersion.value ? "500" : "650"));
 
 // Close the dialog and reset the form
 const close = () => {
