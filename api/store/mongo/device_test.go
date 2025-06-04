@@ -541,6 +541,122 @@ func TestDeviceListByUsage(t *testing.T) {
 	}
 }
 
+func TestDeviceResolve(t *testing.T) {
+	type Expected struct {
+		dev *models.Device
+		err error
+	}
+
+	cases := []struct {
+		description string
+		tenantID    string
+		resolver    store.DeviceResolver
+		value       string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "fails when device not found by UID",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.DeviceUIDResolver,
+			value:       "nonexistent",
+			fixtures:    []string{fixtureDevices},
+			expected: Expected{
+				dev: nil,
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "fails when tenantID is incorrect",
+			tenantID:    "invalid-tenant",
+			resolver:    store.DeviceUIDResolver,
+			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			fixtures:    []string{fixtureDevices},
+			expected: Expected{
+				dev: nil,
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "fails when namespace does not exist",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.DeviceUIDResolver,
+			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			fixtures:    []string{fixtureDevices},
+			expected: Expected{
+				dev: nil,
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving device by UID",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.DeviceUIDResolver,
+			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			expected: Expected{
+				dev: &models.Device{
+					CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+					Name:            "device-3",
+					Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+					Info:            nil,
+					PublicKey:       "",
+					TenantID:        "00000000-0000-4000-0000-000000000000",
+					Online:          false,
+					Status:          "accepted",
+					RemoteAddr:      "",
+					Position:        nil,
+					Tags:            []string{"tag-1"},
+					Acceptable:      false,
+					Namespace:       "namespace-1",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds resolving device by hostname",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.DeviceHostnameResolver,
+			value:       "device-3",
+			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			expected: Expected{
+				dev: &models.Device{
+					CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+					Name:            "device-3",
+					Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+					Info:            nil,
+					PublicKey:       "",
+					TenantID:        "00000000-0000-4000-0000-000000000000",
+					Online:          false,
+					Status:          "accepted",
+					RemoteAddr:      "",
+					Position:        nil,
+					Tags:            []string{"tag-1"},
+					Acceptable:      false,
+					Namespace:       "namespace-1",
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { assert.NoError(t, srv.Reset()) })
+
+			dev, err := s.DeviceResolve(context.Background(), tc.tenantID, tc.resolver, tc.value)
+			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
+		})
+	}
+}
+
 func TestDeviceGet(t *testing.T) {
 	type Expected struct {
 		dev *models.Device

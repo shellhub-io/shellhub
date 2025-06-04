@@ -98,9 +98,9 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 	var device *models.Device
 	switch {
 	case req.UID != "":
-		device, err = s.store.DeviceGet(ctx, models.UID(req.UID))
+		device, err = s.store.DeviceResolve(ctx, n.TenantID, store.DeviceUIDResolver, req.UID)
 	case req.Hostname != "":
-		device, err = s.store.DeviceLookup(ctx, n.Name, req.Hostname)
+		device, err = s.store.DeviceResolve(ctx, n.TenantID, store.DeviceHostnameResolver, req.Hostname)
 	}
 
 	if err != nil {
