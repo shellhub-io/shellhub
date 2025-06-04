@@ -262,7 +262,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 					switch req.Type {
 					case ShellRequestType:
-						if sess.Pty.Term != "" {
+						if seat, ok := sess.Seats.Get(seat); ok && seat.HasPty {
 							if err := sess.Announce(client.Channel); err != nil {
 								logger.WithError(err).Warn("failed to get the namespace announcement")
 							}
@@ -280,7 +280,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							reject(nil, "failed to recover the session dimensions")
 						}
 
-						sess.Pty = pty
+						sess.Seats.SetPty(seat, true)
 
 						sess.Event(req.Type, pty, seat) //nolint:errcheck
 					case WindowChangeRequestType:
@@ -289,9 +289,6 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
 							reject(nil, "failed to recover the session dimensions")
 						}
-
-						sess.Pty.Columns = dimensions.Columns
-						sess.Pty.Rows = dimensions.Rows
 
 						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
 					case AuthRequestOpenSSHRequest:
