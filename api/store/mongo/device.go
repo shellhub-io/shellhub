@@ -176,6 +176,69 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	return devices, count, FromMongoError(err)
 }
 
+func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string) (*models.Device, error) {
+	query := make([]bson.M, 0)
+	switch resolver {
+	case store.DeviceUIDResolver:
+		query = append(query, bson.M{"$match": bson.M{"uid": value}})
+	case store.DeviceHostnameResolver:
+		query = append(query, bson.M{"$match": bson.M{"name": value}})
+	}
+
+	query = append(query, []bson.M{
+		{
+			"$match": bson.M{"tenant_id": tenantID},
+		},
+		{
+			"$addFields": bson.M{
+				"online": bson.M{
+					"$cond": bson.M{
+						"if": bson.M{
+							"$and": bson.A{
+								bson.M{"$eq": bson.A{"$disconnected_at", nil}},
+								bson.M{"$gt": bson.A{"$last_seen", primitive.NewDateTimeFromTime(time.Now().Add(-2 * time.Minute))}},
+							},
+						},
+						"then": true,
+						"else": false,
+					},
+				},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "namespaces",
+				"localField":   "tenant_id",
+				"foreignField": "tenant_id",
+				"as":           "namespace",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"namespace": "$namespace.name",
+			},
+		},
+		{
+			"$unwind": "$namespace",
+		},
+	}...)
+
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+
+	device := new(models.Device)
+	if err := cursor.Decode(&device); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return device, nil
+}
+
 func (s *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
 	query := []bson.M{
 		{

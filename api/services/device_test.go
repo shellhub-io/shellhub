@@ -622,10 +622,10 @@ func TestResolveDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{Name: "namespace"}, nil).
+					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				mock.
-					On("DeviceGet", ctx, models.UID("uid")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceUIDResolver, "uid").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -640,10 +640,10 @@ func TestResolveDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{Name: "namespace"}, nil).
+					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				mock.
-					On("DeviceGet", ctx, models.UID("uid")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceUIDResolver, "uid").
 					Return(&models.Device{UID: "uid"}, nil).
 					Once()
 			},
@@ -658,10 +658,10 @@ func TestResolveDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{Name: "namespace"}, nil).
+					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				mock.
-					On("DeviceLookup", ctx, "namespace", "hostname").
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceHostnameResolver, "hostname").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -676,10 +676,10 @@ func TestResolveDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{Name: "namespace"}, nil).
+					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				mock.
-					On("DeviceLookup", ctx, "namespace", "hostname").
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceHostnameResolver, "hostname").
 					Return(&models.Device{UID: "uid"}, nil).
 					Once()
 			},
@@ -694,10 +694,10 @@ func TestResolveDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.
 					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{Name: "namespace"}, nil).
+					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				mock.
-					On("DeviceGet", ctx, models.UID("uid")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceUIDResolver, "uid").
 					Return(&models.Device{UID: "uid"}, nil).
 					Once()
 			},
