@@ -18,22 +18,12 @@
       <template v-slot:rows>
         <tr v-for="(session, index) in sessions" :key="index">
           <td class="text-center">
-            <v-tooltip location="bottom" :disabled="hasAuthorizationPlay()">
-              <template v-slot:activator="{ props }">
-                <div v-bind="props">
-                  <SessionPlay
-                    :disabled="!session.authenticated || !session.recorded"
-                    :uid="session.uid"
-                    :device="session.device"
-                    :notHasAuthorization="!hasAuthorizationPlay()"
-                    :recorded="session.authenticated && session.recorded"
-                    @update="refreshSessions"
-                    data-test="sessionPlay-component"
-                  />
-                </div>
-              </template>
-              <span> You don't have this kind of authorization. </span>
-            </v-tooltip>
+            <SessionPlay
+              :authenticated="session.authenticated"
+              :uid="session.uid"
+              :recorded="session.recorded"
+              data-test="session-play-component"
+            />
           </td>
 
           <td class="text-center" v-if="session.device">
@@ -269,15 +259,6 @@ const hasAuthorizationRemoveRecord = () => {
       authorizer.role[role],
       actions.session.removeRecord,
     );
-  }
-
-  return false;
-};
-
-const hasAuthorizationPlay = () => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.session.play);
   }
 
   return false;
