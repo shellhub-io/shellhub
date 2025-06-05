@@ -9,6 +9,7 @@ import { envVariables } from "@/envVariables";
 import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { IDevice } from "@/interfaces/IDevice";
 
 type DeviceTableWrapper = VueWrapper<InstanceType<typeof DeviceTable>>;
 
@@ -147,7 +148,7 @@ describe("Device Table", () => {
   const mockStoreMethods = {
     fetchDevices: vi.fn(),
     getFilter: vi.fn(),
-    getList: vi.fn(),
+    getList: () => devices as IDevice[],
     getSortStatusField: vi.fn(),
     getSortStatusString: vi.fn(),
     getNumber: () => mockStore.state.totalCount,
