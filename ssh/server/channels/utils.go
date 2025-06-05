@@ -67,7 +67,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 					Warning("failed to connect to session record endpoint")
 			}
 
-			if err := sess.Recorded(); err != nil {
+			if err := sess.Recorded(seat); err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
 					Warning("failed to set the session as recorded")

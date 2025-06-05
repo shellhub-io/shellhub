@@ -40,8 +40,6 @@ type Data struct {
 	Term string
 	// TODO:
 	Lookup map[string]string
-	// Pty is the PTY dimension.
-	Pty models.SSHPty
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
 }
@@ -156,13 +154,75 @@ type Session struct {
 
 	once *sync.Once
 
-	// Seat is a counter of how many passengers a session has. It's used on the record session feature.
+	// Seats represents passengers a session.
 	//
 	// A passenger is, in a multiplexed SSH session, the subsequent SSH sessions that connect to the same server using
 	// the already established master connection.
-	Seat *atomic.Int32
+	Seats Seats
 
 	Data
+}
+
+// Seat represent a passenger in a session.
+type Seat struct {
+	// HasPty is the status of pty on the seat.
+	HasPty bool
+}
+
+type Seats struct {
+	// counter count atomically seats of a session.
+	counter *atomic.Int32
+	// Items represents the individual seat of a session.
+	Items *sync.Map
+}
+
+// NewSeats creates a new [Seats] defining initial values for internal properties.
+func NewSeats() Seats {
+	return Seats{
+		counter: new(atomic.Int32),
+		Items:   new(sync.Map),
+	}
+}
+
+// NewSeat creates a new seat inside seats.
+func (s *Seats) NewSeat() (int, error) {
+	id := int(s.counter.Load())
+	defer s.counter.Add(1)
+
+	s.Items.Store(id, &Seat{
+		HasPty: false,
+	})
+
+	return id, nil
+}
+
+// Get gets a seat reference from their id.
+func (s *Seats) Get(seat int) (*Seat, bool) {
+	loaded, ok := s.Items.Load(seat)
+	if !ok {
+		return nil, false
+	}
+
+	item, ok := loaded.(*Seat)
+	if !ok {
+		return nil, false
+	}
+
+	return item, true
+}
+
+// SetPty sets a pty status to a seat from their id.
+func (s *Seats) SetPty(seat int, status bool) {
+	item, ok := s.Get(seat)
+	if !ok {
+		log.Warn("failed to set pty because no seat was created before")
+
+		return
+	}
+
+	item.HasPty = status
+
+	s.Items.Store(seat, item)
 }
 
 // NewSession creates a new Session but differs from [New] as it only creates
@@ -268,8 +328,8 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			Lookup:    lookup,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, domain, hostname),
 		},
-		once: new(sync.Once),
-		Seat: new(atomic.Int32),
+		once:  new(sync.Once),
+		Seats: NewSeats(),
 		Agent: &Agent{
 			Channels: make(map[int]*AgentChannel),
 		},
@@ -403,16 +463,14 @@ func (s *Session) authenticate() error {
 	})
 }
 
-func (s *Session) Recorded() error {
+func (s *Session) Recorded(seat int) error {
 	value := true
 
 	if !s.Namespace.Settings.SessionRecord {
 		return errors.New("record is disable for this namespace")
 	}
 
-	// NOTE: For now, [s.Pty] helps to indicate if the session is recorded.
-	// TODO: After seats refactoring, [pty-req] event on session will indicate if it was recorded.
-	if s.Pty.Columns == 0 && s.Pty.Rows == 0 {
+	if seat, ok := s.Seats.Get(seat); !ok || !seat.HasPty {
 		return errors.New("session won't be recorded because there is no pty")
 	}
 
@@ -578,15 +636,14 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 }
 
 func (s *Session) NewSeat() (int, error) {
-	seat := int(s.Seat.Load())
-	defer s.Seat.Add(1)
-
-	return seat, nil
+	return s.Seats.NewSeat()
 }
 
 // Events register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
 	if s.Events.Closed() {
+		log.Debug("failed to save because events connection was closed")
+
 		return
 	}
 
@@ -601,6 +658,8 @@ func (s *Session) Event(t string, data any, seat int) {
 
 func Event[D any](sess *Session, t string, data []byte, seat int) {
 	if sess.Events.Closed() {
+		log.Debug("failed to save because events connection was closed")
+
 		return
 	}
 
@@ -689,21 +748,28 @@ func (s *Session) Finish() (err error) {
 				"uid": s.UID,
 			}).Info("saving sessions as Asciinema files")
 
-			for seat := range s.Seat.Load() {
-				if err := s.api.SaveSession(s.UID, int(seat)); err != nil {
-					log.WithError(err).WithFields(log.Fields{
+			s.Seats.Items.Range(func(key, value any) bool {
+				id := key.(int)
+				seat := value.(*Seat)
+
+				if seat.HasPty {
+					if err := s.api.SaveSession(s.UID, id); err != nil {
+						log.WithError(err).WithFields(log.Fields{
+							"uid":  s.UID,
+							"seat": seat,
+						}).Error("failed to save the session as Asciinema file")
+
+						return true
+					}
+
+					log.WithFields(log.Fields{
 						"uid":  s.UID,
 						"seat": seat,
-					}).Error("failed to save the session as Asciinema file")
-
-					continue
+					}).Info("asciinema file saved")
 				}
 
-				log.WithFields(log.Fields{
-					"uid":  s.UID,
-					"seat": seat,
-				}).Info("asciinema file saved")
-			}
+				return true
+			})
 		}
 
 		log.WithFields(
