@@ -1,19 +1,13 @@
 <template>
   <div>
     <DataTable
-      v-bind="$attrs"
-      :headers="headers"
+      v-model:page="page"
+      v-model:itemsPerPage="itemsPerPage"
+      :headers
       :items="publicKeys"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
-      :totalCount="getNumberPublicKeys"
-      :actualPage="page"
-      :comboboxOptions="[10, 20, 50, 100]"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
+      :totalCount="publicKeysCount"
+      :loading
+      :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="publicKeys-list"
     >
       <template v-slot:rows>
@@ -170,7 +164,7 @@ const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
 const publicKeys = computed(() => store.getters["publicKeys/list"]);
-const getNumberPublicKeys = computed(
+const publicKeysCount = computed(
   () => store.getters["publicKeys/getNumberPublicKeys"],
 );
 
@@ -215,24 +209,7 @@ const getPublicKeysList = async (
   }
 };
 
-const next = async () => {
-  await getPublicKeysList(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getPublicKeysList(itemsPerPage.value, --page.value);
-  } catch (error: unknown) {
-    snackbar.showError("Failed to load public keys.");
-    handleError(error);
-  }
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([page, itemsPerPage], async () => {
   await getPublicKeysList(itemsPerPage.value, page.value);
 });
 

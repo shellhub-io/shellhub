@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
-      :headers="headers"
+      v-model:page="page"
+      v-model:itemsPerPage="itemsPerPage"
+      :headers
       :items="firewallRules"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
-      :totalCount="getNumberFirewallRules"
-      :actualPage="page"
-      :comboboxOptions="[10, 20, 50, 100]"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
+      :totalCount="firewallRulesCount"
+      :loading
+      :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="firewallRules-list"
     >
       <template v-slot:rows>
@@ -184,7 +179,7 @@ const page = ref(1);
 
 const firewallRules = computed(() => store.getters["firewallRules/list"]);
 
-const getNumberFirewallRules = computed(
+const firewallRulesCount = computed(
   () => store.getters["firewallRules/getNumberFirewalls"],
 );
 
@@ -216,23 +211,7 @@ const getFirewalls = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-const next = async () => {
-  await getFirewalls(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getFirewalls(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbar.showError("An error occurred while loading the firewall rules.");
-  }
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([page, itemsPerPage], async () => {
   await getFirewalls(itemsPerPage.value, page.value);
 });
 

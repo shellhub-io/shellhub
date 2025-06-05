@@ -3,130 +3,82 @@
     <v-table class="bg-background border rounded">
       <thead class="bg-v-theme-background">
         <tr>
-          <th v-for="(head, i) in headers" :key="i" :class="head.align ? `text-${head.align}` : 'text-center'">
+          <th v-for="(header, i) in headers" :key="i" class="text-center">
             <span
-              v-if="head.sortable"
-              @click="$emit('clickSortableIcon', head.value)"
-              @keypress.enter="$emit('clickSortableIcon', head.value)"
+              v-if="header.sortable"
+              @click="$emit('update:sort', header.value)"
+              @keypress.enter="$emit('update:sort', header.value)"
               tabindex="0"
-              class="hover"
+              class="cursor-pointer text-decoration-underline"
             >
-              {{ head.text }}
-              <v-tooltip activator="parent" anchor="top">Sort by {{ head.text }}</v-tooltip>
+              {{ header.text }}
+              <v-tooltip activator="parent" anchor="top">Sort by {{ header.text }}</v-tooltip>
             </span>
-            <span v-else> {{ head.text }}</span>
+            <span v-else> {{ header.text }}</span>
           </th>
         </tr>
       </thead>
       <tbody v-if="items.length">
         <slot name="rows" />
       </tbody>
-      <div v-else class="pa-4 text-subtitle-2">
-        <p>No data available</p>
-      </div>
+      <tbody v-else class="pa-4 text-subtitle-2">
+        <tr>
+          <td :colspan="headers.length" class="pa-4 text-subtitle-2 text-center">
+            No data available
+          </td>
+        </tr>
+      </tbody>
     </v-table>
 
     <v-progress-linear v-if="loading" indeterminate alt="Data table loading" />
-    <div class="d-flex w-100 justify-end align-center" v-if="!itemSelectorDisable == true">
+    <div class="d-flex w-100 justify-end align-center" v-if="itemsPerPageOptions?.length">
       <span class="text-subtitle-2 mr-4">Items per page:</span>
       <div>
         <v-combobox
-          :items="comboboxOptions"
-          v-model="itemsPerPageRef"
+          :items="itemsPerPageOptions"
+          v-model="itemsPerPage"
+          @update:model-value="goToFirstPage"
           outlined
-          :update:modelValue="$emit('changeItemsPerPage', itemsPerPageRef)"
           variant="underlined"
           hide-details
           class="mb-4"
         />
       </div>
       <div class="d-flex align-center">
-        <v-btn icon="mdi-chevron-left" variant="plain" @click="$emit('clickPreviousPage')" :disabled="pageQuantity <= 1" />
-        <span class="text-subtitle-2">{{ actualPage }} of {{ pageQuantity }}</span>
+        <v-btn icon="mdi-chevron-left" variant="plain" @click="page--" :disabled="page <= 1" />
+        <span class="text-subtitle-2">{{ page }} of {{ pageQuantity }}</span>
         <v-btn
           icon="mdi-chevron-right"
           variant="plain"
-          @click="$emit('clickNextPage')"
-          :disabled="pageQuantity <= 1 || actualPage == pageQuantity" />
+          @click="page++"
+          :disabled="pageQuantity <= 1 || page === pageQuantity" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, toRefs, ref } from "vue";
+import { computed } from "vue";
 
-type HeaderItem = {
+type Header = {
   text: string;
   value: string;
   sortable?: boolean;
-  align?: "center" | "left" | "right";
 };
 
-type UserTable = {
-  name: string;
-  email: string;
-  username: string;
-  namespaces: string;
-};
+const props = defineProps<{
+  headers: Header[];
+  items: object[];
+  totalCount: number;
+  loading: boolean;
+  itemsPerPageOptions?: number[];
+}>();
 
-const props = defineProps({
-  headers: {
-    type: Array as PropType<HeaderItem[]>,
-    default: () => [],
-    required: true,
-  },
-  items: {
-    type: Array,
-    default: () => [] as PropType<UserTable[]>,
-    required: false,
-  },
-  itemsPerPage: {
-    type: Number,
-    required: true,
-  },
-  itemSelectorDisable: {
-    type: Boolean,
-    required: false,
-  },
-  comboboxOptions: {
-    type: Array as PropType<number[]>,
-    required: false,
-    default: () => [10, 20, 50, 100],
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-    required: false,
-  },
-  actualPage: {
-    type: Number,
-    default: 1,
-  },
-  totalCount: {
-    type: Number,
-    required: true,
-  },
-  nextPage: {
-    type: Function as PropType<() => void>,
-    default: Function as PropType<() => {}>,
-  },
-  previousPage: {
-    type: Function as PropType<() => void>,
-    default: Function as PropType<() => {}>,
-  },
-});
+defineEmits(["update:sort"]);
 
-defineEmits(["changeItemsPerPage", "clickNextPage", "clickPreviousPage", "clickSortableIcon"]);
+const page = defineModel<number>("page", { required: true, type: Number });
+const itemsPerPage = defineModel("itemsPerPage", { required: true, type: Number });
+const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
 
-const { itemsPerPage, totalCount } = toRefs(props);
-const itemsPerPageRef = ref(itemsPerPage.value);
-const pageQuantity = computed(() => Math.ceil(totalCount.value / itemsPerPageRef.value));
+const goToFirstPage = () => { page.value = 1; };
 </script>
-
-<style scoped>
-.hover:hover {
-  cursor: pointer;
-  text-decoration: underline;
-}
-</style>

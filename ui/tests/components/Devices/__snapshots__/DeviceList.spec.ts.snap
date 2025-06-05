@@ -2,22 +2,22 @@
 
 exports[`Device List > Renders the component 1`] = `
 "<div>
-  <div data-v-046d4556="" data-v-787abe29="" data-test="device-table">
-    <div data-v-046d4556="" class="v-table v-theme--light v-table--density-default bg-background border rounded">
+  <div data-v-787abe29="" data-test="device-table">
+    <div class="v-table v-theme--light v-table--density-default bg-background border rounded">
       <!---->
       <div class="v-table__wrapper">
         <table>
-          <thead data-v-046d4556="" class="bg-v-theme-background">
-            <tr data-v-046d4556="">
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="" tabindex="0" class="hover" aria-describedby="v-tooltip-v-0">Online <!----><!--teleport start--><!--teleport end--></span></th>
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="" tabindex="0" class="hover" aria-describedby="v-tooltip-v-1">Hostname <!----><!--teleport start--><!--teleport end--></span></th>
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Operating System</span></th>
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">SSHID</span></th>
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Tags</span></th>
-              <th data-v-046d4556="" class="text-center"><span data-v-046d4556="">Actions</span></th>
+          <thead class="bg-v-theme-background">
+            <tr>
+              <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-0">Online <!----><!--teleport start--><!--teleport end--></span></th>
+              <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-1">Hostname <!----><!--teleport start--><!--teleport end--></span></th>
+              <th class="text-center"><span>Operating System</span></th>
+              <th class="text-center"><span>SSHID</span></th>
+              <th class="text-center"><span>Tags</span></th>
+              <th class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
-          <tbody data-v-046d4556="">
+          <tbody>
             <tr data-v-787abe29="">
               <td data-v-787abe29="" class="text-center"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" disabled="" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                   <!----><span class="v-btn__content" data-no-activator="">Offline</span>
@@ -113,7 +113,7 @@ exports[`Device List > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <div data-v-046d4556="" class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading">
       <!---->
       <div class="v-progress-linear__background"></div>
       <div class="v-progress-linear__buffer" style="width: 0%;"></div>
@@ -125,9 +125,9 @@ exports[`Device List > Renders the component 1`] = `
       </transition-stub>
       <!---->
     </div>
-    <div data-v-046d4556="" class="d-flex w-100 justify-end align-center"><span data-v-046d4556="" class="text-subtitle-2 mr-4">Items per page:</span>
-      <div data-v-046d4556="">
-        <div data-v-046d4556="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+    <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+      <div>
+        <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
           <!---->
           <div class="v-input__control">
             <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-22">
@@ -173,11 +173,11 @@ exports[`Device List > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div data-v-046d4556="" class="d-flex align-center"><button data-v-046d4556="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
-        </button><span data-v-046d4556="" class="text-subtitle-2">1 of NaN</span><button data-v-046d4556="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
