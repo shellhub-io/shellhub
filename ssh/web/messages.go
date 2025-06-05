@@ -8,6 +8,9 @@ const (
 	// messageKindResize is the identifier to a resize request message. This kind of message contains the number of
 	// columns and rows what the terminal should have.
 	messageKindResize
+	// messageKindSignature is the identifier to a signature message. This kind of message contains the data to be
+	// signed by the user's private key.
+	messageKindSignature
 )
 
 type Message struct {
