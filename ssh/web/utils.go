@@ -17,7 +17,6 @@ type Credentials struct {
 	Password string `json:"password"`
 	// Fingerprint is the identifier of the public key used in the device's OS.
 	Fingerprint string `json:"fingerprint"`
-	Signature   string `json:"signature"`
 }
 
 func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {
@@ -56,7 +55,7 @@ func (c *Credentials) decryptPassword(key *rsa.PrivateKey) error {
 }
 
 func (c *Credentials) isPublicKey() bool { // nolint: unused
-	return c.Fingerprint != "" && c.Signature != ""
+	return c.Fingerprint != ""
 }
 
 // isPassword checks if connection is using password method.
