@@ -37,8 +37,8 @@
     type-message="container"
     data-test="boxMessageDevice-component"
   >
-    <template v-slot:container v-if="envVariables.hasConnector">
-      <ConnectorAdd @update="refresh" />
+    <template v-slot:container>
+      <ContainerAdd />
     </template>
   </BoxMessage>
 </template>
@@ -48,11 +48,9 @@ import { computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "../store";
 import { envVariables } from "../envVariables";
-import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
 import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
-import handleError from "@/utils/handleError";
 import ContainerAdd from "../components/Containers/ContainerAdd.vue";
 import useSnackbar from "@/helpers/snackbar";
 
@@ -89,24 +87,6 @@ const searchDevices = () => {
 };
 
 const isContainerList = computed(() => router.currentRoute.value.name === "ContainerList");
-
-const refresh = async () => {
-  loading.value = true;
-  setTimeout(() => {
-    try {
-      store.dispatch("container/fetch", {
-        page: store.getters["container/getPage"],
-        perPage: store.getters["container/getPerPage"],
-        filter: store.getters["container/getFilter"],
-        status: "",
-        committable: false,
-      });
-    } catch (error) {
-      handleError(error);
-    }
-    loading.value = false;
-  }, 10000);
-};
 
 onUnmounted(async () => {
   await store.dispatch("container/setFilter", "");
