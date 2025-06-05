@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
-      :headers="headers"
+      v-model:page="page"
+      v-model:itemsPerPage="itemsPerPage"
+      :headers
       :items="sessions"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
       :totalCount="numberSessions"
-      :actualPage="page"
-      :comboboxOptions="[10, 20, 50, 100]"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
+      :loading
+      :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="sessions-list"
     >
       <template v-slot:rows>
@@ -193,14 +188,10 @@ const numberSessions = computed(
 const getSessions = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
-    const hasSessions = await store.dispatch("sessions/fetch", {
+    await store.dispatch("sessions/fetch", {
       page: pageValue,
       perPage: perPageValue,
     });
-
-    if (!hasSessions) {
-      page.value--;
-    }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -220,23 +211,7 @@ onMounted(async () => {
   await getSessions(itemsPerPage.value, page.value);
 });
 
-const next = async () => {
-  await getSessions(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getSessions(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbar.showError("Failed to load the session list.");
-  }
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([page, itemsPerPage], async () => {
   await getSessions(itemsPerPage.value, page.value);
 });
 
