@@ -1,18 +1,13 @@
 <template>
   <DataTable
+    v-model:page="page"
+    v-model:itemsPerPage="itemsPerPage"
     :headers="computedHeaders"
-    :items="items"
-    :itemsPerPage="itemsPerPage"
-    :nextPage="next"
-    :previousPage="prev"
-    :loading="loading"
+    :items
     :totalCount="numberDevices"
-    :actualPage="page"
-    :comboboxOptions="[10, 20, 50, 100]"
-    @changeItemsPerPage="changeItemsPerPage"
-    @clickNextPage="next"
-    @clickPreviousPage="prev"
-    @clickSortableIcon="sortByItem"
+    :loading
+    :itemsPerPageOptions="[10, 20, 50, 100]"
+    @update:sort="sortByItem"
     data-test="items-list"
   >
     <template
@@ -378,46 +373,18 @@ const getDevices = async (perPageValue: number, pageValue: number, filter: strin
   }
 };
 
+const getSortOrder = () => {
+  const currentOrder = store.getters["apiKeys/getSortStatusString"];
+  if (currentOrder === "asc") return "desc";
+  return "asc";
+};
+
 const sortByItem = async (field: string) => {
-  let sortStatusString = getSortStatusString();
-  const sortStatusField = getSortStatusField();
-
-  if (field !== sortStatusField && sortStatusField) {
-    if (sortStatusString === "asc") {
-      sortStatusString = "desc";
-    } else {
-      sortStatusString = "asc";
-    }
-  }
-
-  if (sortStatusString === "") {
-    sortStatusString = "asc";
-  } else if (sortStatusString === "asc") {
-    sortStatusString = "desc";
-  } else {
-    sortStatusString = "asc";
-  }
-  await fetchDevices({ sortStatusField: field, sortStatusString });
+  await fetchDevices({ sortStatusField: field, sortStatusString: getSortOrder() });
   await getDevices(itemsPerPage.value, page.value, filter.value);
 };
 
-const next = async () => {
-  await getDevices(itemsPerPage.value, ++page.value, filter.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value, filter.value);
-  } catch (error: unknown) {
-    handleError(error);
-  }
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([page, itemsPerPage], async () => {
   await getDevices(itemsPerPage.value, page.value, filter.value);
 });
 

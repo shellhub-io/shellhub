@@ -1,21 +1,16 @@
 <template>
   <DataTable
-    :headers="headers"
-    :items="keyList"
-    :itemsPerPage="itemsPerPage"
-    :nextPage="next"
-    :previousPage="prev"
-    :loading="loading"
-    :actualPage="page"
-    :totalCount="numberKeys"
-    :comboboxOptions="[10, 20, 50, 100]"
-    @changeItemsPerPage="changeItemsPerPage"
-    @clickNextPage="next"
-    @clickPreviousPage="prev"
+    v-model:page="page"
+    v-model:itemsPerPage="itemsPerPage"
+    :headers
+    :items="connectors"
+    :totalCount="connectorsCount"
+    :loading
+    :itemsPerPageOptions="[10, 20, 50, 100]"
     data-test="connector-list"
   >
     <template v-slot:rows>
-      <tr v-for="(item, i) in keyList" :key="i">
+      <tr v-for="(item, i) in connectors" :key="i">
         <td class="text-center">
           <div data-test="status-connector" :class="(item.status.state === 'connected' ? 'enabled' : 'disabled') + ' text-center'" />
         </td>
@@ -172,11 +167,11 @@ const page = ref(1);
 
 const store = useStore();
 
-const numberKeys = computed<number>(
+const connectorsCount = computed<number>(
   () => store.getters["connectors/getNumberConnectors"],
 );
 
-const keyList = computed(() => store.getters["connectors/list"]);
+const connectors = computed(() => store.getters["connectors/list"]);
 
 const hasAuthorizationEdit = () => {
   const role = store.getters["auth/role"];
@@ -230,24 +225,8 @@ const refresh = async () => {
   await getConnectors(itemsPerPage.value, page.value);
 };
 
-const next = async () => {
-  await getConnectors(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getConnectors(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbar.showError("An error occurred while loading connectors");
-  }
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async (newItemsPerPage) => {
-  await getConnectors(newItemsPerPage, page.value);
+watch([page, itemsPerPage], async () => {
+  await getConnectors(itemsPerPage.value, page.value);
 });
 
 const redirectToDetails = (uid: string) => {

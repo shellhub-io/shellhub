@@ -1,19 +1,14 @@
 <template>
   <div>
     <DataTable
-      :headers="headers"
+      v-model:page="page"
+      v-model:itemsPerPage="itemsPerPage"
+      :headers
       :items="keyList"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
-      :actualPage="page"
       :totalCount="numberKeys"
-      :comboboxOptions="[10, 20, 50, 100]"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
-      @clickSortableIcon="sortByItem"
+      :loading
+      :itemsPerPageOptions="[10, 20, 50, 100]"
+      @update:sort="sortByItem"
       data-test="api-key-list"
     >
       <template v-slot:rows>
@@ -197,48 +192,20 @@ const refresh = () => {
   getKey(itemsPerPage.value, page.value);
 };
 
-const next = async () => {
-  await getKey(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getKey(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbar.showError("Failed to get API keys.");
-  }
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async (newItemsPerPage) => {
-  await getKey(newItemsPerPage, page.value);
+watch([page, itemsPerPage], async () => {
+  await getKey(itemsPerPage.value, page.value);
 });
 
+const getSortOrder = () => {
+  const currentOrder = store.getters["apiKeys/getSortStatusString"];
+  if (currentOrder === "asc") return "desc";
+  return "asc";
+};
+
 const sortByItem = async (field: string) => {
-  let sortStatusString = store.getters["apiKeys/getSortStatusString"];
-  const sortStatusField = store.getters["apiKeys/getSortStatusField"];
-
-  if (field !== sortStatusField && sortStatusField) {
-    if (sortStatusString === "asc") {
-      sortStatusString = "desc";
-    } else {
-      sortStatusString = "asc";
-    }
-  }
-
-  if (sortStatusString === "") {
-    sortStatusString = "asc";
-  } else if (sortStatusString === "asc") {
-    sortStatusString = "desc";
-  } else {
-    sortStatusString = "asc";
-  }
   await store.dispatch("apiKeys/setSortStatus", {
     sortStatusField: field,
-    sortStatusString,
+    sortStatusString: getSortOrder(),
   });
   await getKey(itemsPerPage.value, page.value);
 };
