@@ -190,9 +190,14 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 // It receives a context, used to "control" the request flow and, the namespace name from a models.Namespace and a
 // device name from models.Device.
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	device, err := s.store.DeviceLookup(ctx, namespace, name)
+	n, err := s.store.NamespaceGetByName(ctx, namespace)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(namespace, err)
+	}
+
+	device, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, name, s.store.Options().InNamespace(n.TenantID))
 	if err != nil || device == nil {
-		return nil, NewErrDeviceLookupNotFound(namespace, name, err)
+		return nil, NewErrDeviceNotFound(models.UID(name), err)
 	}
 
 	return device, nil

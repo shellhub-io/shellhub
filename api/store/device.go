@@ -53,7 +53,6 @@ type DeviceStore interface {
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
-	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
 	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)

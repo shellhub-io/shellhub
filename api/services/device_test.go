@@ -1177,7 +1177,9 @@ func TestRenameDevice(t *testing.T) {
 }
 
 func TestLookupDevice(t *testing.T) {
-	mock := new(storemock.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -1194,28 +1196,41 @@ func TestLookupDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when store device lookup fails",
+			description: "fails when namespace does not exists",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device, namespace string) {
-				mock.On("DeviceLookup", ctx, namespace, device.Name).Return(nil, errors.New("error", "", 0)).Once()
+			requiredMocks: func(_ *models.Device, namespace string) {
+				storeMock.
+					On("NamespaceGetByName", ctx, namespace).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{
 				nil,
-				NewErrDeviceLookupNotFound("namespace", "name", errors.New("error", "", 0)),
+				NewErrNamespaceNotFound("namespace", errors.New("error", "", 0)),
 			},
 		},
 		{
-			description: "fails when the device is not found",
+			description: "fails when namespace does not exists",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
-				mock.On("DeviceLookup", ctx, namespace, device.Name).
-					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, namespace).
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "name", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{
 				nil,
-				NewErrDeviceLookupNotFound("namespace", "name", store.ErrNoDocuments),
+				NewErrDeviceNotFound(models.UID("name"), errors.New("error", "", 0)),
 			},
 		},
 		{
@@ -1223,8 +1238,18 @@ func TestLookupDevice(t *testing.T) {
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
-				mock.On("DeviceLookup", ctx, namespace, device.Name).
-					Return(device, nil).Once()
+				storeMock.
+					On("NamespaceGetByName", ctx, namespace).
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "name", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
 			},
 			expected: Expected{
 				&models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
@@ -1237,12 +1262,12 @@ func TestLookupDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.device, tc.namespace)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			returnedDevice, err := service.LookupDevice(ctx, tc.namespace, tc.device.Name)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
 		})
 	}
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestOfflineDevice(t *testing.T) {
