@@ -219,15 +219,15 @@ const getConnectors = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (envVariables.isCommunity) {
     return;
   }
-  getConnectors(itemsPerPage.value, page.value);
+  await getConnectors(itemsPerPage.value, page.value);
 });
 
-const refresh = () => {
-  getConnectors(itemsPerPage.value, page.value);
+const refresh = async () => {
+  await getConnectors(itemsPerPage.value, page.value);
 };
 
 const next = async () => {
