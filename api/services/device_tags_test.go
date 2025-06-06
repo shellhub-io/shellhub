@@ -34,7 +34,7 @@ func TestCreateTag(t *testing.T) {
 			uid:         "invalid_uid",
 			deviceName:  "device1",
 			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "invalid_uid").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("invalid_uid"), errors.New("error", "", 0)),
 		},
@@ -49,7 +49,7 @@ func TestCreateTag(t *testing.T) {
 					Tags:     []string{"device1"},
 				}
 
-				mock.On("DeviceGet", ctx, models.UID("uid")).Return(device, nil).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 			},
 			expected: NewErrTagDuplicated("device1", nil),
 		},
@@ -64,7 +64,7 @@ func TestCreateTag(t *testing.T) {
 					Tags:     []string{"device1"},
 				}
 
-				mock.On("DeviceGet", ctx, models.UID(device.UID)).Return(device, nil).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 				mock.On("DevicePushTag", ctx, models.UID(device.UID), "device6").Return(nil).Once()
 			},
 			expected: nil,
@@ -103,7 +103,7 @@ func TestRemoveTag(t *testing.T) {
 			uid:         "invalid_uid",
 			deviceName:  "device1",
 			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID("invalid_uid")).Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "invalid_uid").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("invalid_uid"), errors.New("error", "", 0)),
 		},
@@ -118,7 +118,7 @@ func TestRemoveTag(t *testing.T) {
 					Tags:     []string{"device1"},
 				}
 
-				mock.On("DeviceGet", ctx, models.UID("uid")).Return(device, nil).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 			},
 			expected: NewErrTagNotFound("device2", nil),
 		},
@@ -133,7 +133,7 @@ func TestRemoveTag(t *testing.T) {
 					Tags:     []string{"device1"},
 				}
 
-				mock.On("DeviceGet", ctx, models.UID("uid")).Return(device, nil).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 				mock.On("DevicePullTag", ctx, models.UID("uid"), "device1").Return(errors.New("error", "", 0)).Once()
 			},
 			expected: errors.New("error", "", 0),
@@ -149,7 +149,7 @@ func TestRemoveTag(t *testing.T) {
 					Tags:     []string{"device1"},
 				}
 
-				mock.On("DeviceGet", ctx, models.UID("uid")).Return(device, nil).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 				mock.On("DevicePullTag", ctx, models.UID("uid"), "device1").Return(nil).Once()
 			},
 			expected: nil,
@@ -194,7 +194,7 @@ func TestDeviceUpdateTag(t *testing.T) {
 			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
 			tags:        []string{"device1", "device2", "device3"},
 			requiredMocks: func() {
-				storemock.On("DeviceGet", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c")).Return(nil, errors.New("error", "", 0)).Once()
+				storemock.On("DeviceResolve", context.TODO(), store.DeviceUIDResolver, "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrDeviceNotFound("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", errors.New("error", "", 0)),
 		},
@@ -207,7 +207,7 @@ func TestDeviceUpdateTag(t *testing.T) {
 					UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					TenantID: "tenant",
 				}
-				storemock.On("DeviceGet", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c")).Return(device, nil).Once()
+				storemock.On("DeviceResolve", context.TODO(), store.DeviceUIDResolver, "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c").Return(device, nil).Once()
 
 				tags := []string{"device1", "device2", "device3"}
 				storemock.On("DeviceSetTags", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"), tags).Return(int64(0), int64(0), errors.New("error", "layer", 1)).Once()
@@ -223,7 +223,7 @@ func TestDeviceUpdateTag(t *testing.T) {
 					UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 					TenantID: "tenant",
 				}
-				storemock.On("DeviceGet", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c")).Return(device, nil).Once()
+				storemock.On("DeviceResolve", context.TODO(), store.DeviceUIDResolver, "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c").Return(device, nil).Once()
 
 				tags := []string{"device1", "device2", "device3"}
 				storemock.On("DeviceSetTags", context.TODO(), models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"), tags).Return(int64(1), int64(3), nil).Once()

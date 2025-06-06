@@ -81,7 +81,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	device, err := s.store.DeviceGet(ctx, uid)
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
 	if err != nil {
 		return nil, NewErrDeviceNotFound(uid, err)
 	}
