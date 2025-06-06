@@ -451,66 +451,6 @@ func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string
 	return r0, r1
 }
 
-// DeviceGetByName provides a mock function with given fields: ctx, name, tenantID, status
-func (_m *Store) DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
-	ret := _m.Called(ctx, name, tenantID, status)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceGetByName")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) (*models.Device, error)); ok {
-		return rf(ctx, name, tenantID, status)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) *models.Device); ok {
-		r0 = rf(ctx, name, tenantID, status)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, models.DeviceStatus) error); ok {
-		r1 = rf(ctx, name, tenantID, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeviceGetByUID provides a mock function with given fields: ctx, uid, tenantID
-func (_m *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error) {
-	ret := _m.Called(ctx, uid, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceGetByUID")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) (*models.Device, error)); ok {
-		return rf(ctx, uid, tenantID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) *models.Device); ok {
-		r0 = rf(ctx, uid, tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID, string) error); ok {
-		r1 = rf(ctx, uid, tenantID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeviceGetTags provides a mock function with given fields: ctx, tenant
 func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, int, error) {
 	ret := _m.Called(ctx, tenant)
@@ -830,9 +770,16 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceResolve provides a mock function with given fields: ctx, tenantID, resolver, value
-func (_m *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string) (*models.Device, error) {
-	ret := _m.Called(ctx, tenantID, resolver, value)
+// DeviceResolve provides a mock function with given fields: ctx, tenantID, resolver, value, opts
+func (_m *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, tenantID, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceResolve")
@@ -840,19 +787,19 @@ func (_m *Store) DeviceResolve(ctx context.Context, tenantID string, resolver st
 
 	var r0 *models.Device
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, store.DeviceResolver, string) (*models.Device, error)); ok {
-		return rf(ctx, tenantID, resolver, value)
+	if rf, ok := ret.Get(0).(func(context.Context, string, store.DeviceResolver, string, ...store.QueryOption) (*models.Device, error)); ok {
+		return rf(ctx, tenantID, resolver, value, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, store.DeviceResolver, string) *models.Device); ok {
-		r0 = rf(ctx, tenantID, resolver, value)
+	if rf, ok := ret.Get(0).(func(context.Context, string, store.DeviceResolver, string, ...store.QueryOption) *models.Device); ok {
+		r0 = rf(ctx, tenantID, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, store.DeviceResolver, string) error); ok {
-		r1 = rf(ctx, tenantID, resolver, value)
+	if rf, ok := ret.Get(1).(func(context.Context, string, store.DeviceResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, tenantID, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}

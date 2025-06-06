@@ -479,37 +479,6 @@ func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string,
 	return device, nil
 }
 
-func (s *Store) DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
-	device := new(models.Device)
-
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name, "status": string(status)}).Decode(&device); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return device, nil
-}
-
-func (s *Store) DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error) {
-	var device *models.Device
-	if err := s.cache.Get(ctx, strings.Join([]string{"device", string(uid)}, "/"), &device); err != nil {
-		logrus.Error(err)
-	}
-
-	if device != nil {
-		return device, nil
-	}
-
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "uid": uid}).Decode(&device); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	if err := s.cache.Set(ctx, strings.Join([]string{"device", string(uid)}, "/"), device, time.Minute); err != nil {
-		logrus.Error(err)
-	}
-
-	return device, nil
-}
-
 func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
 	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"position": position}})
 	if err != nil {

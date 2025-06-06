@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cnf/structhash"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -166,7 +167,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		}
 	}
 
-	dev, err := s.store.DeviceGetByUID(ctx, models.UID(device.UID), device.TenantID)
+	dev, err := s.store.DeviceResolve(ctx, device.TenantID, store.DeviceUIDResolver, device.UID)
 	if err != nil {
 		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
 	}
