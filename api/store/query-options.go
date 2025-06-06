@@ -8,7 +8,12 @@ import (
 
 type NamespaceQueryOption func(ctx context.Context, ns *models.Namespace) error
 
+type QueryOption func(ctx context.Context) error
+
 type QueryOptions interface {
+	// WithDeviceStatus matches a device with the provided status
+	WithDeviceStatus(models.DeviceStatus) QueryOption
+
 	// CountAcceptedDevices counts the devices with a status 'accepted'
 	// in the namespace.
 	CountAcceptedDevices() NamespaceQueryOption

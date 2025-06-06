@@ -16,6 +16,19 @@ func (s *Store) Options() store.QueryOptions {
 	return s.options
 }
 
+func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOption {
+	return func(ctx context.Context) error {
+		query, ok := ctx.Value("query").(*bson.M)
+		if !ok {
+			return errors.New("query not found in context")
+		}
+
+		(*query)["status"] = status
+
+		return nil
+	}
+}
+
 func (*queryOptions) CountAcceptedDevices() store.NamespaceQueryOption {
 	return func(ctx context.Context, ns *models.Namespace) error {
 		db, ok := ctx.Value("db").(*mongo.Database)

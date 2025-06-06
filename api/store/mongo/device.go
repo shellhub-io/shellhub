@@ -176,16 +176,25 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	return devices, count, FromMongoError(err)
 }
 
-func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string) (*models.Device, error) {
-	query := []bson.M{{"$match": bson.M{"tenant_id": tenantID}}}
+func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
+	matchStage := bson.M{"tenant_id": tenantID}
 	switch resolver {
 	case store.DeviceUIDResolver:
-		query[0]["$match"].(bson.M)["uid"] = value
+		matchStage["uid"] = value
 	case store.DeviceHostnameResolver:
-		query[0]["$match"].(bson.M)["name"] = value
+		matchStage["name"] = value
 	}
 
-	query = append(query, []bson.M{
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+			return nil, err
+		}
+	}
+
+	query := []bson.M{
+		{
+			"$match": matchStage,
+		},
 		{
 			"$addFields": bson.M{
 				"online": bson.M{
@@ -218,7 +227,7 @@ func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver sto
 		{
 			"$unwind": "$namespace",
 		},
-	}...)
+	}
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
 	if err != nil {
