@@ -167,7 +167,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 		}
 	}
 
-	dev, err := s.store.DeviceResolve(ctx, device.TenantID, store.DeviceUIDResolver, device.UID)
+	dev, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, device.UID, s.store.Options().InNamespace(device.TenantID))
 	if err != nil {
 		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
 	}

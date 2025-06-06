@@ -740,14 +740,14 @@ func (_m *Store) DeviceRename(ctx context.Context, uid models.UID, hostname stri
 	return r0
 }
 
-// DeviceResolve provides a mock function with given fields: ctx, tenantID, resolver, value, opts
-func (_m *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
+// DeviceResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, tenantID, resolver, value)
+	_ca = append(_ca, ctx, resolver, value)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -757,19 +757,19 @@ func (_m *Store) DeviceResolve(ctx context.Context, tenantID string, resolver st
 
 	var r0 *models.Device
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, store.DeviceResolver, string, ...store.QueryOption) (*models.Device, error)); ok {
-		return rf(ctx, tenantID, resolver, value, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, store.DeviceResolver, string, ...store.QueryOption) (*models.Device, error)); ok {
+		return rf(ctx, resolver, value, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, store.DeviceResolver, string, ...store.QueryOption) *models.Device); ok {
-		r0 = rf(ctx, tenantID, resolver, value, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, store.DeviceResolver, string, ...store.QueryOption) *models.Device); ok {
+		r0 = rf(ctx, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, store.DeviceResolver, string, ...store.QueryOption) error); ok {
-		r1 = rf(ctx, tenantID, resolver, value, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, store.DeviceResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}

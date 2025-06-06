@@ -54,6 +54,26 @@ func (_m *QueryOptions) EnrichMembersData() store.NamespaceQueryOption {
 	return r0
 }
 
+// InNamespace provides a mock function with given fields: tenantID
+func (_m *QueryOptions) InNamespace(tenantID string) store.QueryOption {
+	ret := _m.Called(tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InNamespace")
+	}
+
+	var r0 store.QueryOption
+	if rf, ok := ret.Get(0).(func(string) store.QueryOption); ok {
+		r0 = rf(tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+
+	return r0
+}
+
 // WithDeviceStatus provides a mock function with given fields: _a0
 func (_m *QueryOptions) WithDeviceStatus(_a0 models.DeviceStatus) store.QueryOption {
 	ret := _m.Called(_a0)

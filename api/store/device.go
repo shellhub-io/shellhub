@@ -34,7 +34,7 @@ type DeviceStore interface {
 	// DeviceResolve fetches a device using a specific resolver within a given tenant ID.
 	//
 	// It returns the resolved device if found and an error, if any.
-	DeviceResolve(ctx context.Context, tenantID string, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)
+	DeviceResolve(ctx context.Context, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)
 
 	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
