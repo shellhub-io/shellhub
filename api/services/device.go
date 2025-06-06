@@ -98,9 +98,9 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 	var device *models.Device
 	switch {
 	case req.UID != "":
-		device, err = s.store.DeviceResolve(ctx, n.TenantID, store.DeviceUIDResolver, req.UID)
+		device, err = s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(n.TenantID))
 	case req.Hostname != "":
-		device, err = s.store.DeviceResolve(ctx, n.TenantID, store.DeviceHostnameResolver, req.Hostname)
+		device, err = s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, req.Hostname, s.store.Options().InNamespace(n.TenantID))
 	}
 
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 // NewErrNamespaceNotFound(tenant, err), if the usage cannot be reported, ErrReport or if the store function that
 // delete the device fails.
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
-	device, err := s.store.DeviceResolve(ctx, tenant, store.DeviceUIDResolver, string(uid))
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
 	if err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -143,7 +143,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
-	device, err := s.store.DeviceResolve(ctx, tenant, store.DeviceUIDResolver, string(uid))
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
 	if err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -173,7 +173,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return nil
 	}
 
-	otherDevice, err := s.store.DeviceResolve(ctx, tenant, store.DeviceHostnameResolver, updatedDevice.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
+	otherDevice, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, updatedDevice.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(tenant))
 	if err != nil && err != store.ErrNoDocuments {
 		return NewErrDeviceNotFound(models.UID(updatedDevice.UID), err)
 	}
@@ -218,7 +218,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	device, err := s.store.DeviceResolve(ctx, tenant, store.DeviceUIDResolver, string(uid))
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
 	if err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -241,14 +241,14 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 
 	// NOTICE: when there is an already accepted device with the same MAC address, we need to update the device UID
 	// transfer the sessions and delete the old device.
-	sameMacDev, err := s.store.DeviceResolve(ctx, device.TenantID, store.DeviceMACResolver, device.Identity.MAC, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
+	sameMacDev, err := s.store.DeviceResolve(ctx, store.DeviceMACResolver, device.Identity.MAC, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID))
 	if err != nil && err != store.ErrNoDocuments {
 		return NewErrDeviceNotFound(models.UID(device.UID), err)
 	}
 
 	// TODO: move this logic to store's transactions.
 	if sameMacDev != nil && sameMacDev.UID != device.UID {
-		sameDevice, _ := s.store.DeviceResolve(ctx, device.TenantID, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
+		sameDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID))
 		if sameDevice != nil && sameDevice.Identity.MAC != device.Identity.MAC {
 			return NewErrDeviceDuplicated(device.Name, nil)
 		}
@@ -268,7 +268,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return s.store.DeviceUpdateStatus(ctx, uid, status)
 	}
 
-	if sameDevice, _ := s.store.DeviceResolve(ctx, device.TenantID, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)); sameDevice != nil {
+	if sameDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID)); sameDevice != nil {
 		return NewErrDeviceDuplicated(device.Name, nil)
 	}
 
@@ -323,7 +323,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 }
 
 func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {
-	device, err := s.store.DeviceResolve(ctx, req.TenantID, store.DeviceUIDResolver, req.UID)
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
 	if err != nil {
 		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}

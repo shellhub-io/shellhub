@@ -176,8 +176,8 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	return devices, count, FromMongoError(err)
 }
 
-func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
-	matchStage := bson.M{"tenant_id": tenantID}
+func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
+	matchStage := bson.M{}
 	switch resolver {
 	case store.DeviceUIDResolver:
 		matchStage["uid"] = value

@@ -549,7 +549,6 @@ func TestDeviceResolve(t *testing.T) {
 
 	cases := []struct {
 		description string
-		tenantID    string
 		resolver    store.DeviceResolver
 		value       string
 		fixtures    []string
@@ -557,7 +556,6 @@ func TestDeviceResolve(t *testing.T) {
 	}{
 		{
 			description: "fails when device not found by UID",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
 			resolver:    store.DeviceUIDResolver,
 			value:       "nonexistent",
 			fixtures:    []string{fixtureDevices},
@@ -567,30 +565,7 @@ func TestDeviceResolve(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when tenantID is incorrect",
-			tenantID:    "invalid-tenant",
-			resolver:    store.DeviceUIDResolver,
-			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			fixtures:    []string{fixtureDevices},
-			expected: Expected{
-				dev: nil,
-				err: store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "fails when namespace does not exist",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			resolver:    store.DeviceUIDResolver,
-			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			fixtures:    []string{fixtureDevices},
-			expected: Expected{
-				dev: nil,
-				err: store.ErrNoDocuments,
-			},
-		},
-		{
 			description: "succeeds resolving device by UID",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
 			resolver:    store.DeviceUIDResolver,
 			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 			fixtures:    []string{fixtureNamespaces, fixtureDevices},
@@ -618,7 +593,6 @@ func TestDeviceResolve(t *testing.T) {
 		},
 		{
 			description: "succeeds resolving device by hostname",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
 			resolver:    store.DeviceHostnameResolver,
 			value:       "device-3",
 			fixtures:    []string{fixtureNamespaces, fixtureDevices},
@@ -646,7 +620,6 @@ func TestDeviceResolve(t *testing.T) {
 		},
 		{
 			description: "succeeds resolving device by MAC",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
 			resolver:    store.DeviceMACResolver,
 			value:       "mac-3",
 			fixtures:    []string{fixtureNamespaces, fixtureDevices},
@@ -679,7 +652,7 @@ func TestDeviceResolve(t *testing.T) {
 			assert.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() { assert.NoError(t, srv.Reset()) })
 
-			dev, err := s.DeviceResolve(context.Background(), tc.tenantID, tc.resolver, tc.value)
+			dev, err := s.DeviceResolve(context.Background(), tc.resolver, tc.value)
 			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
 		})
 	}

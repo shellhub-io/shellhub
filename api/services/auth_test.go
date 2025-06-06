@@ -30,6 +30,8 @@ import (
 
 func TestAuthDevice(t *testing.T) {
 	storeMock := new(mocks.Store)
+	queryOptionsMock := new(mocks.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 	cacheMock := new(mockcache.Cache)
 
 	clockMock := new(clockmock.Clock)
@@ -203,8 +205,12 @@ func TestAuthDevice(t *testing.T) {
 					On("SessionSetLastSeen", ctx, models.UID("session")).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceResolve", ctx, "tenant", store.DeviceUIDResolver, testifymock.Anything).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, testifymock.Anything, testifymock.AnythingOfType("store.QueryOption")).
 					Return(nil, goerrors.New("device not found")).
 					Once()
 			},
@@ -234,8 +240,12 @@ func TestAuthDevice(t *testing.T) {
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceResolve", ctx, "tenant", store.DeviceUIDResolver, testifymock.Anything).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, testifymock.Anything, testifymock.AnythingOfType("store.QueryOption")).
 					Return(&models.Device{
 						UID:      key,
 						Name:     "device-name",
@@ -263,8 +273,12 @@ func TestAuthDevice(t *testing.T) {
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceResolve", ctx, "tenant", store.DeviceUIDResolver, testifymock.Anything).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, testifymock.Anything, testifymock.AnythingOfType("store.QueryOption")).
 					Return(&models.Device{
 						UID:      key,
 						Name:     "device-name",
