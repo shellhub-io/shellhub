@@ -2,7 +2,6 @@ package services
 
 import (
 	stderrors "errors"
-	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -100,7 +99,6 @@ var (
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceInvalid                   = errors.New("device invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceDuplicated                = errors.New("device duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrDeviceLookupNotFound            = errors.New("device lookup not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceLimit                     = errors.New("device limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceStatusInvalid             = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceStatusAccepted            = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
@@ -376,11 +374,6 @@ func NewErrDeviceInvalid(data map[string]interface{}, next error) error {
 // NewErrDeviceDuplicated returns an error to be used when the device already exist in the namespace.
 func NewErrDeviceDuplicated(name string, next error) error {
 	return NewErrDuplicated(ErrDeviceDuplicated, []string{name}, next)
-}
-
-// NewErrDeviceLookupNotFound returns an error to be used when the device lookup is not found.
-func NewErrDeviceLookupNotFound(namespace, name string, next error) error {
-	return NewErrNotFound(ErrDeviceLookupNotFound, fmt.Sprintf("device %s on namespace %s", name, namespace), next)
 }
 
 // NewErrDeviceLimit returns an error to be used when the device limit is reached.

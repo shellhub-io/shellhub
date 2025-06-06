@@ -24,16 +24,16 @@ type DeviceResolver uint
 const (
 	DeviceUIDResolver DeviceResolver = iota + 1
 	DeviceHostnameResolver
+	DeviceMACResolver
 )
 
 type DeviceStore interface {
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
-	DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error)
 
 	// DeviceResolve fetches a device using a specific resolver within a given tenant ID.
 	//
 	// It returns the resolved device if found and an error, if any.
-	DeviceResolve(ctx context.Context, tenantID string, resolver DeviceResolver, value string) (*models.Device, error)
+	DeviceResolve(ctx context.Context, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)
 
 	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
@@ -53,11 +53,7 @@ type DeviceStore interface {
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceCreate(ctx context.Context, d models.Device, hostname string) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
-	DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error)
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
-	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error)
-	DeviceGetByName(ctx context.Context, name string, tenantID string, status models.DeviceStatus) (*models.Device, error)
-	DeviceGetByUID(ctx context.Context, uid models.UID, tenantID string) (*models.Device, error)
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
 	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)
 	DeviceChooser(ctx context.Context, tenantID string, chosen []string) error

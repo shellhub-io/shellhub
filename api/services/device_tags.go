@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -23,7 +24,7 @@ const DeviceMaxTags = 3
 // If the device already has the maximum number of tags, a NewErrTagLimit error will be returned.
 // A unknown error will be returned if the tag is not created.
 func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, tag string) error {
-	device, err := s.store.DeviceGet(ctx, uid)
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
 	if err != nil || device == nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -45,7 +46,7 @@ func (s *service) CreateDeviceTag(ctx context.Context, uid models.UID, tag strin
 // If the tag does not exist, a NewErrTagNotFound error will be returned.
 // A unknown error will be returned if the tag is not removed.
 func (s *service) RemoveDeviceTag(ctx context.Context, uid models.UID, tag string) error {
-	device, err := s.store.DeviceGet(ctx, uid)
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
 	if err != nil || device == nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -67,7 +68,7 @@ func (s *service) UpdateDeviceTag(ctx context.Context, uid models.UID, tags []st
 		return NewErrTagLimit(DeviceMaxTags, nil)
 	}
 
-	if _, err := s.store.DeviceGet(ctx, uid); err != nil {
+	if _, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid)); err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
 

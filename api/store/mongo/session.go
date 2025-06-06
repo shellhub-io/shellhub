@@ -80,7 +80,7 @@ func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]m
 			return sessions, count, err
 		}
 
-		device, err := s.DeviceGet(ctx, session.DeviceUID)
+		device, err := s.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 		if err != nil {
 			return sessions, count, err
 		}
@@ -135,7 +135,7 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 		return nil, FromMongoError(err)
 	}
 
-	device, err := s.DeviceGet(ctx, session.DeviceUID)
+	device, err := s.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
@@ -217,7 +217,7 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*mod
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
 
-	device, err := s.DeviceGet(ctx, session.DeviceUID)
+	device, err := s.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
