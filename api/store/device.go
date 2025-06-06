@@ -24,6 +24,7 @@ type DeviceResolver uint
 const (
 	DeviceUIDResolver DeviceResolver = iota + 1
 	DeviceHostnameResolver
+	DeviceMACResolver
 )
 
 type DeviceStore interface {
@@ -34,7 +35,6 @@ type DeviceStore interface {
 	//
 	// It returns the resolved device if found and an error, if any.
 	DeviceResolve(ctx context.Context, tenantID string, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)
-	DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error)
 
 	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:

@@ -241,7 +241,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 
 	// NOTICE: when there is an already accepted device with the same MAC address, we need to update the device UID
 	// transfer the sessions and delete the old device.
-	sameMacDev, err := s.store.DeviceGetByMac(ctx, device.Identity.MAC, device.TenantID, models.DeviceStatusAccepted)
+	sameMacDev, err := s.store.DeviceResolve(ctx, device.TenantID, store.DeviceMACResolver, device.Identity.MAC, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
 	if err != nil && err != store.ErrNoDocuments {
 		return NewErrDeviceNotFound(models.UID(device.UID), err)
 	}

@@ -421,36 +421,6 @@ func (_m *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device,
 	return r0, r1
 }
 
-// DeviceGetByMac provides a mock function with given fields: ctx, mac, tenantID, status
-func (_m *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
-	ret := _m.Called(ctx, mac, tenantID, status)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceGetByMac")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) (*models.Device, error)); ok {
-		return rf(ctx, mac, tenantID, status)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus) *models.Device); ok {
-		r0 = rf(ctx, mac, tenantID, status)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, models.DeviceStatus) error); ok {
-		r1 = rf(ctx, mac, tenantID, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeviceGetTags provides a mock function with given fields: ctx, tenant
 func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, int, error) {
 	ret := _m.Called(ctx, tenant)

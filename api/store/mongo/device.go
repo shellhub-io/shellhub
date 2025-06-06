@@ -183,6 +183,8 @@ func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver sto
 		matchStage["uid"] = value
 	case store.DeviceHostnameResolver:
 		matchStage["name"] = value
+	case store.DeviceMACResolver:
+		matchStage["identity"] = bson.M{"mac": value}
 	}
 
 	for _, opt := range opts {
@@ -460,23 +462,6 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 	}
 
 	return uids, nil
-}
-
-func (s *Store) DeviceGetByMac(ctx context.Context, mac string, tenantID string, status models.DeviceStatus) (*models.Device, error) {
-	device := new(models.Device)
-
-	switch status {
-	case "":
-		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
-			return nil, FromMongoError(err)
-		}
-	default:
-		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenantID, "status": status, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
-			return nil, FromMongoError(err)
-		}
-	}
-
-	return device, nil
 }
 
 func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
