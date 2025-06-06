@@ -177,18 +177,15 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 }
 
 func (s *Store) DeviceResolve(ctx context.Context, tenantID string, resolver store.DeviceResolver, value string) (*models.Device, error) {
-	query := make([]bson.M, 0)
+	query := []bson.M{{"$match": bson.M{"tenant_id": tenantID}}}
 	switch resolver {
 	case store.DeviceUIDResolver:
-		query = append(query, bson.M{"$match": bson.M{"uid": value}})
+		query[0]["$match"].(bson.M)["uid"] = value
 	case store.DeviceHostnameResolver:
-		query = append(query, bson.M{"$match": bson.M{"name": value}})
+		query[0]["$match"].(bson.M)["name"] = value
 	}
 
 	query = append(query, []bson.M{
-		{
-			"$match": bson.M{"tenant_id": tenantID},
-		},
 		{
 			"$addFields": bson.M{
 				"online": bson.M{
