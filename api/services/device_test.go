@@ -547,8 +547,7 @@ func TestGetDevice(t *testing.T) {
 		{
 			description: "fails when the store get device fails",
 			requiredMocks: func() {
-				mock.On("DeviceGet", ctx, models.UID("_uid")).
-					Return(nil, errors.New("error", "", 0)).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "_uid").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			uid: models.UID("_uid"),
 			expected: Expected{
@@ -560,9 +559,7 @@ func TestGetDevice(t *testing.T) {
 			description: "succeeds",
 			requiredMocks: func() {
 				device := &models.Device{UID: "uid"}
-
-				mock.On("DeviceGet", ctx, models.UID("uid")).
-					Return(device, nil).Once()
+				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 			},
 			uid: models.UID("uid"),
 			expected: Expected{

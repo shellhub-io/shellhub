@@ -391,36 +391,6 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// DeviceGet provides a mock function with given fields: ctx, uid
-func (_m *Store) DeviceGet(ctx context.Context, uid models.UID) (*models.Device, error) {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceGet")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) (*models.Device, error)); ok {
-		return rf(ctx, uid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.Device); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeviceGetTags provides a mock function with given fields: ctx, tenant
 func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, int, error) {
 	ret := _m.Called(ctx, tenant)
