@@ -1358,8 +1358,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -1393,8 +1397,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(&models.Device{
 						UID:      "uid",
 						Name:     "name",
@@ -1448,8 +1456,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "notsameuid",
@@ -1509,8 +1521,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "notsameuid",
@@ -1574,8 +1590,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "notsameuid",
@@ -1643,8 +1663,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "notsameuid",
@@ -1716,8 +1740,12 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 						}, nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "notsameuid",
@@ -1890,8 +1918,12 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -1927,8 +1959,12 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -1980,8 +2016,12 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2033,7 +2073,12 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 						nil,
 					).
 					Once()
-				storeMock.On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2089,8 +2134,12 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2244,8 +2293,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2285,8 +2338,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2344,8 +2401,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2404,8 +2465,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2468,8 +2533,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2629,8 +2698,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2666,8 +2739,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2723,8 +2800,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2789,8 +2870,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2850,8 +2935,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2915,8 +3004,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -2986,8 +3079,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -3061,8 +3158,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -3136,8 +3237,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -3197,8 +3302,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -3261,8 +3370,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -3332,8 +3445,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
@@ -3407,8 +3524,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 						nil,
 					).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceGetByMac", ctx, "mac", "00000000-0000-0000-0000-000000000000", models.DeviceStatus("accepted")).
+					On("DeviceResolve", ctx, "00000000-0000-0000-0000-000000000000", store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				queryOptionsMock.
