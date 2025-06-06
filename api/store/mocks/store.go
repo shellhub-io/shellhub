@@ -495,36 +495,6 @@ func (_m *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]mode
 	return r0, r1
 }
 
-// DeviceLookup provides a mock function with given fields: ctx, namespace, hostname
-func (_m *Store) DeviceLookup(ctx context.Context, namespace string, hostname string) (*models.Device, error) {
-	ret := _m.Called(ctx, namespace, hostname)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceLookup")
-	}
-
-	var r0 *models.Device
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.Device, error)); ok {
-		return rf(ctx, namespace, hostname)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Device); ok {
-		r0 = rf(ctx, namespace, hostname)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Device)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, namespace, hostname)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DevicePullTag provides a mock function with given fields: ctx, uid, tag
 func (_m *Store) DevicePullTag(ctx context.Context, uid models.UID, tag string) error {
 	ret := _m.Called(ctx, uid, tag)

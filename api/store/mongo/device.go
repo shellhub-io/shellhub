@@ -321,20 +321,6 @@ func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname strin
 	return nil
 }
 
-func (s *Store) DeviceLookup(ctx context.Context, namespace, hostname string) (*models.Device, error) {
-	ns := new(models.Namespace)
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&ns); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": ns.TenantID, "name": hostname, "status": "accepted"}).Decode(&device); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return device, nil
-}
-
 // DeviceUpdateStatus updates the status of a specific device in the devices collection
 func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
 	updateOptions := options.FindOneAndUpdate().SetReturnDocument(options.After)
