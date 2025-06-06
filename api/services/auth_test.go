@@ -204,7 +204,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceGetByUID", ctx, testifymock.Anything, "tenant").
+					On("DeviceResolve", ctx, "tenant", store.DeviceUIDResolver, testifymock.Anything).
 					Return(nil, goerrors.New("device not found")).
 					Once()
 			},
@@ -235,7 +235,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceGetByUID", ctx, testifymock.Anything, "tenant").
+					On("DeviceResolve", ctx, "tenant", store.DeviceUIDResolver, testifymock.Anything).
 					Return(&models.Device{
 						UID:      key,
 						Name:     "device-name",
@@ -264,7 +264,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceGetByUID", ctx, testifymock.Anything, "tenant").
+					On("DeviceResolve", ctx, "tenant", store.DeviceUIDResolver, testifymock.Anything).
 					Return(&models.Device{
 						UID:      key,
 						Name:     "device-name",
