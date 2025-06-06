@@ -40,12 +40,10 @@
                 <div v-bind="props">
                   <SessionPlay
                     v-if="session.authenticated && session.recorded"
+                    :authenticated="session.authenticated"
                     :uid="session.uid"
-                    :device="session.device"
-                    :notHasAuthorization="!hasAuthorizationPlay()"
-                    :recorded="session.authenticated && session.recorded"
-                    @update="refreshSessions"
-                    data-test="sessionPlay-component"
+                    :recorded="session.recorded"
+                    data-test="session-play-component"
                   />
                 </div>
               </template>
