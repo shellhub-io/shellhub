@@ -1,7 +1,6 @@
 <template>
   <div
     class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal"
-    v-if="logs"
     ref="containerDiv"
     @keydown.space.prevent="isPlaying = !isPlaying"
     data-test="player-container"

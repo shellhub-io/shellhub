@@ -22,7 +22,7 @@
     <v-dialog
       :transition="false"
       :fullscreen="true"
-      v-model="showDialog"
+      v-model="showPlayer"
     >
       <v-card class="bg-v-theme-surface position-relative">
         <v-btn
@@ -30,20 +30,22 @@
           variant="text"
           data-test="close-btn"
           icon="mdi-close"
-          @click="closeDialog"
+          @click="closePlayerDialog"
         />
 
-        <Player :logs @close="closeDialog" />
+        <Player :logs @close="closePlayerDialog" />
       </v-card>
     </v-dialog>
+
+    <SessionDownload
+      v-model="showDownloadDialog"
+      :sessionBlob
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  ref,
-} from "vue";
+import { computed, ref } from "vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { envVariables } from "@/envVariables";
@@ -51,6 +53,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
+import SessionDownload from "./SessionDownload.vue";
 
 const props = defineProps<{
   uid: string;
@@ -58,11 +61,14 @@ const props = defineProps<{
   authenticated: boolean;
 }>();
 
-const showDialog = ref(false);
+const showPlayer = ref(false);
+const showDownloadDialog = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
 const logs = ref<string | null>(null);
+const sessionBlob = ref<Blob | null>(null);
+const maxBlobSize = 300 * 1000 * 1000; // 300 MB, change this to test with smaller blobs
 const isCommunity = computed(() => envVariables.isCommunity);
 const tooltipMessage = computed(() => props.recorded
   ? "You don't have permission to play this session."
@@ -78,14 +84,22 @@ const disableTooltip = computed(() => isCommunity.value || (hasAuthorizationToPl
 const getSessionLogs = async () => {
   if (props.recorded) {
     await store.dispatch("sessions/getSessionLogs", props.uid);
-    logs.value = store.getters["sessions/getLogs"];
+    const blob = store.getters["sessions/getLogs"];
+
+    // Check if the browser supports showSaveFilePicker (Firefox does not support it yet)
+    const hasShowSaveFilePicker = "showSaveFilePicker" in window;
+
+    if (blob.size > maxBlobSize && hasShowSaveFilePicker) {
+      sessionBlob.value = blob;
+      showDownloadDialog.value = true;
+    } else logs.value = await blob.text();
   }
 };
 
 const displayDialog = async () => {
   try {
     await getSessionLogs();
-    showDialog.value = true;
+    if (logs.value) showPlayer.value = true;
   } catch (error: unknown) {
     snackbar.showError("Failed to play the session.");
     handleError(error);
@@ -100,8 +114,8 @@ const openDialog = () => {
   displayDialog();
 };
 
-const closeDialog = () => {
-  showDialog.value = false;
+const closePlayerDialog = () => {
+  showPlayer.value = false;
 };
 </script>
 
