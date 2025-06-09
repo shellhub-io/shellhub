@@ -35,21 +35,25 @@
           </v-row>
         </td>
         <td class="text-center">
-          <v-chip data-test="ip-chip">
-            <v-tooltip location="bottom">
-              <template v-slot:activator="{ props }">
-                <span
-                  v-bind="props"
-                  @click='copyText(`${item.address}:${item.port}`)'
-                  @keypress='copyText(`${item.address}:${item.port}`)'
-                  class="hover-text"
-                >
-                  {{ `${item.address}:${item.port}` }}
-                </span>
-              </template>
-              <span>Copy IP</span>
-            </v-tooltip>
-          </v-chip>
+          <CopyWarning :copied-item="'Connector host'">
+            <template #default="{ copyText }">
+              <v-chip data-test="ip-chip">
+                <v-tooltip location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <span
+                      v-bind="props"
+                      @click='copyText(`${item.address}:${item.port}`)'
+                      @keypress='copyText(`${item.address}:${item.port}`)'
+                      class="hover-text"
+                    >
+                      {{ `${item.address}:${item.port}` }}
+                    </span>
+                  </template>
+                  <span>Copy IP</span>
+                </v-tooltip>
+              </v-chip>
+            </template>
+          </CopyWarning>
         </td>
         <td class="text-center">
           <v-icon
@@ -137,6 +141,7 @@ import { envVariables } from "@/envVariables";
 import DataTable from "../DataTable.vue";
 import ConnectorDelete from "../Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../Connector/ConnectorEdit.vue";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
@@ -252,13 +257,6 @@ watch(itemsPerPage, async (newItemsPerPage) => {
 
 const redirectToDetails = (uid: string) => {
   router.push({ name: "ConnectorDetails", params: { id: uid } });
-};
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    snackbar.showInfo("Connector host copied to clipboard.");
-  }
 };
 
 const switchConnector = async (uid: string, enable: boolean) => {

@@ -40,21 +40,25 @@
           <span>{{ item.info.pretty_name }}</span>
         </td>
         <td class="text-center">
-          <v-chip data-test="sshid-chip">
-            <v-tooltip location="bottom">
-              <template v-slot:activator="{ props }">
-                <span
-                  v-bind="props"
-                  @click="copyText(sshidAddress(item))"
-                  @keypress="copyText(sshidAddress(item))"
-                  class="hover-text"
-                >
-                  {{ sshidAddress(item) }}
-                </span>
-              </template>
-              <span>Copy ID</span>
-            </v-tooltip>
-          </v-chip>
+          <CopyWarning :copied-item="'Device SSHID'">
+            <template #default="{ copyText }">
+              <v-chip data-test="sshid-chip">
+                <v-tooltip location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <span
+                      v-bind="props"
+                      @click="copyText(sshidAddress(item))"
+                      @keypress="copyText(sshidAddress(item))"
+                      class="hover-text"
+                    >
+                      {{ sshidAddress(item) }}
+                    </span>
+                  </template>
+                  <span>Copy ID</span>
+                </v-tooltip>
+              </v-chip>
+            </template>
+          </CopyWarning>
         </td>
         <td class="text-center">
           <div v-if="item.tags[0]">
@@ -257,7 +261,7 @@ import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
-import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const props = defineProps({
   storeMethods: {
@@ -281,7 +285,6 @@ const props = defineProps({
 const { fetchDevices, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
 
 const router = useRouter();
-const snackbar = useSnackbar();
 const loading = ref(false);
 const filter = computed(() => getFilter());
 const items = computed(() => getList());
@@ -426,13 +429,6 @@ const redirectToDevice = (deviceId: string) => {
 };
 
 const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    snackbar.showInfo("Device SSHID copied to clipboard.");
-  }
-};
 
 const refreshDevices = () => {
   getDevices(itemsPerPage.value, page.value, filter.value);

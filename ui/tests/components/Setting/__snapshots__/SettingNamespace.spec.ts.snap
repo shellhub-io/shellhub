@@ -113,7 +113,13 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <div class="v-card-item__append"><span data-v-80a16399="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal ml-1" draggable="false"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
-            <div class="v-chip__content" data-no-activator=""><span data-v-80a16399="" aria-describedby="v-tooltip-v-4" class="hover-text" data-test="tenant-copy-btn">fake-tenant <i data-v-80a16399="" class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <div class="v-chip__content" data-no-activator="">
+              <div data-v-80a16399=""><span data-v-80a16399="" isactive="false" targetref="target => {
+    el.value = target;
+  }" props="[object Object]" class="hover-text" data-test="tenant-copy-btn">fake-tenant <i data-v-80a16399="" class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                <!---->
+                <!---->
+              </div>
               <!--teleport start-->
               <!--teleport end-->
             </div>

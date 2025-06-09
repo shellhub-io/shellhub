@@ -80,15 +80,20 @@
             class="mb-2"
             data-test="successKey-alert"
           />
-          <v-text-field
-            v-model="keyResponse"
-            append-inner-icon="mdi-content-copy"
-            variant="solo-filled"
-            readonly
-            density="compact"
-            @click="copyText(keyResponse)"
-            data-test="keyResponse-text"
-          />
+          <CopyWarning :copied-item="'API Key'">
+            <template #default="{ copyText }">
+              <v-text-field
+                v-model="keyResponse"
+                append-inner-icon="mdi-content-copy"
+                variant="solo-filled"
+                readonly
+                density="compact"
+                @click="copyText(keyResponse)"
+                data-test="keyResponse-text"
+              />
+            </template>
+          </CopyWarning>
+
         </v-card-text>
 
         <v-card-actions>
@@ -115,6 +120,7 @@ import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
@@ -153,13 +159,6 @@ const {
     initialValue: "",
   },
 );
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    snackbar.showInfo("API Key copied to clipboard.");
-  }
-};
 
 const getExpiryDate = (item) => {
   if (item === "No expire") {
