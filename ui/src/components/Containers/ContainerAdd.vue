@@ -33,18 +33,21 @@
         <p class="text-body-2 font-weight-bold mt-4">
           Run the following command on your Docker host:
         </p>
-
-        <v-text-field
-          :model-value="command()"
-          @click:append="copyCommand"
-          class="code mt-1"
-          variant="outlined"
-          append-icon="mdi-content-copy"
-          readonly
-          active
-          data-test="command-field"
-          density="compact"
-        />
+        <CopyWarning :onSuccess="() => snackbar.showInfo('Command copied to clipboard!')">
+          <template #default="{ copyText }">
+            <v-text-field
+              :model-value="command()"
+              @click:append="copyText(command())"
+              class="code mt-1"
+              variant="outlined"
+              append-icon="mdi-content-copy"
+              readonly
+              active
+              data-test="command-field"
+              density="compact"
+            />
+          </template>
+        </CopyWarning>
 
         <v-divider />
 
@@ -75,6 +78,7 @@
 import { computed, ref } from "vue";
 import { useStore } from "@/store";
 import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const props = defineProps({
   size: {
@@ -95,11 +99,6 @@ const command = () => {
 
   // eslint-disable-next-line vue/max-len
   return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenant.value} SERVER_ADDRESS=${window.location.protocol}//${hostname}${port} sh -s connector`;
-};
-
-const copyCommand = () => {
-  navigator.clipboard.writeText(command());
-  snackbar.showInfo("Command copied to clipboard");
 };
 </script>
 
