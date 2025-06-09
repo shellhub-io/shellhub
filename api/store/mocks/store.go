@@ -1555,9 +1555,9 @@ func (_m *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]
 	return r0, r1, r2
 }
 
-// SessionListEvents provides a mock function with given fields: ctx, uid, seat, event, paginator
-func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error) {
-	ret := _m.Called(ctx, uid, seat, event, paginator)
+// SessionListEvents provides a mock function with given fields: ctx, uid, paginator, filters, sorter
+func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.SessionEvent, int, error) {
+	ret := _m.Called(ctx, uid, paginator, filters, sorter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionListEvents")
@@ -1566,25 +1566,25 @@ func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int
 	var r0 []models.SessionEvent
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) ([]models.SessionEvent, int, error)); ok {
-		return rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) ([]models.SessionEvent, int, error)); ok {
+		return rf(ctx, uid, paginator, filters, sorter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) []models.SessionEvent); ok {
-		r0 = rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) []models.SessionEvent); ok {
+		r0 = rf(ctx, uid, paginator, filters, sorter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.SessionEvent)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) int); ok {
-		r1 = rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) int); ok {
+		r1 = rf(ctx, uid, paginator, filters, sorter)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) error); ok {
-		r2 = rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(2).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) error); ok {
+		r2 = rf(ctx, uid, paginator, filters, sorter)
 	} else {
 		r2 = ret.Error(2)
 	}

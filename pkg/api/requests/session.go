@@ -1,6 +1,10 @@
 package requests
 
-import "time"
+import (
+	"time"
+
+	"github.com/shellhub-io/shellhub/pkg/api/query"
+)
 
 // SessionIDParam is a structure to represent and validate a session UID as path param.
 type SessionIDParam struct {
@@ -56,4 +60,11 @@ type SessionEvent struct {
 type SessionSeat struct {
 	SessionIDParam
 	ID int `json:"id" bson:"id,omitempty"`
+}
+
+type SessionListEvents struct {
+	UID string `param:"uid" validate:"required"`
+	query.Paginator
+	query.Filters
+	query.Sorter
 }
