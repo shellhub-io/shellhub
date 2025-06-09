@@ -100,14 +100,18 @@
                   class="mr-2"
                   data-test="download-recovery-codes-btn"
                 >Download</v-btn>
-                <v-btn
-                  @click="copyRecoveryCodes()"
-                  color="primary"
-                  tabindex="0"
-                  variant="elevated"
-                  prepend-icon="mdi-content-copy"
-                  data-test="copy-recovery-codes-btn"
-                >Copy</v-btn>
+                <CopyWarning :copied-item="'Recovery codes'">
+                  <template #default="{ copyText }">
+                    <v-btn
+                      @click="copyText(recoveryCodes.value.join('\n'))"
+                      color="primary"
+                      tabindex="0"
+                      variant="elevated"
+                      prepend-icon="mdi-content-copy"
+                      data-test="copy-recovery-codes-btn"
+                    >Copy</v-btn>
+                  </template>
+                </CopyWarning>
               </v-col>
             </v-row>
 
@@ -252,10 +256,10 @@ import { ref, computed, watch } from "vue";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import QrcodeVue from "qrcode.vue";
 import axios, { AxiosError } from "axios";
-import { useClipboard } from "@vueuse/core";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
@@ -341,14 +345,6 @@ watch(() => el.value === 2, async () => {
     handleError(error);
   }
 });
-
-const copyRecoveryCodes = () => {
-  const codesText = recoveryCodes.value.join("\n");
-  const { copy } = useClipboard();
-  copy(codesText);
-
-  snackbar.showInfo("Recovery codes copied to clipboard.");
-};
 
 const downloadRecoveryCodes = () => {
   const codesText = recoveryCodes.value.join("\n");

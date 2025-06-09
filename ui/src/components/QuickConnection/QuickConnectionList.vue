@@ -20,7 +20,6 @@
       <v-card :key="i" data-test="device-card">
         <v-list-item
           @click="openDialog(item.uid)"
-          @keydown="copyMacro(sshidAddress(item))"
           :key="i"
           class="ma-0 pa-0 card"
           data-test="device-list-item"
@@ -37,14 +36,24 @@
               <v-chip class="bg-grey-darken-4">
                 <v-tooltip location="bottom">
                   <template v-slot:activator="{ props }">
-                    <span
-                      v-bind="props"
-                      @click.stop="copyText(sshidAddress(item))"
-                      @keypress.stop="copyText(sshidAddress(item))"
-                      class="hover-text"
-                      data-test="copy-id-button">
-                      {{ sshidAddress(item) }}
-                    </span>
+                    <CopyWarning
+                      ref="copyRef"
+                      :copied-item="'Device SSHID'"
+                      :macro="sshidAddress(item)"
+                    >
+                      <template #default="{ copyText }">
+                        <span
+                          v-bind="props"
+                          tabindex="0"
+                          class="hover-text"
+                          @click.stop="copyText(sshidAddress(item))"
+                          @keydown.enter.stop="copyText(sshidAddress(item))"
+                          data-test="copy-id-button"
+                        >
+                          {{ sshidAddress(item) }}
+                        </span>
+                      </template>
+                    </CopyWarning>
 
                   </template>
                   <span>Copy ID</span>
@@ -85,7 +94,6 @@
 </template>
 
 <script setup lang="ts">
-import { useMagicKeys } from "@vueuse/core";
 import { ref, onMounted, computed, watch } from "vue";
 import { VList } from "vuetify/components";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
@@ -96,6 +104,7 @@ import DeviceIcon from "../Devices/DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 interface Device {
   online: boolean
@@ -103,6 +112,7 @@ interface Device {
 
 const store = useStore();
 const snackbar = useSnackbar();
+const copyRef = ref<InstanceType<typeof CopyWarning> | null>(null);
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref();
@@ -177,29 +187,6 @@ watch(itemsPerPage, async () => {
 });
 
 const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    snackbar.showInfo("Device SSHID copied to clipboard.");
-  }
-};
-
-const copyMacro = (value: string | undefined) => {
-  let executed = false;
-
-  return useMagicKeys({
-    passive: false,
-    onEventFired(e) {
-      if (!executed && value && e.ctrlKey && e.key === "c" && e.type === "keydown") {
-        executed = true;
-        navigator.clipboard.writeText(value);
-        snackbar.showInfo("Device SSHID copied to clipboard.");
-        e.preventDefault();
-      }
-    },
-  });
-};
 </script>
 
 <style scoped>

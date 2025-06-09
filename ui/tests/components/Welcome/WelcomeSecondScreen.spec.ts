@@ -1,4 +1,4 @@
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
@@ -94,11 +94,5 @@ describe("Welcome Second Screen", () => {
     expect(wrapper.find('[data-test="welcome-second-run-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="welcome-second-link-docs"]').exists()).toBe(true);
-  });
-
-  it("Should copy the command to clipboard when copyCommand is called", async () => {
-    wrapper.vm.copyCommand();
-    await flushPromises();
-    expect(mockSnackbar.showInfo).toHaveBeenCalledWith("Tenant ID copied to clipboard.");
   });
 });

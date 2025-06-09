@@ -89,17 +89,21 @@
             <template #append>
               <v-chip class="ml-1">
                 <v-tooltip location="top">
-                  <template v-slot:activator="{ props }">
-                    <span
-                      v-bind="props"
-                      @click="copyText(tenant)"
-                      @keypress="copyText(tenant)"
-                      class="hover-text"
-                      data-test="tenant-copy-btn"
-                    >
-                      {{ tenant }}
-                      <v-icon icon="mdi-content-copy" />
-                    </span>
+                  <template #activator="props">
+                    <CopyWarning :copied-item="'Tenant ID'">
+                      <template #default="{ copyText }">
+                        <span
+                          v-bind="props"
+                          @click="copyText(tenant)"
+                          @keypress="copyText(tenant)"
+                          class="hover-text"
+                          data-test="tenant-copy-btn"
+                        >
+                          {{ tenant }}
+                          <v-icon icon="mdi-content-copy" />
+                        </span>
+                      </template>
+                    </CopyWarning>
                   </template>
                   <span data-test="tenant-tooltip">Copy ID</span>
                 </v-tooltip>
@@ -196,6 +200,7 @@ import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
 import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
@@ -229,13 +234,6 @@ const cancel = (type: string) => {
   if (type === "data") {
     name.value = store.getters["namespaces/get"].name;
     editDataStatus.value = !editDataStatus.value;
-  }
-};
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    snackbar.showInfo("Tenant ID copied to clipboard.");
   }
 };
 

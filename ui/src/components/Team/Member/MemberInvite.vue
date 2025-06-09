@@ -130,17 +130,21 @@
               </p>
               <p class="mb-4"><strong>Note:</strong> This link is only valid for the email address you entered earlier.
               </p>
-              <v-text-field
-                v-model="invitationLink"
-                @click="copyText(invitationLink)"
-                @keypress="copyText(invitationLink)"
-                readonly
-                active
-                density="compact"
-                append-icon="mdi-content-copy"
-                label="Invitation Link"
-                data-test="invitation-link"
-              />
+              <CopyWarning :copied-item="'Invitation link'">
+                <template #default="{ copyText }">
+                  <v-text-field
+                    v-model="invitationLink"
+                    @click="copyText(invitationLink)"
+                    @keypress="copyText(invitationLink)"
+                    readonly
+                    active
+                    density="compact"
+                    append-icon="mdi-content-copy"
+                    label="Invitation Link"
+                    data-test="invitation-link"
+                  />
+                </template>
+              </CopyWarning>
               <p class="text-caption text-grey-darken-1">
                 The invitation link remains valid for 7 days, if the link does not work, ensure the invite has not expired.
               </p>
@@ -183,6 +187,7 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const items = [
   {
@@ -254,13 +259,6 @@ const close = () => {
 const update = () => {
   emit("update");
   close();
-};
-
-const copyText = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
-    snackbar.showInfo("Invitation link copied to clipboard.");
-  }
 };
 
 const handleInviteError = (error: unknown) => {

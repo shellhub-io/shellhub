@@ -12,18 +12,22 @@
     <p class="ml-2 pt-4 text-subtitle-2 text-bold" data-test="welcome-second-run-title">
       Run the following command on your device:
     </p>
+    <CopyWarning :copied-item="'Tenant ID'">
+      <template #default="{ copyText }">
+        <v-text-field
+          :model-value="command"
+          @click:append="copyText(props.command)"
+          class="code mt-1"
+          variant="outlined"
+          append-icon="mdi-content-copy"
+          readonly
+          active
+          data-test="command-field"
+          density="compact"
+        />
 
-    <v-text-field
-      :model-value="command"
-      @click:append="copyCommand"
-      class="code mt-1"
-      variant="outlined"
-      append-icon="mdi-content-copy"
-      readonly
-      active
-      data-test="command-field"
-      density="compact"
-    />
+      </template>
+    </CopyWarning>
 
     <v-divider />
 
@@ -41,8 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { useClipboard } from "@vueuse/core";
-import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const props = defineProps({
   command: {
@@ -51,13 +54,4 @@ const props = defineProps({
   },
 });
 
-const snackbar = useSnackbar();
-const { copy } = useClipboard();
-
-const copyCommand = () => {
-  copy(props.command);
-  snackbar.showInfo("Tenant ID copied to clipboard.");
-};
-
-defineExpose({ copyCommand });
 </script>

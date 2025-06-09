@@ -29,15 +29,19 @@ exports[`Device List > Renders the component 1`] = `
               </td>
               <td data-v-787abe29="" class="text-center">39-5e-2a</td>
               <td data-v-787abe29="" class="text-center"><i data-v-787abe29="" data-test="deviceIcon-component" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-787abe29="">Linux Mint 19.3</span></td>
-              <td data-v-787abe29="" class="text-center"><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="sshid-chip"><!----><span class="v-chip__underlay"></span>
-                <!---->
-                <!---->
-                <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-4" class="hover-text">user.39-5e-2a@localhost</span>
-                  <!--teleport start-->
-                  <!--teleport end-->
+              <td data-v-787abe29="" class="text-center">
+                <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="sshid-chip"><!----><span class="v-chip__underlay"></span>
+                  <!---->
+                  <!---->
+                  <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-4" class="hover-text">user.39-5e-2a@localhost</span>
+                    <!--teleport start-->
+                    <!--teleport end-->
+                  </div>
+                  <!---->
+                  <!----></span>
+                  <!---->
+                  <!---->
                 </div>
-                <!---->
-                <!----></span>
               </td>
               <td data-v-787abe29="" class="text-center">
                 <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-5" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
@@ -70,15 +74,19 @@ exports[`Device List > Renders the component 1`] = `
               </td>
               <td data-v-787abe29="" class="text-center">39-5e-2b</td>
               <td data-v-787abe29="" class="text-center"><i data-v-787abe29="" data-test="deviceIcon-component" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-787abe29="">Linux Mint 19.3</span></td>
-              <td data-v-787abe29="" class="text-center"><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="sshid-chip"><!----><span class="v-chip__underlay"></span>
-                <!---->
-                <!---->
-                <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-13" class="hover-text">user.39-5e-2b@localhost</span>
-                  <!--teleport start-->
-                  <!--teleport end-->
+              <td data-v-787abe29="" class="text-center">
+                <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="sshid-chip"><!----><span class="v-chip__underlay"></span>
+                  <!---->
+                  <!---->
+                  <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-13" class="hover-text">user.39-5e-2b@localhost</span>
+                    <!--teleport start-->
+                    <!--teleport end-->
+                  </div>
+                  <!---->
+                  <!----></span>
+                  <!---->
+                  <!---->
                 </div>
-                <!---->
-                <!----></span>
               </td>
               <td data-v-787abe29="" class="text-center">
                 <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-14" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>

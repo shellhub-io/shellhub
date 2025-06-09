@@ -49,15 +49,19 @@ exports[`Connector List > Renders the component 1`] = `
                 </div>
               </div>
             </td>
-            <td data-v-6fdd6bd6="" class="text-center"><span data-v-6fdd6bd6="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="ip-chip"><!----><span class="v-chip__underlay"></span>
-              <!---->
-              <!---->
-              <div class="v-chip__content" data-no-activator=""><span data-v-6fdd6bd6="" aria-describedby="v-tooltip-v-4" class="hover-text">127.0.0.1:2375</span>
-                <!--teleport start-->
-                <!--teleport end-->
+            <td data-v-6fdd6bd6="" class="text-center">
+              <div data-v-6fdd6bd6=""><span data-v-6fdd6bd6="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="ip-chip"><!----><span class="v-chip__underlay"></span>
+                <!---->
+                <!---->
+                <div class="v-chip__content" data-no-activator=""><span data-v-6fdd6bd6="" aria-describedby="v-tooltip-v-4" class="hover-text">127.0.0.1:2375</span>
+                  <!--teleport start-->
+                  <!--teleport end-->
+                </div>
+                <!---->
+                <!----></span>
+                <!---->
+                <!---->
               </div>
-              <!---->
-              <!----></span>
             </td>
             <td data-v-6fdd6bd6="" class="text-center"><i data-v-6fdd6bd6="" class="mdi-lock-open-alert mdi v-icon notranslate v-theme--light text-grey-darken-2 mr-1" style="font-size: 26px; height: 26px; width: 26px;" aria-hidden="true" data-test="secure-icon"></i></td>
             <td data-v-6fdd6bd6="" class="text-center" data-test="menu-key-component"><button data-v-6fdd6bd6="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-5" data-test="connector-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
