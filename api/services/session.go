@@ -16,7 +16,8 @@ type SessionService interface {
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error
-	EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error
+	SaveEventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error
+	ListEventsSession(ctx context.Context, uid models.UID, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.SessionEvent, int, error)
 }
 
 func (s *service) ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
@@ -71,11 +72,20 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 	return s.store.SessionUpdate(ctx, uid, sess, &model)
 }
 
-func (s *service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
+func (s *service) SaveEventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
 	sess, err := s.store.SessionGet(ctx, uid)
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 
 	return s.store.SessionEvent(ctx, models.UID(sess.UID), event)
+}
+
+func (s *service) ListEventsSession(ctx context.Context, uid models.UID, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.SessionEvent, int, error) {
+	sess, err := s.store.SessionGet(ctx, uid)
+	if err != nil {
+		return nil, 0, NewErrSessionNotFound(uid, err)
+	}
+
+	return s.store.SessionListEvents(ctx, models.UID(sess.UID), paginator, filters, sorter)
 }

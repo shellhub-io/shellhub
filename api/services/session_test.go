@@ -2,10 +2,9 @@ package services
 
 import (
 	"context"
+	"errors"
 	"net"
 	"testing"
-
-	goerrors "errors"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
@@ -16,6 +15,7 @@ import (
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	mocker "github.com/stretchr/testify/mock"
 )
 
 func TestListSessions(t *testing.T) {
@@ -40,12 +40,12 @@ func TestListSessions(t *testing.T) {
 			paginator:   query.Paginator{Page: 1, PerPage: 10},
 			requiredMocks: func(paginator query.Paginator) {
 				mock.On("SessionList", ctx, paginator).
-					Return(nil, 0, goerrors.New("error")).Once()
+					Return(nil, 0, errors.New("error")).Once()
 			},
 			expected: Expected{
 				sessions: nil,
 				count:    0,
-				err:      goerrors.New("error"),
+				err:      errors.New("error"),
 			},
 		},
 		{
@@ -111,11 +111,11 @@ func TestGetSession(t *testing.T) {
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionGet", ctx, models.UID("_uid")).
-					Return(nil, goerrors.New("error")).Once()
+					Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{
 				session: nil,
-				err:     NewErrSessionNotFound(models.UID("_uid"), goerrors.New("error")),
+				err:     NewErrSessionNotFound(models.UID("_uid"), errors.New("error")),
 			},
 		},
 		{
@@ -165,7 +165,7 @@ func TestCreateSession(t *testing.T) {
 		Longitude: 0,
 	}}
 
-	Err := goerrors.New("error")
+	Err := errors.New("error")
 
 	cases := []struct {
 		name          string
@@ -246,9 +246,9 @@ func TestDeactivateSession(t *testing.T) {
 					}, nil).Once()
 
 				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
-					Return(goerrors.New("error")).Once()
+					Return(errors.New("error")).Once()
 			},
-			expected: goerrors.New("error"),
+			expected: errors.New("error"),
 		},
 		{
 			name: "succeeds",
@@ -298,9 +298,9 @@ func TestUpdateSession(t *testing.T) {
 			description: "fails when SessionGet returns error",
 			requiredMocks: func() {
 				mockStore.On("SessionGet", ctx, uid).
-					Return(nil, goerrors.New("get error")).Once()
+					Return(nil, errors.New("get error")).Once()
 			},
-			expectedErr: NewErrSessionNotFound(uid, goerrors.New("get error")),
+			expectedErr: NewErrSessionNotFound(uid, errors.New("get error")),
 		},
 		{
 			description: "fails when SessionUpdate returns error",
@@ -308,9 +308,9 @@ func TestUpdateSession(t *testing.T) {
 				mockStore.On("SessionGet", ctx, uid).
 					Return(sess, nil).Once()
 				mockStore.On("SessionUpdate", ctx, uid, sess, &updateModel).
-					Return(goerrors.New("update error")).Once()
+					Return(errors.New("update error")).Once()
 			},
-			expectedErr: goerrors.New("update error"),
+			expectedErr: errors.New("update error"),
 		},
 		{
 			description: "succeeds when no errors",
@@ -334,4 +334,242 @@ func TestUpdateSession(t *testing.T) {
 	}
 
 	mockStore.AssertExpectations(t)
+}
+
+func TestListEvents(t *testing.T) {
+	type Expected struct {
+		events  []models.SessionEvent
+		counter int
+		err     error
+	}
+
+	mock := new(mocks.Store)
+
+	tests := []struct {
+		description   string
+		uid           string
+		paginator     query.Paginator
+		sorter        query.Sorter
+		filters       query.Filters
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "failed to get the session",
+			uid:         "uid",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: "asc"},
+			filters:     query.Filters{},
+			requiredMocks: func() {
+				mock.On(
+					"SessionGet",
+					mocker.Anything,
+					models.UID("uid"),
+				).
+					Return(nil, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				nil, 0, NewErrSessionNotFound(models.UID("uid"), errors.New("error")),
+			},
+		},
+		{
+			description: "failed to list the events",
+			uid:         "uid",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: "asc"},
+			filters:     query.Filters{},
+			requiredMocks: func() {
+				mock.On(
+					"SessionGet",
+					mocker.Anything,
+					models.UID("uid"),
+				).
+					Return(&models.Session{
+						UID: "uid",
+					}, nil).
+					Once()
+
+				mock.On(
+					"SessionListEvents",
+					mocker.Anything,
+					models.UID("uid"),
+					query.Paginator{Page: 1, PerPage: 10},
+					query.Filters{},
+					query.Sorter{By: "timestamp", Order: "asc"},
+				).
+					Return(nil, 0, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				nil, 0, errors.New("error"),
+			},
+		},
+		{
+			description: "success when session has no events",
+			uid:         "uid",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: "asc"},
+			filters:     query.Filters{},
+			requiredMocks: func() {
+				mock.On(
+					"SessionGet",
+					mocker.Anything,
+					models.UID("uid"),
+				).
+					Return(&models.Session{
+						UID: "uid",
+					}, nil).
+					Once()
+
+				mock.On(
+					"SessionListEvents",
+					mocker.Anything,
+					models.UID("uid"),
+					query.Paginator{Page: 1, PerPage: 10},
+					query.Filters{},
+					query.Sorter{By: "timestamp", Order: "asc"},
+				).
+					Return([]models.SessionEvent{}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.SessionEvent{}, 0, nil,
+			},
+		},
+		{
+			description: "success when session has one event",
+			uid:         "uid",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: "asc"},
+			filters:     query.Filters{},
+			requiredMocks: func() {
+				mock.On(
+					"SessionGet",
+					mocker.Anything,
+					models.UID("uid"),
+				).
+					Return(&models.Session{
+						UID: "uid",
+					}, nil).
+					Once()
+
+				mock.On(
+					"SessionListEvents",
+					mocker.Anything,
+					models.UID("uid"),
+					query.Paginator{Page: 1, PerPage: 10},
+					query.Filters{},
+					query.Sorter{By: "timestamp", Order: "asc"},
+				).
+					Return([]models.SessionEvent{
+						{},
+					}, 1, nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.SessionEvent{
+					{},
+				}, 1, nil,
+			},
+		},
+		{
+			description: "success when session has many events",
+			uid:         "uid",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: "asc"},
+			filters:     query.Filters{},
+			requiredMocks: func() {
+				mock.On(
+					"SessionGet",
+					mocker.Anything,
+					models.UID("uid"),
+				).
+					Return(&models.Session{
+						UID: "uid",
+					}, nil).
+					Once()
+
+				mock.On(
+					"SessionListEvents",
+					mocker.Anything,
+					models.UID("uid"),
+					query.Paginator{Page: 1, PerPage: 10},
+					query.Filters{},
+					query.Sorter{By: "timestamp", Order: "asc"},
+				).
+					Return([]models.SessionEvent{
+						{},
+						{},
+						{},
+						{},
+					}, 4, nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.SessionEvent{
+					{},
+					{},
+					{},
+					{},
+				}, 4, nil,
+			},
+		},
+		{
+			description: "success when session has many events and is paged",
+			uid:         "uid",
+			paginator:   query.Paginator{Page: 1, PerPage: 2},
+			sorter:      query.Sorter{By: "timestamp", Order: "asc"},
+			filters:     query.Filters{},
+			requiredMocks: func() {
+				mock.On(
+					"SessionGet",
+					mocker.Anything,
+					models.UID("uid"),
+				).
+					Return(&models.Session{
+						UID: "uid",
+					}, nil).
+					Once()
+
+				mock.On(
+					"SessionListEvents",
+					mocker.Anything,
+					models.UID("uid"),
+					query.Paginator{Page: 1, PerPage: 2},
+					query.Filters{},
+					query.Sorter{By: "timestamp", Order: "asc"},
+				).
+					Return([]models.SessionEvent{
+						{},
+						{},
+					}, 4, nil).
+					Once()
+			},
+			expected: Expected{
+				[]models.SessionEvent{
+					{},
+					{},
+				}, 4, nil,
+			},
+		},
+	}
+
+	service := NewService(mock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			ctx := context.Background()
+			test.requiredMocks()
+
+			events, counter, err := service.ListEventsSession(ctx, models.UID(test.uid), test.paginator, test.filters, test.sorter)
+			assert.Equal(t, test.expected, Expected{
+				events:  events,
+				counter: counter,
+				err:     err,
+			})
+		})
+	}
+
+	mock.AssertExpectations(t)
 }
