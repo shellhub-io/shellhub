@@ -1,50 +1,33 @@
 <template>
-  <v-btn @click="dialog = !dialog" class="mr-2" data-test="namespaces-export-btn">Export CSV</v-btn>
+  <v-btn @click="showDialog = true" class="mr-2" data-test="namespaces-export-btn">Export CSV</v-btn>
 
-  <v-dialog v-model="dialog" max-width="400" transition="dialog-bottom-transition">
+  <v-dialog v-model="showDialog" max-width="400" transition="dialog-bottom-transition">
     <v-card>
-      <v-card-title class="text-h5 pb-2"> Export namespaces data </v-card-title>
+      <v-card-title class="text-h5 pb-2">Export namespaces data</v-card-title>
       <v-divider />
-      <v-form @submit.prevent="onSubmit" data-test="form">
+      <v-form @submit.prevent="handleSubmit" data-test="form">
         <v-card-text>
-          <v-container>
-            <v-radio-group v-model="selected">
-              <v-row no-gutters class="first-row">
-                <v-col class="pt-8" cols="12">
-                  <v-radio label="Namespaces with more than:" value="moreThan" mt="8" />
-                </v-col>
-              </v-row>
-              <v-row no-gutters class="d-flex justify-center align-center mb-4 ml-3">
-                <v-col cols="8">
-                  <v-slider v-model="numberOfDevices" hide-details :min="0" :max="150" />
-                </v-col>
-                <v-col cols="4">
-                  <span class="ml-4">{{ numberOfDevicesRound }} devices</span>
-                </v-col>
-              </v-row>
-              <v-row class="mb-4">
-                <v-col cols="12">
-                  <v-radio label="Namespaces with no devices" value="noDevices" />
-                </v-col>
-              </v-row>
-              <v-row class="mb-4">
-                <v-col cols="12">
-                  <v-radio value="noSession">
-                    <template v-slot:label>
-                      Namespace with devices but without <br />
-                      sessions
-                    </template>
-                  </v-radio>
-                </v-col>
-              </v-row>
-            </v-radio-group>
-          </v-container>
+          <v-radio-group v-model="selectedFilter">
+            <v-radio label="Namespaces with more than:" :value="NamespaceFilterOptions.MoreThan" />
+            <v-text-field
+              class="mt-2 mx-2"
+              v-model="numberOfDevices"
+              suffix="devices"
+              :disabled="selectedFilter !== NamespaceFilterOptions.MoreThan"
+              label="Number of devices"
+              color="primary"
+              density="comfortable"
+              variant="outlined"
+              :error-messages="numberOfDevicesError"
+            />
+            <v-radio label="Namespaces with no devices" :value="NamespaceFilterOptions.NoDevices" />
+            <v-radio label="Namespace with devices, but no sessions" :value="NamespaceFilterOptions.NoSessions" />
+          </v-radio-group>
         </v-card-text>
 
-        <v-card-actions class="pa-4">
-          <v-spacer />
-          <v-btn class="mr-2" color="dark" @click="dialog = false" type="reset"> Cancel </v-btn>
-          <v-btn color="dark" type="submit" class="mr-4"> Save </v-btn>
+        <v-card-actions class="pa-4 d-flex justify-end ga-2">
+          <v-btn @click="closeDialog">Cancel</v-btn>
+          <v-btn color="primary" type="submit" :loading="isLoading" :disabled="!!numberOfDevicesError || isLoading">Export</v-btn>
         </v-card-actions>
       </v-form>
     </v-card>
@@ -52,84 +35,72 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref, watch } from "vue";
+import * as yup from "yup";
+import { useField } from "vee-validate";
 import { saveAs } from "file-saver";
 import useNamespacesStore from "@admin/store/modules/namespaces";
+import getFilter from "@admin/hooks/namespaceExport";
+import { NamespaceFilterOptions } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
+import handleError from "@/utils/handleError";
 
-const numberOfDevices = ref(0);
-const dialog = ref(false);
-const selected = ref("moreThan");
+const showDialog = ref(false);
+const isLoading = ref(false);
+const selectedFilter = ref(NamespaceFilterOptions.MoreThan);
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
+const { value: numberOfDevices,
+  errorMessage: numberOfDevicesError,
+  setErrors: setNumberOfDevicesErrors,
+} = useField<number>("numberOfDevices", yup.number().integer().required().min(0), { initialValue: 0 });
 
-const numberOfDevicesRound = computed(() => Math.round(numberOfDevices.value));
-
-const generateEncodedFilter = (encodeFilter: string) => {
-  let filter;
-  switch (encodeFilter) {
-    case "moreThan":
-      filter = [
-        {
-          type: "property",
-          params: {
-            name: "devices",
-            operator: "gt",
-            value: String(numberOfDevicesRound.value),
-          },
-        },
-      ];
-      break;
-    case "noDevices":
-      filter = [
-        {
-          type: "property",
-          params: { name: "devices", operator: "eq", value: 0 },
-        },
-      ];
-      break;
-    case "noSession":
-      filter = [
-        {
-          type: "property",
-          params: { name: "devices", operator: "gt", value: "0" },
-        },
-        {
-          type: "property",
-          params: { name: "sessions", operator: "eq", value: 0 },
-        },
-        { type: "operator", params: { name: "and" } },
-      ];
-      break;
-    default:
-      break;
+watch(selectedFilter, (newValue) => {
+  if (newValue !== NamespaceFilterOptions.MoreThan) {
+    setNumberOfDevicesErrors("");
   }
-  return btoa(JSON.stringify(filter));
+});
+
+const encodeFilter = () => btoa(JSON.stringify(getFilter(selectedFilter.value, numberOfDevices.value)));
+
+const getFilename = () => {
+  const filterSuffixes = {
+    [NamespaceFilterOptions.MoreThan]: `more_than_${numberOfDevices.value}_devices`,
+    [NamespaceFilterOptions.NoDevices]: "no_devices",
+    [NamespaceFilterOptions.NoSessions]: "with_devices_but_no_sessions",
+  };
+
+  const suffix = filterSuffixes[selectedFilter.value] ?? "export";
+  return `namespaces_${suffix}.csv`;
 };
 
-const onSubmit = async () => {
-  const encodedFilter = generateEncodedFilter(selected.value);
+const exportCsv = async () => {
+  const encodedFilter = encodeFilter();
+  await namespacesStore.setFilterNamespaces(encodedFilter);
+  const response = await namespacesStore.exportNamespacesToCsv();
+  const blob = new Blob([response], { type: "text/csv;charset=utf-8" });
+  saveAs(blob, getFilename());
+};
+
+const handleSubmit = async () => {
+  isLoading.value = true;
   try {
-    await namespacesStore.setFilterNamespaces(encodedFilter);
-    const response = await namespacesStore.exportNamespacesToCsv();
-    const blob = new Blob([response], { type: "content-disposition" });
-    saveAs(
-      blob,
-      `namespaces_${
-        selected.value === "moreThanN"
-          ? `more_than_${String(numberOfDevices.value)}_devices`
-          : selected.value
-      }.csv`,
-    );
+    await exportCsv();
     snackbar.showSuccess("Namespaces exported successfully.");
-  } catch {
+  } catch (error) {
+    handleError(error);
     snackbar.showError("Error exporting namespaces.");
   }
+  isLoading.value = false;
+};
+
+const resetForm = () => {
+  numberOfDevices.value = 0;
+  selectedFilter.value = NamespaceFilterOptions.MoreThan;
+};
+
+const closeDialog = () => {
+  showDialog.value = false;
+  resetForm();
 };
 </script>
-
-<style scoped>
-.first-row {
-  height: 70px;
-}
-</style>
