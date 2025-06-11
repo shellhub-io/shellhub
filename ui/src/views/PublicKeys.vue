@@ -18,7 +18,7 @@
       v-else
       item="Public Keys"
       icon="mdi-key"
-      data-test="box-message-component"
+      data-test="no-items-message-component"
     >
       <template #content>
         <p>You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</p>

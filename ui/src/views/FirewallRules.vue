@@ -35,7 +35,7 @@
       v-else
       item="Firewall Rules"
       icon="mdi-security"
-      data-test="box-message-component"
+      data-test="no-items-message-component"
     >
       <template #content>
         <p>ShellHub provides flexible firewall for filtering SSH connections.
