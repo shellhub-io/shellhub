@@ -32,10 +32,21 @@
     <FirewallRuleList v-if="hasFirewallRule" />
 
     <BoxMessage
-      v-if="showBoxMessage"
-      typeMessage="firewall"
-      data-test="BoxMessageFirewall-component"
-    />
+      v-else
+      item="Firewall Rules"
+      icon="mdi-security"
+      data-test="box-message-component"
+    >
+      <template #content>
+        <p>ShellHub provides flexible firewall for filtering SSH connections.
+          It gives a fine-grained control over which SSH connections reach the devices.</p>
+        <p>Using Firewall Rules you can deny or allow SSH connections from specific
+          IP addresses to a specific or a group of devices using a given username.</p>
+      </template>
+      <template #action>
+        <FirewallRuleAdd />
+      </template>
+    </BoxMessage>
   </div>
 </template>
 
@@ -52,11 +63,9 @@ import useSnackbar from "@/helpers/snackbar";
 const showHelp = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
-const show = ref(false);
 const hasFirewallRule = computed(
   () => store.getters["firewallRules/getNumberFirewalls"] > 0,
 );
-const showBoxMessage = computed(() => !hasFirewallRule.value || show.value);
 
 const refresh = async () => {
   try {
@@ -75,10 +84,9 @@ onMounted(async () => {
       await refresh();
     }
   } catch (error: unknown) {
-    show.value = true;
     handleError(error);
   }
 });
 
-defineExpose({ showHelp, show });
+defineExpose({ showHelp });
 </script>

@@ -30,11 +30,27 @@
   </div>
 
   <BoxMessage
-    v-if="!show"
+    v-else
     class="mt-2"
-    type-message="device"
-    data-test="boxMessageDevice-component"
-  />
+    item="Devices"
+    icon="mdi-cellphone-link"
+    data-test="box-message-component"
+  >
+    <template #content>
+      <p>In order to register a device on ShellHub, you need to install ShellHub agent onto it.</p>
+      <p>The easiest way to install ShellHub agent is with our automatic one-line installation script,
+        which works with all Linux distributions that have Docker installed and properly set up.
+        <a
+          rel="noopener noreferrer"
+          target="_blank"
+          href="https://docs.shellhub.io/user-guides/devices/adding"
+        >See More</a>.
+      </p>
+    </template>
+    <template #action>
+      <DeviceAdd />
+    </template>
+  </BoxMessage>
 </template>
 
 <script setup lang="ts">

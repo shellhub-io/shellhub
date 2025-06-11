@@ -123,6 +123,6 @@ describe("Devices View", () => {
     expect(wrapper.find('[data-test="device-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-header-component-group"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="boxMessageDevice-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="box-message-component"]').exists()).toBe(true);
   });
 });
