@@ -137,9 +137,6 @@ describe("Sessions View", () => {
     wrapper = mount(Sessions, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -165,5 +162,18 @@ describe("Sessions View", () => {
 
   it("Renders the SessionList component", () => {
     expect(wrapper.findComponent({ name: "SessionList" }).exists()).toBe(true);
+  });
+
+  it("Shows the no items message when there are no sessions", async () => {
+    mockSessions.onGet("http://localhost:3000/api/sessions?page=1&per_page=10").reply(200, []);
+    store.commit("sessions/setSessions", { data: [], headers: { "x-total-count": 0 } });
+    wrapper.unmount();
+    wrapper = mount(Sessions, {
+      global: {
+        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+      },
+    });
+    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Sessions");
   });
 });
