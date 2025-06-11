@@ -20,8 +20,11 @@
       />
       <Terminal
         v-else
-        :token
+        :key="terminalKey"
+        :token="token"
+        :privateKey="privateKey ?? null"
       />
+
     </v-card>
   </v-dialog>
 </template>
@@ -33,25 +36,36 @@ import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
 import {
-  createKeyFingerprint,
-  createSignatureOfPrivateKey,
-  createSignerPrivateKey,
-  parsePrivateKeySsh,
-} from "@/utils/validate";
-import { IConnectToTerminal, LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
+  IConnectToTerminal,
+  LoginFormData,
+  TerminalAuthMethods,
+} from "@/interfaces/ITerminal";
+
+// Components used in this dialog
 import TerminalLoginForm from "./TerminalLoginForm.vue";
 import Terminal from "./Terminal.vue";
 
+// Utility to create key fingerprint for private key auth
+import { createKeyFingerprint } from "@/utils/validate";
+
+// Props: Device UID to connect the terminal session to
 const { deviceUid } = defineProps<{
   deviceUid: string;
 }>();
 
-const route = useRoute();
-const showLoginForm = ref(true);
-const showDialog = defineModel<boolean>();
-const { smAndDown, thresholds } = useDisplay();
-const token = ref("");
+const route = useRoute(); // current route
+const showLoginForm = ref(true); // controls whether login or terminal is shown
+const terminalKey = ref(0);
+const showDialog = defineModel<boolean>(); // controls visibility of dialog
 
+// Vuetify breakpoint info
+const { smAndDown, thresholds } = useDisplay();
+
+// Token and private key values for terminal connection
+const token = ref("");
+const privateKey = ref<LoginFormData["privateKey"]>("");
+
+// Connect to terminal via password or key
 const connect = async (params: IConnectToTerminal) => {
   const response = await axios.post("/ws/ssh", {
     device: deviceUid,
@@ -59,43 +73,39 @@ const connect = async (params: IConnectToTerminal) => {
   });
 
   token.value = response.data.token;
-
   showLoginForm.value = false;
 };
 
+// Handles private key-based connection
 const connectWithPrivateKey = async (params: IConnectToTerminal) => {
   const { username, privateKey } = params;
-  const parsedPrivateKey = parsePrivateKeySsh(privateKey);
   const fingerprint = await createKeyFingerprint(privateKey);
+  await connect({ username, fingerprint });
+};
 
-  let signature;
-  if (parsedPrivateKey.type === "ed25519") {
-    const signer = createSignerPrivateKey(parsedPrivateKey, username);
-    signature = signer;
-  } else {
-    signature = decodeURIComponent(await createSignatureOfPrivateKey(
-      parsedPrivateKey,
-      username,
-    ));
+// Triggered when the user submits login credentials
+const handleSubmit = async (params: LoginFormData) => {
+  if (params.authenticationMethod === TerminalAuthMethods.Password) {
+    await connect(params);
+    return;
   }
 
-  connect({ username, fingerprint, signature });
+  await connectWithPrivateKey(params);
+  privateKey.value = params.privateKey;
+  showLoginForm.value = false;
 };
 
-const handleSubmit = (params: LoginFormData) => {
-  if (params.authenticationMethod === TerminalAuthMethods.Password) {
-    connect(params);
-  } else connectWithPrivateKey(params);
-};
-
+// Reset state and close the dialog
 const close = () => {
   showDialog.value = false;
   showLoginForm.value = true;
   token.value = "";
+  privateKey.value = "";
+  terminalKey.value++; // trigger remount
 };
 
+// Track timing of ESC presses to close terminal on double ESC
 let lastEscPress = 0;
-
 const handleEscKey = (event: KeyboardEvent) => {
   if (event.key === "Escape" && !showLoginForm.value) {
     const currentTime = new Date().getTime();
@@ -106,11 +116,24 @@ const handleEscKey = (event: KeyboardEvent) => {
   }
 };
 
+// Bind ESC key listener
 useEventListener("keyup", handleEscKey);
 
-watch(() => route.path, (path) => {
-  if (path === `/devices/${deviceUid}/terminal`) showDialog.value = true;
-}, { immediate: true });
+// Auto-open terminal when navigating to specific device route
+watch(
+  () => route.path,
+  (path) => {
+    if (path === `/devices/${deviceUid}/terminal`) showDialog.value = true;
+  },
+  { immediate: true },
+);
 
-defineExpose({ token, handleSubmit, showDialog, showLoginForm, close });
+// Expose for test or parent interaction
+defineExpose({
+  token,
+  handleSubmit,
+  showDialog,
+  showLoginForm,
+  close,
+});
 </script>
