@@ -41,7 +41,6 @@ const snackbar = useSnackbar();
 
 onMounted(async () => {
   try {
-    store.dispatch("box/setStatus", true);
     store.dispatch("sessions/resetPagePerpage");
 
     await store.dispatch("sessions/refresh");

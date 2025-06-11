@@ -56,7 +56,6 @@ const refresh = async () => {
 };
 
 onMounted(async () => {
-  store.dispatch("box/setStatus", true);
   store.dispatch("publicKeys/resetPagePerpage");
   await refresh();
 });

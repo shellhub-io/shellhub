@@ -197,25 +197,21 @@ const getPublicKeysList = async (
   perPageValue: number,
   pageValue: number,
 ) => {
-  if (store.getters["box/getStatus"]) {
-    const data = {
-      perPage: perPageValue,
-      page: pageValue,
-    };
-    try {
-      loading.value = true;
-      const hasPublicKeys = await store.dispatch("publicKeys/fetch", data);
+  const data = {
+    perPage: perPageValue,
+    page: pageValue,
+  };
+  try {
+    loading.value = true;
+    const hasPublicKeys = await store.dispatch("publicKeys/fetch", data);
 
-      if (!hasPublicKeys) {
-        page.value--;
-      }
-      loading.value = false;
-    } catch (error: unknown) {
-      snackbar.showError("Failed to load public keys.");
-      handleError(error);
+    if (!hasPublicKeys) {
+      page.value--;
     }
-  } else {
-    store.dispatch("box/setStatus", false);
+    loading.value = false;
+  } catch (error: unknown) {
+    snackbar.showError("Failed to load public keys.");
+    handleError(error);
   }
 };
 

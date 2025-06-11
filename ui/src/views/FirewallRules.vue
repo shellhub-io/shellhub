@@ -78,7 +78,6 @@ const refresh = async () => {
 
 onMounted(async () => {
   try {
-    store.dispatch("box/setStatus", true);
     store.dispatch("firewallRules/resetPagePerpage");
     if (!envVariables.isCommunity) {
       await refresh();
