@@ -35,7 +35,7 @@
     class="mt-2"
     item="Containers"
     icon="mdi-server"
-    data-test="box-message-component"
+    data-test="no-items-message-component"
   >
     <template #content>
       <p>In order to register a container on ShellHub, you need to configure a Docker Connector.</p>

@@ -34,7 +34,7 @@
     class="mt-2"
     item="Devices"
     icon="mdi-cellphone-link"
-    data-test="box-message-component"
+    data-test="no-items-message-component"
   >
     <template #content>
       <p>In order to register a device on ShellHub, you need to install ShellHub agent onto it.</p>

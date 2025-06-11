@@ -12,7 +12,7 @@
       v-else
       item="Sessions"
       icon="mdi-history"
-      data-test="box-message-component"
+      data-test="no-items-message-component"
     >
       <template #content>
         <p>An SSH session is created when a connection is made to any registered device.</p>

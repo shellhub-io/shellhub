@@ -16,7 +16,7 @@ exports[`Devices View > Renders the component 1`] = `
     <!---->
   </div>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center mt-2" data-test="box-message-component">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center mt-2" data-test="no-items-message-component">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
