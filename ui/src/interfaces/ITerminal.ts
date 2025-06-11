@@ -26,6 +26,7 @@ export interface WebTermDimensions {
 export enum MessageKind {
   Input = 1,
   Resize,
+  Signature = 3,
 }
 
 export interface ResizeMessage {
@@ -36,4 +37,9 @@ export interface ResizeMessage {
 export interface InputMessage {
   kind: MessageKind.Input;
   data: number[];
+}
+
+export interface SignatureMessage {
+  kind: MessageKind.Signature;
+  data: string; // base64-encoded challenge or response
 }
