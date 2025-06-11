@@ -22,6 +22,45 @@ describe("Devices View", () => {
 
   let mockDevices: MockAdapter;
 
+  const devices = [
+    {
+      uid: "a582b47a42d",
+      name: "39-5e-2a",
+      identity: {
+        mac: "00:00:00:00:00:00",
+      },
+      info: {
+        id: "linuxmint",
+        pretty_name: "Linux Mint 19.3",
+        version: "",
+      },
+      public_key: "----- PUBLIC KEY -----",
+      tenant_id: "fake-tenant-data",
+      last_seen: "2020-05-20T18:58:53.276Z",
+      online: false,
+      namespace: "user",
+      status: "accepted",
+    },
+    {
+      uid: "a582b47a42e",
+      name: "39-5e-2b",
+      identity: {
+        mac: "00:00:00:00:00:00",
+      },
+      info: {
+        id: "linuxmint",
+        pretty_name: "Linux Mint 19.3",
+        version: "",
+      },
+      public_key: "----- PUBLIC KEY -----",
+      tenant_id: "fake-tenant-data",
+      last_seen: "2020-05-20T19:58:53.276Z",
+      online: true,
+      namespace: "user",
+      status: "accepted",
+    },
+  ];
+
   const members = [
     {
       id: "xxxxxxxx",
@@ -84,6 +123,10 @@ describe("Devices View", () => {
     mockUser = new MockAdapter(usersApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
 
+    mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(
+      200,
+      { data: devices, headers: { "x-total-count": 2 } },
+    );
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
@@ -93,13 +136,11 @@ describe("Devices View", () => {
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("namespaces/setNamespaces", res);
     store.commit("stats/setStats", stats);
+    store.commit("devices/setDevices", { data: devices, headers: { "x-total-count": 2 } });
 
     wrapper = mount(Devices, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -123,6 +164,12 @@ describe("Devices View", () => {
     expect(wrapper.find('[data-test="device-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-header-component-group"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(false);
+  });
+
+  it("Shows the no items message when there are no public keys", async () => {
+    mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(200, []);
+    store.commit("devices/setDevices", { data: [], headers: { "x-total-count": 0 } });
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Devices");
   });
 });
