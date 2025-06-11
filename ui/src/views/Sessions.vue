@@ -8,7 +8,7 @@
   <div>
     <SessionList v-if="hasSession" data-test="sessions-list" />
 
-    <BoxMessage
+    <NoItemsMessage
       v-else
       item="Sessions"
       icon="mdi-history"
@@ -24,13 +24,13 @@
           >how to connect to your devices</a>.
         </p>
       </template>
-    </BoxMessage>
+    </NoItemsMessage>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import { useStore } from "../store";
 import SessionList from "../components/Sessions/SessionList.vue";
 import handleError from "@/utils/handleError";

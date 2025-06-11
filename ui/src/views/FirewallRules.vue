@@ -31,7 +31,7 @@
   <div>
     <FirewallRuleList v-if="hasFirewallRule" />
 
-    <BoxMessage
+    <NoItemsMessage
       v-else
       item="Firewall Rules"
       icon="mdi-security"
@@ -46,14 +46,14 @@
       <template #action>
         <FirewallRuleAdd />
       </template>
-    </BoxMessage>
+    </NoItemsMessage>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "../store";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import { envVariables } from "../envVariables";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";

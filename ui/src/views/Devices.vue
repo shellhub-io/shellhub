@@ -29,7 +29,7 @@
     <Device />
   </div>
 
-  <BoxMessage
+  <NoItemsMessage
     v-else
     class="mt-2"
     item="Devices"
@@ -50,7 +50,7 @@
     <template #action>
       <DeviceAdd />
     </template>
-  </BoxMessage>
+  </NoItemsMessage>
 </template>
 
 <script setup lang="ts">
@@ -60,7 +60,7 @@ import { useStore } from "../store";
 import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();

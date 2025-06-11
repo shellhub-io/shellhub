@@ -14,7 +14,7 @@
   <div data-test="public-keys-components">
     <PublicKeysList v-if="hasPublicKey" />
 
-    <BoxMessage
+    <NoItemsMessage
       v-else
       item="Public Keys"
       icon="mdi-key"
@@ -27,14 +27,14 @@
       <template #action>
         <PublicKeyAdd />
       </template>
-    </BoxMessage>
+    </NoItemsMessage>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useStore } from "../store";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
 import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
 import handleError from "@/utils/handleError";
