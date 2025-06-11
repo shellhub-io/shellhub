@@ -30,7 +30,7 @@
     <Containers />
   </div>
 
-  <BoxMessage
+  <NoItemsMessage
     v-else
     class="mt-2"
     item="Containers"
@@ -45,7 +45,7 @@
     <template #action>
       <ContainerAdd />
     </template>
-  </BoxMessage>
+  </NoItemsMessage>
 </template>
 
 <script setup lang="ts">
@@ -54,7 +54,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "../store";
 import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import ContainerAdd from "../components/Containers/ContainerAdd.vue";
 import useSnackbar from "@/helpers/snackbar";
 
