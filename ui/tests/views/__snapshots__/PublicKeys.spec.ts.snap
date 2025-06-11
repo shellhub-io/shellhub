@@ -18,7 +18,47 @@ exports[`Public Keys > Renders the component 1`] = `
   </div>
 </div>
 <div data-test="public-keys-components">
-  <!--v-if-->
-  <!--v-if-->
+  <div class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center" data-test="box-message-component">
+    <!---->
+    <div class="v-card__loader">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+        <!---->
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
+          </div>
+        </transition-stub>
+        <!---->
+      </div>
+    </div>
+    <!---->
+    <!---->
+    <div class="v-card-title d-flex flex-column justify-center pa-5 ga-6">
+      <div><i class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" data-test="message-icon"></i></div>
+      <div class="text-sm-h5 text-wrap font-weight-medium" data-test="message-title"> Looks like you don't have any Public Keys</div>
+    </div>
+    <div class="v-card-text pb-0 px-4 py-1 d-flex flex-column ga-2 text-subtitle-1" data-test="message-content">
+      <p>You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</p>
+      <p>SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</p>
+    </div>
+    <div class="v-card-actions justify-center pt-8 pb-0">
+      <div>
+        <div aria-describedby="v-tooltip-v-2"><button type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" tabindex="0" aria-label="Dialog Add Public Key" data-test="public-key-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""> Add Public Key </span>
+            <!---->
+            <!---->
+          </button></div>
+        <!--teleport start-->
+        <!--teleport end-->
+        <!---->
+        <!---->
+      </div>
+    </div>
+    <!---->
+    <!----><span class="v-card__underlay"></span>
+  </div>
 </div>"
 `;

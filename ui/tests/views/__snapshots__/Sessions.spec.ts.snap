@@ -136,6 +136,5 @@ exports[`Sessions View > Renders the component 1`] = `
       </div>
     </div>
   </div>
-  <!--v-if-->
 </div>"
 `;

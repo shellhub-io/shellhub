@@ -9,15 +9,27 @@
     <SessionList v-if="hasSession" data-test="sessions-list" />
 
     <BoxMessage
-      v-if="showBoxMessage"
-      typeMessage="session"
-      data-test="BoxMessageSession-component"
-    />
+      v-else
+      item="Sessions"
+      icon="mdi-history"
+      data-test="box-message-component"
+    >
+      <template #content>
+        <p>An SSH session is created when a connection is made to any registered device.</p>
+        <p>Please follow our guide on
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href="https://docs.shellhub.io/user-guides/devices/connecting"
+          >how to connect to your devices</a>.
+        </p>
+      </template>
+    </BoxMessage>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import BoxMessage from "../components/Box/BoxMessage.vue";
 import { useStore } from "../store";
 import SessionList from "../components/Sessions/SessionList.vue";
@@ -26,7 +38,6 @@ import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const snackbar = useSnackbar();
-const show = ref(false);
 
 onMounted(async () => {
   try {
@@ -34,7 +45,6 @@ onMounted(async () => {
     store.dispatch("sessions/resetPagePerpage");
 
     await store.dispatch("sessions/refresh");
-    show.value = true;
   } catch (error: unknown) {
     snackbar.showError("Failed to load the sessions list.");
     handleError(error);
@@ -44,5 +54,4 @@ onMounted(async () => {
 const hasSession = computed(
   () => store.getters["sessions/getNumberSessions"] > 0,
 );
-const showBoxMessage = computed(() => !hasSession.value && show.value);
 </script>
