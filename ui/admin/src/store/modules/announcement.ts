@@ -39,58 +39,33 @@ export const useAnnouncementStore = defineStore("announcement", {
 
   actions: {
     async postAnnouncement(announcement: Announcement) {
-      try {
-        const { data } = await postAnnouncement(announcement as Required<Announcement>);
-        this.announcement = data;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const { data } = await postAnnouncement(announcement as Required<Announcement>);
+      this.announcement = data;
     },
 
     async updateAnnouncement(uuid: string, announcement: Announcement) {
-      try {
-        const { data } = await updateAnnouncement(uuid, announcement as Required<Announcement>);
-        this.announcement = data;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const { data } = await updateAnnouncement(uuid, announcement as Required<Announcement>);
+      this.announcement = data;
     },
 
     async fetchAnnouncement(uuid: string) {
-      try {
-        const { data } = await getAnnouncement(uuid);
-        this.announcement = data;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const { data } = await getAnnouncement(uuid);
+      this.announcement = data;
     },
 
     async fetchAnnouncements({ page, perPage, orderBy }: { page: number; perPage: number; orderBy: "asc" | "desc" }) {
-      try {
-        const res = await getListAnnouncements(page, perPage, orderBy);
-        if (res.data && res.data.length) {
-          this.announcements = res.data;
-          this.numberAnnouncements = parseInt(res.headers["x-total-count"], 10);
-          return res;
-        }
-        return false;
-      } catch (error) {
-        console.error(error);
-        throw error;
+      const res = await getListAnnouncements(page, perPage, orderBy);
+      if (res.data && res.data.length) {
+        this.announcements = res.data;
+        this.numberAnnouncements = parseInt(res.headers["x-total-count"], 10);
+        return res;
       }
+      return false;
     },
 
     async deleteAnnouncement(uuid: string) {
-      try {
-        const { data } = await deleteAnnouncement(uuid);
-        this.announcement = data;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const { data } = await deleteAnnouncement(uuid);
+      this.announcement = data;
     },
 
     setPageAndPerPage({ page, perPage }: { page: number; perPage: number }) {

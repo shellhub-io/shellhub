@@ -108,6 +108,7 @@ import * as yup from "yup";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "../../envVariables";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   announcementItem: {
@@ -166,6 +167,7 @@ const onSubmit = async () => {
     dialog.value = false;
     emit("update");
   } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to update announcement.");
   }
 };
