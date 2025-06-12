@@ -210,6 +210,7 @@ import moment from "moment";
 import useLicenseStore from "@admin/store/modules/license";
 import useSnackbar from "@/helpers/snackbar";
 import { Features } from "../../interfaces/ILicense";
+import handleError from "@/utils/handleError";
 
 const currentFile = ref<File | null>(null);
 const licenseUploadStatus = ref(false);
@@ -275,7 +276,7 @@ const uploadLicense = async () => {
       snackbar.showSuccess("License uploaded successfully.");
       licenseUploadStatus.value = false;
     } catch (error) {
-      console.error("License upload error:", error);
+      handleError(error);
       snackbar.showError("Failed to upload the license.");
     }
   }
