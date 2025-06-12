@@ -257,7 +257,7 @@ const changeSamlAuthStatus = async () => {
 
 const downloadSSOCertificates = () => {
   if (!certificate.value) {
-    console.error("No certificates available to download.");
+    snackbar.showError("No certificates available to download.");
     return;
   }
 
