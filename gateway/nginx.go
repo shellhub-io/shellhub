@@ -19,20 +19,20 @@ import (
 
 // NginxController manages the configuration and operation of NGINX.
 type NginxController struct {
-	rootDir       string
-	templatesDir  string
-	gatewayConfig *GatewayConfig
-	process       *os.Process
+	RootDir       string
+	TemplatesDir  string
+	GatewayConfig *GatewayConfig
+	Process       *os.Process
 }
 
-// generateConfigs generates the NGINX configuration files.
-func (nc *NginxController) generateConfigs() {
+// GenerateConfigs generates the NGINX configuration files.
+func (nc *NginxController) GenerateConfigs() {
 	if err := os.MkdirAll("/etc/nginx", 0o755); err != nil {
 		log.Fatalf("Failed to create nginx directory: %v", err)
 	}
 
 	// Recursively copy all template files maintaining the directory structure
-	err := filepath.Walk(nc.templatesDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(nc.TemplatesDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -41,12 +41,12 @@ func (nc *NginxController) generateConfigs() {
 			return nil
 		}
 
-		relativePath, err := filepath.Rel(nc.templatesDir, path)
+		relativePath, err := filepath.Rel(nc.TemplatesDir, path)
 		if err != nil {
 			return err
 		}
 
-		destPath := filepath.Join(nc.rootDir, relativePath)
+		destPath := filepath.Join(nc.RootDir, relativePath)
 
 		if info.IsDir() {
 			if err := os.MkdirAll(destPath, 0o755); err != nil {
@@ -78,7 +78,7 @@ func (nc *NginxController) generateConfig(src, dst string) {
 
 	output := &bytes.Buffer{}
 	err = tmpl.Execute(output, map[string]interface{}{
-		"Config": nc.gatewayConfig,
+		"Config": nc.GatewayConfig,
 	})
 	if err != nil {
 		log.Fatalf("Failed to execute template %s: %v", src, err)
@@ -90,8 +90,8 @@ func (nc *NginxController) generateConfig(src, dst string) {
 	}
 }
 
-// watchConfigTemplates watches for changes in the template directory and regenerates the configs on changes.
-func (nc *NginxController) watchConfigTemplates() {
+// WatchConfigTemplates watches for changes in the template directory and regenerates the configs on changes.
+func (nc *NginxController) WatchConfigTemplates() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -113,8 +113,8 @@ func (nc *NginxController) watchConfigTemplates() {
 				}
 				if event.Has(fsnotify.Write) {
 					fmt.Println("GatewayConfig file modified:", event.Name)
-					nc.generateConfigs()
-					nc.reload()
+					nc.GenerateConfigs()
+					nc.Reload()
 					break
 				}
 			case err, ok := <-watcher.Errors:
@@ -126,7 +126,7 @@ func (nc *NginxController) watchConfigTemplates() {
 		}
 	}()
 
-	err = filepath.WalkDir(nc.templatesDir, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(nc.TemplatesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -144,21 +144,21 @@ func (nc *NginxController) watchConfigTemplates() {
 	<-done
 }
 
-// reload sends a SIGHUP signal to the NGINX process to reload the configuration.
-func (nc *NginxController) reload() {
-	if nc.process == nil {
+// Reload sends a SIGHUP signal to the NGINX process to reload the configuration.
+func (nc *NginxController) Reload() {
+	if nc.Process == nil {
 		return
 	}
 
 	log.Println("Reloading nginx process")
 
-	if err := nc.process.Signal(syscall.SIGHUP); err != nil {
+	if err := nc.Process.Signal(syscall.SIGHUP); err != nil {
 		log.Fatal("Failed to reload NGINX")
 	}
 }
 
 // start initializes and starts the NGINX process.
-func (nc *NginxController) start() {
+func (nc *NginxController) Start() {
 	fmt.Println("Starting NGINX")
 
 	cmd := exec.Command(
@@ -183,7 +183,7 @@ func (nc *NginxController) start() {
 		log.Fatal(err)
 	}
 
-	nc.process = cmd.Process
+	nc.Process = cmd.Process
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
