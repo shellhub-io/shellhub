@@ -33,7 +33,11 @@ exports[`Quick Connection List > Renders the component 1`] = `
             <div data-v-7c65953f="" class="v-col-md-3 v-col text-truncate" data-test="device-ssh-id"><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal bg-grey-darken-4" draggable="false"><!----><span class="v-chip__underlay"></span>
               <!---->
               <!---->
-              <div class="v-chip__content" data-no-activator=""><span data-v-7c65953f="" aria-describedby="v-tooltip-v-1" class="hover-text" data-test="copy-id-button">user.39-5e-2b@localhost</span>
+              <div class="v-chip__content" data-no-activator="">
+                <div data-v-7c65953f=""><span data-v-7c65953f="" aria-describedby="v-tooltip-v-1" tabindex="0" class="hover-text" data-test="copy-id-button">user.39-5e-2b@localhost</span>
+                  <!---->
+                  <!---->
+                </div>
                 <!--teleport start-->
                 <!--teleport end-->
               </div>
