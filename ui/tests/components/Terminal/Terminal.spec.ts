@@ -4,7 +4,7 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 import Terminal from "@/components/Terminal/Terminal.vue";
 
 class MockWebSocket {
-  readyState = WebSocket.OPEN;
+  public readyState: number = WebSocket.CONNECTING;
 
   send = vi.fn();
 
@@ -16,6 +16,7 @@ class MockWebSocket {
 
   onclose: (() => void) | null = null;
 }
+
 vi.stubGlobal("WebSocket", vi.fn(() => new MockWebSocket()));
 
 vi.mock("xterm", () => ({
@@ -47,11 +48,11 @@ describe("Terminal", async () => {
     });
   });
 
-  it("Is a Vue instance", () => {
+  it("is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the terminal container", () => {
+  it("renders the terminal container", () => {
     expect(wrapper.find("[data-test='terminal-container']").exists()).toBe(true);
   });
 
@@ -63,7 +64,10 @@ describe("Terminal", async () => {
   });
 
   it("closes WebSocket connection on component unmount", async () => {
-    const mockWs = wrapper.vm.ws;
+    const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
+    mockWs.readyState = WebSocket.OPEN;
+    (wrapper.vm as unknown as { isReady: boolean }).isReady = true;
+
     wrapper.unmount();
     expect(mockWs.close).toHaveBeenCalled();
   });
@@ -101,6 +105,9 @@ describe("Terminal", async () => {
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
     const onDataHandler = vi.mocked(mockXterm.onData).mock.calls[0][0];
 
+    mockWs.readyState = WebSocket.OPEN;
+    (wrapper.vm as unknown as { isReady: boolean }).isReady = true;
+
     onDataHandler("test input");
 
     expect(mockWs.send).toHaveBeenCalledWith(
@@ -115,9 +122,8 @@ describe("Terminal", async () => {
     const mockXterm = wrapper.vm.xterm;
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
 
-    if (mockWs.onmessage) {
-      mockWs.onmessage({ data: "terminal output" });
-    }
+    mockWs.onopen?.();
+    mockWs.onmessage?.({ data: "terminal output" });
 
     expect(mockXterm.write).toHaveBeenCalledWith("terminal output");
   });
@@ -130,6 +136,6 @@ describe("Terminal", async () => {
       mockWs.onclose();
     }
 
-    expect(mockXterm.write).toHaveBeenCalledWith("\r\nConnection ended");
+    expect(mockXterm.write).toHaveBeenCalledWith("\r\nConnection ended\r\n");
   });
 });
