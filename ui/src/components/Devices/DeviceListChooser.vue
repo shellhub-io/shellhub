@@ -1,18 +1,12 @@
 <template>
   <v-card class="bg-v-theme-surface" data-test="devices-list-chooser">
     <DataTable
-      :headers="headers"
+      v-model:page="page"
+      v-model:itemsPerPage="itemsPerPage"
+      :headers
       :items="devices"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
       :totalCount="numberDevices"
-      :actualPage="page"
-      :enable-items-per-page="false"
-      :comboboxOptions="[5]"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
+      :loading
       data-test="devices-dataTable"
     >
       <template v-slot:rows>
@@ -151,19 +145,7 @@ const getDevices = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-const next = async () => {
-  await getDevices(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  try {
-    if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-  } catch (error) {
-    snackbar.showError("An error occurred while fetching devices.");
-  }
-};
-
-watch(itemsPerPage, async () => {
+watch([page, itemsPerPage], async () => {
   await getDevices(itemsPerPage.value, page.value);
 });
 
