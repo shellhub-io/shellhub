@@ -123,6 +123,5 @@ exports[`Firewall Rules > Renders the component 1`] = `
       </div>
     </div>
   </div>
-  <!--v-if-->
 </div>"
 `;

@@ -106,9 +106,6 @@ describe("Public Keys", () => {
     wrapper = mount(PublicKeys, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -140,5 +137,11 @@ describe("Public Keys", () => {
     const refreshSpy = vi.spyOn(store, "dispatch");
     await wrapper.vm.refresh();
     expect(refreshSpy).toHaveBeenCalledWith("publicKeys/refresh");
+  });
+
+  it("Shows the no items message when there are no public keys", async () => {
+    mockSsh.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, []);
+    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Public Keys");
   });
 });

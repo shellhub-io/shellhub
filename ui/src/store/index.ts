@@ -17,7 +17,6 @@ import { notifications, NotificationsState } from "./modules/notifications";
 import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
 import { container, ContainerState } from "./modules/container";
-import { box, BoxState } from "./modules/box";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { tunnels, TunnelsState } from "./modules/tunnels";
 import { billing } from "./modules/billing";
@@ -30,7 +29,6 @@ export interface State {
   auth: AuthState;
   apiKeys: ApiKeysState;
   billing: NamespacesState;
-  box: BoxState;
   customer: CustomerState;
   connectors: ConnectorState;
   devices: DevicesState;
@@ -59,7 +57,6 @@ export const store = createStore<State>({
     auth,
     apiKeys,
     billing,
-    box,
     connectors,
     container,
     customer,

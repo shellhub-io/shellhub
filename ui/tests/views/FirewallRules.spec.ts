@@ -105,9 +105,6 @@ describe("Firewall Rules", () => {
     wrapper = mount(FirewallRules, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -138,5 +135,18 @@ describe("Firewall Rules", () => {
 
     await helpIcon.trigger("click");
     expect(wrapper.vm.showHelp).toBe(false);
+  });
+
+  it("Shows the no items message when there are no firewall rules", () => {
+    mockRules.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, []);
+    store.commit("firewallRules/setFirewalls", { data: [], headers: { "x-total-count": 0 } });
+    wrapper.unmount();
+    wrapper = mount(FirewallRules, {
+      global: {
+        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+      },
+    });
+    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Firewall Rules");
   });
 });

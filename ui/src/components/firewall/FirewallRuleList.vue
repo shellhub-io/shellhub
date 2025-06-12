@@ -189,35 +189,30 @@ const getNumberFirewallRules = computed(
 );
 
 const getFirewalls = async (perPageValue: number, pageValue: number) => {
-  if (!store.getters["boxs/getStatus"]) {
-    const data = {
-      perPage: perPageValue,
-      page: pageValue,
-    };
+  const data = {
+    perPage: perPageValue,
+    page: pageValue,
+  };
 
-    try {
-      loading.value = true;
-      const hasRules = await store.dispatch("firewallRules/fetch", data);
-      if (!hasRules) {
-        page.value--;
-      }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response?.status === 403) {
-          snackbar.showError("You don't have permission to access this resource.");
-          handleError(error);
-        }
-      } else {
-        snackbar.showError("An error occurred while loading the firewall rules.");
+  try {
+    loading.value = true;
+    const hasRules = await store.dispatch("firewallRules/fetch", data);
+    if (!hasRules) {
+      page.value--;
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 403) {
+        snackbar.showError("You don't have permission to access this resource.");
         handleError(error);
       }
-    } finally {
-      loading.value = false;
+    } else {
+      snackbar.showError("An error occurred while loading the firewall rules.");
+      handleError(error);
     }
-  } else {
-    // setArrays();
-    store.dispatch("boxs/setStatus", false);
+  } finally {
+    loading.value = false;
   }
 };
 

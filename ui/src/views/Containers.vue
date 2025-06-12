@@ -30,34 +30,37 @@
     <Containers />
   </div>
 
-  <BoxMessage
-    v-if="!show"
-    :loading="loading"
+  <NoItemsMessage
+    v-else
     class="mt-2"
-    type-message="container"
-    data-test="boxMessageDevice-component"
+    item="Containers"
+    icon="mdi-server"
+    data-test="no-items-message-component"
   >
-    <template v-slot:container>
+    <template #content>
+      <p>In order to register a container on ShellHub, you need to configure a Docker Connector.</p>
+      <p>To view and connect to your containers in ShellHub, please add a Docker Engine connector.
+        This will allow you to connect to your Docker Engine and see all your containers here.</p>
+    </template>
+    <template #action>
       <ContainerAdd />
     </template>
-  </BoxMessage>
+  </NoItemsMessage>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "../store";
-import { envVariables } from "../envVariables";
 import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import ContainerAdd from "../components/Containers/ContainerAdd.vue";
 import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const router = useRouter();
 const filter = ref("");
-const loading = ref(false);
 const show = computed(() => store.getters["container/getShowContainers"]);
 const snackbar = useSnackbar();
 

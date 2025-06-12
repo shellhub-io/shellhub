@@ -14,18 +14,27 @@
   <div data-test="public-keys-components">
     <PublicKeysList v-if="hasPublicKey" />
 
-    <BoxMessage
-      v-if="showBoxMessage"
-      typeMessage="publicKey"
-      data-test="BoxMessagePublicKey-component"
-    />
+    <NoItemsMessage
+      v-else
+      item="Public Keys"
+      icon="mdi-key"
+      data-test="no-items-message-component"
+    >
+      <template #content>
+        <p>You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</p>
+        <p>SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</p>
+      </template>
+      <template #action>
+        <PublicKeyAdd />
+      </template>
+    </NoItemsMessage>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { useStore } from "../store";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
 import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
 import handleError from "@/utils/handleError";
@@ -33,11 +42,9 @@ import useSnackbar from "@/helpers/snackbar";
 
 const store = useStore();
 const snackbar = useSnackbar();
-const show = ref(false);
 const hasPublicKey = computed(
   () => store.getters["publicKeys/getNumberPublicKeys"] > 0,
 );
-const showBoxMessage = computed(() => !hasPublicKey.value && show.value);
 
 const refresh = async () => {
   try {
@@ -49,11 +56,9 @@ const refresh = async () => {
 };
 
 onMounted(async () => {
-  store.dispatch("box/setStatus", true);
   store.dispatch("publicKeys/resetPagePerpage");
   await refresh();
-  show.value = true;
 });
 
-defineExpose({ refresh, showBoxMessage });
+defineExpose({ refresh });
 </script>

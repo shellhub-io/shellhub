@@ -31,18 +31,29 @@
   <div>
     <FirewallRuleList v-if="hasFirewallRule" />
 
-    <BoxMessage
-      v-if="showBoxMessage"
-      typeMessage="firewall"
-      data-test="BoxMessageFirewall-component"
-    />
+    <NoItemsMessage
+      v-else
+      item="Firewall Rules"
+      icon="mdi-security"
+      data-test="no-items-message-component"
+    >
+      <template #content>
+        <p>ShellHub provides flexible firewall for filtering SSH connections.
+          It gives a fine-grained control over which SSH connections reach the devices.</p>
+        <p>Using Firewall Rules you can deny or allow SSH connections from specific
+          IP addresses to a specific or a group of devices using a given username.</p>
+      </template>
+      <template #action>
+        <FirewallRuleAdd />
+      </template>
+    </NoItemsMessage>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "../store";
-import BoxMessage from "../components/Box/BoxMessage.vue";
+import NoItemsMessage from "../components/NoItemsMessage.vue";
 import { envVariables } from "../envVariables";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
@@ -52,11 +63,9 @@ import useSnackbar from "@/helpers/snackbar";
 const showHelp = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
-const show = ref(false);
 const hasFirewallRule = computed(
   () => store.getters["firewallRules/getNumberFirewalls"] > 0,
 );
-const showBoxMessage = computed(() => !hasFirewallRule.value || show.value);
 
 const refresh = async () => {
   try {
@@ -69,16 +78,14 @@ const refresh = async () => {
 
 onMounted(async () => {
   try {
-    store.dispatch("box/setStatus", true);
     store.dispatch("firewallRules/resetPagePerpage");
     if (!envVariables.isCommunity) {
       await refresh();
     }
   } catch (error: unknown) {
-    show.value = true;
     handleError(error);
   }
 });
 
-defineExpose({ showHelp, show });
+defineExpose({ showHelp });
 </script>
