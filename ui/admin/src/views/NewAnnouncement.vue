@@ -74,6 +74,7 @@ import { useRouter } from "vue-router";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "../envVariables";
+import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -114,6 +115,7 @@ const postAnnouncement = () => {
     snackbar.showSuccess("Successfully created announcement.");
     router.push({ name: "announcements" });
   } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to create announcement.");
   }
 };

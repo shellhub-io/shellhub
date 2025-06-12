@@ -40,6 +40,7 @@
 import { ref } from "vue";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
+import handleError from "@/utils/handleError";
 
 const props = defineProps({
   uuid: {
@@ -59,7 +60,8 @@ const remove = async () => {
     await announcement.deleteAnnouncement(props.uuid);
     emit("update");
     snackbar.showSuccess("Announcement deleted successfully.");
-  } catch {
+  } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to delete announcement.");
   }
 };

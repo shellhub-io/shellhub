@@ -62,6 +62,7 @@ import DataTable from "../DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";
 import AnnouncementEdit from "./AnnouncementEdit.vue";
 import { IAnnouncements } from "../../interfaces/IAnnouncements";
+import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const announcementStore = useAnnouncementStore();
@@ -104,6 +105,7 @@ const getAnnouncements = async (
     }
     loading.value = false;
   } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to fetch announcements.");
   }
 };
