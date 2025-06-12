@@ -40,6 +40,7 @@
     <SessionDownload
       v-model="showDownloadDialog"
       :sessionBlob
+      @play="handleManualUpload"
     />
   </div>
 </template>
@@ -104,6 +105,11 @@ const displayDialog = async () => {
     snackbar.showError("Failed to play the session.");
     handleError(error);
   }
+};
+
+const handleManualUpload = (text: string) => {
+  logs.value = text;
+  showPlayer.value = true;
 };
 
 const openDialog = () => {
