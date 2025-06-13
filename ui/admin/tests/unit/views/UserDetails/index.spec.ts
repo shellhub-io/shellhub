@@ -11,7 +11,7 @@ import UserDetails from "../../../../src/views/UserDetails.vue";
 type UserDetailsWrapper = VueWrapper<InstanceType<typeof UserDetails>>;
 
 const user = {
-  confirmed: true,
+  status: "confirmed",
   created_at: "2022-04-13T11:42:49.578Z",
   email: "antony@gmail.com",
   id: "6256b739302b50b6cc5eafcc",
