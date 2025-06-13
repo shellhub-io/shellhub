@@ -11,7 +11,7 @@ type UserListWrapper = VueWrapper<InstanceType<typeof UserList>>;
 
 const mockUsers = [
   {
-    confirmed: true,
+    status: "confirmed",
     created_at: "2022-04-13T11:42:49.578Z",
     email: "depaulacostaantony@gmail.com",
     id: "6256b739302b50b6cc5eafcc",
@@ -20,7 +20,9 @@ const mockUsers = [
     namespaces: 2,
     password: "dummy",
     username: "antony",
-    auth_methods: ["saml"],
+    preferences: {
+      auth_methods: ["saml"],
+    },
   },
 ];
 

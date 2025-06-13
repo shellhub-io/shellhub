@@ -1,7 +1,7 @@
 export interface IUser {
   id: string;
   namespaces: number;
-  confirmed: boolean;
+  status: "confirmed" | "invited" | "not-confirmed";
   created_at: string;
   last_login: string;
   name: string;

@@ -28,7 +28,7 @@ exports[`UserList > Renders the component 1`] = `
                 <div class="v-chip__prepend"><i class="mdi-checkbox-marked-circle mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--start" aria-hidden="true"></i>
                   <!---->
                 </div>
-                <div class="v-chip__content" data-no-activator=""> Confirmed </div>
+                <div class="v-chip__content" data-no-activator="">Confirmed</div>
                 <!---->
                 <!----></span>
               </td>
