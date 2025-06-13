@@ -16,26 +16,9 @@
 
   <v-card v-if="currentUser" class="mt-2 pa-4">
     <v-card-text>
-      <div class="text-overline mt-3">
+      <div class="text-overline mt-3" v-if="currentUser.status">
         <h3>Status:</h3>
-        <v-chip
-          v-if="currentUser.confirmed === true"
-          class="ma-2"
-          color="success"
-          variant="text"
-          prepend-icon="mdi-checkbox-marked-circle"
-        >
-          Confirmed
-        </v-chip>
-        <v-chip
-          v-else
-          class="ma-2"
-          color="warning"
-          variant="text"
-          prepend-icon="mdi-alert-circle"
-        >
-          Not confirmed
-        </v-chip>
+        <UserStatusChip :status="currentUser.status" />
       </div>
       <div>
         <div class="text-overline mt-3">
@@ -85,6 +68,7 @@ import { useRoute } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import { IUser } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
+import UserStatusChip from "@admin/components/User/UserStatusChip.vue";
 import useSnackbar from "@/helpers/snackbar";
 import UserDelete from "../components/User/UserDelete.vue";
 
@@ -92,17 +76,7 @@ const route = useRoute();
 const snackbar = useSnackbar();
 const userStore = useUsersStore();
 const authStore = useAuthStore();
-
 const userId = computed(() => route.params.id as string);
-
-onBeforeMount(async () => {
-  try {
-    await userStore.get(userId.value);
-  } catch {
-    snackbar.showError("Failed to get user details.");
-  }
-});
-
 const currentUser = computed(() => userStore.getUser as IUser);
 
 const loginToken = async () => {
@@ -115,6 +89,14 @@ const loginToken = async () => {
     snackbar.showError("Failed to get the login token.");
   }
 };
+
+onBeforeMount(async () => {
+  try {
+    await userStore.get(userId.value);
+  } catch {
+    snackbar.showError("Failed to get user details.");
+  }
+});
 
 defineExpose({ currentUser });
 </script>
