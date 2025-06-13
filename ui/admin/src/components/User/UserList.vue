@@ -29,14 +29,14 @@
           <td :namespaces-test="item.namespaces">
             {{ item.namespaces }}
           </td>
-          <td v-if="item.confirmed" class="pl-0">
-            <v-chip class="ma-2" color="success" variant="text" prepend-icon="mdi-checkbox-marked-circle">
-              Confirmed
-            </v-chip>
-          </td>
-          <td v-else class="pl-0">
-            <v-chip class="ma-2" color="warning" variant="text" prepend-icon="mdi-alert-circle">
-              Not confirmed
+          <td class="pl-0">
+            <v-chip
+              class="ma-2"
+              :color="statusChip[item.status].color"
+              variant="text"
+              :prepend-icon="statusChip[item.status].icon"
+            >
+              {{ statusChip[item.status].label }}
             </v-chip>
           </td>
 
@@ -91,26 +91,13 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
-import { UserAdminResponse } from "@admin/api/client/api";
+import { IUser } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
 import UserResetPassword from "./UserResetPassword.vue";
-
-export interface IUser {
-  id: string;
-  auth_methods: Array<string>;
-  namespaces: number;
-  confirmed: boolean;
-  created_at: string;
-  last_login: string;
-  name: string;
-  email: string;
-  username: string;
-  password: string;
-}
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -123,6 +110,11 @@ const page = ref(1);
 const filter = ref("");
 const users = computed(() => userStore.getUsers as unknown as IUser[]);
 const totalUsers = computed(() => userStore.numberUsers);
+const statusChip: Record<IUser["status"], { color: string; icon: string; label: string }> = {
+  confirmed: { color: "success", icon: "mdi-checkbox-marked-circle", label: "Confirmed" },
+  invited: { color: "warning", icon: "mdi-email-alert", label: "Invited" },
+  "not-confirmed": { color: "error", icon: "mdi-alert-circle", label: "Not Confirmed" },
+};
 
 const header = [
   {
@@ -220,7 +212,7 @@ const refreshUsers = async () => {
   await userStore.refresh();
 };
 
-const redirectToUser = async (user: UserAdminResponse) => {
+const redirectToUser = async (user: IUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
 
