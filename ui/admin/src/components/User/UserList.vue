@@ -30,14 +30,7 @@
             {{ item.namespaces }}
           </td>
           <td class="pl-0">
-            <v-chip
-              class="ma-2"
-              :color="statusChip[item.status].color"
-              variant="text"
-              :prepend-icon="statusChip[item.status].icon"
-            >
-              {{ statusChip[item.status].label }}
-            </v-chip>
+            <UserStatusChip :status="item.status" />
           </td>
 
           <td>
@@ -95,6 +88,7 @@ import { IUser, UserAuthMethods } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
+import UserStatusChip from "./UserStatusChip.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
 import UserResetPassword from "./UserResetPassword.vue";
@@ -110,11 +104,6 @@ const page = ref(1);
 const filter = ref("");
 const users = computed(() => userStore.getUsers as unknown as IUser[]);
 const totalUsers = computed(() => userStore.numberUsers);
-const statusChip: Record<IUser["status"], { color: string; icon: string; label: string }> = {
-  confirmed: { color: "success", icon: "mdi-checkbox-marked-circle", label: "Confirmed" },
-  invited: { color: "warning", icon: "mdi-email-alert", label: "Invited" },
-  "not-confirmed": { color: "error", icon: "mdi-alert-circle", label: "Not Confirmed" },
-};
 
 const header = [
   {
