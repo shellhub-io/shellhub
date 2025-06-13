@@ -6,7 +6,7 @@ export interface IUser {
   id: string;
   namespaces: number;
   max_namespaces: number;
-  status: "confirmed" | "invited" | "not-confirmed";
+  status: UserStatus;
   created_at: string;
   last_login: string;
   name: string;
