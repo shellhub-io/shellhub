@@ -8,4 +8,7 @@ export interface IUser {
   email: string;
   username: string;
   password: string;
+  preferences: {
+    auth_methods: Array<"saml" | "local">;
+  }
 }
