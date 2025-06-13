@@ -99,22 +99,21 @@
                     color="primary"
                     variant="outlined"
                   />
-                  <v-tooltip location="bottom" class="text-center" :disabled="!emailIsConfirmed">
+                  <v-tooltip location="bottom" class="text-center" :disabled="canChangeStatus">
                     <template v-slot:activator="{ props }">
                       <div v-bind="props">
                         <v-checkbox
                           v-if="!createUser"
                           label="User confirmed"
-                          v-model="userConfirmed"
-                          :error-messages="userConfirmedError"
-                          :disabled="emailIsConfirmed"
+                          v-model="isConfirmed"
+                          :disabled="!canChangeStatus"
                           density="compact"
                           hide-details
                           color="primary"
                         />
                       </div>
                     </template>
-                    <span>You cannot unsubscribe the user's email confirmation</span>
+                    <span>{{ statusTooltipMessage }}</span>
                   </v-tooltip>
                 </v-container>
               </v-col>
@@ -135,22 +134,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, PropType } from "vue";
+import { ref, watch, PropType } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
+import { IUser } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
-
-type UserLocal = {
-  id?: string;
-  name?: string;
-  email?: string;
-  username?: string;
-  password?: string;
-  confirmed?: boolean;
-  max_namespaces?: number;
-};
 
 const props = defineProps({
   createUser: {
@@ -158,7 +148,7 @@ const props = defineProps({
     default: false,
   },
   user: {
-    type: Object as PropType<UserLocal>,
+    type: Object as PropType<IUser>,
     default: () => ({}),
   },
   titleCard: {
@@ -171,10 +161,13 @@ const dialog = ref(false);
 const showPassword = ref(false);
 const changeNamespaceLimit = ref(false);
 const disableNamespaceCreation = ref(false);
-const maxNamespaces = ref<number | undefined>(props.user?.max_namespaces || 0);
-const emailIsConfirmed = computed(() => props.user?.confirmed);
+const maxNamespaces = ref(props.user?.max_namespaces || 0);
+const canChangeStatus = props.user.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
 const userStore = useUsersStore();
+const statusTooltipMessage = props.user.status === "invited"
+  ? "You cannot change the status of an invited user."
+  : "You cannot remove confirmation from a user.";
 
 const { value: name,
   errorMessage: nameError,
@@ -198,17 +191,16 @@ const {
 } = useField<string | undefined>("password");
 
 const {
-  value: userConfirmed,
-  errorMessage: userConfirmedError,
-  resetField: resetUserConfirmed,
-} = useField<boolean | undefined>("userConfirmed");
+  value: isConfirmed,
+  resetField: resetIsConfirmed,
+} = useField<boolean | undefined>("isConfirmed");
 
 const resetFormFields = () => {
   resetName();
   resetEmail();
   resetUsername();
   resetPassword();
-  resetUserConfirmed();
+  resetIsConfirmed();
 };
 
 const populateFieldsFromProps = () => {
@@ -216,7 +208,7 @@ const populateFieldsFromProps = () => {
   email.value = props.user?.email;
   username.value = props.user?.username;
   password.value = undefined;
-  userConfirmed.value = props.user?.confirmed;
+  isConfirmed.value = props.user?.status === "confirmed";
   maxNamespaces.value = props.user?.max_namespaces || 0;
   changeNamespaceLimit.value = props.user?.max_namespaces !== -1;
 };
@@ -237,7 +229,7 @@ const setMaxNamespaces = () => {
   maxNamespaces.value = disableNamespaceCreation.value ? 0 : maxNamespaces.value;
 };
 
-const { handleSubmit } = useForm<UserLocal>();
+const { handleSubmit } = useForm<IUser>();
 
 const handleErrors = (error: AxiosError) => {
   if (!error.response?.data) return;
@@ -286,7 +278,7 @@ const prepareUserData = (): Record<string, unknown> => ({
   username: username.value,
   password: password.value || "",
   max_namespaces: changeNamespaceLimit.value ? maxNamespaces.value : undefined,
-  confirmed: !props.createUser ? userConfirmed.value : undefined,
+  confirmed: !props.createUser ? isConfirmed.value : undefined,
   id: !props.createUser ? props.user?.id : undefined,
 });
 
@@ -315,11 +307,10 @@ watch(disableNamespaceCreation, (newValue) => {
 
 defineExpose({
   openDialog,
-  emailIsConfirmed,
-  userConfirmed,
   password,
   name,
   email,
   username,
+  isConfirmed,
 });
 </script>
