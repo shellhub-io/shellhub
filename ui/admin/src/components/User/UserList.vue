@@ -29,15 +29,8 @@
           <td :namespaces-test="item.namespaces">
             {{ item.namespaces }}
           </td>
-          <td v-if="item.confirmed" class="pl-0">
-            <v-chip class="ma-2" color="success" variant="text" prepend-icon="mdi-checkbox-marked-circle">
-              Confirmed
-            </v-chip>
-          </td>
-          <td v-else class="pl-0">
-            <v-chip class="ma-2" color="warning" variant="text" prepend-icon="mdi-alert-circle">
-              Not confirmed
-            </v-chip>
+          <td class="pl-0">
+            <UserStatusChip :status="item.status" />
           </td>
 
           <td>
@@ -64,9 +57,9 @@
                   tag="a"
                   dark
                   v-bind="props"
-                  @click="loginToken(item)"
+                  @click="loginToken(item.id)"
                   tabindex="0"
-                  @keyup.enter="loginToken(item)"
+                  @keyup.enter="loginToken(item.id)"
                 >mdi-login
                 </v-icon>
               </template>
@@ -74,7 +67,7 @@
             </v-tooltip>
 
             <UserResetPassword
-              v-if="checkAuthMethods(item as IUser)"
+              v-if="userPrefersSAMLAuthentication(item)"
               :userId="item.id"
               @update="refreshUsers"
             />
@@ -91,26 +84,14 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
-import { UserAdminResponse } from "@admin/api/client/api";
+import { IUser } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
+import UserStatusChip from "./UserStatusChip.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
 import UserResetPassword from "./UserResetPassword.vue";
-
-export interface IUser {
-  id: string;
-  auth_methods: Array<string>;
-  namespaces: number;
-  confirmed: boolean;
-  created_at: string;
-  last_login: string;
-  name: string;
-  email: string;
-  username: string;
-  password: string;
-}
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -151,9 +132,9 @@ const header = [
   },
 ];
 
-const checkAuthMethods = (user: IUser | undefined) => user?.auth_methods
-  && user.auth_methods.length === 1
-  && user.auth_methods[0] === "saml";
+const userPrefersSAMLAuthentication = (user: IUser) => user.preferences.auth_methods
+  && user.preferences.auth_methods.length === 1
+  && user.preferences.auth_methods[0] === "saml";
 
 onMounted(async () => {
   try {
@@ -205,9 +186,9 @@ watch(itemsPerPage, () => {
   getUsers(itemsPerPage.value, page.value);
 });
 
-const loginToken = async (user) => {
+const loginToken = async (userId: string) => {
   try {
-    const token = await authStore.loginToken(user);
+    const token = await authStore.loginToken(userId);
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");
@@ -220,7 +201,7 @@ const refreshUsers = async () => {
   await userStore.refresh();
 };
 
-const redirectToUser = async (user: UserAdminResponse) => {
+const redirectToUser = async (user: IUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
 
