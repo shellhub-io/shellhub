@@ -74,7 +74,7 @@
             </v-tooltip>
 
             <UserResetPassword
-              v-if="checkAuthMethods(item as IUser)"
+              v-if="userPrefersSAMLAuthentication(item.preferences.auth_methods)"
               :userId="item.id"
               @update="refreshUsers"
             />
@@ -91,7 +91,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
-import { IUser } from "@admin/interfaces/IUser";
+import { IUser, UserAuthMethods } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
@@ -143,9 +143,9 @@ const header = [
   },
 ];
 
-const checkAuthMethods = (user: IUser | undefined) => user?.auth_methods
-  && user.auth_methods.length === 1
-  && user.auth_methods[0] === "saml";
+const userPrefersSAMLAuthentication = (authMethods: UserAuthMethods) => (
+  authMethods && authMethods.length === 1 && authMethods[0] === "saml"
+);
 
 onMounted(async () => {
   try {
