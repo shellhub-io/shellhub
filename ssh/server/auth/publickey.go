@@ -6,6 +6,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 )
 
 // PublicKeyHandler handles ShellHub client's connection using the public key authentication method.
@@ -14,6 +15,7 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 		log.Fields{
 			"uid":   ctx.SessionID(),
 			"sshid": ctx.User(),
+			"key":   ssh.MarshalAuthorizedKey(publicKey),
 		})
 
 	logger.Trace("trying to use public key authentication")

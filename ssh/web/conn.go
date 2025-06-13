@@ -61,6 +61,14 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 		}
 
 		message.Data = dim
+	case messageKindSignature:
+		var signed string
+
+		if err = json.Unmarshal(data, &signed); err != nil {
+			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
+		}
+
+		message.Data = signed
 	default:
 		return 0, errors.Join(ErrConnReadMessageKindInvalid)
 	}

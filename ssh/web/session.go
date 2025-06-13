@@ -3,7 +3,6 @@ package web
 import (
 	"bytes"
 	"context"
-	"crypto/rsa"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
-	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -34,7 +32,7 @@ func (b *BannerError) Error() string {
 }
 
 // getAuth gets the authentication methods from credentials.
-func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, error) {
+func getAuth(conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
 	if creds.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
@@ -71,24 +69,48 @@ func getAuth(creds *Credentials, magicKey *rsa.PrivateKey) ([]ssh.AuthMethod, er
 		return nil, ErrDataPublicKey
 	}
 
-	digest, err := base64.StdEncoding.DecodeString(creds.Signature)
-	if err != nil {
-		return nil, ErrSignaturePublicKey
-	}
-
-	if err := pubKey.Verify([]byte(creds.Username), &ssh.Signature{ //nolint: exhaustruct
-		Format: pubKey.Type(),
-		Blob:   digest,
-	}); err != nil {
-		return nil, ErrVerifyPublicKey
-	}
-
-	signer, err := ssh.NewSignerFromKey(magicKey)
-	if err != nil {
-		return nil, ErrSignerPublicKey
+	signer := &Signer{
+		conn:      conn,
+		publicKey: &pubKey,
 	}
 
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+}
+
+type Signer struct {
+	conn      *Conn
+	publicKey *ssh.PublicKey
+}
+
+func (s *Signer) PublicKey() ssh.PublicKey {
+	return *s.publicKey
+}
+
+func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
+	dataB64 := base64.StdEncoding.EncodeToString(data)
+	if _, err := s.conn.WriteMessage(&Message{Kind: messageKindSignature, Data: dataB64}); err != nil {
+		return nil, err
+	}
+
+	var msg Message
+	if _, err := s.conn.ReadMessage(&msg); err != nil {
+		return nil, fmt.Errorf("invalid signature response")
+	}
+
+	signed, ok := msg.Data.(string)
+	if !ok {
+		return nil, fmt.Errorf("data isn't a signed string")
+	}
+
+	blob, err := base64.StdEncoding.DecodeString(signed)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ssh.Signature{
+		Format: s.PublicKey().Type(),
+		Blob:   blob,
+	}, nil
 }
 
 func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
@@ -107,7 +129,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
-	auth, err := getAuth(creds, magickey.GetRerefence())
+	auth, err := getAuth(conn, creds)
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 
