@@ -57,9 +57,9 @@
                   tag="a"
                   dark
                   v-bind="props"
-                  @click="loginToken(item)"
+                  @click="loginToken(item.id)"
                   tabindex="0"
-                  @keyup.enter="loginToken(item)"
+                  @keyup.enter="loginToken(item.id)"
                 >mdi-login
                 </v-icon>
               </template>
@@ -186,9 +186,9 @@ watch(itemsPerPage, () => {
   getUsers(itemsPerPage.value, page.value);
 });
 
-const loginToken = async (user) => {
+const loginToken = async (userId: string) => {
   try {
-    const token = await authStore.loginToken(user);
+    const token = await authStore.loginToken(userId);
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");
