@@ -21,7 +21,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
           <div class="v-slider-thumb__ripple text-white"></div>
           <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
             <div class="v-slider-thumb__label-container" style="display: none;">
-              <div class="v-slider-thumb__label">
+              <div class="v-slider-thumb__label text-white">
                 <div>0.0</div>
               </div>
             </div>
