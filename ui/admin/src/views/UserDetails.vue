@@ -81,7 +81,7 @@ const currentUser = computed(() => userStore.getUser as IUser);
 
 const loginToken = async () => {
   try {
-    const token = await authStore.loginToken(currentUser.value);
+    const token = await authStore.loginToken(userId.value);
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");

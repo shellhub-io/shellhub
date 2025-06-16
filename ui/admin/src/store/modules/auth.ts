@@ -39,9 +39,9 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async loginToken(user: { id: string }) {
+    async loginToken(userId: string) {
       try {
-        const resp = await getToken(user.id);
+        const resp = await getToken(userId);
         return resp.data.token;
       } catch (error) {
         this.status = "error";
