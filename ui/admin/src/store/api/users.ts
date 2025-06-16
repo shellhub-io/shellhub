@@ -1,13 +1,6 @@
-import { adminApi } from "./../../api/http";
-
-type userDataType = {
-  name: string;
-  email: string;
-  username: string;
-  password: string;
-  confirmed?: boolean;
-  max_namespaces?: number;
-};
+import { IUser } from "@admin/interfaces/IUser";
+import { UserAdminRequest } from "@admin/api/client";
+import { adminApi } from "@admin/api/http";
 
 const fetchUsers = async (
   perPage: number,
@@ -19,7 +12,7 @@ const getUser = (id: string) => adminApi.getUser(id);
 
 const exportUsers = async (filter: string) => adminApi.exportUsers(filter);
 
-const addUser = (userData: userDataType) => adminApi.createUserAdmin({
+const addUser = (userData: IUser) => adminApi.createUserAdmin({
   name: userData.name,
   email: userData.email,
   username: userData.username,
@@ -27,14 +20,14 @@ const addUser = (userData: userDataType) => adminApi.createUserAdmin({
   max_namespaces: userData.max_namespaces,
 });
 
-const putUser = async (id: string, userData: userDataType) => adminApi.adminUpdateUser(id, {
+const putUser = async (id: string, userData: IUser) => adminApi.adminUpdateUser(id, {
   name: userData.name,
   email: userData.email,
   username: userData.username,
   password: userData.password,
-  confirmed: userData.confirmed,
+  status: userData.status,
   max_namespaces: userData.max_namespaces,
-});
+} as UserAdminRequest);
 
 const resetUserPassword = async (id: string) => adminApi.adminResetUserPassword(id);
 

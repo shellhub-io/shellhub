@@ -272,6 +272,16 @@ const submitUser = async (isCreating: boolean, userData: Record<string, unknown>
   }
 };
 
+const getStatus = () => {
+  if (props.createUser) return undefined;
+
+  if (canChangeStatus) {
+    return isConfirmed.value ? "confirmed" : "not-confirmed";
+  }
+
+  return props.user?.status;
+};
+
 const prepareUserData = (): Record<string, unknown> => ({
   name: name.value,
   email: email.value,
@@ -279,6 +289,7 @@ const prepareUserData = (): Record<string, unknown> => ({
   password: password.value || "",
   max_namespaces: changeNamespaceLimit.value ? maxNamespaces.value : undefined,
   confirmed: !props.createUser ? isConfirmed.value : undefined,
+  status: getStatus(),
   id: !props.createUser ? props.user?.id : undefined,
 });
 
