@@ -51,7 +51,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 	}
 
 	if req.TenantID != "" {
-		ns, err := s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().CountAcceptedDevices())
+		ns, err := s.store.NamespaceGet(ctx, req.TenantID)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -226,7 +226,7 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 
 // UpdateDeviceStatus updates the device status.
 func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant, s.store.Options().CountAcceptedDevices())
+	namespace, err := s.store.NamespaceGet(ctx, tenant)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}

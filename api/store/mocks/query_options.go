@@ -14,26 +14,6 @@ type QueryOptions struct {
 	mock.Mock
 }
 
-// CountAcceptedDevices provides a mock function with no fields
-func (_m *QueryOptions) CountAcceptedDevices() store.NamespaceQueryOption {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for CountAcceptedDevices")
-	}
-
-	var r0 store.NamespaceQueryOption
-	if rf, ok := ret.Get(0).(func() store.NamespaceQueryOption); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.NamespaceQueryOption)
-		}
-	}
-
-	return r0
-}
-
 // EnrichMembersData provides a mock function with no fields
 func (_m *QueryOptions) EnrichMembersData() store.NamespaceQueryOption {
 	ret := _m.Called()
