@@ -39,11 +39,19 @@ func NewMessageFromError(err error) Message {
 }
 
 type Config struct {
+	// Tunnels defines if tunnel's feature is enabled.
+	Tunnels bool
+	// TunnelsDomain define the domain of tunnels feature when it's enabled.
+	TunnelsDomain string
 	// RedisURI is the redis URI connection.
 	RedisURI string
 }
 
 func (c Config) Validate() error {
+	if c.Tunnels && c.TunnelsDomain == "" {
+		return errors.New("tunnels feature is enabled, but tunnel's domain is empty")
+	}
+
 	if c.RedisURI == "" {
 		return errors.New("redis uri is empty")
 	}
@@ -238,6 +246,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		}
 
 		req = c.Request()
+		req.Host = strings.Join([]string{address, config.TunnelsDomain}, ".")
 		req.URL, err = url.Parse(path)
 		if err != nil {
 			logger.WithError(err).Error("failed to parse the path")
