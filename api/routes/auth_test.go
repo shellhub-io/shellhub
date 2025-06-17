@@ -49,7 +49,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -71,7 +71,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -95,7 +95,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
 				mock.On("SetDevicePosition", gomock.Anything, models.UID(""), "").Return(nil).Once()
 			},
 			expected: Expected{

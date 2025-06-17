@@ -103,4 +103,5 @@ type DeviceAuth struct {
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key" validate:"required"`
 	TenantID  string          `json:"tenant_id" validate:"required"`
+	RealIP    string          `header:"X-Real-IP"`
 }

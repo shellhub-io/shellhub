@@ -30,8 +30,10 @@ type AuthService interface {
 	AuthCacheToken(ctx context.Context, tenant, id, token string) error
 	AuthIsCacheToken(ctx context.Context, tenant, id string) (bool, error)
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
-	AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error)
 
+	// AuthDevice authenticates a device, creating it if it doesn't exist. Returns a JWT token and device metadata for successful authentication.
+	// It also updates session timestamps for backward compatibility with older agent.
+	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
 	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
 	// they have MFA enabled (which is a cloud-only feature).
@@ -66,128 +68,126 @@ type AuthService interface {
 	PublicKey() *rsa.PublicKey
 }
 
-func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
+func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
 	if req.Identity == nil {
 		return nil, NewErrAuthDeviceNoIdentity()
 	}
 
-	identity := &models.DeviceIdentity{
-		MAC: req.Identity.MAC,
-	}
-
-	var hostname string
-	if req.Hostname != "" {
-		hostname = req.Hostname
-	}
-
-	if hostname == "" && identity.MAC == "" {
-		return nil, NewErrAuthDeviceNoIdentityAndHostname()
+	hostname := req.Hostname
+	if hostname == "" {
+		if req.Identity.MAC != "" {
+			hostname = strings.ReplaceAll(req.Identity.MAC, ":", "-")
+		} else {
+			return nil, NewErrAuthDeviceNoIdentityAndHostname()
+		}
 	}
 
 	auth := models.DeviceAuth{
-		Hostname:  hostname,
-		Identity:  identity,
+		Hostname:  strings.ToLower(hostname),
+		Identity:  &models.DeviceIdentity{MAC: req.Identity.MAC},
 		PublicKey: req.PublicKey,
 		TenantID:  req.TenantID,
 	}
 
-	uid := sha256.Sum256(structhash.Dump(auth, 1))
-	key := hex.EncodeToString(uid[:])
+	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
+	uid := hex.EncodeToString(uidSHA[:])
 
-	claims := authorizer.DeviceClaims{
-		UID:      key,
-		TenantID: req.TenantID,
-	}
-
-	token, err := jwttoken.EncodeDeviceClaims(claims, s.privKey)
+	token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: req.TenantID}, s.privKey)
 	if err != nil {
 		return nil, NewErrTokenSigned(err)
 	}
 
-	type Device struct {
-		Name      string
-		Namespace string
-	}
-
-	var value *Device
-
-	if err := s.cache.Get(ctx, strings.Join([]string{"auth_device", key}, "/"), &value); err == nil && value != nil {
-		return &models.DeviceAuthResponse{
-			UID:       key,
+	cachedData := make(map[string]string)
+	if err := s.cache.Get(ctx, "auth_device/"+uid, &cachedData); err == nil && cachedData["device_name"] != "" {
+		resp := &models.DeviceAuthResponse{
+			UID:       uid,
 			Token:     token,
-			Name:      value.Name,
-			Namespace: value.Namespace,
-		}, nil
-	}
-	var info *models.DeviceInfo
-	if req.Info != nil {
-		info = &models.DeviceInfo{
-			ID:         req.Info.ID,
-			PrettyName: req.Info.PrettyName,
-			Version:    req.Info.Version,
-			Arch:       req.Info.Arch,
-			Platform:   req.Info.Platform,
+			Name:      cachedData["device_name"],
+			Namespace: cachedData["namespace_name"],
 		}
+
+		return resp, nil
 	}
 
-	position, err := s.locator.GetPosition(net.ParseIP(remoteAddr))
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, uid)
 	if err != nil {
-		return nil, err
-	}
+		if err != store.ErrNoDocuments {
+			return nil, err
+		}
 
-	device := models.Device{
-		UID:        key,
-		Identity:   identity,
-		Info:       info,
-		PublicKey:  req.PublicKey,
-		TenantID:   req.TenantID,
-		LastSeen:   clock.Now(),
-		RemoteAddr: remoteAddr,
-		Position: &models.DevicePosition{
-			Longitude: position.Longitude,
-			Latitude:  position.Latitude,
-		},
-	}
+		position, err := s.locator.GetPosition(net.ParseIP(req.RealIP))
+		if err != nil {
+			return nil, err
+		}
 
-	// The order here is critical as we don't want to register devices if the tenant id is invalid
-	namespace, err := s.store.NamespaceGet(ctx, device.TenantID)
-	if err != nil {
-		return nil, NewErrNamespaceNotFound(device.TenantID, err)
-	}
+		device = &models.Device{
+			CreatedAt:       clock.Now(),
+			UID:             uid,
+			TenantID:        req.TenantID,
+			LastSeen:        clock.Now(),
+			DisconnectedAt:  nil,
+			Status:          models.DeviceStatusPending,
+			StatusUpdatedAt: clock.Now(),
+			Name:            strings.ToLower(hostname),
+			Identity:        &models.DeviceIdentity{MAC: req.Identity.MAC},
+			PublicKey:       req.PublicKey,
+			RemoteAddr:      req.RealIP,
+			Tags:            []string{},
+			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
+		}
 
-	hostname = strings.ToLower(hostname)
+		if req.Info != nil {
+			device.Info = &models.DeviceInfo{
+				ID:         req.Info.ID,
+				PrettyName: req.Info.PrettyName,
+				Version:    req.Info.Version,
+				Arch:       req.Info.Arch,
+				Platform:   req.Info.Platform,
+			}
+		}
 
-	inserted, err := s.store.DeviceCreate(ctx, device, hostname)
-	if err != nil {
-		return nil, NewErrDeviceCreate(device, err)
-	}
+		if _, err := s.store.DeviceCreate(ctx, device); err != nil {
+			return nil, NewErrDeviceCreate(models.Device{}, err)
+		}
 
-	if inserted {
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, device.Status, 1); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.store.DeviceUpdate(ctx, req.TenantID, uid, &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil}); err != nil {
+			log.WithError(err).Error("failed to updated device to online")
+
 			return nil, err
 		}
 	}
 
-	for _, uid := range req.Sessions {
-		if err := s.store.SessionSetLastSeen(ctx, models.UID(uid)); err != nil {
+	for _, sessionUID := range req.Sessions {
+		if err := s.store.SessionSetLastSeen(ctx, models.UID(sessionUID)); err != nil {
+			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot set session's last seen")
+
 			continue
 		}
 	}
 
-	dev, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, device.UID, s.store.Options().InNamespace(device.TenantID))
-	if err != nil {
-		return nil, NewErrDeviceNotFound(models.UID(device.UID), err)
-	}
-	if err := s.cache.Set(ctx, strings.Join([]string{"auth_device", key}, "/"), &Device{Name: dev.Name, Namespace: namespace.Name}, time.Second*30); err != nil {
-		return nil, err
+	cachedData["device_name"] = device.Name
+	cachedData["namespace_name"] = namespace.Name
+	if err := s.cache.Set(ctx, "auth_device/"+uid, cachedData, time.Second*30); err != nil {
+		log.WithError(err).Warn("cannot store device authentication metadata in cache")
 	}
 
-	return &models.DeviceAuthResponse{
-		UID:       key,
+	resp := &models.DeviceAuthResponse{
+		UID:       uid,
 		Token:     token,
-		Name:      dev.Name,
-		Namespace: namespace.Name,
-	}, nil
+		Name:      cachedData["device_name"],
+		Namespace: cachedData["namespace_name"],
+	}
+
+	return resp, nil
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
