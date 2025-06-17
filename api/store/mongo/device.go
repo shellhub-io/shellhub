@@ -282,33 +282,12 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return err
 }
 
-func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) (bool, error) {
-	if hostname == "" {
-		hostname = strings.ReplaceAll(d.Identity.MAC, ":", "-")
+func (s *Store) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
+	if _, err := s.db.Collection("devices").InsertOne(ctx, device); err != nil {
+		return "", FromMongoError(err)
 	}
 
-	var dev *models.Device
-	if err := s.cache.Get(ctx, strings.Join([]string{"device", d.UID}, "/"), &dev); err != nil {
-		logrus.Error(err)
-	}
-
-	q := bson.M{
-		"$setOnInsert": bson.M{
-			"name":              hostname,
-			"status":            "pending",
-			"status_updated_at": time.Now(),
-			"created_at":        clock.Now(),
-			"tags":              []string{},
-		},
-		"$set": d,
-	}
-
-	r, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, options.Update().SetUpsert(true))
-	if err != nil {
-		return false, FromMongoError(err)
-	}
-
-	return r.UpsertedCount > 0, nil
+	return device.UID, nil
 }
 
 func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {

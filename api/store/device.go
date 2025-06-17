@@ -28,6 +28,9 @@ const (
 )
 
 type DeviceStore interface {
+	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
+	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
+
 	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
 
 	// DeviceResolve fetches a device using a specific resolver within a given tenant ID.
@@ -51,7 +54,6 @@ type DeviceStore interface {
 	DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (modifiedCount int64, err error)
 
 	DeviceDelete(ctx context.Context, uid models.UID) error
-	DeviceCreate(ctx context.Context, d models.Device, hostname string) (bool, error)
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error

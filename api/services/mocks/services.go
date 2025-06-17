@@ -122,9 +122,9 @@ func (_m *Service) AuthCacheToken(ctx context.Context, tenant string, id string,
 	return r0
 }
 
-// AuthDevice provides a mock function with given fields: ctx, req, remoteAddr
-func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remoteAddr string) (*models.DeviceAuthResponse, error) {
-	ret := _m.Called(ctx, req, remoteAddr)
+// AuthDevice provides a mock function with given fields: ctx, req
+func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthDevice")
@@ -132,19 +132,19 @@ func (_m *Service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remo
 
 	var r0 *models.DeviceAuthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth, string) (*models.DeviceAuthResponse, error)); ok {
-		return rf(ctx, req, remoteAddr)
+	if rf, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth) (*models.DeviceAuthResponse, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth, string) *models.DeviceAuthResponse); ok {
-		r0 = rf(ctx, req, remoteAddr)
+	if rf, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth) *models.DeviceAuthResponse); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DeviceAuthResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, requests.DeviceAuth, string) error); ok {
-		r1 = rf(ctx, req, remoteAddr)
+	if rf, ok := ret.Get(1).(func(context.Context, requests.DeviceAuth) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}

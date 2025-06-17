@@ -105,8 +105,7 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 		return err
 	}
 
-	ip := c.Request().Header.Get("X-Real-IP")
-	res, err := h.service.AuthDevice(c.Ctx(), req, ip)
+	res, err := h.service.AuthDevice(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

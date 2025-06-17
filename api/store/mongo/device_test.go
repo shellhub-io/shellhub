@@ -660,21 +660,19 @@ func TestDeviceResolve(t *testing.T) {
 
 func TestDeviceCreate(t *testing.T) {
 	type Expected struct {
-		inserted bool
-		err      error
+		insertedUID string
+		err         error
 	}
 
 	cases := []struct {
 		description string
-		hostname    string
-		device      models.Device
+		device      *models.Device
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when creating new device",
-			hostname:    "device-3",
-			device: models.Device{
+			device: &models.Device{
 				UID: "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
 				Identity: &models.DeviceIdentity{
 					MAC: "mac-3",
@@ -684,40 +682,19 @@ func TestDeviceCreate(t *testing.T) {
 			},
 			fixtures: []string{},
 			expected: Expected{
-				inserted: true,
-				err:      nil,
-			},
-		},
-		{
-			description: "succeeds when device already exists (no creation)",
-			hostname:    "device-1",
-			device: models.Device{
-				UID: "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
-				Identity: &models.DeviceIdentity{
-					MAC: "mac-1",
-				},
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				LastSeen: clock.Now(),
-			},
-			fixtures: []string{fixtureDevices},
-			expected: Expected{
-				inserted: false,
-				err:      nil,
+				insertedUID: "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+				err:         nil,
 			},
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
+		t.Run(tc.description, func(tt *testing.T) {
+			assert.NoError(tt, srv.Apply(tc.fixtures...))
+			tt.Cleanup(func() { assert.NoError(tt, srv.Reset()) })
 
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			inserted, err := s.DeviceCreate(ctx, tc.device, tc.hostname)
-			assert.Equal(t, tc.expected, Expected{inserted, err})
+			insertedUID, err := s.DeviceCreate(context.Background(), tc.device)
+			assert.Equal(tt, tc.expected, Expected{insertedUID, err})
 		})
 	}
 }

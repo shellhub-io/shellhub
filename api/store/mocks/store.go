@@ -355,27 +355,27 @@ func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfl
 	return r0, r1, r2
 }
 
-// DeviceCreate provides a mock function with given fields: ctx, d, hostname
-func (_m *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) (bool, error) {
-	ret := _m.Called(ctx, d, hostname)
+// DeviceCreate provides a mock function with given fields: ctx, device
+func (_m *Store) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
+	ret := _m.Called(ctx, device)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceCreate")
 	}
 
-	var r0 bool
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) (bool, error)); ok {
-		return rf(ctx, d, hostname)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Device) (string, error)); ok {
+		return rf(ctx, device)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) bool); ok {
-		r0 = rf(ctx, d, hostname)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Device) string); ok {
+		r0 = rf(ctx, device)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.Device, string) error); ok {
-		r1 = rf(ctx, d, hostname)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.Device) error); ok {
+		r1 = rf(ctx, device)
 	} else {
 		r1 = ret.Error(1)
 	}
