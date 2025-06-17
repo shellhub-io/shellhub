@@ -10,55 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCountAcceptedDevices(t *testing.T) {
-	type Expected struct {
-		count int
-		err   error
-	}
-
-	cases := []struct {
-		description string
-		tenant      string
-		ctx         func() context.Context
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when context does not have db in values",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			ctx: func() context.Context {
-				return context.Background()
-			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
-			expected: Expected{count: 0, err: errors.New("db not found in context")},
-		},
-		{
-			description: "succeeds",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			ctx: func() context.Context {
-				return context.WithValue(context.Background(), "db", db) //nolint:revive
-			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
-			expected: Expected{count: 3, err: nil},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(tt *testing.T) {
-			ctx := tc.ctx()
-
-			require.NoError(tt, srv.Apply(tc.fixtures...))
-			tt.Cleanup(func() {
-				require.NoError(tt, srv.Reset())
-			})
-
-			ns := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}
-			err := s.Options().CountAcceptedDevices()(ctx, ns)
-			require.Equal(tt, tc.expected, Expected{ns.DevicesCount, err})
-		})
-	}
-}
-
 func TestEnrichMembersData(t *testing.T) {
 	type Expected struct {
 		emails []string

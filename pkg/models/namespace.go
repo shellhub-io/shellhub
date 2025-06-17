@@ -14,12 +14,11 @@ type Namespace struct {
 	DevicesPendingCount  int64 `json:"devices_pending_count" bson:"devices_pending_count"`
 	DevicesRejectedCount int64 `json:"devices_rejected_count" bson:"devices_rejected_count"`
 
-	Sessions     int       `json:"-" bson:"sessions,omitempty"`
-	MaxDevices   int       `json:"max_devices" bson:"max_devices"`
-	DevicesCount int       `json:"devices_count" bson:"devices_count,omitempty"`
-	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
-	Billing      *Billing  `json:"billing" bson:"billing,omitempty"`
-	Type         Type      `json:"type" bson:"type"`
+	Sessions   int       `json:"-" bson:"sessions,omitempty"`
+	MaxDevices int       `json:"max_devices" bson:"max_devices"`
+	CreatedAt  time.Time `json:"created_at" bson:"created_at"`
+	Billing    *Billing  `json:"billing" bson:"billing,omitempty"`
+	Type       Type      `json:"type" bson:"type"`
 }
 
 // HasMaxDevices checks if the namespace has a maximum number of devices.
@@ -32,14 +31,14 @@ func (n *Namespace) HasMaxDevices() bool {
 
 // HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
 func (n *Namespace) HasMaxDevicesReached() bool {
-	return n.DevicesCount >= n.MaxDevices
+	return n.DevicesAcceptedCount >= int64(n.MaxDevices)
 }
 
 // HasLimitDevicesReached checks if the namespace limit was reached using the removed devices collection.
 //
 // This method is intended to be run only when the ShellHub instance is Cloud.
 func (n *Namespace) HasLimitDevicesReached(removed int64) bool {
-	return int64(n.DevicesCount)+removed >= int64(n.MaxDevices)
+	return n.DevicesAcceptedCount+removed >= int64(n.MaxDevices)
 }
 
 // FindMember checks if a member with the specified ID exists in the namespace.

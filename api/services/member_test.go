@@ -462,10 +462,9 @@ func TestAddNamespaceMember(t *testing.T) {
 					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -557,10 +556,9 @@ func TestAddNamespaceMember(t *testing.T) {
 					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -704,10 +702,9 @@ func TestAddNamespaceMember(t *testing.T) {
 					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1512,10 +1509,9 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
 					Return(nil).
 					Once()
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",

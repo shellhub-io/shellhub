@@ -42,24 +42,6 @@ func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOpt
 	}
 }
 
-func (*queryOptions) CountAcceptedDevices() store.NamespaceQueryOption {
-	return func(ctx context.Context, ns *models.Namespace) error {
-		db, ok := ctx.Value("db").(*mongo.Database)
-		if !ok {
-			return errors.New("db not found in context")
-		}
-
-		countDevice, err := db.Collection("devices").CountDocuments(ctx, bson.M{"tenant_id": ns.TenantID, "status": "accepted"})
-		if err != nil {
-			return FromMongoError(err)
-		}
-
-		ns.DevicesCount = int(countDevice)
-
-		return nil
-	}
-}
-
 func (*queryOptions) EnrichMembersData() store.NamespaceQueryOption {
 	return func(ctx context.Context, ns *models.Namespace) error {
 		db, ok := ctx.Value("db").(*mongo.Database)

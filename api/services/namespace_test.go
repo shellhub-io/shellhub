@@ -49,10 +49,9 @@ func TestListNamespaces(t *testing.T) {
 			},
 			ctx: ctx,
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -70,10 +69,9 @@ func TestListNamespaces(t *testing.T) {
 			},
 			ctx: ctx,
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.Anything, mock.Anything).
+					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, mock.Anything).
 					Return(
 						[]models.Namespace{
 							{
@@ -225,10 +223,9 @@ func TestGetNamespace(t *testing.T) {
 			description: "fails when could not get the namespace",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -241,10 +238,9 @@ func TestGetNamespace(t *testing.T) {
 			description: "succeeds - team",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						&models.Namespace{
 							Name:     "group1",
@@ -284,10 +280,9 @@ func TestGetNamespace(t *testing.T) {
 			description: "succeeds - personal (with have changed to team temporarily)",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						&models.Namespace{
 							Name:     "group1",
@@ -1124,10 +1119,9 @@ func TestEditNamespace(t *testing.T) {
 					On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "xxxxx", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "xxxxx", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						&models.Namespace{
 							TenantID: "xxxxx",
@@ -1153,10 +1147,9 @@ func TestEditNamespace(t *testing.T) {
 					On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "xxxxx", mock.AnythingOfType("store.NamespaceQueryOption"), mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "xxxxx", mock.AnythingOfType("store.NamespaceQueryOption")).
 					Return(
 						&models.Namespace{
 							TenantID: "xxxxx",
@@ -1195,8 +1188,6 @@ func TestEditNamespace(t *testing.T) {
 
 func TestDeleteNamespace(t *testing.T) {
 	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
-	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -1210,9 +1201,8 @@ func TestDeleteNamespace(t *testing.T) {
 			description: "fails when namespace does not exist",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -1222,9 +1212,8 @@ func TestDeleteNamespace(t *testing.T) {
 			description: "fails when store delete fails",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				envMock.
@@ -1246,9 +1235,8 @@ func TestDeleteNamespace(t *testing.T) {
 			description: "succeeds",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				envMock.
