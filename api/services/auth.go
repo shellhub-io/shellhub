@@ -157,8 +157,15 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 
 	hostname = strings.ToLower(hostname)
 
-	if _, err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
+	inserted, err := s.store.DeviceCreate(ctx, device, hostname)
+	if err != nil {
 		return nil, NewErrDeviceCreate(device, err)
+	}
+
+	if inserted {
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
+			return nil, err
+		}
 	}
 
 	for _, uid := range req.Sessions {

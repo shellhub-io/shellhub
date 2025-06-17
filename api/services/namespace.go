@@ -49,8 +49,11 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 	}
 
 	ns := &models.Namespace{
-		Name:  strings.ToLower(req.Name),
-		Owner: user.ID,
+		Name:                 strings.ToLower(req.Name),
+		Owner:                user.ID,
+		DevicesAcceptedCount: 0,
+		DevicesPendingCount:  0,
+		DevicesRejectedCount: 0,
 		Members: []models.Member{
 			{
 				ID:      user.ID,

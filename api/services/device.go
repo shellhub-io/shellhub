@@ -139,7 +139,15 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		}
 	}
 
-	return s.store.DeviceDelete(ctx, uid)
+	if err := s.store.DeviceDelete(ctx, uid); err != nil {
+		return err
+	}
+
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, device.Status, -1); err != nil { //nolint:revive
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
@@ -232,10 +240,21 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
+	// Store the original status for counter updates
+	originalStatus := device.Status
+
 	// NOTICE: when the device is intended to be rejected or in pending status, we don't check for duplications as it
 	// is not going to be considered for connections.
 	if status == models.DeviceStatusPending || status == models.DeviceStatusRejected {
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+			return err
+		}
+
+		if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
+			return err
+		}
+
+		return nil
 	}
 
 	// NOTICE: when the intended status is not accepted, we return an error because these status are not allowed
@@ -270,7 +289,20 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 			return err
 		}
 
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		// We need to decrease the accepted device count twice because we deleted the old device.
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, models.DeviceStatusAccepted, -1); err != nil {
+			return err
+		}
+
+		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+			return err
+		}
+
+		if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
+			return err
+		}
+
+		return nil
 	}
 
 	if sameDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID)); sameDevice != nil {
@@ -278,7 +310,15 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	if status != models.DeviceStatusAccepted {
-		return s.store.DeviceUpdateStatus(ctx, uid, status)
+		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+			return err
+		}
+
+		if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
+			return err
+		}
+
+		return nil
 	}
 
 	switch {
@@ -324,7 +364,15 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		}
 	}
 
-	return s.store.DeviceUpdateStatus(ctx, uid, status)
+	if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+		return err
+	}
+
+	if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {

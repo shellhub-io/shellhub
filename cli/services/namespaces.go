@@ -29,10 +29,13 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 	}
 
 	ns := &models.Namespace{
-		Name:       input.Namespace,
-		Owner:      user.ID,
-		TenantID:   input.TenantID,
-		MaxDevices: getMaxDevices(),
+		Name:                 input.Namespace,
+		Owner:                user.ID,
+		TenantID:             input.TenantID,
+		MaxDevices:           getMaxDevices(),
+		DevicesAcceptedCount: 0,
+		DevicesPendingCount:  0,
+		DevicesRejectedCount: 0,
 		Members: []models.Member{
 			{
 				ID:      user.ID,

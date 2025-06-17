@@ -40,10 +40,13 @@ func TestNamespaceList(t *testing.T) {
 			expected: Expected{
 				ns: []models.Namespace{
 					{
-						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						Name:      "namespace-1",
-						Owner:     "507f1f77bcf86cd799439011",
-						TenantID:  "00000000-0000-4000-0000-000000000000",
+						CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:                 "namespace-1",
+						Owner:                "507f1f77bcf86cd799439011",
+						TenantID:             "00000000-0000-4000-0000-000000000000",
+						DevicesAcceptedCount: 15,
+						DevicesPendingCount:  3,
+						DevicesRejectedCount: 2,
 						Members: []models.Member{
 							{
 								ID:      "507f1f77bcf86cd799439011",
@@ -62,10 +65,13 @@ func TestNamespaceList(t *testing.T) {
 						Settings:   &models.NamespaceSettings{SessionRecord: true},
 					},
 					{
-						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						Name:      "namespace-2",
-						Owner:     "6509e169ae6144b2f56bf288",
-						TenantID:  "00000000-0000-4001-0000-000000000000",
+						CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:                 "namespace-2",
+						Owner:                "6509e169ae6144b2f56bf288",
+						TenantID:             "00000000-0000-4001-0000-000000000000",
+						DevicesAcceptedCount: 8,
+						DevicesPendingCount:  1,
+						DevicesRejectedCount: 0,
 						Members: []models.Member{
 							{
 								ID:      "6509e169ae6144b2f56bf288",
@@ -84,10 +90,13 @@ func TestNamespaceList(t *testing.T) {
 						Settings:   &models.NamespaceSettings{SessionRecord: false},
 					},
 					{
-						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						Name:      "namespace-3",
-						Owner:     "657b0e3bff780d625f74e49a",
-						TenantID:  "00000000-0000-4002-0000-000000000000",
+						CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:                 "namespace-3",
+						Owner:                "657b0e3bff780d625f74e49a",
+						TenantID:             "00000000-0000-4002-0000-000000000000",
+						DevicesAcceptedCount: 342,
+						DevicesPendingCount:  0,
+						DevicesRejectedCount: 2,
 						Members: []models.Member{
 							{
 								ID:      "657b0e3bff780d625f74e49a",
@@ -100,10 +109,13 @@ func TestNamespaceList(t *testing.T) {
 						Settings:   &models.NamespaceSettings{SessionRecord: true},
 					},
 					{
-						CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						Name:      "namespace-4",
-						Owner:     "6577267d8752d05270a4c07d",
-						TenantID:  "00000000-0000-4003-0000-000000000000",
+						CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						Name:                 "namespace-4",
+						Owner:                "6577267d8752d05270a4c07d",
+						TenantID:             "00000000-0000-4003-0000-000000000000",
+						DevicesAcceptedCount: 25,
+						DevicesPendingCount:  5,
+						DevicesRejectedCount: 3,
 						Members: []models.Member{
 							{
 								ID:      "6577267d8752d05270a4c07d",
@@ -174,10 +186,13 @@ func TestNamespaceGet(t *testing.T) {
 			fixtures:    []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				ns: &models.Namespace{
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
+					CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					Name:                 "namespace-1",
+					Owner:                "507f1f77bcf86cd799439011",
+					TenantID:             "00000000-0000-4000-0000-000000000000",
+					DevicesAcceptedCount: 15,
+					DevicesPendingCount:  3,
+					DevicesRejectedCount: 2,
 					Members: []models.Member{
 						{
 							ID:      "507f1f77bcf86cd799439011",
@@ -243,10 +258,13 @@ func TestNamespaceGetByName(t *testing.T) {
 			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
+					CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					Name:                 "namespace-1",
+					Owner:                "507f1f77bcf86cd799439011",
+					TenantID:             "00000000-0000-4000-0000-000000000000",
+					DevicesAcceptedCount: 15,
+					DevicesPendingCount:  3,
+					DevicesRejectedCount: 2,
 					Members: []models.Member{
 						{
 							ID:      "507f1f77bcf86cd799439011",
@@ -311,10 +329,13 @@ func TestNamespaceGetPreferred(t *testing.T) {
 			fixtures:    []string{fixtureNamespaces},
 			expected: Expected{
 				ns: &models.Namespace{
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
+					CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					Name:                 "namespace-1",
+					Owner:                "507f1f77bcf86cd799439011",
+					TenantID:             "00000000-0000-4000-0000-000000000000",
+					DevicesAcceptedCount: 15,
+					DevicesPendingCount:  3,
+					DevicesRejectedCount: 2,
 					Members: []models.Member{
 						{
 							ID:      "507f1f77bcf86cd799439011",
@@ -815,6 +836,83 @@ func TestNamespaceGetSessionRecord(t *testing.T) {
 
 			set, err := s.NamespaceGetSessionRecord(ctx, tc.tenant)
 			assert.Equal(t, tc.expected, Expected{set: set, err: err})
+		})
+	}
+}
+
+func TestNamespaceIncrementDeviceCount(t *testing.T) {
+	type Expected struct {
+		acceptedCount int64
+		pendingCount  int64
+		rejectedCount int64
+		err           error
+	}
+
+	cases := []struct {
+		description string
+		tenant      string
+		status      models.DeviceStatus
+		count       int64
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "fails when tenant is not found",
+			tenant:      "nonexistent",
+			status:      models.DeviceStatusAccepted,
+			count:       5,
+			fixtures:    []string{fixtureNamespaces},
+			expected: Expected{
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds when incrementing devices count",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			status:      models.DeviceStatusAccepted,
+			count:       5,
+			fixtures:    []string{fixtureNamespaces},
+			expected: Expected{
+				acceptedCount: 20, // 15 + 5
+				pendingCount:  3,
+				rejectedCount: 2,
+				err:           nil,
+			},
+		},
+		{
+			description: "succeeds when decrementing devices count",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			status:      models.DeviceStatusPending,
+			count:       -2,
+			fixtures:    []string{fixtureNamespaces},
+			expected: Expected{
+				acceptedCount: 15,
+				pendingCount:  1, // 3 - 2
+				rejectedCount: 2,
+				err:           nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			require.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
+
+			err := s.NamespaceIncrementDeviceCount(ctx, tc.tenant, tc.status, tc.count)
+			require.Equal(t, tc.expected.err, err)
+			if err != nil {
+				return
+			}
+
+			namespace := new(models.Namespace)
+			require.NoError(t, db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tc.tenant}).Decode(namespace))
+
+			require.Equal(t, tc.expected.acceptedCount, namespace.DevicesAcceptedCount)
+			require.Equal(t, tc.expected.pendingCount, namespace.DevicesPendingCount)
+			require.Equal(t, tc.expected.rejectedCount, namespace.DevicesRejectedCount)
 		})
 	}
 }

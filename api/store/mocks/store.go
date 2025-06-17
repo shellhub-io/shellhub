@@ -1069,6 +1069,24 @@ func (_m *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string)
 	return r0, r1
 }
 
+// NamespaceIncrementDeviceCount provides a mock function with given fields: ctx, tenantID, status, count
+func (_m *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
+	ret := _m.Called(ctx, tenantID, status, count)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceIncrementDeviceCount")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.DeviceStatus, int64) error); ok {
+		r0 = rf(ctx, tenantID, status, count)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceList provides a mock function with given fields: ctx, paginator, filters, opts
 func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
 	_va := make([]interface{}, len(opts))

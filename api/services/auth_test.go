@@ -297,6 +297,51 @@ func TestAuthDevice(t *testing.T) {
 				err: nil,
 			},
 		},
+		{
+			description: "succeeds to authenticate device when device was inserted",
+			req:         req,
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.On("Get", ctx, testifymock.Anything, testifymock.Anything).Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(&models.Namespace{Name: "namespace-name"}, nil).
+					Once()
+				storeMock.
+					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
+					Return(true, nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusPending, int64(1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionSetLastSeen", ctx, models.UID("session")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, testifymock.Anything, testifymock.AnythingOfType("store.QueryOption")).
+					Return(&models.Device{
+						UID:      key,
+						Name:     "device-name",
+						TenantID: "tenant",
+					}, nil).
+					Once()
+				cacheMock.On("Set", ctx, testifymock.Anything, testifymock.Anything, time.Second*30).Return(nil).Once()
+			},
+			expected: Expected{
+				authRes: &models.DeviceAuthResponse{
+					UID:       key,
+					Token:     token,
+					Name:      "device-name",
+					Namespace: "namespace-name",
+				},
+				err: nil,
+			},
+		},
 	}
 
 	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
