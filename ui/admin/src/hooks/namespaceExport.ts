@@ -6,7 +6,7 @@ const getFilter = (option: NamespaceFilterOptions, numberOfDevices: number): IFi
       {
         type: "property",
         params: {
-          name: "devices",
+          name: "devices_accepted_count",
           operator: "gt",
           value: numberOfDevices,
         },
@@ -15,13 +15,22 @@ const getFilter = (option: NamespaceFilterOptions, numberOfDevices: number): IFi
     [NamespaceFilterOptions.NoDevices]: [
       {
         type: "property",
-        params: { name: "devices", operator: "eq", value: 0 },
+        params: { name: "devices_accepted_count", operator: "eq", value: 0 },
       },
+      {
+        type: "property",
+        params: { name: "devices_pending_count", operator: "eq", value: 0 },
+      },
+      {
+        type: "property",
+        params: { name: "devices_rejected_count", operator: "eq", value: 0 },
+      },
+      { type: "operator", params: { name: "and" } },
     ],
     [NamespaceFilterOptions.NoSessions]: [
       {
         type: "property",
-        params: { name: "devices", operator: "gt", value: 0 },
+        params: { name: "devices_accepted_count", operator: "gt", value: 0 },
       },
       {
         type: "property",
