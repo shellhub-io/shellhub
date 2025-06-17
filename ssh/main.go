@@ -29,7 +29,9 @@ type Envs struct {
 	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
-	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	AllowPublickeyAccessBelow060 bool   `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	Tunnels                      bool   `env:"SHELLHUB_TUNNELS,default=false"`
+	TunnelsDomain                string `env:"SHELLHUB_TUNNELS_DOMAIN"`
 }
 
 func main() {
@@ -46,7 +48,9 @@ func main() {
 	}
 
 	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", tunnel.Config{
-		RedisURI: env.RedisURI,
+		Tunnels:       env.Tunnels,
+		TunnelsDomain: env.TunnelsDomain,
+		RedisURI:      env.RedisURI,
 	})
 	if err != nil {
 		log.WithError(err).
