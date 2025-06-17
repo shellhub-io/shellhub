@@ -30,10 +30,16 @@ const namespaceDetail: INamespace = {
     session_record: true,
   },
   max_devices: 0,
-  devices_count: 1,
+  devices_accepted_count: 1,
+  devices_pending_count: 0,
+  devices_rejected_count: 0,
   created_at: "2022-04-13T11:43:24.668Z",
   billing: undefined,
 };
+
+const devicesCount = namespaceDetail.devices_accepted_count
+  + namespaceDetail.devices_pending_count
+  + namespaceDetail.devices_rejected_count;
 
 const mockRoute = {
   params: {
@@ -84,7 +90,7 @@ describe("Namespace Details", () => {
 
   it("Should render the props of the Namespace on screen", () => {
     expect(wrapper.find(`[data-test='${namespaceDetail.name}']`).text()).toContain(namespaceDetail.name);
-    expect(wrapper.find(`[data-test='${namespaceDetail.devices_count}']`).text()).toContain(String(namespaceDetail.devices_count));
+    expect(wrapper.find('[data-test="namespace-devices-count"').text()).toContain(devicesCount);
     expect(wrapper.find(`[data-test='${namespaceDetail.owner}']`).text()).toContain(namespaceDetail.owner);
     expect(wrapper.find(`[data-test='${namespaceDetail.tenant_id}']`).text()).toContain(namespaceDetail.tenant_id);
     expect(wrapper.find(`[data-test='${namespaceDetail.settings.session_record}']`).text())

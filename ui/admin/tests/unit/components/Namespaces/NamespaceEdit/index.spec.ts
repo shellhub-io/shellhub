@@ -25,7 +25,9 @@ const namespace = {
     subscription_id: "",
   },
   created_at: "2022-04-13T11:42:49.578Z",
-  devices_count: 2,
+  devices_accepted_count: 1,
+  devices_pending_count: 1,
+  devices_rejected_count: 0,
   max_devices: 10,
   members: [
     {

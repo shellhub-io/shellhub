@@ -23,7 +23,9 @@ type Billing = {
 export interface INamespace {
   billing?: Billing;
   created_at: string;
-  devices_count: number;
+  devices_accepted_count: number;
+  devices_pending_count: number;
+  devices_rejected_count: number;
   max_devices: number;
   members: Array<Members>;
   name: string;
