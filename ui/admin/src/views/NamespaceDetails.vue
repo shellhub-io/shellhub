@@ -17,8 +17,8 @@
         <div class="text-overline mt-3">
           <h3>Devices:</h3>
         </div>
-        <div :data-test="namespace.devices_count">
-          <p>{{ namespace.devices_count || 0 }}</p>
+        <div data-test="namespace-devices-count">
+          <p>{{ sumDevicesCount(namespace) }}</p>
         </div>
       </div>
 
@@ -111,6 +111,11 @@ onMounted(async () => {
 
 const goToUser = (userId: string) => {
   router.push({ name: "userDetails", params: { id: userId } });
+};
+
+const sumDevicesCount = (namespace: INamespace) => {
+  const { devices_accepted_count: acceptedCount, devices_pending_count: pendingCount, devices_rejected_count: rejectedCount } = namespace;
+  return (acceptedCount + pendingCount + rejectedCount) || 0;
 };
 
 defineExpose({ namespace });

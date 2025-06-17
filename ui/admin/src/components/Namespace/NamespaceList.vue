@@ -18,7 +18,7 @@
             {{ namespace.name }}
           </td>
           <td>
-            {{ namespace.devices_count || 0 }}
+            {{ sumDevicesCount(namespace) }}
           </td>
           <td>
             {{ namespace.tenant_id }}
@@ -59,6 +59,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useNamespacesStore from "@admin/store/modules/namespaces";
+import { INamespace } from "@admin/interfaces/INamespace";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "../DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
@@ -114,7 +115,6 @@ onMounted(async () => {
 });
 
 const namespaces = computed(() => namespacesStore.list);
-
 const numberOfNamespaces = computed(() => namespacesStore.getnumberOfNamespaces);
 
 const goToNamespace = (namespace: string) => {
@@ -153,4 +153,9 @@ const changeItemsPerPage = async (newItemsPerPage: number) => {
 watch(itemsPerPage, async () => {
   await getNamespaces(itemsPerPage.value, page.value);
 });
+
+const sumDevicesCount = (namespace: INamespace) => {
+  const { devices_accepted_count: acceptedCount, devices_pending_count: pendingCount, devices_rejected_count: rejectedCount } = namespace;
+  return (acceptedCount + pendingCount + rejectedCount) || 0;
+};
 </script>

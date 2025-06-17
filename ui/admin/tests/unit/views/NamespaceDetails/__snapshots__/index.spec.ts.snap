@@ -35,7 +35,7 @@ exports[`Namespace Details > Renders the component 1`] = `
       <div data-v-1bdec118="" class="text-overline mt-3">
         <h3 data-v-1bdec118="">Devices:</h3>
       </div>
-      <div data-v-1bdec118="" data-test="1">
+      <div data-v-1bdec118="" data-test="namespace-devices-count">
         <p data-v-1bdec118="">1</p>
       </div>
     </div>
