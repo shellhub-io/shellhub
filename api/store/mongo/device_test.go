@@ -659,15 +659,20 @@ func TestDeviceResolve(t *testing.T) {
 }
 
 func TestDeviceCreate(t *testing.T) {
+	type Expected struct {
+		inserted bool
+		err      error
+	}
+
 	cases := []struct {
 		description string
 		hostname    string
 		device      models.Device
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
-			description: "succeeds when all data is valid",
+			description: "succeeds when creating new device",
 			hostname:    "device-3",
 			device: models.Device{
 				UID: "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
@@ -678,7 +683,27 @@ func TestDeviceCreate(t *testing.T) {
 				LastSeen: clock.Now(),
 			},
 			fixtures: []string{},
-			expected: nil,
+			expected: Expected{
+				inserted: true,
+				err:      nil,
+			},
+		},
+		{
+			description: "succeeds when device already exists (no creation)",
+			hostname:    "device-1",
+			device: models.Device{
+				UID: "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+				Identity: &models.DeviceIdentity{
+					MAC: "mac-1",
+				},
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				LastSeen: clock.Now(),
+			},
+			fixtures: []string{fixtureDevices},
+			expected: Expected{
+				inserted: false,
+				err:      nil,
+			},
 		},
 	}
 
@@ -691,8 +716,8 @@ func TestDeviceCreate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.DeviceCreate(ctx, tc.device, tc.hostname)
-			assert.Equal(t, tc.expected, err)
+			inserted, err := s.DeviceCreate(ctx, tc.device, tc.hostname)
+			assert.Equal(t, tc.expected, Expected{inserted, err})
 		})
 	}
 }

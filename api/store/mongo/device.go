@@ -282,7 +282,7 @@ func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return err
 }
 
-func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
+func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) (bool, error) {
 	if hostname == "" {
 		hostname = strings.ReplaceAll(d.Identity.MAC, ":", "-")
 	}
@@ -302,10 +302,13 @@ func (s *Store) DeviceCreate(ctx context.Context, d models.Device, hostname stri
 		},
 		"$set": d,
 	}
-	opts := options.Update().SetUpsert(true)
-	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, opts)
 
-	return FromMongoError(err)
+	r, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": d.UID}, q, options.Update().SetUpsert(true))
+	if err != nil {
+		return false, FromMongoError(err)
+	}
+
+	return r.UpsertedCount > 0, nil
 }
 
 func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {

@@ -157,7 +157,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, remot
 
 	hostname = strings.ToLower(hostname)
 
-	if err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
+	if _, err := s.store.DeviceCreate(ctx, device, hostname); err != nil {
 		return nil, NewErrDeviceCreate(device, err)
 	}
 
