@@ -863,6 +863,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(
 						&models.Device{
 							UID:       "uid",
+							Status:    models.DeviceStatusAccepted,
 							TenantID:  "tenant",
 							CreatedAt: time.Time{},
 						},
@@ -896,6 +897,10 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDelete", ctx, models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusAccepted, int64(-1)).
 					Return(nil).
 					Once()
 			},
@@ -979,6 +984,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(
 						&models.Device{
 							UID:       "uid",
+							Status:    models.DeviceStatusAccepted,
 							TenantID:  "tenant",
 							CreatedAt: time.Time{},
 						},
@@ -1020,6 +1026,7 @@ func TestDeleteDevice(t *testing.T) {
 						"tenant",
 						&models.Device{
 							UID:       "uid",
+							Status:    models.DeviceStatusAccepted,
 							TenantID:  "tenant",
 							CreatedAt: time.Time{},
 						},
@@ -1028,6 +1035,10 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDelete", ctx, models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusAccepted, int64(-1)).
 					Return(nil).
 					Once()
 			},
@@ -1780,6 +1791,95 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
+			description: "fails to decrement original accepted count",
+			uid:         models.UID("uid"),
+			status:      "accepted",
+			tenant:      "00000000-0000-0000-0000-000000000000",
+			requiredMocks: func() {
+				queryOptionsMock.On("CountAcceptedDevices").Return(nil).Once()
+				storeMock.
+					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					Return(
+						&models.Namespace{
+							TenantID: "00000000-0000-0000-0000-000000000000",
+						}, nil,
+					).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Name:      "name",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    "pending",
+							Identity:  &models.DeviceIdentity{MAC: "mac"},
+							CreatedAt: time.Time{},
+						}, nil,
+					).
+					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "mac", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "name", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:      "notsameuid",
+							Name:     "name",
+							Identity: &models.DeviceIdentity{MAC: "mac"},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("SessionUpdateDeviceUID", ctx, models.UID("notsameuid"), models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceRename", ctx, models.UID("uid"), "name").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("notsameuid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(-1)).
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: errors.New("error", "", 0),
+		},
+		{
 			description: "fails to update device status",
 			uid:         models.UID("uid"),
 			status:      "accepted",
@@ -1859,6 +1959,10 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDelete", ctx, models.UID("notsameuid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(-1)).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1950,7 +2054,19 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -2390,6 +2506,14 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 					Return("false").Once()
 				storeMock.
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -2859,6 +2983,14 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -3600,6 +3732,14 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).
 					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(1)).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -4026,6 +4166,14 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("accepted")).
 					Return(nil).
 					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(1)).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -4358,6 +4506,14 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("pending")).
 					Return(nil).
 					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
@@ -4437,6 +4593,14 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdateStatus", ctx, models.UID("uid"), models.DeviceStatus("rejected")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusRejected, int64(1)).
 					Return(nil).
 					Once()
 			},

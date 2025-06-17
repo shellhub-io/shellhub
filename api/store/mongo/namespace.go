@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -395,4 +396,23 @@ func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) 
 	}
 
 	return settings.Settings.SessionRecord, nil
+}
+
+func (s *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
+	update := bson.M{
+		"$inc": bson.M{
+			fmt.Sprintf("devices_%s_count", string(status)): count,
+		},
+	}
+
+	r, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, update)
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if r.MatchedCount == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
