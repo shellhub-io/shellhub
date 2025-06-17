@@ -185,130 +185,132 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		return c.NoContent(http.StatusOK)
 	})
 
-	// The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes the
-	// `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server, returning
-	// an error related to the connection to device or what was returned from the server inside the tunnel.
-	tunnel.router.Any("/http/proxy", func(c echo.Context) error {
-		requestID := c.Request().Header.Get("X-Request-ID")
+	if config.Tunnels {
+		// The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes the
+		// `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server, returning
+		// an error related to the connection to device or what was returned from the server inside the tunnel.
+		tunnel.router.Any("/http/proxy", func(c echo.Context) error {
+			requestID := c.Request().Header.Get("X-Request-ID")
 
-		address := c.Request().Header.Get("X-Address")
-		log.WithFields(log.Fields{
-			"request-id": requestID,
-			"address":    address,
-		}).Debug("address value")
+			address := c.Request().Header.Get("X-Address")
+			log.WithFields(log.Fields{
+				"request-id": requestID,
+				"address":    address,
+			}).Debug("address value")
 
-		path := c.Request().Header.Get("X-Path")
-		log.WithFields(log.Fields{
-			"request-id": requestID,
-			"address":    address,
-		}).Debug("path")
+			path := c.Request().Header.Get("X-Path")
+			log.WithFields(log.Fields{
+				"request-id": requestID,
+				"address":    address,
+			}).Debug("path")
 
-		tun, err := tunnel.API.LookupTunnel(address)
-		if err != nil {
-			log.WithError(err).Error("failed to get the tunnel")
+			tun, err := tunnel.API.LookupTunnel(address)
+			if err != nil {
+				log.WithError(err).Error("failed to get the tunnel")
 
-			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelForbidden))
-		}
+				return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelForbidden))
+			}
 
-		logger := log.WithFields(log.Fields{
-			"request-id": requestID,
-			"namespace":  tun.Namespace,
-			"device":     tun.Device,
-		})
+			logger := log.WithFields(log.Fields{
+				"request-id": requestID,
+				"namespace":  tun.Namespace,
+				"device":     tun.Device,
+			})
 
-		in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", tun.Namespace, tun.Device))
-		if err != nil {
-			logger.WithError(err).Error("failed to dial to device")
+			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", tun.Namespace, tun.Device))
+			if err != nil {
+				logger.WithError(err).Error("failed to dial to device")
 
-			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelDial))
-		}
+				return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelDial))
+			}
 
-		defer in.Close()
-
-		logger.Trace("new tunnel connection initialized")
-		defer logger.Trace("tunnel connection doned")
-
-		// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
-		// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
-		// connections for any port, but this route should only connect to the HTTP server.
-		req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", tun.Host, tun.Port), nil)
-
-		if err := req.Write(in); err != nil {
-			logger.WithError(err).Error("failed to write the request to the agent")
-
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
-		}
-
-		if resp, err := http.ReadResponse(bufio.NewReader(in), req); err != nil || resp.StatusCode != http.StatusOK {
-			logger.WithError(err).Error("failed to connect to HTTP port on device")
-
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
-		}
-
-		req = c.Request()
-		req.Host = strings.Join([]string{address, config.TunnelsDomain}, ".")
-		req.URL, err = url.Parse(path)
-		if err != nil {
-			logger.WithError(err).Error("failed to parse the path")
-
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
-		}
-
-		if err := req.Write(in); err != nil {
-			logger.WithError(err).Error("failed to write the request to the agent")
-
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
-		}
-
-		ctr := http.NewResponseController(c.Response())
-		out, _, err := ctr.Hijack()
-		if err != nil {
-			logger.WithError(err).Error("failed to hijact the http request")
-
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelHijackRequest))
-		}
-
-		defer out.Close()
-
-		// Bidirectional copy between the client and the device.
-		var wg sync.WaitGroup
-		wg.Add(2)
-
-		done := sync.OnceFunc(func() {
 			defer in.Close()
+
+			logger.Trace("new tunnel connection initialized")
+			defer logger.Trace("tunnel connection doned")
+
+			// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
+			// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
+			// connections for any port, but this route should only connect to the HTTP server.
+			req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", tun.Host, tun.Port), nil)
+
+			if err := req.Write(in); err != nil {
+				logger.WithError(err).Error("failed to write the request to the agent")
+
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
+			}
+
+			if resp, err := http.ReadResponse(bufio.NewReader(in), req); err != nil || resp.StatusCode != http.StatusOK {
+				logger.WithError(err).Error("failed to connect to HTTP port on device")
+
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+			}
+
+			req = c.Request()
+			req.Host = strings.Join([]string{address, config.TunnelsDomain}, ".")
+			req.URL, err = url.Parse(path)
+			if err != nil {
+				logger.WithError(err).Error("failed to parse the path")
+
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
+			}
+
+			if err := req.Write(in); err != nil {
+				logger.WithError(err).Error("failed to write the request to the agent")
+
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
+			}
+
+			ctr := http.NewResponseController(c.Response())
+			out, _, err := ctr.Hijack()
+			if err != nil {
+				logger.WithError(err).Error("failed to hijact the http request")
+
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelHijackRequest))
+			}
+
 			defer out.Close()
 
-			logger.Trace("close called on in and out connections")
+			// Bidirectional copy between the client and the device.
+			var wg sync.WaitGroup
+			wg.Add(2)
+
+			done := sync.OnceFunc(func() {
+				defer in.Close()
+				defer out.Close()
+
+				logger.Trace("close called on in and out connections")
+			})
+
+			go func() {
+				defer done()
+				defer wg.Done()
+
+				if _, err := io.Copy(in, out); err != nil {
+					logger.WithError(err).Debug("in and out done returned a error")
+				}
+
+				logger.Trace("in and out done")
+			}()
+
+			go func() {
+				defer done()
+				defer wg.Done()
+
+				if _, err := io.Copy(out, in); err != nil {
+					logger.WithError(err).Debug("out and in done returned a error")
+				}
+
+				logger.Trace("out and in done")
+			}()
+
+			wg.Wait()
+
+			logger.Debug("http proxy is done")
+
+			return nil
 		})
-
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			if _, err := io.Copy(in, out); err != nil {
-				logger.WithError(err).Debug("in and out done returned a error")
-			}
-
-			logger.Trace("in and out done")
-		}()
-
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			if _, err := io.Copy(out, in); err != nil {
-				logger.WithError(err).Debug("out and in done returned a error")
-			}
-
-			logger.Trace("out and in done")
-		}()
-
-		wg.Wait()
-
-		logger.Debug("http proxy is done")
-
-		return nil
-	})
+	}
 
 	tunnel.router.GET("/healthcheck", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
