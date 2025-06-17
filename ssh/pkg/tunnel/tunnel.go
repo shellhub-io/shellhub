@@ -38,14 +38,31 @@ func NewMessageFromError(err error) Message {
 	}
 }
 
+type Config struct {
+	// RedisURI is the redis URI connection.
+	RedisURI string
+}
+
+func (c Config) Validate() error {
+	if c.RedisURI == "" {
+		return errors.New("redis uri is empty")
+	}
+
+	return nil
+}
+
 type Tunnel struct {
 	Tunnel *httptunnel.Tunnel
 	API    internalclient.Client
 	router *echo.Echo
 }
 
-func NewTunnel(connection, dial, redisURI string) (*Tunnel, error) {
-	api, err := internalclient.NewClient(internalclient.WithAsynqWorker(redisURI))
+func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
+	if err := config.Validate(); err != nil {
+		return nil, err
+	}
+
+	api, err := internalclient.NewClient(internalclient.WithAsynqWorker(config.RedisURI))
 	if err != nil {
 		return nil, err
 	}

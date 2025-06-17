@@ -45,7 +45,9 @@ func main() {
 			Fatal("failed to connect to redis cache")
 	}
 
-	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", env.RedisURI)
+	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", tunnel.Config{
+		RedisURI: env.RedisURI,
+	})
 	if err != nil {
 		log.WithError(err).
 			Fatal("failed to create the internalclient")
