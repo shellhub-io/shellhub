@@ -201,10 +201,6 @@ func TestAuthDevice(t *testing.T) {
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
 					Return(false, nil).
 					Once()
-				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session")).
-					Return(nil).
-					Once()
 				queryOptionsMock.
 					On("InNamespace", "tenant").
 					Return(nil).
@@ -272,6 +268,10 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
 					Return(false, nil).
+					Once()
+				storeMock.
+					On("SessionSetLastSeen", ctx, models.UID("session")).
+					Return(nil).
 					Once()
 				queryOptionsMock.
 					On("InNamespace", "tenant").
