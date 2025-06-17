@@ -162,7 +162,7 @@ func TestAuthDevice(t *testing.T) {
 						Position:   &models.DevicePosition{},
 						RemoteAddr: "127.0.0.1",
 					}, req.Hostname).
-					Return(goerrors.New("device creation error")).
+					Return(false, goerrors.New("device creation error")).
 					Once()
 			},
 			expected: Expected{
@@ -199,7 +199,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
-					Return(nil).
+					Return(false, nil).
 					Once()
 				storeMock.
 					On("SessionSetLastSeen", ctx, models.UID("session")).
@@ -238,7 +238,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
-					Return(nil).
+					Return(false, nil).
 					Once()
 				queryOptionsMock.
 					On("InNamespace", "tenant").
@@ -271,7 +271,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceCreate", ctx, testifymock.Anything, req.Hostname).
-					Return(nil).
+					Return(false, nil).
 					Once()
 				queryOptionsMock.
 					On("InNamespace", "tenant").

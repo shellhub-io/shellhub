@@ -356,21 +356,31 @@ func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfl
 }
 
 // DeviceCreate provides a mock function with given fields: ctx, d, hostname
-func (_m *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) error {
+func (_m *Store) DeviceCreate(ctx context.Context, d models.Device, hostname string) (bool, error) {
 	ret := _m.Called(ctx, d, hostname)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceCreate")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) error); ok {
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) (bool, error)); ok {
+		return rf(ctx, d, hostname)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) bool); ok {
 		r0 = rf(ctx, d, hostname)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, models.Device, string) error); ok {
+		r1 = rf(ctx, d, hostname)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // DeviceDelete provides a mock function with given fields: ctx, uid
