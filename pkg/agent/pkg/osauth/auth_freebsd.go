@@ -92,7 +92,7 @@ func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 			"username": username,
 		}).Error("User not found in passwd file")
 
-		return nil, err
+		return nil, ErrUserNotFound
 	}
 
 	return &user, nil
