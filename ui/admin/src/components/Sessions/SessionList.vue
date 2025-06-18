@@ -147,15 +147,10 @@ const page = ref(1);
 const getSessions = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
-
-    const hasSessions = await sessionStore.fetch({
+    await sessionStore.fetch({
       perPage: perPageValue,
       page: pageValue,
     });
-
-    if (!hasSessions) {
-      page.value--;
-    }
 
     loading.value = false;
   } catch (error) {

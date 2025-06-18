@@ -122,13 +122,11 @@ const goToNamespace = (namespace: string) => {
 const getNamespaces = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
-    const hasNamespaces = await namespacesStore.fetch({
+    await namespacesStore.fetch({
       page: pageValue,
       perPage: perPageValue,
       filter: filter.value,
     });
-
-    if (!hasNamespaces) page.value--;
   } catch {
     snackbar.showError("Failed to fetch namespaces.");
   } finally {
