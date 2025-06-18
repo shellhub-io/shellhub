@@ -277,7 +277,7 @@ const props = defineProps({
   },
 });
 
-const { fetchDevices, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
+const { fetchDevices, setSort, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
 
 const router = useRouter();
 const loading = ref(false);
@@ -377,13 +377,16 @@ const getDevices = async (perPageValue: number, pageValue: number, filter: strin
 };
 
 const getSortOrder = () => {
-  const currentOrder = store.getters["apiKeys/getSortStatusString"];
+  const currentOrder = getSortStatusString();
   if (currentOrder === "asc") return "desc";
   return "asc";
 };
 
 const sortByItem = async (field: string) => {
-  await fetchDevices({ sortStatusField: field, sortStatusString: getSortOrder() });
+  setSort({
+    sortStatusField: field,
+    sortStatusString: getSortOrder(),
+  });
   await getDevices(itemsPerPage.value, page.value, filter.value);
 };
 

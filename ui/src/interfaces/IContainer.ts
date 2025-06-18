@@ -62,11 +62,18 @@ export interface FetchContainerParams {
   sortStatusField: string;
   sortStatusString: string;
 }
+
+export interface SortContainersParams {
+  sortStatusField: string;
+  sortStatusString: string;
+}
+
 export interface IContainerMethods {
-    fetchDevices: (params: FetchContainerParams) => Promise<void>;
-    getFilter: () => string;
-    getList: () => IContainer[];
-    getSortStatusField: () => string;
-    getSortStatusString: () => string;
-    getNumber: () => number;
+  fetchDevices: (params: FetchContainerParams) => Promise<void>;
+  setSort: (params: SortContainersParams) => void;
+  getFilter: () => string;
+  getList: () => IContainer[];
+  getSortStatusField: () => string;
+  getSortStatusString: () => string;
+  getNumber: () => number;
 }
