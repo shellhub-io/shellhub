@@ -79,6 +79,11 @@ export const container: Module<ContainerState, State> = {
       state.filter = filter;
     },
 
+    setSortStatus: (state, data) => {
+      state.sortStatusField = data.sortStatusField;
+      state.sortStatusString = data.sortStatusString;
+    },
+
     clearListContainers: (state) => {
       state.containers = [];
       state.numberContainers = 0;
@@ -180,6 +185,10 @@ export const container: Module<ContainerState, State> = {
 
     updateDeviceTag: async (context, data) => {
       await apiContainer.updateContainerTag(data);
+    },
+
+    setSortStatus({ commit }, data) {
+      commit("setSortStatus", data);
     },
   },
 };

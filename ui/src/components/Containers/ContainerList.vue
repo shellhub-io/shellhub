@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import DeviceTable from "../Tables/DeviceTable.vue";
-import { FetchContainerParams, IContainerMethods } from "@/interfaces/IContainer";
+import { FetchContainerParams, IContainerMethods, SortContainersParams } from "@/interfaces/IContainer";
 import { useStore } from "@/store";
 
 const store = useStore();
@@ -28,6 +28,13 @@ const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, so
   });
 };
 
+const setSort = ({ sortStatusField, sortStatusString }: SortContainersParams) => {
+  store.dispatch("container/setSortStatus", {
+    sortStatusField,
+    sortStatusString,
+  });
+};
+
 const getFilter = () => store.getters["container/getFilter"];
 const getList = () => store.getters["container/list"];
 const getSortStatusField = () => store.getters["container/getSortStatusField"];
@@ -36,6 +43,7 @@ const getNumber = () => store.getters["container/getNumberContainers"];
 
 const storeMethods: IContainerMethods = {
   fetchDevices,
+  setSort,
   getFilter,
   getList,
   getSortStatusField,

@@ -147,6 +147,7 @@ describe("Device Table", () => {
 
   const mockStoreMethods = {
     fetchDevices: vi.fn(),
+    setSort: vi.fn(),
     getFilter: vi.fn(),
     getList: () => devices as IDevice[],
     getSortStatusField: vi.fn(),

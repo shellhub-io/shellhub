@@ -336,7 +336,7 @@ export const devices: Module<DevicesState, State> = {
       context.commit("setDevicesSelected", data);
     },
 
-    async setSortStatus({ commit }, data) {
+    setSortStatus({ commit }, data) {
       commit("setSortStatusDevice", data);
     },
 

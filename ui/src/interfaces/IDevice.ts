@@ -57,11 +57,18 @@ export interface FetchDevicesParams {
   sortStatusField: string;
   sortStatusString: string;
 }
+
+export interface SortDevicesParams {
+  sortStatusField: string;
+  sortStatusString: string;
+}
+
 export interface IDeviceMethods {
-    fetchDevices: (params: FetchDevicesParams) => Promise<void>;
-    getFilter: () => string;
-    getList: () => IDevice[];
-    getSortStatusField: () => string;
-    getSortStatusString: () => string;
-    getNumber: () => number;
+  fetchDevices: (params: FetchDevicesParams) => Promise<void>;
+  setSort: (params: SortDevicesParams) => void;
+  getFilter: () => string;
+  getList: () => IDevice[];
+  getSortStatusField: () => string;
+  getSortStatusString: () => string;
+  getNumber: () => number;
 }
