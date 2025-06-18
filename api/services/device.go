@@ -225,150 +225,111 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 }
 
 // UpdateDeviceStatus updates the device status.
-func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.UpdateDeviceStatus) error {
+	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
 	if err != nil {
-		return NewErrNamespaceNotFound(tenant, err)
+		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
 	if err != nil {
-		return NewErrDeviceNotFound(uid, err)
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
 
 	if device.Status == models.DeviceStatusAccepted {
 		return NewErrDeviceStatusAccepted(nil)
 	}
 
-	// Store the original status for counter updates
-	originalStatus := device.Status
+	oldStatus := device.Status
+	newStatus := models.DeviceStatus(req.Status)
+	opts := []store.QueryOption{s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID)}
 
-	// NOTICE: when the device is intended to be rejected or in pending status, we don't check for duplications as it
-	// is not going to be considered for connections.
-	if status == models.DeviceStatusPending || status == models.DeviceStatusRejected {
-		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
-			return err
-		}
-
-		if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
-			return err
-		}
-
-		return nil
-	}
-
-	// NOTICE: when the intended status is not accepted, we return an error because these status are not allowed
-	// to be set by the user.
-	if status != models.DeviceStatusAccepted {
-		return NewErrDeviceStatusInvalid(string(status), nil)
-	}
-
-	// NOTICE: when there is an already accepted device with the same MAC address, we need to update the device UID
-	// transfer the sessions and delete the old device.
-	sameMacDev, err := s.store.DeviceResolve(ctx, store.DeviceMACResolver, device.Identity.MAC, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID))
-	if err != nil && err != store.ErrNoDocuments {
-		return NewErrDeviceNotFound(models.UID(device.UID), err)
-	}
-
-	// TODO: move this logic to store's transactions.
-	if sameMacDev != nil && sameMacDev.UID != device.UID {
-		sameDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID))
-		if sameDevice != nil && sameDevice.Identity.MAC != device.Identity.MAC {
+	// Busca se já existe um device aceito com o mesmo MAC address
+	// Se existir, precisaremos fazer merge: transferir sessões, deletar o antigo, renomear o novo
+	existingMacDevice, _ := s.store.DeviceResolve(ctx, store.DeviceMACResolver, device.Identity.MAC, opts...)
+	if existingMacDevice != nil && existingMacDevice.UID != device.UID {
+		// ANTES do merge, verifica se vai dar conflito de hostname
+		// Busca se já existe outro device aceito usando o hostname atual
+		hostnameConflictDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, opts...)
+		if hostnameConflictDevice != nil && hostnameConflictDevice.Identity.MAC != device.Identity.MAC {
 			return NewErrDeviceDuplicated(device.Name, nil)
 		}
 
-		if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(sameMacDev.UID), models.UID(device.UID)); err != nil && err != store.ErrNoDocuments {
-			return err
+		// if err := s.mergeDevice(ctx, existingMacDevice, device); err != nil {
+		// 	return err
+		// }
+
+		// OK para fazer merge! Transfere sessões do device antigo para o novo
+		_ = s.store.SessionUpdateDeviceUID(ctx, models.UID(existingMacDevice.UID), models.UID(device.UID))
+		// Renomeia o device novo para usar o nome do device antigo (preserva identidade)
+		_ = s.store.DeviceRename(ctx, models.UID(device.UID), existingMacDevice.Name) // TODO: DeviceUpdate
+		// Deleta o device antigo (já transferiu sessões e nome)
+		_ = s.store.DeviceDelete(ctx, models.UID(existingMacDevice.UID)) // TODO: mergear tunnels?
+		// Decrementa contador porque deletamos um device aceito
+		_ = s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusAccepted, -1)
+	} else {
+		// Pq aqui ele n verifica o MAC para saber se eh igual ou nao?
+		sameDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, opts...)
+		if sameDevice != nil {
+			return NewErrDeviceDuplicated(device.Name, nil)
 		}
 
-		if err := s.store.DeviceRename(ctx, models.UID(device.UID), sameMacDev.Name); err != nil {
-			return err
-		}
-
-		if err := s.store.DeviceDelete(ctx, models.UID(sameMacDev.UID)); err != nil {
-			return err
-		}
-
-		// We need to decrease the accepted device count twice because we deleted the old device.
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, models.DeviceStatusAccepted, -1); err != nil {
-			return err
-		}
-
-		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
-			return err
-		}
-
-		if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
-			return err
-		}
-
-		return nil
-	}
-
-	if sameDevice, _ := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(device.TenantID)); sameDevice != nil {
-		return NewErrDeviceDuplicated(device.Name, nil)
-	}
-
-	if status != models.DeviceStatusAccepted {
-		if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
-			return err
-		}
-
-		if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
-			return err
-		}
-
-		return nil
-	}
-
-	switch {
-	case envs.IsCommunity(), envs.IsEnterprise():
-		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
-		}
-	case envs.IsCloud():
-		if namespace.Billing.IsActive() {
-			if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
-				return NewErrBillingReportNamespaceDelete(err)
+		switch {
+		case envs.IsCommunity(), envs.IsEnterprise():
+			// Versões Community/Enterprise: só verifica limite simples de devices
+			// Mas isso faz sentido? Community n tem limite
+			if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
+				return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 			}
-		} else {
-			// TODO: this strategy that stores the removed devices in the database can be simplified.
-			removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
-			if err != nil && err != store.ErrNoDocuments {
-				return NewErrDeviceRemovedGet(err)
-			}
-
-			if removed != nil {
-				if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
-					return NewErrDeviceRemovedDelete(err)
+		case envs.IsCloud():
+			// Versão Cloud: verifica billing e limites mais complexos
+			if namespace.Billing.IsActive() {
+				// Billing ativo: reporta o device aceito para cobrança
+				if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
+					return NewErrBillingReportNamespaceDelete(err)
 				}
 			} else {
-				count, err := s.store.DeviceRemovedCount(ctx, tenant)
+				// Billing inativo: verifica sistema de "devices removidos" para limite
+				removed, err := s.store.DeviceRemovedGet(ctx, req.TenantID, models.UID(req.UID))
+				if err != nil && err != store.ErrNoDocuments {
+					return NewErrDeviceRemovedGet(err)
+				}
+
+				if removed != nil {
+					// Se device estava na lista de "removidos", remove da lista (pode aceitar de novo)
+					if err := s.store.DeviceRemovedDelete(ctx, req.TenantID, models.UID(req.UID)); err != nil {
+						return NewErrDeviceRemovedDelete(err)
+					}
+				} else {
+					// Device novo: verifica se ainda tem "slot" disponível baseado em devices removidos
+					count, err := s.store.DeviceRemovedCount(ctx, req.TenantID)
+					if err != nil {
+						return NewErrDeviceRemovedCount(err)
+					}
+
+					if namespace.HasMaxDevices() && namespace.HasLimitDevicesReached(count) {
+						return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
+					}
+				}
+
+				// Verifica com sistema de billing se pode aceitar mais devices
+				ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
 				if err != nil {
-					return NewErrDeviceRemovedCount(err)
+					return NewErrBillingEvaluate(err)
 				}
 
-				if namespace.HasMaxDevices() && namespace.HasLimitDevicesReached(count) {
-					return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
+				if !ok {
+					return ErrDeviceLimit
 				}
-			}
-
-			ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
-			if err != nil {
-				return NewErrBillingEvaluate(err)
-			}
-
-			if !ok {
-				return ErrDeviceLimit
 			}
 		}
 	}
 
-	if err := s.store.DeviceUpdateStatus(ctx, uid, status); err != nil {
+	if err := s.store.DeviceUpdateStatus(ctx, models.UID(req.UID), newStatus); err != nil { // TODO: DeviceUpdate
 		return err
 	}
 
-	if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
+	if err := s.adjustDeviceCounters(ctx, req.TenantID, oldStatus, newStatus); err != nil { // nolint:revive
 		return err
 	}
 
