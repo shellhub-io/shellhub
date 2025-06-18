@@ -257,10 +257,11 @@ import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import { IContainerMethods } from "@/interfaces/IContainer";
 
 const props = defineProps({
   storeMethods: {
-    type: Object as PropType<IDeviceMethods>,
+    type: Object as PropType<IDeviceMethods | IContainerMethods>,
     required: true,
   },
   status: {
