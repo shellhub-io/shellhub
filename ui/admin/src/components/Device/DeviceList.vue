@@ -1,32 +1,25 @@
 <template>
   <div>
     <DataTable
-      :headers="headers"
+      :headers
       :items="devices"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
+      v-model:itemsPerPage="itemsPerPage"
+      :loading
       :totalCount="numberDevices"
-      :actualPage="page"
-      :comboboxOptions="[10, 20, 50, 100]"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
-      @clickSortableIcon="sortByItem"
+      v-model:page="page"
+      :itemsPerPageOptions="[10, 20, 50, 100]"
+      @update:sort="sortByItem"
       data-test="devices-list"
     >
       <template v-slot:rows>
         <tr v-for="(item, i) in devices" :key="i">
           <td>
-            <v-icon v-if="item.online" color="success" data-test="sucess-icon">
-              mdi-check-circle
-            </v-icon>
-            <v-icon v-else color="#E53935" data-test="error-icon"> mdi-close-circle </v-icon>
+            <v-icon v-if="item.online" color="success" data-test="success-icon" icon="mdi-check-circle" />
+            <v-icon v-else color="#E53935" data-test="error-icon" icon="mdi-close-circle" />
           </td>
           <td>{{ item.name }}</td>
-          <td class="d-flex align-center">
-            <DeviceIcon :icon="item.info.id" class="mr-2" />
+          <td class="d-flex align-center justify-center ga-2">
+            <DeviceIcon :icon="item.info.id" />
             {{ item.info.pretty_name }}
           </td>
           <td>
@@ -94,7 +87,7 @@ import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "../DataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
@@ -138,7 +131,6 @@ const headers = ref([
     text: "Last Seen",
     value: "last_seen",
     sortable: true,
-    align: "center",
   },
   {
     text: "Status",
@@ -191,37 +183,24 @@ const getDevices = async (perPageValue: number, pageValue: number) => {
   } catch (error) {
     snackbar.showError("Failed to fetch devices.");
   }
+  loading.value = false;
+};
+
+const getSortOrder = () => {
+  const currentOrder = devicesStore.getSortStatusString;
+  if (currentOrder === "asc") return "desc";
+  return "asc";
 };
 
 const sortByItem = async (field: string) => {
-  let sortStatusString = devicesStore.getSortStatusString;
-  if (sortStatusString === undefined) {
-    sortStatusString = "asc";
-  } else if (sortStatusString === "asc") {
-    sortStatusString = "desc";
-  } else {
-    sortStatusString = undefined;
-  }
   devicesStore.setSortStatus({
     sortStatusField: field,
-    sortStatusString,
+    sortStatusString: getSortOrder(),
   });
   await getDevices(itemsPerPage.value, page.value);
 };
 
-const next = async () => {
-  await getDevices(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  if (page.value > 1) await getDevices(itemsPerPage.value, --page.value);
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([itemsPerPage, page], async () => {
   await getDevices(itemsPerPage.value, page.value);
 });
 

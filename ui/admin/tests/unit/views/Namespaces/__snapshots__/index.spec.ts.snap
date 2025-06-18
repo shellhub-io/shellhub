@@ -73,33 +73,35 @@ exports[`Namespaces > Renders the component 1`] = `
   <!---->
   <!---->
   <div>
-    <div data-v-90b5158f="" data-test="namespaces-list">
-      <div data-v-90b5158f="" class="v-table v-theme--light v-table--density-default">
+    <div data-test="namespaces-list">
+      <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
         <!---->
         <div class="v-table__wrapper">
           <table>
-            <thead data-v-90b5158f="">
-              <tr data-v-90b5158f="">
-                <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Name</span></th>
-                <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Devices</span></th>
-                <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Tenant ID</span></th>
-                <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Owner</span></th>
-                <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Session Record</span></th>
-                <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Actions</span></th>
+            <thead class="bg-v-theme-background">
+              <tr>
+                <th class="text-center"><span>Name</span></th>
+                <th class="text-center"><span>Devices</span></th>
+                <th class="text-center"><span>Tenant ID</span></th>
+                <th class="text-center"><span>Owner</span></th>
+                <th class="text-center"><span>Session Record</span></th>
+                <th class="text-center"><span>Actions</span></th>
               </tr>
             </thead>
-            <div data-v-90b5158f="" class="pa-4 text-subtitle-2">
-              <p data-v-90b5158f="">No data available</p>
-            </div>
+            <tbody class="pa-4 text-subtitle-2">
+              <tr>
+                <td colspan="6" class="pa-4 text-subtitle-2 text-center"> No data available </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <!---->
       </div>
-      <hr data-v-90b5158f="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
       <!--v-if-->
-      <div data-v-90b5158f="" class="d-flex w-100 justify-end align-center"><span data-v-90b5158f="" class="text-subtitle-2 mr-4">Items per page:</span>
-        <div data-v-90b5158f="">
-          <div data-v-90b5158f="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+      <!--v-if-->
+      <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+        <div>
+          <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
             <!---->
             <div class="v-input__control">
               <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-5">
@@ -145,11 +147,11 @@ exports[`Namespaces > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div data-v-90b5158f="" class="d-flex align-center"><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
-          </button><span data-v-90b5158f="" class="text-subtitle-2">1 of 1</span><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->

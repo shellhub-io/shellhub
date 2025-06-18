@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
-      :headers="header"
+      :headers
       :items="users"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
-      :comboboxOptions="[10, 20, 50, 100]"
+      v-model:itemsPerPage="itemsPerPage"
+      v-model:page="page"
+      :loading
+      :itemsPerPageOptions="[10, 20, 50, 100]"
       :totalCount="totalUsers"
-      :actualPage="page"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
       data-test="users-list"
     >
       <template v-slot:rows>
@@ -29,7 +24,7 @@
           <td :namespaces-test="item.namespaces">
             {{ item.namespaces }}
           </td>
-          <td class="pl-0">
+          <td>
             <UserStatusChip :status="item.status" />
           </td>
 
@@ -87,7 +82,7 @@ import useUsersStore from "@admin/store/modules/users";
 import { IUser, UserAuthMethods } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "../DataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import UserStatusChip from "./UserStatusChip.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
@@ -105,7 +100,7 @@ const filter = ref("");
 const users = computed(() => userStore.getUsers as unknown as IUser[]);
 const totalUsers = computed(() => userStore.numberUsers);
 
-const header = [
+const headers = [
   {
     text: "Name",
     value: "name",
@@ -170,19 +165,7 @@ const getUsers = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-const next = async () => {
-  await getUsers(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  if (page.value > 1) await getUsers(itemsPerPage.value, --page.value);
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, () => {
+watch([itemsPerPage, page], () => {
   getUsers(itemsPerPage.value, page.value);
 });
 

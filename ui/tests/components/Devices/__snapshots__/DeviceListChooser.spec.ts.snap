@@ -20,7 +20,7 @@ exports[`Device Chooser List > Renders the component 1`] = `
   <!---->
   <!---->
   <div data-test="devices-dataTable">
-    <div class="v-table v-theme--light v-table--density-default bg-background border rounded">
+    <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
       <!---->
       <div class="v-table__wrapper">
         <table>
@@ -41,6 +41,7 @@ exports[`Device Chooser List > Renders the component 1`] = `
       </div>
       <!---->
     </div>
+    <!--v-if-->
     <!--v-if-->
     <!--v-if-->
   </div>
