@@ -141,11 +141,10 @@ const numberFirewalls = computed(() => firewallRulesStore.getNumberFirewalls);
 const getFirewallRules = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
-    const hasFirewallRules = await firewallRulesStore.fetch({
+    await firewallRulesStore.fetch({
       page: pageValue,
       perPage: perPageValue,
     });
-    if (!hasFirewallRules) page.value--;
   } catch {
     snackbar.showError("Failed to fetch firewall rules.");
   } finally {

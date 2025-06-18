@@ -149,15 +149,11 @@ onMounted(async () => {
 const getUsers = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
-    const hasUsers = await userStore.fetch({
+    await userStore.fetch({
       perPage: perPageValue,
       page: pageValue,
       filter: filter.value,
     });
-
-    if (!hasUsers) {
-      page.value--;
-    }
 
     loading.value = false;
   } catch (error) {

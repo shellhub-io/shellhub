@@ -167,17 +167,13 @@ const getDevices = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
 
-    const hasDevices = await devicesStore.fetch({
+    await devicesStore.fetch({
       perPage: perPageValue,
       page: pageValue,
       filter: filter.value,
       sortStatusField: devicesStore.getSortStatusField,
       sortStatusString: devicesStore.getSortStatusString,
     });
-
-    if (!hasDevices) {
-      page.value--;
-    }
 
     loading.value = false;
   } catch (error) {
