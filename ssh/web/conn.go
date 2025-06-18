@@ -90,6 +90,22 @@ func (c *Conn) WriteMessage(message *Message) (int, error) {
 	return wrote, nil
 }
 
+func (c *Conn) WriteBinary(data []byte) (int, error) {
+	socket := c.Socket.(*websocket.Conn)
+
+	frame, err := socket.NewFrameWriter(websocket.BinaryFrame)
+	if err != nil {
+		return 0, errors.Join(ErrConnWriteMessageFailedFrame, err)
+	}
+
+	wrote, err := frame.Write(data)
+	if err != nil {
+		return wrote, errors.Join(ErrConnReadMessageSocketWrite, err)
+	}
+
+	return wrote, nil
+}
+
 func (c *Conn) Read(buffer []byte) (int, error) {
 	return c.Socket.Read(buffer)
 }

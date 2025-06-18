@@ -11,6 +11,9 @@ const (
 	// messageKindSignature is the identifier to a signature message. This kind of message contains the data to be
 	// signed by the user's private key.
 	messageKindSignature
+	// messageKindError is the identifier to output an erro rmessage. This kind of message contains data to be show
+	// in terminal for information propose.
+	messageKindError
 )
 
 type Message struct {

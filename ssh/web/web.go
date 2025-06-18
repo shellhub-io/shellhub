@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/token"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
 
@@ -69,7 +70,14 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 
 		// exit sends the error's message to the client on the browser.
 		exit := func(wsconn *websocket.Conn, err error) {
-			wsconn.Write([]byte(err.Error())) //nolint:errcheck
+			buffer, err := json.Marshal(Message{
+				Kind: messageKindError,
+				Data: err.Error(),
+			})
+
+			log.WithError(err).Error("failed to parsing the error message on web terminal")
+
+			wsconn.Write(buffer) //nolint:errcheck
 		}
 
 		token, err := getToken(wsconn.Request())
