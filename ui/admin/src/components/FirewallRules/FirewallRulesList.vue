@@ -1,83 +1,79 @@
 <template>
-  <div data-test="firewallRules-list">
-    <DataTable
-      :headers="headers"
-      :items="firewallRules"
-      :itemsPerPage="itemsPerPage"
-      :loading="loading"
-      :page="page"
-      :actualPage="page"
-      :totalCount="numberFirewalls"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
-    >
-      <template v-slot:rows>
-        <tr v-for="(firewallRule, index) in firewallRules" :key="index">
-          <td>
-            {{ firewallRule.tenant_id }}
-          </td>
-          <td>
-            {{ firewallRule.priority }}
-          </td>
-          <td>
-            {{ firewallRule.action }}
-          </td>
-          <td>
-            {{ formatSourceIP(firewallRule.source_ip) }}
-          </td>
-          <td>
-            {{ formatUsername(firewallRule.username) }}
-          </td>
-          <td>
-            <div v-if="isHostname(firewallRule.filter)">
-              {{ formatHostnameFilter(firewallRule.filter) }}
-            </div>
-            <div v-else>
-              <v-tooltip
-                v-for="(tag, index) in firewallRule.filter.tags"
-                :key="index"
-                bottom
-                :disabled="!showTag(tag)"
-              >
-                <template #activator="{ props }">
-                  <v-chip
-                    class="mr-1"
-                    density="compact"
-                    outlined
-                    v-bind="props"
-                  >
-                    {{ displayOnlyTenCharacters(tag) }}
-                  </v-chip>
-                </template>
-
-                <span v-if="showTag(tag)">
-                  {{ tag }}
-                </span>
-              </v-tooltip>
-            </div>
-          </td>
-          <td>
-            <v-tooltip bottom anchor="bottom">
-              <template v-slot:activator="{ props }">
-                <v-icon
-                  tag="a"
-                  dark
+  <DataTable
+    :headers
+    :items="firewallRules"
+    v-model:itemsPerPage="itemsPerPage"
+    v-model:page="page"
+    :loading
+    :totalCount="numberFirewalls"
+    :itemsPerPageOptions="[10, 20, 50, 100]"
+    data-test="firewall-rules-list"
+  >
+    <template v-slot:rows>
+      <tr v-for="(firewallRule, index) in firewallRules" :key="index">
+        <td>
+          {{ firewallRule.tenant_id }}
+        </td>
+        <td>
+          {{ firewallRule.priority }}
+        </td>
+        <td>
+          {{ firewallRule.action }}
+        </td>
+        <td>
+          {{ formatSourceIP(firewallRule.source_ip) }}
+        </td>
+        <td>
+          {{ formatUsername(firewallRule.username) }}
+        </td>
+        <td>
+          <div v-if="isHostname(firewallRule.filter)">
+            {{ formatHostnameFilter(firewallRule.filter) }}
+          </div>
+          <div v-else>
+            <v-tooltip
+              v-for="(tag, index) in firewallRule.filter.tags"
+              :key="index"
+              bottom
+              :disabled="!showTag(tag)"
+            >
+              <template #activator="{ props }">
+                <v-chip
+                  class="mr-1"
+                  density="compact"
+                  outlined
                   v-bind="props"
-                  @click="goToFirewallRule(firewallRule.id)"
-                  @keypress.enter="goToFirewallRule(firewallRule.id)"
-                  tabindex="0"
                 >
-                  mdi-information
-                </v-icon>
+                  {{ displayOnlyTenCharacters(tag) }}
+                </v-chip>
               </template>
-              <span>Details</span>
+
+              <span v-if="showTag(tag)">
+                {{ tag }}
+              </span>
             </v-tooltip>
-          </td>
-        </tr>
-      </template>
-    </DataTable>
-  </div>
+          </div>
+        </td>
+        <td>
+          <v-tooltip bottom anchor="bottom">
+            <template v-slot:activator="{ props }">
+              <v-icon
+                tag="a"
+                dark
+                v-bind="props"
+                @click="goToFirewallRule(firewallRule.id)"
+                @keypress.enter="goToFirewallRule(firewallRule.id)"
+                tabindex="0"
+              >
+                mdi-information
+              </v-icon>
+            </template>
+            <span>Details</span>
+          </v-tooltip>
+        </td>
+      </tr>
+    </template>
+  </DataTable>
 </template>
 
 <script setup lang="ts">
@@ -85,7 +81,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "../DataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import showTag from "../../hooks/tag";
 import displayOnlyTenCharacters from "../../hooks/string";
 import { filterType } from "../../interfaces/IFirewallRule";
@@ -157,19 +153,7 @@ const getFirewallRules = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-const next = async () => {
-  await getFirewallRules(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  if (page.value > 1) await getFirewallRules(itemsPerPage.value, --page.value);
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, () => {
+watch([itemsPerPage, page], () => {
   getFirewallRules(itemsPerPage.value, page.value);
 });
 
@@ -183,7 +167,7 @@ const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? 
 
 const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 
-const goToFirewallRule = (ruleId : string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
+const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 
 defineExpose({
   headers,

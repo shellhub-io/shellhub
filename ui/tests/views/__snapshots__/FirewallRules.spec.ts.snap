@@ -23,7 +23,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
 <div>
   <div>
     <div data-test="firewallRules-list">
-      <div class="v-table v-theme--light v-table--density-default bg-background border rounded">
+      <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
         <!---->
         <div class="v-table__wrapper">
           <table>
@@ -62,6 +62,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
         </div>
         <!---->
       </div>
+      <!--v-if-->
       <!--v-if-->
       <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
         <div>

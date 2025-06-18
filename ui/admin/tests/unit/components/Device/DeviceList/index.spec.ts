@@ -15,7 +15,7 @@ const headers = [
   { text: "Info", value: "info", sortable: true },
   { text: "Namespace", value: "namespace", sortable: true },
   { text: "Tags", value: "tags" },
-  { text: "Last Seen", value: "last_seen", sortable: true, align: "center" },
+  { text: "Last Seen", value: "last_seen", sortable: true },
   { text: "Status", value: "status", sortable: true },
   { text: "Actions", value: "actions" },
 ];
@@ -58,8 +58,7 @@ describe("Device List", () => {
     const devicesStore = useDevicesStore();
     devicesStore.devices = devices;
     devicesStore.numberDevices = devices.length;
-
-    vi.spyOn(devicesStore, "fetch").mockResolvedValue(false);
+    devicesStore.fetch = vi.fn();
 
     wrapper = mount(DeviceList, {
       global: {

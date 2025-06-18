@@ -2,25 +2,25 @@
 
 exports[`Sessions List > Renders the component 1`] = `
 "<div data-v-d900b695="">
-  <div data-v-90b5158f="" data-v-d900b695="" page="0" data-test="session-list">
-    <div data-v-90b5158f="" class="v-table v-theme--light v-table--density-default">
+  <div data-v-d900b695="" data-test="session-list">
+    <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
       <!---->
       <div class="v-table__wrapper">
         <table>
-          <thead data-v-90b5158f="">
-            <tr data-v-90b5158f="">
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Active</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Id</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Device</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Username</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Authenticated</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">IP Address</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Started</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Last Seen</span></th>
-              <th data-v-90b5158f="" class="text-left"><span data-v-90b5158f="">Actions</span></th>
+          <thead class="bg-v-theme-background">
+            <tr>
+              <th class="text-center"><span>Active</span></th>
+              <th class="text-center"><span>Id</span></th>
+              <th class="text-center"><span>Device</span></th>
+              <th class="text-center"><span>Username</span></th>
+              <th class="text-center"><span>Authenticated</span></th>
+              <th class="text-center"><span>IP Address</span></th>
+              <th class="text-center"><span>Started</span></th>
+              <th class="text-center"><span>Last Seen</span></th>
+              <th class="text-center"><span>Actions</span></th>
             </tr>
           </thead>
-          <tbody data-v-90b5158f="">
+          <tbody>
             <tr data-v-d900b695="">
               <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" aria-describedby="v-tooltip-v-0"></i>
                 <!--teleport start-->
@@ -39,7 +39,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="" tabindex="0" class="hover">39-5e-2a</span></td>
               <td data-v-d900b695="">user</td>
-              <td data-v-d900b695="" class="text-center"><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-3"></i>
+              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-3"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -75,7 +75,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="" tabindex="0" class="hover">b4-2e-99</span></td>
               <td data-v-d900b695="">user</td>
-              <td data-v-d900b695="" class="text-center"><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-9"></i>
+              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-9"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -98,11 +98,11 @@ exports[`Sessions List > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <hr data-v-90b5158f="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
     <!--v-if-->
-    <div data-v-90b5158f="" class="d-flex w-100 justify-end align-center"><span data-v-90b5158f="" class="text-subtitle-2 mr-4">Items per page:</span>
-      <div data-v-90b5158f="">
-        <div data-v-90b5158f="" class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+    <!--v-if-->
+    <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+      <div>
+        <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
           <!---->
           <div class="v-input__control">
             <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-14">
@@ -148,11 +148,11 @@ exports[`Sessions List > Renders the component 1`] = `
           <!---->
         </div>
       </div>
-      <div data-v-90b5158f="" class="d-flex align-center"><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
-        </button><span data-v-90b5158f="" class="text-subtitle-2">0 of 1</span><button data-v-90b5158f="" type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->

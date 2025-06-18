@@ -46,8 +46,7 @@ describe("Firewall Rules List", () => {
 
     firewallRulesStore.firewalls = firewallRules;
     firewallRulesStore.numberFirewalls = firewallRules.length;
-
-    vi.spyOn(firewallRulesStore, "fetch").mockResolvedValue(true);
+    firewallRulesStore.fetch = vi.fn();
 
     wrapper = mount(FirewallRulesList, {
       global: {
@@ -66,7 +65,7 @@ describe("Firewall Rules List", () => {
 
   it("Renders the template with data", () => {
     const dt = wrapper.find("[data-test]");
-    expect(dt.attributes()["data-test"]).toContain("firewallRules-list");
+    expect(dt.attributes()["data-test"]).toContain("firewall-rules-list");
     expect(wrapper.vm.headers).toEqual(headers);
     expect(wrapper.vm.loading).toEqual(false);
     expect(wrapper.vm.itemsPerPage).toEqual(10);

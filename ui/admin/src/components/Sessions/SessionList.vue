@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
-      :headers="headers"
+      :headers
       :items="sessions"
-      :itemsPerPage="itemsPerPage"
-      :nextPage="next"
-      :previousPage="prev"
-      :loading="loading"
+      v-model:itemsPerPage="itemsPerPage"
+      v-model:page="page"
+      :itemsPerPageOptions="[10, 20, 50, 100]"
+      :loading
       :totalCount="numberSessions"
-      :page="page"
-      :actualPage="page"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
       data-test="session-list"
     >
       <template v-slot:rows>
@@ -30,7 +25,7 @@
           </td>
           <td>
             <v-chip>
-              {{ session.uid ? displayOnlyTenCharacters(session.uid) : '—' }}
+              {{ session.uid ? displayOnlyTenCharacters(session.uid) : "—" }}
               <v-tooltip activator="parent" anchor="bottom">{{
                 session.uid
               }}</v-tooltip>
@@ -43,13 +38,13 @@
               tabindex="0"
               class="hover"
             >
-              {{ session.device?.name || 'Unknown device' }}
+              {{ session.device?.name || "Unknown device" }}
             </span>
           </td>
           <td>
             {{ session.username }}
           </td>
-          <td class="text-center">
+          <td>
             <v-tooltip anchor="bottom" v-if="session.authenticated">
               <template v-slot:activator="{ props }">
                 <v-icon v-bind="props">mdi-shield-check </v-icon>
@@ -99,7 +94,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useSessionsStore from "@admin/store/modules/sessions";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "../DataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import { getTimeFromNow, formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
 
@@ -171,7 +166,7 @@ const getSessions = async (perPageValue: number, pageValue: number) => {
 onMounted(async () => {
   try {
     loading.value = true;
-    getSessions(itemsPerPage.value, page.value);
+    await getSessions(itemsPerPage.value, page.value);
   } catch (error) {
     snackbar.showError("Failed to fetch sessions list.");
   } finally {
@@ -179,19 +174,7 @@ onMounted(async () => {
   }
 });
 
-const next = async () => {
-  await getSessions(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  if (page.value > 1) await getSessions(itemsPerPage.value, --page.value);
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([itemsPerPage, page], async () => {
   await getSessions(itemsPerPage.value, page.value);
 });
 

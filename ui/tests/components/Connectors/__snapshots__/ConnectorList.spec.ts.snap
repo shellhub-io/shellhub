@@ -2,7 +2,7 @@
 
 exports[`Connector List > Renders the component 1`] = `
 "<div data-v-6fdd6bd6="" data-test="connector-list">
-  <div class="v-table v-theme--light v-table--density-default bg-background border rounded">
+  <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
     <!---->
     <div class="v-table__wrapper">
       <table>
@@ -78,6 +78,7 @@ exports[`Connector List > Renders the component 1`] = `
     </div>
     <!---->
   </div>
+  <!--v-if-->
   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading">
     <!---->
     <div class="v-progress-linear__background"></div>

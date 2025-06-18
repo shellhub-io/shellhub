@@ -1,33 +1,28 @@
 <template>
   <DataTable
-    :headers="headers"
+    :headers
     :items="announcements"
-    :itemsPerPage="itemsPerPage"
-    :nextPage="next"
-    :previousPage="prev"
-    :loading="loading"
+    v-model:itemsPerPage="itemsPerPage"
+    v-model:page="page"
     :totalCount="numberAnnouncements"
-    :page="page"
-    :actualPage="page"
-    @changeItemsPerPage="changeItemsPerPage"
-    @clickNextPage="next"
-    @clickPreviousPage="prev"
+    :loading
+    :itemsPerPageOptions="[10, 20, 50, 100]"
     data-test="announcement-list"
   >
     <template v-slot:rows>
       <tr v-for="(announcement, index) in announcements" :key="index">
-        <td class="text-left" data-test="announcement-uuid">
+        <td data-test="announcement-uuid">
           <v-chip>
             {{ announcement.uuid }}
           </v-chip>
         </td>
-        <td class="text-left" data-test="announcement-title">
+        <td data-test="announcement-title">
           {{ announcement.title }}
         </td>
-        <td class="text-left">
+        <td>
           {{ formatDate(announcement.date) }}
         </td>
-        <td class="text-left" data-test="announcement-actions">
+        <td data-test="announcement-actions">
           <v-tooltip bottom anchor="bottom">
             <template v-slot:activator="{ props }">
               <v-icon
@@ -43,9 +38,15 @@
             <span>Info</span>
           </v-tooltip>
 
-          <AnnouncementEdit :announcementItem="announcement" @update="refreshAnnouncements" />
+          <AnnouncementEdit
+            :announcementItem="announcement"
+            @update="refreshAnnouncements"
+          />
 
-          <AnnouncementDelete :uuid="announcement.uuid" @update="refreshAnnouncements" />
+          <AnnouncementDelete
+            :uuid="announcement.uuid"
+            @update="refreshAnnouncements"
+          />
         </td>
       </tr>
     </template>
@@ -58,7 +59,7 @@ import { useRouter } from "vue-router";
 import moment from "moment";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "../DataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";
 import AnnouncementEdit from "./AnnouncementEdit.vue";
 import { IAnnouncements } from "../../interfaces/IAnnouncements";
@@ -74,22 +75,18 @@ const headers = ref([
   {
     text: "Id",
     value: "uuid",
-    align: "left",
   },
   {
     text: "Title",
     value: "title",
-    align: "left",
   },
   {
     text: "Date",
     value: "date",
-    align: "left",
   },
   {
     text: "Actions",
     value: "actions",
-    align: "left",
   },
 ]);
 
@@ -115,19 +112,7 @@ onMounted(async () => {
   loading.value = false;
 });
 
-const next = async () => {
-  await getAnnouncements(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  if (page.value > 1) await getAnnouncements(itemsPerPage.value, --page.value);
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([itemsPerPage, page], async () => {
   await getAnnouncements(itemsPerPage.value, page.value);
 });
 

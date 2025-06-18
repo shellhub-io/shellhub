@@ -76,8 +76,7 @@ describe("Sessions List", () => {
 
     sessionStore.sessions = sessions;
     sessionStore.numberSessions = sessions.length;
-
-    vi.spyOn(sessionStore, "fetch").mockResolvedValue(false);
+    sessionStore.fetch = vi.fn();
 
     wrapper = mount(SessionList, {
       global: {

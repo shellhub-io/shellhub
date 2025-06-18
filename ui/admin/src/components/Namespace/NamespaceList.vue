@@ -1,15 +1,13 @@
 <template>
   <div>
     <DataTable
-      :headers="headers"
+      :headers
       :items="namespaces"
-      :itemsPerPage="itemsPerPage"
-      :loading="loading"
-      :actualPage="page"
-      :total-count="numberOfNamespaces"
-      @changeItemsPerPage="changeItemsPerPage"
-      @clickNextPage="next"
-      @clickPreviousPage="prev"
+      v-model:itemsPerPage="itemsPerPage"
+      v-model:page="page"
+      :loading
+      :totalCount="numberOfNamespaces"
+      :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="namespaces-list"
     >
       <template v-slot:rows>
@@ -61,7 +59,7 @@ import { useRouter } from "vue-router";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import { INamespace } from "@admin/interfaces/INamespace";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "../DataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
 
 const snackbar = useSnackbar();
@@ -138,19 +136,7 @@ const getNamespaces = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-const next = async () => {
-  await getNamespaces(itemsPerPage.value, ++page.value);
-};
-
-const prev = async () => {
-  if (page.value > 1) await getNamespaces(itemsPerPage.value, --page.value);
-};
-
-const changeItemsPerPage = async (newItemsPerPage: number) => {
-  itemsPerPage.value = newItemsPerPage;
-};
-
-watch(itemsPerPage, async () => {
+watch([itemsPerPage, page], async () => {
   await getNamespaces(itemsPerPage.value, page.value);
 });
 
