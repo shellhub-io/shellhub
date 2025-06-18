@@ -9,7 +9,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
-
 // Terminal styles and required classes
 import "xterm/css/xterm.css";
 import { Terminal } from "xterm";
@@ -18,6 +17,7 @@ import { FitAddon } from "xterm-addon-fit";
 // Type definitions
 import { IParams } from "@/interfaces/IParams";
 import {
+  ErrorMessage,
   InputMessage,
   MessageKind,
   ResizeMessage,
@@ -35,11 +35,11 @@ import handleError from "@/utils/handleError";
 
 // Props passed to the component
 const { token, privateKey } = defineProps<{
-  token: string; // JWT token for WebSocket authentication
-  privateKey?: string | null; // Optional SSH private key for challenge-response auth
+  token: string;
+  privateKey?: string | null;
 }>();
 
-// Refs and runtime state
+// References and reactive state
 const terminal = ref<HTMLElement>({} as HTMLElement); // Terminal DOM container
 const xterm = ref<Terminal>({} as Terminal); // xterm.js terminal instance
 const fitAddon = ref<FitAddon>(new FitAddon()); // Auto-fit terminal to container
@@ -47,40 +47,38 @@ const ws = ref<WebSocket>({} as WebSocket); // Active WebSocket connection
 const textEncoder = new TextEncoder(); // Converts strings to Uint8Array
 const isReady = ref(false); // Tracks if WS is open and ready
 
-// Initialize terminal instance and attach the fit addon
+// Initializes the xterm.js terminal and applies styling and behavior.
 const initializeTerminal = () => {
   xterm.value = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
-    theme: {
-      background: "#0f1526",
-    },
+    theme: { background: "#0f1526" },
   });
-
   xterm.value.loadAddon(fitAddon.value);
 };
 
-// Get terminal dimensions for WebSocket URL
-const getWebTermDimensions = (): WebTermDimensions => ({
+// Returns the current terminal dimensions for WebSocket session init.
+const getTerminalDimensions = (): WebTermDimensions => ({
   cols: xterm.value.cols,
   rows: xterm.value.rows,
 });
 
-// Convert token and dimensions into query params for WS URL
-const encodeURLParams = (params: IParams): string => Object.entries(params).map(([key, value]) => `${key}=${value}`).join("&");
+// Encodes a params object as URL query string.
+const encodeURLParams = (params: IParams): string => new URLSearchParams(params as Record<string, string>).toString();
 
-// Check if WebSocket is open and usable
-const isWebSocketOpen = () => isReady.value && ws.value.readyState === WebSocket.OPEN;
-
-// Construct the WebSocket URL with protocol, host, and query
+// Constructs the WebSocket URL for the SSH session.
 const getWebSocketUrl = (dimensions: WebTermDimensions): string => {
   const protocol = window.location.protocol === "http:" ? "ws" : "wss";
-  const wsInfo = { token, ...dimensions };
-
-  return `${protocol}://${window.location.host}/ws/ssh?${encodeURLParams(wsInfo)}`;
+  return `${protocol}://${window.location.host}/ws/ssh?${encodeURLParams({
+    token,
+    ...dimensions,
+  })}`;
 };
 
-// Set up terminal events for user input and resize events
+// Determines if the current WebSocket connection is open and usable.
+const isWebSocketOpen = (): boolean => isReady.value && ws.value.readyState === WebSocket.OPEN;
+
+// Binds terminal input and resize events to WebSocket messages.
 const setupTerminalEvents = () => {
   // Send user input over WebSocket
   xterm.value.onData((data) => {
@@ -90,7 +88,6 @@ const setupTerminalEvents = () => {
       kind: MessageKind.Input,
       data: [...textEncoder.encode(data)],
     };
-
     ws.value.send(JSON.stringify(message));
   });
 
@@ -98,84 +95,93 @@ const setupTerminalEvents = () => {
   xterm.value.onResize(({ cols, rows }) => {
     if (!isWebSocketOpen()) return;
 
-    const message: ResizeMessage = {
+    const resizeMsg: ResizeMessage = {
       kind: MessageKind.Resize,
       data: { cols, rows },
     };
-
-    ws.value.send(JSON.stringify(message));
+    ws.value.send(JSON.stringify(resizeMsg));
   });
 };
 
-// Write text output to the terminal UI
-const writeToTerminal = (data: string) => {
-  xterm.value.write(data);
-};
-
-// Handles signing of SSH challenge using the user's private key
+// Handles signing a challenge received from the backend.
 const signWebSocketChallenge = async (
   key: string,
   base64Challenge: Base64URLString,
 ): Promise<Base64URLString> => {
-  const challengeBytes = Buffer.from(base64Challenge, "base64");
+  const challengeBuffer = Buffer.from(base64Challenge, "base64");
   const parsedKey = parsePrivateKeySsh(key);
 
-  if (parsedKey.type === "ed25519") {
-    return createSignerPrivateKey(parsedKey, challengeBytes);
-  }
-
-  return createSignatureOfPrivateKey(privateKey, challengeBytes);
+  return parsedKey.type === "ed25519"
+    ? createSignerPrivateKey(parsedKey, challengeBuffer)
+    : createSignatureOfPrivateKey(key, challengeBuffer);
 };
 
-// Initialize WebSocket and its message handling
+// Parses and handles JSON-structured WebSocket messages (e.g., challenge-response).
+type IncomingMessage = SignatureMessage | ErrorMessage;
+
+const handleJsonMessage = async (message: string): Promise<void> => {
+  try {
+    const parsed: IncomingMessage = JSON.parse(message);
+
+    switch (parsed.kind) {
+      case MessageKind.Error: {
+        xterm.value.write(parsed.data);
+        break;
+      }
+      // If using public key auth, expect challenge message first
+      case MessageKind.Signature: {
+        if (!privateKey) return;
+
+        const signature = await signWebSocketChallenge(privateKey, parsed.data);
+        ws.value.send(
+          JSON.stringify({ kind: MessageKind.Signature, data: signature }),
+        );
+        break;
+      }
+
+      default:
+        break;
+    }
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// Handles WebSocket messages, delegating binary vs. JSON text messages.
+const handleWebSocketMessage = async (rawData: Blob | string): Promise<void> => {
+  if (rawData instanceof Blob) {
+    // For password-based logins, always just write messages to the terminal
+    xterm.value.write(await rawData.text());
+  } else {
+    await handleJsonMessage(rawData);
+  }
+};
+
+// Sets up WebSocket event handlers: open, message, and close.
 const setupWebSocketEvents = () => {
   ws.value.onopen = () => {
     fitAddon.value.fit(); // Adjust terminal to container
     isReady.value = true;
+  };
 
-    // If using public key auth, expect challenge message first
-    if (privateKey) {
-      ws.value.onmessage = async (event) => {
-        try {
-          const parsed = JSON.parse(event.data) as SignatureMessage;
-          if (parsed.kind === MessageKind.Signature) {
-            const signature = await signWebSocketChallenge(privateKey, parsed.data);
-            ws.value.send(JSON.stringify({ kind: 3, data: signature }));
-
-            // After challenge is signed, switch to raw message handling
-            ws.value.onmessage = (e) => writeToTerminal(e.data);
-          }
-        } catch (err) {
-          writeToTerminal("\r\nFailed to sign challenge.\r\n");
-          handleError(err);
-          ws.value.close();
-        }
-      };
-
-      return; // Skip password-mode handler
-    }
-
-    // For password-based logins, simply write messages to the terminal
-    ws.value.onmessage = (event) => {
-      writeToTerminal(event.data);
-    };
+  ws.value.onmessage = async (event) => {
+    await handleWebSocketMessage(event.data);
   };
 
   ws.value.onclose = () => {
-    writeToTerminal("\r\nConnection ended\r\n");
+    xterm.value.write("\r\nConnection ended\r\n");
     isReady.value = false;
   };
 };
 
-// Connect and initialize WebSocket session
+// Initializes the WebSocket session with terminal dimensions.
 const initializeWebSocket = () => {
-  const dimensions = getWebTermDimensions();
-  const wsUrl = getWebSocketUrl(dimensions);
-  ws.value = new WebSocket(wsUrl);
+  const dimensions = getTerminalDimensions();
+  ws.value = new WebSocket(getWebSocketUrl(dimensions));
   setupWebSocketEvents();
 };
 
-// Mount lifecycle: Initialize terminal and WebSocket
+// Lifecycle: Setup terminal and WebSocket calls
 onMounted(() => {
   initializeTerminal();
   setupTerminalEvents();
@@ -184,18 +190,16 @@ onMounted(() => {
   xterm.value.focus();
 });
 
-// Resize the terminal when window is resized
-useEventListener(window, "resize", () => {
-  fitAddon.value.fit();
-});
+// Resize terminal on window resize events
+useEventListener(window, "resize", () => fitAddon.value.fit());
 
-// Cleanup lifecycle: close WebSocket if active
+// Cleanup lifecycle: close WebSocket if active on unMount
 onUnmounted(() => {
   if (isWebSocketOpen()) ws.value.close();
 });
 
 // Optional expose for testing or parent communication
-defineExpose({ xterm, ws });
+defineExpose({ xterm, ws, isReady });
 </script>
 
 <style scoped lang="scss">

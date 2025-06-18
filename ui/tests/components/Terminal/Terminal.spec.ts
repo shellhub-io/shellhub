@@ -1,20 +1,20 @@
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { describe, it, beforeEach, vi, expect } from "vitest";
 import Terminal from "@/components/Terminal/Terminal.vue";
 
 class MockWebSocket {
   public readyState: number = WebSocket.CONNECTING;
 
+  public onopen: (() => void) | null = null;
+
+  public onmessage: ((event: { data: string | Blob }) => void) | null = null;
+
+  public onclose: (() => void) | null = null;
+
   send = vi.fn();
 
   close = vi.fn();
-
-  onopen: (() => void) | null = null;
-
-  onmessage: ((event: { data: string }) => void) | null = null;
-
-  onclose: (() => void) | null = null;
 }
 
 vi.stubGlobal("WebSocket", vi.fn(() => new MockWebSocket()));
@@ -32,12 +32,11 @@ vi.mock("xterm", () => ({
   })),
 }));
 
-describe("Terminal", async () => {
+describe("Terminal.vue", () => {
   let wrapper: VueWrapper<InstanceType<typeof Terminal>>;
-
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(Terminal, {
       global: {
         plugins: [vuetify],
@@ -48,25 +47,21 @@ describe("Terminal", async () => {
     });
   });
 
-  it("is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
   it("renders the terminal container", () => {
     expect(wrapper.find("[data-test='terminal-container']").exists()).toBe(true);
   });
 
-  it("initializes WebSocket with correct URL parameters", async () => {
+  it("initializes WebSocket with correct URL parameters", () => {
     const mockWsConstructor = vi.mocked(WebSocket);
     expect(mockWsConstructor).toHaveBeenCalledWith(
       expect.stringContaining("/ws/ssh?token=test-token&cols=80&rows=24"),
     );
   });
 
-  it("closes WebSocket connection on component unmount", async () => {
+  it("closes WebSocket connection on component unmount", () => {
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
     mockWs.readyState = WebSocket.OPEN;
-    (wrapper.vm as unknown as { isReady: boolean }).isReady = true;
+    wrapper.vm.isReady = true;
 
     wrapper.unmount();
     expect(mockWs.close).toHaveBeenCalled();
@@ -74,7 +69,6 @@ describe("Terminal", async () => {
 
   it("initializes xterm with correct configuration", async () => {
     const { Terminal: MockTerminal } = await import("xterm");
-
     expect(MockTerminal).toHaveBeenCalledWith({
       cursorBlink: true,
       fontFamily: "monospace",
@@ -100,13 +94,13 @@ describe("Terminal", async () => {
     expect(mockXterm.focus).toHaveBeenCalled();
   });
 
-  it("sends user input to WebSocket", async () => {
+  it("sends user input to WebSocket", () => {
     const mockXterm = wrapper.vm.xterm;
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
     const onDataHandler = vi.mocked(mockXterm.onData).mock.calls[0][0];
 
     mockWs.readyState = WebSocket.OPEN;
-    (wrapper.vm as unknown as { isReady: boolean }).isReady = true;
+    wrapper.vm.isReady = true;
 
     onDataHandler("test input");
 
@@ -118,23 +112,32 @@ describe("Terminal", async () => {
     );
   });
 
-  it("writes WebSocket data to the terminal", async () => {
+  it("writes Blob WebSocket data to the terminal", async () => {
     const mockXterm = wrapper.vm.xterm;
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
 
     mockWs.onopen?.();
-    mockWs.onmessage?.({ data: "terminal output" });
 
-    expect(mockXterm.write).toHaveBeenCalledWith("terminal output");
+    const testText = "terminal output";
+
+    const realBlob = new Blob();
+
+    Object.defineProperty(realBlob, "text", {
+      value: vi.fn().mockResolvedValue(testText),
+    });
+
+    mockWs.onmessage?.({ data: realBlob });
+
+    await flushPromises();
+
+    expect(mockXterm.write).toHaveBeenCalledWith(testText);
   });
 
-  it("handles WebSocket close event", async () => {
+  it("handles WebSocket close event", () => {
     const mockXterm = wrapper.vm.xterm;
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
 
-    if (mockWs.onclose) {
-      mockWs.onclose();
-    }
+    mockWs.onclose?.();
 
     expect(mockXterm.write).toHaveBeenCalledWith("\r\nConnection ended\r\n");
   });

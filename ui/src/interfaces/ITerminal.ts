@@ -27,6 +27,7 @@ export enum MessageKind {
   Input = 1,
   Resize,
   Signature = 3,
+  Error = 4,
 }
 
 export interface ResizeMessage {
@@ -42,4 +43,9 @@ export interface InputMessage {
 export interface SignatureMessage {
   kind: MessageKind.Signature;
   data: string; // base64-encoded challenge or response
+}
+
+export interface ErrorMessage {
+  kind: MessageKind.Error;
+  data: string; // Error Message Content
 }
