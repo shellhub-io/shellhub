@@ -115,16 +115,16 @@ const writeToTerminal = (data: string) => {
 // Handles signing of SSH challenge using the user's private key
 const signWebSocketChallenge = async (
   key: string,
-  base64Challenge: string,
-): Promise<string> => {
-  const challenge = atob(base64Challenge);
+  base64Challenge: Base64URLString,
+): Promise<Base64URLString> => {
+  const challengeBytes = Buffer.from(base64Challenge, "base64");
   const parsedKey = parsePrivateKeySsh(key);
 
   if (parsedKey.type === "ed25519") {
-    return createSignerPrivateKey(parsedKey, challenge);
+    return createSignerPrivateKey(parsedKey, challengeBytes);
   }
 
-  return decodeURIComponent(await createSignatureOfPrivateKey(parsedKey, challenge));
+  return createSignatureOfPrivateKey(privateKey, challengeBytes);
 };
 
 // Initialize WebSocket and its message handling
@@ -178,11 +178,10 @@ const initializeWebSocket = () => {
 // Mount lifecycle: Initialize terminal and WebSocket
 onMounted(() => {
   initializeTerminal();
-  xterm.value.open(terminal.value);
-  xterm.value.focus();
-
   setupTerminalEvents();
+  xterm.value.open(terminal.value);
   initializeWebSocket();
+  xterm.value.focus();
 });
 
 // Resize the terminal when window is resized

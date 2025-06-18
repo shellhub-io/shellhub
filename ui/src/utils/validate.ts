@@ -35,7 +35,7 @@ export const parseCertificate = (data: any) => {
   return crypto.parseCertificate(data);
 };
 
-export const createSignerPrivateKey = (privateKey: any, username: string) => {
+export const createSignerPrivateKey = (privateKey, username) => {
   try {
     return crypto.createSignerAndUpdate(privateKey, username);
   } catch (err) {
@@ -44,11 +44,11 @@ export const createSignerPrivateKey = (privateKey: any, username: string) => {
   }
 };
 
-export const createSignatureOfPrivateKey = async (
+export const createSignatureOfPrivateKey = (
   privateKeyData: any,
-  username: string,
+  username: Buffer,
 ) => {
-  const signature = await crypto.createSignatureOfPrivateKey(privateKeyData, username);
+  const signature = crypto.createSignatureOfPrivateKey(privateKeyData, username);
   return signature;
 };
 
