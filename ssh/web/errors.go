@@ -36,10 +36,11 @@ var (
 )
 
 var (
-	ErrConnReadMessageSocketRead  = errors.New("failed to read the message from socket")
-	ErrConnReadMessageSocketWrite = errors.New("failed to write the message's data to socket")
-	ErrConnReadMessageJSONInvalid = errors.New("failed to parse the message from json")
-	ErrConnReadMessageKindInvalid = errors.New("this kind of message is invalid")
+	ErrConnReadMessageSocketRead   = errors.New("failed to read the message from socket")
+	ErrConnReadMessageSocketWrite  = errors.New("failed to write the message's data to socket")
+	ErrConnReadMessageJSONInvalid  = errors.New("failed to parse the message from json")
+	ErrConnReadMessageKindInvalid  = errors.New("this kind of message is invalid")
+	ErrConnWriteMessageFailedFrame = errors.New("failed to create frame")
 )
 
 var (

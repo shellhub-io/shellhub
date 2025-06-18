@@ -264,7 +264,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	return nil
 }
 
-func redirToWs(rd io.Reader, ws io.ReadWriter) error {
+func redirToWs(rd io.Reader, ws *Conn) error {
 	var buf [32 * 1024]byte
 	var start, end, buflen int
 
@@ -292,7 +292,7 @@ func redirToWs(rd io.Reader, ws io.ReadWriter) error {
 			}
 		}
 
-		if _, err = ws.Write([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
+		if _, err = ws.WriteBinary([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
 			return err
 		}
 
