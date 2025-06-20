@@ -131,12 +131,12 @@ const userPrefersSAMLAuthentication = (authMethods: UserAuthMethods) => (
   authMethods && authMethods.length === 1 && authMethods[0] === "saml"
 );
 
-const getUsers = async (perPageValue: number, pageValue: number) => {
+const fetchUsers = async () => {
   try {
     loading.value = true;
     await userStore.fetch({
-      perPage: perPageValue,
-      page: pageValue,
+      perPage: itemsPerPage.value,
+      page: page.value,
       filter: filter.value,
     });
   } catch (error) {
@@ -164,12 +164,12 @@ const redirectToUser = async (user: IUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
 
-watch([itemsPerPage, page], () => {
-  getUsers(itemsPerPage.value, page.value);
+watch([itemsPerPage, page], async () => {
+  await fetchUsers();
 });
 
 onMounted(async () => {
-  await getUsers(itemsPerPage.value, page.value);
+  await fetchUsers();
 });
 
 defineExpose({ users });

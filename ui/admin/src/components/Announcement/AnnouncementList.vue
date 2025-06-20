@@ -96,13 +96,10 @@ const headers = ref([
   },
 ]);
 
-const getAnnouncements = async (
-  perPageValue: number,
-  pageValue: number,
-) => {
+const fetchAnnouncements = async () => {
   try {
     loading.value = true;
-    await announcementStore.fetchAnnouncements({ perPage: perPageValue, page: pageValue, orderBy: "desc" });
+    await announcementStore.fetchAnnouncements({ perPage: itemsPerPage.value, page: page.value, orderBy: "desc" });
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to fetch announcements.");
@@ -111,7 +108,7 @@ const getAnnouncements = async (
 };
 
 const refreshAnnouncements = async () => {
-  await getAnnouncements(itemsPerPage.value, page.value);
+  await fetchAnnouncements();
 };
 
 const formatDate = (date: string) => moment(date).format("LL");
@@ -124,11 +121,11 @@ const redirectToAnnouncement = (announcement: IAnnouncements) => {
 };
 
 watch([itemsPerPage, page], async () => {
-  await getAnnouncements(itemsPerPage.value, page.value);
+  await fetchAnnouncements();
 });
 
 onMounted(async () => {
-  await getAnnouncements(itemsPerPage.value, page.value);
+  await fetchAnnouncements();
 });
 
 defineExpose({ itemsPerPage, page, loading, numberAnnouncements: announcementCount, announcements });

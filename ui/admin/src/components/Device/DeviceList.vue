@@ -144,13 +144,13 @@ const headers = ref([
   },
 ]);
 
-const getDevices = async (perPageValue: number, pageValue: number) => {
+const fetchDevices = async () => {
   try {
     loading.value = true;
 
     await devicesStore.fetch({
-      perPage: perPageValue,
-      page: pageValue,
+      perPage: itemsPerPage.value,
+      page: page.value,
       filter: filter.value,
       sortStatusField: devicesStore.getSortStatusField,
       sortStatusString: devicesStore.getSortStatusString,
@@ -172,7 +172,7 @@ const sortByItem = async (field: string) => {
     sortStatusField: field,
     sortStatusString: getSortOrder(),
   });
-  await getDevices(itemsPerPage.value, page.value);
+  await fetchDevices();
 };
 
 const goToNamespace = (namespace: string) => {
@@ -184,11 +184,11 @@ const redirectToDevice = (deviceId: string) => {
 };
 
 watch([itemsPerPage, page], async () => {
-  await getDevices(itemsPerPage.value, page.value);
+  await fetchDevices();
 });
 
 onMounted(async () => {
-  await getDevices(itemsPerPage.value, page.value);
+  await fetchDevices();
 });
 
 defineExpose({ headers, devices, loading, itemsPerPage });
