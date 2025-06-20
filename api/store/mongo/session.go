@@ -121,17 +121,16 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 		})
 	}
 
-	session := new(models.Session)
-
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
+
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
-	err = cursor.Decode(&session)
-	if err != nil {
+	session := new(models.Session)
+	if err = cursor.Decode(&session); err != nil {
 		return nil, FromMongoError(err)
 	}
 
