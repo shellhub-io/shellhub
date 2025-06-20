@@ -7,7 +7,7 @@
       v-model:page="page"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
-      :totalCount="totalUsers"
+      :totalCount="userCount"
       data-test="users-list"
     >
       <template v-slot:rows>
@@ -98,7 +98,7 @@ const loading = ref(false);
 const page = ref(1);
 const filter = ref("");
 const users = computed(() => userStore.getUsers as unknown as IUser[]);
-const totalUsers = computed(() => userStore.numberUsers);
+const userCount = computed(() => userStore.numberUsers);
 
 const headers = [
   {
@@ -145,10 +145,6 @@ const getUsers = async (perPageValue: number, pageValue: number) => {
   loading.value = false;
 };
 
-watch([itemsPerPage, page], () => {
-  getUsers(itemsPerPage.value, page.value);
-});
-
 const loginToken = async (userId: string) => {
   try {
     const token = await authStore.loginToken(userId);
@@ -167,6 +163,10 @@ const refreshUsers = async () => {
 const redirectToUser = async (user: IUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
+
+watch([itemsPerPage, page], () => {
+  getUsers(itemsPerPage.value, page.value);
+});
 
 onMounted(async () => {
   await getUsers(itemsPerPage.value, page.value);

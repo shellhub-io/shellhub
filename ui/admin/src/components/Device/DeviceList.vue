@@ -5,7 +5,7 @@
       :items="devices"
       v-model:itemsPerPage="itemsPerPage"
       :loading
-      :totalCount="numberDevices"
+      :totalCount="devicesCount"
       v-model:page="page"
       :itemsPerPageOptions="[10, 20, 50, 100]"
       @update:sort="sortByItem"
@@ -96,11 +96,12 @@ import showTag from "../../hooks/tag";
 const router = useRouter();
 const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
-
+const page = ref(1);
+const itemsPerPage = ref(10);
 const loading = ref(false);
 const filter = ref("");
-const itemsPerPage = ref(10);
-const page = ref(1);
+const devices = computed(() => devicesStore.list);
+const devicesCount = computed(() => devicesStore.getNumberDevices);
 
 const headers = ref([
   {
@@ -143,9 +144,6 @@ const headers = ref([
   },
 ]);
 
-const devices = computed(() => devicesStore.list);
-const numberDevices = computed(() => devicesStore.getNumberDevices);
-
 const getDevices = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
@@ -177,14 +175,6 @@ const sortByItem = async (field: string) => {
   await getDevices(itemsPerPage.value, page.value);
 };
 
-watch([itemsPerPage, page], async () => {
-  await getDevices(itemsPerPage.value, page.value);
-});
-
-onMounted(async () => {
-  await getDevices(itemsPerPage.value, page.value);
-});
-
 const goToNamespace = (namespace: string) => {
   router.push({ name: "namespaceDetails", params: { id: namespace } });
 };
@@ -192,6 +182,14 @@ const goToNamespace = (namespace: string) => {
 const redirectToDevice = (deviceId: string) => {
   router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
+
+watch([itemsPerPage, page], async () => {
+  await getDevices(itemsPerPage.value, page.value);
+});
+
+onMounted(async () => {
+  await getDevices(itemsPerPage.value, page.value);
+});
 
 defineExpose({ headers, devices, loading, itemsPerPage });
 </script>

@@ -6,7 +6,7 @@
       v-model:itemsPerPage="itemsPerPage"
       v-model:page="page"
       :loading
-      :totalCount="numberOfNamespaces"
+      :totalCount="namespaceCount"
       :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="namespaces-list"
     >
@@ -64,6 +64,8 @@ import NamespaceEdit from "./NamespaceEdit.vue";
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
+const namespaces = computed(() => namespacesStore.list);
+const namespaceCount = computed(() => namespacesStore.getnumberOfNamespaces);
 const router = useRouter();
 const loading = ref(false);
 const page = ref(1);
@@ -97,13 +99,6 @@ const headers = ref([
   },
 ]);
 
-const namespaces = computed(() => namespacesStore.list);
-const numberOfNamespaces = computed(() => namespacesStore.getnumberOfNamespaces);
-
-const goToNamespace = (namespace: string) => {
-  router.push({ name: "namespaceDetails", params: { id: namespace } });
-};
-
 const getNamespaces = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
@@ -118,6 +113,15 @@ const getNamespaces = async (perPageValue: number, pageValue: number) => {
   loading.value = false;
 };
 
+const sumDevicesCount = (namespace: INamespace) => {
+  const { devices_accepted_count: acceptedCount, devices_pending_count: pendingCount, devices_rejected_count: rejectedCount } = namespace;
+  return (acceptedCount + pendingCount + rejectedCount) || 0;
+};
+
+const goToNamespace = (namespace: string) => {
+  router.push({ name: "namespaceDetails", params: { id: namespace } });
+};
+
 watch([itemsPerPage, page], async () => {
   await getNamespaces(itemsPerPage.value, page.value);
 });
@@ -125,9 +129,4 @@ watch([itemsPerPage, page], async () => {
 onMounted(async () => {
   await getNamespaces(itemsPerPage.value, page.value);
 });
-
-const sumDevicesCount = (namespace: INamespace) => {
-  const { devices_accepted_count: acceptedCount, devices_pending_count: pendingCount, devices_rejected_count: rejectedCount } = namespace;
-  return (acceptedCount + pendingCount + rejectedCount) || 0;
-};
 </script>
