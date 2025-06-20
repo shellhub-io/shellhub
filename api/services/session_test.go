@@ -231,15 +231,20 @@ func TestDeactivateSession(t *testing.T) {
 			name: "fails when session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
-					Return(store.ErrNoDocuments).Once()
+				mock.On("SessionGet", ctx, models.UID("_uid")).
+					Return(nil, goerrors.New("get error")).Once()
 			},
-			expected: NewErrSessionNotFound("_uid", store.ErrNoDocuments),
+			expected: NewErrSessionNotFound("_uid", goerrors.New("get error")),
 		},
 		{
 			name: "fails",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
+				mock.On("SessionGet", ctx, models.UID("_uid")).
+					Return(&models.Session{
+						UID: "_uid",
+					}, nil).Once()
+
 				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
 					Return(goerrors.New("error")).Once()
 			},
@@ -247,9 +252,14 @@ func TestDeactivateSession(t *testing.T) {
 		},
 		{
 			name: "succeeds",
-			uid:  models.UID("uid"),
+			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionDeleteActives", ctx, models.UID("uid")).
+				mock.On("SessionGet", ctx, models.UID("_uid")).
+					Return(&models.Session{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
 					Return(nil).Once()
 			},
 			expected: nil,
