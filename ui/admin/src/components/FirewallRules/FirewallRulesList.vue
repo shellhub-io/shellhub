@@ -89,6 +89,7 @@ import { filterType } from "../../interfaces/IFirewallRule";
 const router = useRouter();
 const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
+const numberFirewalls = computed(() => firewallRulesStore.getNumberFirewalls);
 const loading = ref(false);
 const page = ref(1);
 const itemsPerPage = ref(10);
@@ -122,21 +123,6 @@ const headers = ref([
     value: "actions",
   },
 ]);
-onMounted(() => {
-  try {
-    loading.value = true;
-    firewallRulesStore.fetch({
-      page: page.value,
-      perPage: itemsPerPage.value,
-    });
-  } catch {
-    snackbar.showError("Failed to fetch firewall rules.");
-  } finally {
-    loading.value = false;
-  }
-});
-
-const numberFirewalls = computed(() => firewallRulesStore.getNumberFirewalls);
 
 const getFirewallRules = async (perPageValue: number, pageValue: number) => {
   try {
@@ -147,9 +133,8 @@ const getFirewallRules = async (perPageValue: number, pageValue: number) => {
     });
   } catch {
     snackbar.showError("Failed to fetch firewall rules.");
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
 };
 
 watch([itemsPerPage, page], () => {
@@ -167,6 +152,10 @@ const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? 
 const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 
 const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
+
+onMounted(async () => {
+  await getFirewallRules(itemsPerPage.value, page.value);
+});
 
 defineExpose({
   headers,

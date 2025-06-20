@@ -131,21 +131,6 @@ const userPrefersSAMLAuthentication = (authMethods: UserAuthMethods) => (
   authMethods && authMethods.length === 1 && authMethods[0] === "saml"
 );
 
-onMounted(async () => {
-  try {
-    loading.value = true;
-    await userStore.fetch({
-      perPage: itemsPerPage.value,
-      page: page.value,
-      filter: filter.value,
-    });
-  } catch (error) {
-    snackbar.showError("Failed to fetch users.");
-  } finally {
-    loading.value = false;
-  }
-});
-
 const getUsers = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
@@ -154,11 +139,10 @@ const getUsers = async (perPageValue: number, pageValue: number) => {
       page: pageValue,
       filter: filter.value,
     });
-
-    loading.value = false;
   } catch (error) {
     snackbar.showError("Failed to fetch users.");
   }
+  loading.value = false;
 };
 
 watch([itemsPerPage, page], () => {
@@ -183,6 +167,10 @@ const refreshUsers = async () => {
 const redirectToUser = async (user: IUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
+
+onMounted(async () => {
+  await getUsers(itemsPerPage.value, page.value);
+});
 
 defineExpose({ users });
 </script>

@@ -97,21 +97,6 @@ const headers = ref([
   },
 ]);
 
-onMounted(async () => {
-  try {
-    loading.value = true;
-    await namespacesStore.fetch({
-      perPage: itemsPerPage.value,
-      page: page.value,
-      filter: filter.value,
-    });
-  } catch {
-    snackbar.showError("Failed to fetch namespaces.");
-  } finally {
-    loading.value = false;
-  }
-});
-
 const namespaces = computed(() => namespacesStore.list);
 const numberOfNamespaces = computed(() => namespacesStore.getnumberOfNamespaces);
 
@@ -129,12 +114,15 @@ const getNamespaces = async (perPageValue: number, pageValue: number) => {
     });
   } catch {
     snackbar.showError("Failed to fetch namespaces.");
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
 };
 
 watch([itemsPerPage, page], async () => {
+  await getNamespaces(itemsPerPage.value, page.value);
+});
+
+onMounted(async () => {
   await getNamespaces(itemsPerPage.value, page.value);
 });
 
