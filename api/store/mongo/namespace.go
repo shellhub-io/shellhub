@@ -414,5 +414,9 @@ func (s *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID stri
 		return store.ErrNoDocuments
 	}
 
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
+		log.Error(err)
+	}
+
 	return nil
 }
