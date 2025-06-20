@@ -38,8 +38,8 @@
                   @click="redirectToUser(item)"
                   @keyup.enter="redirectToUser(item)"
                   tabindex="0"
-                >mdi-information
-                </v-icon>
+                  icon="mdi-information"
+                />
               </template>
               <span>Info</span>
             </v-tooltip>
@@ -55,8 +55,8 @@
                   @click="loginToken(item.id)"
                   tabindex="0"
                   @keyup.enter="loginToken(item.id)"
-                >mdi-login
-                </v-icon>
+                  icon="mdi-login"
+                />
               </template>
               <span>Login</span>
             </v-tooltip>

@@ -32,8 +32,8 @@
                 @click="redirectToAnnouncement(announcement)"
                 @keyup.enter="redirectToAnnouncement(announcement)"
                 tabindex="0"
-              >mdi-information
-              </v-icon>
+                icon="mdi-information"
+              />
             </template>
             <span>Info</span>
           </v-tooltip>

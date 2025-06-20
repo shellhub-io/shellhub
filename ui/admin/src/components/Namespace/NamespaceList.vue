@@ -39,8 +39,8 @@
                   @click="goToNamespace(namespace.tenant_id)"
                   @keypress.enter="goToNamespace(namespace.tenant_id)"
                   tabindex="0"
-                >mdi-information
-                </v-icon>
+                  icon="mdi-information"
+                />
               </template>
               <span>Details</span>
             </v-tooltip>

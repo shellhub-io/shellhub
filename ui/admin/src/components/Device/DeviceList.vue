@@ -70,8 +70,8 @@
                   @click="redirectToDevice(item.uid)"
                   @keypress.enter="redirectToDevice(item.uid)"
                   tabindex="0"
-                >mdi-information
-                </v-icon>
+                  icon="mdi-information"
+                />
               </template>
               <span>Info</span>
             </v-tooltip>

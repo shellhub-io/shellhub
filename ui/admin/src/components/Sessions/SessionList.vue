@@ -13,12 +13,10 @@
       <template v-slot:rows>
         <tr v-for="(session, index) in sessions" :key="index">
           <td>
-            <v-icon v-if="session.active" color="success">
-              mdi-check-circle
-            </v-icon>
+            <v-icon v-if="session.active" color="success" icon="mdi-check-circle" />
             <v-tooltip anchor="bottom" v-else>
               <template v-slot:activator="{ props }">
-                <v-icon v-bind="props"> mdi-check-circle </v-icon>
+                <v-icon v-bind="props" icon="mdi-check-circle" />
               </template>
               <span>{{ getTimeFromNow(session.last_seen) }}</span>
             </v-tooltip>
@@ -47,13 +45,13 @@
           <td>
             <v-tooltip anchor="bottom" v-if="session.authenticated">
               <template v-slot:activator="{ props }">
-                <v-icon v-bind="props">mdi-shield-check </v-icon>
+                <v-icon v-bind="props" icon="mdi-shield-check" />
               </template>
               <span>User has been authenticated</span>
             </v-tooltip>
             <v-tooltip anchor="bottom" v-else>
               <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" color="error"> mdi-shield-alert </v-icon>
+                <v-icon v-bind="props" color="error" icon="mdi-shield-alert" />
               </template>
               <span>User has not been authenticated</span>
             </v-tooltip>
@@ -77,8 +75,8 @@
                   @click="session.uid && goToSession(session.uid)"
                   @keypress.enter="session.tenant_id && goToSession(session.tenant_id)"
                   tabindex="0"
-                >mdi-information
-                </v-icon>
+                  icon="mdi-information"
+                />
               </template>
               <span>Details</span>
             </v-tooltip>
