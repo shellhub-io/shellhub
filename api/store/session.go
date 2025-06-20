@@ -17,7 +17,7 @@ type SessionStore interface {
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error
 	SessionSetType(ctx context.Context, uid models.UID, kind string) error
-	SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error
+	SessionCreateActive(ctx context.Context, uid models.UID, session *models.Session) error
 	SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error
 	SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error)
 	SessionDeleteEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error

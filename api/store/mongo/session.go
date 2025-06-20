@@ -153,7 +153,7 @@ func (s *Store) SessionUpdate(ctx context.Context, uid models.UID, sess *models.
 	defer clientSession.EndSession(ctx)
 
 	if update.Authenticated != nil && !sess.Authenticated {
-		if err := s.SessionActiveCreate(ctx, uid, sess); err != nil {
+		if err := s.SessionCreateActive(ctx, uid, sess); err != nil {
 			return err
 		}
 	}
@@ -297,7 +297,7 @@ func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, n
 	return nil
 }
 
-func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error {
+func (s *Store) SessionCreateActive(ctx context.Context, uid models.UID, session *models.Session) error {
 	_, err := s.db.Collection("active_sessions").InsertOne(ctx, &models.ActiveSession{
 		UID:      uid,
 		LastSeen: session.StartedAt,
