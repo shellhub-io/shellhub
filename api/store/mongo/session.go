@@ -61,7 +61,7 @@ func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]m
 		},
 		{
 			"$addFields": bson.M{
-				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+				"active": bson.M{"$anyElementTrue": []any{"$active"}},
 			},
 		},
 	}...)
@@ -107,7 +107,7 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 		},
 		{
 			"$addFields": bson.M{
-				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+				"active": bson.M{"$anyElementTrue": []any{"$active"}},
 			},
 		},
 	}
@@ -265,7 +265,7 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	}
 	defer mongoSession.EndSession(ctx)
 
-	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (interface{}, error) {
+	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (any, error) {
 		session := new(models.Session)
 
 		query := bson.M{"uid": uid}
@@ -325,7 +325,7 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 		SetReadConcern(readconcern.Snapshot()).
 		SetWriteConcern(writeconcern.Majority())
 
-	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
 		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
 			bson.M{"uid": uid},
 			bson.M{
