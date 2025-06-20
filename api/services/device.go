@@ -149,6 +149,10 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		if err := s.store.DeviceRemovedInsert(ctx, tenant, device); err != nil {
 			return NewErrDeviceRemovedInsert(err)
 		}
+
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, models.DeviceStatusRemoved, 1); err != nil { //nolint:revive
+			return err
+		}
 	}
 
 	if err := s.store.DeviceDelete(ctx, uid); err != nil {
@@ -322,11 +326,30 @@ func (s *service) updateDeviceStatus(req *requests.UpdateDeviceStatus) store.Tra
 				}
 
 				if envs.IsCloud() {
-					if err := s.handleCloudBilling(ctx, namespace, device); err != nil {
-						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID, "billing_active": namespace.Billing.IsActive()}).
-							Error("billing validation failed")
+					if namespace.Billing.IsActive() {
+						if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
+							return NewErrBillingReportNamespaceDelete(err)
+						}
+					} else {
+						removed, err := s.store.DeviceRemovedGet(ctx, namespace.TenantID, models.UID(device.UID))
+						if err != nil && err != store.ErrNoDocuments {
+							return NewErrDeviceRemovedGet(err)
+						}
 
-						return err
+						if removed != nil {
+							oldStatus = models.DeviceStatusRemoved
+							if err := s.store.DeviceRemovedDelete(ctx, namespace.TenantID, models.UID(device.UID)); err != nil {
+								return NewErrDeviceRemovedDelete(err)
+							}
+						}
+
+						ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
+						switch {
+						case err != nil:
+							return NewErrBillingEvaluate(err)
+						case !ok:
+							return ErrDeviceLimit
+						}
 					}
 				}
 			}
@@ -402,35 +425,4 @@ func (s *service) checkDeviceLimits(ctx context.Context, namespace *models.Names
 	default:
 		return nil
 	}
-}
-
-// handleCloudBilling processes billing-related operations for Cloud environment.
-// This function has side effects: it may delete removed devices and report to billing.
-func (s *service) handleCloudBilling(ctx context.Context, namespace *models.Namespace, device *models.Device) error {
-	if namespace.Billing.IsActive() {
-		if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
-			return NewErrBillingReportNamespaceDelete(err)
-		}
-	} else {
-		removed, err := s.store.DeviceRemovedGet(ctx, namespace.TenantID, models.UID(device.UID))
-		if err != nil && err != store.ErrNoDocuments {
-			return NewErrDeviceRemovedGet(err)
-		}
-
-		if removed != nil {
-			if err := s.store.DeviceRemovedDelete(ctx, namespace.TenantID, models.UID(device.UID)); err != nil {
-				return NewErrDeviceRemovedDelete(err)
-			}
-		}
-
-		ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
-		switch {
-		case err != nil:
-			return NewErrBillingEvaluate(err)
-		case !ok:
-			return ErrDeviceLimit
-		}
-	}
-
-	return nil
 }
