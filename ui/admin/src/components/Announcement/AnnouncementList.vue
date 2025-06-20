@@ -4,7 +4,7 @@
     :items="announcements"
     v-model:itemsPerPage="itemsPerPage"
     v-model:page="page"
-    :totalCount="numberAnnouncements"
+    :totalCount="announcementCount"
     :loading
     :itemsPerPageOptions="[10, 20, 50, 100]"
     data-test="announcement-list"
@@ -68,9 +68,15 @@ import handleError from "@/utils/handleError";
 const router = useRouter();
 const announcementStore = useAnnouncementStore();
 const snackbar = useSnackbar();
+const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
-const page = ref(1);
+const announcements = computed(
+  () => announcementStore.getAnnouncements as Array<IAnnouncements>,
+);
+const announcementCount = computed(
+  () => announcementStore.getNumberAnnouncements,
+);
 const headers = ref([
   {
     text: "Id",
@@ -104,22 +110,6 @@ const getAnnouncements = async (
   loading.value = false;
 };
 
-onMounted(async () => {
-  await getAnnouncements(itemsPerPage.value, page.value);
-});
-
-watch([itemsPerPage, page], async () => {
-  await getAnnouncements(itemsPerPage.value, page.value);
-});
-
-const announcements = computed(
-  () => announcementStore.getAnnouncements as Array<IAnnouncements>,
-);
-
-const numberAnnouncements = computed(
-  () => announcementStore.getNumberAnnouncements,
-);
-
 const refreshAnnouncements = async () => {
   await getAnnouncements(itemsPerPage.value, page.value);
 };
@@ -133,5 +123,13 @@ const redirectToAnnouncement = (announcement: IAnnouncements) => {
   });
 };
 
-defineExpose({ itemsPerPage, page, loading, numberAnnouncements, announcements });
+watch([itemsPerPage, page], async () => {
+  await getAnnouncements(itemsPerPage.value, page.value);
+});
+
+onMounted(async () => {
+  await getAnnouncements(itemsPerPage.value, page.value);
+});
+
+defineExpose({ itemsPerPage, page, loading, numberAnnouncements: announcementCount, announcements });
 </script>

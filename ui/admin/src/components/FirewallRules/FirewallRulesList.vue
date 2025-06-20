@@ -5,7 +5,7 @@
     v-model:itemsPerPage="itemsPerPage"
     v-model:page="page"
     :loading
-    :totalCount="numberFirewalls"
+    :totalCount="firewallRulesCount"
     :itemsPerPageOptions="[10, 20, 50, 100]"
     data-test="firewall-rules-list"
   >
@@ -89,7 +89,8 @@ import { filterType } from "../../interfaces/IFirewallRule";
 const router = useRouter();
 const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
-const numberFirewalls = computed(() => firewallRulesStore.getNumberFirewalls);
+const firewallRules = computed(() => firewallRulesStore.list);
+const firewallRulesCount = computed(() => firewallRulesStore.getNumberFirewalls);
 const loading = ref(false);
 const page = ref(1);
 const itemsPerPage = ref(10);
@@ -124,6 +125,16 @@ const headers = ref([
   },
 ]);
 
+const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
+
+const formatUsername = (username: string) => username === ".*" ? "All users" : username;
+
+const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+
+const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+
+const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
+
 const getFirewallRules = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
@@ -140,18 +151,6 @@ const getFirewallRules = async (perPageValue: number, pageValue: number) => {
 watch([itemsPerPage, page], () => {
   getFirewallRules(itemsPerPage.value, page.value);
 });
-
-const firewallRules = computed(() => firewallRulesStore.list);
-
-const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
-
-const formatUsername = (username: string) => username === ".*" ? "All users" : username;
-
-const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
-
-const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
-
-const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 
 onMounted(async () => {
   await getFirewallRules(itemsPerPage.value, page.value);

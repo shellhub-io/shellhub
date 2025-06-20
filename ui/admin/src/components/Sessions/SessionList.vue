@@ -7,7 +7,7 @@
       v-model:page="page"
       :itemsPerPageOptions="[10, 20, 50, 100]"
       :loading
-      :totalCount="numberSessions"
+      :totalCount="sessionCount"
       data-test="session-list"
     >
       <template v-slot:rows>
@@ -101,7 +101,11 @@ import displayOnlyTenCharacters from "../../hooks/string";
 const router = useRouter();
 const snackbar = useSnackbar();
 const sessionStore = useSessionsStore();
-
+const sessions = computed(() => sessionStore.getSessions);
+const sessionCount = computed(() => sessionStore.getNumberSessions);
+const itemsPerPage = ref(10);
+const loading = ref(false);
+const page = ref(1);
 const headers = ref([
   {
     text: "Active",
@@ -140,9 +144,6 @@ const headers = ref([
     value: "actions",
   },
 ]);
-const itemsPerPage = ref(10);
-const loading = ref(false);
-const page = ref(1);
 
 const getSessions = async (perPageValue: number, pageValue: number) => {
   try {
@@ -157,17 +158,6 @@ const getSessions = async (perPageValue: number, pageValue: number) => {
   loading.value = false;
 };
 
-onMounted(async () => {
-  await getSessions(itemsPerPage.value, page.value);
-});
-
-watch([itemsPerPage, page], async () => {
-  await getSessions(itemsPerPage.value, page.value);
-});
-
-const sessions = computed(() => sessionStore.getSessions);
-const numberSessions = computed(() => sessionStore.getNumberSessions);
-
 const redirectToDevice = (deviceId: string) => {
   router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
@@ -175,6 +165,14 @@ const redirectToDevice = (deviceId: string) => {
 const goToSession = (sessionId: string) => {
   router.push({ name: "sessionDetails", params: { id: sessionId } });
 };
+
+watch([itemsPerPage, page], async () => {
+  await getSessions(itemsPerPage.value, page.value);
+});
+
+onMounted(async () => {
+  await getSessions(itemsPerPage.value, page.value);
+});
 </script>
 
 <style scoped>
