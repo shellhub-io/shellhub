@@ -84,6 +84,7 @@ import DataTable from "@/components/DataTable.vue";
 import showTag from "../../hooks/tag";
 import displayOnlyTenCharacters from "../../hooks/string";
 import { filterType } from "../../interfaces/IFirewallRule";
+import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -141,7 +142,8 @@ const fetchFirewallRules = async () => {
       page: page.value,
       perPage: itemsPerPage.value,
     });
-  } catch {
+  } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to fetch firewall rules.");
   }
   loading.value = false;

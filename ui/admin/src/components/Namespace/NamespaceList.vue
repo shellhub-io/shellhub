@@ -61,6 +61,7 @@ import { INamespace } from "@admin/interfaces/INamespace";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
+import handleError from "@/utils/handleError";
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
@@ -107,7 +108,8 @@ const fetchNamespaces = async () => {
       perPage: itemsPerPage.value,
       filter: filter.value,
     });
-  } catch {
+  } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to fetch namespaces.");
   }
   loading.value = false;

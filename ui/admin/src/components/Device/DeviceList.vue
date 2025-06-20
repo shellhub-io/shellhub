@@ -92,6 +92,7 @@ import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
 import showTag from "../../hooks/tag";
+import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -156,6 +157,7 @@ const fetchDevices = async () => {
       sortStatusString: devicesStore.getSortStatusString,
     });
   } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to fetch devices.");
   }
   loading.value = false;

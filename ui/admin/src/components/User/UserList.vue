@@ -87,6 +87,7 @@ import UserStatusChip from "./UserStatusChip.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
 import UserResetPassword from "./UserResetPassword.vue";
+import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -140,6 +141,7 @@ const fetchUsers = async () => {
       filter: filter.value,
     });
   } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to fetch users.");
   }
   loading.value = false;
@@ -151,7 +153,8 @@ const loginToken = async (userId: string) => {
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");
-  } catch {
+  } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to get the login token.");
   }
 };

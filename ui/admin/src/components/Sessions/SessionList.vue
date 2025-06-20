@@ -95,6 +95,7 @@ import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import { getTimeFromNow, formatFullDateTime } from "../../hooks/date";
 import displayOnlyTenCharacters from "../../hooks/string";
+import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -151,6 +152,7 @@ const fetchSessions = async () => {
       page: page.value,
     });
   } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to fetch sessions list.");
   }
   loading.value = false;
