@@ -20,7 +20,7 @@
     </div>
 
     <v-dialog v-model="dialog" width="1000" transition="dialog-bottom-transition">
-      <v-card class="bg-v-theme-surface content" min-height="700" max-height="700">
+      <v-card class="bg-v-theme-surface content" max-height="700">
         <div class="pa-5">
           <v-row>
             <v-col>
