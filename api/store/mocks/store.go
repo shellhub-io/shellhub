@@ -438,9 +438,9 @@ func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, in
 	return r0, r1, r2
 }
 
-// DeviceList provides a mock function with given fields: ctx, status, pagination, filters, sorter, acceptable
-func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, status, pagination, filters, sorter, acceptable)
+// DeviceList provides a mock function with given fields: ctx, status, pagination, filters, sorter, full
+func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, full bool) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, status, pagination, filters, sorter, full)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceList")
@@ -449,25 +449,25 @@ func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pag
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) ([]models.Device, int, error)); ok {
-		return rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, bool) ([]models.Device, int, error)); ok {
+		return rf(ctx, status, pagination, filters, sorter, full)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) []models.Device); ok {
-		r0 = rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, bool) []models.Device); ok {
+		r0 = rf(ctx, status, pagination, filters, sorter, full)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) int); ok {
-		r1 = rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(1).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, bool) int); ok {
+		r1 = rf(ctx, status, pagination, filters, sorter, full)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) error); ok {
-		r2 = rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(2).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, bool) error); ok {
+		r2 = rf(ctx, status, pagination, filters, sorter, full)
 	} else {
 		r2 = ret.Error(2)
 	}

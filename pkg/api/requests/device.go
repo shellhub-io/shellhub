@@ -6,7 +6,6 @@ import (
 )
 
 type DeviceList struct {
-	TenantID     string              `header:"X-Tenant-ID"`
 	DeviceStatus models.DeviceStatus `query:"status"` //  TODO: validate
 	query.Paginator
 	query.Sorter

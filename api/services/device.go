@@ -16,7 +16,7 @@ import (
 const StatusAccepted = "accepted"
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
+	ListDevices(ctx context.Context, tenant string, req *requests.DeviceList) ([]models.Device, int, error)
 	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
 
 	// ResolveDevice attempts to resolve a device by searching for either its UID or hostname. When both are provided,
@@ -34,10 +34,13 @@ type DeviceService interface {
 	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
 }
 
-func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
+func (s *service) ListDevices(ctx context.Context, tenant string, req *requests.DeviceList) ([]models.Device, int, error) {
+	if tenant == "" {
+		return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, false)
+	}
+
 	if req.DeviceStatus == models.DeviceStatusRemoved {
-		// TODO: unique DeviceList
-		removed, count, err := s.store.DeviceRemovedList(ctx, req.TenantID, req.Paginator, req.Filters, req.Sorter)
+		removed, count, err := s.store.DeviceRemovedList(ctx, tenant, req.Paginator, req.Filters, req.Sorter)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -50,34 +53,32 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 		return devices, count, nil
 	}
 
-	if req.TenantID != "" {
-		ns, err := s.store.NamespaceGet(ctx, req.TenantID)
-		if err != nil {
-			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
-		}
+	ns, err := s.store.NamespaceGet(ctx, tenant)
+	if err != nil {
+		return nil, 0, NewErrNamespaceNotFound(tenant, err)
+	}
 
-		if ns.HasMaxDevices() {
-			switch {
-			case envs.IsCloud():
-				removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
-				if err != nil {
-					return nil, 0, NewErrDeviceRemovedCount(err)
-				}
+	var limitReached bool
 
-				if ns.HasLimitDevicesReached(removed) {
-					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
-				}
-			case envs.IsEnterprise():
-				fallthrough
-			case envs.IsCommunity():
-				if ns.HasMaxDevicesReached() {
-					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableAsFalse)
-				}
+	if ns.HasMaxDevices() {
+		switch {
+		case envs.IsCloud():
+			removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
+			if err != nil {
+				return nil, 0, NewErrDeviceRemovedCount(err)
+			}
+
+			if ns.HasLimitDevicesReached(removed) {
+				limitReached = true
+			}
+		case envs.IsEnterprise() || envs.IsCommunity():
+			if ns.HasMaxDevicesReached() {
+				limitReached = true
 			}
 		}
 	}
 
-	return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableIfNotAccepted)
+	return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, limitReached)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {

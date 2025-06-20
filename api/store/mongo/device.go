@@ -19,7 +19,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, full bool) ([]models.Device, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -63,58 +63,36 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 		}}, query...)
 	}
 
-	// When the listing mode is [store.DeviceListModeMaxDeviceReached], we should evaluate the `removed_devices`
-	// collection to check its `accetable` status.
-	switch acceptable {
-	case store.DeviceAcceptableFromRemoved:
-		query = append(query, []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "removed_devices",
-					"localField":   "uid",
-					"foreignField": "device.uid",
-					"as":           "removed",
-				},
+	query = append(query, []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "removed_devices",
+				"localField":   "uid",
+				"foreignField": "device.uid",
+				"as":           "removed",
 			},
-			{
-				"$addFields": bson.M{
-					"acceptable": bson.M{
-						"$cond": bson.M{
-							"if": bson.M{
-								"$and": bson.A{
-									bson.M{"$ne": bson.A{"$status", models.DeviceStatusAccepted}},
-									bson.M{"$anyElementTrue": []interface{}{"$removed"}},
-								},
-							},
-							"then": true,
-							"else": false,
-						},
-					},
-				},
-			},
-			{
-				"$unset": "removed",
-			},
-		}...)
-	case store.DeviceAcceptableAsFalse:
-		query = append(query, bson.M{
-			"$addFields": bson.M{
-				"acceptable": false,
-			},
-		})
-	case store.DeviceAcceptableIfNotAccepted:
-		query = append(query, bson.M{
+		},
+		{
 			"$addFields": bson.M{
 				"acceptable": bson.M{
 					"$cond": bson.M{
-						"if":   bson.M{"$ne": bson.A{"$status", models.DeviceStatusAccepted}},
-						"then": true,
+						"if": bson.M{"$ne": bson.A{"$status", models.DeviceStatusAccepted}},
+						"then": bson.M{
+							"$cond": bson.M{
+								"if":   bson.M{"$anyElementTrue": []any{"$removed"}},
+								"then": true,
+								"else": bson.M{"$not": full},
+							},
+						},
 						"else": false,
 					},
 				},
 			},
-		})
-	}
+		},
+		{
+			"$unset": "removed",
+		},
+	}...)
 
 	queryMatch, err := queries.FromFilters(&filters)
 	if err != nil {

@@ -7,18 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-type DeviceAcceptable uint
-
-const (
-	// DeviceAcceptableIfNotAccepted is used to indicate the all devices not accepted will be defined as "acceptabled".
-	DeviceAcceptableIfNotAccepted DeviceAcceptable = iota + 1
-	// DeviceAcceptableFromRemoved is used to indicate that the namepsace's device maxium number of devices has been
-	// reached and should set the "acceptable" value to true for devices that were recently removed.
-	DeviceAcceptableFromRemoved
-	// DeviceAcceptableAsFalse set acceptable to false to all returned devices.
-	DeviceAcceptableAsFalse
-)
-
 type DeviceResolver uint
 
 const (
@@ -28,7 +16,7 @@ const (
 )
 
 type DeviceStore interface {
-	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, full bool) ([]models.Device, int, error)
 
 	// DeviceResolve fetches a device using a specific resolver within a given tenant ID.
 	//

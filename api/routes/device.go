@@ -89,7 +89,12 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 		return err
 	}
 
-	res, count, err := h.service.ListDevices(c.Ctx(), req)
+	var tenant string
+	if c.Tenant() != nil {
+		tenant = c.Tenant().ID
+	}
+
+	res, count, err := h.service.ListDevices(c.Ctx(), tenant, req)
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	if err != nil {

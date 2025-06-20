@@ -1104,9 +1104,9 @@ func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([
 	return r0, r1, r2
 }
 
-// ListDevices provides a mock function with given fields: ctx, req
-func (_m *Service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, req)
+// ListDevices provides a mock function with given fields: ctx, tenant, req
+func (_m *Service) ListDevices(ctx context.Context, tenant string, req *requests.DeviceList) ([]models.Device, int, error) {
+	ret := _m.Called(ctx, tenant, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListDevices")
@@ -1115,25 +1115,25 @@ func (_m *Service) ListDevices(ctx context.Context, req *requests.DeviceList) ([
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceList) ([]models.Device, int, error)); ok {
-		return rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.DeviceList) ([]models.Device, int, error)); ok {
+		return rf(ctx, tenant, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceList) []models.Device); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.DeviceList) []models.Device); ok {
+		r0 = rf(ctx, tenant, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *requests.DeviceList) int); ok {
-		r1 = rf(ctx, req)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.DeviceList) int); ok {
+		r1 = rf(ctx, tenant, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *requests.DeviceList) error); ok {
-		r2 = rf(ctx, req)
+	if rf, ok := ret.Get(2).(func(context.Context, string, *requests.DeviceList) error); ok {
+		r2 = rf(ctx, tenant, req)
 	} else {
 		r2 = ret.Error(2)
 	}
