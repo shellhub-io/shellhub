@@ -1568,24 +1568,6 @@ func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenant
 	return r0, r1
 }
 
-// SessionActiveCreate provides a mock function with given fields: ctx, uid, session
-func (_m *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error {
-	ret := _m.Called(ctx, uid, session)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionActiveCreate")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.Session) error); ok {
-		r0 = rf(ctx, uid, session)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // SessionCreate provides a mock function with given fields: ctx, session
 func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
 	ret := _m.Called(ctx, session)
@@ -1614,6 +1596,24 @@ func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*mo
 	}
 
 	return r0, r1
+}
+
+// SessionCreateActive provides a mock function with given fields: ctx, uid, session
+func (_m *Store) SessionCreateActive(ctx context.Context, uid models.UID, session *models.Session) error {
+	ret := _m.Called(ctx, uid, session)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionCreateActive")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.Session) error); ok {
+		r0 = rf(ctx, uid, session)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SessionDeleteActives provides a mock function with given fields: ctx, uid
