@@ -324,7 +324,7 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 
 	txnOpts := options.Transaction().
 		SetReadConcern(readconcern.Snapshot()).
-		SetWriteConcern(writeconcern.New(writeconcern.WMajority())) //nolint:staticcheck
+		SetWriteConcern(writeconcern.Majority())
 
 	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
 		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
