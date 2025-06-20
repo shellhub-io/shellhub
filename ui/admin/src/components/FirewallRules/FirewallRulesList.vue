@@ -135,12 +135,12 @@ const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(
 
 const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 
-const getFirewallRules = async (perPageValue: number, pageValue: number) => {
+const fetchFirewallRules = async () => {
   try {
     loading.value = true;
     await firewallRulesStore.fetch({
-      page: pageValue,
-      perPage: perPageValue,
+      page: page.value,
+      perPage: itemsPerPage.value,
     });
   } catch {
     snackbar.showError("Failed to fetch firewall rules.");
@@ -149,11 +149,11 @@ const getFirewallRules = async (perPageValue: number, pageValue: number) => {
 };
 
 watch([itemsPerPage, page], () => {
-  getFirewallRules(itemsPerPage.value, page.value);
+  fetchFirewallRules();
 });
 
 onMounted(async () => {
-  await getFirewallRules(itemsPerPage.value, page.value);
+  await fetchFirewallRules();
 });
 
 defineExpose({

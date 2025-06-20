@@ -99,12 +99,12 @@ const headers = ref([
   },
 ]);
 
-const getNamespaces = async (perPageValue: number, pageValue: number) => {
+const fetchNamespaces = async () => {
   try {
     loading.value = true;
     await namespacesStore.fetch({
-      page: pageValue,
-      perPage: perPageValue,
+      page: page.value,
+      perPage: itemsPerPage.value,
       filter: filter.value,
     });
   } catch {
@@ -123,10 +123,10 @@ const goToNamespace = (namespace: string) => {
 };
 
 watch([itemsPerPage, page], async () => {
-  await getNamespaces(itemsPerPage.value, page.value);
+  await fetchNamespaces();
 });
 
 onMounted(async () => {
-  await getNamespaces(itemsPerPage.value, page.value);
+  await fetchNamespaces();
 });
 </script>

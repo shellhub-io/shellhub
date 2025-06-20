@@ -145,12 +145,12 @@ const headers = ref([
   },
 ]);
 
-const getSessions = async (perPageValue: number, pageValue: number) => {
+const fetchSessions = async () => {
   try {
     loading.value = true;
     await sessionStore.fetch({
-      perPage: perPageValue,
-      page: pageValue,
+      perPage: itemsPerPage.value,
+      page: page.value,
     });
   } catch (error) {
     snackbar.showError("Failed to fetch sessions list.");
@@ -167,11 +167,11 @@ const goToSession = (sessionId: string) => {
 };
 
 watch([itemsPerPage, page], async () => {
-  await getSessions(itemsPerPage.value, page.value);
+  await fetchSessions();
 });
 
 onMounted(async () => {
-  await getSessions(itemsPerPage.value, page.value);
+  await fetchSessions();
 });
 </script>
 
