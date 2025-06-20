@@ -100,7 +100,6 @@ const devicesStore = useDevicesStore();
 const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
-const filter = ref("");
 const devices = computed(() => devicesStore.list);
 const devicesCount = computed(() => devicesStore.getNumberDevices);
 
@@ -152,7 +151,7 @@ const fetchDevices = async () => {
     await devicesStore.fetch({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: filter.value,
+      filter: "",
       sortStatusField: devicesStore.getSortStatusField,
       sortStatusString: devicesStore.getSortStatusString,
     });

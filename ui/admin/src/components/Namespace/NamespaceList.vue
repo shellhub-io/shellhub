@@ -71,8 +71,6 @@ const router = useRouter();
 const loading = ref(false);
 const page = ref(1);
 const itemsPerPage = ref(10);
-const filter = ref("");
-
 const headers = ref([
   {
     text: "Name",
@@ -106,7 +104,7 @@ const fetchNamespaces = async () => {
     await namespacesStore.fetch({
       page: page.value,
       perPage: itemsPerPage.value,
-      filter: filter.value,
+      filter: "",
     });
   } catch (error) {
     handleError(error);

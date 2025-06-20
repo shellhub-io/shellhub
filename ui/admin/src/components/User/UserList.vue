@@ -93,14 +93,11 @@ const router = useRouter();
 const snackbar = useSnackbar();
 const userStore = useUsersStore();
 const authStore = useAuthStore();
-
+const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
-const page = ref(1);
-const filter = ref("");
 const users = computed(() => userStore.getUsers as unknown as IUser[]);
 const userCount = computed(() => userStore.numberUsers);
-
 const headers = [
   {
     text: "Name",
@@ -138,7 +135,7 @@ const fetchUsers = async () => {
     await userStore.fetch({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: filter.value,
+      filter: "",
     });
   } catch (error) {
     handleError(error);
