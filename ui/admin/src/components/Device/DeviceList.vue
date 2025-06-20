@@ -18,9 +18,11 @@
             <v-icon v-else color="#E53935" data-test="error-icon" icon="mdi-close-circle" />
           </td>
           <td>{{ item.name }}</td>
-          <td class="d-flex align-center justify-center ga-2">
-            <DeviceIcon :icon="item.info.id" />
-            {{ item.info.pretty_name }}
+          <td>
+            <span class="d-inline-flex align-center ga-2">
+              <DeviceIcon :icon="item.info.id" />
+              {{ item.info.pretty_name }}
+            </span>
           </td>
           <td>
             <span
