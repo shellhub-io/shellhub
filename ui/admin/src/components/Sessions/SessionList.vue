@@ -151,22 +151,14 @@ const getSessions = async (perPageValue: number, pageValue: number) => {
       perPage: perPageValue,
       page: pageValue,
     });
-
-    loading.value = false;
   } catch (error) {
     snackbar.showError("Failed to fetch sessions list.");
   }
+  loading.value = false;
 };
 
 onMounted(async () => {
-  try {
-    loading.value = true;
-    await getSessions(itemsPerPage.value, page.value);
-  } catch (error) {
-    snackbar.showError("Failed to fetch sessions list.");
-  } finally {
-    loading.value = false;
-  }
+  await getSessions(itemsPerPage.value, page.value);
 });
 
 watch([itemsPerPage, page], async () => {

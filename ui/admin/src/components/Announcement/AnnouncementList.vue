@@ -97,16 +97,15 @@ const getAnnouncements = async (
   try {
     loading.value = true;
     await announcementStore.fetchAnnouncements({ perPage: perPageValue, page: pageValue, orderBy: "desc" });
-    loading.value = false;
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to fetch announcements.");
   }
+  loading.value = false;
 };
 
 onMounted(async () => {
   await getAnnouncements(itemsPerPage.value, page.value);
-  loading.value = false;
 });
 
 watch([itemsPerPage, page], async () => {

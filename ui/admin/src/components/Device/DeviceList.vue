@@ -146,23 +146,6 @@ const headers = ref([
 const devices = computed(() => devicesStore.list);
 const numberDevices = computed(() => devicesStore.getNumberDevices);
 
-onMounted(async () => {
-  try {
-    loading.value = true;
-    await devicesStore.fetch({
-      perPage: itemsPerPage.value,
-      page: 1,
-      filter: "",
-      sortStatusField: "",
-      sortStatusString: undefined,
-    });
-  } catch {
-    snackbar.showError("Failed to fetch devices.");
-  } finally {
-    loading.value = false;
-  }
-});
-
 const getDevices = async (perPageValue: number, pageValue: number) => {
   try {
     loading.value = true;
@@ -174,8 +157,6 @@ const getDevices = async (perPageValue: number, pageValue: number) => {
       sortStatusField: devicesStore.getSortStatusField,
       sortStatusString: devicesStore.getSortStatusString,
     });
-
-    loading.value = false;
   } catch (error) {
     snackbar.showError("Failed to fetch devices.");
   }
@@ -197,6 +178,10 @@ const sortByItem = async (field: string) => {
 };
 
 watch([itemsPerPage, page], async () => {
+  await getDevices(itemsPerPage.value, page.value);
+});
+
+onMounted(async () => {
   await getDevices(itemsPerPage.value, page.value);
 });
 
