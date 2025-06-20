@@ -215,7 +215,7 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
-	var req requests.DeviceUpdateStatus
+	var req requests.UpdateDeviceStatus
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -224,19 +224,7 @@ func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
 		return err
 	}
 
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	status := map[string]models.DeviceStatus{
-		"accept":  models.DeviceStatusAccepted,
-		"reject":  models.DeviceStatusRejected,
-		"pending": models.DeviceStatusPending,
-		"unused":  models.DeviceStatusUnused,
-	}
-
-	if err := h.service.UpdateDeviceStatus(c.Ctx(), tenant, models.UID(req.UID), status[req.Status]); err != nil {
+	if err := h.service.UpdateDeviceStatus(c.Ctx(), &req); err != nil {
 		return err
 	}
 

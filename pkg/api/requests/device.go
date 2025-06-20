@@ -13,6 +13,12 @@ type DeviceList struct {
 	query.Filters
 }
 
+type UpdateDeviceStatus struct {
+	TenantID string `header:"X-Tenant-ID"`
+	UID      string `param:"uid" validate:"required"`
+	Status   string `body:"status" validate:"required,oneof=accepted pending rejected"`
+}
+
 type DeviceUpdate struct {
 	TenantID string `header:"X-Tenant-ID"`
 	UID      string `param:"uid" validate:"required"`

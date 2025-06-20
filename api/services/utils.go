@@ -1,12 +1,10 @@
 package services
 
 import (
-	"context"
 	"crypto/rsa"
 	"os"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -31,19 +29,6 @@ func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	}
 
 	return privKey, pubKey, nil
-}
-
-// adjustDeviceCounters handles the increment/decrement of device counters when a device status changes.
-func (s *service) adjustDeviceCounters(ctx context.Context, tenant string, oldStatus, newStatus models.DeviceStatus) error {
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, oldStatus, -1); err != nil {
-		return err
-	}
-
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, newStatus, 1); err != nil { // nolint:revive
-		return err
-	}
-
-	return nil
 }
 
 func contains(list []string, item string) bool {
