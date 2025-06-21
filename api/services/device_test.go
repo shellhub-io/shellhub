@@ -119,7 +119,7 @@ func TestListDevices_status_removed(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceRemovedList", ctx, "00000000-0000-4000-0000-000000000000", query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}).
-					Return([]models.DeviceRemoved{}, 0, errors.New("error", "", 0)).
+					Return(nil, 0, errors.New("error", "", 0)).
 					Once()
 			},
 			expected: Expected{
@@ -140,7 +140,7 @@ func TestListDevices_status_removed(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("DeviceRemovedList", ctx, "00000000-0000-4000-0000-000000000000", query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}).
-					Return([]models.DeviceRemoved{{Device: &models.Device{Name: "dev"}, Timestamp: time.Now()}}, 1, nil).
+					Return([]models.Device{{Name: "dev"}}, 1, nil).
 					Once()
 			},
 			expected: Expected{
@@ -3760,7 +3760,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).
+					Return(&models.Device{}, nil).
 					Once()
 				storeMock.
 					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3836,7 +3836,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).Once()
+					Return(&models.Device{}, nil).Once()
 				storeMock.
 					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
 					Return(nil).
@@ -3915,7 +3915,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).
+					Return(&models.Device{}, nil).
 					Once()
 				storeMock.
 					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -4001,7 +4001,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).
+					Return(&models.Device{}, nil).
 					Once()
 				storeMock.
 					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -4091,7 +4091,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
-					Return(&models.DeviceRemoved{}, nil).
+					Return(&models.Device{}, nil).
 					Once()
 				storeMock.
 					On("DeviceRemovedDelete", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).

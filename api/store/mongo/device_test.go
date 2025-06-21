@@ -1079,3 +1079,518 @@ func TestDeviceDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestDeviceRemovedList(t *testing.T) {
+	type Expected struct {
+		dev []models.Device
+		len int
+		err error
+	}
+	cases := []struct {
+		description string
+		tenant      string
+		paginator   query.Paginator
+		sorter      query.Sorter
+		filters     query.Filters
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "succeeds when no removed devices are found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
+			fixtures:    []string{},
+			expected: Expected{
+				dev: []models.Device{},
+				len: 0,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when removed devices are found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: []models.Device{
+					{
+						CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						UID:             "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+						Name:            "device-1",
+						Identity:        &models.DeviceIdentity{MAC: "mac-1"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						UID:             "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+						Name:            "device-2",
+						Identity:        &models.DeviceIdentity{MAC: "mac-2"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+						Name:            "device-3",
+						Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UID:             "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
+						Name:            "device-4",
+						Identity:        &models.DeviceIdentity{MAC: "mac-4"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "pending",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+				},
+				len: 4,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when removed devices are found with limited page and page size",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: 2, PerPage: 2},
+			filters:     query.Filters{},
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: []models.Device{
+					{
+						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+						Name:            "device-3",
+						Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UID:             "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
+						Name:            "device-4",
+						Identity:        &models.DeviceIdentity{MAC: "mac-4"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "pending",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+				},
+				len: 4,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when removed devices are found with sort created_at",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: []models.Device{
+					{
+						CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						UID:             "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+						Name:            "device-1",
+						Identity:        &models.DeviceIdentity{MAC: "mac-1"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						UID:             "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+						Name:            "device-2",
+						Identity:        &models.DeviceIdentity{MAC: "mac-2"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+						Name:            "device-3",
+						Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UID:             "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
+						Name:            "device-4",
+						Identity:        &models.DeviceIdentity{MAC: "mac-4"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "pending",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+				},
+				len: 4,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when removed devices are found with order asc",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: []models.Device{
+					{
+						CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						UID:             "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+						Name:            "device-1",
+						Identity:        &models.DeviceIdentity{MAC: "mac-1"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						UID:             "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+						Name:            "device-2",
+						Identity:        &models.DeviceIdentity{MAC: "mac-2"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+						Name:            "device-3",
+						Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UID:             "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
+						Name:            "device-4",
+						Identity:        &models.DeviceIdentity{MAC: "mac-4"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "pending",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+				},
+				len: 4,
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when removed devices are found with order desc",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			sorter:      query.Sorter{By: "last_seen", Order: query.OrderDesc},
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			filters:     query.Filters{},
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: []models.Device{
+					{
+						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
+						UID:             "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
+						Name:            "device-4",
+						Identity:        &models.DeviceIdentity{MAC: "mac-4"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "pending",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+						UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+						Name:            "device-3",
+						Identity:        &models.DeviceIdentity{MAC: "mac-3"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						UID:             "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+						Name:            "device-2",
+						Identity:        &models.DeviceIdentity{MAC: "mac-2"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{},
+						Acceptable:      false,
+					},
+					{
+						CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						StatusUpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						LastSeen:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+						UID:             "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+						Name:            "device-1",
+						Identity:        &models.DeviceIdentity{MAC: "mac-1"},
+						Info:            nil,
+						PublicKey:       "",
+						TenantID:        "00000000-0000-4000-0000-000000000000",
+						Online:          false,
+						Namespace:       "",
+						Status:          "accepted",
+						RemoteAddr:      "",
+						Position:        nil,
+						Tags:            []string{"tag-1"},
+						Acceptable:      false,
+					},
+				},
+				len: 4,
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			dev, count, err := s.DeviceRemovedList(
+				ctx,
+				tc.tenant,
+				tc.paginator,
+				tc.filters,
+				tc.sorter,
+			)
+			assert.Equal(t, tc.expected, Expected{dev: dev, len: count, err: err})
+		})
+	}
+}
+
+func TestDeviceRemovedGet(t *testing.T) {
+	type Expected struct {
+		dev *models.Device
+		err error
+	}
+	cases := []struct {
+		description string
+		tenant      string
+		uid         string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "failed when device removed isn't found",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			uid:         "nonexistent",
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: nil,
+				err: store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "success to find the device in removed devices",
+			tenant:      "00000000-0000-4000-0000-000000000000",
+			uid:         "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+			fixtures:    []string{fixtureNamespaces, fixtureRemovedDevices},
+			expected: Expected{
+				dev: &models.Device{
+					CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					StatusUpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					LastSeen:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					UID:             "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
+					Name:            "device-1",
+					Identity:        &models.DeviceIdentity{MAC: "mac-1"},
+					Info:            nil,
+					PublicKey:       "",
+					TenantID:        "00000000-0000-4000-0000-000000000000",
+					Online:          false,
+					Namespace:       "",
+					Status:          "accepted",
+					RemoteAddr:      "",
+					Position:        nil,
+					Tags:            []string{"tag-1"},
+					Acceptable:      false,
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			dev, err := s.DeviceRemovedGet(
+				ctx,
+				tc.tenant,
+				models.UID(tc.uid),
+			)
+			assert.Equal(t, tc.expected, Expected{dev: dev, err: err})
+		})
+	}
+}

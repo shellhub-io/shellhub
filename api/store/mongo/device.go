@@ -496,14 +496,36 @@ func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, e
 	return count, nil
 }
 
-func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
-	var slot models.DeviceRemoved
-	err := s.db.Collection("removed_devices").FindOne(ctx, bson.M{"device.tenant_id": tenant, "device.uid": uid}).Decode(&slot)
+func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.Device, error) {
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"device.uid":       uid,
+				"device.tenant_id": tenant,
+			},
+		},
+		{
+			"$replaceRoot": bson.M{
+				"newRoot": "$device",
+			},
+		},
+	}
+
+	aggregation, err := s.db.Collection("removed_devices").Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
 
-	return &slot, nil
+	var device models.Device
+	if !aggregation.Next(ctx) {
+		return nil, store.ErrNoDocuments
+	}
+
+	if err := aggregation.Decode(&device); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return &device, nil
 }
 
 func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error { //nolint:revive
@@ -532,41 +554,54 @@ func (s *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid mode
 	return nil
 }
 
-func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error) {
+func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"device.tenant_id": tenant,
 			},
 		},
+		{
+			"$replaceRoot": bson.M{
+				"newRoot": "$device",
+			},
+		},
 	}
-
-	pipeline = append(pipeline, queries.FromPaginator(&paginator)...)
 
 	queryFilter, err := queries.FromFilters(&filters)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
 	pipeline = append(pipeline, queryFilter...)
 
-	if sorter.By == "" {
-		sorter.By = "timestamp"
+	pipelineCount := pipeline
+	pipelineCount = append(pipelineCount, bson.M{"$count": "count"})
+	count, err := AggregateCount(ctx, s.db.Collection("removed_devices"), pipelineCount)
+	if err != nil {
+		return nil, 0, FromMongoError(err)
 	}
+
+	if sorter.By == "" {
+		sorter.By = "device.status_updated_at"
+	}
+
 	if sorter.Order == "" {
 		sorter.Order = query.OrderDesc
 	}
+
 	pipeline = append(pipeline, queries.FromSorter(&sorter)...)
+
+	pipeline = append(pipeline, queries.FromPaginator(&paginator)...)
 
 	aggregation, err := s.db.Collection("removed_devices").Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
 
-	var devices []models.DeviceRemoved
+	devices := make([]models.Device, 0)
 	if err := aggregation.All(ctx, &devices); err != nil {
 		return nil, 0, FromMongoError(err)
 	}
 
-	return devices, len(devices), nil
+	return devices, count, nil
 }
