@@ -63,5 +63,5 @@ type DeviceStore interface {
 	DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error)
 	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
-	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error)
+	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.Device, int, error)
 }
