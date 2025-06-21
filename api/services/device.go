@@ -37,14 +37,9 @@ type DeviceService interface {
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
 	if req.DeviceStatus == models.DeviceStatusRemoved {
 		// TODO: unique DeviceList
-		removed, count, err := s.store.DeviceRemovedList(ctx, req.TenantID, req.Paginator, req.Filters, req.Sorter)
+		devices, count, err := s.store.DeviceRemovedList(ctx, req.TenantID, req.Paginator, req.Filters, req.Sorter)
 		if err != nil {
 			return nil, 0, err
-		}
-
-		devices := make([]models.Device, 0, len(removed))
-		for _, device := range removed {
-			devices = append(devices, *device.Device)
 		}
 
 		return devices, count, nil

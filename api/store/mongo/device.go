@@ -532,12 +532,20 @@ func (s *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid mode
 	return nil
 }
 
-func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error) {
+func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"device.tenant_id": tenant,
 			},
+		},
+		{
+			"$replaceRoot": bson.M{
+				"newRoot": "$device",
+			},
+		},
+		{
+			"$unset": "timestamp",
 		},
 	}
 
@@ -563,7 +571,7 @@ func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator 
 		return nil, 0, FromMongoError(err)
 	}
 
-	var devices []models.DeviceRemoved
+	var devices []models.Device
 	if err := aggregation.All(ctx, &devices); err != nil {
 		return nil, 0, FromMongoError(err)
 	}
