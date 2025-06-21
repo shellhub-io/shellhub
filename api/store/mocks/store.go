@@ -588,23 +588,23 @@ func (_m *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid mod
 }
 
 // DeviceRemovedGet provides a mock function with given fields: ctx, tenant, uid
-func (_m *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
+func (_m *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, tenant, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceRemovedGet")
 	}
 
-	var r0 *models.DeviceRemoved
+	var r0 *models.Device
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) (*models.DeviceRemoved, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) (*models.Device, error)); ok {
 		return rf(ctx, tenant, uid)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) *models.DeviceRemoved); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID) *models.Device); ok {
 		r0 = rf(ctx, tenant, uid)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DeviceRemoved)
+			r0 = ret.Get(0).(*models.Device)
 		}
 	}
 
@@ -636,24 +636,24 @@ func (_m *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device 
 }
 
 // DeviceRemovedList provides a mock function with given fields: ctx, tenant, pagination, filters, sorter
-func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error) {
+func (_m *Store) DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, tenant, pagination, filters, sorter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceRemovedList")
 	}
 
-	var r0 []models.DeviceRemoved
+	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) ([]models.DeviceRemoved, int, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) ([]models.Device, int, error)); ok {
 		return rf(ctx, tenant, pagination, filters, sorter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) []models.DeviceRemoved); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Filters, query.Sorter) []models.Device); ok {
 		r0 = rf(ctx, tenant, pagination, filters, sorter)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.DeviceRemoved)
+			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 

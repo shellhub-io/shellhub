@@ -58,8 +58,8 @@ type DeviceStore interface {
 	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)
 	DeviceChooser(ctx context.Context, tenantID string, chosen []string) error
 	DeviceRemovedCount(ctx context.Context, tenant string) (int64, error)
-	DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error)
+	DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.Device, error)
 	DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error
 	DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error
-	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error)
+	DeviceRemovedList(ctx context.Context, tenant string, pagination query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.Device, int, error)
 }
