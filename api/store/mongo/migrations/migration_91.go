@@ -20,10 +20,6 @@ var migration91 = migrate.Migration{
 			"action":    "Up",
 		}).Info("Applying migration")
 
-		if err := db.CreateCollection(ctx, "sessions_events"); err != nil {
-			return err
-		}
-
 		sessionIndex := mongo.IndexModel{
 			Keys: bson.M{
 				"session": 1,
