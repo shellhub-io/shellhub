@@ -93,6 +93,8 @@ services:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
+      - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
+      - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
       - SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
       - SHELLHUB_TUNNELS=${SHELLHUB_TUNNELS}
       - SHELLHUB_TUNNELS_DOMAIN=${SHELLHUB_TUNNELS_DOMAIN}
