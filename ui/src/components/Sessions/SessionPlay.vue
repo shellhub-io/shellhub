@@ -7,6 +7,7 @@
             color="primary"
             prepend-icon="mdi-play"
             variant="outlined"
+            :loading
             density="comfortable"
             data-test="connect-btn"
             @click="openDialog"
@@ -62,6 +63,7 @@ const showDialog = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
+const loading = ref(false);
 const logs = ref<string | null>(null);
 const isCommunity = computed(() => envVariables.isCommunity);
 const tooltipMessage = computed(() => props.recorded
@@ -84,12 +86,15 @@ const getSessionLogs = async () => {
 
 const displayDialog = async () => {
   try {
+    loading.value = true;
     await getSessionLogs();
     showDialog.value = true;
   } catch (error: unknown) {
     snackbar.showError("Failed to play the session.");
     handleError(error);
   }
+
+  loading.value = false;
 };
 
 const openDialog = () => {
