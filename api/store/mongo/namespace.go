@@ -29,7 +29,7 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, fi
 
 	// Only match for the respective tenant if requested
 	if id := gateway.IDFromContext(ctx); id != nil {
-		user, _, err := s.UserGetByID(ctx, id.ID, false)
+		user, err := s.UserResolve(ctx, store.UserIDResolver, id.ID)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -135,7 +135,7 @@ Opts:
 func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
 	filter := bson.M{"members.id": userID}
 
-	if user, _, _ := s.UserGetByID(ctx, userID, false); user != nil {
+	if user, _ := s.UserResolve(ctx, store.UserIDResolver, userID); user != nil {
 		if user.Preferences.PreferredNamespace != "" {
 			filter["tenant_id"] = user.Preferences.PreferredNamespace
 		}

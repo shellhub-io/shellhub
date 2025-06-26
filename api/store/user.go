@@ -7,6 +7,14 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+type UserResolver uint
+
+const (
+	UserIDResolver UserResolver = iota + 1
+	UserEmailResolver
+	UserUsernameResolver
+)
+
 type UserStore interface {
 	UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error)
 
@@ -21,9 +29,10 @@ type UserStore interface {
 	// It returns the inserted ID or an error, if any.
 	UserCreateInvited(ctx context.Context, email string) (insertedID string, err error)
 
-	UserGetByUsername(ctx context.Context, username string) (*models.User, error)
-	UserGetByEmail(ctx context.Context, email string) (*models.User, error)
-	UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error)
+	// UserResolve fetches a device using a specific resolver within a given tenant ID.
+	//
+	// It returns the resolved user if found and an error, if any.
+	UserResolve(ctx context.Context, resolver UserResolver, value string, opts ...QueryOption) (*models.User, error)
 
 	// UserConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:

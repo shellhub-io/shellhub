@@ -858,7 +858,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					).
 					Once()
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -891,7 +891,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					).
 					Once()
 				mock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -944,7 +944,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 				}
 
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
+					Return(user, nil).
+					Once()
 			},
 			expected: Expected{
 				res:      nil,
@@ -995,7 +998,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 				}
 
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
+					Return(user, nil).
+					Once()
 			},
 			expected: Expected{
 				res:      nil,
@@ -1026,7 +1032,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					).
 					Once()
 				mock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(
 						&models.User{
 							ID:        "65fdd16b5f62f93184ec8a39",
@@ -1102,7 +1108,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1160,7 +1166,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1226,7 +1232,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1301,7 +1307,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1405,7 +1411,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1500,7 +1506,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1607,7 +1613,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1715,7 +1721,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1822,7 +1828,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByUsername", ctx, "john_doe").
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
 				cacheMock.
@@ -1927,8 +1933,8 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(nil, 0, store.ErrNoDocuments).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
 			expected: Expected{
@@ -1941,7 +1947,7 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -1962,7 +1968,6 @@ func TestCreateUserToken(t *testing.T) {
 								PreferredNamespace: "",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -1981,7 +1986,7 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -2002,7 +2007,6 @@ func TestCreateUserToken(t *testing.T) {
 								PreferredNamespace: "",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -2027,7 +2031,7 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -2048,7 +2052,6 @@ func TestCreateUserToken(t *testing.T) {
 								PreferredNamespace: "",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -2079,7 +2082,7 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -2100,7 +2103,6 @@ func TestCreateUserToken(t *testing.T) {
 								PreferredNamespace: "",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -2151,7 +2153,7 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -2172,7 +2174,6 @@ func TestCreateUserToken(t *testing.T) {
 								PreferredNamespace: "00000000-0000-4000-0000-000000000000",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -2218,7 +2219,7 @@ func TestCreateUserToken(t *testing.T) {
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -2239,7 +2240,6 @@ func TestCreateUserToken(t *testing.T) {
 								PreferredNamespace: "",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()

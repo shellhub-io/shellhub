@@ -237,7 +237,7 @@ func TestUserDelete(t *testing.T) {
 			description: "fails when could not find a user",
 			username:    "john_doe",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrUserNotFound,
 		},
@@ -253,7 +253,7 @@ func TestUserDelete(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				mock.On("UserGetInfo", ctx, "507f191e810c19729de860ea").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrNamespaceNotFound,
@@ -270,7 +270,7 @@ func TestUserDelete(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 
 				namespaceOwned := []models.Namespace{
 					{
@@ -373,7 +373,7 @@ func TestUserResetPassword(t *testing.T) {
 			username:    "john_doe",
 			password:    "password",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrUserNotFound,
 		},
@@ -384,7 +384,7 @@ func TestUserResetPassword(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{ID: "507f191e810c19729de860ea"}
 
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 
 				hashMock.
 					On("Do", "secret").
@@ -405,7 +405,7 @@ func TestUserResetPassword(t *testing.T) {
 			requiredMocks: func() {
 				user := &models.User{ID: "507f191e810c19729de860ea"}
 
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 
 				hashMock.
 					On("Do", "secret").

@@ -2116,103 +2116,6 @@ func (_m *Store) UserDelete(ctx context.Context, id string) error {
 	return r0
 }
 
-// UserGetByEmail provides a mock function with given fields: ctx, email
-func (_m *Store) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
-	ret := _m.Called(ctx, email)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserGetByEmail")
-	}
-
-	var r0 *models.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.User, error)); ok {
-		return rf(ctx, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
-		r0 = rf(ctx, email)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserGetByID provides a mock function with given fields: ctx, id, ns
-func (_m *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error) {
-	ret := _m.Called(ctx, id, ns)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserGetByID")
-	}
-
-	var r0 *models.User
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (*models.User, int, error)); ok {
-		return rf(ctx, id, ns)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *models.User); ok {
-		r0 = rf(ctx, id, ns)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool) int); ok {
-		r1 = rf(ctx, id, ns)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, string, bool) error); ok {
-		r2 = rf(ctx, id, ns)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// UserGetByUsername provides a mock function with given fields: ctx, username
-func (_m *Store) UserGetByUsername(ctx context.Context, username string) (*models.User, error) {
-	ret := _m.Called(ctx, username)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserGetByUsername")
-	}
-
-	var r0 *models.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.User, error)); ok {
-		return rf(ctx, username)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
-		r0 = rf(ctx, username)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, username)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UserGetInfo provides a mock function with given fields: ctx, id
 func (_m *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, error) {
 	ret := _m.Called(ctx, id)
@@ -2278,6 +2181,43 @@ func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filter
 	}
 
 	return r0, r1, r2
+}
+
+// UserResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) UserResolve(ctx context.Context, resolver store.UserResolver, value string, opts ...store.QueryOption) (*models.User, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserResolve")
+	}
+
+	var r0 *models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.UserResolver, string, ...store.QueryOption) (*models.User, error)); ok {
+		return rf(ctx, resolver, value, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.UserResolver, string, ...store.QueryOption) *models.User); ok {
+		r0 = rf(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.UserResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UserUpdate provides a mock function with given fields: ctx, id, changes

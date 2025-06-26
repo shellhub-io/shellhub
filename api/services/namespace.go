@@ -25,7 +25,7 @@ type NamespaceService interface {
 
 // CreateNamespace creates a new namespace.
 func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCreate) (*models.Namespace, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil || user == nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}

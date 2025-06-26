@@ -367,8 +367,8 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(nil, 0, store.ErrNoDocuments).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
 			expected: Expected{
@@ -385,11 +385,11 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 0,
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -406,11 +406,11 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 1,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
@@ -447,11 +447,11 @@ func TestCreateNamespace(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -482,11 +482,11 @@ func TestCreateNamespace(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -517,11 +517,11 @@ func TestCreateNamespace(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -594,11 +594,11 @@ func TestCreateNamespace(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -710,11 +710,11 @@ func TestCreateNamespace(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -832,11 +832,11 @@ func TestCreateNamespace(t *testing.T) {
 					Once()
 				// envs.IsCommunity = false
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").
@@ -949,11 +949,11 @@ func TestCreateNamespace(t *testing.T) {
 					Once()
 				// envs.IsCommunity = false
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:            "000000000000000000000000",
 						MaxNamespaces: 3,
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetByName", ctx, "namespace").

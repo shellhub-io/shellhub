@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -22,7 +23,7 @@ type UserService interface {
 }
 
 func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil {
 		return []string{}, NewErrUserNotFound(req.UserID, nil)
 	}
@@ -65,7 +66,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 //
 // Deprecated, use [Service.UpdateUser] instead.
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
-	user, _, err := s.store.UserGetByID(ctx, id, false)
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, id)
 	if user == nil {
 		return NewErrUserNotFound(id, err)
 	}

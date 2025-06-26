@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"slices"
+	"strings"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -77,7 +79,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return ErrUserNotFound
 	}
@@ -112,7 +114,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserDataInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return ErrUserNotFound
 	}
