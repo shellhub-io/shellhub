@@ -61,7 +61,7 @@ func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]m
 		},
 		{
 			"$addFields": bson.M{
-				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+				"active": bson.M{"$anyElementTrue": []any{"$active"}},
 			},
 		},
 	}...)
@@ -107,7 +107,7 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 		},
 		{
 			"$addFields": bson.M{
-				"active": bson.M{"$anyElementTrue": []interface{}{"$active"}},
+				"active": bson.M{"$anyElementTrue": []any{"$active"}},
 			},
 		},
 	}
@@ -121,17 +121,16 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 		})
 	}
 
-	session := new(models.Session)
-
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
+
 	defer cursor.Close(ctx)
 	cursor.Next(ctx)
 
-	err = cursor.Decode(&session)
-	if err != nil {
+	session := new(models.Session)
+	if err = cursor.Decode(&session); err != nil {
 		return nil, FromMongoError(err)
 	}
 
@@ -153,7 +152,7 @@ func (s *Store) SessionUpdate(ctx context.Context, uid models.UID, sess *models.
 	defer clientSession.EndSession(ctx)
 
 	if update.Authenticated != nil && !sess.Authenticated {
-		if err := s.SessionActiveCreate(ctx, uid, sess); err != nil {
+		if err := s.SessionCreateActive(ctx, uid, sess); err != nil {
 			return err
 		}
 	}
@@ -266,7 +265,7 @@ func (s *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error 
 	}
 	defer mongoSession.EndSession(ctx)
 
-	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (interface{}, error) {
+	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (any, error) {
 		session := new(models.Session)
 
 		query := bson.M{"uid": uid}
@@ -297,7 +296,7 @@ func (s *Store) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, n
 	return nil
 }
 
-func (s *Store) SessionActiveCreate(ctx context.Context, uid models.UID, session *models.Session) error {
+func (s *Store) SessionCreateActive(ctx context.Context, uid models.UID, session *models.Session) error {
 	_, err := s.db.Collection("active_sessions").InsertOne(ctx, &models.ActiveSession{
 		UID:      uid,
 		LastSeen: session.StartedAt,
@@ -324,9 +323,9 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 
 	txnOpts := options.Transaction().
 		SetReadConcern(readconcern.Snapshot()).
-		SetWriteConcern(writeconcern.New(writeconcern.WMajority())) //nolint:staticcheck
+		SetWriteConcern(writeconcern.Majority())
 
-	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
 		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
 			bson.M{"uid": uid},
 			bson.M{
