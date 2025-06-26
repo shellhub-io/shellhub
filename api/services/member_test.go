@@ -83,8 +83,8 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(nil, 0, ErrUserNotFound).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(nil, ErrUserNotFound).
 					Once()
 			},
 			expected: Expected{
@@ -112,11 +112,11 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -150,11 +150,11 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -188,11 +188,11 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -226,14 +226,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(nil, errors.New("error")).
 					Once()
 				envMock.
@@ -277,14 +277,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -331,14 +331,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -386,14 +386,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -441,14 +441,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -534,14 +534,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -628,14 +628,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -681,14 +681,14 @@ func TestAddNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByEmail", ctx, "john.doe@test.com").
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(&models.User{
 						ID:       "000000000000000000000001",
 						UserData: models.UserData{Username: "john_doe"},
@@ -1067,8 +1067,8 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(nil, 0, ErrUserNotFound).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(nil, ErrUserNotFound).
 					Once()
 			},
 			expected: NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
@@ -1092,11 +1092,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
@@ -1125,11 +1125,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: NewErrNamespaceMemberNotFound("000000000000000000000001", nil),
@@ -1162,11 +1162,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: NewErrRoleInvalid(),
@@ -1199,11 +1199,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: NewErrRoleInvalid(),
@@ -1236,11 +1236,11 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", &models.MemberChanges{Role: authorizer.RoleAdministrator}).
@@ -1316,8 +1316,8 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(nil, 0, ErrUserNotFound).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(nil, ErrUserNotFound).
 					Once()
 			},
 			expected: Expected{
@@ -1343,11 +1343,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -1378,11 +1378,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -1417,11 +1417,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -1456,11 +1456,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
@@ -1499,11 +1499,11 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
 						ID:       "000000000000000000000000",
 						UserData: models.UserData{Username: "jane_doe"},
-					}, 0, nil).
+					}, nil).
 					Once()
 				storeMock.
 					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
@@ -1744,7 +1744,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 				// internally calls it to create another token. Since this functionality is already tested,
 				// we are duplicating the test here to prevent failures. The important tests are all in the lines above.
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID:        "000000000000000000000000",
@@ -1767,7 +1767,6 @@ func TestService_LeaveNamespace(t *testing.T) {
 								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
-						0,
 						nil,
 					).
 					Once()

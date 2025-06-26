@@ -38,8 +38,8 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
-					Return(nil, 0, NewErrUserNotFound("000000000000000000000000", nil)).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(nil, NewErrUserNotFound("000000000000000000000000", nil)).
 					Once()
 			},
 			expected: Expected{
@@ -58,7 +58,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID: "000000000000000000000000",
@@ -69,7 +69,6 @@ func TestUpdateUser(t *testing.T) {
 								RecoveryEmail: "recover@test.com",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -90,7 +89,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID: "000000000000000000000000",
@@ -101,7 +100,6 @@ func TestUpdateUser(t *testing.T) {
 								RecoveryEmail: "recover@test.com",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -122,7 +120,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID: "000000000000000000000000",
@@ -133,7 +131,6 @@ func TestUpdateUser(t *testing.T) {
 								RecoveryEmail: "recover@test.com",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -160,7 +157,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID: "000000000000000000000000",
@@ -174,7 +171,6 @@ func TestUpdateUser(t *testing.T) {
 								Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -203,7 +199,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID: "000000000000000000000000",
@@ -214,7 +210,6 @@ func TestUpdateUser(t *testing.T) {
 								RecoveryEmail: "recover@test.com",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -259,7 +254,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("UserGetByID", ctx, "000000000000000000000000", false).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(
 						&models.User{
 							ID: "000000000000000000000000",
@@ -270,7 +265,6 @@ func TestUpdateUser(t *testing.T) {
 								RecoveryEmail: "recover@test.com",
 							},
 						},
-						0,
 						nil,
 					).
 					Once()
@@ -328,8 +322,8 @@ func TestUpdatePasswordUser(t *testing.T) {
 			id:          "65fde3a72c4c7507c7f53c43",
 			requiredMocks: func() {
 				mock.
-					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
-					Return(nil, 0, errors.New("error", "", 0)).
+					On("UserResolve", ctx, store.UserIDResolver, "65fde3a72c4c7507c7f53c43").
+					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
 			expected: NewErrUserNotFound("65fde3a72c4c7507c7f53c43", errors.New("error", "", 0)),
@@ -347,8 +341,8 @@ func TestUpdatePasswordUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByID", ctx, "1", false).
-					Return(user, 1, nil).
+					On("UserResolve", ctx, store.UserIDResolver, "1").
+					Return(user, nil).
 					Once()
 				hashMock.
 					On("CompareWith", "wrong_password", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
@@ -371,8 +365,8 @@ func TestUpdatePasswordUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
-					Return(user, 1, nil).
+					On("UserResolve", ctx, store.UserIDResolver, "65fde3a72c4c7507c7f53c43").
+					Return(user, nil).
 					Once()
 				hashMock.
 					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
@@ -399,8 +393,8 @@ func TestUpdatePasswordUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
-					Return(user, 1, nil).
+					On("UserResolve", ctx, store.UserIDResolver, "65fde3a72c4c7507c7f53c43").
+					Return(user, nil).
 					Once()
 				hashMock.
 					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
@@ -439,8 +433,8 @@ func TestUpdatePasswordUser(t *testing.T) {
 				}
 
 				mock.
-					On("UserGetByID", ctx, "65fde3a72c4c7507c7f53c43", false).
-					Return(user, 1, nil).
+					On("UserResolve", ctx, store.UserIDResolver, "65fde3a72c4c7507c7f53c43").
+					Return(user, nil).
 					Once()
 				hashMock.
 					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").

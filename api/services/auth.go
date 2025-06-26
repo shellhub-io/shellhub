@@ -195,15 +195,12 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
 	}
 
-	var err error
-	var user *models.User
-
+	resolver := store.UserUsernameResolver
 	if req.Identifier.IsEmail() {
-		user, err = s.store.UserGetByEmail(ctx, strings.ToLower(string(req.Identifier)))
-	} else {
-		user, err = s.store.UserGetByUsername(ctx, strings.ToLower(string(req.Identifier)))
+		resolver = store.UserEmailResolver
 	}
 
+	user, err := s.store.UserResolve(ctx, resolver, strings.ToLower(string(req.Identifier)))
 	if err != nil {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
@@ -330,7 +327,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 }
 
 func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
-	user, _, err := s.store.UserGetByID(ctx, req.UserID, false)
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}

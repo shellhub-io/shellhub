@@ -74,7 +74,7 @@ func TestNamespaceCreate(t *testing.T) {
 			requiredMocks: func() {
 				envMock := &env_mocks.Backend{}
 				envs.DefaultBackend = envMock
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
 		},
@@ -97,7 +97,7 @@ func TestNamespaceCreate(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -141,7 +141,7 @@ func TestNamespaceCreate(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -204,7 +204,7 @@ func TestNamespaceCreate(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -267,7 +267,7 @@ func TestNamespaceCreate(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -330,7 +330,7 @@ func TestNamespaceCreate(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -393,7 +393,7 @@ func TestNamespaceCreate(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -477,7 +477,7 @@ func TestNamespaceAddMember(t *testing.T) {
 			namespace:   "namespace",
 			role:        authorizer.RoleObserver,
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "john").Return(nil, errors.New("error")).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
 		},
@@ -495,7 +495,7 @@ func TestNamespaceAddMember(t *testing.T) {
 						Username: "john",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john").Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, "invalid_namespace").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrNamespaceNotFound},
@@ -514,7 +514,7 @@ func TestNamespaceAddMember(t *testing.T) {
 						Username: "john",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -577,7 +577,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			username:    "john_doe",
 			namespace:   "namespace",
 			requiredMocks: func() {
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(nil, errors.New("error")).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
 		},
@@ -594,7 +594,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrNamespaceNotFound},
@@ -612,7 +612,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",
@@ -641,7 +641,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 						Username: "john_doe",
 					},
 				}
-				mock.On("UserGetByUsername", ctx, "john_doe").Return(user, nil).Once()
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
 				namespace := &models.Namespace{
 					Name:     "namespace",
 					Owner:    "507f191e810c19729de860ea",

@@ -206,6 +206,147 @@ func TestUserList(t *testing.T) {
 	}
 }
 
+func TestUserResolve(t *testing.T) {
+	type Expected struct {
+		user *models.User
+		err  error
+	}
+
+	cases := []struct {
+		description string
+		resolver    store.UserResolver
+		value       string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "fails when invalid ObjectID format",
+			resolver:    store.UserIDResolver,
+			value:       "invalid-id",
+			fixtures:    []string{fixtureUsers},
+			expected: Expected{
+				user: nil,
+				err:  primitive.ErrInvalidHex,
+			},
+		},
+		{
+			description: "fails when user not found by ID",
+			resolver:    store.UserIDResolver,
+			value:       "507f1f77bcf86cd799439999",
+			fixtures:    []string{fixtureUsers},
+			expected: Expected{
+				user: nil,
+				err:  store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving user by ID",
+			resolver:    store.UserIDResolver,
+			value:       "507f1f77bcf86cd799439011",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
+			expected: Expected{
+				user: &models.User{
+					ID:             "507f1f77bcf86cd799439011",
+					Status:         "confirmed",
+					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					EmailMarketing: true,
+					MaxNamespaces:  0,
+					Password: models.UserPassword{
+						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					},
+					UserData: models.UserData{
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+						Username: "john_doe",
+					},
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "fails when user not found by email",
+			resolver:    store.UserEmailResolver,
+			value:       "nonexistent@test.com",
+			fixtures:    []string{fixtureUsers},
+			expected: Expected{
+				user: nil,
+				err:  store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving user by email",
+			resolver:    store.UserEmailResolver,
+			value:       "jane.smith@test.com",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
+			expected: Expected{
+				user: &models.User{
+					ID:             "608f32a2c7351f001f6475e0",
+					Status:         "confirmed",
+					CreatedAt:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+					LastLogin:      time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+					EmailMarketing: true,
+					MaxNamespaces:  3,
+					Password: models.UserPassword{
+						Hash: "a0b8c29f4c8d57e542f5e81d35ebe801fd27f569f116fe670e8962d798512a1d",
+					},
+					UserData: models.UserData{
+						Email:    "jane.smith@test.com",
+						Name:     "Jane Smith",
+						Username: "jane_smith",
+					},
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "fails when user not found by username",
+			resolver:    store.UserUsernameResolver,
+			value:       "nonexistent_user",
+			fixtures:    []string{fixtureUsers},
+			expected: Expected{
+				user: nil,
+				err:  store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving user by username",
+			resolver:    store.UserUsernameResolver,
+			value:       "bob_johnson",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
+			expected: Expected{
+				user: &models.User{
+					ID:             "709f45b5e812c1002f3a67e7",
+					Status:         "confirmed",
+					CreatedAt:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					LastLogin:      time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
+					EmailMarketing: true,
+					MaxNamespaces:  10,
+					Password: models.UserPassword{
+						Hash: "5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2",
+					},
+					UserData: models.UserData{
+						Email:    "bob.johnson@test.com",
+						Name:     "Bob Johnson",
+						Username: "bob_johnson",
+					},
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { assert.NoError(t, srv.Reset()) })
+
+			user, err := s.UserResolve(context.Background(), tc.resolver, tc.value)
+			assert.Equal(t, tc.expected, Expected{user: user, err: err})
+		})
+	}
+}
+
 func TestUserCreate(t *testing.T) {
 	cases := []struct {
 		description string
@@ -306,223 +447,6 @@ func TestStore_UserCreateInvited(t *testing.T) {
 				},
 				tmpUser,
 			)
-		})
-	}
-}
-
-func TestUserGetByUsername(t *testing.T) {
-	type Expected struct {
-		user *models.User
-		err  error
-	}
-
-	cases := []struct {
-		description string
-		username    string
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when user is not found",
-			username:    "nonexistent",
-			fixtures:    []string{fixtureUsers},
-			expected: Expected{
-				user: nil,
-				err:  store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds when user is found",
-			username:    "john_doe",
-			fixtures:    []string{fixtureUsers},
-			expected: Expected{
-				user: &models.User{
-					ID:             "507f1f77bcf86cd799439011",
-					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: true,
-					Status:         models.UserStatusConfirmed,
-					UserData: models.UserData{
-						Name:     "john doe",
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-					},
-					MaxNamespaces: 0,
-					Password: models.UserPassword{
-						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-					},
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			user, err := s.UserGetByUsername(ctx, tc.username)
-			assert.Equal(t, tc.expected, Expected{user: user, err: err})
-		})
-	}
-}
-
-func TestUserGetByEmail(t *testing.T) {
-	type Expected struct {
-		user *models.User
-		err  error
-	}
-
-	cases := []struct {
-		description string
-		email       string
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when email is not found",
-			email:       "nonexistent",
-			fixtures:    []string{fixtureUsers},
-			expected: Expected{
-				user: nil,
-				err:  store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds when email is found",
-			email:       "john.doe@test.com",
-			fixtures:    []string{fixtureUsers},
-			expected: Expected{
-				user: &models.User{
-					ID:             "507f1f77bcf86cd799439011",
-					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: true,
-					Status:         models.UserStatusConfirmed,
-					UserData: models.UserData{
-						Name:     "john doe",
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-					},
-					MaxNamespaces: 0,
-					Password: models.UserPassword{
-						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-					},
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			user, err := s.UserGetByEmail(ctx, tc.email)
-			assert.Equal(t, tc.expected, Expected{user: user, err: err})
-		})
-	}
-}
-
-func TestUserGetByID(t *testing.T) {
-	type Expected struct {
-		user *models.User
-		ns   int
-		err  error
-	}
-
-	cases := []struct {
-		description string
-		id          string
-		ns          bool
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when user is not found",
-			id:          "507f1f77bcf86cd7994390bb",
-			fixtures:    []string{fixtureUsers, fixtureNamespaces},
-			expected: Expected{
-				user: nil,
-				ns:   0,
-				err:  store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds when user is found with ns equal false",
-			id:          "507f1f77bcf86cd799439011",
-			ns:          false,
-			fixtures:    []string{fixtureUsers, fixtureNamespaces},
-			expected: Expected{
-				user: &models.User{
-					ID:             "507f1f77bcf86cd799439011",
-					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: true,
-					Status:         models.UserStatusConfirmed,
-					UserData: models.UserData{
-						Name:     "john doe",
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-					},
-					MaxNamespaces: 0,
-					Password: models.UserPassword{
-						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-					},
-				},
-				ns:  0,
-				err: nil,
-			},
-		},
-		{
-			description: "succeeds when user is found with ns equal true",
-			id:          "507f1f77bcf86cd799439011",
-			ns:          true,
-			fixtures:    []string{fixtureUsers, fixtureNamespaces},
-			expected: Expected{
-				user: &models.User{
-					ID:             "507f1f77bcf86cd799439011",
-					CreatedAt:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					LastLogin:      time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					EmailMarketing: true,
-					Status:         models.UserStatusConfirmed,
-					UserData: models.UserData{
-						Name:     "john doe",
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-					},
-					MaxNamespaces: 0,
-					Password: models.UserPassword{
-						Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-					},
-				},
-				ns:  1,
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			user, ns, err := s.UserGetByID(ctx, tc.id, tc.ns)
-			assert.Equal(t, tc.expected, Expected{user: user, ns: ns, err: err})
 		})
 	}
 }

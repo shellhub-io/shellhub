@@ -105,97 +105,42 @@ func (s *Store) UserCreateInvited(ctx context.Context, email string) (string, er
 	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-func (s *Store) UserGetByUsername(ctx context.Context, username string) (*models.User, error) {
-	user := new(models.User)
+func (s *Store) UserResolve(ctx context.Context, resolver store.UserResolver, value string, opts ...store.QueryOption) (*models.User, error) {
+	matchStage := bson.M{}
+	switch resolver {
+	case store.UserIDResolver:
+		objID, err := primitive.ObjectIDFromHex(value)
+		if err != nil {
+			return nil, err
+		}
 
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user); err != nil {
+		matchStage["_id"] = objID
+	case store.UserEmailResolver:
+		matchStage["email"] = value
+	case store.UserUsernameResolver:
+		matchStage["username"] = value
+	}
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+			return nil, err
+		}
+	}
+
+	cursor, err := s.db.Collection("users").Aggregate(ctx, []bson.M{{"$match": matchStage}})
+	if err != nil {
 		return nil, FromMongoError(err)
 	}
-
-	return user, nil
-}
-
-func (s *Store) UserGetByEmail(ctx context.Context, email string) (*models.User, error) {
-	user := new(models.User)
-
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return user, nil
-}
-
-func (s *Store) UserGetByID(ctx context.Context, id string, ns bool) (*models.User, int, error) {
-	user := new(models.User)
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	if err := s.db.Collection("users").FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	if !ns {
-		return user, 0, nil
-	}
-
-	nss := struct {
-		NamespacesOwned int `bson:"namespacesOwned"`
-	}{}
-
-	query := []bson.M{
-		{
-			"$match": bson.M{
-				"_id": objID,
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"_id": bson.M{
-					"$toString": "$_id",
-				},
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "namespaces",
-				"localField":   "_id",
-				"foreignField": "owner",
-				"as":           "ns",
-			},
-		},
-		{
-			"$addFields": bson.M{
-				"namespacesOwned": bson.M{
-					"$size": "$ns",
-				},
-			},
-		},
-		{
-			"$project": bson.M{
-				"namespacesOwned": 1,
-				"_id":             0,
-			},
-		},
-	}
-
-	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
 	defer cursor.Close(ctx)
 
-	if !cursor.Next(ctx) {
-		return nil, 0, FromMongoError(err)
+	cursor.Next(ctx)
+
+	user := new(models.User)
+	if err := cursor.Decode(&user); err != nil {
+		return nil, FromMongoError(err)
 	}
 
-	if err = cursor.Decode(&nss); err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	return user, nss.NamespacesOwned, nil
+	return user, nil
 }
 
 func (s *Store) UserConflicts(ctx context.Context, target *models.UserConflicts) ([]string, bool, error) {

@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"strings"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -23,7 +25,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		return nil, ErrNamespaceInvalid
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Owner)
+	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Owner))
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
@@ -72,7 +74,7 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 		return nil, ErrInvalidFormat
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
@@ -95,7 +97,7 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 		return nil, ErrInvalidFormat
 	}
 
-	user, err := s.store.UserGetByUsername(ctx, input.Username)
+	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
