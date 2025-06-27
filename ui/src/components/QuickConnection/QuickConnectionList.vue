@@ -20,6 +20,7 @@
       <v-card :key="i" data-test="device-card">
         <v-list-item
           @click="openDialog(item.uid)"
+          @keydown="openTerminalMacro(item)"
           :key="i"
           class="ma-0 pa-0 card"
           data-test="device-list-item"
@@ -39,6 +40,7 @@
                     <CopyWarning
                       ref="copyRef"
                       :copied-item="'Device SSHID'"
+                      :bypass="shouldOpenTerminalHelper()"
                       :macro="sshidAddress(item)"
                     >
                       <template #default="{ copyText }">
@@ -46,15 +48,14 @@
                           v-bind="props"
                           tabindex="0"
                           class="hover-text"
-                          @click.stop="copyText(sshidAddress(item))"
-                          @keydown.enter.stop="copyText(sshidAddress(item))"
+                          @click.stop="handleSshidClick(item, copyText)"
+                          @keypress.enter.stop="handleSshidClick(item, copyText)"
                           data-test="copy-id-button"
                         >
                           {{ sshidAddress(item) }}
                         </span>
                       </template>
                     </CopyWarning>
-
                   </template>
                   <span>Copy ID</span>
                 </v-tooltip>
@@ -85,7 +86,13 @@
       </v-card>
     </v-col>
   </v-list>
-
+  <TerminalHelper
+    v-if="showTerminalHelper"
+    v-model="showTerminalHelper"
+    :sshid="selectedSshid"
+    :user-id="userId"
+    :show-checkbox="true"
+  />
   <TerminalDialog
     v-model="showDialog"
     :deviceUid="selectedDeviceUid"
@@ -96,7 +103,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { VList } from "vuetify/components";
+import { useMagicKeys } from "@vueuse/core";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
+import TerminalHelper from "../Terminal/TerminalHelper.vue";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 import { useStore } from "@/store";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
@@ -104,7 +114,6 @@ import DeviceIcon from "../Devices/DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
-import CopyWarning from "@/components/User/CopyWarning.vue";
 
 interface Device {
   online: boolean
@@ -112,13 +121,15 @@ interface Device {
 
 const store = useStore();
 const snackbar = useSnackbar();
-const copyRef = ref<InstanceType<typeof CopyWarning> | null>(null);
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref();
 const rootEl = ref<VList>();
 const selectedDeviceUid = ref("");
 const showDialog = ref(false);
+const showTerminalHelper = ref(false);
+const selectedSshid = ref("");
+const userId = computed(() => store.getters["auth/id"]);
 
 defineExpose({ rootEl });
 
@@ -187,6 +198,43 @@ watch(itemsPerPage, async () => {
 });
 
 const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+
+const openTerminalHelper = (item: IDevice) => {
+  selectedSshid.value = sshidAddress(item);
+  showTerminalHelper.value = true;
+};
+
+const shouldOpenTerminalHelper = () => {
+  try {
+    const dispensedUsers = JSON.parse(localStorage.getItem("dispenseTerminalHelper") || "[]");
+    return !dispensedUsers.includes(userId.value);
+  } catch {
+    return true;
+  }
+};
+
+const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
+  if (shouldOpenTerminalHelper()) {
+    openTerminalHelper(item);
+    return;
+  }
+  copyFn(sshidAddress(item));
+};
+
+const openTerminalMacro = (value: IDevice) => {
+  let executed = false;
+
+  return useMagicKeys({
+    passive: false,
+    onEventFired(e) {
+      if (!executed && value && e.ctrlKey && e.key === "c" && e.type === "keydown") {
+        executed = true;
+        openTerminalHelper(value);
+        e.preventDefault();
+      }
+    },
+  });
+};
 </script>
 
 <style scoped>

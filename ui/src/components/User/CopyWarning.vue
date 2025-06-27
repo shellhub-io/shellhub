@@ -26,29 +26,30 @@ import useSnackbar from "@/helpers/snackbar";
 const props = defineProps<{
   macro?: string;
   copiedItem?: string;
+  bypass?: boolean;
 }>();
 
 const snackbar = useSnackbar();
-
 const showDialog = ref(false);
 const { copy } = useClipboard();
 
 const handleCopy = async (text: string) => {
-  const isSecure = globalThis?.isSecureContext;
+  // If bypass is true, do nothing.
+  if (props.bypass) {
+    return;
+  }
 
+  const isSecure = globalThis?.isSecureContext;
   if (!isSecure) {
     showDialog.value = true;
     return;
   }
-
   try {
     await copy(text);
-
     if (props.copiedItem) {
       snackbar.showInfo(`${props.copiedItem} copied to clipboard!`);
       return;
     }
-
     snackbar.showInfo("Successfully copied to clipboard!");
   } catch (error) {
     showDialog.value = true;
@@ -57,12 +58,13 @@ const handleCopy = async (text: string) => {
 
 onMounted(() => {
   if (!props.macro) return;
-
   let executed = false;
-
   useMagicKeys({
     passive: false,
     onEventFired(e) {
+      // Also check for the bypass prop here for the keyboard shortcut
+      if (props.bypass) return;
+
       if (!executed && e.ctrlKey && e.key === "c" && e.type === "keydown") {
         executed = true;
         handleCopy(props.macro as string);
