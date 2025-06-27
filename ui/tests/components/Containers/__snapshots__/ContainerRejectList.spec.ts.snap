@@ -2,7 +2,9 @@
 
 exports[`Container Rejected List > Renders the component 1`] = `
 "<div>
-  <div data-v-787abe29="" data-test="container-table">
+  <!---->
+  <!---->
+  <div data-v-787abe29="" data-test="items-list">
     <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
       <!---->
       <div class="v-table__wrapper">

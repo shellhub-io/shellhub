@@ -20,6 +20,7 @@
       <v-card :key="i" data-test="device-card">
         <v-list-item
           @click="openDialog(item.uid)"
+          @keydown="openTerminalMacro(item)"
           :key="i"
           class="ma-0 pa-0 card"
           data-test="device-list-item"
@@ -36,24 +37,15 @@
               <v-chip class="bg-grey-darken-4">
                 <v-tooltip location="bottom">
                   <template v-slot:activator="{ props }">
-                    <CopyWarning
-                      ref="copyRef"
-                      :copied-item="'Device SSHID'"
-                      :macro="sshidAddress(item)"
+                    <span
+                      v-bind="props"
+                      class="hover-text"
+                      @click.stop="openTerminalHelper(item)"
+                      @keydown.enter.stop="openTerminalHelper(item)"
+                      data-test="copy-id-button"
                     >
-                      <template #default="{ copyText }">
-                        <span
-                          v-bind="props"
-                          tabindex="0"
-                          class="hover-text"
-                          @click.stop="copyText(sshidAddress(item))"
-                          @keydown.enter.stop="copyText(sshidAddress(item))"
-                          data-test="copy-id-button"
-                        >
-                          {{ sshidAddress(item) }}
-                        </span>
-                      </template>
-                    </CopyWarning>
+                      {{ sshidAddress(item) }}
+                    </span>
 
                   </template>
                   <span>Copy ID</span>
@@ -85,7 +77,10 @@
       </v-card>
     </v-col>
   </v-list>
-
+  <TerminalHelper
+    v-model="showTerminalHelper"
+    :sshid="selectedSshid"
+  />
   <TerminalDialog
     v-model="showDialog"
     :deviceUid="selectedDeviceUid"
@@ -96,7 +91,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { VList } from "vuetify/components";
+import { useMagicKeys } from "@vueuse/core";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
+import TerminalHelper from "../Terminal/TerminalHelper.vue";
 import { useStore } from "@/store";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
@@ -104,7 +101,6 @@ import DeviceIcon from "../Devices/DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
-import CopyWarning from "@/components/User/CopyWarning.vue";
 
 interface Device {
   online: boolean
@@ -112,13 +108,14 @@ interface Device {
 
 const store = useStore();
 const snackbar = useSnackbar();
-const copyRef = ref<InstanceType<typeof CopyWarning> | null>(null);
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref();
 const rootEl = ref<VList>();
 const selectedDeviceUid = ref("");
 const showDialog = ref(false);
+const showTerminalHelper = ref(false);
+const selectedSshid = ref("");
 
 defineExpose({ rootEl });
 
@@ -187,6 +184,26 @@ watch(itemsPerPage, async () => {
 });
 
 const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+
+const openTerminalHelper = (item: IDevice) => {
+  selectedSshid.value = sshidAddress(item);
+  showTerminalHelper.value = true;
+};
+
+const openTerminalMacro = (value: IDevice) => {
+  let executed = false;
+
+  return useMagicKeys({
+    passive: false,
+    onEventFired(e) {
+      if (!executed && value && e.ctrlKey && e.key === "c" && e.type === "keydown") {
+        executed = true;
+        openTerminalHelper(value);
+        e.preventDefault();
+      }
+    },
+  });
+};
 </script>
 
 <style scoped>
