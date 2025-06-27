@@ -65,5 +65,6 @@ exports[`Quick Connection List > Renders the component 1`] = `
       <!----><span class="v-card__underlay"></span>
     </div>
   </div>
-</div>"
+</div>
+<!--v-if-->"
 `;

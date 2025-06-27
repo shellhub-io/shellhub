@@ -23,15 +23,26 @@ exports[`Details Device > Renders the component 1`] = `
   <!---->
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center"><button data-v-35d3a308="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator="">Connect</span>
-        <!---->
-        <!---->
-      </button>
+    <div class="d-flex align-center">
+      <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Connect</span>
+            <!---->
+            <!---->
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <!---->
+            <!---->
+          </button>
+          <!---->
+        </div>
+      </div>
       <!---->
-      <!----><span class="ml-2">00-00-00-00-00-01</span>
+      <!---->
+      <!---->
+      <!----><span class="ml-4">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -102,15 +113,26 @@ exports[`Details Device > Renders the component when device has no last seen dat
   <!---->
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center"><button data-v-35d3a308="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator="">Connect</span>
-        <!---->
-        <!---->
-      </button>
+    <div class="d-flex align-center">
+      <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Connect</span>
+            <!---->
+            <!---->
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <!---->
+            <!---->
+          </button>
+          <!---->
+        </div>
+      </div>
       <!---->
-      <!----><span class="ml-2">00-00-00-00-00-01</span>
+      <!---->
+      <!---->
+      <!----><span class="ml-4">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -181,15 +203,26 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
   <!---->
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center"><button data-v-35d3a308="" type="button" class="v-btn v-theme--light text-success v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator="">Connect</span>
-        <!---->
-        <!---->
-      </button>
+    <div class="d-flex align-center">
+      <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Connect</span>
+            <!---->
+            <!---->
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <!---->
+            <!---->
+          </button>
+          <!---->
+        </div>
+      </div>
       <!---->
-      <!----><span class="ml-2">00-00-00-00-00-01</span>
+      <!---->
+      <!---->
+      <!----><span class="ml-4">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -260,15 +293,26 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
   <!---->
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-theme--light text-normal v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator="">Offline</span>
-        <!---->
-        <!---->
-      </button>
+    <div class="d-flex align-center">
+      <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator="">Offline</span>
+            <!---->
+            <!---->
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <!---->
+            <!---->
+          </button>
+          <!---->
+        </div>
+      </div>
       <!---->
-      <!----><span class="ml-2">00-00-00-00-00-01</span>
+      <!---->
+      <!---->
+      <!----><span class="ml-4">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
@@ -340,9 +384,9 @@ exports[`Details Device > Renders the component when device status is not accept
   <!---->
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
-      <!--v-if--><span class="ml-2">00-00-00-00-00-01</span>
+      <!--v-if--><span class="ml-4">00-00-00-00-00-01</span>
     </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->

@@ -9,9 +9,10 @@
           v-if="device.status === 'accepted'"
           :deviceUid="device.uid"
           :online="device.online"
+          :sshid="sshidAddress(device)"
           data-test="connect-btn"
         />
-        <span class="ml-2">{{ device.name }}</span>
+        <span class="ml-4">{{ device.name }}</span>
       </div>
 
       <div>
@@ -158,6 +159,8 @@ const { identifier } = route.params;
 const resolver = route.query.resolver as DeviceResolver || "uid";
 const device = computed(() => store.getters["devices/get"]);
 const deviceUid = computed(() => device.value.uid);
+
+const sshidAddress = (item) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
 onMounted(async () => {
   try {
