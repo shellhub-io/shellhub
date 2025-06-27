@@ -21,6 +21,7 @@
         <td class="text-center">
           <TerminalConnectButton
             :deviceUid="item.uid"
+            :sshid="sshidAddress(item)"
             :online="item.online"
             data-test="terminal-connect-btn"
           />
