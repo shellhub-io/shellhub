@@ -38,16 +38,8 @@ var migration99 = migrate.Migration{
 			"action":    "Down",
 		}).Info("Reverting migration")
 
-		_, err := db.Collection("sessions").
-			UpdateMany(
-				ctx,
-				bson.M{
-					"recorded":     false,
-					"events.types": bson.M{"$size": 0},
-				},
-				bson.M{"$set": bson.M{"recorded": true}},
-			)
+		// NOTE: This migration shouldn't be reverted.
 
-		return err
+		return nil
 	}),
 }
