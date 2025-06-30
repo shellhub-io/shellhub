@@ -322,10 +322,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	}
 
 	switch {
-	case envs.IsCommunity(), envs.IsEnterprise():
-		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
-		}
 	case envs.IsCloud():
 		if namespace.Billing.IsActive() {
 			if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
@@ -361,6 +357,10 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 			if !ok {
 				return ErrDeviceLimit
 			}
+		}
+	case envs.IsCommunity(), envs.IsEnterprise():
+		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
+			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 		}
 	}
 

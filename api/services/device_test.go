@@ -2330,7 +2330,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Once()
+					Twice()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").
@@ -2398,7 +2398,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Once()
+					Twice()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").
@@ -2469,7 +2469,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
-					Return("false").Once()
+					Return("false").Twice()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").Once()
