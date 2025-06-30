@@ -35,7 +35,7 @@ COPY --from=base /app/node_modules ./node_modules
 
 RUN npm run build
 
-FROM nginx:1.27.4-alpine as production
+FROM nginx:1.29.0-alpine as production
 
 RUN apk add curl
 
