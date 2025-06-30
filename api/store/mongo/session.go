@@ -368,7 +368,7 @@ func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int,
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("firewall_rules"), queryCount)
+	count, err := AggregateCount(ctx, s.db.Collection("sessions_events"), queryCount)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
