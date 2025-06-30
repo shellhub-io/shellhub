@@ -170,6 +170,7 @@ type Seat struct {
 }
 
 type Seats struct {
+	mu *sync.Mutex
 	// counter count atomically seats of a session.
 	counter *atomic.Int32
 	// Items represents the individual seat of a session.
@@ -179,6 +180,7 @@ type Seats struct {
 // NewSeats creates a new [Seats] defining initial values for internal properties.
 func NewSeats() Seats {
 	return Seats{
+		mu:      new(sync.Mutex),
 		counter: new(atomic.Int32),
 		Items:   new(sync.Map),
 	}
@@ -186,6 +188,9 @@ func NewSeats() Seats {
 
 // NewSeat creates a new seat inside seats.
 func (s *Seats) NewSeat() (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	id := int(s.counter.Load())
 	defer s.counter.Add(1)
 
@@ -213,6 +218,9 @@ func (s *Seats) Get(seat int) (*Seat, bool) {
 
 // SetPty sets a pty status to a seat from their id.
 func (s *Seats) SetPty(seat int, status bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	item, ok := s.Get(seat)
 	if !ok {
 		log.Warn("failed to set pty because no seat was created before")
