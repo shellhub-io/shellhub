@@ -17,7 +17,7 @@ var migration99 = migrate.Migration{
 			"component": "migration",
 			"version":   99,
 			"action":    "Up",
-		}).Info("Applying migration: mark empty-event sessions as not recorded")
+		}).Info("Applying migration")
 
 		_, err := db.Collection("sessions").
 			UpdateMany(
@@ -36,7 +36,7 @@ var migration99 = migrate.Migration{
 			"component": "migration",
 			"version":   99,
 			"action":    "Down",
-		}).Info("Reverting migration: mark empty-event sessions as recorded")
+		}).Info("Reverting migration")
 
 		_, err := db.Collection("sessions").
 			UpdateMany(
