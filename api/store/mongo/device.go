@@ -450,7 +450,7 @@ func (s *Store) DeviceUpdate(ctx context.Context, tenantID, uid string, changes 
 		return store.ErrNoDocuments
 	}
 
-	if err := s.cache.Delete(ctx, "device"+uid+"/"); err != nil {
+	if err := s.cache.Delete(ctx, "device"+"/"+uid); err != nil {
 		logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
 	}
 
