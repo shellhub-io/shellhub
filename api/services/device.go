@@ -51,7 +51,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 	}
 
 	if req.TenantID != "" {
-		ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+		ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -90,7 +90,7 @@ func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device
 }
 
 func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error) {
-	n, err := s.store.NamespaceGet(ctx, req.TenantID)
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -125,7 +125,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	ns, err := s.store.NamespaceGet(ctx, tenant)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
@@ -198,7 +198,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 // It receives a context, used to "control" the request flow and, the namespace name from a models.Namespace and a
 // device name from models.Device.
 func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
-	n, err := s.store.NamespaceGetByName(ctx, namespace)
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(namespace))
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(namespace, err)
 	}
@@ -226,7 +226,7 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 
 // UpdateDeviceStatus updates the device status.
 func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}

@@ -16,7 +16,4 @@ type QueryOptions interface {
 
 	// WithDeviceStatus matches a device with the provided status
 	WithDeviceStatus(models.DeviceStatus) QueryOption
-
-	// EnrichMembersData join the user's data into members array.
-	EnrichMembersData() NamespaceQueryOption
 }

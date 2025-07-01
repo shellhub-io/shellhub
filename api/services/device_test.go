@@ -196,7 +196,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -217,7 +217,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -246,7 +246,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -279,7 +279,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -312,7 +312,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -345,7 +345,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -378,7 +378,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
 				envMock.
@@ -411,7 +411,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
 				envMock.
@@ -444,7 +444,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -477,7 +477,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				envMock.
@@ -594,7 +594,7 @@ func TestResolveDevice(t *testing.T) {
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -608,7 +608,7 @@ func TestResolveDevice(t *testing.T) {
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -630,7 +630,7 @@ func TestResolveDevice(t *testing.T) {
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: ""},
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -652,7 +652,7 @@ func TestResolveDevice(t *testing.T) {
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: "hostname"},
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -674,7 +674,7 @@ func TestResolveDevice(t *testing.T) {
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: "hostname"},
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -696,7 +696,7 @@ func TestResolveDevice(t *testing.T) {
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "uid", Hostname: "hostname"},
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -779,7 +779,7 @@ func TestDeleteDevice(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "tenant").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -806,7 +806,7 @@ func TestDeleteDevice(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "tenant").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(
 						&models.Namespace{
 							Name:     "group1",
@@ -859,7 +859,7 @@ func TestDeleteDevice(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "tenant").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(
 						&models.Namespace{
 							Name:     "group1",
@@ -915,7 +915,7 @@ func TestDeleteDevice(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "tenant").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(
 						&models.Namespace{
 							Name:     "group1",
@@ -980,7 +980,7 @@ func TestDeleteDevice(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "tenant").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(
 						&models.Namespace{
 							Name:     "group1",
@@ -1200,7 +1200,7 @@ func TestLookupDevice(t *testing.T) {
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(_ *models.Device, namespace string) {
 				storeMock.
-					On("NamespaceGetByName", ctx, namespace).
+					On("NamespaceResolve", ctx, store.NamespaceNameResolver, namespace).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -1215,7 +1215,7 @@ func TestLookupDevice(t *testing.T) {
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
 				storeMock.
-					On("NamespaceGetByName", ctx, namespace).
+					On("NamespaceResolve", ctx, store.NamespaceNameResolver, namespace).
 					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -1238,7 +1238,7 @@ func TestLookupDevice(t *testing.T) {
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
 				storeMock.
-					On("NamespaceGetByName", ctx, namespace).
+					On("NamespaceResolve", ctx, store.NamespaceNameResolver, namespace).
 					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
 					Once()
 				queryOptionsMock.
@@ -1348,7 +1348,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -1361,7 +1361,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			status:      "accepted",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1386,7 +1386,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1421,7 +1421,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1467,7 +1467,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1537,7 +1537,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1613,7 +1613,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1693,7 +1693,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1777,7 +1777,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1865,7 +1865,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -1957,7 +1957,7 @@ func TestUpdateDeviceStatus_same_mac(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2086,7 +2086,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2099,7 +2099,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			status:      "accepted",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2125,7 +2125,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2161,7 +2161,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2209,7 +2209,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2275,7 +2275,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID:             "00000000-0000-0000-0000-000000000000",
@@ -2345,7 +2345,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2417,7 +2417,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2525,7 +2525,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2538,7 +2538,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			status:      "accepted",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2564,7 +2564,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2600,7 +2600,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2648,7 +2648,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2723,7 +2723,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2798,7 +2798,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2877,7 +2877,7 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -2994,7 +2994,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -3007,7 +3007,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			status:      "accepted",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3033,7 +3033,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3069,7 +3069,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3117,7 +3117,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3189,7 +3189,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3265,7 +3265,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID:             "00000000-0000-0000-0000-000000000000",
@@ -3346,7 +3346,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3426,7 +3426,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3512,7 +3512,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3602,7 +3602,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3700,7 +3700,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3776,7 +3776,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3855,7 +3855,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -3941,7 +3941,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4031,7 +4031,7 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4301,7 +4301,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -4314,7 +4314,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			status:      "accepted",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4340,7 +4340,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4376,7 +4376,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4416,7 +4416,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4464,7 +4464,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4504,7 +4504,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4551,7 +4551,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4587,7 +4587,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4622,7 +4622,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",
@@ -4657,7 +4657,7 @@ func TestUpdateDeviceStatus_other_than_accepted(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-0000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-0000-0000-000000000000",

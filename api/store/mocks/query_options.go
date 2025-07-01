@@ -14,26 +14,6 @@ type QueryOptions struct {
 	mock.Mock
 }
 
-// EnrichMembersData provides a mock function with no fields
-func (_m *QueryOptions) EnrichMembersData() store.NamespaceQueryOption {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for EnrichMembersData")
-	}
-
-	var r0 store.NamespaceQueryOption
-	if rf, ok := ret.Get(0).(func() store.NamespaceQueryOption); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.NamespaceQueryOption)
-		}
-	}
-
-	return r0
-}
-
 // InNamespace provides a mock function with given fields: tenantID
 func (_m *QueryOptions) InNamespace(tenantID string) store.QueryOption {
 	ret := _m.Called(tenantID)

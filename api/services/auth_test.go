@@ -78,7 +78,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error", "store", 0)).
 					Once()
 			},
@@ -96,7 +96,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 			},
@@ -115,7 +115,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 			},
@@ -137,7 +137,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -168,7 +168,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -204,7 +204,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -249,7 +249,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -308,7 +308,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -375,7 +375,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -446,7 +446,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -534,7 +534,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -614,7 +614,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "aa-bb-cc-dd-ee-ff", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -688,7 +688,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				cacheMock.
@@ -1972,7 +1972,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -2011,7 +2011,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -2056,7 +2056,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -2107,7 +2107,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",

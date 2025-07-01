@@ -7,6 +7,13 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+type NamespaceResolver uint
+
+const (
+	NamespaceTenantIDResolver NamespaceResolver = iota + 1
+	NamespaceNameResolver
+)
+
 type NamespaceStore interface {
 	// NamespaceList retrieves a list of namespaces based on the provided filters and pagination settings.
 	// If the user ID is available in the context, it will only match namespaces that the user is a member
@@ -15,17 +22,12 @@ type NamespaceStore interface {
 	//
 	// It returns the list of namespaces, the total count of matching documents (ignoring pagination), and
 	// an error if any.
-	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...NamespaceQueryOption) ([]models.Namespace, int, error)
+	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.Namespace, int, error)
 
-	// NamespaceGet retrieves a namespace identified by the given tenantID. A list of options can be
-	// passed to inject additional data into the namespace.
+	// NamespaceResolve fetches a namespace using a specific resolver.
 	//
-	// It returns the namespace or an error if any.
-	NamespaceGet(ctx context.Context, tenantID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
-
-	// NamespaceGetByName retrieves a namespace by its name, similar to [Store.NamespaceGet], but matches by name instead
-	// of tenantID.
-	NamespaceGetByName(ctx context.Context, name string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+	// It returns the resolved namespace if found and an error, if any.
+	NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error)
 
 	// NamespaceGetPreferred retrieves the user's preferred namespace. If the user has no preferred namespace it returns
 	// the first namespace where the user is a member (typically the first one the user was added to). A list of options
