@@ -141,3 +141,62 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 		})
 	}
 }
+
+func TestCertBot_executeRenewCertificates(t *testing.T) {
+	tests := []struct {
+		name        string
+		config      Config
+		expected    error
+		expectCalls func(*executorMock.Executor)
+	}{
+		{
+			name: "failed to run the renew command",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *executorMock.Executor) {
+				executorMock.On("Command", "certbot", "renew").Return(exec.Command("")).Once()
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to run the renew command")).Once()
+			},
+			expected: errors.New("failed to run the renew command"),
+		},
+		{
+			name: "successful renew command execution",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *executorMock.Executor) {
+				executorMock.On("Command", "certbot", "renew").Return(exec.Command("")).Once()
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			name: "successful renew command execution in staging",
+			config: Config{
+				Staging: true,
+			},
+			expectCalls: func(executorMock *executorMock.Executor) {
+				executorMock.On("Command", "certbot", "renew", "--staging").Return(exec.Command("")).Once()
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(tt *testing.T) {
+			executorMock := new(executorMock.Executor)
+
+			certbot := newCertBot(&tc.config)
+			certbot.ex = executorMock
+
+			tc.expectCalls(executorMock)
+
+			err := certbot.executeRenewCertificates()
+			assert.Equal(tt, tc.expected, err)
+
+			executorMock.AssertExpectations(t)
+		})
+	}
+}
