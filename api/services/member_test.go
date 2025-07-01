@@ -16,6 +16,7 @@ import (
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	envsmocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,6 +34,8 @@ func TestAddNamespaceMember(t *testing.T) {
 
 	clockMock := new(clockmock.Clock)
 	clock.DefaultBackend = clockMock
+	envMock := new(envsmocks.Backend)
+	envs.DefaultBackend = envMock
 
 	now := time.Now()
 	clockMock.On("Now").Return(now)
