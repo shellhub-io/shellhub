@@ -44,7 +44,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		}
 	}
 
-	if dup, err := s.store.NamespaceGetByName(ctx, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
+	if dup, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
 		return nil, NewErrNamespaceDuplicated(err)
 	}
 
@@ -101,7 +101,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters, s.store.Options().EnrichMembersData())
+	namespaces, count, err := s.store.NamespaceList(ctx, req.Paginator, req.Filters)
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}
@@ -115,7 +115,7 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 //
 // GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
 func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenantID, s.store.Options().EnrichMembersData())
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -130,7 +130,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 // When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
 // service if it exists.
 func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(tenantID, err)
 	}
@@ -164,7 +164,7 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.Tenant, s.store.Options().EnrichMembersData())
+	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
 }
 
 // EditSessionRecordStatus defines if the sessions will be recorded.
@@ -182,7 +182,7 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 // GetSessionRecord returns a boolean indicating the session record status and an error. When error is not nil,
 // the boolean is false.
 func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	if _, err := s.store.NamespaceGet(ctx, tenantID); err != nil {
+	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID); err != nil {
 		return false, NewErrNamespaceNotFound(tenantID, err)
 	}
 

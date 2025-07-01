@@ -159,33 +159,36 @@ func TestNamespaceList(t *testing.T) {
 	}
 }
 
-func TestNamespaceGet(t *testing.T) {
+func TestNamespaceResolve(t *testing.T) {
 	type Expected struct {
-		ns  *models.Namespace
-		err error
+		namespace *models.Namespace
+		err       error
 	}
 
 	cases := []struct {
 		description string
-		tenant      string
+		resolver    store.NamespaceResolver
+		value       string
 		fixtures    []string
 		expected    Expected
 	}{
 		{
-			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			description: "fails when namespace not found by tenant ID",
+			resolver:    store.NamespaceTenantIDResolver,
+			value:       "nonexistent-tenant-id",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
 			expected: Expected{
-				ns:  nil,
-				err: store.ErrNoDocuments,
+				namespace: nil,
+				err:       store.ErrNoDocuments,
 			},
 		},
 		{
-			description: "succeeds when tenant is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			description: "succeeds resolving namespace by tenant ID",
+			resolver:    store.NamespaceTenantIDResolver,
+			value:       "00000000-0000-4000-0000-000000000000",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
 			expected: Expected{
-				ns: &models.Namespace{
+				namespace: &models.Namespace{
 					CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 					Name:                 "namespace-1",
 					Owner:                "507f1f77bcf86cd799439011",
@@ -199,12 +202,60 @@ func TestNamespaceGet(t *testing.T) {
 							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 							Role:    authorizer.RoleOwner,
 							Status:  models.MemberStatusAccepted,
+							Email:   "john.doe@test.com",
 						},
 						{
 							ID:      "6509e169ae6144b2f56bf288",
 							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
 							Role:    authorizer.RoleObserver,
 							Status:  models.MemberStatusPending,
+							Email:   "maria.garcia@test.com",
+						},
+					},
+					MaxDevices: -1,
+					Settings:   &models.NamespaceSettings{SessionRecord: true},
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "fails when namespace not found by name",
+			resolver:    store.NamespaceNameResolver,
+			value:       "nonexistent-namespace",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
+			expected: Expected{
+				namespace: nil,
+				err:       store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving namespace by name",
+			resolver:    store.NamespaceNameResolver,
+			value:       "namespace-1",
+			fixtures:    []string{fixtureNamespaces, fixtureUsers},
+			expected: Expected{
+				namespace: &models.Namespace{
+					CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					Name:                 "namespace-1",
+					Owner:                "507f1f77bcf86cd799439011",
+					TenantID:             "00000000-0000-4000-0000-000000000000",
+					DevicesAcceptedCount: 15,
+					DevicesPendingCount:  3,
+					DevicesRejectedCount: 2,
+					Members: []models.Member{
+						{
+							ID:      "507f1f77bcf86cd799439011",
+							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+							Role:    authorizer.RoleOwner,
+							Status:  models.MemberStatusAccepted,
+							Email:   "john.doe@test.com",
+						},
+						{
+							ID:      "6509e169ae6144b2f56bf288",
+							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+							Role:    authorizer.RoleObserver,
+							Status:  models.MemberStatusPending,
+							Email:   "maria.garcia@test.com",
 						},
 					},
 					MaxDevices: -1,
@@ -224,79 +275,8 @@ func TestNamespaceGet(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, err := s.NamespaceGet(ctx, tc.tenant)
-			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
-		})
-	}
-}
-
-func TestNamespaceGetByName(t *testing.T) {
-	type Expected struct {
-		ns  *models.Namespace
-		err error
-	}
-
-	cases := []struct {
-		description string
-		name        string
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when namespace is not found",
-			name:        "nonexistent",
-			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns:  nil,
-				err: store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds when namespace is found",
-			name:        "namespace-1",
-			fixtures:    []string{fixtureNamespaces},
-			expected: Expected{
-				ns: &models.Namespace{
-					CreatedAt:            time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:                 "namespace-1",
-					Owner:                "507f1f77bcf86cd799439011",
-					TenantID:             "00000000-0000-4000-0000-000000000000",
-					DevicesAcceptedCount: 15,
-					DevicesPendingCount:  3,
-					DevicesRejectedCount: 2,
-					Members: []models.Member{
-						{
-							ID:      "507f1f77bcf86cd799439011",
-							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
-						},
-						{
-							ID:      "6509e169ae6144b2f56bf288",
-							AddedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-							Role:    authorizer.RoleObserver,
-							Status:  models.MemberStatusPending,
-						},
-					},
-					MaxDevices: -1,
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			ns, err := s.NamespaceGetByName(ctx, tc.name)
-			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
+			namespace, err := s.NamespaceResolve(ctx, tc.resolver, tc.value)
+			assert.Equal(t, tc.expected, Expected{namespace: namespace, err: err})
 		})
 	}
 }

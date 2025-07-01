@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -31,7 +32,7 @@ type APIKeyService interface {
 }
 
 func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
-	if _, err := s.store.NamespaceGet(ctx, req.TenantID); err != nil {
+	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
@@ -97,7 +98,7 @@ func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]
 }
 
 func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
-	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}

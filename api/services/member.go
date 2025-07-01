@@ -49,7 +49,7 @@ type MemberService interface {
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil || namespace == nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -106,7 +106,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		}
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().EnrichMembersData())
+	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 }
 
 // addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
@@ -157,7 +157,7 @@ func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAdd
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -194,7 +194,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 }
 
 func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -229,11 +229,11 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 			Error("failed to uncache the token")
 	}
 
-	return s.store.NamespaceGet(ctx, req.TenantID, s.store.Options().EnrichMembersData())
+	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 }
 
 func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
-	ns, err := s.store.NamespaceGet(ctx, req.TenantID)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
