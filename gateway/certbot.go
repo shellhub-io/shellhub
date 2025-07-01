@@ -14,6 +14,26 @@ import (
 	"github.com/spf13/afero"
 )
 
+//go:generate mockery --name=Executor --filename=executor.go
+type Executor interface {
+	Command(name string, arg ...string) *exec.Cmd
+	Run(cmd *exec.Cmd) error
+}
+
+type executor struct{}
+
+func NewExecutor() Executor {
+	return &executor{}
+}
+
+func (e *executor) Command(name string, arg ...string) *exec.Cmd {
+	return exec.Command(name, arg...)
+}
+
+func (e *executor) Run(cmd *exec.Cmd) error {
+	return cmd.Run()
+}
+
 // DNSProvider represents a DNS provider to generate certificates.
 type DNSProvider string
 
@@ -46,13 +66,16 @@ type Config struct {
 type CertBot struct {
 	Config *Config
 
+	ex Executor
 	fs afero.Fs
 }
 
 func newCertBot(config *Config) *CertBot {
 	return &CertBot{
 		Config: config,
-		fs:     afero.NewOsFs(),
+
+		ex: new(executor),
+		fs: afero.NewOsFs(),
 	}
 }
 
@@ -69,7 +92,9 @@ func (cb *CertBot) ensureCertificates() {
 
 		certPath := fmt.Sprintf("%s/live/*.%s/fullchain.pem", cb.Config.RootDir, cb.Config.Tunnels.Domain)
 		if _, err := cb.fs.Stat(certPath); os.IsNotExist(err) {
-			cb.generateCertificateFromDNS()
+			if err := cb.generateCertificateFromDNS(); err != nil {
+				log.WithError(err).Fatal("failed to generate the certificate from DNS")
+			}
 		}
 	}
 }
@@ -85,7 +110,7 @@ func (cb *CertBot) generateCertificate() {
 
 	acmeServer := cb.startACMEServer()
 
-	cmd := exec.Command(
+	cmd := cb.ex.Command(
 		"certbot",
 		"certonly",
 		"--non-interactive",
@@ -128,16 +153,17 @@ func (cb *CertBot) generateProviderCredentialsFile() (afero.File, error) {
 	return file, nil
 }
 
-func (cb *CertBot) generateCertificateFromDNS() {
+func (cb *CertBot) generateCertificateFromDNS() error {
 	log.Info("generating SSL certificate with DNS")
 
 	file, err := cb.generateProviderCredentialsFile()
 	if err != nil {
-		log.WithError(err).Fatal("failed to generate INI file")
+		log.WithError(err).Error("failed to generate INI file")
+
+		return err
 	}
 
-	cmd := exec.Command( //nolint:gosec
-		"certbot",
+	args := []string{
 		"certonly",
 		"--non-interactive",
 		"--agree-tos",
@@ -149,20 +175,30 @@ func (cb *CertBot) generateCertificateFromDNS() {
 		file.Name(),
 		"-d",
 		fmt.Sprintf("*.%s", cb.Config.Tunnels.Domain),
-	)
+	}
+
 	if cb.Config.Staging {
 		log.Info("running generate with staging on dns")
 
-		cmd.Args = append(cmd.Args, "--staging")
+		args = append(args, "--staging")
 	}
+
+	cmd := cb.ex.Command( //nolint:gosec
+		"certbot",
+		args...,
+	)
 
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		log.WithError(err).Fatal("failed to generate SSL certificate")
+	if err := cb.ex.Run(cmd); err != nil {
+		log.WithError(err).Error("failed to generate SSL certificate")
+
+		return err
 	}
 
 	log.Info("generate run on dns")
+
+	return nil
 }
 
 // startACMEServer starts a local HTTP server for the ACME challenge.
@@ -204,7 +240,7 @@ func (cb *CertBot) stopACMEServer(server *http.Server) {
 }
 
 func (cb *CertBot) executeRenewCertificates() error {
-	cmd := exec.Command( //nolint:gosec
+	cmd := cb.ex.Command( //nolint:gosec
 		"certbot",
 		"renew",
 	)
@@ -215,7 +251,7 @@ func (cb *CertBot) executeRenewCertificates() error {
 		cmd.Args = append(cmd.Args, "--staging")
 	}
 
-	if err := cmd.Run(); err != nil {
+	if err := cb.ex.Run(cmd); err != nil {
 		return err
 	}
 
