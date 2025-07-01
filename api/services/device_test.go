@@ -1024,6 +1024,10 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusRemoved, int64(1)).
+					Return(nil).
+					Once()
+				storeMock.
 					On("DeviceDelete", ctx, models.UID("uid")).
 					Return(nil).
 					Once()
@@ -2624,7 +2628,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusRemoved, int64(-1)).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2701,6 +2705,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("billing-error-device")).
+					Return(nil, nil).
+					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(0, errors.New("billing error", "", 0)).
@@ -2775,6 +2783,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("payment-required-device")).
+					Return(nil, nil).
+					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(402, nil).
@@ -2848,6 +2860,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
+					Once()
+				storeMock.
+					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("cloud-device")).
+					Return(nil, nil).
 					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
