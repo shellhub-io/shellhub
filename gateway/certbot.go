@@ -240,16 +240,20 @@ func (cb *CertBot) stopACMEServer(server *http.Server) {
 }
 
 func (cb *CertBot) executeRenewCertificates() error {
-	cmd := cb.ex.Command( //nolint:gosec
-		"certbot",
+	args := []string{
 		"renew",
-	)
+	}
 
 	if cb.Config.Staging {
 		log.Info("running renew with staging")
 
-		cmd.Args = append(cmd.Args, "--staging")
+		args = append(args, "--staging")
 	}
+
+	cmd := cb.ex.Command( //nolint:gosec
+		"certbot",
+		args...,
+	)
 
 	if err := cb.ex.Run(cmd); err != nil {
 		return err
