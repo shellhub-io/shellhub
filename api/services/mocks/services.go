@@ -1552,17 +1552,17 @@ func (_m *Service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate)
 	return r0
 }
 
-// UpdateDeviceStatus provides a mock function with given fields: ctx, tenant, uid, status
-func (_m *Service) UpdateDeviceStatus(ctx context.Context, tenant string, uid models.UID, status models.DeviceStatus) error {
-	ret := _m.Called(ctx, tenant, uid, status)
+// UpdateDeviceStatus provides a mock function with given fields: ctx, req
+func (_m *Service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateDeviceStatus")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, models.UID, models.DeviceStatus) error); ok {
-		r0 = rf(ctx, tenant, uid, status)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceUpdateStatus) error); ok {
+		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
 	}
