@@ -4112,10 +4112,6 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()

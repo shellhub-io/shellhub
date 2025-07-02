@@ -130,6 +130,11 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
+	// This is a workaround for a current limitation: store.DeviceRemovedInsert internally updates
+	// the device's status to models.DeviceStatusRemoved, so we need to preserve the original
+	// device status before the update.
+	originalStatus := device.Status
+
 	// If the namespace has a limit of devices, we change the device's slot status to removed.
 	// This way, we can keep track of the number of devices that were removed from the namespace and void the device
 	// switching.
@@ -143,7 +148,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return err
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, device.Status, -1); err != nil { //nolint:revive
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, originalStatus, -1); err != nil { //nolint:revive
 		return err
 	}
 
@@ -321,6 +326,12 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return nil
 	}
 
+	// This is a workaround for a current limitation: removed devices are stored in a separate collection,
+	// which means the namespace doesn't maintain a counter for them. Decrementing the old status count
+	// would result in -2 (since we already subtract 1 in DeleteDevice), so we only decrement the
+	// oldStatus count if the device has not been removed.
+	isRemoved := false
+
 	switch {
 	case envs.IsCloud():
 		if namespace.Billing.IsActive() {
@@ -335,6 +346,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 			}
 
 			if removed != nil {
+				isRemoved = true
 				if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
 					return NewErrDeviceRemovedDelete(err)
 				}
@@ -368,7 +380,13 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return err
 	}
 
-	if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
+	if !isRemoved {
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, originalStatus, -1); err != nil {
+			return err
+		}
+	}
+
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, status, 1); err != nil { // nolint:revive
 		return err
 	}
 
