@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 )
@@ -12,11 +15,14 @@ const (
 	defaultNginxTemplateDir = "/templates"
 	// defaultCertBotRootDir is the default directory where Certbot keeps
 	// generated certificates, keys, and related assets.
-	defaultCertBotRootDir = "/etc/letsencrypt"
+	defaultCertBotRootDir          = "/etc/letsencrypt"
+	defaultTickerRenewCertificates = 24 * time.Hour
 )
 
 func main() {
 	loglevel.UseEnvs()
+
+	ctx := context.Background()
 
 	config, err := loadGatewayConfig()
 	if err != nil {
@@ -68,7 +74,7 @@ func main() {
 		certBot.executeRenewCertificates()
 		log.Info("renew executed")
 
-		go certBot.renewCertificates()
+		go certBot.renewCertificates(ctx, defaultTickerRenewCertificates)
 	}
 
 	if config.Env == "development" {
