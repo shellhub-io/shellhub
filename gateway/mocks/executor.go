@@ -40,9 +40,9 @@ func (_m *Executor) Command(name string, arg ...string) *exec.Cmd {
 	return r0
 }
 
-// Run provides a mock function with given fields: _a0
-func (_m *Executor) Run(_a0 *exec.Cmd) error {
-	ret := _m.Called(_a0)
+// Run provides a mock function with given fields: cmd
+func (_m *Executor) Run(cmd *exec.Cmd) error {
+	ret := _m.Called(cmd)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Run")
@@ -50,7 +50,7 @@ func (_m *Executor) Run(_a0 *exec.Cmd) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*exec.Cmd) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(cmd)
 	} else {
 		r0 = ret.Error(0)
 	}
