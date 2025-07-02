@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -32,6 +33,56 @@ func (e *executor) Command(name string, arg ...string) *exec.Cmd {
 
 func (e *executor) Run(cmd *exec.Cmd) error {
 	return cmd.Run()
+}
+
+//go:generate mockery --name=Ticker --filename=ticker.go
+type Ticker interface {
+	// Init creates a new [time.Ticker] internally with [time.Duration] defined.
+	Init(context.Context, time.Duration)
+	// Tick waits for a ticker's tick and return the value. If ticker wasn't initialized, a [time.Time] with zero-value
+	// will be returned.
+	Tick() chan time.Time
+	// Stop stops the ticker initialized. If ticker wasn't initialized, nothing happens.
+	Stop()
+}
+
+type ticker struct {
+	ticker *time.Ticker
+	tick   chan time.Time
+}
+
+func (t *ticker) Init(ctx context.Context, duration time.Duration) {
+	t.ticker = time.NewTicker(duration)
+	t.tick = make(chan time.Time)
+
+	go func() {
+		defer close(t.tick)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case ticked, ok := <-t.ticker.C:
+				if !ok {
+					return
+				}
+
+				t.tick <- ticked
+			}
+		}
+	}()
+}
+
+func (t *ticker) Tick() chan time.Time {
+	return t.tick
+}
+
+func (t *ticker) Stop() {
+	if t.ticker == nil {
+		return
+	}
+
+	t.ticker.Stop()
 }
 
 // DNSProvider represents a DNS provider to generate certificates.
@@ -67,6 +118,7 @@ type CertBot struct {
 	Config *Config
 
 	ex Executor
+	tk Ticker
 	fs afero.Fs
 }
 
@@ -75,6 +127,7 @@ func newCertBot(config *Config) *CertBot {
 		Config: config,
 
 		ex: new(executor),
+		tk: new(ticker),
 		fs: afero.NewOsFs(),
 	}
 }
@@ -265,21 +318,30 @@ func (cb *CertBot) executeRenewCertificates() error {
 }
 
 // renewCertificates periodically renews the SSL certificates.
-func (cb *CertBot) renewCertificates() {
+func (cb *CertBot) renewCertificates(ctx context.Context, duration time.Duration) {
 	log.Info("starting SSL certificate renewal process")
 
-	ticker := time.NewTicker(24 * time.Hour)
-	defer ticker.Stop()
+	cb.tk.Init(ctx, duration)
+	defer cb.tk.Stop()
 
-	for range ticker.C {
-		log.Info("checking if SSL certificate needs to be renewed")
-		if err := cb.executeRenewCertificates(); err != nil {
-			log.WithError(err).Error("failed to renew SSL certificate")
+	ticker := cb.tk.Tick()
 
-			continue
+	for {
+		select {
+		case <-ctx.Done():
+			log.Info("renew certificates loop was closed due context cancellation")
+
+			return
+		case <-ticker:
+			log.Info("checking if SSL certificate needs to be renewed")
+			if err := cb.executeRenewCertificates(); err != nil {
+				log.WithError(err).Error("failed to renew SSL certificate")
+
+				continue
+			}
+
+			log.Info("ssl certificate successfully renewed")
+			cb.Config.RenewedCallback()
 		}
-
-		log.Info("ssl certificate successfully renewed")
-		cb.Config.RenewedCallback()
 	}
 }
