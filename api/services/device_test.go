@@ -2330,7 +2330,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Twice()
+					Once()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").
@@ -2398,7 +2398,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Twice()
+					Once()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").
@@ -2469,7 +2469,7 @@ func TestUpdateDeviceStatus_community_and_enterprise(t *testing.T) {
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
-					Return("false").Twice()
+					Return("false").Once()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").Once()
@@ -2703,12 +2703,13 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").Once()
+					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
 					Return(0, errors.New("error", "", 0)).
@@ -2777,12 +2778,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
@@ -2852,12 +2853,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
@@ -2931,12 +2932,12 @@ func TestUpdateDeviceStatus_cloud_subscription_active(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", "device_accept").
@@ -3168,12 +3169,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3240,12 +3241,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3321,12 +3322,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3397,12 +3398,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3477,12 +3478,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3563,12 +3564,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3653,12 +3654,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3751,12 +3752,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3827,12 +3828,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3906,12 +3907,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -3992,12 +3993,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).
@@ -4082,12 +4083,12 @@ func TestUpdateDeviceStatus_cloud_subscription_inactive(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
+					On("Get", "SHELLHUB_BILLING").
+					Return("true").
+					Once()
+				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceRemovedGet", ctx, "00000000-0000-0000-0000-000000000000", models.UID("uid")).

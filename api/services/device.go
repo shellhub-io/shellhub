@@ -333,7 +333,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 	isRemoved := false
 
 	switch {
-	case envs.IsCloud():
+	case envs.IsCloud() && envs.HasBilling():
 		if namespace.Billing.IsActive() {
 			if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
 				return NewErrBillingReportNamespaceDelete(err)
@@ -370,7 +370,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 				return ErrDeviceLimit
 			}
 		}
-	case envs.IsCommunity(), envs.IsEnterprise():
+	default:
 		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
 			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 		}
