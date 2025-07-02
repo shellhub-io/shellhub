@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"os/exec"
 	"testing"
+	"time"
 
-	executorMock "github.com/shellhub-io/shellhub/gateway/mocks"
+	gatewayMocks "github.com/shellhub-io/shellhub/gateway/mocks"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -34,7 +36,7 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 		name        string
 		config      Config
 		expected    error
-		expectCalls func(*executorMock.Executor)
+		expectCalls func(*gatewayMocks.Executor)
 	}{
 		{
 			name: "failed to run the command",
@@ -45,7 +47,7 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 					Token:    "test",
 				},
 			},
-			expectCalls: func(executorMock *executorMock.Executor) {
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot",
 					"certonly",
 					"--non-interactive",
@@ -73,7 +75,7 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 					Token:    "test",
 				},
 			},
-			expectCalls: func(executorMock *executorMock.Executor) {
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot",
 					"certonly",
 					"--non-interactive",
@@ -102,7 +104,7 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 				},
 				Staging: true,
 			},
-			expectCalls: func(executorMock *executorMock.Executor) {
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot",
 					"certonly",
 					"--non-interactive",
@@ -126,7 +128,7 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
-			executorMock := new(executorMock.Executor)
+			executorMock := new(gatewayMocks.Executor)
 
 			certbot := newCertBot(&tc.config)
 			certbot.fs = afero.NewMemMapFs()
@@ -147,14 +149,14 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 		name        string
 		config      Config
 		expected    error
-		expectCalls func(*executorMock.Executor)
+		expectCalls func(*gatewayMocks.Executor)
 	}{
 		{
 			name: "failed to run the renew command",
 			config: Config{
 				Staging: false,
 			},
-			expectCalls: func(executorMock *executorMock.Executor) {
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot", "renew").Return(exec.Command("")).Once()
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to run the renew command")).Once()
 			},
@@ -165,7 +167,7 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 			config: Config{
 				Staging: false,
 			},
-			expectCalls: func(executorMock *executorMock.Executor) {
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot", "renew").Return(exec.Command("")).Once()
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -176,7 +178,7 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 			config: Config{
 				Staging: true,
 			},
-			expectCalls: func(executorMock *executorMock.Executor) {
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot", "renew", "--staging").Return(exec.Command("")).Once()
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -186,7 +188,7 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
-			executorMock := new(executorMock.Executor)
+			executorMock := new(gatewayMocks.Executor)
 
 			certbot := newCertBot(&tc.config)
 			certbot.ex = executorMock
@@ -197,6 +199,190 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 			assert.Equal(tt, tc.expected, err)
 
 			executorMock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestCertBot_renewCertificates(t *testing.T) {
+	duration := 100 * time.Millisecond
+
+	tests := []struct {
+		name              string
+		config            Config
+		expectCalls       func(*gatewayMocks.Executor, *gatewayMocks.Ticker)
+		shouldRenewCalled bool
+	}{
+		{
+			name: "failed renewal",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor, tickerMock *gatewayMocks.Ticker) {
+				tickerMock.On("Init", mock.Anything, mock.Anything).Once()
+				tickerMock.On("Stop").Once()
+
+				ch := make(chan time.Time, 1)
+				ch <- time.Now()
+				tickerMock.On("Tick").Return(ch).Once()
+
+				executorMock.On("Command", "certbot",
+					"renew",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to renew")).Once()
+			},
+			shouldRenewCalled: false,
+		},
+		{
+			name: "failed renewal more than run time",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor, tickerMock *gatewayMocks.Ticker) {
+				tickerMock.On("Init", mock.Anything, mock.Anything).Once()
+				tickerMock.On("Stop").Once()
+
+				ch := make(chan time.Time, 2)
+				ch <- time.Now()
+				ch <- time.Now()
+				tickerMock.On("Tick").Return(ch).Once()
+
+				executorMock.On("Command", "certbot",
+					"renew",
+				).Return(exec.Command("")).Twice()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to renew")).Twice()
+			},
+			shouldRenewCalled: false,
+		},
+		{
+			name: "success to renew after failure",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor, tickerMock *gatewayMocks.Ticker) {
+				tickerMock.On("Init", mock.Anything, mock.Anything).Once()
+				tickerMock.On("Stop").Once()
+
+				ch := make(chan time.Time, 2)
+				ch <- time.Now()
+				tickerMock.On("Tick").Return(ch).Once()
+
+				executorMock.On("Command", "certbot",
+					"renew",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to renew")).Once()
+
+				ch <- time.Now()
+				executorMock.On("Command", "certbot",
+					"renew",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			shouldRenewCalled: true,
+		},
+		{
+			name: "success to renew",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor, tickerMock *gatewayMocks.Ticker) {
+				tickerMock.On("Init", mock.Anything, mock.Anything).Once()
+				tickerMock.On("Stop").Once()
+
+				ch := make(chan time.Time, 1)
+				ch <- time.Now()
+				tickerMock.On("Tick").Return(ch).Once()
+
+				executorMock.On("Command", "certbot",
+					"renew",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			shouldRenewCalled: true,
+		},
+		{
+			name: "success to renew more than one time",
+			config: Config{
+				Staging: false,
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor, tickerMock *gatewayMocks.Ticker) {
+				tickerMock.On("Init", mock.Anything, mock.Anything).Once()
+				tickerMock.On("Stop").Once()
+
+				ch := make(chan time.Time, 2)
+				ch <- time.Now()
+				ch <- time.Now()
+				tickerMock.On("Tick").Return(ch).Once()
+
+				executorMock.On("Command", "certbot",
+					"renew",
+				).Return(exec.Command("")).Twice()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Twice()
+			},
+			shouldRenewCalled: true,
+		},
+		{
+			name: "success to renew on staging",
+			config: Config{
+				Staging: true,
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor, tickerMock *gatewayMocks.Ticker) {
+				tickerMock.On("Init", mock.Anything, mock.Anything).Once()
+				tickerMock.On("Stop").Once()
+
+				ch := make(chan time.Time, 1)
+				ch <- time.Now()
+				tickerMock.On("Tick").Return(ch).Once()
+
+				executorMock.On("Command", "certbot",
+					"renew",
+					"--staging",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			shouldRenewCalled: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(tt *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), duration)
+			defer cancel()
+
+			tickerMock := new(gatewayMocks.Ticker)
+			executorMock := new(gatewayMocks.Executor)
+
+			config := &tc.config
+
+			renewWasCalled := false
+			config.RenewedCallback = func() {
+				renewWasCalled = true
+			}
+
+			certbot := newCertBot(config)
+			certbot.tk = tickerMock
+			certbot.ex = executorMock
+
+			tc.expectCalls(executorMock, tickerMock)
+
+			done := make(chan struct{})
+			go func() {
+				certbot.renewCertificates(ctx, duration)
+				close(done)
+			}()
+
+			<-done
+
+			assert.Equal(tt, tc.shouldRenewCalled, renewWasCalled)
+
+			tickerMock.AssertExpectations(tt)
+			executorMock.AssertExpectations(tt)
 		})
 	}
 }
