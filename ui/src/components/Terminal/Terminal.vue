@@ -63,6 +63,11 @@ const getTerminalDimensions = (): WebTermDimensions => ({
   rows: xterm.value.rows,
 });
 
+// Resize terminal on window resize events
+const registerResizeHandler = () => {
+  useEventListener(window, "resize", () => fitAddon.value.fit());
+};
+
 // Encodes a params object as URL query string.
 const encodeURLParams = (params: IParams): string => new URLSearchParams(params as Record<string, string>).toString();
 
@@ -136,6 +141,10 @@ const handleJsonMessage = async (message: string): Promise<void> => {
         ws.value.send(
           JSON.stringify({ kind: MessageKind.Signature, data: signature }),
         );
+
+        // Register resize handler
+        registerResizeHandler();
+
         break;
       }
 
@@ -152,6 +161,7 @@ const handleWebSocketMessage = async (rawData: Blob | string): Promise<void> => 
   if (rawData instanceof Blob) {
     // For password-based logins, always just write messages to the terminal
     xterm.value.write(await rawData.text());
+    registerResizeHandler();
   } else {
     await handleJsonMessage(rawData);
   }
@@ -189,9 +199,6 @@ onMounted(() => {
   initializeWebSocket();
   xterm.value.focus();
 });
-
-// Resize terminal on window resize events
-useEventListener(window, "resize", () => fitAddon.value.fit());
 
 // Cleanup lifecycle: close WebSocket if active on unMount
 onUnmounted(() => {
