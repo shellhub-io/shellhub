@@ -159,12 +159,16 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	if err != nil {
 		var e *BannerError
 
-		// NOTICE: if the connection return a banner, wrap that message into an error and return to the session.
+		// NOTE: if the connection return a error banner, wrap that message into an error and return to the session.
 		if errors.As(err, &e) {
+			logger.WithError(e).Debug("failed to receive the connection banner")
+
 			return e
 		}
 
-		logger.WithError(err).Debug("failed to receive the connection banner")
+		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
+		// keeping the real error internally to avoid exposing some sensitive data.
+		logger.WithError(err).Debug("failed to dial to the ssh server")
 
 		return ErrAuthentication
 	}
