@@ -910,6 +910,7 @@ func TestDeleteDevice(t *testing.T) {
 							UID:       "uid",
 							TenantID:  "tenant",
 							CreatedAt: time.Time{},
+							Status:    models.DeviceStatusAccepted,
 						},
 						nil,
 					).
@@ -951,6 +952,7 @@ func TestDeleteDevice(t *testing.T) {
 							UID:       "uid",
 							TenantID:  "tenant",
 							CreatedAt: time.Time{},
+							Status:    models.DeviceStatusAccepted,
 						},
 					).
 					Return(errors.New("error", "", 0)).
@@ -1027,6 +1029,66 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusAccepted, int64(-1)).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "[with_billing] succeeds but device status isn't accepted",
+			uid:         models.UID("uid"),
+			tenant:      "tenant",
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:       "uid",
+							Status:    models.DeviceStatusPending,
+							TenantID:  "tenant",
+							CreatedAt: time.Time{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("NamespaceGet", ctx, "tenant").
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "id",
+							TenantID: "tenant",
+							Members: []models.Member{
+								{
+									ID:   "id",
+									Role: authorizer.RoleOwner,
+								},
+								{
+									ID:   "id2",
+									Role: authorizer.RoleObserver,
+								},
+							},
+							MaxDevices: 3,
+						},
+						nil,
+					).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").Return("true").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_BILLING").Return("true").
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, models.UID("uid")).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusPending, int64(-1)).
 					Return(nil).
 					Once()
 			},
