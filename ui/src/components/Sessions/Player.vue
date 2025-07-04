@@ -95,7 +95,7 @@ import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
 import formatPlaybackTime from "@/utils/playerPlayback";
 
 const { logs } = defineProps<{
-  logs: string | null;
+  logs: Response | null;
 }>();
 
 const emit = defineEmits(["close"]);
@@ -159,7 +159,7 @@ const createPlayer = (startAt = 0) => {
     startAt,
   };
 
-  return AsciinemaPlayer.create({ data: logs }, containerDiv.value, playerOptions);
+  return AsciinemaPlayer.create({ data: logs, driver: "stream" }, containerDiv.value, playerOptions);
 };
 
 const setPlayerEventListeners = () => {

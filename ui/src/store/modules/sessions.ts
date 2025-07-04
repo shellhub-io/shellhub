@@ -43,7 +43,7 @@ export const sessions: Module<SessionsState, State> = {
     },
 
     setSessionLogs: (state, res) => {
-      state.sessionLogs = res.data;
+      state.sessionLogs = res;
     },
 
     setPagePerpage: (state, data) => {
