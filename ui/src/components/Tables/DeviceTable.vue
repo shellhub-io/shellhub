@@ -148,7 +148,7 @@
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <DeviceDelete
-                      :variant="props.variant === 'device' ? 'device' : 'container' "
+                      :variant
                       :uid="item.uid"
                       :notHasAuthorization="!hasAuthorizationRemove()"
                       @update="refreshDevices"
@@ -215,7 +215,7 @@
               <DeviceActionButton
                 :uid="item.uid"
                 :name="item.name"
-                :variant="props.variant === 'device' ? 'device' : 'container' "
+                :variant
                 :isInNotification="false"
                 action="accept"
                 :show="showDeviceAcceptButton"
@@ -224,7 +224,7 @@
               />
               <DeviceActionButton
                 :uid="item.uid"
-                :variant="props.variant === 'device' ? 'device' : 'container' "
+                :variant
                 :action="status === 'pending' ? 'reject' : 'remove'"
                 :isInNotification="false"
                 :show="showDeviceRejectButton"
