@@ -95,7 +95,7 @@ import PlayerShortcutsDialog from "./PlayerShortcutsDialog.vue";
 import formatPlaybackTime from "@/utils/playerPlayback";
 
 const { logs } = defineProps<{
-  logs: string | null;
+  logs: Response | null;
 }>();
 
 const emit = defineEmits(["close"]);

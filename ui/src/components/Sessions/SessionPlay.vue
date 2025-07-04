@@ -64,7 +64,7 @@ const store = useStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
 const loading = ref(false);
-const logs = ref<string | null>(null);
+const logs = ref<Response | null>(null);
 const isCommunity = computed(() => envVariables.isCommunity);
 const tooltipMessage = computed(() => props.recorded
   ? "You don't have permission to play this session."

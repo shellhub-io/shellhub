@@ -11,4 +11,9 @@ export const closeSession = async (
   session: ISessions,
 ) => sessionsApi.clsoeSession(session.uid, { device: session.device_uid });
 
-export const getLog = async (uid: string) => sessionsApi.getSessionRecord(uid, 0);
+/* Uses fetch instead of the OpenAPI spec method because the player uses a ReadableStream.
+* Axios does not support ReadableStreams in the browser yet. */
+export const getLog = async (uid: string) => {
+  const configuration = sessionsApi.getConfiguration();
+  return fetch(`/api/sessions/${uid}/records/0`, { headers: { Authorization: `Bearer ${configuration?.accessToken}` } });
+};
