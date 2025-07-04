@@ -63,28 +63,29 @@ func NewGateway(config *GatewayConfig, controller *NginxController) *Gateway {
 // ensuring the server uses the latest certificates without manual intervention.
 func (g *Gateway) EnableSSL() {
 	g.Certbot = newCertBot(&Config{
-		Domain:          g.Config.Domain,
 		RootDir:         defaultCertBotRootDir,
 		RenewedCallback: g.Controller.reload,
-		Tunnels:         nil,
 	})
 
-	g.Certbot.ensureCertificates()
-	g.Certbot.executeRenewCertificates()
+	g.Certbot.Certificates = append(
+		g.Certbot.Certificates,
+		NewDefaultCertificate(g.Config.Domain),
+	)
 }
 
 func (g *Gateway) EnableTunnels() {
-	domain := g.Config.Domain
-
-	if g.Config.TunnelsDomain != "" {
-		domain = g.Config.TunnelsDomain
+	if g.Config.TunnelsDomain == "" {
+		g.Config.TunnelsDomain = g.Config.Domain
 	}
 
-	g.Certbot.Config.Tunnels = &Tunnels{
-		Domain:   domain,
-		Provider: g.Config.TunnelsDNSProvider,
-		Token:    g.Config.TunnelsDNSProviderToken,
-	}
+	g.Certbot.Certificates = append(
+		g.Certbot.Certificates,
+		NewTunnelsCertificate(
+			g.Config.TunnelsDomain,
+			g.Config.TunnelsDNSProvider,
+			g.Config.TunnelsDNSProviderToken,
+		),
+	)
 }
 
 // Watch enables live monitoring of Nginx configuration template files.
@@ -104,6 +105,9 @@ func (g *Gateway) Start(ctx context.Context) {
 	log.Debug("start was called")
 
 	if g.Certbot != nil {
+		g.Certbot.ensureCertificates()
+		g.Certbot.executeRenewCertificates()
+
 		go g.Certbot.renewCertificates(ctx, defaultTickerRenewCertificates)
 	}
 
