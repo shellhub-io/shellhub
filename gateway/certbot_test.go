@@ -13,39 +13,37 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCertBot_generateProviderCredentialsFile(t *testing.T) {
-	certbot := newCertBot(&Config{
-		Tunnels: &Tunnels{
-			Domain:   "localhost",
-			Provider: "digitalocean",
-			Token:    "test",
-		},
-	})
-	certbot.fs = afero.NewMemMapFs()
+func TestTunnelsCertificate_generateProviderCredentialsFile(t *testing.T) {
+	certificate := TunnelsCertificate{
+		Domain:   "localhost",
+		Provider: "digitalocean",
+		Token:    "test",
+	}
 
-	certbot.generateProviderCredentialsFile()
+	certificate.fs = afero.NewMemMapFs()
 
-	buffer, err := afero.ReadFile(certbot.fs, "/etc/shellhub-gateway/digitalocean.ini")
+	certificate.generateProviderCredentialsFile()
+
+	buffer, err := afero.ReadFile(certificate.fs, "/etc/shellhub-gateway/digitalocean.ini")
 	assert.NoError(t, err)
 
 	assert.Equal(t, "dns_digitalocean_token = test", string(buffer))
 }
 
-func TestCertBot_generateCertificateFromDNS(t *testing.T) {
+func TestTunnelsCertificate_generate(t *testing.T) {
 	tests := []struct {
 		name        string
-		config      Config
+		config      TunnelsCertificate
+		staging     bool
 		expected    error
 		expectCalls func(*gatewayMocks.Executor)
 	}{
 		{
 			name: "failed to run the command",
-			config: Config{
-				Tunnels: &Tunnels{
-					Domain:   "localhost",
-					Provider: "digitalocean",
-					Token:    "test",
-				},
+			config: TunnelsCertificate{
+				Domain:   "localhost",
+				Provider: "digitalocean",
+				Token:    "test",
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot",
@@ -68,12 +66,10 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 		},
 		{
 			name: "successful certificate generation",
-			config: Config{
-				Tunnels: &Tunnels{
-					Domain:   "localhost",
-					Provider: "digitalocean",
-					Token:    "test",
-				},
+			config: TunnelsCertificate{
+				Domain:   "localhost",
+				Provider: "digitalocean",
+				Token:    "test",
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot",
@@ -96,14 +92,12 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 		},
 		{
 			name: "successful certificate generation in staging",
-			config: Config{
-				Tunnels: &Tunnels{
-					Domain:   "localhost",
-					Provider: "digitalocean",
-					Token:    "test",
-				},
-				Staging: true,
+			config: TunnelsCertificate{
+				Domain:   "localhost",
+				Provider: "digitalocean",
+				Token:    "test",
 			},
+			staging: true,
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
 				executorMock.On("Command", "certbot",
 					"certonly",
@@ -130,13 +124,13 @@ func TestCertBot_generateCertificateFromDNS(t *testing.T) {
 		t.Run(tc.name, func(tt *testing.T) {
 			executorMock := new(gatewayMocks.Executor)
 
-			certbot := newCertBot(&tc.config)
-			certbot.fs = afero.NewMemMapFs()
-			certbot.ex = executorMock
+			certificate := tc.config
+			certificate.fs = afero.NewMemMapFs()
+			certificate.ex = executorMock
 
 			tc.expectCalls(executorMock)
 
-			err := certbot.generateCertificateFromDNS()
+			err := certificate.Generate(tc.staging)
 			assert.Equal(tt, tc.expected, err)
 
 			executorMock.AssertExpectations(t)
