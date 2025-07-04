@@ -1,3 +1,6 @@
+// Package main provides SSL certificate management functionality using CertBot.
+// It supports both HTTP-01 and DNS-01 challenge types for certificate generation
+// and automatic renewal of SSL certificates.
 package main
 
 import (
@@ -15,42 +18,61 @@ import (
 	"github.com/spf13/afero"
 )
 
+// Executor provides an interface for executing system commands.
+// This interface allows for easy mocking in tests and provides
+// a clean abstraction over the exec package.
+//
 //go:generate mockery --name=Executor --filename=executor.go
 type Executor interface {
+	// Command creates a new *exec.Cmd with the given name and arguments.
 	Command(name string, arg ...string) *exec.Cmd
+	// Run executes the given command and waits for it to complete.
 	Run(cmd *exec.Cmd) error
 }
 
+// executor is the default implementation of the Executor interface.
 type executor struct{}
 
+// NewExecutor creates a new Executor instance.
 func NewExecutor() Executor {
 	return &executor{}
 }
 
+// Command creates a new *exec.Cmd with the given name and arguments.
 func (e *executor) Command(name string, arg ...string) *exec.Cmd {
 	return exec.Command(name, arg...)
 }
 
+// Run executes the given command and waits for it to complete.
 func (e *executor) Run(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
 
+// Ticker provides an interface for time-based operations with context support.
+// This interface allows for easy mocking in tests and provides a clean
+// abstraction over the time package's ticker functionality.
+//
 //go:generate mockery --name=Ticker --filename=ticker.go
 type Ticker interface {
-	// Init creates a new [time.Ticker] internally with [time.Duration] defined.
+	// Init creates a new time.Ticker internally with the specified duration.
+	// The ticker will respect the provided context for cancellation.
 	Init(context.Context, time.Duration)
-	// Tick waits for a ticker's tick and return the value. If ticker wasn't initialized, a [time.Time] with zero-value
-	// will be returned.
+	// Tick returns a channel that receives the current time on each tick.
+	// If the ticker wasn't initialized, the channel will be nil.
 	Tick() chan time.Time
-	// Stop stops the ticker initialized. If ticker wasn't initialized, nothing happens.
+	// Stop stops the ticker. If the ticker wasn't initialized, this is a no-op.
 	Stop()
 }
 
+// ticker is the default implementation of the Ticker interface.
 type ticker struct {
 	ticker *time.Ticker
 	tick   chan time.Time
 }
 
+// Init creates a new time.Ticker internally with the specified duration.
+// It starts a goroutine that forwards ticker events to the tick channel
+// and handles context cancellation.
 func (t *ticker) Init(ctx context.Context, duration time.Duration) {
 	t.ticker = time.NewTicker(duration)
 	t.tick = make(chan time.Time)
@@ -73,10 +95,12 @@ func (t *ticker) Init(ctx context.Context, duration time.Duration) {
 	}()
 }
 
+// Tick returns a channel that receives the current time on each tick.
 func (t *ticker) Tick() chan time.Time {
 	return t.tick
 }
 
+// Stop stops the ticker. If the ticker wasn't initialized, this is a no-op.
 func (t *ticker) Stop() {
 	if t.ticker == nil {
 		return
@@ -85,34 +109,49 @@ func (t *ticker) Stop() {
 	t.ticker.Stop()
 }
 
-// DNSProvider represents a DNS provider to generate certificates.
+// DNSProvider represents a DNS provider that can be used for DNS-01 challenges
+// when generating SSL certificates.
 type DNSProvider string
 
 // DigitalOceanDNSProvider represents the Digital Ocean DNS provider.
 const DigitalOceanDNSProvider = "digitalocean"
 
+// Config holds the configuration for CertBot operations.
 type Config struct {
-	// RootDir is the root directory for CertBot configurations.
+	// RootDir is the root directory where CertBot stores its configurations
+	// and generated certificates. Typically "/etc/letsencrypt".
 	RootDir string
-	// Staging defines if the CertBot will use the staging server to generate certificates.
+	// Staging defines whether CertBot should use Let's Encrypt's staging server
+	// instead of the production server. Useful for testing to avoid rate limits.
 	Staging bool
-	// RenewedCallback is a callback called after certificate renew.
+	// RenewedCallback is an optional callback function that gets called
+	// after a certificate is successfully renewed.
 	RenewedCallback func()
 }
 
+// Certificate represents an SSL certificate that can be generated using CertBot.
 type Certificate interface {
+	// String returns a string representation of the certificate, typically the domain name.
 	String() string
+	// Generate creates the SSL certificate using CertBot.
+	// The staging parameter determines whether to use Let's Encrypt's staging server.
 	Generate(staging bool) error
 }
 
+// DefaultCertificate represents a standard SSL certificate that uses HTTP-01 challenge
+// for domain validation. This is suitable for single domains where you have control
+// over the web server.
 type DefaultCertificate struct {
+	// RootDir is the root directory for certificate storage.
 	RootDir string
-	Domain  string
+	// Domain is the domain name for which the certificate will be generated.
+	Domain string
 
 	ex Executor
 	fs afero.Fs
 }
 
+// NewDefaultCertificate creates a new DefaultCertificate instance for the given domain.
 func NewDefaultCertificate(domain string) Certificate {
 	return &DefaultCertificate{
 		Domain: domain,
@@ -122,6 +161,9 @@ func NewDefaultCertificate(domain string) Certificate {
 	}
 }
 
+// startACMEServer starts a local HTTP server on port 80 to handle ACME HTTP-01 challenges.
+// This server serves files from the .well-known/acme-challenge directory which is
+// required for Let's Encrypt domain validation.
 func (d *DefaultCertificate) startACMEServer() *http.Server {
 	mux := http.NewServeMux()
 	mux.Handle(
@@ -152,16 +194,20 @@ func (d *DefaultCertificate) startACMEServer() *http.Server {
 	return server
 }
 
-// stopACMEServer stops the local ACME server.
+// stopACMEServer gracefully stops the local ACME HTTP server.
 func (d *DefaultCertificate) stopACMEServer(server *http.Server) {
 	if err := server.Close(); err != nil {
 		log.WithError(err).Fatal("could not stop ACME server")
 	}
 }
 
+// Generate creates an SSL certificate for the domain using HTTP-01 challenge.
+// It starts a local HTTP server to handle the ACME challenge, runs CertBot,
+// and then stops the server.
 func (d *DefaultCertificate) Generate(staging bool) error {
 	log.Info("generating SSL certificate")
 
+	// Create the ACME challenge directory
 	challengeDir := fmt.Sprintf("%s/.well-known/acme-challenge", os.TempDir())
 	if err := d.fs.MkdirAll(challengeDir, 0o755); err != nil {
 		log.WithError(err).Error("failed to create acme challenge on filesystem")
@@ -169,6 +215,7 @@ func (d *DefaultCertificate) Generate(staging bool) error {
 		return err
 	}
 
+	// Start the ACME server to handle HTTP-01 challenges
 	acmeServer := d.startACMEServer()
 
 	args := []string{
@@ -204,6 +251,7 @@ func (d *DefaultCertificate) Generate(staging bool) error {
 		return err
 	}
 
+	// Stop the ACME server
 	d.stopACMEServer(acmeServer)
 
 	log.Info("generate run")
@@ -211,22 +259,28 @@ func (d *DefaultCertificate) Generate(staging bool) error {
 	return nil
 }
 
+// String returns the domain name as the string representation of the certificate.
 func (d *DefaultCertificate) String() string {
 	return d.Domain
 }
 
+// TunnelsCertificate represents a wildcard SSL certificate that uses DNS-01 challenge
+// for domain validation. This is suitable for wildcard certificates (*.example.com)
+// where you have control over the DNS records.
 type TunnelsCertificate struct {
-	// Domain is the default domain used to generate certificate for Tunnels.
+	// Domain is the base domain used to generate wildcard certificates.
 	Domain string
-	// Provider is the DNS provider used to generate wildcard certificates.
+	// Provider is the DNS provider used for DNS-01 challenges.
 	Provider DNSProvider
-	// Token is a DNS token used to generate wildcard certificates.
+	// Token is the API token for the DNS provider.
 	Token string
 
 	ex Executor
 	fs afero.Fs
 }
 
+// NewTunnelsCertificate creates a new TunnelsCertificate instance for generating
+// wildcard certificates using DNS-01 challenges.
 func NewTunnelsCertificate(domain string, provider DNSProvider, token string) Certificate {
 	return &TunnelsCertificate{
 		Domain: domain,
@@ -239,6 +293,8 @@ func NewTunnelsCertificate(domain string, provider DNSProvider, token string) Ce
 	}
 }
 
+// generateProviderCredentialsFile creates a credentials file for the DNS provider.
+// This file contains the API token needed for DNS-01 challenges.
 func (d *TunnelsCertificate) generateProviderCredentialsFile() (afero.File, error) {
 	token := fmt.Sprintf("dns_%s_token = %s", d.Provider, d.Token)
 
@@ -258,9 +314,13 @@ func (d *TunnelsCertificate) generateProviderCredentialsFile() (afero.File, erro
 	return file, nil
 }
 
+// Generate creates a wildcard SSL certificate for the domain using DNS-01 challenge.
+// It creates a credentials file for the DNS provider, runs CertBot with DNS plugin,
+// and generates a wildcard certificate.
 func (d *TunnelsCertificate) Generate(staging bool) error {
 	log.Info("generating SSL certificate with DNS")
 
+	// Create the DNS provider credentials file
 	file, err := d.generateProviderCredentialsFile()
 	if err != nil {
 		log.WithError(err).Error("failed to generate INI file")
@@ -268,6 +328,7 @@ func (d *TunnelsCertificate) Generate(staging bool) error {
 		return err
 	}
 
+	// Build the CertBot command arguments for DNS-01 challenge
 	args := []string{
 		"certonly",
 		"--non-interactive",
@@ -306,14 +367,18 @@ func (d *TunnelsCertificate) Generate(staging bool) error {
 	return nil
 }
 
+// String returns the domain name as the string representation of the certificate.
 func (d *TunnelsCertificate) String() string {
 	return d.Domain
 }
 
-// CertBot handles the generation and renewal of SSL certificates.
+// CertBot is the main structure that handles SSL certificate generation and renewal.
+// It manages multiple certificates and provides automatic renewal functionality.
 type CertBot struct {
+	// Config holds the configuration for CertBot operations.
 	Config *Config
 
+	// Certificates is a list of certificates to manage.
 	Certificates []Certificate
 
 	ex Executor
@@ -321,6 +386,7 @@ type CertBot struct {
 	fs afero.Fs
 }
 
+// newCertBot creates a new CertBot instance with the given configuration.
 func newCertBot(config *Config) *CertBot {
 	return &CertBot{
 		Config: config,
@@ -331,7 +397,8 @@ func newCertBot(config *Config) *CertBot {
 	}
 }
 
-// ensureCertificates checks if the SSL certificate exists and generates if it doesn't.
+// ensureCertificates checks if SSL certificates exist for all managed domains.
+// If a certificate doesn't exist, it generates a new one.
 func (cb *CertBot) ensureCertificates() {
 	for _, certificate := range cb.Certificates {
 		certPath := fmt.Sprintf("%s/live/%s/fullchain.pem", cb.Config.RootDir, certificate)
@@ -341,6 +408,8 @@ func (cb *CertBot) ensureCertificates() {
 	}
 }
 
+// executeRenewCertificates runs the CertBot renew command to check and renew
+// certificates that are close to expiration.
 func (cb *CertBot) executeRenewCertificates() error {
 	args := []string{
 		"renew",
@@ -366,7 +435,9 @@ func (cb *CertBot) executeRenewCertificates() error {
 	return nil
 }
 
-// renewCertificates periodically renews the SSL certificates.
+// renewCertificates starts a background process that periodically checks and renews
+// SSL certificates. It runs in a loop with the specified duration between checks.
+// The process respects context cancellation for graceful shutdown.
 func (cb *CertBot) renewCertificates(ctx context.Context, duration time.Duration) {
 	log.Info("starting SSL certificate renewal process")
 
