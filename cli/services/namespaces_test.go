@@ -496,7 +496,7 @@ func TestNamespaceAddMember(t *testing.T) {
 					},
 				}
 				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john").Return(user, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "invalid_namespace").Return(nil, errors.New("error")).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "invalid_namespace").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrNamespaceNotFound},
 		},
@@ -525,7 +525,7 @@ func TestNamespaceAddMember(t *testing.T) {
 					},
 					CreatedAt: now,
 				}
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceAddMember", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: authorizer.RoleObserver}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
@@ -595,7 +595,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					},
 				}
 				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, errors.New("error")).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrNamespaceNotFound},
 		},
@@ -623,7 +623,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					},
 					CreatedAt: now,
 				}
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
@@ -652,7 +652,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					},
 					CreatedAt: now,
 				}
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
@@ -696,7 +696,7 @@ func TestNamespaceDelete(t *testing.T) {
 			description: "fails when could not find a namespace",
 			namespace:   "namespace",
 			requiredMocks: func() {
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(nil, errors.New("error")).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(nil, errors.New("error")).Once()
 			},
 			expected: ErrNamespaceNotFound,
 		},
@@ -715,7 +715,7 @@ func TestNamespaceDelete(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  clock.Now(),
 				}
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceDelete", ctx, "00000000-0000-0000-0000-000000000000").Return(errors.New("error")).Once()
 			},
 			expected: ErrFailedDeleteNamespace,
@@ -735,7 +735,7 @@ func TestNamespaceDelete(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  clock.Now(),
 				}
-				mock.On("NamespaceGetByName", ctx, "namespace").Return(namespace, nil).Once()
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
 				mock.On("NamespaceDelete", ctx, "00000000-0000-0000-0000-000000000000").Return(nil).Once()
 			},
 			expected: nil,

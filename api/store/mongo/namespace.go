@@ -18,7 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
+func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.Namespace, int, error) {
 	query := []bson.M{}
 
 	queryMatch, err := queries.FromFilters(&filters)
@@ -48,6 +48,77 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, fi
 		})
 	}
 
+	query = append(query,
+		bson.M{
+			"$addFields": bson.M{
+				"members": bson.M{
+					"$map": bson.M{
+						"input": "$members",
+						"as":    "member",
+						"in": bson.M{
+							"$mergeObjects": bson.A{
+								"$$member",
+								bson.M{
+									"id": bson.M{
+										"$toObjectId": "$$member.id",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		bson.M{
+			"$lookup": bson.M{
+				"from":         "users",
+				"localField":   "members.id",
+				"foreignField": "_id",
+				"as":           "userDetails",
+			},
+		},
+		bson.M{
+			"$addFields": bson.M{
+				"members": bson.M{
+					"$map": bson.M{
+						"input": "$members",
+						"as":    "member",
+						"in": bson.M{
+							"$let": bson.M{
+								"vars": bson.M{
+									"userDoc": bson.M{
+										"$arrayElemAt": bson.A{
+											bson.M{
+												"$filter": bson.M{
+													"input": "$userDetails",
+													"cond": bson.M{
+														"$eq": bson.A{"$$this._id", "$$member.id"},
+													},
+												},
+											},
+											0,
+										},
+									},
+								},
+								"in": bson.M{
+									"$mergeObjects": bson.A{
+										"$$member",
+										bson.M{
+											"email": "$$userDoc.email",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		bson.M{
+			"$unset": "userDetails",
+		},
+	)
+
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
 	count, err := AggregateCount(ctx, s.db.Collection("namespaces"), queryCount)
@@ -70,66 +141,118 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, fi
 			return namespaces, count, err
 		}
 
-		for _, opt := range opts {
-			if err := opt(context.WithValue(ctx, "db", s.db), namespace); err != nil { //nolint:revive
-				return nil, 0, err
-			}
-		}
-
 		namespaces = append(namespaces, *namespace)
 	}
 
 	return namespaces, count, err
 }
 
-func (s *Store) NamespaceGet(ctx context.Context, tenantID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	var ns *models.Namespace
-
-	if _ = s.cache.Get(ctx, strings.Join([]string{"namespace", tenantID}, "/"), &ns); ns != nil && ns.TenantID != "" {
-		goto Opts
+func (s *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceResolver, value string) (*models.Namespace, error) {
+	namespace := new(models.Namespace)
+	if _ = s.cache.Get(ctx, "namespace"+"/"+value, namespace); namespace != nil && namespace.TenantID != "" {
+		return namespace, nil
 	}
 
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&ns); err != nil {
-		return ns, FromMongoError(err)
+	matchStage := bson.M{}
+	switch resolver {
+	case store.NamespaceTenantIDResolver:
+		matchStage["tenant_id"] = value
+	case store.NamespaceNameResolver:
+		matchStage["name"] = value
 	}
 
-	if err := s.cache.Set(ctx, strings.Join([]string{"namespace", tenantID}, "/"), ns, time.Minute); err != nil {
-		log.Error(err)
+	query := []bson.M{
+		{
+			"$match": matchStage,
+		},
+		{
+			"$addFields": bson.M{
+				"members": bson.M{
+					"$map": bson.M{
+						"input": "$members",
+						"as":    "member",
+						"in": bson.M{
+							"$mergeObjects": bson.A{
+								"$$member",
+								bson.M{
+									"id": bson.M{
+										"$toObjectId": "$$member.id",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "users",
+				"localField":   "members.id",
+				"foreignField": "_id",
+				"as":           "userDetails",
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"members": bson.M{
+					"$map": bson.M{
+						"input": "$members",
+						"as":    "member",
+						"in": bson.M{
+							"$let": bson.M{
+								"vars": bson.M{
+									"userDoc": bson.M{
+										"$arrayElemAt": bson.A{
+											bson.M{
+												"$filter": bson.M{
+													"input": "$userDetails",
+													"cond": bson.M{
+														"$eq": bson.A{"$$this._id", "$$member.id"},
+													},
+												},
+											},
+											0,
+										},
+									},
+								},
+								"in": bson.M{
+									"$mergeObjects": bson.A{
+										"$$member",
+										bson.M{
+											"email": "$$userDoc.email",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"$unset": "userDetails",
+		},
 	}
 
-Opts:
-	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "db", s.db), ns); err != nil { //nolint:revive
-			return nil, err
-		}
+	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, query)
+	if err != nil {
+		return nil, FromMongoError(err)
 	}
+	defer cursor.Close(ctx)
 
-	return ns, nil
-}
+	cursor.Next(ctx)
 
-func (s *Store) NamespaceGetByName(ctx context.Context, name string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	var ns *models.Namespace
-
-	if _ = s.cache.Get(ctx, strings.Join([]string{"namespace", name}, "/"), &ns); ns != nil && ns.TenantID != "" {
-		goto Opts
-	}
-
-	if ns != nil {
-		return ns, nil
-	}
-
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": name}).Decode(&ns); err != nil {
+	namespace = nil
+	if err := cursor.Decode(&namespace); err != nil {
 		return nil, FromMongoError(err)
 	}
 
-Opts:
-	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "db", s.db), ns); err != nil { //nolint:revive
-			return nil, err
-		}
+	if err := s.cache.Set(ctx, "namespace"+"/"+value, namespace, time.Minute); err != nil {
+		log.Error(err)
 	}
 
-	return ns, nil
+	return namespace, nil
 }
 
 func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {

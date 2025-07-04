@@ -69,7 +69,7 @@ type AuthService interface {
 }
 
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
-	namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -353,7 +353,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 			role = member.Role.String()
 		}
 	default:
-		namespace, err := s.store.NamespaceGet(ctx, req.TenantID)
+		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
 			return nil, NewErrNamespaceNotFound(req.TenantID, err)
 		}
@@ -463,7 +463,7 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 }
 
 func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (string, error) {
-	ns, err := s.store.NamespaceGet(ctx, tenantID)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
 		return "", err
 	}

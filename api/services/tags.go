@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -13,7 +14,7 @@ type TagsService interface {
 }
 
 func (s *service) GetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant)
 	if err != nil || namespace == nil {
 		return nil, 0, NewErrNamespaceNotFound(tenant, err)
 	}
@@ -49,7 +50,7 @@ func (s *service) DeleteTag(ctx context.Context, tenant string, tag string) erro
 		return NewErrTagInvalid(tag, err)
 	}
 
-	namespace, err := s.store.NamespaceGet(ctx, tenant)
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant)
 	if err != nil || namespace == nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}

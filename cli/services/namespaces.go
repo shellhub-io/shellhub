@@ -79,7 +79,7 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(input.Namespace))
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
@@ -102,7 +102,7 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 		return nil, ErrUserNotFound
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(input.Namespace))
 	if err != nil {
 		return nil, ErrNamespaceNotFound
 	}
@@ -120,7 +120,7 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 		return ErrNamespaceInvalid
 	}
 
-	ns, err := s.store.NamespaceGetByName(ctx, input.Namespace)
+	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(input.Namespace))
 	if err != nil {
 		return ErrNamespaceNotFound
 	}

@@ -28,9 +28,6 @@ func TestAddNamespaceMember(t *testing.T) {
 	}
 
 	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
-	storeMock.On("Options").Return(queryOptionsMock)
-
 	clockMock := new(clockmock.Clock)
 	clock.DefaultBackend = clockMock
 
@@ -54,7 +51,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, ErrNamespaceNotFound).
 					Once()
 			},
@@ -74,7 +71,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -103,7 +100,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -135,7 +132,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -173,7 +170,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -211,7 +208,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -257,7 +254,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -311,7 +308,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -365,7 +362,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -420,7 +417,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -462,9 +459,8 @@ func TestAddNamespaceMember(t *testing.T) {
 					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -519,7 +515,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -556,9 +552,8 @@ func TestAddNamespaceMember(t *testing.T) {
 					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(
 						&models.Namespace{
 							TenantID: "00000000-0000-4000-0000-000000000000",
@@ -613,7 +608,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -666,7 +661,7 @@ func TestAddNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -702,9 +697,8 @@ func TestAddNamespaceMember(t *testing.T) {
 					On("WithTransaction", ctx, mock.Anything).
 					Return(nil).
 					Once()
-				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1042,7 +1036,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, ErrNamespaceNotFound).
 					Once()
 			},
@@ -1058,7 +1052,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1083,7 +1077,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1111,7 +1105,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1144,7 +1138,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1181,7 +1175,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1218,7 +1212,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1271,8 +1265,6 @@ func TestRemoveNamespaceMember(t *testing.T) {
 	}
 
 	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
-	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
 		description   string
@@ -1289,7 +1281,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, ErrNamespaceNotFound).
 					Once()
 			},
@@ -1307,7 +1299,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1334,7 +1326,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1364,7 +1356,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1399,7 +1391,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1438,7 +1430,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1481,7 +1473,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1509,9 +1501,8 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
 					Return(nil).
 					Once()
-				queryOptionsMock.On("EnrichMembersData").Return(nil).Once()
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000", mock.AnythingOfType("store.NamespaceQueryOption")).
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1580,7 +1571,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, ErrNamespaceNotFound).
 					Once()
 			},
@@ -1598,7 +1589,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1621,7 +1612,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1649,7 +1640,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1681,7 +1672,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",
@@ -1713,7 +1704,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceGet", ctx, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "namespace",

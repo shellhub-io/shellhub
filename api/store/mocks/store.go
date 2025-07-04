@@ -930,80 +930,6 @@ func (_m *Store) NamespaceEdit(ctx context.Context, tenant string, changes *mode
 	return r0
 }
 
-// NamespaceGet provides a mock function with given fields: ctx, tenantID, opts
-func (_m *Store) NamespaceGet(ctx context.Context, tenantID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	_va := make([]interface{}, len(opts))
-	for _i := range opts {
-		_va[_i] = opts[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, tenantID)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceGet")
-	}
-
-	var r0 *models.Namespace
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.NamespaceQueryOption) (*models.Namespace, error)); ok {
-		return rf(ctx, tenantID, opts...)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.NamespaceQueryOption) *models.Namespace); ok {
-		r0 = rf(ctx, tenantID, opts...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Namespace)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.NamespaceQueryOption) error); ok {
-		r1 = rf(ctx, tenantID, opts...)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// NamespaceGetByName provides a mock function with given fields: ctx, name, opts
-func (_m *Store) NamespaceGetByName(ctx context.Context, name string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
-	_va := make([]interface{}, len(opts))
-	for _i := range opts {
-		_va[_i] = opts[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, name)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceGetByName")
-	}
-
-	var r0 *models.Namespace
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.NamespaceQueryOption) (*models.Namespace, error)); ok {
-		return rf(ctx, name, opts...)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.NamespaceQueryOption) *models.Namespace); ok {
-		r0 = rf(ctx, name, opts...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Namespace)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.NamespaceQueryOption) error); ok {
-		r1 = rf(ctx, name, opts...)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // NamespaceGetPreferred provides a mock function with given fields: ctx, userID, opts
 func (_m *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
 	_va := make([]interface{}, len(opts))
@@ -1087,16 +1013,9 @@ func (_m *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID str
 	return r0
 }
 
-// NamespaceList provides a mock function with given fields: ctx, paginator, filters, opts
-func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters, opts ...store.NamespaceQueryOption) ([]models.Namespace, int, error) {
-	_va := make([]interface{}, len(opts))
-	for _i := range opts {
-		_va[_i] = opts[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, paginator, filters)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// NamespaceList provides a mock function with given fields: ctx, paginator, filters
+func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.Namespace, int, error) {
+	ret := _m.Called(ctx, paginator, filters)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceList")
@@ -1105,25 +1024,25 @@ func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, f
 	var r0 []models.Namespace
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) ([]models.Namespace, int, error)); ok {
-		return rf(ctx, paginator, filters, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) ([]models.Namespace, int, error)); ok {
+		return rf(ctx, paginator, filters)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) []models.Namespace); ok {
-		r0 = rf(ctx, paginator, filters, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) []models.Namespace); ok {
+		r0 = rf(ctx, paginator, filters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) int); ok {
-		r1 = rf(ctx, paginator, filters, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters) int); ok {
+		r1 = rf(ctx, paginator, filters)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters, ...store.NamespaceQueryOption) error); ok {
-		r2 = rf(ctx, paginator, filters, opts...)
+	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters) error); ok {
+		r2 = rf(ctx, paginator, filters)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1147,6 +1066,36 @@ func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, mem
 	}
 
 	return r0
+}
+
+// NamespaceResolve provides a mock function with given fields: ctx, resolver, value
+func (_m *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceResolver, value string) (*models.Namespace, error) {
+	ret := _m.Called(ctx, resolver, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceResolve")
+	}
+
+	var r0 *models.Namespace
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.NamespaceResolver, string) (*models.Namespace, error)); ok {
+		return rf(ctx, resolver, value)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.NamespaceResolver, string) *models.Namespace); ok {
+		r0 = rf(ctx, resolver, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Namespace)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.NamespaceResolver, string) error); ok {
+		r1 = rf(ctx, resolver, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NamespaceSetSessionRecord provides a mock function with given fields: ctx, sessionRecord, tenantID
