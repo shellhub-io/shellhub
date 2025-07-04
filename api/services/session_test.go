@@ -232,9 +232,9 @@ func TestDeactivateSession(t *testing.T) {
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
 				mock.On("SessionGet", ctx, models.UID("_uid")).
-					Return(nil, goerrors.New("get error")).Once()
+					Return(nil, errors.New("get error")).Once()
 			},
-			expected: NewErrSessionNotFound("_uid", goerrors.New("get error")),
+			expected: NewErrSessionNotFound("_uid", errors.New("get error")),
 		},
 		{
 			name: "fails",
