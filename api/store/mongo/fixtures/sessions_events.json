@@ -1,0 +1,35 @@
+{
+    "sessions_events": {
+        "6862c1d617cc3c27e6c77995": {
+            "_id": "6862c1d617cc3c27e6c77995",
+            "session": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "type": "pty-req",
+            "timestamp": "2023-01-02T12:00:00.000Z",
+            "data": {
+                "term": "screen-256color",
+                "columns": 211,
+                "rows": 47,
+                "width": 1899,
+                "height": 940,
+                "modelist": ""
+            },
+            "seat": 0
+        },
+        "6862c1d617cc3c27e6c77996": {
+            "_id": "6862c1d617cc3c27e6c77996",
+            "session": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "type": "shell",
+            "timestamp": "2023-01-02T12:01:00.000Z",
+            "data": "",
+            "seat": 0
+        },
+        "6862c1db17cc3c27e6c779d1": {
+            "_id": "6862c1db17cc3c27e6c779d1",
+            "session": "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+            "type": "exit-status",
+            "timestamp": "2023-01-02T12:02:00.000Z",
+            "data": "AAAAAA==",
+            "seat": 0
+        }
+    }
+}
