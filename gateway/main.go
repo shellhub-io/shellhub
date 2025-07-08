@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -28,6 +29,13 @@ const (
 	defaultTickerRenewCertificates = 24 * time.Hour
 )
 
+const (
+	// SSLFeature indicates that SSL's feature is eanbled
+	SSLFeature = "ssl"
+	// TunnelsFeature indicates that Tunnels' feature is eanbled.
+	TunnelsFeature = "feature"
+)
+
 // Gateway represents the main gateway service that orchestrates Nginx configuration
 // management and SSL certificate provisioning.
 type Gateway struct {
@@ -42,50 +50,57 @@ type Gateway struct {
 	// Certbot handles SSL certificate provisioning and renewal through Let's Encrypt.
 	// This field is nil when SSL is not enabled.
 	Certbot *CertBot
+
+	// Features contains feature flags to gateway.
+	Features []string
 }
 
 // NewGateway creates a new Gateway instance with the provided configuration and controller.
 // The Certbot component is initially set to nil and will be initialized only when
 // SSL is explicitly enabled through EnableSSL().
-func NewGateway(config *GatewayConfig, controller *NginxController) *Gateway {
-	return &Gateway{
+func NewGateway(config *GatewayConfig, controller *NginxController, features []string) *Gateway {
+	g := &Gateway{
 		Config:     config,
 		Controller: controller,
 		Certbot:    nil,
 	}
-}
 
-// EnableSSL initializes and configures SSL certificate management for the gateway.
-// This method sets up Certbot with the gateway's domain configuration and establishes
-// automatic certificate provisioning and renewal.
-//
-// The renewal callback is configured to reload Nginx when certificates are renewed,
-// ensuring the server uses the latest certificates without manual intervention.
-func (g *Gateway) EnableSSL() {
-	g.Certbot = newCertBot(&Config{
-		RootDir:         defaultCertBotRootDir,
-		RenewedCallback: g.Controller.reload,
-	})
+	// NOTE: [SSLFeature] indicates that SSL's feature is eanbled, configuring SSL certificate management for the
+	// gateway. It sets up Certbot with the gateway's domain configuration and establishes automatic certificate
+	// provisioning and renewal. The renewal callback is configured to reload Nginx when certificates are
+	// renewed, ensuring the server uses the latest certificates without manual intervention.
+	if slices.Contains(features, SSLFeature) {
+		g.Certbot = newCertBot(&Config{
+			RootDir:         defaultCertBotRootDir,
+			RenewedCallback: g.Controller.reload,
+		})
 
-	g.Certbot.Certificates = append(
-		g.Certbot.Certificates,
-		NewDefaultCertificate(g.Config.Domain),
-	)
-}
-
-func (g *Gateway) EnableTunnels() {
-	if g.Config.TunnelsDomain == "" {
-		g.Config.TunnelsDomain = g.Config.Domain
+		g.Certbot.Certificates = append(
+			g.Certbot.Certificates,
+			NewDefaultCertificate(g.Config.Domain),
+		)
 	}
 
-	g.Certbot.Certificates = append(
-		g.Certbot.Certificates,
-		NewTunnelsCertificate(
-			g.Config.TunnelsDomain,
-			g.Config.TunnelsDNSProvider,
-			g.Config.TunnelsDNSProviderToken,
-		),
-	)
+	// NOTE: [TunnelsFeature] indicates that Tunnels' feature is enabled, configuring necessary values to work with
+	// SSL's enabled.
+	if slices.Contains(features, TunnelsFeature) {
+		if g.Certbot != nil {
+			if g.Config.TunnelsDomain == "" {
+				g.Config.TunnelsDomain = g.Config.Domain
+			}
+
+			g.Certbot.Certificates = append(
+				g.Certbot.Certificates,
+				NewTunnelsCertificate(
+					g.Config.TunnelsDomain,
+					g.Config.TunnelsDNSProvider,
+					g.Config.TunnelsDNSProviderToken,
+				),
+			)
+		}
+	}
+
+	return g
 }
 
 // Watch enables live monitoring of Nginx configuration template files.
@@ -133,7 +148,27 @@ func main() {
 		templatesDir:  defaultNginxTemplateDir,
 	}
 
-	gateway := NewGateway(config, controller)
+	features := []string{}
+
+	if config.EnableAutoSSL {
+		log.WithFields(log.Fields{
+			"provider": config.TunnelsDNSProvider,
+			"token":    halfString(config.TunnelsDNSProviderToken),
+		}).Info("auto ssl is enabled")
+
+		features = append(features, SSLFeature)
+	}
+
+	if config.Tunnels {
+		log.WithFields(log.Fields{
+			"provider": config.TunnelsDNSProvider,
+			"token":    halfString(config.TunnelsDNSProviderToken),
+		}).Info("tunnels info")
+
+		features = append(features, TunnelsFeature)
+	}
+
+	gateway := NewGateway(config, controller, features)
 
 	log.Info("gateway created")
 
@@ -142,21 +177,6 @@ func main() {
 
 		log.Info("watch for nginx files is enabled")
 		gateway.Watch()
-	}
-
-	if config.EnableAutoSSL {
-		log.Info("auto ssl is enabled")
-
-		gateway.EnableSSL()
-
-		if config.Tunnels {
-			log.WithFields(log.Fields{
-				"provider": config.TunnelsDNSProvider,
-				"token":    halfString(config.TunnelsDNSProviderToken),
-			}).Info("tunnels info")
-
-			gateway.EnableTunnels()
-		}
 	}
 
 	log.Info("gateway started")
