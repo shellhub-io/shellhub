@@ -45,7 +45,6 @@ const xterm = ref<Terminal>({} as Terminal); // xterm.js terminal instance
 const fitAddon = ref<FitAddon>(new FitAddon()); // Auto-fit terminal to container
 const ws = ref<WebSocket>({} as WebSocket); // Active WebSocket connection
 const textEncoder = new TextEncoder(); // Converts strings to Uint8Array
-const isReady = ref(false); // Tracks if WS is open and ready
 
 // Initializes the xterm.js terminal and applies styling and behavior.
 const initializeTerminal = () => {
@@ -81,7 +80,7 @@ const getWebSocketUrl = (dimensions: WebTermDimensions): string => {
 };
 
 // Determines if the current WebSocket connection is open and usable.
-const isWebSocketOpen = (): boolean => isReady.value && ws.value.readyState === WebSocket.OPEN;
+const isWebSocketOpen = (): boolean => ws.value.readyState === WebSocket.OPEN;
 
 // Binds terminal input and resize events to WebSocket messages.
 const setupTerminalEvents = () => {
@@ -167,21 +166,10 @@ const handleWebSocketMessage = async (rawData: Blob | string): Promise<void> => 
   }
 };
 
-// Sets up WebSocket event handlers: open, message, and close.
+// Sets up WebSocket event handlers: message and close.
 const setupWebSocketEvents = () => {
-  ws.value.onopen = () => {
-    fitAddon.value.fit(); // Adjust terminal to container
-    isReady.value = true;
-  };
-
-  ws.value.onmessage = async (event) => {
-    await handleWebSocketMessage(event.data);
-  };
-
-  ws.value.onclose = () => {
-    xterm.value.write("\r\nConnection ended\r\n");
-    isReady.value = false;
-  };
+  ws.value.onmessage = async (event) => { await handleWebSocketMessage(event.data); };
+  ws.value.onclose = () => { xterm.value.write("\r\nConnection ended\r\n"); };
 };
 
 // Initializes the WebSocket session with terminal dimensions.
@@ -206,7 +194,7 @@ onUnmounted(() => {
 });
 
 // Optional expose for testing or parent communication
-defineExpose({ xterm, ws, isReady });
+defineExpose({ xterm, ws });
 </script>
 
 <style scoped lang="scss">
