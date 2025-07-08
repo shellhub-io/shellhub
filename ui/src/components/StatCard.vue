@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import DeviceAdd from "../Devices/DeviceAdd.vue";
+import DeviceAdd from "./Devices/DeviceAdd.vue";
 
 defineProps<{
   title: string;
