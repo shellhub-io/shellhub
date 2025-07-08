@@ -1,17 +1,14 @@
 <template>
   <v-row v-if="!hasStatus">
-    <v-col cols="12" md="4" class="pt-0" v-for="item in items" :key="item.id">
+    <v-col cols="12" md="4" class="pt-0" v-for="(item, index) in items" :key="index">
       <div data-test="home-card">
         <Card
-          :id="item.id"
           :title="item.title"
-          :fieldObject="item.fieldObject"
           :content="item.content"
           :icon="item.icon"
-          :buttonName="item.buttonName"
-          :pathName="item.pathName"
-          :nameUseTest="item.nameUseTest"
-          :stats="item.stats"
+          :buttonLabel="item.buttonLabel"
+          :path="item.path"
+          :stat="item.stat"
         />
       </div>
     </v-col>
@@ -30,15 +27,12 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 
 type ItemCard = {
-  id: number;
   title: string;
-  fieldObject: string;
   content: string;
   icon: string;
-  buttonName: string;
-  pathName: string;
-  nameUseTest: string;
-  stats: number;
+  buttonLabel: string;
+  path: string;
+  stat: number;
 };
 
 const store = useStore();
@@ -50,37 +44,28 @@ const hasNamespace = computed(
 );
 const items = computed(() => [
   {
-    id: 1,
     title: "Registered Devices",
-    fieldObject: "registered_devices",
     content: "Registered devices into the tenancy account",
     icon: "mdi-devices",
-    stats: itemsStats.value.registered_devices || 0,
-    buttonName: "Add Device",
-    pathName: "devices",
-    nameUseTest: "registeredDevices-btn",
+    buttonLabel: "Add Device",
+    path: "devices",
+    stat: itemsStats.value.registered_devices || 0,
   },
   {
-    id: 2,
     title: "Online Devices",
-    fieldObject: "online_devices",
     content: "Devices are online and ready for connecting",
     icon: "mdi-devices",
-    stats: itemsStats.value.online_devices || 0,
-    buttonName: "View all Devices",
-    pathName: "devices",
-    nameUseTest: "viewOnlineDevices-btn",
+    buttonLabel: "View all Devices",
+    path: "devices",
+    stat: itemsStats.value.online_devices || 0,
   },
   {
-    id: 3,
     title: "Active Sessions",
-    fieldObject: "active_sessions",
     content: "Active SSH Sessions opened by users",
     icon: "mdi-devices",
-    stats: itemsStats.value.active_sessions || 0,
-    buttonName: "View all Sessions",
-    pathName: "sessions",
-    nameUseTest: "viewActiveSession-btn",
+    buttonLabel: "View all Sessions",
+    path: "sessions",
+    stat: itemsStats.value.active_sessions || 0,
   },
 ] as ItemCard[]);
 

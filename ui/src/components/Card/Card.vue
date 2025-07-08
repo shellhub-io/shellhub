@@ -1,40 +1,38 @@
 <template>
   <v-hover v-slot="{ isHovering, props }">
-    <v-card class="pa-1 mb-2 border bg-v-theme-surface" v-bind="props" :elevation="isHovering ? 24 : 8" density="compact" variant="flat">
-      <v-list-item :data-test="nameUseTest" lines="three">
-        <div>
-          <p class="text-overline mb-1" :title-test="title">
-            {{ title }}
-          </p>
-          <v-list-item-title class="text-h5 mb-1" :stats-test="stats">
-            {{ stats }}
-          </v-list-item-title>
-          <v-list-item-subtitle :content-test="content">
-            {{ content }}
-          </v-list-item-subtitle>
-        </div>
-
-        <v-spacer />
-
+    <v-card
+      class="pa-1 mb-2 border bg-v-theme-surface"
+      v-bind="props"
+      :elevation="isHovering ? 24 : 8"
+      density="compact"
+      variant="flat"
+    >
+      <v-card-item class="pa-4 pt-5">
+        <v-card-title class="text-overline mb-4" :title-test="title">
+          {{ title }}
+        </v-card-title>
+        <v-card-text class="text-h5 pl-0">
+          {{ stat }}
+        </v-card-text>
+        <v-card-subtitle>
+          {{ content }}
+        </v-card-subtitle>
         <template v-slot:append>
-          <div class="mt-4">
-            <v-icon :icon="icon" size="x-large" :iconName-test="icon" />
-          </div>
+          <v-icon :icon size="x-large" class="pb-4" />
         </template>
-      </v-list-item>
+      </v-card-item>
 
       <v-card-actions>
         <v-btn
-          v-if="buttonName != 'Add Device'"
-          :to="pathName"
+          v-if="buttonLabel != 'Add Device'"
+          :to="path"
           color="primary"
           variant="elevated"
           tabindex="0"
-          :buttonName-test="buttonName"
           class="text-subtitle"
           size="small"
         >
-          {{ buttonName }}
+          {{ buttonLabel }}
         </v-btn>
 
         <DeviceAdd v-else size="small" />
@@ -46,48 +44,18 @@
 <script setup lang="ts">
 import DeviceAdd from "../Devices/DeviceAdd.vue";
 
-defineProps({
-  id: {
-    type: Number,
-    default: 0,
-  },
-  title: {
-    type: String,
-    default: "",
-  },
-  fieldObject: {
-    type: String,
-    default: "",
-  },
-  content: {
-    type: String,
-    default: "",
-  },
-  icon: {
-    type: String,
-    default: "",
-  },
-  buttonName: {
-    type: String,
-    default: "",
-  },
-  pathName: {
-    type: String,
-    default: "",
-  },
-  nameUseTest: {
-    type: String,
-    default: "",
-  },
-  stats: {
-    type: Number,
-    default: 0,
-  },
-});
+defineProps<{
+  title: string;
+  content: string;
+  icon: string;
+  buttonLabel: string;
+  path: string;
+  stat: number;
+}>();
 </script>
 
 <style lang="scss">
-  .border {
-    border: thin solid rgba(255, 255, 255, 0.12);
-  }
+.border {
+  border: thin solid rgba(255, 255, 255, 0.12);
+}
 </style>
