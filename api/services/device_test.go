@@ -1056,7 +1056,7 @@ func TestDeleteDevice(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("NamespaceGet", ctx, "tenant").
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(
 						&models.Namespace{
 							Name:     "group1",
