@@ -1272,7 +1272,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when namespace does not exists",
+			description: "fails when device is not found",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
@@ -1284,8 +1284,19 @@ func TestLookupDevice(t *testing.T) {
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "name", mock.AnythingOfType("store.QueryOption")).
+					On(
+						"DeviceResolve",
+						ctx,
+						store.DeviceHostnameResolver,
+						"name",
+						mock.AnythingOfType("store.QueryOption"),
+						mock.AnythingOfType("store.QueryOption"),
+					).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -1295,7 +1306,7 @@ func TestLookupDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds",
+			description: "succeeds to lookup for device",
 			namespace:   "namespace",
 			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
 			requiredMocks: func(device *models.Device, namespace string) {
@@ -1307,8 +1318,19 @@ func TestLookupDevice(t *testing.T) {
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "name", mock.AnythingOfType("store.QueryOption")).
+					On(
+						"DeviceResolve",
+						ctx,
+						store.DeviceHostnameResolver,
+						"name",
+						mock.AnythingOfType("store.QueryOption"),
+						mock.AnythingOfType("store.QueryOption"),
+					).
 					Return(device, nil).
 					Once()
 			},

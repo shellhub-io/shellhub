@@ -208,7 +208,12 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 		return nil, NewErrNamespaceNotFound(namespace, err)
 	}
 
-	device, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, name, s.store.Options().InNamespace(n.TenantID))
+	opts := []store.QueryOption{
+		s.store.Options().InNamespace(n.TenantID),
+		s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted),
+	}
+
+	device, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, name, opts...)
 	if err != nil || device == nil {
 		return nil, NewErrDeviceNotFound(models.UID(name), err)
 	}
