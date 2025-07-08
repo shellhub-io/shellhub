@@ -174,6 +174,7 @@ const setupWebSocketEvents = () => {
 
 // Initializes the WebSocket session with terminal dimensions.
 const initializeWebSocket = () => {
+  fitAddon.value.fit(); // Ensure terminal is sized correctly before connecting
   const dimensions = getTerminalDimensions();
   ws.value = new WebSocket(getWebSocketUrl(dimensions));
   setupWebSocketEvents();
