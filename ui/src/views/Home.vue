@@ -2,7 +2,7 @@
   <v-row v-if="!hasStatus">
     <v-col cols="12" md="4" class="pt-0" v-for="(item, index) in items" :key="index">
       <div data-test="home-card">
-        <Card
+        <StatCard
           :title="item.title"
           :content="item.content"
           :icon="item.icon"
@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import Card from "../components/Card/Card.vue";
+import StatCard from "@/components/StatCard.vue";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
