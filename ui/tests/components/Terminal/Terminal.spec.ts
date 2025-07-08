@@ -61,7 +61,6 @@ describe("Terminal.vue", () => {
   it("closes WebSocket connection on component unmount", () => {
     const mockWs = wrapper.vm.ws as unknown as MockWebSocket;
     mockWs.readyState = WebSocket.OPEN;
-    wrapper.vm.isReady = true;
 
     wrapper.unmount();
     expect(mockWs.close).toHaveBeenCalled();
@@ -100,7 +99,6 @@ describe("Terminal.vue", () => {
     const onDataHandler = vi.mocked(mockXterm.onData).mock.calls[0][0];
 
     mockWs.readyState = WebSocket.OPEN;
-    wrapper.vm.isReady = true;
 
     onDataHandler("test input");
 
