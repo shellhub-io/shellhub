@@ -1,9 +1,9 @@
-import { IDevice } from "./IDevice";
+import { IAdminDevice } from "./IDevice";
 
 export interface ISessions {
   active: boolean;
   authenticated: boolean;
-  device: IDevice;
+  device: IAdminDevice;
   device_uid: string;
   ip_address: string;
   last_seen: string;
