@@ -44,7 +44,7 @@ func loadGatewayConfig() (*GatewayConfig, error) {
 	return &config, nil
 }
 
-// ApplyDefaults sets default values for the GatewayConfig if not provided.
+// applyDefaults sets default values for the GatewayConfig if not provided.
 func (gc *GatewayConfig) applyDefaults() {
 	if gc.WorkerProcesses == "auto" {
 		gc.WorkerProcesses = fmt.Sprintf("%d", runtime.NumCPU())
