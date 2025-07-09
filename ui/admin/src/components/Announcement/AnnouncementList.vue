@@ -58,11 +58,11 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncements";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";
 import AnnouncementEdit from "./AnnouncementEdit.vue";
-import { IAnnouncements } from "../../interfaces/IAnnouncements";
 import handleError from "@/utils/handleError";
 
 const router = useRouter();
@@ -72,7 +72,7 @@ const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
 const announcements = computed(
-  () => announcementStore.getAnnouncements as Array<IAnnouncements>,
+  () => announcementStore.getAnnouncements as Array<IAdminAnnouncementShort>,
 );
 const announcementCount = computed(
   () => announcementStore.getNumberAnnouncements,
@@ -113,7 +113,7 @@ const refreshAnnouncements = async () => {
 
 const formatDate = (date: string) => moment(date).format("LL");
 
-const redirectToAnnouncement = (announcement: IAnnouncements) => {
+const redirectToAnnouncement = (announcement: IAdminAnnouncementShort) => {
   router.push({
     name: "announcementDetails",
     params: { uuid: announcement.uuid },

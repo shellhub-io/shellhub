@@ -1,10 +1,10 @@
 import { Module } from "vuex";
 import * as apiAnnouncement from "../api/announcement";
-import { IAnnouncement, IAnnouncements } from "@/interfaces/IAnnouncements";
+import { IAnnouncement, IAnnouncementShort } from "@/interfaces/IAnnouncements";
 import { State } from "..";
 
 export interface AnnouncementState {
-  announcements: Array<IAnnouncements>;
+  announcements: Array<IAnnouncementShort>;
   announcement: IAnnouncement;
   page: number;
   perPage: number;

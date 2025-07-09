@@ -1,12 +1,9 @@
-export interface IAnnouncements {
+export interface IAnnouncementShort {
   uuid: string;
   title: string;
   date: string;
 }
 
-export interface IAnnouncement {
-  uuid: string;
-  title: string;
+export interface IAnnouncement extends IAnnouncementShort {
   content: string;
-  date: string;
 }
