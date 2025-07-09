@@ -433,7 +433,7 @@ func (ln *Listener) grabConn(path string) {
 		ln.sendMessage(controlMsg{Command: "pickup-failed", ConnPath: path, Err: err.Error()})
 	}
 
-	if resp.StatusCode != 101 {
+	if resp.StatusCode != http.StatusSwitchingProtocols {
 		failPickup(fmt.Errorf("non-101 response %v", resp.Status))
 
 		return

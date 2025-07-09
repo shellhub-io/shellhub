@@ -31,6 +31,7 @@ linters:
     - nlreturn
     - nilerr
     - gosec
+    - mnd
 
   settings:
     gosec:

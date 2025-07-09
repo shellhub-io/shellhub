@@ -11,12 +11,12 @@ import (
 )
 
 var migration53 = migrate.Migration{
-	Version:     53,
+	Version:     MigrationVersion53,
 	Description: "create index to announcement ID",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   53,
+			"version":   MigrationVersion53,
 			"action":    "Up",
 		}).Info("Applying migration")
 		field := "uuid"
@@ -40,7 +40,7 @@ var migration53 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   53,
+			"version":   MigrationVersion53,
 			"action":    "Down",
 		}).Info("Applying migration")
 		index := "uuid"

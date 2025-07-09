@@ -2,6 +2,7 @@ package internalclient
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -29,7 +30,7 @@ func (c *client) GetPublicKey(fingerprint, tenant string) (*models.PublicKey, er
 		return nil, err
 	}
 
-	if resp.StatusCode() == 404 {
+	if resp.StatusCode() == http.StatusNotFound {
 		return nil, ErrNotFound
 	}
 
@@ -48,7 +49,7 @@ func (c *client) EvaluateKey(fingerprint string, dev *models.Device, username st
 		return false, err
 	}
 
-	if resp.StatusCode() == 200 {
+	if resp.StatusCode() == http.StatusOK {
 		return *evaluate, nil
 	}
 

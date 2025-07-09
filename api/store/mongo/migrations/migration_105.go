@@ -10,10 +10,10 @@ import (
 )
 
 var migration105 = migrate.Migration{
-	Version:     105,
+	Version:     MigrationVersion105,
 	Description: "Drop removed_devices collection as it's no longer needed",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 105, "action": "Up"}).Info("Applying migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion105, "action": "Up"}).Info("Applying migration")
 
 		collections, err := db.ListCollectionNames(ctx, bson.M{"name": "removed_devices"})
 		if err != nil {
@@ -39,7 +39,7 @@ var migration105 = migrate.Migration{
 		return nil
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 105, "action": "Down"}).Info("Cannot revert migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion105, "action": "Down"}).Info("Cannot revert migration")
 
 		return nil
 	}),

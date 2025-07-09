@@ -11,12 +11,12 @@ import (
 )
 
 var migration13 = migrate.Migration{
-	Version:     13,
+	Version:     MigrationVersion13,
 	Description: "Change on several collections",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   13,
+			"version":   MigrationVersion13,
 			"action":    "Up",
 		}).Info("Applying migration")
 		mod := mongo.IndexModel{
@@ -30,7 +30,7 @@ var migration13 = migrate.Migration{
 
 		mod = mongo.IndexModel{
 			Keys:    bson.D{{"last_seen", 1}},
-			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 		}
 		_, err = db.Collection("connected_devices").Indexes().CreateOne(ctx, mod)
 		if err != nil {
@@ -57,7 +57,7 @@ var migration13 = migrate.Migration{
 
 		mod = mongo.IndexModel{
 			Keys:    bson.D{{"last_seen", 1}},
-			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 		}
 		_, err = db.Collection("active_sessions").Indexes().CreateOne(ctx, mod)
 		if err != nil {
@@ -96,7 +96,7 @@ var migration13 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   13,
+			"version":   MigrationVersion13,
 			"action":    "Down",
 		}).Info("Applying migration")
 		if _, err := db.Collection("devices").Indexes().DropOne(ctx, "uid"); err != nil {

@@ -13,12 +13,12 @@ import (
 )
 
 var migration22 = migrate.Migration{
-	Version:     22,
+	Version:     MigrationVersion22,
 	Description: "Insert the user on the members group for the namespace",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   22,
+			"version":   MigrationVersion22,
 			"action":    "Up",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})
@@ -71,7 +71,7 @@ var migration22 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   22,
+			"version":   MigrationVersion22,
 			"action":    "Down",
 		}).Info("Applying migration")
 

@@ -10,12 +10,12 @@ import (
 )
 
 var migration89 = migrate.Migration{
-	Version:     89,
+	Version:     MigrationVersion89,
 	Description: "Adding an external ID attribute to users collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   89,
+			"version":   MigrationVersion89,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -38,7 +38,7 @@ var migration89 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   89,
+			"version":   MigrationVersion89,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

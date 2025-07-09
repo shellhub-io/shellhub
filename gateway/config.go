@@ -29,6 +29,11 @@ type GatewayConfig struct {
 
 var validate = validator.New()
 
+const (
+	openFilesThreshold       = 1024
+	workerConnectionsDivisor = 4
+)
+
 // loadGatewayConfig loads and validates the configuration from environment variables.
 func loadGatewayConfig() (*GatewayConfig, error) {
 	var config GatewayConfig
@@ -52,14 +57,14 @@ func (gc *GatewayConfig) applyDefaults() {
 	}
 
 	if gc.MaxWorkerOpenFiles == 0 {
-		gc.MaxWorkerOpenFiles = rlimitMaxNumFiles() - 1024
-		if gc.MaxWorkerOpenFiles < 1024 {
-			gc.MaxWorkerOpenFiles = 1024
+		gc.MaxWorkerOpenFiles = rlimitMaxNumFiles() - openFilesThreshold
+		if gc.MaxWorkerOpenFiles < openFilesThreshold {
+			gc.MaxWorkerOpenFiles = openFilesThreshold
 		}
 	}
 
 	if gc.MaxWorkerConnections == 0 {
-		gc.MaxWorkerConnections = int(float64(gc.MaxWorkerOpenFiles * 3.0 / 4))
+		gc.MaxWorkerConnections = int(float64(gc.MaxWorkerOpenFiles * 3.0 / workerConnectionsDivisor))
 	}
 
 	gc.BacklogSize = getSysctl("net.core.somaxconn")

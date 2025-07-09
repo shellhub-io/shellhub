@@ -1,6 +1,8 @@
 package services
 
 import (
+	"net/http"
+
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 )
 
@@ -31,9 +33,9 @@ func (s *service) BillingReport(client req.Client, tenant string, action string)
 	}
 
 	switch status {
-	case 200:
+	case http.StatusOK:
 		return nil
-	case 402:
+	case http.StatusPaymentRequired:
 		return ErrPaymentRequired
 	default:
 		return ErrReport

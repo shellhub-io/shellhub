@@ -11,12 +11,12 @@ import (
 )
 
 var migration91 = migrate.Migration{
-	Version:     91,
+	Version:     MigrationVersion91,
 	Description: "Add sessions_events collections",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   91,
+			"version":   MigrationVersion91,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -72,7 +72,7 @@ var migration91 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   91,
+			"version":   MigrationVersion91,
 			"action":    "Down",
 		}).Info("Reverting migration")
 		cursor, err := db.Collection("sessions_events").Find(ctx, bson.M{})

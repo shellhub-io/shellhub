@@ -11,10 +11,10 @@ import (
 )
 
 var migration103 = migrate.Migration{
-	Version:     103,
+	Version:     MigrationVersion103,
 	Description: "Convert devices_removed from removed_devices collection to devices with status removed",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 103, "action": "Up"}).Info("Applying migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion103, "action": "Up"}).Info("Applying migration")
 
 		cursor, err := db.Collection("removed_devices").Find(ctx, bson.M{})
 		if err != nil {
@@ -80,7 +80,7 @@ var migration103 = migrate.Migration{
 		return nil
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 102, "action": "Down"}).Info("Reverting migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion103, "action": "Down"}).Info("Reverting migration")
 
 		// NOTE: This rollback has a known limitation - we don't store the original device status
 		// before it was changed to "removed". This means when reverting, devices in the

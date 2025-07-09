@@ -38,7 +38,7 @@ var (
 // ErrorFromResponse returns an error based on the response status code.
 // Each Error is mapped to a specific status code, if the status code is not mapped ErrUnknown is returned.
 func ErrorFromResponse(response Response) error {
-	if (response.StatusCode() >= 200) && (response.StatusCode() <= 299) {
+	if (response.StatusCode() >= http.StatusOK) && (response.StatusCode() <= http.StatusIMUsed) {
 		return nil
 	}
 

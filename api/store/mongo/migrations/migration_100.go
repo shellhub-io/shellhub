@@ -10,12 +10,12 @@ import (
 )
 
 var migration100 = migrate.Migration{
-	Version:     100,
+	Version:     MigrationVersion100,
 	Description: "Remove direct-tcpip events",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   100,
+			"version":   MigrationVersion100,
 			"action":    "Up",
 		}).Info("Applying migration: 100")
 
@@ -110,7 +110,7 @@ var migration100 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   100,
+			"version":   MigrationVersion100,
 			"action":    "Down",
 		}).Info("Reverting migration: 100")
 
@@ -130,7 +130,7 @@ var migration100 = migrate.Migration{
 
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   100,
+			"version":   MigrationVersion100,
 		}).Warn("Cannot restore deleted direct-tcpip events and seats - data loss is permanent")
 
 		return nil

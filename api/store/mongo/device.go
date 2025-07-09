@@ -320,7 +320,7 @@ func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.
 			},
 		},
 		{
-			"$limit": 3,
+			"$limit": DeviceUsageLimit,
 		},
 	}
 

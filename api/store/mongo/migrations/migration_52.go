@@ -10,12 +10,12 @@ import (
 )
 
 var migration52 = migrate.Migration{
-	Version:     52,
+	Version:     MigrationVersion52,
 	Description: "add marketing field to users",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   52,
+			"version":   MigrationVersion52,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -41,7 +41,7 @@ var migration52 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   52,
+			"version":   MigrationVersion52,
 			"action":    "Down",
 		}).Info("Applying migration")
 

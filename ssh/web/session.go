@@ -17,6 +17,11 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+const (
+	sshTTYSpeed      = 14400
+	utf8MinRuneBytes = 6
+)
+
 type BannerError struct {
 	Message string
 }
@@ -207,8 +212,8 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 	if err := agent.RequestPty("xterm", dim.Rows, dim.Cols, ssh.TerminalModes{
 		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
+		ssh.TTY_OP_ISPEED: sshTTYSpeed,
+		ssh.TTY_OP_OSPEED: sshTTYSpeed,
 	}); err != nil {
 		logger.WithError(err).Debug("failed to request the pty on session")
 
@@ -289,7 +294,7 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 				break
 			}
 
-			if buflen-end >= 6 {
+			if buflen-end >= utf8MinRuneBytes {
 				end = nr
 
 				break

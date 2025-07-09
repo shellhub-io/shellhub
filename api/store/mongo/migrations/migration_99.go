@@ -10,12 +10,12 @@ import (
 )
 
 var migration99 = migrate.Migration{
-	Version:     99,
+	Version:     MigrationVersion99,
 	Description: "Update session.recorded to false when session has no events",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   99,
+			"version":   MigrationVersion99,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -34,7 +34,7 @@ var migration99 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   99,
+			"version":   MigrationVersion99,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

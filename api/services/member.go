@@ -121,7 +121,7 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 		// In cloud instances, the member must accept the invite before enter in the namespace.
 		if envs.IsCloud() {
 			member.Status = models.MemberStatusPending
-			member.ExpiresAt = member.AddedAt.Add(7 * (24 * time.Hour))
+			member.ExpiresAt = member.AddedAt.Add(MemberInvitationExpirationDays * (HoursPerDay * time.Hour))
 		} else {
 			member.Status = models.MemberStatusAccepted
 			member.ExpiresAt = time.Time{}
@@ -145,7 +145,7 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 // specified ID.
 func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		expiresAt := clock.Now().Add(7 * (24 * time.Hour))
+		expiresAt := clock.Now().Add(MemberInvitationExpirationDays * (HoursPerDay * time.Hour))
 		changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
 
 		if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {

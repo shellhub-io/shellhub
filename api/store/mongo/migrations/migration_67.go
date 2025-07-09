@@ -12,13 +12,13 @@ import (
 )
 
 var migration67 = migrate.Migration{
-	Version:     67,
+	Version:     MigrationVersion67,
 	Description: "Hash the user's MFA recovery code before storing it as a plain string.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   67,
+				"version":   MigrationVersion67,
 				"action":    "Up",
 			}).
 			Info("Applying migration")
@@ -79,7 +79,7 @@ var migration67 = migrate.Migration{
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   67,
+				"version":   MigrationVersion67,
 				"action":    "Down",
 			}).
 			Info("Applying migration")

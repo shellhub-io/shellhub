@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"net/http"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -132,7 +133,7 @@ func (dc *DockerCompose) AuthUser(ctx context.Context, username, password string
 		assert.FailNow(dc.t, err.Error())
 	}
 
-	if !assert.Equal(dc.t, 200, res.StatusCode()) {
+	if !assert.Equal(dc.t, http.StatusOK, res.StatusCode()) {
 		assert.FailNow(dc.t, "login fails")
 	}
 

@@ -134,7 +134,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 				Info("Processing page of removed devices")
 
 			if page < totalPages-1 {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(TaskProcessingSleepDuration)
 			}
 		}
 

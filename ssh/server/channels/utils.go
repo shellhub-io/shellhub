@@ -12,6 +12,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+const channelWaitGroupCount = 2
+
 type Recorder struct {
 	// session is the session between Agent and Client.
 	session *session.Session
@@ -46,7 +48,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 		Trace("data pipe between client and agent has done")
 
 	wg := new(sync.WaitGroup)
-	wg.Add(2)
+	wg.Add(channelWaitGroupCount)
 
 	c := io.MultiReader(client, client.Stderr())
 	a := io.MultiReader(agent, agent.Stderr())
@@ -123,7 +125,7 @@ func hose(sess *session.Session, agent gossh.Channel, client gossh.Channel) {
 		Trace("data pipe between client and agent has done")
 
 	wg := new(sync.WaitGroup)
-	wg.Add(2)
+	wg.Add(channelWaitGroupCount)
 
 	a := io.MultiReader(agent, agent.Stderr())
 	c := io.MultiReader(client, client.Stderr())

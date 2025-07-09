@@ -17,6 +17,11 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+const (
+	nginxDirPerm  = 0o755
+	nginxFilePerm = 0o644
+)
+
 // NginxController manages the configuration and operation of NGINX.
 type NginxController struct {
 	rootDir       string
@@ -27,7 +32,7 @@ type NginxController struct {
 
 // generateConfigs generates the NGINX configuration files.
 func (nc *NginxController) generateConfigs() {
-	if err := os.MkdirAll("/etc/nginx", 0o755); err != nil {
+	if err := os.MkdirAll("/etc/nginx", nginxDirPerm); err != nil {
 		log.Fatalf("Failed to create nginx directory: %v", err)
 	}
 
@@ -49,12 +54,13 @@ func (nc *NginxController) generateConfigs() {
 		destPath := filepath.Join(nc.rootDir, relativePath)
 
 		if info.IsDir() {
-			if err := os.MkdirAll(destPath, 0o755); err != nil {
+			if err := os.MkdirAll(destPath, nginxDirPerm); err != nil {
 				return fmt.Errorf("failed to create directory %s: %w", destPath, err)
 			}
 		} else {
 			nc.generateConfig(path, destPath)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -84,7 +90,7 @@ func (nc *NginxController) generateConfig(src, dst string) {
 		log.Fatalf("Failed to execute template %s: %v", src, err)
 	}
 
-	err = os.WriteFile(dst, output.Bytes(), 0o644)
+	err = os.WriteFile(dst, output.Bytes(), nginxFilePerm)
 	if err != nil {
 		log.Fatalf("Failed to write config file %s: %v", dst, err)
 	}
@@ -109,13 +115,14 @@ func (nc *NginxController) watchConfigTemplates() {
 					return
 				}
 				if strings.HasSuffix(event.Name, "~") {
-					break
+					continue
 				}
 				if event.Has(fsnotify.Write) {
 					fmt.Println("GatewayConfig file modified:", event.Name)
 					nc.generateConfigs()
 					nc.reload()
-					break
+
+					continue
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -136,6 +143,7 @@ func (nc *NginxController) watchConfigTemplates() {
 				log.Println("ERROR: Failed to add directory to watcher:", err)
 			}
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -204,6 +212,7 @@ func templateArgs(pairs ...any) (map[string]any, error) {
 			return nil, fmt.Errorf("key must be a string, got %T", pairs[i])
 		}
 	}
+
 	return argsMap, nil
 }
 

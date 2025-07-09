@@ -11,11 +11,11 @@ import (
 )
 
 var migration78 = migrate.Migration{
-	Version:     78,
+	Version:     MigrationVersion78,
 	Description: "Recreate the unique index on the 'email' field in the 'users' collection with a partial filter for documents where the 'email' field is a string.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 78).
+			WithField("version", MigrationVersion78).
 			WithField("action", " Up").
 			Info("Applying migration")
 
@@ -32,7 +32,7 @@ var migration78 = migrate.Migration{
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 78).
+			WithField("version", MigrationVersion78).
 			WithField("action", "Down").
 			Info("Reverting migration")
 

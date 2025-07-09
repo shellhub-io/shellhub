@@ -11,12 +11,12 @@ import (
 )
 
 var migration75 = migrate.Migration{
-	Version:     75,
+	Version:     MigrationVersion75,
 	Description: "Convert user.confirmed to user.status",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   75,
+			"version":   MigrationVersion75,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -71,7 +71,7 @@ var migration75 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   75,
+			"version":   MigrationVersion75,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

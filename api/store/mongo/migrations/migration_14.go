@@ -12,12 +12,12 @@ import (
 )
 
 var migration14 = migrate.Migration{
-	Version:     14,
+	Version:     MigrationVersion14,
 	Description: "Set the right tenant_id in the users collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   14,
+			"version":   MigrationVersion14,
 			"action":    "Up",
 		}).Info("Applying migration")
 		type user struct {
@@ -92,7 +92,7 @@ var migration14 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   14,
+			"version":   MigrationVersion14,
 			"action":    "Down",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})

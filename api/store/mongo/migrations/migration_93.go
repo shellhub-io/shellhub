@@ -10,12 +10,12 @@ import (
 )
 
 var migration93 = migrate.Migration{
-	Version:     93,
+	Version:     MigrationVersion93,
 	Description: "remove public_url and public_url_address from device collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   93,
+			"version":   MigrationVersion93,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -26,7 +26,7 @@ var migration93 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   93,
+			"version":   MigrationVersion93,
 			"action":    "Down",
 		}).Info("Cannot undo migration")
 

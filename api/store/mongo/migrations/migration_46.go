@@ -10,12 +10,12 @@ import (
 )
 
 var migration46 = migrate.Migration{
-	Version:     46,
+	Version:     MigrationVersion46,
 	Description: "change public keys with empty username in favor of .* regexp",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   46,
+			"version":   MigrationVersion46,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -41,7 +41,7 @@ var migration46 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   46,
+			"version":   MigrationVersion46,
 			"action":    "Down",
 		}).Info("Applying migration")
 

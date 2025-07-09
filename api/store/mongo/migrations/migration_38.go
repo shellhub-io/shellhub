@@ -11,12 +11,12 @@ import (
 )
 
 var migration38 = migrate.Migration{
-	Version:     38,
+	Version:     MigrationVersion38,
 	Description: "Set last_login to created_at, when created_at is a zero value",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   38,
+			"version":   MigrationVersion38,
 			"action":    "Up",
 		}).Info("Applying migration")
 		zeroTime := time.Time{}.UTC()
@@ -50,7 +50,7 @@ var migration38 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   38,
+			"version":   MigrationVersion38,
 			"action":    "Down",
 		}).Info("Applying migration")
 

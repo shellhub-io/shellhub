@@ -7,6 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// ExactArgs constants for command argument validation
+	ExactArgsOne   = 1
+	ExactArgsTwo   = 2
+	ExactArgsThree = 3
+	ExactArgsFour  = 4
+)
+
 // DeprecatedCommands writes a list of deprecated commands to a parend cmd.
 // These commands will be romved in a future release.
 func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
@@ -14,7 +22,7 @@ func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
 		Deprecated: "This command is deprecated and will be removed in a future release. Please use 'cli user create' instead.",
 		Use:        "add-user",
 		Short:      "Usage: <username> <password> <email>",
-		Args:       cobra.ExactArgs(3),
+		Args:       cobra.ExactArgs(ExactArgsThree),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := &inputs.UserCreate{
 				Username: args[0],
@@ -55,7 +63,7 @@ func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
 			Deprecated: "This command is deprecated and will be removed in a future release. Please use 'cli user password' instead.",
 			Use:        "reset-user-password",
 			Short:      "Usage: <username> <password>",
-			Args:       cobra.ExactArgs(2),
+			Args:       cobra.ExactArgs(ExactArgsTwo),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				input := &inputs.UserUpdate{Username: args[0], Password: args[1]}
 
@@ -72,10 +80,10 @@ func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
 			Deprecated: "This command is deprecated and will be removed in a future release. Please use 'cli namespace create' instead.",
 			Use:        "add-namespace",
 			Short:      "Usage: <namespace> <owner>",
-			Args:       cobra.RangeArgs(2, 3),
+			Args:       cobra.RangeArgs(ExactArgsTwo, ExactArgsThree),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				// Avoid panic when TenantID isn't provided.
-				if len(args) == 2 {
+				if len(args) == ExactArgsTwo {
 					args = append(args, "")
 				}
 
@@ -100,7 +108,7 @@ func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
 			Deprecated: "This command is deprecated and will be removed in a future release. Please use 'cli namespace member add' instead.",
 			Use:        "add-user-namespace",
 			Short:      "Usage: <username> <namespace> <role>",
-			Args:       cobra.ExactArgs(3),
+			Args:       cobra.ExactArgs(ExactArgsThree),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				input := &inputs.MemberAdd{
 					Username:  args[0],
@@ -123,7 +131,7 @@ func DeprecatedCommands(cmd *cobra.Command, service services.Services) {
 			Deprecated: "This command is deprecated and will be removed in a future release. Please use 'cli user create remove' instead.",
 			Use:        "del-user-namespace",
 			Short:      "Usage <username> <namespace>",
-			Args:       cobra.ExactArgs(2),
+			Args:       cobra.ExactArgs(ExactArgsTwo),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				input := &inputs.MemberRemove{Username: args[0], Namespace: args[1]}
 				ns, err := service.NamespaceRemoveMember(cmd.Context(), input)

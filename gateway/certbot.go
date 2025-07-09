@@ -18,6 +18,11 @@ import (
 	"github.com/spf13/afero"
 )
 
+const (
+	dirPerm           = 0o755
+	readHeaderTimeout = 10 * time.Second
+)
+
 // Executor provides an interface for executing system commands.
 // This interface allows for easy mocking in tests and provides
 // a clean abstraction over the exec package.
@@ -177,10 +182,12 @@ func (d *DefaultCertificate) startACMEServer() *http.Server {
 	)
 
 	server := &http.Server{
-		Handler: mux,
+		Handler:           mux,
+		ReadHeaderTimeout: readHeaderTimeout, // Mitigate Slowloris (G112)
 	}
 
-	listener, err := net.Listen("tcp", ":80")
+	// ACME HTTP-01 challenge requires binding to :80 (G102)
+	listener, err := net.Listen("tcp", ":80") //nolint:gosec
 	if err != nil {
 		log.WithError(err).Fatal("failed to start ACME server listener")
 	}
@@ -209,7 +216,7 @@ func (d *DefaultCertificate) Generate(staging bool) error {
 
 	// Create the ACME challenge directory
 	challengeDir := fmt.Sprintf("%s/.well-known/acme-challenge", os.TempDir())
-	if err := d.fs.MkdirAll(challengeDir, 0o755); err != nil {
+	if err := d.fs.MkdirAll(challengeDir, dirPerm); err != nil {
 		log.WithError(err).Error("failed to create acme challenge on filesystem")
 
 		return err

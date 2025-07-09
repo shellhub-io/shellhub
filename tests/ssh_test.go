@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -115,7 +116,7 @@ func TestSSH(t *testing.T) {
 					resp, err := environment.services.R(ctx).
 						SetResult(&model).
 						Get(fmt.Sprintf("/api/devices/%s", device.UID))
-					assert.Equal(tt, 200, resp.StatusCode())
+					assert.Equal(tt, http.StatusOK, resp.StatusCode())
 					assert.NoError(tt, err)
 
 					assert.True(tt, model.Online)
@@ -142,7 +143,7 @@ func TestSSH(t *testing.T) {
 					resp, err := environment.services.R(ctx).
 						SetResult(&model).
 						Get(fmt.Sprintf("/api/devices/%s", device.UID))
-					assert.Equal(tt, 200, resp.StatusCode())
+					assert.Equal(tt, http.StatusOK, resp.StatusCode())
 					assert.NoError(tt, err)
 
 					assert.True(tt, model.Online)
@@ -236,7 +237,7 @@ func TestSSH(t *testing.T) {
 				resp, err := environment.services.R(ctx).
 					SetBody(&model).
 					Post("/api/sshkeys/public-keys")
-				require.Equal(t, 200, resp.StatusCode())
+				require.Equal(t, http.StatusOK, resp.StatusCode())
 				require.NoError(t, err)
 
 				signer, err := ssh.NewSignerFromKey(privateKey)
@@ -1327,7 +1328,7 @@ func TestSSH(t *testing.T) {
 			}).
 			SetResult(&auth).
 			Post("/api/login")
-		assert.Equal(tt, 200, resp.StatusCode())
+		assert.Equal(tt, http.StatusOK, resp.StatusCode())
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 
@@ -1358,7 +1359,7 @@ func TestSSH(t *testing.T) {
 			require.EventuallyWithT(t, func(tt *assert.CollectT) {
 				resp, err := compose.R(ctx).SetResult(&devices).
 					Get("/api/devices?status=pending")
-				assert.Equal(tt, 200, resp.StatusCode())
+				assert.Equal(tt, http.StatusOK, resp.StatusCode())
 				assert.NoError(tt, err)
 
 				assert.Len(tt, devices, 1)
@@ -1366,7 +1367,7 @@ func TestSSH(t *testing.T) {
 
 			resp, err := compose.R(ctx).
 				Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
-			require.Equal(t, 200, resp.StatusCode())
+			require.Equal(t, http.StatusOK, resp.StatusCode())
 			require.NoError(t, err)
 
 			device := models.Device{}
@@ -1375,7 +1376,7 @@ func TestSSH(t *testing.T) {
 				resp, err := compose.R(ctx).
 					SetResult(&device).
 					Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
-				assert.Equal(tt, 200, resp.StatusCode())
+				assert.Equal(tt, http.StatusOK, resp.StatusCode())
 				assert.NoError(tt, err)
 
 				assert.True(tt, device.Online)

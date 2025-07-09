@@ -104,7 +104,7 @@ func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
 		return errors.Join(errors.New("failed to update the session due error"), err)
 	}
 
-	if res.StatusCode() != 200 {
+	if res.StatusCode() != http.StatusOK {
 		return errors.New("failed to update the session")
 	}
 
@@ -140,7 +140,7 @@ func (c *client) SaveSession(uid string, seat int) error {
 	}
 
 	switch {
-	case res.StatusCode() == 404:
+	case res.StatusCode() == http.StatusNotFound:
 		return ErrNotFound
 	case res.StatusCode() == http.StatusNotAcceptable:
 		// NOTE: [http.StatusNotAcceptable] indicates that session's seat shouldn't be save, but also shouldn't
@@ -151,7 +151,7 @@ func (c *client) SaveSession(uid string, seat int) error {
 		}).Debug("save session not acceptable")
 
 		return nil
-	case res.StatusCode() != 200:
+	case res.StatusCode() != http.StatusOK:
 		return errors.New("failed to save the Asciinema due status code")
 	}
 

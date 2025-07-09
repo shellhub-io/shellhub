@@ -10,12 +10,12 @@ import (
 )
 
 var migration96 = migrate.Migration{
-	Version:     96,
+	Version:     MigrationVersion96,
 	Description: "Drops the recorded_session collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   96,
+			"version":   MigrationVersion96,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -32,7 +32,7 @@ var migration96 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   96,
+			"version":   MigrationVersion96,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

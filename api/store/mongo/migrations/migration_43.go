@@ -10,12 +10,12 @@ import (
 )
 
 var migration43 = migrate.Migration{
-	Version:     43,
+	Version:     MigrationVersion43,
 	Description: "add tags field to firewall_rules collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   43,
+			"version":   MigrationVersion43,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -44,7 +44,7 @@ var migration43 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   43,
+			"version":   MigrationVersion43,
 			"action":    "Down",
 		}).Info("Applying migration")
 

@@ -12,12 +12,12 @@ import (
 )
 
 var migration74 = migrate.Migration{
-	Version:     74,
+	Version:     MigrationVersion74,
 	Description: "Adding default message on announcement if is not set.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   74,
+			"version":   MigrationVersion74,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -45,7 +45,7 @@ var migration74 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   74,
+			"version":   MigrationVersion74,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

@@ -10,12 +10,12 @@ import (
 )
 
 var migration65 = migrate.Migration{
-	Version:     65,
+	Version:     MigrationVersion65,
 	Description: "Adding the 'recovery_email' attribute to the user if it does not already exist.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   65,
+			"version":   MigrationVersion65,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -38,7 +38,7 @@ var migration65 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   65,
+			"version":   MigrationVersion65,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

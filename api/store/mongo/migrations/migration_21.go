@@ -11,12 +11,12 @@ import (
 )
 
 var migration21 = migrate.Migration{
-	Version:     21,
+	Version:     MigrationVersion21,
 	Description: "Remove all sessions, recorded_sessions for the devices",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   21,
+			"version":   MigrationVersion21,
 			"action":    "Up",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("sessions").Find(ctx, bson.D{})
@@ -94,7 +94,7 @@ var migration21 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   21,
+			"version":   MigrationVersion21,
 			"action":    "Down",
 		}).Info("Applying migration")
 

@@ -11,12 +11,12 @@ import (
 )
 
 var migration5 = migrate.Migration{
-	Version:     5,
+	Version:     MigrationVersion5,
 	Description: "Set the email as unique on users collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   5,
+			"version":   MigrationVersion5,
 			"action":    "Up",
 		}).Info("Applying migration")
 		mod := mongo.IndexModel{
@@ -30,7 +30,7 @@ var migration5 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   5,
+			"version":   MigrationVersion5,
 			"action":    "Down",
 		}).Info("Applying migration")
 		_, err := db.Collection("users").Indexes().DropOne(ctx, "email")

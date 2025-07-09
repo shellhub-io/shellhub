@@ -10,10 +10,10 @@ import (
 )
 
 var migration104 = migrate.Migration{
-	Version:     104,
+	Version:     MigrationVersion104,
 	Description: "Add devices_removed_count field to namespaces based on existing devices with status removed",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 104, "action": "Up"}).Info("Applying migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion104, "action": "Up"}).Info("Applying migration")
 
 		initDoc := bson.M{
 			"$set": bson.M{
@@ -90,7 +90,7 @@ var migration104 = migrate.Migration{
 		return nil
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 104, "action": "Down"}).Info("Reverting migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion104, "action": "Down"}).Info("Reverting migration")
 
 		updateDoc := bson.M{
 			"$unset": bson.M{

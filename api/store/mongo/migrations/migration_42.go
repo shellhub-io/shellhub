@@ -10,12 +10,12 @@ import (
 )
 
 var migration42 = migrate.Migration{
-	Version:     42,
+	Version:     MigrationVersion42,
 	Description: "change hostname to filter hostname",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   42,
+			"version":   MigrationVersion42,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -44,7 +44,7 @@ var migration42 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   42,
+			"version":   MigrationVersion42,
 			"action":    "Down",
 		}).Info("Applying migration")
 

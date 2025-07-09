@@ -11,10 +11,10 @@ import (
 )
 
 var migration106 = migrate.Migration{
-	Version:     106,
+	Version:     MigrationVersion106,
 	Description: "Add performance indexes to devices collection for cleanup and status filtering",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 106, "action": "Up"}).Info("Applying migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion106, "action": "Up"}).Info("Applying migration")
 
 		index := mongo.IndexModel{
 			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "status_updated_at", Value: 1}},
@@ -34,7 +34,7 @@ var migration106 = migrate.Migration{
 		return nil
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 106, "action": "Down"}).Info("Reverting migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion106, "action": "Down"}).Info("Reverting migration")
 
 		if _, err := db.Collection("devices").Indexes().DropOne(ctx, "idx_status_status_updated_at"); err != nil {
 			log.WithFields(log.Fields{"index": "idx_status_status_updated_at", "error": err}).Error("Failed to drop index (may not exist)")

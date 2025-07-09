@@ -10,12 +10,12 @@ import (
 )
 
 var migration98 = migrate.Migration{
-	Version:     98,
+	Version:     MigrationVersion98,
 	Description: "Convert the username's to nil when it's a blank string",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   98,
+			"version":   MigrationVersion98,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -26,7 +26,7 @@ var migration98 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   98,
+			"version":   MigrationVersion98,
 			"action":    "Down",
 		}).Info("Cannot undo migration")
 

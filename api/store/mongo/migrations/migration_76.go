@@ -12,11 +12,11 @@ import (
 )
 
 var migration76 = migrate.Migration{
-	Version:     76,
+	Version:     MigrationVersion76,
 	Description: "Remove user.namespace from users collection.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 76).
+			WithField("version", MigrationVersion76).
 			WithField("action", " Up").
 			Info("Applying migration")
 
@@ -29,7 +29,7 @@ var migration76 = migrate.Migration{
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 76).
+			WithField("version", MigrationVersion76).
 			WithField("action", "Down").
 			Info("Applying migration")
 

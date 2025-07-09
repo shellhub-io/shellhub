@@ -12,12 +12,12 @@ import (
 )
 
 var migration55 = migrate.Migration{
-	Version:     55,
+	Version:     MigrationVersion55,
 	Description: "create indexes on removed_devices for tenant_id, tenant_id and uid and timestamp",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   55,
+			"version":   MigrationVersion55,
 			"action":    "Up",
 		}).Info("Applying migration")
 		fieldTenantID := "tenant_id"
@@ -69,7 +69,7 @@ var migration55 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   55,
+			"version":   MigrationVersion55,
 			"action":    "Down",
 		}).Info("Applying migration")
 		fieldNameTenantID := "tenant_id_1"

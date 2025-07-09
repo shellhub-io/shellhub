@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const splitPartsCount = 2
+
 var (
 	ErrSplitTarget = errors.New("could not split the target into two parts")
 	ErrNotSSHID    = errors.New("target is not from SSHID type")
@@ -26,8 +28,8 @@ func NewTarget(sshid string) (*Target, error) {
 	const USERNAME = 0
 	const DATA = 1
 
-	parts := strings.SplitN(sshid, "@", 2)
-	if len(parts) != 2 {
+	parts := strings.SplitN(sshid, "@", splitPartsCount)
+	if len(parts) != splitPartsCount {
 		return nil, ErrSplitTarget
 	}
 
@@ -49,8 +51,8 @@ func (t *Target) SplitSSHID() (string, string, error) {
 	const NAMESPACE = 0
 	const HOSTNAME = 1
 
-	parts := strings.SplitN(t.Data, ".", 2)
-	if len(parts) != 2 {
+	parts := strings.SplitN(t.Data, ".", splitPartsCount)
+	if len(parts) != splitPartsCount {
 		return "", "", ErrSplitTarget
 	}
 

@@ -10,12 +10,12 @@ import (
 )
 
 var migration57 = migrate.Migration{
-	Version:     57,
+	Version:     MigrationVersion57,
 	Description: "update billing state to status and its values",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   57,
+			"version":   MigrationVersion57,
 			"action":    "Up",
 		}).Info("Applying migration up")
 
@@ -89,7 +89,7 @@ var migration57 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   57,
+			"version":   MigrationVersion57,
 			"action":    "Down",
 		}).Info("Applying migration down")
 

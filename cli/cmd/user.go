@@ -26,7 +26,7 @@ func UserCommands(service services.Services) *cobra.Command {
 func userCreate(service services.Services) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create <username> <password> <email>",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(ExactArgsThree),
 		Short: "Create a user.",
 		Long: `Creates a new user in the system using the provided username, password, and email.
 The username must be unique, and the password should meet the system's security requirements.`,
@@ -55,7 +55,7 @@ The username must be unique, and the password should meet the system's security 
 func userResetPassword(service services.Services) *cobra.Command {
 	return &cobra.Command{
 		Use:     "password <username> <password>",
-		Args:    cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(ExactArgsTwo),
 		Short:   "Change user's password",
 		Long:    `Updates the password for an existing user identified by the given username.`,
 		Example: `cli user password john_doe Secret123!-`,
@@ -81,7 +81,7 @@ func userResetPassword(service services.Services) *cobra.Command {
 func userDelete(service services.Services) *cobra.Command {
 	return &cobra.Command{
 		Use:     "delete <username>",
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(ExactArgsOne),
 		Short:   "Delete a user",
 		Long:    `Deletes a user and all associated data from the system based on the provided username.`,
 		Example: `cli user delete john_doe`,

@@ -10,12 +10,12 @@ import (
 )
 
 var migration94 = migrate.Migration{
-	Version:     94,
+	Version:     MigrationVersion94,
 	Description: "Adding 'disconnected_at' attribute to 'devices'",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   94,
+			"version":   MigrationVersion94,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -80,7 +80,7 @@ var migration94 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   94,
+			"version":   MigrationVersion94,
 			"action":    "Down",
 		}).Info("Cannot down migration")
 

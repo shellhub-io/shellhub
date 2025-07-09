@@ -11,12 +11,12 @@ import (
 )
 
 var migration84 = migrate.Migration{
-	Version:     84,
+	Version:     MigrationVersion84,
 	Description: "create index for sessions' type",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   84,
+			"version":   MigrationVersion84,
 			"action":    "Up",
 		}).Info("Applying migration up")
 		name := "events.types"
@@ -36,7 +36,7 @@ var migration84 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   84,
+			"version":   MigrationVersion84,
 			"action":    "Down",
 		}).Info("Applying migration down")
 		if _, err := db.Collection("sessions").Indexes().DropOne(context.Background(), "events.types"); err != nil {

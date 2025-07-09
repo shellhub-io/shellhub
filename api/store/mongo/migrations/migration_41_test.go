@@ -23,11 +23,11 @@ func TestMigration41(t *testing.T) {
 
 				oldIndex := mongo.IndexModel{
 					Keys:    bson.D{{"last_seen", 1}},
-					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(60),
+					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 				}
 				newIndex := mongo.IndexModel{
 					Keys:    bson.D{{"last_seen", 1}},
-					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(60),
+					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 				}
 				_, err := c.Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
 				assert.NoError(t, err)
@@ -55,7 +55,7 @@ func TestMigration41(t *testing.T) {
 
 				oldIndex := mongo.IndexModel{
 					Keys:    bson.D{{"last_seen", 1}},
-					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(60),
+					Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 				}
 				_, err := c.Database("test").Collection("connected_devices").Indexes().CreateOne(context.TODO(), oldIndex)
 				assert.NoError(t, err)

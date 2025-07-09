@@ -13,7 +13,6 @@ import (
 	"net"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/cnf/structhash"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -176,7 +175,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 
 	cachedData["device_name"] = device.Name
 	cachedData["namespace_name"] = namespace.Name
-	if err := s.cache.Set(ctx, "auth_device/"+uid, cachedData, time.Second*30); err != nil {
+	if err := s.cache.Set(ctx, "auth_device/"+uid, cachedData, DeviceAuthCacheDuration); err != nil {
 		log.WithError(err).Warn("cannot store device authentication metadata in cache")
 	}
 
@@ -255,7 +254,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	// Users with MFA enabled must authenticate to the cloud instead of community.
 	if user.MFA.Enabled {
 		mfaToken := uuid.Generate()
-		if err := s.cache.Set(ctx, "mfa-token={"+mfaToken+"}", user.ID, 30*time.Minute); err != nil {
+		if err := s.cache.Set(ctx, "mfa-token={"+mfaToken+"}", user.ID, MFATokenCacheDuration); err != nil {
 			log.WithError(err).
 				WithField("source_ip", sourceIP).
 				WithField("user_id", user.ID).
@@ -428,7 +427,7 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		return nil, NewErrAPIKeyInvalid(apiKey.Name)
 	}
 
-	if err := s.cache.Set(ctx, "api-key={"+key+"}", apiKey, 2*time.Minute); err != nil {
+	if err := s.cache.Set(ctx, "api-key={"+key+"}", apiKey, APIKeyCacheDuration); err != nil {
 		log.WithError(err).Info("Unable to set the api-key in cache")
 	}
 
@@ -488,7 +487,7 @@ func (s *service) PublicKey() *rsa.PublicKey {
 //
 // AuthCacheToken returns an erro when it could not cache the token.
 func (s *service) AuthCacheToken(ctx context.Context, tenant, id, token string) error {
-	return s.cache.Set(ctx, "token_"+tenant+id, token, time.Hour*72)
+	return s.cache.Set(ctx, "token_"+tenant+id, token, TokenCacheDuration)
 }
 
 // AuthIsCacheToken checks if the user's namespace token is cached.

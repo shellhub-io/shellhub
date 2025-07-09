@@ -10,10 +10,10 @@ import (
 )
 
 var migration101 = migrate.Migration{
-	Version:     101,
+	Version:     MigrationVersion101,
 	Description: "Add device count fields to namespaces based on existing devices",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 101, "action": "Up"}).Info("Applying migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion101, "action": "Up"}).Info("Applying migration")
 
 		initDoc := bson.M{
 			"$set": bson.M{
@@ -112,7 +112,7 @@ var migration101 = migrate.Migration{
 		return nil
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 101, "action": "Down"}).Info("Reverting migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion101, "action": "Down"}).Info("Reverting migration")
 
 		updateDoc := bson.M{
 			"$unset": bson.M{

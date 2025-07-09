@@ -10,12 +10,12 @@ import (
 )
 
 var migration23 = migrate.Migration{
-	Version:     23,
+	Version:     MigrationVersion23,
 	Description: "change dot in namespace name and hostname to -",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   23,
+			"version":   MigrationVersion23,
 			"action":    "Up",
 		}).Info("Applying migration")
 		if _, err := db.Collection("namespaces").UpdateMany(ctx, bson.D{}, []bson.M{
@@ -47,7 +47,7 @@ var migration23 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   23,
+			"version":   MigrationVersion23,
 			"action":    "Down",
 		}).Info("Applying migration")
 

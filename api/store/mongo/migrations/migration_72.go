@@ -11,12 +11,12 @@ import (
 )
 
 var migration72 = migrate.Migration{
-	Version:     72,
+	Version:     MigrationVersion72,
 	Description: "Adding the 'members.$.status' attribute to the namespace if it does not already exist.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   72,
+			"version":   MigrationVersion72,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -67,7 +67,7 @@ var migration72 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   72,
+			"version":   MigrationVersion72,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

@@ -27,6 +27,11 @@ import (
 // to be used during development only.
 var AgentVersion string
 
+const (
+	// UpdateCheckInterval defines the interval between update checks
+	UpdateCheckInterval = 24 * time.Hour
+)
+
 func main() {
 	// Default command.
 	rootCmd := &cobra.Command{ // nolint: exhaustruct
@@ -157,7 +162,7 @@ func main() {
 							"preferred_hostname": cfg.PreferredHostname,
 						}).Info("Sleeping for 24 hours")
 
-						time.Sleep(time.Hour * 24)
+						time.Sleep(UpdateCheckInterval)
 					}
 				}()
 			}
@@ -262,7 +267,7 @@ func main() {
 							"version": AgentVersion,
 						}).Info("Sleeping for 24 hours")
 
-						time.Sleep(time.Hour * 24)
+						time.Sleep(UpdateCheckInterval)
 					}
 				}()
 			}

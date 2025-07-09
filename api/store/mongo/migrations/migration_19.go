@@ -11,12 +11,12 @@ import (
 )
 
 var migration19 = migrate.Migration{
-	Version:     19,
+	Version:     MigrationVersion19,
 	Description: "Remove all fingerprint associated with a public keys collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   19,
+			"version":   MigrationVersion19,
 			"action":    "Up",
 		}).Info("Applying migration")
 		_, err := db.Collection("public_keys").Indexes().DropOne(ctx, "fingerprint")
@@ -26,7 +26,7 @@ var migration19 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   19,
+			"version":   MigrationVersion19,
 			"action":    "Down",
 		}).Info("Applying migration")
 		mod := mongo.IndexModel{

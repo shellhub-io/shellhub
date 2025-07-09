@@ -10,13 +10,13 @@ import (
 )
 
 var migration66 = migrate.Migration{
-	Version:     66,
+	Version:     MigrationVersion66,
 	Description: "Replace the user's MFA attributes.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   66,
+				"version":   MigrationVersion66,
 				"action":    "Up",
 			}).
 			Info("Applying migration")
@@ -55,7 +55,7 @@ var migration66 = migrate.Migration{
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   66,
+				"version":   MigrationVersion66,
 				"action":    "Up",
 			}).
 			Info("Applying migration")

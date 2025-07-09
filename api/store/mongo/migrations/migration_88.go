@@ -10,12 +10,12 @@ import (
 )
 
 var migration88 = migrate.Migration{
-	Version:     88,
+	Version:     MigrationVersion88,
 	Description: "Adding an 'authentication.saml' attributes to system collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   88,
+			"version":   MigrationVersion88,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -50,7 +50,7 @@ var migration88 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   88,
+			"version":   MigrationVersion88,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

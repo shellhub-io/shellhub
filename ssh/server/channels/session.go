@@ -11,6 +11,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+const sessionWaitGroupCount = 3
+
 // KeepAliveRequestTypePrefix Through the time, the [KeepAliveRequestType] type sent from agent to server changed its
 // name, but always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this prefix
 // exists and perform the necessary operations.
@@ -147,7 +149,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 			go pipe(sess, client.Channel, agent.Channel, seat, done)
 		})
 
-		wg.Add(3)
+		wg.Add(sessionWaitGroupCount)
 
 		go func() {
 			defer wg.Done()

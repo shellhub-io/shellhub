@@ -11,12 +11,12 @@ import (
 )
 
 var migration12 = migrate.Migration{
-	Version:     12,
+	Version:     MigrationVersion12,
 	Description: "Set the tenant_id as unique in the namespaces collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   12,
+			"version":   MigrationVersion12,
 			"action":    "Up",
 		}).Info("Applying migration")
 		mod := mongo.IndexModel{
@@ -37,7 +37,7 @@ var migration12 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   12,
+			"version":   MigrationVersion12,
 			"action":    "Down",
 		}).Info("Applying migration")
 		_, err := db.Collection("namespaces").Indexes().DropOne(ctx, "tenant_id")

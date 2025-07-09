@@ -10,12 +10,12 @@ import (
 )
 
 var migration27 = migrate.Migration{
-	Version:     27,
+	Version:     MigrationVersion27,
 	Description: "Set closed field in the sessions",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   27,
+			"version":   MigrationVersion27,
 			"action":    "Up",
 		}).Info("Applying migration")
 		_, err := db.Collection("sessions").UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"closed": true}})
@@ -25,7 +25,7 @@ var migration27 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   27,
+			"version":   MigrationVersion27,
 			"action":    "Down",
 		}).Info("Applying migration")
 

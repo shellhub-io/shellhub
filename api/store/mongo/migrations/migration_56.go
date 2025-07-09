@@ -11,12 +11,12 @@ import (
 )
 
 var migration56 = migrate.Migration{
-	Version:     56,
+	Version:     MigrationVersion56,
 	Description: "create index for public url address on devices",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   56,
+			"version":   MigrationVersion56,
 			"action":    "Up",
 		}).Info("Applying migration up")
 		field := "public_url_address"
@@ -41,7 +41,7 @@ var migration56 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   56,
+			"version":   MigrationVersion56,
 			"action":    "Down",
 		}).Info("Applying migration down")
 		field := "public_url_address"

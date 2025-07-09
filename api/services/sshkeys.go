@@ -183,7 +183,7 @@ func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant strin
 }
 
 func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
-	key, err := rsa.GenerateKey(rand.Reader, 4096)
+	key, err := rsa.GenerateKey(rand.Reader, RSAKeySize)
 	if err != nil {
 		return nil, err
 	}

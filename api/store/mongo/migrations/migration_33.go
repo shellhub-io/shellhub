@@ -11,12 +11,12 @@ import (
 )
 
 var migration33 = migrate.Migration{
-	Version:     33,
+	Version:     MigrationVersion33,
 	Description: "add tags field to collection devices",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   33,
+			"version":   MigrationVersion33,
 			"action":    "Up",
 		}).Info("Applying migration")
 		mod := mongo.IndexModel{
@@ -37,7 +37,7 @@ var migration33 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   33,
+			"version":   MigrationVersion33,
 			"action":    "Down",
 		}).Info("Applying migration")
 

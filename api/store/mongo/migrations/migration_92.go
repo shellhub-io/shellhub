@@ -10,12 +10,12 @@ import (
 )
 
 var migration92 = migrate.Migration{
-	Version:     92,
+	Version:     MigrationVersion92,
 	Description: "Adding seat and seats to sessions and sessions events",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   92,
+			"version":   MigrationVersion92,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -58,7 +58,7 @@ var migration92 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   92,
+			"version":   MigrationVersion92,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

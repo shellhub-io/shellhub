@@ -11,6 +11,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+const rsaKeySize = 2048
+
 // Conn represents a test SSH connection.
 type Conn struct {
 	l      net.Listener
@@ -86,7 +88,7 @@ func (c *Conn) setup() {
 
 	// setup HostSigners
 	if len(c.Server.HostSigners) == 0 {
-		key, err := rsa.GenerateKey(rand.Reader, 2048)
+		key, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 		if err != nil {
 			exit(err, "failed to generate RSA key")
 		}

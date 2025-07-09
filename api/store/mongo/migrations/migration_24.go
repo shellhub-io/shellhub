@@ -10,12 +10,12 @@ import (
 )
 
 var migration24 = migrate.Migration{
-	Version:     24,
+	Version:     MigrationVersion24,
 	Description: "convert names and emails to lowercase",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   24,
+			"version":   MigrationVersion24,
 			"action":    "Up",
 		}).Info("Applying migration")
 		if _, err := db.Collection("users").UpdateMany(ctx, bson.D{}, []bson.M{
@@ -40,7 +40,7 @@ var migration24 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   24,
+			"version":   MigrationVersion24,
 			"action":    "Down",
 		}).Info("Applying migration")
 

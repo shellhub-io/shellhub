@@ -10,12 +10,12 @@ import (
 )
 
 var migration87 = migrate.Migration{
-	Version:     87,
+	Version:     MigrationVersion87,
 	Description: "Adding an 'authentication' attributes to system collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   87,
+			"version":   MigrationVersion87,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -48,7 +48,7 @@ var migration87 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   87,
+			"version":   MigrationVersion87,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

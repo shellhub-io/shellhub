@@ -10,12 +10,12 @@ import (
 )
 
 var migration71 = migrate.Migration{
-	Version:     71,
+	Version:     MigrationVersion71,
 	Description: "Adding the 'preferences.preferred_namespace' attribute to the user if it does not already exist.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   71,
+			"version":   MigrationVersion71,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -39,7 +39,7 @@ var migration71 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   71,
+			"version":   MigrationVersion71,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

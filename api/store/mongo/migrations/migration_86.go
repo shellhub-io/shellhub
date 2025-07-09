@@ -11,12 +11,12 @@ import (
 )
 
 var migration86 = migrate.Migration{
-	Version:     86,
+	Version:     MigrationVersion86,
 	Description: "Adding an 'auth_methods' attributes to user collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   86,
+			"version":   MigrationVersion86,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -39,7 +39,7 @@ var migration86 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   86,
+			"version":   MigrationVersion86,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

@@ -11,11 +11,11 @@ import (
 )
 
 var migration80 = migrate.Migration{
-	Version:     80,
+	Version:     MigrationVersion80,
 	Description: "Remove the 'message' index from the 'recorded_sessions' collection.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 80).
+			WithField("version", MigrationVersion80).
 			WithField("action", " Up").
 			Info("Applying migration")
 
@@ -25,7 +25,7 @@ var migration80 = migrate.Migration{
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 80).
+			WithField("version", MigrationVersion80).
 			WithField("action", "Down").
 			Info("Applying migration")
 

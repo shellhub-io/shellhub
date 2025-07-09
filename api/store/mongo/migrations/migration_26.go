@@ -11,17 +11,17 @@ import (
 )
 
 var migration26 = migrate.Migration{
-	Version:     26,
+	Version:     MigrationVersion26,
 	Description: "Create collection used to recover password and activate account",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   26,
+			"version":   MigrationVersion26,
 			"action":    "Up",
 		}).Info("Applying migration")
 		indexModel := mongo.IndexModel{
 			Keys:    bson.D{{"created_at", 1}},
-			Options: options.Index().SetName("ttl").SetExpireAfterSeconds(86400),
+			Options: options.Index().SetName("ttl").SetExpireAfterSeconds(MigrationTTL86400),
 		}
 		_, err := db.Collection("recovery_tokens").Indexes().CreateOne(ctx, indexModel)
 		if err != nil {
@@ -49,7 +49,7 @@ var migration26 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   26,
+			"version":   MigrationVersion26,
 			"action":    "Down",
 		}).Info("Applying migration")
 

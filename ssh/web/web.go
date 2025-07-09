@@ -13,11 +13,13 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+const managerInterval = 30 * time.Second
+
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
 func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 	const WebsocketSSHBridgeRoute = "/ws/ssh"
 
-	manager := newManager(30 * time.Second)
+	manager := newManager(managerInterval)
 
 	// NOTICE: this is the route that users send your credentials securely.
 	router.Add(http.MethodPost, WebsocketSSHBridgeRoute, echo.WrapHandler(

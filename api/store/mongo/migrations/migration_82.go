@@ -13,12 +13,12 @@ import (
 )
 
 var migration82 = migrate.Migration{
-	Version:     82,
+	Version:     MigrationVersion82,
 	Description: "Adding the 'namespaces.type' attribute to the namespaces if it does not already exist.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   82,
+			"version":   MigrationVersion82,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -43,7 +43,7 @@ var migration82 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   82,
+			"version":   MigrationVersion82,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

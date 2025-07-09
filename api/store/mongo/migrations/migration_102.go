@@ -10,10 +10,10 @@ import (
 )
 
 var migration102 = migrate.Migration{
-	Version:     102,
+	Version:     MigrationVersion102,
 	Description: "Remove legacy devices_count field from namespaces in favor of status-specific counters",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 102, "action": "Up"}).Info("Applying migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion102, "action": "Up"}).Info("Applying migration")
 
 		r, err := db.Collection("namespaces").UpdateMany(ctx, bson.M{}, bson.M{"$unset": bson.M{"devices_count": ""}})
 		if err != nil {
@@ -27,7 +27,7 @@ var migration102 = migrate.Migration{
 		return nil
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
-		log.WithFields(log.Fields{"component": "migration", "version": 102, "action": "Down"}).Info("Cannot revert migration")
+		log.WithFields(log.Fields{"component": "migration", "version": MigrationVersion102, "action": "Down"}).Info("Cannot revert migration")
 
 		return nil
 	}),

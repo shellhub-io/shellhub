@@ -12,12 +12,12 @@ import (
 )
 
 var migration9 = migrate.Migration{
-	Version:     9,
+	Version:     MigrationVersion9,
 	Description: "Set all devices names to lowercase in the devices collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   9,
+			"version":   MigrationVersion9,
 			"action":    "Up",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("devices").Find(ctx, bson.D{})
@@ -43,7 +43,7 @@ var migration9 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   9,
+			"version":   MigrationVersion9,
 			"action":    "Down",
 		}).Info("Applying migration")
 

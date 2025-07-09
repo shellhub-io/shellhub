@@ -12,12 +12,12 @@ import (
 )
 
 var migration20 = migrate.Migration{
-	Version:     20,
+	Version:     MigrationVersion20,
 	Description: "Change the model on db for firewall_rules collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   20,
+			"version":   MigrationVersion20,
 			"action":    "Up",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("firewall_rules").Find(ctx, bson.D{})
@@ -61,7 +61,7 @@ var migration20 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   20,
+			"version":   MigrationVersion20,
 			"action":    "Down",
 		}).Info("Applying migration")
 

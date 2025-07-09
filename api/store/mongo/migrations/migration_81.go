@@ -11,11 +11,11 @@ import (
 )
 
 var migration81 = migrate.Migration{
-	Version:     81,
+	Version:     MigrationVersion81,
 	Description: "Create a 'time' index in the 'recorded_sessions' collection.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 81).
+			WithField("version", MigrationVersion81).
 			WithField("action", " Up").
 			Info("Applying migration")
 
@@ -30,7 +30,7 @@ var migration81 = migrate.Migration{
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 81).
+			WithField("version", MigrationVersion81).
 			WithField("action", "Down").
 			Info("Applying migration")
 

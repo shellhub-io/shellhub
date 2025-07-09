@@ -11,12 +11,12 @@ import (
 )
 
 var migration83 = migrate.Migration{
-	Version:     83,
+	Version:     MigrationVersion83,
 	Description: "Set the user's 'origin' attribute to 'manual' if it does not already exist.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   MigrationVersion83,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -37,7 +37,7 @@ var migration83 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   83,
+			"version":   MigrationVersion83,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

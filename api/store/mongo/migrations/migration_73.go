@@ -12,12 +12,12 @@ import (
 )
 
 var migration73 = migrate.Migration{
-	Version:     73,
+	Version:     MigrationVersion73,
 	Description: "Adding the 'members.$.added_at' attribute to the namespace if it does not already exist. The value is the Go time.Time zeroer",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   73,
+			"version":   MigrationVersion73,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -71,7 +71,7 @@ var migration73 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{
 			"component": "migration",
-			"version":   73,
+			"version":   MigrationVersion73,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

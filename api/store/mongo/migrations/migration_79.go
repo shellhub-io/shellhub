@@ -11,11 +11,11 @@ import (
 )
 
 var migration79 = migrate.Migration{
-	Version:     79,
+	Version:     MigrationVersion79,
 	Description: "create and populate the system collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 79).
+			WithField("version", MigrationVersion79).
 			WithField("action", " Up").
 			Info("Applying migration")
 
@@ -40,7 +40,7 @@ var migration79 = migrate.Migration{
 	}),
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithField("component", "migration").
-			WithField("version", 79).
+			WithField("version", MigrationVersion79).
 			WithField("action", "Down").
 			Info("Reverting migration")
 

@@ -30,11 +30,11 @@ func namespaceCreate(service services.Services) *cobra.Command {
 		Long: `Creates a new namespace in the system using the provided namespace name, associated owner's username, and an optional tenant ID and Type.
 The owner must be a valid username within the system. If a tenant ID is provided, it should be in UUID format.`,
 		Example: `cli namespace create dev john_doe --type=team`,
-		Args:    cobra.RangeArgs(2, 4),
+		Args:    cobra.RangeArgs(ExactArgsTwo, ExactArgsFour),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Avoid panic when TenantID isn't provided.
 
-			if len(args) == 2 {
+			if len(args) == ExactArgsTwo {
 				args = append(args, "")
 			}
 
@@ -76,7 +76,7 @@ func namespaceDelete(service services.Services) *cobra.Command {
 		Short:   "Delete a namespace",
 		Long:    `Deletes a namespace and all associated data from the system based on the provided name.`,
 		Example: `cli namespace delete dev`,
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(ExactArgsOne),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input inputs.NamespaceDelete
 
@@ -120,7 +120,7 @@ func memberAdd(service services.Services) *cobra.Command {
 The username identifies the member to be added, the namespace specifies where the member should be added, 
 and the role indicates the permissions that the member will have within that namespace.`,
 		Example: `cli member add myuser mynamespace observer`,
-		Args:    cobra.ExactArgs(3),
+		Args:    cobra.ExactArgs(ExactArgsThree),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input inputs.MemberAdd
 
@@ -151,7 +151,7 @@ func memberRemove(service services.Services) *cobra.Command {
 		Long: `Removes an existing member from the specified namespace. 
 The username identifies the member to be removed, and the namespace specifies where the member is currently located.`,
 		Example: `cli member remove john_doe dev`,
-		Args:    cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(ExactArgsTwo),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input inputs.MemberRemove
 

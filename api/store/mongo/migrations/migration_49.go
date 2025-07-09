@@ -10,12 +10,12 @@ import (
 )
 
 var migration49 = migrate.Migration{
-	Version:     49,
+	Version:     MigrationVersion49,
 	Description: "set the number of namespaces owned by each user",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   49,
+			"version":   MigrationVersion49,
 			"action":    "Up",
 		}).Info("Applying migration up")
 
@@ -63,7 +63,7 @@ var migration49 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   49,
+			"version":   MigrationVersion49,
 			"action":    "Down",
 		}).Info("Applying migration down")
 

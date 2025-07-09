@@ -10,13 +10,13 @@ import (
 )
 
 var migration68 = migrate.Migration{
-	Version:     68,
+	Version:     MigrationVersion68,
 	Description: "Rename `api_keys.user_id` to `api_keys.created_by`.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   68,
+				"version":   MigrationVersion68,
 				"action":    "Up",
 			}).
 			Info("Applying migration")
@@ -49,7 +49,7 @@ var migration68 = migrate.Migration{
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   68,
+				"version":   MigrationVersion68,
 				"action":    "Down",
 			}).
 			Info("Applying migration")

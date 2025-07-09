@@ -11,12 +11,12 @@ import (
 )
 
 var migration40 = migrate.Migration{
-	Version:     40,
+	Version:     MigrationVersion40,
 	Description: "remove online index from devices collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   40,
+			"version":   MigrationVersion40,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -26,7 +26,7 @@ var migration40 = migrate.Migration{
 
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"last_seen", 1}},
-			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(60),
+			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 		}
 		if _, err := db.Collection("connected_devices").Indexes().CreateOne(ctx, mod); err != nil {
 			return err
@@ -37,7 +37,7 @@ var migration40 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   40,
+			"version":   MigrationVersion40,
 			"action":    "Down",
 		}).Info("Applying migration")
 
@@ -47,7 +47,7 @@ var migration40 = migrate.Migration{
 
 		mod := mongo.IndexModel{
 			Keys:    bson.D{{"last_seen", 1}},
-			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(30),
+			Options: options.Index().SetName("last_seen").SetExpireAfterSeconds(MigrationTTL60),
 		}
 		if _, err := db.Collection("connected_devices").Indexes().CreateOne(ctx, mod); err != nil {
 			return err

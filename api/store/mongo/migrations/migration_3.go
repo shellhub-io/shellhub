@@ -9,12 +9,12 @@ import (
 )
 
 var migration3 = migrate.Migration{
-	Version:     3,
+	Version:     MigrationVersion3,
 	Description: "Rename the column attributes to info",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   3,
+			"version":   MigrationVersion3,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -23,7 +23,7 @@ var migration3 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   3,
+			"version":   MigrationVersion3,
 			"action":    "Down",
 		}).Info("Applying migration")
 

@@ -13,12 +13,12 @@ import (
 )
 
 var migration37 = migrate.Migration{
-	Version:     37,
+	Version:     MigrationVersion37,
 	Description: "Change member's role from array of ID to a list of members' object",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   37,
+			"version":   MigrationVersion37,
 			"action":    "Up",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})
@@ -89,7 +89,7 @@ var migration37 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   37,
+			"version":   MigrationVersion37,
 			"action":    "Down",
 		}).Info("Applying migration")
 		cursor, err := db.Collection("namespaces").Find(ctx, bson.D{})

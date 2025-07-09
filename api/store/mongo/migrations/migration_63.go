@@ -10,12 +10,12 @@ import (
 )
 
 var migration63 = migrate.Migration{
-	Version:     63,
+	Version:     MigrationVersion63,
 	Description: "add MFA fields to collection users",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   63,
+			"version":   MigrationVersion63,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -36,7 +36,7 @@ var migration63 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   63,
+			"version":   MigrationVersion63,
 			"action":    "Down",
 		}).Info("Reverting migration")
 

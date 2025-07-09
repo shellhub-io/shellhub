@@ -11,12 +11,12 @@ import (
 )
 
 var migration97 = migrate.Migration{
-	Version:     97,
+	Version:     MigrationVersion97,
 	Description: "Set namespace type to team when type is empty",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   97,
+			"version":   MigrationVersion97,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -37,7 +37,7 @@ var migration97 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   97,
+			"version":   MigrationVersion97,
 			"action":    "Down",
 		}).Info("Cannot undo migration")
 

@@ -10,12 +10,12 @@ import (
 )
 
 var migration44 = migrate.Migration{
-	Version:     44,
+	Version:     MigrationVersion44,
 	Description: "remove duplicated tags on public keys",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   44,
+			"version":   MigrationVersion44,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -56,7 +56,7 @@ var migration44 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(_ context.Context, _ *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   44,
+			"version":   MigrationVersion44,
 			"action":    "Down",
 		}).Info("Applying migration")
 

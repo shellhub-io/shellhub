@@ -13,13 +13,13 @@ import (
 )
 
 var migration69 = migrate.Migration{
-	Version:     69,
+	Version:     MigrationVersion69,
 	Description: "Hash API key ID. It will delete the old document and create a new one with the hashed ID.",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   69,
+				"version":   MigrationVersion69,
 				"action":    "Up",
 			}).
 			Info("Applying migration")
@@ -94,7 +94,7 @@ var migration69 = migrate.Migration{
 		log.
 			WithFields(log.Fields{
 				"component": "migration",
-				"version":   69,
+				"version":   MigrationVersion69,
 				"action":    "Down",
 			}).
 			Info("Applying migration")

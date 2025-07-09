@@ -10,6 +10,12 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+const (
+	pingInterval       = 30 * time.Second
+	bufferSize         = 1024
+	deadlineMultiplier = 2
+)
+
 //go:generate mockery --name Socket --filename socket.go
 type Socket interface {
 	io.ReadWriteCloser
@@ -25,12 +31,12 @@ type Conn struct {
 func NewConn(socket Socket) *Conn {
 	return &Conn{
 		Socket: socket,
-		Pinger: time.NewTicker(30 * time.Second),
+		Pinger: time.NewTicker(pingInterval),
 	}
 }
 
 func (c *Conn) ReadMessage(message *Message) (int, error) {
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, bufferSize)
 
 	read, err := c.Socket.Read(buffer)
 	if err != nil {
@@ -127,7 +133,7 @@ func (c *Conn) KeepAlive() {
 	}
 
 	for {
-		if err := socket.SetDeadline(clock.Now().Add((time.Second * 30) * 2)); err != nil {
+		if err := socket.SetDeadline(clock.Now().Add(pingInterval * deadlineMultiplier)); err != nil {
 			return
 		}
 

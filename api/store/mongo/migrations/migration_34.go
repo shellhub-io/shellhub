@@ -10,12 +10,12 @@ import (
 )
 
 var migration34 = migrate.Migration{
-	Version:     34,
+	Version:     MigrationVersion34,
 	Description: "create online index in devices collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   34,
+			"version":   MigrationVersion34,
 			"action":    "Up",
 		}).Info("Applying migration")
 
@@ -30,7 +30,7 @@ var migration34 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   34,
+			"version":   MigrationVersion34,
 			"action":    "Down",
 		}).Info("Applying migration")
 

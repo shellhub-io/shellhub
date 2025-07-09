@@ -21,6 +21,9 @@ const (
 	ServiceAPI     Service = "api"
 	ServiceSSH     Service = "ssh"
 	ServiceUI      Service = "ui"
+
+	// Buffer size for reading test output
+	TestBufferSize = 1024
 )
 
 var freePortController []string
@@ -47,7 +50,7 @@ func GetFreePort(t *testing.T) string {
 }
 
 func ReaderToString(t *testing.T, reader io.Reader) string {
-	buffer := bytes.NewBuffer(make([]byte, 1024))
+	buffer := bytes.NewBuffer(make([]byte, TestBufferSize))
 
 	_, err := stdcopy.StdCopy(buffer, io.Discard, reader)
 	if !assert.NoError(t, err) {

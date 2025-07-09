@@ -10,12 +10,12 @@ import (
 )
 
 var migration61 = migrate.Migration{
-	Version:     61,
+	Version:     MigrationVersion61,
 	Description: "delete devices with empty name",
 	Up: migrate.MigrationFunc(func(_ context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   61,
+			"version":   MigrationVersion61,
 			"action":    "Up",
 		}).Info("Applying migration up")
 		if _, err := db.Collection("devices").DeleteMany(context.Background(), bson.M{"$or": bson.A{

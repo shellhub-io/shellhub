@@ -38,11 +38,11 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 
 	expiresIn := int64(0)
 	switch req.ExpiresAt {
-	case 30, 60, 90:
+	case APIKeyExpirationDays30, APIKeyExpirationDays60, APIKeyExpirationDays90:
 		expiresIn = clock.Now().AddDate(0, 0, req.ExpiresAt).Unix()
-	case 365:
+	case APIKeyExpirationDays365:
 		expiresIn = clock.Now().AddDate(1, 0, 0).Unix()
-	case -1:
+	case APIKeyExpirationNever:
 		expiresIn = -1
 	default:
 		return nil, NewErrBadRequest(errors.New("experid date to APIKey is invalid"))

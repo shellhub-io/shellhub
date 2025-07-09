@@ -11,12 +11,12 @@ import (
 )
 
 var migration8 = migrate.Migration{
-	Version:     8,
+	Version:     MigrationVersion8,
 	Description: "Unset unique on recorded in the sessions collection",
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   8,
+			"version":   MigrationVersion8,
 			"action":    "Up",
 		}).Info("Applying migration")
 		mod := mongo.IndexModel{
@@ -33,7 +33,7 @@ var migration8 = migrate.Migration{
 	Down: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		logrus.WithFields(logrus.Fields{
 			"component": "migration",
-			"version":   8,
+			"version":   MigrationVersion8,
 			"action":    "Down",
 		}).Info("Applying migration")
 		if _, err := db.Collection("sessions").UpdateMany(ctx, bson.M{}, bson.M{"$unset": bson.M{"recorded": ""}}); err != nil {

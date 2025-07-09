@@ -18,6 +18,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const splitPartsCount = 2
+
 var (
 	ErrDeviceTunnelForbidden     = errors.New("device tunnel not found")
 	ErrDeviceTunnelDial          = errors.New("failed to connect to device")
@@ -105,7 +107,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 	}
 	tunnel.Tunnel.CloseHandler = func(key string) {
 		parts := strings.Split(key, ":")
-		if len(parts) != 2 {
+		if len(parts) != splitPartsCount {
 			log.Error("failed to parse key at close handler")
 
 			return
@@ -125,7 +127,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 	}
 	tunnel.Tunnel.KeepAliveHandler = func(key string) {
 		parts := strings.Split(key, ":")
-		if len(parts) != 2 {
+		if len(parts) != splitPartsCount {
 			log.Error("failed to parse key at keep alive handler")
 
 			return
@@ -273,7 +275,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 
 			// Bidirectional copy between the client and the device.
 			var wg sync.WaitGroup
-			wg.Add(2)
+			wg.Add(splitPartsCount)
 
 			done := sync.OnceFunc(func() {
 				defer in.Close()
