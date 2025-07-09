@@ -10,6 +10,7 @@ const pinia = createPinia();
 const app = createApp(App);
 
 loadFonts();
+app.provide("isAdmin", true);
 app.use(vuetify);
 app.use(router);
 app.use(pinia);
