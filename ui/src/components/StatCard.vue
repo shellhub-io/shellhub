@@ -42,16 +42,10 @@
 
 <script setup lang="ts">
 import { inject } from "vue";
+import { StatCardItem } from "@/interfaces/IStats";
 import DeviceAdd from "./Devices/DeviceAdd.vue";
 
-defineProps<{
-  title: string;
-  content: string;
-  icon: string;
-  buttonLabel: string;
-  path: string;
-  stat: number;
-}>();
+defineProps<StatCardItem>();
 
 const isAdmin: boolean = inject("isAdmin", false);
 

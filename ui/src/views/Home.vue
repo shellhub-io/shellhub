@@ -21,19 +21,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
+import { StatCardItem } from "@/interfaces/IStats";
 import StatCard from "@/components/StatCard.vue";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-
-type ItemCard = {
-  title: string;
-  content: string;
-  icon: string;
-  buttonLabel: string;
-  path: string;
-  stat: number;
-};
 
 const store = useStore();
 const snackbar = useSnackbar();
@@ -42,7 +34,7 @@ const itemsStats = computed(() => store.getters["stats/stats"]);
 const hasNamespace = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
-const items = computed(() => [
+const items = computed<StatCardItem[]>(() => [
   {
     title: "Registered Devices",
     content: "Registered devices into the tenancy account",
@@ -67,7 +59,7 @@ const items = computed(() => [
     path: "sessions",
     stat: itemsStats.value.active_sessions || 0,
   },
-] as ItemCard[]);
+]);
 
 onMounted(async () => {
   if (!hasNamespace.value) return;

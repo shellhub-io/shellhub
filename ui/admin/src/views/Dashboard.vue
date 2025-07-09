@@ -22,21 +22,13 @@
 import axios, { AxiosError } from "axios";
 import { computed, onMounted, ref } from "vue";
 import useStatsStore from "@admin/store/modules/stats";
+import { StatCardItem } from "@/interfaces/IStats";
 import useSnackbar from "@/helpers/snackbar";
 import StatCard from "@/components/StatCard.vue";
 
-type ItemCard = {
-  title: string;
-  content: string;
-  icon: string;
-  buttonLabel: string;
-  path: string;
-  stat: number;
-};
-
 const snackbar = useSnackbar();
 const statsStore = useStatsStore();
-const items = ref<ItemCard[]>([]);
+const items = ref<StatCardItem[]>([]);
 const hasStatus = ref(false);
 const itemsStats = computed(() => statsStore.getStats);
 
