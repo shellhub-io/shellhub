@@ -1,12 +1,3 @@
-export interface IAnnouncements {
-  uuid: string;
-  title: string;
-  date: string;
-}
+import { IAnnouncementShort } from "@/interfaces/IAnnouncements";
 
-export interface IAnnouncement {
-  uuid: string;
-  title: string;
-  content: string;
-  date: string;
-}
+export type IAdminAnnouncementShort = IAnnouncementShort;
