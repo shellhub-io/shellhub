@@ -50,13 +50,14 @@ func main() {
 			}
 
 			log.WithFields(log.Fields{
-				"domain": domain,
-				"token":  halfString(config.TunnelsDNSProviderToken),
+				"domain":   domain,
+				"provider": config.TunnelsDNSProvider,
+				"token":    halfString(config.TunnelsDNSProviderToken),
 			}).Info("tunnels info")
 
 			certBot.Config.Tunnels = &Tunnels{
 				Domain:   domain,
-				Provider: DigitalOceanDNSProvider,
+				Provider: config.TunnelsDNSProvider,
 				Token:    config.TunnelsDNSProviderToken,
 			}
 		}
