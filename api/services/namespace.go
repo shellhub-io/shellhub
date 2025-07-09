@@ -54,6 +54,7 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		DevicesAcceptedCount: 0,
 		DevicesPendingCount:  0,
 		DevicesRejectedCount: 0,
+		DevicesRemovedCount:  0,
 		Members: []models.Member{
 			{
 				ID:      user.ID,

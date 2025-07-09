@@ -119,11 +119,7 @@ var (
 	ErrAuthUnathorized                 = errors.New("auth unauthorized", ErrLayer, ErrCodeUnauthorized)
 	ErrNamespaceLimitReached           = errors.New("namespace limit reached", ErrLayer, ErrCodeLimit)
 	ErrNamespaceCreationIsForbidden    = errors.New("namespace creation not permitted for user", ErrLayer, ErrCodeForbidden)
-	ErrDeviceRemovedCount              = errors.New("device removed count", ErrLayer, ErrCodeNotFound)
-	ErrDeviceRemovedInsert             = errors.New("device removed insert", ErrLayer, ErrCodeStore)
 	ErrDeviceRemovedFull               = errors.New("device removed full", ErrLayer, ErrCodePayment)
-	ErrDeviceRemovedDelete             = errors.New("device removed delete", ErrLayer, ErrCodeStore)
-	ErrDeviceRemovedGet                = errors.New("device removed get", ErrLayer, ErrCodeNotFound)
 	ErrBillingReportNamespaceDelete    = errors.New("billing report namespace delete", ErrLayer, ErrCodePayment)
 	ErrBillingReportDevice             = errors.New("billing report device", ErrLayer, ErrCodePayment)
 	ErrBillingEvaluate                 = errors.New("billing evaluate", ErrLayer, ErrCodePayment)
@@ -443,24 +439,8 @@ func NewErrNamespaceCreationIsForbidden(limit int, err error) error {
 	return NewErrLimit(ErrNamespaceCreationIsForbidden, limit, err)
 }
 
-func NewErrDeviceRemovedCount(next error) error {
-	return NewErrInvalid(ErrDeviceRemovedCount, nil, next)
-}
-
-func NewErrDeviceRemovedInsert(next error) error {
-	return NewErrInvalid(ErrDeviceRemovedInsert, nil, next)
-}
-
 func NewErrDeviceRemovedFull(limit int, next error) error {
 	return NewErrLimit(ErrDeviceRemovedFull, limit, next)
-}
-
-func NewErrDeviceRemovedDelete(next error) error {
-	return NewErrInvalid(ErrDeviceRemovedDelete, nil, next)
-}
-
-func NewErrDeviceRemovedGet(next error) error {
-	return NewErrInvalid(ErrDeviceRemovedGet, nil, next)
 }
 
 func NewErrBillingReportNamespaceDelete(next error) error {

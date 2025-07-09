@@ -67,35 +67,13 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	// collection to check its `accetable` status.
 	switch acceptable {
 	case store.DeviceAcceptableFromRemoved:
-		query = append(query, []bson.M{
-			{
-				"$lookup": bson.M{
-					"from":         "removed_devices",
-					"localField":   "uid",
-					"foreignField": "device.uid",
-					"as":           "removed",
+		query = append(query, bson.M{
+			"$addFields": bson.M{
+				"acceptable": bson.M{
+					"$eq": bson.A{"$status", models.DeviceStatusRemoved},
 				},
 			},
-			{
-				"$addFields": bson.M{
-					"acceptable": bson.M{
-						"$cond": bson.M{
-							"if": bson.M{
-								"$and": bson.A{
-									bson.M{"$ne": bson.A{"$status", models.DeviceStatusAccepted}},
-									bson.M{"$anyElementTrue": []interface{}{"$removed"}},
-								},
-							},
-							"then": true,
-							"else": false,
-						},
-					},
-				},
-			},
-			{
-				"$unset": "removed",
-			},
-		}...)
+		})
 	case store.DeviceAcceptableAsFalse:
 		query = append(query, bson.M{
 			"$addFields": bson.M{
@@ -464,88 +442,4 @@ func (s *Store) DeviceBulkUpdate(ctx context.Context, uids []string, changes *mo
 	}
 
 	return res.ModifiedCount, nil
-}
-
-func (s *Store) DeviceRemovedCount(ctx context.Context, tenant string) (int64, error) {
-	count, err := s.db.Collection("removed_devices").CountDocuments(ctx, bson.M{"device.tenant_id": tenant})
-	if err != nil {
-		return 0, FromMongoError(err)
-	}
-
-	return count, nil
-}
-
-func (s *Store) DeviceRemovedGet(ctx context.Context, tenant string, uid models.UID) (*models.DeviceRemoved, error) {
-	var slot models.DeviceRemoved
-	err := s.db.Collection("removed_devices").FindOne(ctx, bson.M{"device.tenant_id": tenant, "device.uid": uid}).Decode(&slot)
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return &slot, nil
-}
-
-func (s *Store) DeviceRemovedInsert(ctx context.Context, tenant string, device *models.Device) error { //nolint:revive
-	now := time.Now()
-
-	device.Status = models.DeviceStatusRemoved
-	device.StatusUpdatedAt = now
-
-	_, err := s.db.Collection("removed_devices").InsertOne(ctx, models.DeviceRemoved{
-		Timestamp: now,
-		Device:    device,
-	})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceRemovedDelete(ctx context.Context, tenant string, uid models.UID) error {
-	_, err := s.db.Collection("removed_devices").DeleteOne(ctx, bson.M{"device.tenant_id": tenant, "device.uid": uid})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceRemovedList(ctx context.Context, tenant string, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.DeviceRemoved, int, error) {
-	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"device.tenant_id": tenant,
-			},
-		},
-	}
-
-	pipeline = append(pipeline, queries.FromPaginator(&paginator)...)
-
-	queryFilter, err := queries.FromFilters(&filters)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	pipeline = append(pipeline, queryFilter...)
-
-	if sorter.By == "" {
-		sorter.By = "timestamp"
-	}
-	if sorter.Order == "" {
-		sorter.Order = query.OrderDesc
-	}
-	pipeline = append(pipeline, queries.FromSorter(&sorter)...)
-
-	aggregation, err := s.db.Collection("removed_devices").Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	var devices []models.DeviceRemoved
-	if err := aggregation.All(ctx, &devices); err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	return devices, len(devices), nil
 }
