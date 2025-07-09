@@ -115,33 +115,31 @@ func (_m *Client) CreatePrivateKey() (*models.PrivateKey, error) {
 	return r0, r1
 }
 
-// DeviceLookup provides a mock function with given fields: lookup
-func (_m *Client) DeviceLookup(lookup map[string]string) (*models.Device, []error) {
-	ret := _m.Called(lookup)
+// DeviceLookup provides a mock function with given fields: tenantID, name
+func (_m *Client) DeviceLookup(tenantID, name string) (*models.Device, error) {
+	ret := _m.Called(tenantID, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceLookup")
 	}
 
 	var r0 *models.Device
-	var r1 []error
-	if rf, ok := ret.Get(0).(func(map[string]string) (*models.Device, []error)); ok {
-		return rf(lookup)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*models.Device, error)); ok {
+		return rf(tenantID, name)
 	}
-	if rf, ok := ret.Get(0).(func(map[string]string) *models.Device); ok {
-		r0 = rf(lookup)
+	if rf, ok := ret.Get(0).(func(string, string) *models.Device); ok {
+		r0 = rf(tenantID, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(map[string]string) []error); ok {
-		r1 = rf(lookup)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(tenantID, name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]error)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

@@ -28,7 +28,7 @@ type deviceAPI interface {
 	Lookup(lookup map[string]string) (string, []error)
 
 	// DeviceLookup performs a lookup operation based on the provided parameters.
-	DeviceLookup(lookup map[string]string) (*models.Device, []error)
+	DeviceLookup(tenantID, name string) (*models.Device, error)
 
 	// LookupTunnel gets a tunnel from its addrss.
 	// TODO: Create a API interface for Tunnel routes.
@@ -68,23 +68,28 @@ func (c *client) Lookup(lookup map[string]string) (string, []error) {
 	return device.UID, nil
 }
 
-func (c *client) DeviceLookup(lookup map[string]string) (*models.Device, []error) {
+func (c *client) DeviceLookup(tenantID, name string) (*models.Device, error) {
 	device := new(models.Device)
-
 	resp, err := c.http.
 		R().
-		SetQueryParams(lookup).
+		SetQueryParam("tenant_id", tenantID).
+		SetQueryParam("name", name).
 		SetResult(&device).
-		Get("/internal/lookup")
+		Get("/internal/device/lookup")
 	if err != nil {
-		return nil, []error{err}
+		return nil, ErrConnectionFailed
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return nil, []error{errors.New("fail to get the device from the API")}
+	switch resp.StatusCode() {
+	case http.StatusOK:
+		return device, nil
+	case http.StatusNotFound:
+		return nil, ErrNotFound
+	case http.StatusForbidden:
+		return nil, ErrForbidden
+	default:
+		return nil, ErrUnknown
 	}
-
-	return device, nil
 }
 
 func (c *client) ListDevices() ([]models.Device, error) {
