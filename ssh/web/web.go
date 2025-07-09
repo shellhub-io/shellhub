@@ -47,7 +47,7 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 				return
 			}
 
-			key := magickey.GetRerefence()
+			key := magickey.GetReference()
 
 			token, err := token.NewToken(key)
 			if err != nil {
@@ -111,7 +111,7 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 
 		go conn.KeepAlive()
 
-		creds.decryptPassword(magickey.GetRerefence()) //nolint:errcheck
+		creds.decryptPassword(magickey.GetReference()) //nolint:errcheck
 
 		if err := newSession(
 			wsconn.Request().Context(),

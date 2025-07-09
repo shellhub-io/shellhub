@@ -96,7 +96,7 @@ func (p *publicKeyAuth) Evaluate(session *Session) error {
 
 	fingerprint := gossh.FingerprintLegacyMD5(p.pk)
 
-	magic, err := gossh.NewPublicKey(&magickey.GetRerefence().PublicKey)
+	magic, err := gossh.NewPublicKey(&magickey.GetReference().PublicKey)
 	if err != nil {
 		return err
 	}

@@ -25,7 +25,7 @@ func NewToken(_ *rsa.PrivateKey) (*Token, error) {
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"id": identifier,
-	}).SignedString(magickey.GetRerefence())
+	}).SignedString(magickey.GetReference())
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func Parse(token string) (*Token, error) {
 			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
 		}
 
-		return magickey.GetRerefence().Public().(*rsa.PublicKey), nil
+		return magickey.GetReference().Public().(*rsa.PublicKey), nil
 	}); err != nil {
 		return nil, err
 	}
