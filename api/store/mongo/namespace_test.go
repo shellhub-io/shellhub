@@ -47,6 +47,7 @@ func TestNamespaceList(t *testing.T) {
 						DevicesAcceptedCount: 15,
 						DevicesPendingCount:  3,
 						DevicesRejectedCount: 2,
+						DevicesRemovedCount:  1,
 						Members: []models.Member{
 							{
 								ID:      "507f1f77bcf86cd799439011",
@@ -72,6 +73,7 @@ func TestNamespaceList(t *testing.T) {
 						DevicesAcceptedCount: 8,
 						DevicesPendingCount:  1,
 						DevicesRejectedCount: 0,
+						DevicesRemovedCount:  2,
 						Members: []models.Member{
 							{
 								ID:      "6509e169ae6144b2f56bf288",
@@ -97,6 +99,7 @@ func TestNamespaceList(t *testing.T) {
 						DevicesAcceptedCount: 342,
 						DevicesPendingCount:  0,
 						DevicesRejectedCount: 2,
+						DevicesRemovedCount:  4,
 						Members: []models.Member{
 							{
 								ID:      "657b0e3bff780d625f74e49a",
@@ -116,6 +119,7 @@ func TestNamespaceList(t *testing.T) {
 						DevicesAcceptedCount: 25,
 						DevicesPendingCount:  5,
 						DevicesRejectedCount: 3,
+						DevicesRemovedCount:  0,
 						Members: []models.Member{
 							{
 								ID:      "6577267d8752d05270a4c07d",
@@ -196,6 +200,7 @@ func TestNamespaceResolve(t *testing.T) {
 					DevicesAcceptedCount: 15,
 					DevicesPendingCount:  3,
 					DevicesRejectedCount: 2,
+					DevicesRemovedCount:  1,
 					Members: []models.Member{
 						{
 							ID:      "507f1f77bcf86cd799439011",
@@ -242,6 +247,7 @@ func TestNamespaceResolve(t *testing.T) {
 					DevicesAcceptedCount: 15,
 					DevicesPendingCount:  3,
 					DevicesRejectedCount: 2,
+					DevicesRemovedCount:  1,
 					Members: []models.Member{
 						{
 							ID:      "507f1f77bcf86cd799439011",
@@ -315,6 +321,7 @@ func TestNamespaceGetPreferred(t *testing.T) {
 					DevicesAcceptedCount: 15,
 					DevicesPendingCount:  3,
 					DevicesRejectedCount: 2,
+					DevicesRemovedCount:  1,
 					Members: []models.Member{
 						{
 							ID:      "507f1f77bcf86cd799439011",

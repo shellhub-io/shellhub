@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"go.mongodb.org/mongo-driver/bson"
@@ -41,6 +42,9 @@ func ParseFilterProperty(fp *query.FilterProperty) (bson.M, bool, error) {
 		ok = true
 	case "gt":
 		res, err = fromGt(fp.Value)
+		ok = true
+	case "lt":
+		res, err = fromLt(fp.Value)
 		ok = true
 	case "ne":
 		res, err = fromNe(fp.Value)
@@ -89,16 +93,52 @@ func fromBool(value interface{}) (bson.M, error) {
 func fromGt(value interface{}) (bson.M, error) {
 	switch v := value.(type) {
 	case int:
-		value = v
+		return bson.M{"$gt": v}, nil
+	case int64:
+		return bson.M{"$gt": v}, nil
+	case float64:
+		return bson.M{"$gt": v}, nil
 	case string:
-		var err error
-		value, err = strconv.Atoi(v)
-		if err != nil {
-			return nil, err
+		if intVal, err := strconv.Atoi(v); err == nil {
+			return bson.M{"$gt": intVal}, nil
 		}
-	}
 
-	return bson.M{"$gt": value}, nil
+		if timeVal, err := time.Parse(time.RFC3339, v); err == nil {
+			return bson.M{"$gt": timeVal}, nil
+		}
+
+		return bson.M{"$gt": v}, nil
+	case time.Time:
+		return bson.M{"$gt": v}, nil
+	default:
+		return bson.M{"$gt": value}, nil
+	}
+}
+
+// fromLt converts a "lt" JSON expression to a Bson expression using "$lt".
+func fromLt(value interface{}) (bson.M, error) {
+	switch v := value.(type) {
+	case int:
+		return bson.M{"$lt": v}, nil
+	case int64:
+		return bson.M{"$lt": v}, nil
+	case float64:
+		return bson.M{"$lt": v}, nil
+	case string:
+		if intVal, err := strconv.Atoi(v); err == nil {
+			return bson.M{"$lt": intVal}, nil
+		}
+
+		if timeVal, err := time.Parse(time.RFC3339, v); err == nil {
+			return bson.M{"$lt": timeVal}, nil
+		}
+
+		return bson.M{"$lt": v}, nil
+	case time.Time:
+		return bson.M{"$lt": v}, nil
+	default:
+		return bson.M{"$lt": value}, nil
+	}
 }
 
 func fromNe(value interface{}) (bson.M, error) {

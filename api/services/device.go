@@ -36,18 +36,7 @@ type DeviceService interface {
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
 	if req.DeviceStatus == models.DeviceStatusRemoved {
-		// TODO: unique DeviceList
-		removed, count, err := s.store.DeviceRemovedList(ctx, req.TenantID, req.Paginator, req.Filters, req.Sorter)
-		if err != nil {
-			return nil, 0, err
-		}
-
-		devices := make([]models.Device, 0, len(removed))
-		for _, device := range removed {
-			devices = append(devices, *device.Device)
-		}
-
-		return devices, count, nil
+		return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
 	}
 
 	if req.TenantID != "" {
@@ -59,12 +48,7 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 		if ns.HasMaxDevices() {
 			switch {
 			case envs.IsCloud():
-				removed, err := s.store.DeviceRemovedCount(ctx, ns.TenantID)
-				if err != nil {
-					return nil, 0, NewErrDeviceRemovedCount(err)
-				}
-
-				if ns.HasLimitDevicesReached(removed) {
+				if ns.HasLimitDevicesReached() {
 					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
 				}
 			case envs.IsEnterprise():
@@ -130,25 +114,24 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	// This is a workaround for a current limitation: store.DeviceRemovedInsert internally updates
-	// the device's status to models.DeviceStatusRemoved, so we need to preserve the original
-	// device status before the update.
-	originalStatus := device.Status
-
 	// NOTE: If the namespace has a limit of devices, we change the device's slot status to removed only when it is
 	// [models.DeviceStatusAccepted]. This way, we can keep track of the number of devices that were removed from the
 	// namespace and void the device switching.
-	if envs.IsCloud() && envs.HasBilling() && !ns.Billing.IsActive() && originalStatus == models.DeviceStatusAccepted {
-		if err := s.store.DeviceRemovedInsert(ctx, tenant, device); err != nil {
-			return NewErrDeviceRemovedInsert(err)
+	if envs.IsCloud() && envs.HasBilling() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
+		if err := s.store.DeviceUpdate(ctx, tenant, string(uid), &models.DeviceChanges{Status: models.DeviceStatusRemoved}); err != nil {
+			return err
+		}
+
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, models.DeviceStatusRemoved, 1); err != nil {
+			return err
+		}
+	} else {
+		if err := s.store.DeviceDelete(ctx, uid); err != nil {
+			return err
 		}
 	}
 
-	if err := s.store.DeviceDelete(ctx, uid); err != nil {
-		return err
-	}
-
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, originalStatus, -1); err != nil { //nolint:revive
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, device.Status, -1); err != nil { //nolint:revive
 		return err
 	}
 
@@ -331,12 +314,6 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return nil
 	}
 
-	// This is a workaround for a current limitation: removed devices are stored in a separate collection,
-	// which means the namespace doesn't maintain a counter for them. Decrementing the old status count
-	// would result in -2 (since we already subtract 1 in DeleteDevice), so we only decrement the
-	// oldStatus count if the device has not been removed.
-	isRemoved := false
-
 	switch {
 	case envs.IsCloud() && envs.HasBilling():
 		if namespace.Billing.IsActive() {
@@ -344,26 +321,8 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 				return NewErrBillingReportNamespaceDelete(err)
 			}
 		} else {
-			// TODO: this strategy that stores the removed devices in the database can be simplified.
-			removed, err := s.store.DeviceRemovedGet(ctx, tenant, uid)
-			if err != nil && err != store.ErrNoDocuments {
-				return NewErrDeviceRemovedGet(err)
-			}
-
-			if removed != nil {
-				isRemoved = true
-				if err := s.store.DeviceRemovedDelete(ctx, tenant, uid); err != nil {
-					return NewErrDeviceRemovedDelete(err)
-				}
-			} else {
-				count, err := s.store.DeviceRemovedCount(ctx, tenant)
-				if err != nil {
-					return NewErrDeviceRemovedCount(err)
-				}
-
-				if namespace.HasMaxDevices() && namespace.HasLimitDevicesReached(count) {
-					return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
-				}
+			if device.Status != models.DeviceStatusRemoved && namespace.HasMaxDevices() && namespace.HasLimitDevicesReached() {
+				return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
 			}
 
 			ok, err := s.BillingEvaluate(s.client, namespace.TenantID)
@@ -385,13 +344,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, tenant string, uid mod
 		return err
 	}
 
-	if !isRemoved {
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, originalStatus, -1); err != nil {
-			return err
-		}
-	}
-
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, status, 1); err != nil { // nolint:revive
+	if err := s.adjustDeviceCounters(ctx, tenant, originalStatus, status); err != nil { // nolint:revive
 		return err
 	}
 

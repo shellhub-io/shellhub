@@ -85,11 +85,6 @@ type DevicePosition struct {
 	Longitude float64 `json:"longitude" bson:"longitude"`
 }
 
-type DeviceRemoved struct {
-	Device    *Device   `json:"device" bson:"device"`
-	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
-}
-
 type DeviceTag struct {
 	Tag string `validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
@@ -101,9 +96,10 @@ func NewDeviceTag(tag string) DeviceTag {
 }
 
 type DeviceChanges struct {
-	Name           string     `bson:"name,omitempty"`
-	LastSeen       time.Time  `bson:"last_seen,omitempty"`
-	DisconnectedAt *time.Time `bson:"disconnected_at"`
+	Name           string       `bson:"name,omitempty"`
+	LastSeen       time.Time    `bson:"last_seen,omitempty"`
+	DisconnectedAt *time.Time   `bson:"disconnected_at"`
+	Status         DeviceStatus `bson:"status,omitempty"`
 }
 
 // DeviceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
