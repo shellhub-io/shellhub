@@ -38,8 +38,6 @@ type Data struct {
 	Type string
 	// Term is the terminal used for the client.
 	Term string
-	// TODO:
-	Lookup map[string]string
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
 }
@@ -260,9 +258,9 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, err
 	}
 
-	var domain, hostname string
+	var namespaceName, deviceName string
 	if target.IsSSHID() {
-		domain, hostname, err = target.SplitSSHID()
+		namespaceName, deviceName, err = target.SplitSSHID()
 		if err != nil {
 			return nil, err
 		}
@@ -294,21 +292,16 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			return nil, err
 		}
 
-		domain = device.Namespace
-		hostname = device.Name
+		namespaceName = device.Namespace
+		deviceName = device.Name
 	}
 
-	lookup := map[string]string{
-		"domain": domain,
-		"name":   hostname,
+	lookupDevice, err := api.DeviceLookup(namespaceName, deviceName)
+	if err != nil {
+		return nil, err
 	}
 
-	device, errs := api.DeviceLookup(lookup)
-	if len(errs) > 0 {
-		return nil, errs[0]
-	}
-
-	namespace, errs := api.NamespaceLookup(device.TenantID)
+	namespace, errs := api.NamespaceLookup(lookupDevice.TenantID)
 	if len(errs) > 1 {
 		return nil, errs[0]
 	}
@@ -331,10 +324,9 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
-			Device:    device,
+			Device:    lookupDevice,
 			Namespace: namespace,
-			Lookup:    lookup,
-			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, domain, hostname),
+			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
 		once:  new(sync.Once),
 		Seats: NewSeats(),
@@ -345,9 +337,6 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			Channels: make(map[int]*ClientChannel),
 		},
 	}
-
-	session.Data.Lookup["username"] = target.Username
-	session.Data.Lookup["ip_address"] = hos.Host
 
 	snap.save(session, StateCreated)
 
@@ -397,7 +386,13 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 }
 
 func (s *Session) checkFirewall() (bool, error) {
-	if err := s.api.FirewallEvaluate(s.Data.Lookup); err != nil {
+	// TODO: Refactor firewall evaluation to remove the map requirement.
+	if err := s.api.FirewallEvaluate(map[string]string{
+		"domain":     s.Namespace.Name,
+		"name":       s.Device.Name,
+		"username":   s.Target.Username,
+		"ip_address": s.IPAddress,
+	}); err != nil {
 		defer log.WithError(err).WithFields(log.Fields{
 			"uid":   s.UID,
 			"sshid": s.SSHID,

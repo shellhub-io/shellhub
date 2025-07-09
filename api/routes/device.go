@@ -17,7 +17,7 @@ const (
 	DeleteDeviceURL       = "/devices/:uid"
 	RenameDeviceURL       = "/devices/:uid"
 	OfflineDeviceURL      = "/devices/:uid/offline"
-	LookupDeviceURL       = "/lookup"
+	LookupDeviceURL       = "/device/lookup"
 	UpdateDeviceStatusURL = "/devices/:uid/:status"
 	CreateTagURL          = "/devices/:uid/tags"      // Add a tag to a device.
 	UpdateTagURL          = "/devices/:uid/tags"      // Update device's tags with a new set.
@@ -206,7 +206,7 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 		return err
 	}
 
-	device, err := h.service.LookupDevice(c.Ctx(), req.Domain, req.Name)
+	device, err := h.service.LookupDevice(c.Ctx(), req.TenantID, req.Name)
 	if err != nil {
 		return err
 	}

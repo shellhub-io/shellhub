@@ -53,10 +53,8 @@ type DeviceOffline struct {
 
 // DeviceLookup is the structure to represent the request data for lookup device endpoint.
 type DeviceLookup struct {
-	Domain    string `query:"domain" validate:"required"`
-	Name      string `query:"name" validate:"required"`
-	Username  string `query:"username" validate:""`
-	IPAddress string `query:"ip_address" validate:""`
+	TenantID string `query:"tenant_id" validate:"required"`
+	Name     string `query:"name" validate:"required"`
 }
 
 // DeviceStatus is the structure to represent the request data for update device status to pending endpoint.

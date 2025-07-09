@@ -446,11 +446,8 @@ func TestLookupDevice(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			title: "fails when bind fails to validate uid",
-			request: requests.DeviceLookup{
-				Username:  "user1",
-				IPAddress: "192.168.1.100",
-			},
+			title:         "fails when bind fails to validate uid",
+			request:       requests.DeviceLookup{},
 			requiredMocks: func(_ requests.DeviceLookup) {},
 			expected: Expected{
 				expectedSession: nil,
@@ -460,13 +457,11 @@ func TestLookupDevice(t *testing.T) {
 		{
 			title: "fails when try to look up of a existing device",
 			request: requests.DeviceLookup{
-				Domain:    "example.com",
-				Name:      "device1",
-				Username:  "user1",
-				IPAddress: "192.168.1.100",
+				TenantID: "example.com",
+				Name:     "device1",
 			},
 			requiredMocks: func(req requests.DeviceLookup) {
-				mock.On("LookupDevice", gomock.Anything, req.Domain, req.Name).Return(nil, svc.ErrDeviceNotFound).Once()
+				mock.On("LookupDevice", gomock.Anything, req.TenantID, req.Name).Return(nil, svc.ErrDeviceNotFound).Once()
 			},
 			expected: Expected{
 				expectedSession: nil,
@@ -476,13 +471,11 @@ func TestLookupDevice(t *testing.T) {
 		{
 			title: "success when try to look up of a existing device",
 			request: requests.DeviceLookup{
-				Domain:    "example.com",
-				Name:      "device1",
-				Username:  "user1",
-				IPAddress: "192.168.1.100",
+				TenantID: "example.com",
+				Name:     "device1",
 			},
 			requiredMocks: func(req requests.DeviceLookup) {
-				mock.On("LookupDevice", gomock.Anything, req.Domain, req.Name).Return(&models.Device{}, nil)
+				mock.On("LookupDevice", gomock.Anything, req.TenantID, req.Name).Return(&models.Device{}, nil)
 			},
 			expected: Expected{
 				expectedSession: &models.Device{},
@@ -500,7 +493,7 @@ func TestLookupDevice(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/internal/lookup", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodGet, "/internal/device/lookup", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
