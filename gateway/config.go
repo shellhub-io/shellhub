@@ -11,19 +11,20 @@ import (
 
 // GatewayConfig holds the configuration settings for the gateway.
 type GatewayConfig struct {
-	Env                     string `env:"SHELLHUB_ENV"`
-	Domain                  string `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
-	Tunnels                 bool   `env:"SHELLHUB_TUNNELS,default=false"`
-	TunnelsDomain           string `env:"SHELLHUB_TUNNELS_DOMAIN"`
-	TunnelsDNSProviderToken string `env:"SHELLHUB_TUNNELS_DNS_PROVIDER_TOKEN"`
-	WorkerProcesses         string `env:"WORKER_PROCESSES,default=auto"`
-	MaxWorkerOpenFiles      int    `env:"MAX_WORKER_OPEN_FILES,default=0"`
-	MaxWorkerConnections    int    `env:"MAX_WORKER_CONNECTIONS,default=16384"`
-	BacklogSize             int    `env:"BACKLOG_SIZE"`
-	EnableAutoSSL           bool   `env:"SHELLHUB_AUTO_SSL"`
-	EnableProxyProtocol     bool   `env:"SHELLHUB_PROXY"`
-	EnableEnterprise        bool   `env:"SHELLHUB_ENTERPRISE"`
-	EnableCloud             bool   `env:"SHELLHUB_CLOUD"`
+	Env                     string      `env:"SHELLHUB_ENV"`
+	Domain                  string      `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
+	Tunnels                 bool        `env:"SHELLHUB_TUNNELS,default=false"`
+	TunnelsDomain           string      `env:"SHELLHUB_TUNNELS_DOMAIN"`
+	TunnelsDNSProvider      DNSProvider `env:"SHELLHUB_TUNNELS_DNS_PROVIDER,default=digitalocean"`
+	TunnelsDNSProviderToken string      `env:"SHELLHUB_TUNNELS_DNS_PROVIDER_TOKEN"`
+	WorkerProcesses         string      `env:"WORKER_PROCESSES,default=auto"`
+	MaxWorkerOpenFiles      int         `env:"MAX_WORKER_OPEN_FILES,default=0"`
+	MaxWorkerConnections    int         `env:"MAX_WORKER_CONNECTIONS,default=16384"`
+	BacklogSize             int         `env:"BACKLOG_SIZE"`
+	EnableAutoSSL           bool        `env:"SHELLHUB_AUTO_SSL"`
+	EnableProxyProtocol     bool        `env:"SHELLHUB_PROXY"`
+	EnableEnterprise        bool        `env:"SHELLHUB_ENTERPRISE"`
+	EnableCloud             bool        `env:"SHELLHUB_CLOUD"`
 }
 
 var validate = validator.New()
