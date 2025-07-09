@@ -123,7 +123,7 @@ import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
-import { IDevice } from "../interfaces/IDevice";
+import { IAdminDevice } from "../interfaces/IDevice";
 import displayOnlyTenCharacters from "../hooks/string";
 import showTag from "../hooks/tag";
 
@@ -131,7 +131,7 @@ const route = useRoute();
 const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 const deviceId = computed(() => route.params.id);
-const device = ref({} as IDevice);
+const device = ref({} as IAdminDevice);
 
 onMounted(async () => {
   try {
