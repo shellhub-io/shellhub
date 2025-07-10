@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import useSessionsStore from "@admin/store/modules/sessions";
+import { IAdminSession } from "@admin/interfaces/ISession";
 
 describe("Sessions Pinia Store", () => {
   let sessionsStore: ReturnType<typeof useSessionsStore>;
@@ -32,7 +33,7 @@ describe("Sessions Pinia Store", () => {
     last_seen: "2020-05-18T12:30:30.205Z",
     active: false,
     authenticated: false,
-  };
+  } as IAdminSession;
 
   const sessions = [
     { ...session },

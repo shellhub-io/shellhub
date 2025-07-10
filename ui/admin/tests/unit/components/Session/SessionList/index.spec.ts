@@ -3,9 +3,10 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useSessionsStore from "@admin/store/modules/sessions";
+import SessionList from "@admin/components/Sessions/SessionList.vue";
+import routes from "@admin/router";
+import { IAdminSession } from "@admin/interfaces/ISession";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import SessionList from "../../../../../src/components/Sessions/SessionList.vue";
-import routes from "../../../../../src/router";
 
 type SessionListWrapper = VueWrapper<InstanceType<typeof SessionList>>;
 
@@ -74,7 +75,7 @@ describe("Sessions List", () => {
 
     const sessionStore = useSessionsStore();
 
-    sessionStore.sessions = sessions;
+    sessionStore.sessions = sessions as IAdminSession[];
     sessionStore.numberSessions = sessions.length;
     sessionStore.fetch = vi.fn();
 
