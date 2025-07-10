@@ -1,4 +1,4 @@
-import { INamespace } from "@admin/interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import { adminApi } from "./../../api/http";
 
 export const fetchNamespaces = async (
@@ -12,7 +12,7 @@ export const exportNamespaces = async (filter: string) => adminApi.exportNamespa
 export const getNamespace = async (id: string) => adminApi.getNamespaceAdmin(id);
 
 export const updateNamespace = async (
-  data: INamespace,
+  data: IAdminNamespace,
 ) => adminApi.editNamespaceAdmin(data.tenant_id, {
   ...data,
 });

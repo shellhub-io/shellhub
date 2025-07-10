@@ -116,7 +116,7 @@ describe("Namespace Edit", () => {
     wrapper.vm.show = true;
     await flushPromises();
     const changeNamespaceData = {
-      id: "fake-tenant-data",
+      tenant_id: "fake-tenant-data",
       settings: {
         connection_announcement: "test",
       },

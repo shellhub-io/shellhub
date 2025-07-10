@@ -92,13 +92,13 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { INamespace } from "@admin/interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 
 const namespacesStore = useNamespacesStore();
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
-const namespace = ref({} as INamespace);
+const namespace = ref({} as IAdminNamespace);
 
 const namespaceId = computed(() => route.params.id);
 
@@ -113,7 +113,7 @@ const goToUser = (userId: string) => {
   router.push({ name: "userDetails", params: { id: userId } });
 };
 
-const sumDevicesCount = (namespace: INamespace) => {
+const sumDevicesCount = (namespace: IAdminNamespace) => {
   const { devices_accepted_count: acceptedCount, devices_pending_count: pendingCount, devices_rejected_count: rejectedCount } = namespace;
   return (acceptedCount + pendingCount + rejectedCount) || 0;
 };

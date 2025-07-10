@@ -1,12 +1,12 @@
 import { defineStore } from "pinia";
-import { INamespace } from "@admin/interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import * as apiNamespace from "../api/namespaces";
 import { useUsersStore } from "./users";
 
 export const useNamespacesStore = defineStore("namespace", {
   state: () => ({
-    namespaces: [] as INamespace[],
-    namespace: {} as INamespace,
+    namespaces: [] as IAdminNamespace[],
+    namespace: {} as IAdminNamespace,
     perPage: 0,
     page: 0,
     filter: "",
@@ -74,7 +74,7 @@ export const useNamespacesStore = defineStore("namespace", {
 
     async refresh() {
       try {
-        const res = await apiNamespace.fetchNamespaces(this.perPage, this.page, this.filter);
+        const res = await apiNamespace.fetchNamespaces(this.page, this.perPage, this.filter);
         this.setNamespaces(res);
       } catch (error) {
         this.clearListNamespaces();
@@ -93,7 +93,7 @@ export const useNamespacesStore = defineStore("namespace", {
       }
     },
 
-    async put(data: INamespace) {
+    async put(data: IAdminNamespace) {
       await apiNamespace.updateNamespace(data);
     },
   },

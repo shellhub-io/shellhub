@@ -276,7 +276,7 @@ const updateName = async () => {
 
   try {
     await store.dispatch("namespaces/put", {
-      id: tenant.value,
+      tenant_id: tenant.value,
       name: name.value,
     });
 
