@@ -20,7 +20,9 @@ describe("Namespaces Pinia Store", () => {
       devices_pending_count: 0,
       devices_rejected_count: 0,
       max_devices: 10,
-      settings: {},
+      settings: {
+        session_record: true,
+      },
       billing: undefined,
     },
     {
@@ -36,7 +38,9 @@ describe("Namespaces Pinia Store", () => {
       devices_pending_count: 0,
       devices_rejected_count: 0,
       max_devices: 10,
-      settings: {},
+      settings: {
+        session_record: false,
+      },
       billing: undefined,
     },
     {
@@ -53,7 +57,9 @@ describe("Namespaces Pinia Store", () => {
       devices_pending_count: 1,
       devices_rejected_count: 0,
       max_devices: 10,
-      settings: {},
+      settings: {
+        session_record: true,
+      },
       billing: undefined,
     },
     {
@@ -69,7 +75,9 @@ describe("Namespaces Pinia Store", () => {
       devices_pending_count: 1,
       devices_rejected_count: 1,
       max_devices: 10,
-      settings: {},
+      settings: {
+        session_record: false,
+      },
       billing: undefined,
     },
   ];
@@ -88,7 +96,9 @@ describe("Namespaces Pinia Store", () => {
     devices_pending_count: 1,
     devices_rejected_count: 0,
     max_devices: 10,
-    settings: {},
+    settings: {
+      session_record: true,
+    },
     billing: undefined,
   };
 

@@ -57,7 +57,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { INamespace } from "@admin/interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
@@ -113,7 +113,7 @@ const fetchNamespaces = async () => {
   loading.value = false;
 };
 
-const sumDevicesCount = (namespace: INamespace) => {
+const sumDevicesCount = (namespace: IAdminNamespace) => {
   const { devices_accepted_count: acceptedCount, devices_pending_count: pendingCount, devices_rejected_count: rejectedCount } = namespace;
   return (acceptedCount + pendingCount + rejectedCount) || 0;
 };

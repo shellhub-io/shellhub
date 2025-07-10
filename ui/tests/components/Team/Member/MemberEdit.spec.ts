@@ -33,8 +33,7 @@ describe("Member Edit", () => {
     {
       id: "xxxxxxxx",
       username: "test",
-      role: "owner",
-      selectedRole: "owner",
+      role: "owner" as const,
     },
   ];
 

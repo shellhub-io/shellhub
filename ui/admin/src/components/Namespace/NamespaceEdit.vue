@@ -78,13 +78,12 @@ import { ref, PropType, onMounted, watch } from "vue";
 import * as yup from "yup";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
-import { INamespace } from "../../interfaces/INamespace";
+import { IAdminNamespace } from "../../interfaces/INamespace";
 
 const props = defineProps({
   namespace: {
-    type: Object as PropType<INamespace>,
+    type: Object as PropType<IAdminNamespace>,
     required: true,
-    default: Object,
   },
 });
 
@@ -103,14 +102,12 @@ const { value: numberDevices, errorMessage: numberDevicesError } = useField<numb
   yup.number().required(),
 );
 
-const { value: sessionRecord, errorMessage: sessionRecordError } = useField<
-      boolean | undefined
-    >("name", yup.boolean());
+const { value: sessionRecord, errorMessage: sessionRecordError } = useField<boolean>("sessionRecord", yup.boolean());
 
 onMounted(() => {
-  name.value = props.namespace?.name;
-  numberDevices.value = props.namespace?.max_devices;
-  sessionRecord.value = props.namespace?.settings.session_record;
+  name.value = props.namespace.name;
+  numberDevices.value = props.namespace.max_devices;
+  sessionRecord.value = props.namespace.settings.session_record || false;
 });
 
 const hasErrors = () => nameError.value || numberDevicesError.value || sessionRecordError.value;
@@ -118,7 +115,7 @@ const hasErrors = () => nameError.value || numberDevicesError.value || sessionRe
 const onSubmit = async () => {
   if (!hasErrors()) {
     await namespacesStore.put({
-      ...props.namespace as INamespace,
+      ...props.namespace as IAdminNamespace,
       name: name.value as string,
       max_devices: numberDevices.value as number,
       settings: { session_record: sessionRecord.value },
@@ -133,11 +130,10 @@ const onSubmit = async () => {
 
 watch(dialog, () => {
   if (!dialog.value) {
-    name.value = props.namespace?.name;
-    numberDevices.value = props.namespace?.max_devices;
-    sessionRecord.value = props.namespace?.settings.session_record;
+    name.value = props.namespace.name;
+    numberDevices.value = props.namespace.max_devices;
+    sessionRecord.value = props.namespace.settings.session_record;
   }
 });
-
 defineExpose({ dialog, onSubmit });
 </script>
