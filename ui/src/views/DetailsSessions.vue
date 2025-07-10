@@ -166,7 +166,7 @@ import { useRoute } from "vue-router";
 import { useStore } from "../store";
 import { formatFullDateTime, getTimeFromNow } from "..//utils/date";
 import hasPermission from "..//utils/permission";
-import { ISessions } from "../interfaces/ISessions";
+import { ISessions } from "../interfaces/ISession";
 import { authorizer, actions } from "../authorizer";
 import SessionDelete from "../components/Sessions/SessionDelete.vue";
 import SessionClose from "../components/Sessions/SessionClose.vue";

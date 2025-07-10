@@ -1,5 +1,5 @@
 import { sessionsApi } from "@/api/http";
-import { ISessions } from "@/interfaces/ISessions";
+import { ISessions } from "@/interfaces/ISession";
 
 export const fetchSessions = async (page: number, perPage: number) => sessionsApi.getSessions(page, perPage);
 
