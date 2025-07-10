@@ -1,8 +1,8 @@
-import { IFilter, NamespaceFilterOptions } from "@admin/interfaces/IFilter";
+import { IAdminFilter, AdminNamespaceFilterOptions } from "@admin/interfaces/IFilter";
 
-const getFilter = (option: NamespaceFilterOptions, numberOfDevices: number): IFilter[] => {
-  const filters: Record<NamespaceFilterOptions, IFilter[]> = {
-    [NamespaceFilterOptions.MoreThan]: [
+const getFilter = (option: AdminNamespaceFilterOptions, numberOfDevices: number): IAdminFilter[] => {
+  const filters: Record<AdminNamespaceFilterOptions, IAdminFilter[]> = {
+    [AdminNamespaceFilterOptions.MoreThan]: [
       {
         type: "property",
         params: {
@@ -12,7 +12,7 @@ const getFilter = (option: NamespaceFilterOptions, numberOfDevices: number): IFi
         },
       },
     ],
-    [NamespaceFilterOptions.NoDevices]: [
+    [AdminNamespaceFilterOptions.NoDevices]: [
       {
         type: "property",
         params: { name: "devices_accepted_count", operator: "eq", value: 0 },
@@ -27,7 +27,7 @@ const getFilter = (option: NamespaceFilterOptions, numberOfDevices: number): IFi
       },
       { type: "operator", params: { name: "and" } },
     ],
-    [NamespaceFilterOptions.NoSessions]: [
+    [AdminNamespaceFilterOptions.NoSessions]: [
       {
         type: "property",
         params: { name: "devices_accepted_count", operator: "gt", value: 0 },
