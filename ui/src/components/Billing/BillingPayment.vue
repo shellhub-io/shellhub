@@ -101,12 +101,14 @@ import BillingIcon from "./BillingIcon.vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
-import { Customer } from "@/interfaces/ICustomer";
+import { ICustomer } from "@/interfaces/ICustomer";
+
+type CustomerInfo = Omit<ICustomer, "id">;
 
 const emit = defineEmits(["no-payment-methods", "has-default-payment", "customer-id-created"]);
 const stripeKey = computed(() => envVariables.stripeKey);
 const stripeLoaded = ref(false);
-const customer: Customer = reactive({ name: "", email: "", payment_methods: [] });
+const customer: CustomerInfo = reactive({ name: "", email: "", payment_methods: [] });
 const store = useStore();
 const consumerData = computed(() => store.getters["customer/getCustomer"]);
 const card = ref();
