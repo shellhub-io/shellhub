@@ -1,7 +1,7 @@
 // stores/instance.ts
 import { defineStore } from "pinia";
 import * as apiInstance from "../api/instance";
-import { IConfigureSAML } from "../../interfaces/IInstance";
+import { IAdminSAMLConfig } from "../../interfaces/IInstance";
 
 export interface InstanceState {
   authenticationSettings: {
@@ -66,7 +66,7 @@ export const useInstanceStore = defineStore("instance", {
       await this.fetchAuthenticationSettings();
     },
 
-    async updateSamlAuthentication(data: IConfigureSAML) {
+    async updateSamlAuthentication(data: IAdminSAMLConfig) {
       await apiInstance.configureSAMLAuthentication(data);
       await this.fetchAuthenticationSettings();
     },

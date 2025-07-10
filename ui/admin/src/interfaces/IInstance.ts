@@ -1,4 +1,4 @@
-export interface IConfigureSAML {
+export interface IAdminSAMLConfig {
   enable: boolean,
   idp: {
     metadata_url?: string,
