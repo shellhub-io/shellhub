@@ -1,19 +1,5 @@
-export type filterType = {
-  hostname?: string;
-  tags?: Array<string>
-}
+import { FirewallRuleFilter, IFirewallRule } from "@/interfaces/IFirewallRule";
 
-export interface IFirewallRule {
-  id: string;
-  tenant_id: string;
-  tenant_ip?: string;
-  source_ip: string;
-  username: string;
-  priority: number;
-  active: boolean;
-  action: string;
-  filter: {
-    hostname?: string;
-    tags?: string[];
-  };
-}
+export type AdminFirewallRuleFilter = FirewallRuleFilter;
+
+export type IAdminFirewallRule = Omit<IFirewallRule, "status">;

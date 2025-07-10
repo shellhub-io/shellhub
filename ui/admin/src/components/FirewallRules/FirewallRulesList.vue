@@ -83,7 +83,7 @@ import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import showTag from "../../hooks/tag";
 import displayOnlyTenCharacters from "../../hooks/string";
-import { filterType } from "../../interfaces/IFirewallRule";
+import { AdminFirewallRuleFilter } from "../../interfaces/IFirewallRule";
 import handleError from "@/utils/handleError";
 
 const router = useRouter();
@@ -129,9 +129,9 @@ const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
 
 const formatUsername = (username: string) => username === ".*" ? "All users" : username;
 
-const formatHostnameFilter = (filter: filterType) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+const formatHostnameFilter = (filter: AdminFirewallRuleFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
-const isHostname = (filter: filterType) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+const isHostname = (filter: AdminFirewallRuleFilter) => Object.prototype.hasOwnProperty.call(filter, "hostname");
 
 const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 
