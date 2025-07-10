@@ -2,15 +2,15 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
+import { IAdminSession } from "@admin/interfaces/ISession";
 import { useSessionsStore } from "@admin/store/modules/sessions";
-import { DeviceInfoPlatformEnum, Session } from "@admin/api/client";
+import routes from "@admin/router";
+import SessionDetails from "@admin/views/SessionDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import SessionDetails from "../../../../src/views/SessionDetails.vue";
 
 type SessionDetailsWrapper = VueWrapper<InstanceType<typeof SessionDetails>>;
 
-const sessionDetail: Session = {
+const sessionDetail = {
   uid: "df33c82dcc7b401b0e4511fd9e0a86a48c5875da6091e89cf37cbbb38819e17e",
   device_uid: "cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75",
   device: {
@@ -22,7 +22,7 @@ const sessionDetail: Session = {
       pretty_name: "Ubuntu 20.04.4 LTS",
       version: "latest",
       arch: "amd64",
-      platform: DeviceInfoPlatformEnum.Docker,
+      platform: "docker",
     },
     public_key: "---KEY---",
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -45,7 +45,7 @@ const sessionDetail: Session = {
   recorded: true,
   type: "web",
   term: "xterm.js",
-};
+} as IAdminSession;
 
 const mockRoute = {
   params: {

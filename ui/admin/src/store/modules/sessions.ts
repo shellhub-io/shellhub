@@ -1,11 +1,11 @@
 import { defineStore } from "pinia";
-import { Session } from "@admin/api/client";
+import { IAdminSession } from "@admin/interfaces/ISession";
 import * as apiSession from "../api/sessions";
 
 export const useSessionsStore = defineStore("sessions", {
   state: () => ({
-    sessions: [] as Array<Session>,
-    session: {} as Session,
+    sessions: [] as Array<IAdminSession>,
+    session: {} as IAdminSession,
     numberSessions: 0,
   }),
 
@@ -20,7 +20,7 @@ export const useSessionsStore = defineStore("sessions", {
       const res = await apiSession.fetchSessions(data.perPage, data.page);
 
       if (res.data.length) {
-        this.sessions = res.data;
+        this.sessions = res.data as Array<IAdminSession>;
         this.numberSessions = parseInt(res.headers["x-total-count"], 10);
         return res;
       }
@@ -30,7 +30,7 @@ export const useSessionsStore = defineStore("sessions", {
 
     async get(uid: string) {
       const res = await apiSession.getSession(uid);
-      this.session = res.data;
+      this.session = res.data as IAdminSession;
     },
 
     clearListSessions() {
@@ -39,7 +39,7 @@ export const useSessionsStore = defineStore("sessions", {
     },
 
     clearObjectSession() {
-      this.session = {} as Session;
+      this.session = {} as IAdminSession;
     },
   },
 });

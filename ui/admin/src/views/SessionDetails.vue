@@ -102,7 +102,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Session } from "@admin/api/client";
+import { IAdminSession } from "@admin/interfaces/ISession";
 import useSessionsStore from "@admin/store/modules/sessions";
 import useSnackbar from "@/helpers/snackbar";
 
@@ -111,7 +111,7 @@ const router = useRouter();
 const snackbar = useSnackbar();
 const sessionStore = useSessionsStore();
 
-const session = ref({} as Session);
+const session = ref({} as IAdminSession);
 const sessionId = computed(() => route.params.id);
 
 onMounted(async () => {

@@ -166,7 +166,7 @@ import { useRoute } from "vue-router";
 import { useStore } from "../store";
 import { formatFullDateTime, getTimeFromNow } from "..//utils/date";
 import hasPermission from "..//utils/permission";
-import { ISessions } from "../interfaces/ISession";
+import { ISession } from "../interfaces/ISession";
 import { authorizer, actions } from "../authorizer";
 import SessionDelete from "../components/Sessions/SessionDelete.vue";
 import SessionClose from "../components/Sessions/SessionClose.vue";
@@ -178,7 +178,7 @@ const store = useStore();
 const route = useRoute();
 const snackbar = useSnackbar();
 const sessionId = computed(() => route.params.id);
-const session = ref({} as ISessions);
+const session = ref({} as ISession);
 
 onMounted(async () => {
   try {
