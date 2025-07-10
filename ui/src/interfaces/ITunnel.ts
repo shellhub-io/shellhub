@@ -14,7 +14,7 @@ export interface ITunnelCreate {
   ttl: number
 }
 
-export interface ITunnelDelete{
+export interface ITunnelDelete {
   uid: string,
   address: string,
 }
