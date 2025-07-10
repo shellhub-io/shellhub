@@ -1,79 +1,24 @@
-import { CreateDeviceTagRequest, UpdateDeviceRequest, UpdateTagsDeviceRequest } from "@/api/client";
+import {
+  IDevice,
+  IUpdateDeviceTags,
+  IDeviceRename,
+  IDevicePostTag,
+  FetchDevicesParams,
+  SortDevicesParams,
+  IDeviceMethods,
+} from "./IDevice";
 
-type identity = {
-    mac: string;
-  }
+// Container is essentially the same as Device
+export type IContainer = IDevice;
 
-type infoDetails = {
-  id: string;
-  pretty_name: string;
-  version: string;
-  arch: string;
-  platform: string;
-}
+export type IUpdateContainerTags = IUpdateDeviceTags;
+export type IContainerRename = IDeviceRename;
+export type IContainerPostTag = IDevicePostTag;
 
-type position = {
-  latitude: number;
-  longitude: number;
-}
+export type FetchContainerParams = FetchDevicesParams;
+export type SortContainersParams = SortDevicesParams;
 
-export interface IContainer {
-  uid: string;
-  name: string;
-  identity: identity;
-  info: infoDetails;
-  public_key: string;
-  tenant_id:string;
-  last_seen: string;
-  online: boolean;
-  namespace: string;
-  status: string;
-  created_at: string;
-  remote_addr: string;
-  position: position;
-  tags: Array<string>;
-}
-
-export interface IUpdateContainerTags {
-  uid: string;
-  tags: UpdateTagsDeviceRequest;
-}
-
-export interface IUpdateContainerTag {
-  uid: string;
-  tags: string;
-}
-
-export interface IContainerRename {
-  uid: string;
-  name: UpdateDeviceRequest;
-}
-
-export interface IContainerPostTag {
-  uid: string;
-  name: CreateDeviceTagRequest;
-}
-
-export interface FetchContainerParams {
-  perPage?: number;
-  page?: number;
-  filter?: string;
-  status?: "accepted" | "pending" | "rejected";
-  sortStatusField: string;
-  sortStatusString: string;
-}
-
-export interface SortContainersParams {
-  sortStatusField: string;
-  sortStatusString: string;
-}
-
-export interface IContainerMethods {
-  fetchDevices: (params: FetchContainerParams) => Promise<void>;
-  setSort: (params: SortContainersParams) => void;
-  getFilter: () => string;
+export interface IContainerMethods extends IDeviceMethods {
+  fetchDevices: (params: FetchContainerParams) => Promise<void>; // Keep original method name for compatibility with DeviceTable component
   getList: () => IContainer[];
-  getSortStatusField: () => string;
-  getSortStatusString: () => string;
-  getNumber: () => number;
 }
