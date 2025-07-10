@@ -1823,6 +1823,24 @@ func (_m *Store) TagsRename(ctx context.Context, tenant string, oldTag string, n
 	return r0, r1
 }
 
+// TunnelUpdateDeviceUID provides a mock function with given fields: ctx, tenantID, oldUID, newUID
+func (_m *Store) TunnelUpdateDeviceUID(ctx context.Context, tenantID string, oldUID string, newUID string) error {
+	ret := _m.Called(ctx, tenantID, oldUID, newUID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TunnelUpdateDeviceUID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, tenantID, oldUID, newUID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UserConflicts provides a mock function with given fields: ctx, target
 func (_m *Store) UserConflicts(ctx context.Context, target *models.UserConflicts) ([]string, bool, error) {
 	ret := _m.Called(ctx, target)
