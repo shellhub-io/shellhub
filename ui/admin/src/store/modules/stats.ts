@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
+import { IAdminStats } from "@admin/interfaces/IStats";
 import getStats from "../api/stats";
-import { IStats } from "../../interfaces/IStats";
 
 export const useStatsStore = defineStore("stats", {
   state: () => ({
-    stats: {} as IStats,
+    stats: {} as IAdminStats,
   }),
 
   getters: {
@@ -14,12 +14,12 @@ export const useStatsStore = defineStore("stats", {
   actions: {
     async get() {
       const res = await getStats();
-      this.stats = res.data as IStats;
+      this.stats = res.data as IAdminStats;
       return res;
     },
 
     clearListState() {
-      this.stats = {} as IStats;
+      this.stats = {} as IAdminStats;
     },
   },
 });
