@@ -31,6 +31,46 @@ type Server struct {
 	tunnel *httptunnel.Tunnel
 }
 
+const (
+	InvalidSSHIDMessage = `SSHID Format Error
+==================
+
+The SSHID format is incorrect. You need to include your username.
+
+Correct format: username@namespace.device@host
+
+Examples:
+  ssh john@company.workstation@example.com
+  ssh admin@myproject.raspberry@example.com
+
+Please update your SSH command and try again.`
+
+	ConnectionFailedMessage = `Connection Failed
+==================
+
+The target device is offline or cannot be reached.
+
+Troubleshooting steps:
+  - Check if the device is powered on
+  - Verify network connectivity
+  - Ensure the device is properly connected to ShellHub
+
+Please try again once the device is online.`
+
+	AccessDeniedMessage = `Access Denied
+==============
+
+Access to the device has been denied.
+
+Possible reasons:
+  - Firewall restrictions
+  - Billing issues or quota exceeded
+  - Policy rules or permissions
+  - Device access restrictions
+
+Please contact your administrator for assistance.`
+)
+
 func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Server {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
@@ -60,26 +100,26 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 			if _, err := target.NewTarget(ctx.User()); err != nil {
 				logger.WithError(err).Error("invalid SSHID")
 
-				return message("it is not a valid SSHID")
+				return message(InvalidSSHIDMessage)
 			}
 
 			sess, err := session.NewSession(ctx, tunnel, cache)
 			if err != nil {
 				logger.WithError(err).Error("failed to create the session")
 
-				return message("device is offline or cannot be reached")
+				return message(ConnectionFailedMessage)
 			}
 
 			if err := sess.Dial(ctx); err != nil {
 				logger.WithError(err).Error("destination device is offline or cannot be reached")
 
-				return message("device is offline or cannot be reached")
+				return message(ConnectionFailedMessage)
 			}
 
 			if err := sess.Evaluate(ctx); err != nil {
 				logger.WithError(err).Error("destination device has a firewall to blocked it or a billing issue")
 
-				return message("you cannot access the device due a policy rule")
+				return message(AccessDeniedMessage)
 			}
 
 			return ""
