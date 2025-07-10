@@ -215,28 +215,29 @@ func (h *Handler) LookupDevice(c gateway.Context) error {
 }
 
 func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
-	var req requests.DeviceUpdateStatus
-	if err := c.Bind(&req); err != nil {
+	req := new(requests.DeviceUpdateStatus)
+
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
-	if err := c.Validate(&req); err != nil {
+	// TODO: Remove this legacy status mapping in API v2.
+	// This mapping exists solely for backward compatibility with API consumers
+	// that were sending string values before the device status refactor.
+	status := map[string]string{
+		"accept":  string(models.DeviceStatusAccepted),
+		"reject":  string(models.DeviceStatusRejected),
+		"pending": string(models.DeviceStatusPending),
+		"unused":  string(models.DeviceStatusUnused),
+	}
+
+	req.Status = status[req.Status]
+
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	status := map[string]models.DeviceStatus{
-		"accept":  models.DeviceStatusAccepted,
-		"reject":  models.DeviceStatusRejected,
-		"pending": models.DeviceStatusPending,
-		"unused":  models.DeviceStatusUnused,
-	}
-
-	if err := h.service.UpdateDeviceStatus(c.Ctx(), tenant, models.UID(req.UID), status[req.Status]); err != nil {
+	if err := h.service.UpdateDeviceStatus(c.Ctx(), req); err != nil {
 		return err
 	}
 

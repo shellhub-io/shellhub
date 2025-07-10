@@ -27,8 +27,11 @@ func TestAddNamespaceMember(t *testing.T) {
 		err       error
 	}
 
+	envMock := new(envmock.Backend)
 	storeMock := new(storemock.Store)
 	clockMock := new(clockmock.Clock)
+
+	envs.DefaultBackend = envMock
 	clock.DefaultBackend = clockMock
 
 	now := time.Now()
