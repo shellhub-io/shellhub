@@ -374,7 +374,9 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 // mergeDevice merges an old device into a new device. It transfers all sessions from the old device to the new one and
 // renames the new device to preserve the old device's identity. The old device is then deleted and the namespace's device count is decremented.
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
-	// TODO: update tunnels as well?
+	if err := s.store.TunnelUpdateDeviceUID(ctx, tenantID, oldDevice.UID, newDevice.UID); err != nil {
+		return err
+	}
 
 	if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(oldDevice.UID), models.UID(newDevice.UID)); err != nil && !errors.Is(err, store.ErrNoDocuments) {
 		return err

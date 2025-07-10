@@ -1715,6 +1715,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				// Merge operations
 				storeMock.
+					On("TunnelUpdateDeviceUID", ctx, "00000000-0000-0000-0000-000000000000", "old-device", "new-device").
+					Return(nil).
+					Once()
+				storeMock.
 					On("SessionUpdateDeviceUID", ctx, models.UID("old-device"), models.UID("new-device")).
 					Return(nil).
 					Once()
