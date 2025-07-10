@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import * as apiSession from "../api/sessions";
-import { ISessions } from "@/interfaces/ISessions";
+import { ISessions } from "@/interfaces/ISession";
 import { State } from "..";
 
 export interface SessionsState {
