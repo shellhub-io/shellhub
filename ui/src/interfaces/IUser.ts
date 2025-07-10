@@ -9,7 +9,6 @@ export interface IUser {
   username: string;
   recovery_email: string;
   currentPassword: string;
-  newPassword: string;
 }
 
 export interface IUserSignUp {

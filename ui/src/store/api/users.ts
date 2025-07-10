@@ -35,7 +35,7 @@ export const patchUserData = async (data: IUser) => usersApi.updateUser({
   recovery_email: data.recovery_email,
 });
 
-export const patchUserPassword = async (data: IUser) => usersApi.updateUser({
+export const patchUserPassword = async (data: IUser & { newPassword: string }) => usersApi.updateUser({
   name: data.name,
   username: data.username,
   email: data.email,
