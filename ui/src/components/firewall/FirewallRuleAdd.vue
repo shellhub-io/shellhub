@@ -178,7 +178,7 @@ import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { filterType } from "@/interfaces/IFirewallRule";
+import { FirewallRuleFilter } from "@/interfaces/IFirewallRule";
 import useSnackbar from "@/helpers/snackbar";
 
 export interface FirewallRuleType {
@@ -189,7 +189,7 @@ export interface FirewallRuleType {
   status?: string;
   source_ip?: string;
   username?: string;
-  filter?: filterType;
+  filter?: FirewallRuleFilter;
 }
 
 const snackbar = useSnackbar();
