@@ -27,7 +27,7 @@
           <v-row align="center">
             <v-col cols="12">
               <v-select
-                v-model="memberLocal.selectedRole"
+                v-model="newRole"
                 :items="items"
                 label="Role"
                 :error-messages="errorMessage"
@@ -59,18 +59,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import axios from "axios";
-import { IMember } from "@/interfaces/IMember";
+import { INamespaceMember } from "@/interfaces/INamespace";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 
-const props = defineProps({
+const { member, notHasAuthorization } = defineProps({
   member: {
-    type: Object as () => IMember,
+    type: Object as () => INamespaceMember,
     required: false,
-    default: {} as IMember,
+    default: {} as INamespaceMember,
   },
   notHasAuthorization: {
     type: Boolean,
@@ -81,20 +81,11 @@ const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
-const memberLocal = ref({} as IMember);
+const newRole = ref(member.role);
 const errorMessage = ref("");
 const items = ["administrator", "operator", "observer"];
 
-const setLocalVariable = () => {
-  memberLocal.value = { ...props.member, selectedRole: props.member.role };
-};
-
-onMounted(() => {
-  setLocalVariable();
-});
-
 const close = () => {
-  setLocalVariable();
   showDialog.value = false;
 };
 
@@ -130,9 +121,9 @@ const handleEditMemberError = (error: unknown) => {
 const editMember = async () => {
   try {
     await store.dispatch("namespaces/editUser", {
-      user_id: memberLocal.value.id,
+      user_id: member.id,
       tenant_id: store.getters["auth/tenant"],
-      role: memberLocal.value.selectedRole,
+      role: newRole.value,
     });
 
     snackbar.showSuccess("Successfully updated user role.");
