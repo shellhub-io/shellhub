@@ -1,4 +1,4 @@
-import { IUser, IUserPutSessionRecording, IUserUpdatePassword, IUserSignUp, IUserSetup } from "@/interfaces/IUSer";
+import { IUser, IUserPutSessionRecording, IUserUpdatePassword, IUserSignUp, IUserSetup } from "@/interfaces/IUser";
 import { usersApi, systemApi } from "@/api/http";
 
 export const signUp = async (data: IUserSignUp) => usersApi.registerUser({
