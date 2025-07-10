@@ -1,4 +1,4 @@
-enum AllowedRegionsEnum {
+enum AllowedRegions {
   "AD",
   "AE",
   "AF",
@@ -256,7 +256,7 @@ type Customer = {
   company?: string;
 };
 
-export type Features = {
+export type AdminLicenseFeatures = {
   devices: number;
   session_recording: boolean;
   firewall_rules: boolean;
@@ -265,7 +265,7 @@ export type Features = {
   billing: boolean;
 };
 
-export interface ILicense {
+export interface IAdminLicense {
   id: string;
   expired: boolean;
   about_to_expire: boolean;
@@ -273,7 +273,7 @@ export interface ILicense {
   issued_at: number;
   starts_at: number;
   expires_at: number;
-  allowed_regions: Array<AllowedRegionsEnum>;
+  allowed_regions: Array<AllowedRegions>;
   customer: Customer;
-  features: Features;
+  features: AdminLicenseFeatures;
 }
