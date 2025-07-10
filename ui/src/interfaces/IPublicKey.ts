@@ -1,14 +1,9 @@
-export type filterType = {
-  hostname?: string;
-  tags?: Array<string>
-}
-
-export type FilterHostname = {
+type FilterHostname = {
   hostname: string;
 }
 
-export type FilterTags = {
-  tags: Set<string> | Array<string>;
+type FilterTags = {
+  tags: Set<string>;
 }
 
 export interface IPublicKey {
