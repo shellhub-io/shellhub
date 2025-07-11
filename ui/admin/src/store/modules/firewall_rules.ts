@@ -1,24 +1,24 @@
 // stores/firewallRules.ts
 import { defineStore } from "pinia";
-import { IFirewallRule } from "../../interfaces/IFirewallRule";
+import { IAdminFirewallRule } from "../../interfaces/IFirewallRule";
 import * as apiFirewall from "../api/firewall_rules";
 
 export interface FirewallRulesState {
-  firewalls: Array<IFirewallRule>;
-  firewall: IFirewallRule;
+  firewalls: Array<IAdminFirewallRule>;
+  firewall: IAdminFirewallRule;
   numberFirewalls: number;
 }
 
 export const useFirewallRulesStore = defineStore("firewallRules", {
   state: (): FirewallRulesState => ({
     firewalls: [],
-    firewall: {} as IFirewallRule,
+    firewall: {} as IAdminFirewallRule,
     numberFirewalls: 0,
   }),
 
   getters: {
-    list: (state): Array<IFirewallRule> => state.firewalls,
-    getFirewall: (state): IFirewallRule => state.firewall,
+    list: (state): Array<IAdminFirewallRule> => state.firewalls,
+    getFirewall: (state): IAdminFirewallRule => state.firewall,
     getNumberFirewalls: (state): number => state.numberFirewalls,
   },
 

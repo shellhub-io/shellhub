@@ -6,12 +6,12 @@ import {
   putPublicKey,
   removePublicKey,
 } from "../api/public_keys";
-import { IPublicKey } from "../../interfaces/IPublicKey";
+import { IAdminPublicKey } from "../../interfaces/IPublicKey";
 
 export const usePublicKeysStore = defineStore("publicKeys", {
   state: () => ({
-    publicKeys: [] as Array<IPublicKey>,
-    publicKey: {} as IPublicKey,
+    publicKeys: [] as Array<IAdminPublicKey>,
+    publicKey: {} as IAdminPublicKey,
     numberPublicKeys: 0,
   }),
 
@@ -55,7 +55,7 @@ export const usePublicKeysStore = defineStore("publicKeys", {
       await removePublicKey(fingerprint);
 
       const index = this.publicKeys.findIndex(
-        (d: IPublicKey) => d.fingerprint === fingerprint,
+        (d: IAdminPublicKey) => d.fingerprint === fingerprint,
       );
 
       if (index !== -1) {
@@ -69,7 +69,7 @@ export const usePublicKeysStore = defineStore("publicKeys", {
     },
 
     clearObjectPublicKey() {
-      this.publicKey = {} as IPublicKey;
+      this.publicKey = {} as IAdminPublicKey;
     },
   },
 });

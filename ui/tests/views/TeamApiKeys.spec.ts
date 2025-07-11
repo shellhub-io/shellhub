@@ -99,7 +99,10 @@ describe("Team Api Keys", () => {
     mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
     mockDevices = new MockAdapter(devicesApi.getAxios());
 
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, apiKeys);
+    mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(
+      200,
+      { data: apiKeys, headers: { "x-total-count": "1" } },
+    );
     mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
@@ -109,6 +112,7 @@ describe("Team Api Keys", () => {
     store.commit("namespaces/setNamespace", namespaceData);
     store.commit("namespaces/setNamespaces", res);
     store.commit("stats/setStats", stats);
+    store.commit("apiKeys/setKeyList", { data: apiKeys, headers: { "x-total-count": "1" } });
 
     wrapper = mount(TeamApiKeys, {
       global: {

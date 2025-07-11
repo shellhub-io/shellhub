@@ -1,10 +1,10 @@
 import { CreateDeviceTagRequest, UpdateDeviceRequest, UpdateTagsDeviceRequest } from "@/api/client";
 
-type identity = {
-    mac: string;
-  }
+type Identity = {
+  mac: string;
+}
 
-type infoDetails = {
+type InfoDetails = {
   id: string;
   pretty_name: string;
   version: string;
@@ -12,7 +12,7 @@ type infoDetails = {
   platform: string;
 }
 
-type position = {
+type Position = {
   latitude: number;
   longitude: number;
 }
@@ -20,8 +20,8 @@ type position = {
 export interface IDevice {
   uid: string;
   name: string;
-  identity: identity;
-  info: infoDetails;
+  identity: Identity;
+  info: InfoDetails;
   public_key: string;
   tenant_id:string;
   last_seen: string;
@@ -30,7 +30,7 @@ export interface IDevice {
   status: string;
   created_at: string;
   remote_addr: string;
-  position: position;
+  position: Position;
   tags: Array<string>;
 }
 

@@ -21,16 +21,15 @@ const headers = [
 
 const firewallRules = [
   {
-    action: "allow",
+    action: "allow" as const,
     active: true,
     filter: {
-      tags: ["xxxx", "yyyy"],
+      tags: new Set(["xxxx", "yyyy"]),
     },
     id: "5f1996c84d2190a22d5857bb",
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     priority: 4,
     source_ip: "127.0.0.1",
-    tenant_ip: "127.0.0.1",
     username: "shellhub",
   },
 ];

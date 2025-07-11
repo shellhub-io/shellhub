@@ -27,10 +27,10 @@ export interface IConnectorPayload {
 }
 
 export interface IConnector {
-    uid: string,
-    tenant_id: string,
-    enable: boolean,
-    secure: boolean,
-    hostname: string,
-    tls: null,
+  uid: string,
+  tenant_id: string,
+  enable: boolean,
+  secure: boolean,
+  hostname: string,
+  tls: null,
 }

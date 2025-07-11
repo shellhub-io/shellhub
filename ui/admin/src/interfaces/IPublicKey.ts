@@ -1,22 +1,3 @@
-export type filterType = {
-  hostname?: string;
-  tags?: Array<string>
-}
+import { IPublicKey } from "@/interfaces/IPublicKey";
 
-export type FilterHostname = {
-  hostname: string;
-}
-
-export type FilterTags = {
-  tags: Set<string> | Array<string>;
-}
-
-export interface IPublicKey {
-  created_at: string;
-  data: string;
-  filter: FilterHostname | FilterTags;
-  fingerprint: string;
-  name: string;
-  tenant_id: string;
-  username: string;
-}
+export type IAdminPublicKey = IPublicKey;

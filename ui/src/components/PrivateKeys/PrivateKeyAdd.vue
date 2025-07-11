@@ -69,7 +69,6 @@ import { ref } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
 import { parsePrivateKeySsh, validateKey } from "@/utils/validate";
-import { IPrivateKeyError } from "@/interfaces/IPrivateKey";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 
@@ -154,7 +153,7 @@ const create = async () => {
       emit("update");
       close();
     } catch (error) {
-      const pkError = error as IPrivateKeyError;
+      const pkError = error as Error;
       switch (pkError.message) {
         case "both": {
           setNameError("Name is already used");

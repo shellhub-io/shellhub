@@ -3,14 +3,14 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { INamespace } from "@admin/interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../../src/router";
 import NamespaceList from "../../../../../src/components/Namespace/NamespaceList.vue";
 
 type NamespaceListWrapper = VueWrapper<InstanceType<typeof NamespaceList>>;
 
-const namespaces: INamespace[] = [
+const namespaces: IAdminNamespace[] = [
   {
     billing: {
       active: true,

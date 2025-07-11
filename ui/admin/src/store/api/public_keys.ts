@@ -1,7 +1,7 @@
-import { IPublicKey } from "../../interfaces/IPublicKey";
+import { IAdminPublicKey } from "../../interfaces/IPublicKey";
 import http from "../helpers/http";
 
-export const postPublicKey = async (data: IPublicKey) => http().post("/api/sshkeys/public_keys", {
+export const postPublicKey = async (data: IAdminPublicKey) => http().post("/api/sshkeys/public_keys", {
   name: data.name,
   data: data.data,
 });
@@ -11,7 +11,7 @@ export const fetchPublicKeys = async (perPage: number, page: number) => http().g
 
 export const getPublicKey = async (fingerprint: string) => http().get(`/api/sshkeys/public_keys/${fingerprint}`);
 
-export const putPublicKey = async (data: IPublicKey) => http().put(`/api/sshkeys/public_keys/${data.fingerprint}`, {
+export const putPublicKey = async (data: IAdminPublicKey) => http().put(`/api/sshkeys/public_keys/${data.fingerprint}`, {
   name: data.name,
   data: data.data,
 });

@@ -1,8 +1,5 @@
-export interface IStats {
-  active_sessions: number;
-  online_devices: number;
-  pending_devices: number;
-  registered_devices: number;
+import { IStats } from "@/interfaces/IStats";
+
+export interface IAdminStats extends IStats {
   registered_users: number;
-  rejected_devices: number;
 }

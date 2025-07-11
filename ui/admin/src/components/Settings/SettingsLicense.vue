@@ -208,8 +208,8 @@
 import { computed, onMounted, ref } from "vue";
 import moment from "moment";
 import useLicenseStore from "@admin/store/modules/license";
+import { AdminLicenseFeatures } from "@admin/interfaces/ILicense";
 import useSnackbar from "@/helpers/snackbar";
-import { Features } from "../../interfaces/ILicense";
 import handleError from "@/utils/handleError";
 
 const currentFile = ref<File | null>(null);
@@ -245,7 +245,7 @@ const copyText = (value: string | undefined) => {
   }
 };
 
-const removeField = (jsonLicense: Features) => {
+const removeField = (jsonLicense: AdminLicenseFeatures) => {
   const jsonLicenseChanged = jsonLicense;
 
   if (jsonLicenseChanged !== undefined) {

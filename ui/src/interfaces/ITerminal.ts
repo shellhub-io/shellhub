@@ -26,8 +26,8 @@ export interface WebTermDimensions {
 export enum MessageKind {
   Input = 1,
   Resize,
-  Signature = 3,
-  Error = 4,
+  Signature,
+  Error,
 }
 
 export interface ResizeMessage {

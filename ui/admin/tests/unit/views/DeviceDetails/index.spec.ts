@@ -27,7 +27,7 @@ const deviceDetail = {
   namespace: "dev",
   status: "accepted",
   created_at: "2022-04-13T11:43:25.218Z",
-  remoteAddr: "172.22.0.1",
+  remote_addr: "172.22.0.1",
   position: { latitude: 0, longitude: 0 },
   tags: ["dev"],
 };

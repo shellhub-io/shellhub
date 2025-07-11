@@ -109,7 +109,7 @@ const handleUpdateNameError = (error: unknown): void => {
 const updateAnnouncement = async () => {
   try {
     await store.dispatch("namespaces/put", {
-      id: tenant.value,
+      tenant_id: tenant.value,
       settings: {
         connection_announcement: connectionAnnouncement.value,
       },

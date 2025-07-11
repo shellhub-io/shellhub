@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import * as apiKeysApi from "../api/api_keys";
-import { ApiKey } from "@/interfaces/IUserLogin";
+import { IApiKey } from "@/interfaces/IApiKey";
 import { State, store } from "..";
 
 export interface ApiKeysState {
@@ -8,7 +8,7 @@ export interface ApiKeysState {
   perPage: number;
   sortStatusField: undefined | string;
   sortStatusString: "asc" | "desc" | "";
-  keyList: Array<ApiKey>,
+  keyList: Array<IApiKey>,
   keyResponse: string,
   numberApiKeys: number,
 }

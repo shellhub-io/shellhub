@@ -1,14 +1,6 @@
-type Members = {
-  id: string;
-  role: "administrator" | "operator" | "observer" | "owner";
-  username: string;
-}
+import { INamespace } from "@/interfaces/INamespace";
 
-type Settings = {
-  session_record?: boolean;
-}
-
-type Billing = {
+interface IAdminBilling {
   active: boolean;
   current_period_end: string;
   customer_id: string;
@@ -20,16 +12,6 @@ type Billing = {
   subscription_id: string;
 }
 
-export interface INamespace {
-  billing?: Billing;
-  created_at: string;
-  devices_accepted_count: number;
-  devices_pending_count: number;
-  devices_rejected_count: number;
-  max_devices: number;
-  members: Array<Members>;
-  name: string;
-  owner: string;
-  settings: Settings;
-  tenant_id: string;
+export interface IAdminNamespace extends Omit<INamespace, "billing"> {
+  billing?: IAdminBilling;
 }

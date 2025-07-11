@@ -3,14 +3,14 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { INamespace } from "@admin/interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import routes from "../../../../src/router";
 import NamespaceDetails from "../../../../src/views/NamespaceDetails.vue";
 
 type NamespaceDetailsWrapper = VueWrapper<InstanceType<typeof NamespaceDetails>>;
 
-const namespaceDetail: INamespace = {
+const namespaceDetail: IAdminNamespace = {
   name: "dev",
   owner: "6256b739302b50b6cc5eafcc",
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",

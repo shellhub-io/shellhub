@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import routes from "@admin/router";
+import FirewallRulesDetails from "@admin/views/FirewallRulesDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import FirewallRulesDetails from "../../../../src/views/FirewallRulesDetails.vue";
 
 type FirewallRulesDetailsWrapper = VueWrapper<InstanceType<typeof FirewallRulesDetails>>;
 
@@ -13,7 +13,7 @@ const firewallRuleDetail = {
   id: "6256b876e5c1d9bbdf954662",
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   priority: 1,
-  action: "allow",
+  action: "allow" as const,
   active: true,
   source_ip: ".*",
   username: "^[A-a]",

@@ -1,17 +1,13 @@
-export type filterType = {
-  hostname?: string;
-  tags?: Array<string>
-}
+import { Filter } from "@/interfaces/IFilter";
 
 export interface IFirewallRule {
-  action: boolean;
+  action: "allow" | "deny";
   active: boolean;
-  filter: filterType;
+  filter: Filter;
   id: string;
   tenant_id: string;
   priority: number;
   source_ip: string;
-  tenant_ip: string;
   username: string;
   status: string;
 }

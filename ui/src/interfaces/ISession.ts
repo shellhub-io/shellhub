@@ -1,17 +1,17 @@
 import { IDevice } from "./IDevice";
 
-interface position {
+interface Position {
   longitude: number;
   latitude: number;
 }
-export interface ISessions {
+export interface ISession {
   active: boolean;
   authenticated: boolean;
   device: IDevice;
   device_uid: string;
   ip_address: string;
   last_seen: string;
-  position: position;
+  position: Position;
   recorded: boolean;
   started_at: string;
   tenant_id: string;

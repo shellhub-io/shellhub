@@ -1,11 +1,10 @@
-// stores/devices.ts
 import { defineStore } from "pinia";
+import { IAdminDevice } from "@admin/interfaces/IDevice";
 import * as apiDevice from "../api/devices";
-import { IDevice } from "../../interfaces/IDevice";
 
 export interface DevicesState {
-  devices: Array<IDevice>;
-  device: IDevice;
+  devices: Array<IAdminDevice>;
+  device: IAdminDevice;
   numberDevices: number;
   page: number;
   perPage: number;
@@ -17,7 +16,7 @@ export interface DevicesState {
 export const useDevicesStore = defineStore("devices", {
   state: (): DevicesState => ({
     devices: [],
-    device: {} as IDevice,
+    device: {} as IAdminDevice,
     numberDevices: 0,
     page: 1,
     perPage: 10,

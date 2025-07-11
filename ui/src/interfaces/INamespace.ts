@@ -1,14 +1,16 @@
 import { IBilling } from "./IBilling";
 
+export type Role = "administrator" | "operator" | "observer" | "owner";
+
 export interface INamespaceMember {
   id: string;
   username: string;
-  role: string;
+  role: Role;
 }
 
-export interface settings {
+export interface INamespaceSettings {
+  connection_announcement?: string;
   session_record: boolean;
-  connection_announcement: string;
 }
 
 export interface INamespace {
@@ -16,28 +18,22 @@ export interface INamespace {
   owner: string;
   tenant_id: string;
   members: INamespaceMember[];
-  settings: settings;
+  settings: INamespaceSettings;
   max_devices: number;
-  devices_count: number;
+  devices_accepted_count: number;
+  devices_pending_count: number;
+  devices_rejected_count: number;
   created_at: string;
   billing: IBilling;
 }
 
-export interface INamespaceInvite {
+export interface INamespaceAcceptInvite {
   tenant: string;
   sig: string;
 }
 
-export interface INamespaceSettings {
-  connection_announcement?: string;
-  session_record?: boolean;
-}
-export interface INamespaceResponse {
-  settings?: INamespaceSettings;
-  id: string;
-  tenant_id: string;
-  name: string;
-  user_id: string;
+export interface INamespaceAddMember {
   email: string;
-  role: "administrator" | "operator" | "observer" | "owner";
+  role: Role;
+  tenant_id: string;
 }

@@ -40,7 +40,7 @@ const devices = [
       longitude: 12,
     },
     public_key: "xxxxxxxxxxxxxxxx",
-    remoteAddr: "127.0.0.1",
+    remote_addr: "127.0.0.1",
     status: "accepted",
     tags: ["xxxx", "yyyyy"],
     tenant_id: "00000000",

@@ -1,10 +1,12 @@
-export enum NamespaceFilterOptions {
+import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
+
+export enum AdminNamespaceFilterOptions {
   MoreThan = "moreThan",
   NoDevices = "noDevices",
   NoSessions = "noSessions",
 }
 
-export interface IFilter {
+export interface IAdminExportFilter {
   type: "property" | "operator";
   params: {
     name?: string;
@@ -12,3 +14,7 @@ export interface IFilter {
     value?: number;
   };
 }
+
+export type AdminHostnameFilter = HostnameFilter;
+export type AdminTagsFilter = TagsFilter;
+export type AdminFilter = AdminHostnameFilter | AdminTagsFilter;
