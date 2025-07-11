@@ -95,8 +95,9 @@
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
-import { AdminFirewallRuleFilter, IAdminFirewallRule } from "../interfaces/IFirewallRule";
+import { IAdminFirewallRule } from "../interfaces/IFirewallRule";
 import showTag from "../hooks/tag";
 import displayOnlyTenCharacters from "../hooks/string";
 
@@ -122,9 +123,9 @@ const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
 
 const formatUsername = (username: string) => (username === ".*" ? "All users" : username);
 
-const formatHostnameFilter = (filter: AdminFirewallRuleFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+const formatHostnameFilter = (filter: AdminHostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
-const isHostname = (filter: AdminFirewallRuleFilter) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+const isHostname = (filter: AdminFilter): filter is AdminHostnameFilter => "hostname" in filter;
 
 defineExpose({ firewallRule });
 </script>

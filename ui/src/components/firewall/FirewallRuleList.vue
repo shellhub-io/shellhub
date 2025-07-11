@@ -128,7 +128,7 @@
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
-import { FirewallRuleFilter } from "@/interfaces/IFirewallRule";
+import { Filter, HostnameFilter } from "@/interfaces/IFilter";
 import { useStore } from "@/store";
 import { getTimeFromNow } from "@/utils/date";
 import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
@@ -229,9 +229,9 @@ const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
 
 const formatUsername = (username: string) => username === ".*" ? "All users" : username;
 
-const formatHostnameFilter = (filter: FirewallRuleFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+const formatHostnameFilter = (filter: HostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
-const isHostname = (filter: FirewallRuleFilter) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 
 const hasAuthorizationFormDialogEdit = () => {
   const role = store.getters["auth/role"];

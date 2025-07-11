@@ -1,7 +1,7 @@
-import { IAdminFilter, AdminNamespaceFilterOptions } from "@admin/interfaces/IFilter";
+import { IAdminExportFilter, AdminNamespaceFilterOptions } from "@admin/interfaces/IFilter";
 
-const getFilter = (option: AdminNamespaceFilterOptions, numberOfDevices: number): IAdminFilter[] => {
-  const filters: Record<AdminNamespaceFilterOptions, IAdminFilter[]> = {
+const getFilter = (option: AdminNamespaceFilterOptions, numberOfDevices: number): IAdminExportFilter[] => {
+  const filters: Record<AdminNamespaceFilterOptions, IAdminExportFilter[]> = {
     [AdminNamespaceFilterOptions.MoreThan]: [
       {
         type: "property",

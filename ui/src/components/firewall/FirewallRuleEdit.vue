@@ -260,7 +260,9 @@ const state = ref([
 const ruleFirewallLocal = ref<FirewallRuleType>({
   priority: 0,
   source_ip: ".*",
-  filter: {},
+  filter: {
+    hostname: ".*",
+  },
   username: ".*",
   status: "",
   policy: "",
@@ -385,19 +387,21 @@ const setLocalVariable = () => {
     username.value = ".*";
   }
 
-  if (filter && !!filter.hostname && filter.hostname !== ".*") {
-    choiceFilter.value = "hostname";
-    filterField.value = filter.hostname;
-  } else if (filter && filter.tags) {
-    choiceFilter.value = "tags";
-    tagChoices.value = filter.tags;
+  if (filter) {
+    if ("hostname" in filter && filter.hostname !== ".*") {
+      choiceFilter.value = "hostname";
+      filterField.value = filter.hostname;
+    } else if ("tags" in filter) {
+      choiceFilter.value = "tags";
+      tagChoices.value = Array.from(filter.tags);
+    }
   }
 
   if (active) {
     status = "active";
   }
 
-  let filtObj = {};
+  let filtObj;
 
   if (choiceFilter.value === "hostname") {
     filtObj = { hostname: filterField.value };
