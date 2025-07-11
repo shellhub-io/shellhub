@@ -3,7 +3,13 @@ export type HostnameFilter = {
 }
 
 export type TagsFilter = {
-  tags: Set<string> | string[];
+  tags: string[];
 }
 
 export type Filter = HostnameFilter | TagsFilter;
+
+export enum FormFilterOptions {
+  All = "all",
+  Hostname = "hostname",
+  Tags = "tags",
+}
