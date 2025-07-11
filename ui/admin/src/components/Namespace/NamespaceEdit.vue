@@ -38,12 +38,12 @@
                   />
 
                   <v-text-field
-                    v-model="numberDevices"
+                    v-model="maxDevices"
                     label="Maximum Devices"
                     required
                     type="number"
                     :min="-1"
-                    :error-messages="numberDevicesError"
+                    :error-messages="maxDevicesError"
                     color="primary"
                     variant="underlined"
                     data-test="maxDevices-text"
@@ -97,8 +97,8 @@ const { value: name, errorMessage: nameError } = useField<string | undefined>(
   yup.string().required(),
 );
 
-const { value: numberDevices, errorMessage: numberDevicesError } = useField<number | undefined>(
-  "name",
+const { value: maxDevices, errorMessage: maxDevicesError } = useField<number | undefined>(
+  "maxDevices",
   yup.number().required(),
 );
 
@@ -106,18 +106,18 @@ const { value: sessionRecord, errorMessage: sessionRecordError } = useField<bool
 
 onMounted(() => {
   name.value = props.namespace.name;
-  numberDevices.value = props.namespace.max_devices;
+  maxDevices.value = props.namespace.max_devices;
   sessionRecord.value = props.namespace.settings.session_record || false;
 });
 
-const hasErrors = () => nameError.value || numberDevicesError.value || sessionRecordError.value;
+const hasErrors = () => nameError.value || maxDevicesError.value || sessionRecordError.value;
 
 const onSubmit = async () => {
   if (!hasErrors()) {
     await namespacesStore.put({
       ...props.namespace as IAdminNamespace,
       name: name.value as string,
-      max_devices: numberDevices.value as number,
+      max_devices: Number(maxDevices.value),
       settings: { session_record: sessionRecord.value },
     });
     await namespacesStore.refresh();
@@ -131,7 +131,7 @@ const onSubmit = async () => {
 watch(dialog, () => {
   if (!dialog.value) {
     name.value = props.namespace.name;
-    numberDevices.value = props.namespace.max_devices;
+    maxDevices.value = props.namespace.max_devices;
     sessionRecord.value = props.namespace.settings.session_record;
   }
 });
