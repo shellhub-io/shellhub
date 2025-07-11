@@ -1,4 +1,4 @@
-import { FirewallRuleFilter } from "../interfaces/IFirewallRule";
+import { HostnameFilter } from "../interfaces/IFilter";
 
 export const displayOnlyTenCharacters = (str: string) => {
   if (str !== undefined) {
@@ -18,4 +18,4 @@ export const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
 
 export const formatUsername = (username: string) => username === ".*" ? "All users" : username;
 
-export const formatHostnameFilter = (filter: FirewallRuleFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
+export const formatHostnameFilter = (filter: HostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;

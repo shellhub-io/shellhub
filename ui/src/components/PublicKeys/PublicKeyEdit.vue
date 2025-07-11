@@ -306,7 +306,7 @@ const chooseFilter = () => {
     case "tags": {
       keyLocal.value = {
         ...keyLocal.value,
-        filter: { tags: new Set(tagChoices.value) },
+        filter: { tags: tagChoices.value },
       };
       break;
     }

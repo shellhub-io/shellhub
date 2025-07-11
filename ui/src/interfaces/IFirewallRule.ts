@@ -1,12 +1,9 @@
-export type FirewallRuleFilter = {
-  hostname?: string;
-  tags?: Array<string>
-}
+import { Filter } from "@/interfaces/IFilter";
 
 export interface IFirewallRule {
   action: "allow" | "deny";
   active: boolean;
-  filter: FirewallRuleFilter;
+  filter: Filter;
   id: string;
   tenant_id: string;
   priority: number;

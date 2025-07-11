@@ -116,7 +116,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { actions, authorizer } from "@/authorizer";
-import { FirewallRuleFilter } from "@/interfaces/IFirewallRule";
+import { Filter, HostnameFilter } from "@/interfaces/IFilter";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import {
@@ -217,7 +217,7 @@ const refreshPublicKeys = async () => {
   await store.dispatch("publicKeys/refresh");
 };
 
-const isHostname = (filter: FirewallRuleFilter) => Object.prototype.hasOwnProperty.call(filter, "hostname");
+const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 
 defineExpose({ publicKeys, hasAuthorizationFormDialogEdit, hasAuthorizationFormDialogRemove });
 </script>

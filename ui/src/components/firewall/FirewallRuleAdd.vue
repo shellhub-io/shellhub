@@ -178,7 +178,7 @@ import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { FirewallRuleFilter } from "@/interfaces/IFirewallRule";
+import { Filter } from "@/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
 
 export interface FirewallRuleType {
@@ -189,7 +189,7 @@ export interface FirewallRuleType {
   status?: string;
   source_ip?: string;
   username?: string;
-  filter?: FirewallRuleFilter;
+  filter?: Filter;
 }
 
 const snackbar = useSnackbar();
@@ -233,7 +233,7 @@ const {
   errorMessage: filterFieldError,
   setErrors: setFilterFieldError,
   resetField: resetFilterField,
-} = useField<string | undefined>("filterField", yup.string().required(), {
+} = useField<string>("filterField", yup.string().required(), {
   initialValue: "",
 });
 
@@ -364,14 +364,14 @@ const resetRuleFirewall = () => {
 };
 
 const constructFilterObject = () => {
-  let filterObj = {};
+  let filterObj;
 
   switch (choiceFilter.value) {
     case "hostname":
-      filterObj = { hostname: filterField };
+      filterObj = { hostname: filterField.value };
       break;
     case "tags":
-      filterObj = { tags: tagChoices };
+      filterObj = { tags: tagChoices.value };
       break;
     case "all":
       filterObj = { hostname: ".*" };

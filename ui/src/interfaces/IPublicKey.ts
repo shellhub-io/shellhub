@@ -1,15 +1,9 @@
-type FilterHostname = {
-  hostname: string;
-}
-
-type FilterTags = {
-  tags: Set<string>;
-}
+import { Filter } from "@/interfaces/IFilter";
 
 export interface IPublicKey {
   created_at: string;
   data: string;
-  filter: FilterHostname | FilterTags;
+  filter: Filter;
   fingerprint: string;
   name: string;
   tenant_id: string;
