@@ -27,8 +27,8 @@
               <template #default="{ copyText }">
                 <v-text-field
                   :model-value="commandLine"
-                  @click:append="copyText(commandLine)"
-                  append-icon="mdi-content-copy"
+                  @click:append-inner="copyText(commandLine)"
+                  append-inner-icon="mdi-content-copy"
                   hint="Run this command on your Terminal"
                   class="code"
                   variant="outlined"
