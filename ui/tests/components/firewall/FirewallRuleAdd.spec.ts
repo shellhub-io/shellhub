@@ -7,6 +7,7 @@ import FirewallRuleAdd from "@/components/firewall/FirewallRuleAdd.vue";
 import { router } from "@/router";
 import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import { FormFilterOptions } from "@/interfaces/IFilter";
 
 type FirewallRuleAddWrapper = VueWrapper<InstanceType<typeof FirewallRuleAdd>>;
 
@@ -109,19 +110,19 @@ describe("Firewall Rule Add", () => {
     expect(dialog.find('[data-test="username-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="device-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-cancel"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-save-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="firewall-rule-add-btn"]').exists()).toBe(true);
   });
 
   it("Conditional rendering components", async () => {
     const dialog = new DOMWrapper(document.body);
 
-    wrapper.vm.choiceIP = "ipDetails";
-    wrapper.vm.choiceUsername = "username";
-    wrapper.vm.choiceFilter = "tags";
+    wrapper.vm.selectedIPOption = "restrict";
+    wrapper.vm.selectedUsernameOption = "username";
+    wrapper.vm.selectedFilterOption = FormFilterOptions.Tags;
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 
-    expect(dialog.find('[data-test="firewall-rule-source-ip-details"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="firewall-rule-source-ip"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-username-restriction"]').exists()).toBe(true);
     expect(dialog.find('[data-test="tags-selector"]').exists()).toBe(true);
   });
@@ -129,7 +130,7 @@ describe("Firewall Rule Add", () => {
   it("Conditional rendering components (Hostname)", async () => {
     const dialog = new DOMWrapper(document.body);
 
-    wrapper.vm.choiceFilter = "hostname";
+    wrapper.vm.selectedFilterOption = FormFilterOptions.Hostname;
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 
@@ -143,12 +144,12 @@ describe("Firewall Rule Add", () => {
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="firewall-rule-save-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="firewall-rule-add-btn"]').trigger("click");
 
     expect(storeSpy).toBeCalledWith("firewallRules/post", {
-      policy: "allow",
-      priority: 0,
-      status: "active",
+      active: true,
+      action: "allow",
+      priority: 1,
       source_ip: ".*",
       username: ".*",
       filter: {
@@ -162,7 +163,7 @@ describe("Firewall Rule Add", () => {
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="firewall-rule-save-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="firewall-rule-add-btn"]').trigger("click");
     await flushPromises();
 
     expect(mockSnackbar.showError).toBeCalledWith("Failed to create a new firewall rule.");

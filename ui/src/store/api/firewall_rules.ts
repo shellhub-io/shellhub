@@ -1,6 +1,7 @@
 import { rulesApi } from "@/api/http";
+import { IFirewallRule } from "@/interfaces/IFirewallRule";
 
-interface FitlerHostnameType {
+interface FilterHostnameType {
   hostname: string;
 }
 
@@ -14,13 +15,13 @@ interface FirewallRuleType {
   status: string;
   source_ip: string;
   username: string;
-  filter: FitlerHostnameType | FilterTagsType;
+  filter: FilterHostnameType | FilterTagsType;
 }
 
-export const postFirewall = async (data: FirewallRuleType) => rulesApi.createFirewallRule({
-  priority: parseInt(data.priority, 10),
-  action: data.policy,
-  active: data.status === "active",
+export const postFirewall = async (data: IFirewallRule) => rulesApi.createFirewallRule({
+  priority: data.priority,
+  action: data.action,
+  active: data.active,
   filter: data.filter,
   source_ip: data.source_ip,
   username: data.username,
