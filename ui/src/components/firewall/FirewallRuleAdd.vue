@@ -31,10 +31,8 @@
             <v-row>
               <v-col>
                 <v-select
-                  v-model="ruleFirewall.status"
-                  :items="ruleStatus"
-                  item-title="text"
-                  item-value="type"
+                  v-model="active"
+                  :items="activeSelectOptions"
                   label="Rule status"
                   variant="underlined"
                   data-test="firewall-rule-status"
@@ -43,8 +41,9 @@
 
               <v-col>
                 <v-text-field
-                  v-model="ruleFirewall.priority"
+                  v-model="priority"
                   label="Rule priority"
+                  :error-messages="priorityError"
                   type="number"
                   variant="underlined"
                   :rules="[rules.required]"
@@ -54,10 +53,8 @@
 
               <v-col>
                 <v-select
-                  v-model="ruleFirewall.policy"
-                  :items="state"
-                  item-title="name"
-                  item-value="id"
+                  v-model="action"
+                  :items="actionSelectOptions"
                   label="Rule policy"
                   variant="underlined"
                   data-test="firewall-rule-policy"
@@ -67,39 +64,35 @@
 
             <v-row class="mt-1 mb-1 px-3">
               <v-select
-                v-model="choiceIP"
+                v-model="selectedIPOption"
                 label="Source IP access restriction"
-                :items="sourceIPFieldChoices"
-                item-title="filterText"
-                item-value="filterName"
+                :items="sourceIPSelectOptions"
                 variant="underlined"
-                data-test="firewall-rule-source-ip"
+                data-test="firewall-rule-source-ip-select"
               />
             </v-row>
 
             <v-text-field
-              v-if="choiceIP === 'ipDetails'"
+              v-if="selectedIPOption === 'restrict'"
               v-model="sourceIp"
               label="Rule source IP"
               variant="underlined"
               :error-messages="sourceIpError"
-              data-test="firewall-rule-source-ip-details"
+              data-test="firewall-rule-source-ip"
             />
 
             <v-row class="mt-1 mb-1 px-3">
               <v-select
-                v-model="choiceUsername"
+                v-model="selectedUsernameOption"
                 label="Device username access restriction"
-                :items="usernameFieldChoices"
-                item-title="filterText"
-                item-value="filterName"
+                :items="usernameSelectOptions"
                 variant="underlined"
                 data-test="username-field"
               />
             </v-row>
 
             <v-text-field
-              v-if="choiceUsername === 'username'"
+              v-if="selectedUsernameOption === 'username'"
               v-model="username"
               label="Username access restriction"
               placeholder="Username used during the connection"
@@ -113,8 +106,6 @@
                 v-model="choiceFilter"
                 label="Device access restriction"
                 :items="filterFieldChoices"
-                item-title="filterText"
-                item-value="filterName"
                 variant="underlined"
                 data-test="device-field"
               />
@@ -196,18 +187,25 @@ const snackbar = useSnackbar();
 const store = useStore();
 const emit = defineEmits(["update"]);
 const dialog = ref(false);
-const action = ref("create");
-const choiceUsername = ref("all");
-const choiceIP = ref("all");
 const choiceFilter = ref("all");
 const validateLength = ref(true);
 
+const active = ref(true);
+const action = ref("allow");
+const selectedIPOption = ref("all");
+const selectedUsernameOption = ref("all");
 const ruleFirewall = ref<FirewallRuleType>({
-  policy: "allow",
-  priority: 0,
-  status: "active",
   source_ip: "",
   username: "",
+});
+
+const {
+  value: priority,
+  errorMessage: priorityError,
+  setErrors: setPriorityError,
+  resetField: resetPriority,
+} = useField<number>("priority", yup.number().required(), {
+  initialValue: 1,
 });
 
 const {
@@ -216,7 +214,7 @@ const {
   setErrors: setSourceIpError,
   resetField: resetSourceIp,
 } = useField<string | undefined>("sourceIp", yup.string().required(), {
-  initialValue: ruleFirewall.value.source_ip,
+  initialValue: "",
 });
 
 const {
@@ -225,7 +223,7 @@ const {
   setErrors: setUsernameError,
   resetField: resetUsername,
 } = useField<string | undefined>("username", yup.string().required(), {
-  initialValue: ruleFirewall.value.username,
+  initialValue: "",
 });
 
 const {
@@ -246,67 +244,33 @@ watch(username, () => {
 });
 
 const errMsg = ref("");
-
-const ruleStatus = ref([
-  {
-    type: "active",
-    text: "Active",
-  },
-  {
-    type: "inactive",
-    text: "Inactive",
-  },
-]);
-
 const tagChoices = ref([]);
 
-const sourceIPFieldChoices = ref([
-  {
-    filterName: "all",
-    filterText: "Define source IP to all devices",
-  },
-  {
-    filterName: "ipDetails",
-    filterText: "Restrict source IP through a regexp",
-  },
-]);
+const activeSelectOptions = [
+  { value: true, title: "Active" },
+  { value: false, title: "Inactive" },
+];
 
-const filterFieldChoices = ref([
-  {
-    filterName: "all",
-    filterText: "Define rule to all devices",
-  },
-  {
-    filterName: "hostname",
-    filterText: "Restrict rule with a regexp for hostname",
-  },
-  {
-    filterName: "tags",
-    filterText: "Restrict rule by device tags",
-  },
-]);
+const actionSelectOptions = [
+  { value: "allow", title: "Allow" },
+  { value: "deny", title: "Deny" },
+];
 
-const usernameFieldChoices = ref([
-  {
-    filterName: "all",
-    filterText: "Define rule to all users",
-  },
-  {
-    filterName: "username",
-    filterText: "Restrict access using a regexp for username",
-  },
-]);
+const sourceIPSelectOptions = [
+  { value: "all", title: "Define source IP to all devices" },
+  { value: "restrict", title: "Restrict source IP through a regexp" },
+];
 
-const state = ref([
-  {
-    id: "allow",
-    name: "Allow",
-  },
-  {
-    id: "deny",
-    name: "Deny",
-  },
-]);
+const usernameSelectOptions = [
+  { value: "all", title: "Define rule to all users" },
+  { value: "username", title: "Restrict access using a regexp for username" },
+];
+
+const filterFieldChoices = [
+  { value: "all", title: "Define rule to all devices" },
+  { value: "hostname", title: "Restrict rule with a regexp for hostname" },
+  { value: "tags", title: "Restrict rule by device tags" },
+];
 
 const rules = ref({
   required: (value: string) => !!value || "Required.",
@@ -319,7 +283,7 @@ const hasAuthorization = computed(() => {
   if (role !== "") {
     return hasPermission(
       authorizer.role[role],
-      actions.firewall[action.value],
+      actions.firewall.create,
     );
   }
 
@@ -353,8 +317,8 @@ const resetRuleFirewall = () => {
     username: "",
   };
   choiceFilter.value = "all";
-  choiceIP.value = "all";
-  choiceUsername.value = "all";
+  selectedIPOption.value = "all";
+  selectedUsernameOption.value = "all";
   tagChoices.value = [];
   validateLength.value = true;
   errMsg.value = "";
@@ -380,11 +344,11 @@ const constructFilterObject = () => {
       break;
   }
 
-  if (choiceUsername.value === "all") {
+  if (selectedUsernameOption.value === "all") {
     ruleFirewall.value.username = ".*";
   }
 
-  if (choiceIP.value === "all") {
+  if (selectedIPOption.value === "all") {
     ruleFirewall.value.source_ip = ".*";
   }
 
@@ -412,7 +376,7 @@ const update = () => {
 
 const hasErrors = () => {
   if (
-    choiceIP.value === "ipDetails"
+    selectedIPOption.value === "ipDetails"
         && ruleFirewall.value.source_ip === ""
   ) {
     setSourceIpError("This Field is required !");
@@ -420,7 +384,7 @@ const hasErrors = () => {
   }
 
   if (
-    choiceUsername.value === "username"
+    selectedUsernameOption.value === "username"
         && ruleFirewall.value.username === ""
   ) {
     setUsernameError("This Field is required !");
@@ -458,5 +422,5 @@ const create = async () => {
   }
 };
 
-defineExpose({ choiceIP, choiceFilter, choiceUsername });
+defineExpose({ choiceIP: selectedIPOption, choiceFilter, choiceUsername: selectedUsernameOption });
 </script>
