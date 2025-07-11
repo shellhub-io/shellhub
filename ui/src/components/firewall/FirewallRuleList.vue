@@ -13,15 +13,10 @@
       <template v-slot:rows>
         <tr v-for="(item, i) in firewallRules" :key="i">
           <td class="text-center">
-            <v-icon v-if="item.active" data-test="firewall-rules-active" color="success">
-              mdi-check-circle
-            </v-icon>
-            <v-tooltip location="bottom" v-else>
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props"> mdi-check-circle </v-icon>
-              </template>
-              <span>{{ getTimeFromNow(item.last_seen) }}</span>
-            </v-tooltip>
+            <v-icon
+              data-test="firewall-rules-active"
+              :color="item.active ? 'success' : ''"
+              icon="mdi-check-circle" />
           </td>
 
           <td class="text-center" data-test="firewall-rules-priority">{{ item.priority }}</td>
@@ -90,7 +85,7 @@
                     <div v-bind="props">
                       <FirewallRuleEdit
                         :firewallRule="item"
-                        :notHasAuthorization="!hasAuthorizationFormDialogEdit()"
+                        :hasAuthorization="hasAuthorizationFormDialogEdit()"
                         @update="refreshFirewallRules"
                       />
                     </div>
@@ -130,7 +125,6 @@ import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
 import { Filter, HostnameFilter } from "@/interfaces/IFilter";
 import { useStore } from "@/store";
-import { getTimeFromNow } from "@/utils/date";
 import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
