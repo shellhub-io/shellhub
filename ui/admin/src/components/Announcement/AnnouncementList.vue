@@ -58,7 +58,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncements";
+import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";

@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import * as apiAnnouncement from "../api/announcement";
-import { IAnnouncement, IAnnouncementShort } from "@/interfaces/IAnnouncements";
+import { IAnnouncement, IAnnouncementShort } from "@/interfaces/IAnnouncement";
 import { State } from "..";
 
 export interface AnnouncementState {
