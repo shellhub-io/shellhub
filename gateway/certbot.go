@@ -116,6 +116,9 @@ type DNSProvider string
 // DigitalOceanDNSProvider represents the Digital Ocean DNS provider.
 const DigitalOceanDNSProvider = "digitalocean"
 
+// CloudflareDNSProvider represents the Cloudflare DNS provider.
+const CloudflareDNSProvider = "cloudflare"
+
 // Config holds the configuration for CertBot operations.
 type Config struct {
 	// RootDir is the root directory where CertBot stores its configurations
@@ -296,7 +299,12 @@ func NewTunnelsCertificate(domain string, provider DNSProvider, token string) Ce
 // generateProviderCredentialsFile creates a credentials file for the DNS provider.
 // This file contains the API token needed for DNS-01 challenges.
 func (d *TunnelsCertificate) generateProviderCredentialsFile() (afero.File, error) {
-	token := fmt.Sprintf("dns_%s_token = %s", d.Provider, d.Token)
+	tokenLine := fmt.Sprintf("dns_%s_token = %s", d.Provider, d.Token)
+
+	// Certbot Cloudflare plugin expects dns_cloudflare_api_token
+	if d.Provider == CloudflareDNSProvider {
+		tokenLine = fmt.Sprintf("dns_cloudflare_api_token = %s", d.Token)
+	}
 
 	file, err := d.fs.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(d.Provider)))
 	if err != nil {
@@ -305,7 +313,7 @@ func (d *TunnelsCertificate) generateProviderCredentialsFile() (afero.File, erro
 		return nil, err
 	}
 
-	if _, err := file.Write([]byte(token)); err != nil {
+	if _, err := file.Write([]byte(tokenLine)); err != nil {
 		log.WithError(err).Error("failed to write the token into credentials file")
 
 		return nil, err

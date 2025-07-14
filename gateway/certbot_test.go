@@ -13,21 +13,49 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// TestTunnelsCertificate_generateProviderCredentialsFile ensures the provider
+// credentials file is generated correctly for various DNS providers.
 func TestTunnelsCertificate_generateProviderCredentialsFile(t *testing.T) {
-	certificate := TunnelsCertificate{
-		Domain:   "localhost",
-		Provider: "digitalocean",
-		Token:    "test",
-	}
+   cases := []struct {
+       name        string
+       provider    DNSProvider
+       token       string
+       wantFile    string
+       wantContent string
+   }{
+       {
+           name:        "DigitalOcean",
+           provider:    DigitalOceanDNSProvider,
+           token:       "test-do",
+           wantFile:    "/etc/shellhub-gateway/digitalocean.ini",
+           wantContent: "dns_digitalocean_token = test-do",
+       },
+       {
+           name:        "Cloudflare",
+           provider:    CloudflareDNSProvider,
+           token:       "test-cf",
+           wantFile:    "/etc/shellhub-gateway/cloudflare.ini",
+           wantContent: "dns_cloudflare_api_token = test-cf",
+       },
+   }
+   for _, tc := range cases {
+       t.Run(tc.name, func(t *testing.T) {
+           cert := TunnelsCertificate{
+               Domain:   "localhost",
+               Provider: tc.provider,
+               Token:    tc.token,
+           }
+           cert.fs = afero.NewMemMapFs()
 
-	certificate.fs = afero.NewMemMapFs()
+           file, err := cert.generateProviderCredentialsFile()
+           assert.NoError(t, err)
+           assert.Equal(t, tc.wantFile, file.Name())
 
-	certificate.generateProviderCredentialsFile()
-
-	buffer, err := afero.ReadFile(certificate.fs, "/etc/shellhub-gateway/digitalocean.ini")
-	assert.NoError(t, err)
-
-	assert.Equal(t, "dns_digitalocean_token = test", string(buffer))
+           data, err := afero.ReadFile(cert.fs, tc.wantFile)
+           assert.NoError(t, err)
+           assert.Equal(t, tc.wantContent, string(data))
+       })
+   }
 }
 
 func TestTunnelsCertificate_generate(t *testing.T) {
@@ -112,6 +140,33 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"-d",
 					"*.localhost",
 					"--staging",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			// Cloudflare provider invocation
+			name: "cloudflare provider",
+			config: TunnelsCertificate{
+				Domain:   "localhost",
+				Provider: "cloudflare",
+				Token:    "test",
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
+				executorMock.On("Command", "certbot",
+					"certonly",
+					"--non-interactive",
+					"--agree-tos",
+					"--register-unsafely-without-email",
+					"--cert-name",
+					"*.localhost",
+					"--dns-cloudflare",
+					"--dns-cloudflare-credentials",
+					"/etc/shellhub-gateway/cloudflare.ini",
+					"-d",
+					"*.localhost",
 				).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
