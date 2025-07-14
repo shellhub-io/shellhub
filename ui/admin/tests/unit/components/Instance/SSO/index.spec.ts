@@ -57,7 +57,7 @@ describe("Configure SSO", () => {
   it("adds a mapping when 'Add Mapping' is clicked", async () => {
     await wrapper.findComponent("[data-test='advanced-settings-title']").trigger("click");
     await wrapper.findComponent("[data-test='add-mapping-btn']").trigger("click");
-    expect(wrapper.vm.mappings.length).toBe(2);
+    expect(wrapper.vm.mappings.length).toBe(1);
   });
 
   it("removes a mapping when 'Remove Mapping' button is clicked", async () => {
@@ -86,10 +86,6 @@ describe("Configure SSO", () => {
       enable: true,
       idp: {
         metadata_url: "https://example.co/metadata",
-        mappings: {
-          email: "",
-          name: "",
-        },
       },
       sp: {
         sign_requests: false,

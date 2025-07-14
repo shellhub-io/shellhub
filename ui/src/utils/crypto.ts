@@ -33,6 +33,15 @@ const parseCertificate = (data) => {
   return cert;
 };
 
+const validateCertificate = (certificate: string): boolean => {
+  try {
+    sshpk.parseCertificate(certificate, "pem");
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const convertKeyToFingerprint = (privateKey) => {
   const fingerprint = sshpk.parsePrivateKey(privateKey).fingerprint("md5");
   return fingerprint;
@@ -50,6 +59,7 @@ export default {
   parsePrivateKey,
   parseKey,
   parseCertificate,
+  validateCertificate,
   convertKeyToFingerprint,
   createSignerAndUpdate,
 };

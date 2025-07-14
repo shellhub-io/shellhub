@@ -12,6 +12,7 @@
           <div v-if="checkbox" data-test="idp-metadata-section">
             <v-text-field
               v-model="IdPMetadataURL"
+              :error-messages="IdPMetadataURLError"
               label="IDP Metadata URL"
               variant="underlined"
               required
@@ -21,6 +22,7 @@
           <div v-else data-test="idp-manual-section">
             <v-text-field
               v-model="acsUrl"
+              :error-messages="acsUrlError"
               label="IdP SignOn URL"
               variant="underlined"
               required
@@ -34,11 +36,13 @@
               data-test="idp-entity-id"
             />
             <v-textarea
-              v-model="x509Certificate"
+              :model-value="x509Certificate"
+              @update:model-value="handleCertificateChange"
               label="IdP X.509 Certificate"
               variant="underlined"
               required
               data-test="idp-x509-certificate"
+              :error-messages="x509CertificateErrorMessage"
             />
           </div>
 
@@ -154,7 +158,11 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import useInstanceStore from "@admin/store/modules/instance";
+import { useField } from "vee-validate";
+import * as yup from "yup";
+import { IAdminSAMLConfig } from "@admin/interfaces/IInstance";
 import useSnackbar from "@/helpers/snackbar";
+import { validateX509Certificate } from "@/utils/validate";
 
 const checkbox = ref(false);
 const signRequest = ref(false);
@@ -162,12 +170,19 @@ const dialog = defineModel({ default: false });
 const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
 
-const IdPMetadataURL = ref("");
-const acsUrl = ref("");
 const entityID = ref("");
 const x509Certificate = ref("");
+const x509CertificateErrorMessage = ref("");
 
-const mappings = ref([{ key: "", value: "" }]);
+const { value: IdPMetadataURL,
+  errorMessage: IdPMetadataURLError,
+} = useField<string>("IdPMetadataURL", yup.string().url(), { initialValue: "" });
+
+const { value: acsUrl,
+  errorMessage: acsUrlError,
+} = useField<string>("acsUrl", yup.string().url(), { initialValue: "" });
+
+const mappings = ref<{ key: string; value: string }[]>([]);
 
 const tableHeaders = ref([
   { text: "Attribute Key", value: "key", align: "center" },
@@ -201,7 +216,7 @@ const resetFields = () => {
   acsUrl.value = "";
   entityID.value = "";
   x509Certificate.value = "";
-  mappings.value = [{ key: "", value: "" }];
+  mappings.value = [];
 };
 
 const close = () => {
@@ -209,50 +224,82 @@ const close = () => {
   resetFields();
 };
 
-const hasError = computed(() => {
-  if (checkbox.value) {
-    return IdPMetadataURL.value.trim() === "";
-  }
-  return (
-    acsUrl.value.trim() === ""
-    || entityID.value.trim() === ""
-    || x509Certificate.value.trim() === ""
-    || mappings.value.some((mapping) => !mapping.key || mapping.value.trim() === "")
-  );
+const isCertificateValid = computed(() => {
+  if (!x509Certificate.value.trim()) return false;
+  return validateX509Certificate(x509Certificate.value);
 });
 
-const updateSAMLConfiguration = async () => {
-  const mappingObject: { email: string; name: string } = {
-    email: "",
-    name: "",
-  };
+const handleCertificateChange = (value: string) => {
+  x509Certificate.value = value;
 
-  mappings.value.forEach((item) => {
-    const key = item.key.toLowerCase();
-    if (key === "email" || key === "name") {
-      mappingObject[key] = item.value;
-    }
-  });
+  if (!value.trim()) {
+    x509CertificateErrorMessage.value = "The certificate field is required.";
+  } else if (!validateX509Certificate(value)) {
+    x509CertificateErrorMessage.value = "Invalid X.509 certificate.";
+  } else {
+    x509CertificateErrorMessage.value = "";
+  }
+};
 
-  const data = checkbox.value
-    ? {
-      enable: true,
-      idp: {
-        metadata_url: IdPMetadataURL.value,
-        mappings: mappingObject,
-      },
-      sp: { sign_requests: signRequest.value },
-    }
+const hasError = computed((): boolean => {
+  // ✅ If using metadata URL, validate only it and stop.
+  if (checkbox.value) {
+    return IdPMetadataURL.value.trim() === "" || !!IdPMetadataURLError.value;
+  }
+
+  // Manual configuration checks
+  if (
+    acsUrl.value.trim() === ""
+    || !!acsUrlError.value
+    || entityID.value.trim() === ""
+    || x509Certificate.value.trim() === ""
+    || !isCertificateValid.value
+  ) {
+    return true;
+  }
+
+  // Mapping validation
+  if (
+    mappings.value.length > 0
+    && mappings.value.some((mapping) => !mapping.key || !mapping.value.trim())
+  ) {
+    return true;
+  }
+
+  return false;
+});
+
+const updateSAMLConfiguration = async (): Promise<void> => {
+  const idpConfig: IAdminSAMLConfig["idp"] = checkbox.value
+    ? { metadata_url: IdPMetadataURL.value }
     : {
-      enable: true,
-      idp: {
-        entity_id: entityID.value,
-        signon_url: acsUrl.value,
-        certificate: x509Certificate.value,
-        mappings: mappingObject,
-      },
-      sp: { sign_requests: signRequest.value },
+      entity_id: entityID.value,
+      signon_url: acsUrl.value,
+      certificate: x509Certificate.value,
     };
+
+  const validMappings = mappings.value.filter(
+    (m) => m.key && m.value.trim(),
+  );
+
+  if (validMappings.length > 0) {
+    const mappingObject: Partial<Record<"email" | "name", string>> = {};
+
+    validMappings.forEach(({ key, value }) => {
+      const lowerKey = key.toLowerCase() as "email" | "name";
+      mappingObject[lowerKey] = value;
+    });
+
+    if (Object.keys(mappingObject).length > 0) {
+      idpConfig.mappings = mappingObject as { email: string; name: string };
+    }
+  }
+
+  const data: IAdminSAMLConfig = {
+    enable: true,
+    idp: idpConfig,
+    sp: { sign_requests: signRequest.value },
+  };
 
   try {
     await instanceStore.updateSamlAuthentication(data);

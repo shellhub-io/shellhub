@@ -44,6 +44,15 @@ export const createSignerPrivateKey = (privateKey, username) => {
   }
 };
 
+export const validateX509Certificate = (value: string): boolean => {
+  try {
+    return crypto.validateCertificate(value);
+  } catch (err) {
+    handleError(err);
+    return false;
+  }
+};
+
 export const createSignatureOfPrivateKey = (
   privateKeyData: any,
   username: Buffer,
