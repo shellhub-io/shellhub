@@ -204,20 +204,20 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 				"address":    address,
 			}).Debug("path")
 
-			tun, err := tunnel.API.LookupTunnel(address)
+			endpoint, err := tunnel.API.LookupWebEndpoints(address)
 			if err != nil {
-				log.WithError(err).Error("failed to get the tunnel")
+				log.WithError(err).Error("failed to get the web endpoint")
 
 				return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelForbidden))
 			}
 
 			logger := log.WithFields(log.Fields{
 				"request-id": requestID,
-				"namespace":  tun.Namespace,
-				"device":     tun.Device,
+				"namespace":  endpoint.Namespace,
+				"device":     endpoint.Device,
 			})
 
-			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", tun.Namespace, tun.Device))
+			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", endpoint.Namespace, endpoint.Device))
 			if err != nil {
 				logger.WithError(err).Error("failed to dial to device")
 
@@ -226,13 +226,13 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 
 			defer in.Close()
 
-			logger.Trace("new tunnel connection initialized")
-			defer logger.Trace("tunnel connection doned")
+			logger.Trace("new web endpoint connection initialized")
+			defer logger.Trace("web endpoint connection doned")
 
 			// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
 			// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
 			// connections for any port, but this route should only connect to the HTTP server.
-			req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", tun.Host, tun.Port), nil)
+			req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", endpoint.Host, endpoint.Port), nil)
 
 			if err := req.Write(in); err != nil {
 				logger.WithError(err).Error("failed to write the request to the agent")
