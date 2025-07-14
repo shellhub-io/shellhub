@@ -22,7 +22,7 @@ exports[`Device List > Renders the component 1`] = `
               <tr data-v-787abe29="">
                 <td data-v-787abe29="" class="text-center">
                   <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
-                    <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                         <!----><span class="v-btn__content" data-no-activator="">Offline</span>
                         <!---->
                         <!---->
@@ -78,7 +78,7 @@ exports[`Device List > Renders the component 1`] = `
               <tr data-v-787abe29="">
                 <td data-v-787abe29="" class="text-center">
                   <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
-                    <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                         <!----><span class="v-btn__content" data-no-activator="">Connect</span>
                         <!---->
                         <!---->
