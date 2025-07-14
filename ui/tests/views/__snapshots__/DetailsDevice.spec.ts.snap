@@ -25,7 +25,7 @@ exports[`Details Device > Renders the component 1`] = `
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
-        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Connect</span>
             <!---->
             <!---->
@@ -115,7 +115,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
-        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Connect</span>
             <!---->
             <!---->
@@ -205,7 +205,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
-        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Connect</span>
             <!---->
             <!---->
@@ -295,7 +295,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
   <div class="v-card-title pa-4 d-flex align-center justify-space-between">
     <div class="d-flex align-center">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
-        <div data-v-35d3a308="" class="v-btn-group v-btn-group--divided v-theme--light v-btn-group--density-compact"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Offline</span>
             <!---->
             <!---->
