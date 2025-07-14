@@ -3,6 +3,7 @@ package httptunnel
 import (
 	"bufio"
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -105,8 +106,27 @@ func (t *Tunnel) Router() http.Handler {
 	return e
 }
 
+// Dial trys to get a connetion to a device specifying a key, what is a combination of tenant and device's UID.
+//
+// Deprecated: This method is deprecated and will be removed in future versions. Use DialTo instead.
 func (t *Tunnel) Dial(ctx context.Context, id string) (net.Conn, error) {
 	return t.connman.Dial(ctx, id)
+}
+
+// DialTo is a method that allows dialing to a device using tenant and UID.
+//
+// It constructs the key from the tenant and UID, then calls the Dial method to
+// establish the connection. This is useful because it simplifies the key
+// construction and ensures that the tenant and UID are always provided
+// together.
+func (t *Tunnel) DialTo(ctx context.Context, tenant string, uid string) (net.Conn, error) {
+	if tenant == "" || uid == "" {
+		return nil, errors.New("tenant and uid must be provided")
+	}
+
+	key := strings.Join([]string{tenant, uid}, ":")
+
+	return t.connman.Dial(ctx, key)
 }
 
 func (t *Tunnel) SendRequest(ctx context.Context, id string, req *http.Request) (*http.Response, error) {

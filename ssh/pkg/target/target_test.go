@@ -22,7 +22,7 @@ func TestNewTarget(t *testing.T) {
 			sshid:       "username",
 			expected: Expected{
 				target: nil,
-				err:    ErrSplitTarget,
+				err:    ErrSplitTwoTarget,
 			},
 		},
 		{
@@ -80,9 +80,8 @@ func TestIsSSHID(t *testing.T) {
 
 func TestSplitSSHID(t *testing.T) {
 	type Expected struct {
-		namespace string
-		hostname  string
-		err       error
+		SSHID *SSHID
+		err   error
 	}
 
 	cases := []struct {
@@ -94,32 +93,67 @@ func TestSplitSSHID(t *testing.T) {
 			description: "fails when when Data does not contain a dot",
 			target: &Target{
 				Username: "username",
-				Data:     "username@localhost",
+				Data:     "",
 			},
 			expected: Expected{
-				namespace: "",
-				hostname:  "",
-				err:       ErrNotSSHID,
+				SSHID: nil,
+				err:   ErrNotSSHID,
 			},
 		},
 		{
 			description: "succeeds when Data contains a dot",
 			target: &Target{
 				Username: "username",
-				Data:     "namespace.00-00-00-00-00-00@localhost",
+				Data:     "namespace.00-00-00-00-00-00",
 			},
 			expected: Expected{
-				namespace: "namespace",
-				hostname:  "00-00-00-00-00-00@localhost",
-				err:       nil,
+				SSHID: &SSHID{
+					Username:  "username",
+					Namespace: "namespace",
+					Device:    "00-00-00-00-00-00",
+					Container: "",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when Data contains two dots due to container",
+			target: &Target{
+				Username: "username",
+				Data:     "namespace.00-00-00-00-00-00.container",
+			},
+			expected: Expected{
+				SSHID: &SSHID{
+					Username:  "username",
+					Namespace: "namespace",
+					Device:    "00-00-00-00-00-00",
+					Container: "container",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds when Data contains more than two dots due to extra data",
+			target: &Target{
+				Username: "username",
+				Data:     "namespace.00-00-00-00-00-00.container.extra",
+			},
+			expected: Expected{
+				SSHID: &SSHID{
+					Username:  "username",
+					Namespace: "namespace",
+					Device:    "00-00-00-00-00-00",
+					Container: "container.extra",
+				},
+				err: nil,
 			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			namespace, hostname, err := tc.target.SplitSSHID()
-			assert.Equal(t, tc.expected, Expected{namespace, hostname, err})
+			sshid, err := tc.target.SplitSSHID()
+			assert.Equal(t, tc.expected, Expected{sshid, err})
 		})
 	}
 }

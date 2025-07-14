@@ -146,6 +146,80 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 
 	tunnel.router = tunnel.Tunnel.Router().(*echo.Echo)
 
+	tunnel.router.Any("/api/containers/:uid/:id", func(c echo.Context) error {
+		ctx := c.Request().Context()
+
+		tenant := c.Request().Header.Get("X-Tenant-ID")
+		if tenant == "" {
+			log.Error("X-Tenant-ID header is missing")
+
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelForbidden))
+		}
+
+		uid := c.Param("uid")
+		if uid == "" {
+			log.Error("UID parameter is missing")
+
+			return c.JSON(http.StatusBadRequest, NewMessageFromError(ErrDeviceTunnelParsePath))
+		}
+
+		conn, err := tunnel.DialTo(ctx, tenant, uid)
+		if err != nil {
+			log.WithError(err).Error("could not found the connection to this device")
+
+			return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelDial))
+		}
+
+		id := c.Param("id")
+
+		req := c.Request()
+		req.URL.Path = fmt.Sprintf("/containers/%s", id)
+		req.URL.RawQuery = c.Request().URL.RawQuery
+
+		if err := req.Write(conn); err != nil {
+			log.WithError(err).Error("failed to perform the HTTP request to the device")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
+		}
+
+		ctr := http.NewResponseController(c.Response())
+		out, _, err := ctr.Hijack()
+		if err != nil {
+			log.WithError(err).Error("failed to hijack the http request")
+
+			return err
+		}
+		defer out.Close()
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		done := sync.OnceFunc(func() {
+			defer conn.Close()
+			defer out.Close()
+		})
+
+		go func() {
+			defer done()
+			defer wg.Done()
+			if _, err := io.Copy(conn, out); err != nil {
+				log.WithError(err).Info("error copying request")
+			}
+		}()
+
+		go func() {
+			defer done()
+			defer wg.Done()
+			if _, err := io.Copy(out, conn); err != nil {
+				log.WithError(err).Info("error copying response")
+			}
+		}()
+
+		wg.Wait()
+
+		return c.NoContent(http.StatusOK)
+	})
+
 	// `/sessions/:uid/close` is the endpoint that is called by the agent to inform the SSH's server that the session is
 	// closed.
 	tunnel.router.POST("/api/sessions/:uid/close", func(c echo.Context) error {
@@ -162,7 +236,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 
 		tenant := c.Request().Header.Get("X-Tenant-ID")
 
-		conn, err := tunnel.Dial(ctx, fmt.Sprintf("%s:%s", tenant, data.Device))
+		conn, err := tunnel.DialTo(ctx, tenant, data.Device)
 		if err != nil {
 			log.WithError(err).Error("could not found the connection to this device")
 
@@ -189,7 +263,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		// The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes the
 		// `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server, returning
 		// an error related to the connection to device or what was returned from the server inside the tunnel.
-		tunnel.router.Any("/http/proxy", func(c echo.Context) error {
+		tunnel.router.Any("/api/http/proxy", func(c echo.Context) error {
 			requestID := c.Request().Header.Get("X-Request-ID")
 
 			address := c.Request().Header.Get("X-Address")
@@ -217,7 +291,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 				"device":     tun.Device,
 			})
 
-			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", tun.Namespace, tun.Device))
+			in, err := tunnel.DialTo(c.Request().Context(), tun.Namespace, tun.Device)
 			if err != nil {
 				logger.WithError(err).Error("failed to dial to device")
 
@@ -324,6 +398,18 @@ func (t *Tunnel) GetRouter() *echo.Echo {
 }
 
 // Dial trys to get a connetion to a device specifying a key, what is a combination of tenant and device's UID.
+//
+// Deprecated: This method is deprecated and will be removed in future versions. Use DialTo instead.
 func (t *Tunnel) Dial(ctx context.Context, key string) (net.Conn, error) {
 	return t.Tunnel.Dial(ctx, key)
+}
+
+// DialTo is a method that allows dialing to a device using tenant and UID.
+//
+// It constructs the key from the tenant and UID, then calls the Dial method to
+// establish the connection. This is useful because it simplifies the key
+// construction and ensures that the tenant and UID are always provided
+// together.
+func (t *Tunnel) DialTo(ctx context.Context, tenant string, uid string) (net.Conn, error) {
+	return t.Tunnel.DialTo(ctx, tenant, uid)
 }

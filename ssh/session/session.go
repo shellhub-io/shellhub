@@ -28,7 +28,7 @@ import (
 type Data struct {
 	Target *target.Target
 	// SSHID is the combination of device's name and namespace name.
-	SSHID string
+	SSHID *target.SSHID
 	// Device is the device connected.
 	Device *models.Device
 	// Namespace is the namespace where device is located.
@@ -243,7 +243,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, err
 	}
 
-	sshid := ctx.User()
+	sshidString := ctx.User()
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
 	if err != nil {
@@ -253,14 +253,14 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, ErrHost
 	}
 
-	target, err := target.NewTarget(sshid)
+	tg, err := target.NewTarget(sshidString)
 	if err != nil {
 		return nil, err
 	}
 
-	var namespaceName, deviceName string
-	if target.IsSSHID() {
-		namespaceName, deviceName, err = target.SplitSSHID()
+	var sshid *target.SSHID
+	if tg.IsSSHID() {
+		sshid, err = tg.SplitSSHID()
 		if err != nil {
 			return nil, err
 		}
@@ -268,14 +268,14 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		if hos.IsLocalhost() {
 			var data string
 
-			if err := cache.Get(ctx, "web-ip/"+sshid, &data); err != nil {
+			if err := cache.Get(ctx, "web-ip/"+sshidString, &data); err != nil {
 				log.WithError(err).
 					Error("failed to get the ip from web session")
 
 				return nil, err
 			}
 
-			if err := cache.Delete(ctx, "web-ip/"+sshid); err != nil {
+			if err := cache.Delete(ctx, "web-ip/"+sshidString); err != nil {
 				log.WithError(err).
 					Error("failed to delete the web session ip from cache")
 
@@ -283,20 +283,24 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			}
 
 			parts := strings.Split(data, ":")
-			target.Data = parts[0]
+			tg.Data = parts[0]
 			hos.Host = parts[1]
 		}
 
-		device, err := api.GetDevice(target.Data)
+		device, err := api.GetDevice(tg.Data)
 		if err != nil {
 			return nil, err
 		}
 
-		namespaceName = device.Namespace
-		deviceName = device.Name
+		// namespaceName = device.Namespace
+		// deviceName = device.Name
+		sshid = &target.SSHID{
+			Namespace: device.Namespace,
+			Device:    device.Name,
+		}
 	}
 
-	lookupDevice, err := api.DeviceLookup(namespaceName, deviceName)
+	lookupDevice, err := api.DeviceLookup(sshid.Namespace, sshid.Device)
 	if err != nil {
 		return nil, err
 	}
@@ -323,10 +327,10 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		},
 		Data: Data{
 			IPAddress: hos.Host,
-			Target:    target,
+			Target:    tg,
 			Device:    lookupDevice,
 			Namespace: namespace,
-			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
+			SSHID:     sshid,
 		},
 		once:  new(sync.Once),
 		Seats: NewSeats(),
@@ -495,7 +499,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 	const Addr = "tcp"
 
-	// NOTICE: When the agent connection is closed, we should redial this connection before trying to authenticate.
+	// NOTE: When the agent connection is closed, we should redial this connection before trying to authenticate.
 	if s.Agent.Conn == nil {
 		if err := s.Dial(ctx); err != nil {
 			return err
@@ -518,7 +522,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 			WithFields(log.Fields{"session": s.UID}).
 			Error("Error when trying to create the client's connection")
 
-			// NOTICE: To help to identify when the Agent's connection is closed, we set it to nil when an
+			// NOTE: To help to identify when the Agent's connection is closed, we set it to nil when an
 			// authentication error happens.
 		s.Agent.Conn = nil
 
@@ -548,19 +552,28 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	conn, err := s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
+	defer ctx.Unlock()
+
+	conn, err := s.tunnel.DialTo(ctx, s.Device.TenantID, s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(conn); err != nil {
-		return err
+	if s.SSHID.HasContainer() {
+		// TODO: Create a dedicated package to encapsulate HTTP operation inside the tunnel's connection, avoiding this
+		// manual HTTP request creation every time.
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/container/%s/%s", s.UID, s.SSHID.Container), nil)
+		if err = req.Write(conn); err != nil {
+			return err
+		}
+	} else {
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
+		if err = req.Write(conn); err != nil {
+			return err
+		}
 	}
 
 	s.Agent.Conn = conn
-
-	ctx.Unlock()
 
 	return nil
 }
@@ -642,7 +655,7 @@ func (s *Session) NewSeat() (int, error) {
 	return s.Seats.NewSeat()
 }
 
-// Events register an event to the session.
+// Event register an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
 	if s.Events.Closed() {
 		log.Debug("failed to save because events connection was closed")
@@ -696,7 +709,7 @@ func (s *Session) KeepAlive() error {
 // Returns the announcement or an error, if any. If no announcement is set, it returns an empty string.
 func (s *Session) Announce(client gossh.Channel) error {
 	if _, err := client.Write([]byte(
-		"Connected to " + s.SSHID + " via ShellHub.\n\r",
+		"Connected to " + s.SSHID.String() + " via ShellHub.\n\r",
 	)); err != nil {
 		return err
 	}

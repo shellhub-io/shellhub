@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
+	"github.com/shellhub-io/shellhub/agent/sysinfo"
 )
 
 var AgentPlatform string

@@ -1,0 +1,32 @@
+package tunnel
+
+import "errors"
+
+var (
+	ErrAgentContainersIDInvalid   = errors.New("container id is invalid")
+	ErrAgentContaiersList         = errors.New("failed to list containers")
+	ErrAgentContaierGet           = errors.New("failed to get container's info")
+	ErrAgentContainerStart        = errors.New("failed to start container")
+	ErrAgentContainerStop         = errors.New("failed to stop container")
+	ErrAgentContainerRestart      = errors.New("failed to restart container")
+	ErrAgentContainerKill         = errors.New("failed to kill container")
+	ErrAgentContainerRemove       = errors.New("failed to remove container")
+	ErrAgentContainerPause        = errors.New("failed to pause container")
+	ErrAgentContainerUnpause      = errors.New("failed to unpause container")
+	ErrAgentContainerLogs         = errors.New("failed to get container logs")
+	ErrAgentContainerStats        = errors.New("failed to get container stats")
+	ErrAgentContainerTop          = errors.New("failed to get container processes")
+	ErrAgentContainerAttach       = errors.New("failed to attach to container")
+	ErrAgentContainerCopyFrom     = errors.New("failed to copy from container")
+	ErrAgentContainerCopyTo       = errors.New("failed to copy to container")
+	ErrAgentContainerRename       = errors.New("failed to rename container")
+	ErrAgentContainerUpdate       = errors.New("failed to update container")
+	ErrAgentContainerResize       = errors.New("failed to resize container")
+	ErrAgentContainerExport       = errors.New("failed to export container")
+	ErrAgentContainerChanges      = errors.New("failed to get container changes")
+	ErrAgentContainerCommit       = errors.New("failed to commit container")
+	ErrAgentContainerWait         = errors.New("failed to wait for container")
+	ErrAgentContainerHealth       = errors.New("failed to get container health")
+	ErrAgentContainerInvalidParam = errors.New("invalid parameter")
+	ErrAgentContainerInvalidJSON  = errors.New("invalid JSON in request body")
+)
