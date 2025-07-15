@@ -30,8 +30,8 @@ type Envs struct {
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool   `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
-	Tunnels                      bool   `env:"SHELLHUB_TUNNELS,default=false"`
-	TunnelsDomain                string `env:"SHELLHUB_TUNNELS_DOMAIN"`
+	WebEndpoints                 bool   `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	WebEndpointsDomain           string `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
 }
 
 func main() {
@@ -48,8 +48,8 @@ func main() {
 	}
 
 	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", tunnel.Config{
-		Tunnels:       env.Tunnels,
-		TunnelsDomain: env.TunnelsDomain,
+		Tunnels:       env.WebEndpoints,
+		TunnelsDomain: env.WebEndpointsDomain,
 		RedisURI:      env.RedisURI,
 	})
 	if err != nil {
