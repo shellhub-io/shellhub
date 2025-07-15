@@ -1,0 +1,12 @@
+Access Denied
+==============
+
+Access to the device has been denied.
+
+Possible reasons:
+  - Firewall restrictions
+  - Billing issues or quota exceeded
+  - Policy rules or permissions
+  - Device access restrictions
+
+Please contact your administrator for assistance.

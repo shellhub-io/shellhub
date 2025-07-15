@@ -1,6 +1,7 @@
 package server
 
 import (
+	_ "embed"
 	"fmt"
 	"net"
 	"os"
@@ -31,44 +32,15 @@ type Server struct {
 	tunnel *httptunnel.Tunnel
 }
 
-const (
-	InvalidSSHIDMessage = `SSHID Format Error
-==================
+var (
+	//go:embed messages/invalid_ssh_id.txt
+	InvalidSSHIDMessage string
 
-The SSHID format is incorrect. You need to include your username.
+	//go:embed messages/connection_failed.txt
+	ConnectionFailedMessage string
 
-Correct format: username@namespace.device@host
-
-Examples:
-  ssh john@company.workstation@example.com
-  ssh admin@myproject.raspberry@example.com
-
-Please update your SSH command and try again.`
-
-	ConnectionFailedMessage = `Connection Failed
-==================
-
-The target device is offline or cannot be reached.
-
-Troubleshooting steps:
-  - Check if the device is powered on
-  - Verify network connectivity
-  - Ensure the device is properly connected to ShellHub
-
-Please try again once the device is online.`
-
-	AccessDeniedMessage = `Access Denied
-==============
-
-Access to the device has been denied.
-
-Possible reasons:
-  - Firewall restrictions
-  - Billing issues or quota exceeded
-  - Policy rules or permissions
-  - Device access restrictions
-
-Please contact your administrator for assistance.`
+	//go:embed messages/access_denied.txt
+	AccessDeniedMessage string
 )
 
 func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Server {

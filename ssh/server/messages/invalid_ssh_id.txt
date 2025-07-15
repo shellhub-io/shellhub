@@ -1,0 +1,12 @@
+SSHID Format Error
+==================
+
+The SSHID format is incorrect. You need to include your username.
+
+Correct format: username@namespace.device@host
+
+Examples:
+  ssh john@company.workstation@example.com
+  ssh admin@myproject.raspberry@example.com
+
+Please update your SSH command and try again.
