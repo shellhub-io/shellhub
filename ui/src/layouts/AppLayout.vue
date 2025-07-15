@@ -1,8 +1,4 @@
 <template>
-  <v-app
-    :theme="getStatusDarkMode"
-    v-bind="$attrs"
-  >
     <v-navigation-drawer
       theme="dark"
       v-model="showNavigationDrawer"
@@ -147,7 +143,6 @@
         data-test="progress-circular"
       />
     </v-overlay>
-  </v-app>
 
   <UserWarning data-test="userWarning-component" />
 </template>

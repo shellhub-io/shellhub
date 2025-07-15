@@ -1,5 +1,4 @@
 <template>
-  <v-app>
     <Snackbar />
     <v-main class="d-flex justify-center align-center">
       <v-container
@@ -34,7 +33,6 @@
         </v-row>
       </v-container>
     </v-main>
-  </v-app>
 </template>
 
 <script setup lang="ts">
