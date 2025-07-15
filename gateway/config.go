@@ -13,10 +13,10 @@ import (
 type GatewayConfig struct {
 	Env                     string      `env:"SHELLHUB_ENV"`
 	Domain                  string      `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
-	Tunnels                 bool        `env:"SHELLHUB_TUNNELS,default=false"`
-	TunnelsDomain           string      `env:"SHELLHUB_TUNNELS_DOMAIN"`
-	TunnelsDNSProvider      DNSProvider `env:"SHELLHUB_TUNNELS_DNS_PROVIDER,default=digitalocean"`
-	TunnelsDNSProviderToken string      `env:"SHELLHUB_TUNNELS_DNS_PROVIDER_TOKEN"`
+	WebEndpoints            bool        `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	WebEndpointsDomain      string      `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
+	WebEndpointsDNSProvider DNSProvider `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
+	WebEndpointsDNSProviderToken string `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER_TOKEN"`
 	WorkerProcesses         string      `env:"WORKER_PROCESSES,default=auto"`
 	MaxWorkerOpenFiles      int         `env:"MAX_WORKER_OPEN_FILES,default=0"`
 	MaxWorkerConnections    int         `env:"MAX_WORKER_CONNECTIONS,default=16384"`
