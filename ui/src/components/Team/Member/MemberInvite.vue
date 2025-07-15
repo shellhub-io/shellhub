@@ -228,7 +228,7 @@ const {
   errorMessage: selectedRoleError,
   resetField: resetSelectedRole,
 } = useField<string>("selectedRole", yup.string().required(), {
-  initialValue: "",
+  initialValue: undefined,
 });
 
 const hasAuthorization = () => {
