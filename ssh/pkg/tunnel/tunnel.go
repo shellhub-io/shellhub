@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	ErrDeviceTunnelForbidden     = errors.New("device tunnel not found")
+	ErrWebEndpointForbidden      = errors.New("web endpoint not found")
 	ErrDeviceTunnelDial          = errors.New("failed to connect to device")
 	ErrDeviceTunnelWriteRequest  = errors.New("failed to send data to the device")
 	ErrDeviceTunnelReadResponse  = errors.New("failed to write the response back to the client")
@@ -208,7 +208,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 			if err != nil {
 				log.WithError(err).Error("failed to get the web endpoint")
 
-				return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelForbidden))
+				return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
 			}
 
 			logger := log.WithFields(log.Fields{
