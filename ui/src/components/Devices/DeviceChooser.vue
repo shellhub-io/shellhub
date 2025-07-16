@@ -1,14 +1,12 @@
 <template>
-  <v-dialog
+  <BaseDialog
     v-if="hasAuthorization"
-    v-model="show"
-    max-width="900px"
-    min-width="45vw"
-    data-test="dialog"
+    v-model="showDialog"
+    data-test="device-chooser-dialog"
   >
     <v-card
       class="bg-v-theme-surface"
-      data-test="deviceChooser-dialog"
+      data-test="device-chooser-card"
     >
       <v-card-title
         class="text-headline bg-primary"
@@ -75,7 +73,7 @@
           >
             <DeviceListChooser
               :isSelectable="item.selectable"
-              data-test="deviceListChooser-component"
+              data-test="device-list-chooser-component"
             />
           </v-window-item>
         </v-window>
@@ -105,7 +103,7 @@
         </v-tooltip>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -114,37 +112,23 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import DeviceListChooser from "./DeviceListChooser.vue";
-import hasPermision from "@/utils/permission";
+import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
-const show = computed({
-  get() {
-    return store.getters["devices/getDeviceChooserStatus"];
-  },
-
-  set(value) {
-    store.dispatch("devices/setDeviceChooserStatus", value);
-  },
-});
+const showDialog = computed(() => store.getters["devices/getDeviceChooserStatus"]);
 
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
-
-  if (role !== "") {
-    return hasPermision(authorizer.role[role], actions.device.chooser);
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.device.chooser);
 });
 
 const url = () => `${window.location.protocol}//${window.location.hostname}/settings/billing`;
 
-const close = () => {
-  store.dispatch("devices/setDeviceChooserStatus", false);
-};
+const close = () => { store.dispatch("devices/setDeviceChooserStatus", false); };
 
 const filter = ref("");
 
@@ -275,7 +259,7 @@ onMounted(async () => {
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     switch (axios.isAxiosError(error)) {
-      case axiosError.response?.status === 403: snackbar.showError("You don't have this kindd of authorization."); break;
+      case axiosError.response?.status === 403: snackbar.showError("You don't have this kind of authorization."); break;
       default: snackbar.showError("An error occurred."); break;
     }
     handleError(error);

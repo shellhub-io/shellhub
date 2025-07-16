@@ -156,12 +156,12 @@ describe("Details Device", () => {
   });
 
   it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="deviceUid-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deviceMac-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="devicePrettyName-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deviceVersion-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deviceTags-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deviceConvertDate-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-uid-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-mac-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-pretty-name-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-version-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-tags-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-last-seen-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="tunnel-list"]').exists()).toBe(false);
   });

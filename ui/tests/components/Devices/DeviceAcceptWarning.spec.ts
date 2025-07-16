@@ -1,17 +1,13 @@
 import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import { nextTick } from "vue";
 import { store, key } from "@/store";
 import DeviceAcceptWarning from "@/components/Devices/DeviceAcceptWarning.vue";
 import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
 
 const devices = [
   {
@@ -129,10 +125,6 @@ describe("Device Accept Warning", () => {
   let mockDevices: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockBilling = new MockAdapter(billingApi.getAxios());
@@ -157,7 +149,6 @@ describe("Device Accept Warning", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
-      attachTo: el,
     });
   });
 
