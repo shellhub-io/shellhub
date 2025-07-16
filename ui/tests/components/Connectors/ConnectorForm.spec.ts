@@ -12,10 +12,6 @@ import { envVariables } from "@/envVariables";
 type ConnectorFormWrapper = VueWrapper<InstanceType<typeof ConnectorForm>>;
 
 describe("Connector Form", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: ConnectorFormWrapper;
 
   const vuetify = createVuetify();
@@ -62,11 +58,6 @@ describe("Connector Form", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
-
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -83,15 +74,11 @@ describe("Connector Form", () => {
     wrapper = mount(ConnectorForm, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         isEditing: false,
         storeMethod: vi.fn(),
       },
-      attachTo: el,
     });
   });
 
@@ -104,7 +91,7 @@ describe("Connector Form", () => {
   });
 
   it("renders the component", async () => {
-    wrapper.vm.localDialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const dialog = new DOMWrapper(document.body);
     expect(dialog.find('[data-test="connector-form-card"]').exists()).toBe(true);
@@ -115,7 +102,7 @@ describe("Connector Form", () => {
   });
 
   it("validates the address field", async () => {
-    wrapper.vm.localDialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const addressField = wrapper.findComponent('[data-test="address-text"]');
 
@@ -125,7 +112,7 @@ describe("Connector Form", () => {
   });
 
   it("validates the port field", async () => {
-    wrapper.vm.localDialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const addressField = wrapper.findComponent('[data-test="port-text"]');
 
