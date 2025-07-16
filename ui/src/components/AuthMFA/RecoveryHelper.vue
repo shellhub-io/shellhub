@@ -1,8 +1,7 @@
 <template>
-  <v-dialog
-    v-model="dialog"
+  <BaseDialog
+    v-model="showDialog"
     transition="dialog-bottom-transition"
-    width="650"
     persistent
   >
     <v-card class="bg-v-theme-surface" data-test="card-dialog">
@@ -90,7 +89,7 @@
         </v-card-actions>
       </v-container>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -99,8 +98,9 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useCountdown from "@/utils/countdownTimeout";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const dialog = ref(false);
+const showDialog = ref(false);
 const checkbox = ref(false);
 const invalid = reactive({ title: "", msg: "", timeout: false });
 const tokenCountdownAlert = ref(true);
@@ -127,7 +127,7 @@ const disableMFA = async () => {
     await store.dispatch("auth/disableMfa", { recovery_code: recoveryCode.value });
     snackbar.showSuccess("MFA disabled successfully.");
     store.commit("auth/accountRecoveryHelper");
-    dialog.value = false;
+    showDialog.value = false;
   } catch (error) {
     snackbar.showError("An error occurred while disabling MFA.");
     handleError(error);
@@ -135,7 +135,7 @@ const disableMFA = async () => {
 };
 const close = async () => {
   store.commit("auth/accountRecoveryHelper");
-  dialog.value = false;
+  showDialog.value = false;
 };
 
 onMounted(() => {
@@ -147,6 +147,6 @@ onMounted(() => {
     msg: "If you want to disable your MFA status, do it within the timers limit, if the timer runs out, you will have to disable your MFA in the profile settings.",
     timeout: true,
   });
-  dialog.value = true;
+  showDialog.value = true;
 });
 </script>

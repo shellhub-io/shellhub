@@ -269,7 +269,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
               <!---->
             </div>
-            <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-aprimary v-btn--density-default v-btn--size-default v-btn--variant-text"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator="">Change Password</span>
                 <!---->
                 <!---->
