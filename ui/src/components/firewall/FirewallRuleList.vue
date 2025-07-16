@@ -104,7 +104,7 @@
                         v-if="item.id"
                         :id="item.id"
                         @update="refreshFirewallRules"
-                        :notHasAuthorization="!hasAuthorizationFormDialogEdit()"
+                        :hasAuthorization="hasAuthorizationFormDialogEdit()"
                       />
                     </div>
                   </template>
