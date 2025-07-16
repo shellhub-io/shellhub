@@ -23,10 +23,9 @@
   />
 
   <AnnouncementsModal
-    :show="showAnnouncements"
+    v-model="showAnnouncements"
     :announcement="announcement"
-    @update="showAnnouncements = false"
-    data-test="announcementsModal-component"
+    data-test="announcements-modal-component"
   />
 
   <DeviceAcceptWarning
