@@ -5,6 +5,11 @@
     :timeout="4000"
     :color="color"
     transition="slide-x-transition"
+    :content-props="{
+      style: {
+        left: '50%', transform: 'translateX(-50%)', right: 'auto', top: 0,
+      },
+    }"
   >
     <p class="w-100 text-center">{{ message }}</p>
   </v-snackbar>
