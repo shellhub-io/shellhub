@@ -1,8 +1,6 @@
 <template>
-  <v-dialog
-    v-model="showAnnouncements"
-    max-width="800px"
-    min-width="60vw"
+  <BaseDialog
+    v-model="showDialog"
     scrollable
     persistent
   >
@@ -39,45 +37,26 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import MarkdownIt from "markdown-it";
 import moment from "moment";
+import BaseDialog from "../BaseDialog.vue";
+import { IAnnouncement } from "@/interfaces/IAnnouncement";
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    required: true,
-  },
-  announcement: {
-    type: Object,
-    required: true,
-  },
-});
+const props = defineProps<{ announcement: IAnnouncement }>();
 
-const emit = defineEmits(["update"]);
-
+const showDialog = defineModel<boolean>({ required: true });
 const md = new MarkdownIt();
-
 const date = computed(() => moment(props.announcement.date).format("LL"));
 const markdownContent = computed(() => md.render(props.announcement.content));
 
-const showAnnouncements = computed({
-  get() {
-    return props.show;
-  },
-  set(value: boolean) {
-    emit("update", value);
-  },
-});
-
 const close = () => {
   localStorage.setItem("announcement", btoa(JSON.stringify(props.announcement)));
-  emit("update", false);
-  showAnnouncements.value = false;
+  showDialog.value = false;
 };
 </script>
 
