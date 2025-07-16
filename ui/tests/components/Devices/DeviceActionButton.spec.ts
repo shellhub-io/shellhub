@@ -8,10 +8,6 @@ import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const devices = [
   {
     uid: "a582b47a42d",
@@ -128,10 +124,6 @@ describe("Device Action Button", () => {
   let mockDevices: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockBilling = new MockAdapter(billingApi.getAxios());
@@ -158,10 +150,8 @@ describe("Device Action Button", () => {
       props: {
         uid: devices[0].uid,
         variant: "device",
-        notificationStatus: false,
-        show: false,
+        isInNotification: false,
       },
-      attachTo: el,
     });
   });
 
@@ -174,21 +164,19 @@ describe("Device Action Button", () => {
   });
 
   it("Renders the component data table", async () => {
-    await wrapper.setProps({ name: "test-device", uid: "test-uid", isInNotification: true, show: true });
+    await wrapper.setProps({ name: "test-device", uid: "test-uid", isInNotification: true });
     const notificationButton = wrapper.find('[data-test="notification-action-button"]');
     expect(notificationButton.exists()).toBe(true);
     await notificationButton.trigger("click");
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="dialog"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="device-action-dialog"]').exists()).toBe(true);
   });
 
-  it("Clicking on notification button toggles dialog visibility", async () => {
+  it("Clicking on notification button opens dialog", async () => {
     await wrapper.setProps({ isInNotification: true });
     const notificationButton = wrapper.find('[data-test="notification-action-button"]');
     await notificationButton.trigger("click");
-    expect(wrapper.vm.dialog).toBe(true);
-    await notificationButton.trigger("click");
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(true);
   });
 
   it("Closing dialog sets dialog value to false", async () => {
@@ -196,14 +184,14 @@ describe("Device Action Button", () => {
       if (message.includes("click:outside")) return;
       console.log(message);
     });
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     const dialogComponent = wrapper.findComponent({ name: "VDialog" });
     await dialogComponent.vm.$emit("click:outside");
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(false);
   });
 
   it("Close button in dialog emits 'update' event with false", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await wrapper.setProps({ isInNotification: true });
     const closeButton = wrapper.findComponent('[data-test="close-btn"]');
     await closeButton.trigger("click");

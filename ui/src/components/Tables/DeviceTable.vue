@@ -155,7 +155,7 @@
                       <DeviceDelete
                         :variant
                         :uid="item.uid"
-                        :notHasAuthorization="!hasAuthorizationRemove()"
+                        :hasAuthorization="hasAuthorizationRemove()"
                         @update="refreshDevices"
                       />
                     </div>

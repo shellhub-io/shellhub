@@ -69,7 +69,6 @@ describe("Device Rename", () => {
   };
 
   beforeEach(async () => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -86,9 +85,6 @@ describe("Device Rename", () => {
     wrapper = mount(DeviceRename, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: device.uid,
@@ -115,7 +111,7 @@ describe("Device Rename", () => {
     wrapper.vm.showDialog = true;
 
     await flushPromises();
-    expect(wrapper.findComponent('[data-test="deviceRename-card"]').exists()).toBe(true);
+    expect(wrapper.findComponent('[data-test="device-rename-card"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="text-title"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="rename-field"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="close-btn"]').exists()).toBe(true);
