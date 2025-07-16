@@ -1,10 +1,9 @@
 <template>
-  <v-dialog
+  <BaseDialog
     v-if="hasAuthorization"
-    v-model="showMessage"
+    v-model="showWarningDialog"
     transition="dialog-bottom-transition"
-    width="650"
-    data-test="billingWarning-dialog"
+    data-test="billing-warning-dialog"
   >
     <v-card class="bg-v-theme-surface" data-test="card-dialog">
       <v-card-title class="pa-3 bg-primary" data-test="card-title">
@@ -37,7 +36,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -45,6 +44,7 @@ import { computed } from "vue";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 
@@ -74,7 +74,7 @@ const close = () => {
   }
 };
 
-const showMessage = computed({
+const showWarningDialog = computed({
   get() {
     return (
       (store.getters["users/statusUpdateAccountDialog"]

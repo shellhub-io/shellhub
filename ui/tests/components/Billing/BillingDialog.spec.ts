@@ -116,7 +116,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Renders dialog text", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     await flushPromises();
 
     expect(wrapper.find('[data-test="card-first-page"]').exists());
@@ -126,7 +126,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Render pagination", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     await flushPromises();
 
     expect(wrapper.findComponent('[data-test="payment-letter-next-button"]').exists());
@@ -139,7 +139,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Pagination logic test", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     await flushPromises();
 
     expect(wrapper.vm.el).toEqual(1);
@@ -150,7 +150,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Subscribe to Premium", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     wrapper.vm.el = 3;
     await flushPromises();
 
