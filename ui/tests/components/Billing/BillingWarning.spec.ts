@@ -12,7 +12,7 @@ const statusUpdateAccountDialogByDeviceAction = false;
 const stats = {
   registered_devices: 0,
   online_devices: 0,
-  bctive_sessions: 0,
+  active_sessions: 0,
   pending_devices: 1,
   rejected_devices: 0,
 };
@@ -51,10 +51,10 @@ const tests = [
       permission: "owner",
     },
     computed: {
-      showMessage: false,
+      showWarningDialog: false,
     },
     template: {
-      '[data-test="billingWarning-dialog"]': false,
+      '[data-test="billing-warning-dialog"]': false,
       '[data-test="close-btn"]': false,
       '[data-test="goToBilling-btn"]': false,
     },
@@ -72,10 +72,10 @@ const tests = [
       permission: "owner",
     },
     computed: {
-      showMessage: false,
+      showWarningDialog: false,
     },
     template: {
-      '[data-test="billingWarning-dialog"]': false,
+      '[data-test="billing-warning-dialog"]': false,
       '[data-test="close-btn"]': false,
       '[data-test="goToBilling-btn"]': false,
     },
@@ -93,11 +93,11 @@ const tests = [
       permission: "owner",
     },
     computed: {
-      showMessage: true,
+      showWarningDialog: true,
       hasAuthorization: true,
     },
     template: {
-      '[data-test="billingWarning-dialog"]': true,
+      '[data-test="billing-warning-dialog"]': true,
       '[data-test="close-btn"]': true,
       '[data-test="goToBilling-btn"]': true,
     },
@@ -114,11 +114,11 @@ const tests = [
       permission: "operator",
     },
     computed: {
-      showMessage: true,
+      showWarningDialog: true,
       hasAuthorization: false,
     },
     template: {
-      '[data-test="billingWarning-dialog"]': false,
+      '[data-test="billing-warning-dialog"]': false,
       '[data-test="close-btn"]': false,
       '[data-test="goToBilling-btn"]': false,
     },
