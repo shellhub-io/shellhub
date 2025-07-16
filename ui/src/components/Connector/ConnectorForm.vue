@@ -1,9 +1,6 @@
 <template>
-  <v-dialog
-    v-model="localDialog"
-    @click:outside="handleClose"
-    max-width="400"
-    v-bind="$attrs"
+  <BaseDialog
+    v-model="showDialog"
   >
     <v-card data-test="connector-form-card" class="bg-v-theme-surface">
       <div>
@@ -87,7 +84,7 @@
                   v-model="key"
                   @change="handleCertificateChange('key')"
                   :error-messages="keyError"
-                  hint="Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+                  hint="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
                   persistent-hint
                 />
               </v-col>
@@ -97,13 +94,13 @@
       </div>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="primary" data-test="close-btn" @click="handleClose"> Close </v-btn>
+        <v-btn data-test="close-btn" @click="handleClose"> Close </v-btn>
         <v-btn :disabled="hasError" color="primary" data-test="save-btn" @click="saveConnector">
           {{ isEditing ? 'Save' : 'Add' }}
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -118,6 +115,7 @@ import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps({
   isEditing: {
@@ -144,19 +142,11 @@ const props = defineProps({
     type: Function,
     required: true,
   },
-  showDialog: {
-    type: Boolean,
-    default: false,
-  },
 });
 
-const emit = defineEmits(["update", "close"]);
+const showDialog = defineModel<boolean>({ default: false });
+const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
-const localDialog = ref(props.showDialog);
-
-watch(() => props.showDialog, (newValue) => {
-  localDialog.value = newValue;
-});
 
 const store = useStore();
 
@@ -343,8 +333,7 @@ const saveConnector = async () => {
     await props.storeMethod(payload);
     snackbar.showSuccess(props.isEditing ? "Connector edited successfully" : "Connector added successfully");
     emit("update");
-    emit("close");
-    localDialog.value = false;
+    showDialog.value = false;
   } catch (error) {
     snackbar.showError(props.isEditing ? "Failed to edit connector" : "Failed to add connector");
     handleError(error);
@@ -352,9 +341,8 @@ const saveConnector = async () => {
 };
 
 const handleClose = () => {
-  emit("close");
-  localDialog.value = false;
+  showDialog.value = false;
 };
 
-defineExpose({ localDialog, isSecure });
+defineExpose({ showDialog, isSecure });
 </script>

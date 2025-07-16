@@ -15,19 +15,18 @@
           <div data-test="status-connector" :class="(item.status.state === 'connected' ? 'enabled' : 'disabled') + ' text-center'" />
         </td>
         <td class="text-center">
-          <v-row>
-            <v-col
-              class="d-flex justify-center"
-              data-test="switch-enable">
-              <v-switch
-                v-model="item.enable"
-                @click="switchConnector(item.uid, item.enable)"
-                inset
-                hide-details
-                :color="item.enable ? 'primary' : 'grey-darken-2'"
-              />
-            </v-col>
-          </v-row>
+          <div
+            class="d-flex justify-center"
+            data-test="switch-enable"
+          >
+            <v-switch
+              v-model="item.enable"
+              @click="switchConnector(item.uid, item.enable)"
+              inset
+              hide-details
+              :color="item.enable ? 'primary' : 'grey-darken-2'"
+            />
+          </div>
         </td>
         <td class="text-center">
           <CopyWarning :copied-item="'Connector host'">
@@ -113,7 +112,7 @@
                   <div v-bind="props">
                     <ConnectorDelete
                       :uid="item.uid"
-                      :notHasAuthorization="!hasAuthorizationRemove()"
+                      :hasAuthorization="hasAuthorizationRemove()"
                       @update="refresh()"
                     />
                   </div>

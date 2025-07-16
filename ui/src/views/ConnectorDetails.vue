@@ -80,7 +80,7 @@
               <div v-bind="props">
                 <ConnectorDelete
                   :uid="connector.uid"
-                  :notHasAuthorization="!hasAuthorizationRemove()"
+                  :hasAuthorization="hasAuthorizationRemove()"
                   @update="redirectContainers()"
                 />
               </div>
