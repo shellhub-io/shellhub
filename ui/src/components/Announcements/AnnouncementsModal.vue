@@ -1,8 +1,6 @@
 <template>
-  <v-dialog
+  <BaseDialog
     v-model="showAnnouncements"
-    max-width="800px"
-    min-width="60vw"
     scrollable
     persistent
   >
@@ -39,13 +37,14 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import MarkdownIt from "markdown-it";
 import moment from "moment";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps({
   show: {
