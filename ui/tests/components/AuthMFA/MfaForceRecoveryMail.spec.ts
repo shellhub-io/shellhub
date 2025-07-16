@@ -97,7 +97,7 @@ describe("Force Adding a Recovery Mail", () => {
 
   it("Renders the components", async () => {
     const dialog = new DOMWrapper(document.body);
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     expect(dialog.find('[data-test="card-dialog"]').exists()).toBe(true);
@@ -108,7 +108,7 @@ describe("Force Adding a Recovery Mail", () => {
   });
 
   it("Adds a recovery mail", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const storeSpy = vi.spyOn(store, "dispatch");
     mock.onPatch("http://localhost:3000/api/users").reply(200);
@@ -120,7 +120,7 @@ describe("Force Adding a Recovery Mail", () => {
   });
 
   it("Adds a recovery mail (Fail)", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const storeSpy = vi.spyOn(store, "dispatch");
     mock.onPatch("http://localhost:3000/api/users").reply(400);
@@ -132,7 +132,7 @@ describe("Force Adding a Recovery Mail", () => {
   });
 
   it("Adds a recovery mail (Fail, Same Email)", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const storeSpy = vi.spyOn(store, "dispatch");
     mock.onPatch("http://localhost:3000/api/users").reply(409);

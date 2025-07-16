@@ -160,7 +160,7 @@
                 <span class="text-subtitle-1">Password</span>
               </template>
               <template #append>
-                <v-btn variant="text" color="aprimary" @click="showChangePassword = true">Change Password</v-btn>
+                <v-btn variant="text" color="primary" @click="showChangePassword = true">Change Password</v-btn>
                 <ChangePassword v-model="showChangePassword" />
               </template>
             </v-card-item>

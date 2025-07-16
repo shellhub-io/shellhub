@@ -1,8 +1,7 @@
 <template>
-  <v-dialog
-    v-model="dialog"
+  <BaseDialog
+    v-model="showDialog"
     transition="dialog-bottom-transition"
-    width="700"
     persistent
   >
     <v-card class="bg-v-theme-surface" data-test="card-dialog">
@@ -47,7 +46,7 @@
         </v-card-actions>
       </v-container>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -58,8 +57,9 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const dialog = ref(false);
+const showDialog = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
 const email = computed(() => store.getters["auth/email"]);
@@ -110,5 +110,5 @@ const updateUserData = async () => {
   }
 };
 
-defineExpose({ dialog, recoveryEmailError });
+defineExpose({ showDialog, recoveryEmailError });
 </script>
