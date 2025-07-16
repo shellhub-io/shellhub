@@ -12,10 +12,6 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 type BillingDialogWrapper = VueWrapper<InstanceType<typeof BillingDialog>>;
 
 describe("Billing Dialog", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: BillingDialogWrapper;
 
   const vuetify = createVuetify();
@@ -80,8 +76,6 @@ describe("Billing Dialog", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
@@ -103,7 +97,6 @@ describe("Billing Dialog", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
-      attachTo: el,
     });
   });
 
@@ -116,7 +109,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Renders dialog text", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     await flushPromises();
 
     expect(wrapper.find('[data-test="card-first-page"]').exists());
@@ -126,7 +119,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Render pagination", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     await flushPromises();
 
     expect(wrapper.findComponent('[data-test="payment-letter-next-button"]').exists());
@@ -139,7 +132,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Pagination logic test", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     await flushPromises();
 
     expect(wrapper.vm.el).toEqual(1);
@@ -150,7 +143,7 @@ describe("Billing Dialog", () => {
   });
 
   it("Subscribe to Premium", async () => {
-    wrapper.vm.dialogCheckout = true;
+    wrapper.vm.showCheckoutDialog = true;
     wrapper.vm.el = 3;
     await flushPromises();
 
