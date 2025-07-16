@@ -63,7 +63,7 @@
                   :secure="connector.secure"
                   :portAddress="connector.port"
                   :uid="connector.uid"
-                  :notHasAuthorization="!hasAuthorizationEdit()"
+                  :hasAuthorization="hasAuthorizationEdit()"
                   @update="refresh()"
                 />
               </div>
@@ -80,7 +80,7 @@
               <div v-bind="props">
                 <ConnectorDelete
                   :uid="connector.uid"
-                  :notHasAuthorization="!hasAuthorizationRemove()"
+                  :hasAuthorization="hasAuthorizationRemove()"
                   @update="redirectContainers()"
                 />
               </div>
@@ -222,23 +222,12 @@ const redirectContainers = async () => {
 
 const hasAuthorizationEdit = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.connector.edit,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
 };
+
 const hasAuthorizationRemove = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.connector.remove,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
 };
 
 const getConnector = async () => {

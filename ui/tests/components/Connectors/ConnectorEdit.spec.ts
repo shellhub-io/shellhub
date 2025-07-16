@@ -9,10 +9,6 @@ import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import ConnectorEdit from "@/components/Connector/ConnectorEdit.vue";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 type ConnectorEditWrapper = VueWrapper<InstanceType<typeof ConnectorEdit>>;
 
 describe("Connector Edit", () => {
@@ -62,8 +58,6 @@ describe("Connector Edit", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
@@ -81,15 +75,13 @@ describe("Connector Edit", () => {
     wrapper = mount(ConnectorEdit, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         secure: true,
         uid: members[0].id,
         ipAddress: "",
         portAddress: 80,
+        hasAuthorization: true,
       },
     });
   });
