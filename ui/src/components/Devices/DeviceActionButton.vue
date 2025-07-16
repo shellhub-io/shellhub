@@ -6,12 +6,12 @@
       color="primary"
       v-if="isInNotification"
       data-test="notification-action-button"
-      @click="dialog = !dialog"
+      @click="showDialog = true"
     >
       <v-icon>{{ icon }}</v-icon>
       Accept
     </v-btn>
-    <v-list-item v-else @click="dialog = !dialog" data-test="list-item">
+    <v-list-item v-else @click="showDialog = true" data-test="list-item">
       <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
         <template v-slot:activator="{ props }">
           <span v-bind="props">
@@ -24,7 +24,7 @@
         <span data-test="tooltip-text"> You don't have this kind of authorization. </span>
       </v-tooltip>
     </v-list-item>
-    <v-dialog max-width="450px" v-model="dialog" @click:outside="close" v-bind="$attrs" data-test="dialog">
+    <BaseDialog v-model="showDialog" @click:outside="close" data-test="device-action-dialog">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-5 bg-primary">
           {{ capitalizeText(variant) }} {{ capitalizeText(action) }}
@@ -45,7 +45,7 @@
           </v-card-actions>
         </v-container>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -58,6 +58,7 @@ import hasPermission from "@/utils/permission";
 import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps({
   name: {
@@ -81,10 +82,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  show: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const emit = defineEmits(["update"]);
@@ -104,10 +101,10 @@ const hasAuthorization = computed(() => {
   return false;
 });
 
-const dialog = ref(false);
+const showDialog = ref(false);
 
 const close = () => {
-  dialog.value = false;
+  showDialog.value = false;
   emit("update", false);
 };
 
@@ -179,39 +176,25 @@ const acceptDevice = async () => {
 
 const doAction = () => {
   if (hasAuthorization.value) {
-    switch (props.action) {
-      case "accept":
-        acceptDevice();
-        break;
-      case "reject":
-        rejectDevice();
-        break;
-      case "remove":
-        removeDevice();
-        break;
-      default:
-    }
+    const currentDeviceAction = {
+      accept: acceptDevice,
+      reject: rejectDevice,
+      remove: removeDevice,
+    }[props.action];
+
+    currentDeviceAction();
   } else {
     snackbar.showError("You don't have this kind of authorization.");
   }
 };
 
-const findIcon = () => {
-  switch (props.action) {
-    case "accept":
-      return "mdi-check";
-    case "reject":
-      return "mdi-close";
-    case "remove":
-      return "mdi-delete";
-    default:
-      return "";
-  }
-};
+const icon = {
+  accept: "mdi-check",
+  reject: "mdi-close",
+  remove: "mdi-delete",
+}[props.action];
 
-const icon = ref(findIcon());
-
-defineExpose({ dialog, hasAuthorization });
+defineExpose({ showDialog, hasAuthorization });
 </script>
 
 <style scoped>
