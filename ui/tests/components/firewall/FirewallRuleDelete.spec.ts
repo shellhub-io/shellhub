@@ -17,10 +17,6 @@ const mockSnackbar = {
 };
 
 describe("Firewall Rule Delete", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: FirewallRuleDeleteWrapper;
 
   const vuetify = createVuetify();
@@ -60,9 +56,6 @@ describe("Firewall Rule Delete", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -78,12 +71,10 @@ describe("Firewall Rule Delete", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         id: "1000",
+        hasAuthorization: true,
       },
     });
   });

@@ -17,7 +17,7 @@
       </div>
     </v-list-item>
 
-    <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary" data-test="firewall-edit-rule-title">
           Edit Firewall Rule
@@ -154,7 +154,7 @@
           </v-card-actions>
         </form>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -167,6 +167,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
+import BaseDialog from "../BaseDialog.vue";
 
 const { firewallRule, hasAuthorization } = defineProps<{
   firewallRule: IFirewallRule;
