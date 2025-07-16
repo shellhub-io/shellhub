@@ -1,16 +1,12 @@
 import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import { store, key } from "@/store";
 import ContainerAdd from "@/components/Containers/ContainerAdd.vue";
 import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
 
 const devices = [
   {
@@ -128,10 +124,6 @@ describe("ContainerAdd", () => {
   let mockDevices: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockBilling = new MockAdapter(billingApi.getAxios());
@@ -155,7 +147,6 @@ describe("ContainerAdd", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
-      attachTo: el,
     });
   });
 
@@ -168,23 +159,16 @@ describe("ContainerAdd", () => {
   });
 
   it("Renders the component data table", async () => {
-    expect(wrapper.find('[data-test="device-add-btn"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="device-add-btn"]').trigger("click");
+    const button = wrapper.find('[data-test="container-add-btn"]');
+    expect(button.exists()).toBe(true);
+    await button.trigger("click");
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="dialog"]').exists()).toBe(true);
+
+    expect(dialog.find('[data-test="container-add-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="dialog-title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="dialog-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="command-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="documentation-link"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-  });
-
-  it("Opens the dialog when add device button is clicked", async () => {
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="dialog"]').exists()).toBe(true);
-
-    await wrapper.find('[data-test="device-add-btn"]').trigger("click");
-
-    expect(dialog.find('[data-test="dialog"]').exists()).toBe(true);
   });
 });
