@@ -1,6 +1,6 @@
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PrivateKeyAdd from "@/components/PrivateKeys/PrivateKeyAdd.vue";
 import { namespacesApi, usersApi } from "@/api/http";
@@ -12,10 +12,6 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 type PrivateKeyAddWrapper = VueWrapper<InstanceType<typeof PrivateKeyAdd>>;
 
 describe("Setting Private Keys", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: PrivateKeyAddWrapper;
 
   const vuetify = createVuetify();
@@ -61,9 +57,6 @@ describe("Setting Private Keys", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -80,7 +73,6 @@ describe("Setting Private Keys", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
-      attachTo: el,
     });
   });
 
@@ -93,7 +85,7 @@ describe("Setting Private Keys", () => {
   });
 
   it("Renders components", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
     const dialog = new DOMWrapper(document.body);
 
@@ -105,7 +97,7 @@ describe("Setting Private Keys", () => {
   });
 
   it("Sets private key data error message", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="name-field"]').setValue("not-working-name");
@@ -118,7 +110,7 @@ describe("Setting Private Keys", () => {
   });
 
   it("Sets private key data error message", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="private-key-field"]').setValue("not-working-key");
