@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -67,9 +63,6 @@ describe("Namespace Leave", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -87,9 +80,6 @@ describe("Namespace Leave", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -104,7 +94,7 @@ describe("Namespace Leave", () => {
 
   it("Renders components", async () => {
     const dialog = new DOMWrapper(document.body);
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     expect(dialog.find('[data-test="namespace-leave-dialog"]').exists()).toBe(true);
@@ -115,25 +105,27 @@ describe("Namespace Leave", () => {
   });
 
   it("Successfully leaves namespace", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
-    mockNamespace.onDelete("http://localhost/api/namespaces/fake-tenant/members").reply(200);
+    mockNamespace.onDelete("http://localhost:3000/api/namespaces/fake-tenant/members").reply(200, { token: "fake-token" });
 
     const storeSpy = vi.spyOn(store, "dispatch");
+    const routerSpy = vi.spyOn(router, "go").mockImplementation(vi.fn());
 
     await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
 
     await flushPromises();
 
     expect(storeSpy).toHaveBeenCalledWith("namespaces/leave", "fake-tenant");
+    expect(routerSpy).toHaveBeenCalledWith(0);
   });
 
   it("Fails to Edit Api Key", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
-    mockNamespace.onDelete("http://localhost/api/namespaces/fake-tenant/members").reply(400);
+    mockNamespace.onDelete("http://localhost:3000/api/namespaces/fake-tenant/members").reply(400);
 
     await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
 
