@@ -125,7 +125,7 @@
               <v-btn
                 class="ml-4"
                 variant="text"
-                color="aprimary"
+                color="primary"
                 @click="editAnnouncement = true"
                 data-test="edit-announcement-btn"
               >Edit Announcement

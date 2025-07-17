@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="540">
+  <BaseDialog v-model="showDialog">
     <v-card data-test="namespace-leave-dialog" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
         Namespace Leave
@@ -16,7 +16,7 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
+        <v-btn variant="text" data-test="close-btn" @click="showDialog = !showDialog">
           Close
         </v-btn>
 
@@ -24,53 +24,48 @@
           color="red darken-1"
           variant="text"
           data-test="leave-btn"
-          :disabled="hasAuthorization"
+          :disabled="!hasAuthorization"
           @click="leave()"
         >
           Leave
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
+const router = useRouter();
 const snackbar = useSnackbar();
-const dialog = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const tenant = computed(() => localStorage.getItem("tenant"));
 
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return !hasPermission(
-      authorizer.role[role],
-      actions.namespace.leave,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.leave);
 });
 
 const leave = async () => {
   try {
-    dialog.value = !dialog.value;
-
-    await store.dispatch("namespaces/leave", tenant.value).then(() => {
-      window.location.reload();
-    });
+    await store.dispatch("namespaces/leave", tenant.value);
+    showDialog.value = false;
     snackbar.showSuccess("You have left the namespace.");
+    router.go(0);
   } catch (error: unknown) {
     snackbar.showError("Failed to leave the namespace.");
     handleError(error);
   }
 };
 
-defineExpose({ dialog });
+defineExpose({ showDialog });
 </script>

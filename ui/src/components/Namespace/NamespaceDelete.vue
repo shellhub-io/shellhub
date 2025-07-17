@@ -1,14 +1,14 @@
 <template>
-  <v-dialog v-model="dialog" max-width="540">
-    <v-card data-test="namespaceDelete-dialog" class="bg-v-theme-surface">
+  <BaseDialog v-model="showDialog">
+    <v-card data-test="namespace-delete-card" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary">
         Namespace Deletion
       </v-card-title>
 
       <v-card-text class="mt-4 mb-3 pb-1">
         <div
-          v-if="hasAuthorization && billingActive"
-          data-test="contentSubscription-p"
+          v-if="billingActive"
+          data-test="content-subscription-text"
         >
           <p class="mb-2">
             To ensure the integrity of your namespace,
@@ -29,7 +29,7 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
+        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
           Close
         </v-btn>
 
@@ -38,13 +38,13 @@
           variant="text"
           data-test="remove-btn"
           @click="remove()"
-          :disabled="billingActive || hasAuthorization"
+          :disabled="billingActive || !hasAuthorization"
         >
           Remove
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -58,34 +58,24 @@ import { envVariables } from "@/envVariables";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  tenant: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{ tenant: string }>();
 const emit = defineEmits(["billing-in-debt"]);
+
 const store = useStore();
 const snackbar = useSnackbar();
 const router = useRouter();
-const dialog = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const name = ref("");
 const tenant = computed(() => props.tenant);
 const billingActive = computed(() => store.getters["billing/active"]);
-
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return !hasPermission(
-      authorizer.role[role],
-      actions.namespace.remove,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
 });
 
-const isBillingEnabled = () => envVariables.billingEnable;
+const isBillingEnabled = envVariables.billingEnable;
 
 const getSubscriptionInfo = async () => {
   if (billingActive.value) {
@@ -99,7 +89,7 @@ const getSubscriptionInfo = async () => {
 };
 
 onMounted(() => {
-  if (hasAuthorization.value && isBillingEnabled()) {
+  if (hasAuthorization.value && isBillingEnabled) {
     getSubscriptionInfo();
   }
 
@@ -108,11 +98,11 @@ onMounted(() => {
 
 const remove = async () => {
   try {
-    dialog.value = !dialog.value;
     await store.dispatch("namespaces/remove", tenant.value);
+    snackbar.showSuccess("Namespace deleted successfully.");
     await store.dispatch("auth/logout");
     await router.push({ name: "Login" });
-    snackbar.showSuccess("Namespace deleted successfully.");
+    showDialog.value = false;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;

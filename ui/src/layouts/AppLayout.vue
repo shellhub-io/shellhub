@@ -39,7 +39,7 @@
       <NamespaceAdd
         v-model="showNamespaceAdd"
         enableSwitchIn
-        data-test="namespaceAdd-component"
+        data-test="namespace-add-component"
       />
     </div>
 
