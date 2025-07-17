@@ -177,7 +177,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		CreatedAt:  time.Time{},
 		RemoteAddr: "",
 		Position:   &models.DevicePosition{},
-		Tags:       []string{},
+		Taggable:   models.Taggable{TagsID: []string{}},
 	}
 
 	if ok, err := s.validator.Struct(updatedDevice); !ok || err != nil {
