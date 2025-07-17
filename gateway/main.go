@@ -32,8 +32,8 @@ const (
 const (
 	// SSLFeature indicates that SSL's feature is eanbled
 	SSLFeature = "ssl"
-	// TunnelsFeature indicates that Tunnels' feature is eanbled.
-	TunnelsFeature = "feature"
+	// WebEndpointsFeature indicates that WebEndpoints' feature is eanbled.
+	WebEndpointsFeature = "feature"
 )
 
 // Gateway represents the main gateway service that orchestrates Nginx configuration
@@ -81,20 +81,20 @@ func NewGateway(config *GatewayConfig, controller *NginxController, features []s
 		)
 	}
 
-	// NOTE: [TunnelsFeature] indicates that Tunnels' feature is enabled, configuring necessary values to work with
+	// NOTE: [WebEndpointsFeature] indicates that WebEndpoints' feature is enabled, configuring necessary values to work with
 	// SSL's enabled.
-	if slices.Contains(features, TunnelsFeature) {
+	if slices.Contains(features, WebEndpointsFeature) {
 		if g.Certbot != nil {
-			if g.Config.TunnelsDomain == "" {
-				g.Config.TunnelsDomain = g.Config.Domain
+			if g.Config.WebEndpointsDomain == "" {
+				g.Config.WebEndpointsDomain = g.Config.Domain
 			}
 
 			g.Certbot.Certificates = append(
 				g.Certbot.Certificates,
-				NewTunnelsCertificate(
-					g.Config.TunnelsDomain,
-					g.Config.TunnelsDNSProvider,
-					g.Config.TunnelsDNSProviderToken,
+				NewWebEndpointsCertificate(
+					g.Config.WebEndpointsDomain,
+					g.Config.WebEndpointsDNSProvider,
+					g.Config.WebEndpointsDNSProviderToken,
 				),
 			)
 		}
@@ -152,20 +152,20 @@ func main() {
 
 	if config.EnableAutoSSL {
 		log.WithFields(log.Fields{
-			"provider": config.TunnelsDNSProvider,
-			"token":    halfString(config.TunnelsDNSProviderToken),
+			"provider": config.WebEndpointsDNSProvider,
+			"token":    halfString(config.WebEndpointsDNSProviderToken),
 		}).Info("auto ssl is enabled")
 
 		features = append(features, SSLFeature)
 	}
 
-	if config.Tunnels {
+	if config.WebEndpoints {
 		log.WithFields(log.Fields{
-			"provider": config.TunnelsDNSProvider,
-			"token":    halfString(config.TunnelsDNSProviderToken),
+			"provider": config.WebEndpointsDNSProvider,
+			"token":    halfString(config.WebEndpointsDNSProviderToken),
 		}).Info("tunnels info")
 
-		features = append(features, TunnelsFeature)
+		features = append(features, WebEndpointsFeature)
 	}
 
 	gateway := NewGateway(config, controller, features)

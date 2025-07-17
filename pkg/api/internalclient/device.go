@@ -30,9 +30,8 @@ type deviceAPI interface {
 	// DeviceLookup performs a lookup operation based on the provided parameters.
 	DeviceLookup(tenantID, name string) (*models.Device, error)
 
-	// LookupTunnel gets a tunnel from its addrss.
-	// TODO: Create a API interface for Tunnel routes.
-	LookupTunnel(address string) (*Tunnel, error)
+	// LookupWebEndpoints retrieves a web endpoint by its address.
+	LookupWebEndpoints(address string) (*WebEndpoint, error)
 }
 
 func (c *client) DevicesOffline(uid string) error {
@@ -124,7 +123,7 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 	}
 }
 
-type Tunnel struct {
+type WebEndpoint struct {
 	Address    string    `json:"address"`
 	Namespace  string    `json:"namespace"`
 	Device     string    `json:"device"`
@@ -135,12 +134,12 @@ type Tunnel struct {
 	CreatedAt  time.Time `json:"time" bson:"time"`
 }
 
-func (c *client) LookupTunnel(address string) (*Tunnel, error) {
-	var tunnel *Tunnel
+func (c *client) LookupWebEndpoints(address string) (*WebEndpoint, error) {
+	var tunnel *WebEndpoint
 	resp, err := c.http.
 		R().
 		SetResult(&tunnel).
-		Get(fmt.Sprintf("http://cloud:8080/internal/tunnels/%s", address))
+		Get(fmt.Sprintf("http://cloud:8080/internal/web-endpoints/%s", address))
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}
