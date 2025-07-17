@@ -29,8 +29,40 @@ func NewConn(socket Socket) *Conn {
 	}
 }
 
+// ReadMessageBufferSize is the size of the buffer used to read messages from the websocket connection.
+//
+// [termios] is a POSIX-defined API for configuring terminal I/O settings in Unix-like systems (Linux, macOS, *BSD, etc.).
+// It provides fine-grained control over how terminals (TTYs and PTYs) handle input, output, and line discipline
+// features like canonical mode, echo, signals, and baud rates.
+//
+// Essentially, [termios] settings control how the PTY slave, used by our web terminal, processes input and output data.
+// It also affects how the slave buffers input, handles special chars (like Ctrl-C), line editing, etc. In canonical
+// mode, the terminal processes input line-by-line, meaning it waits for a newline character before sending the data to
+// the application. The maximum line length is 4096 characters, any input longer than that is truncated.
+//
+// [termios] documentation says:
+//
+//	The maximum line length is 4096 chars (including the
+//	terminating newline character); lines longer than 4096 chars
+//	are truncated.  After 4095 characters, input processing (e.g.,
+//	ISIG and ECHO* processing) continues, but any input data after
+//	4095 characters up to (but not including) any terminating
+//	newline is discarded.  This ensures that the terminal can
+//	always receive more input until at least one line can be read.
+//
+// As we read JSON messages from the websocket connection, we need to ensure that the buffer size is large enough
+// so, we have decided to use a buffer size of 4096 bytes, which is the maximum line length according to what was said.
+//
+// The buffer size is calculated as follows:
+//   - 20 bytes for the minimum size of a message, which is the size of the JSON object without data (the
+//     [MessageMinSize] constant).
+//   - 4096 bytes for the data, which is the maximum line length according to termios documentation.
+//
+// [termios]: https://www.man7.org/linux/man-pages/man3/termios.3.html
+const ReadMessageBufferSize = MessageMinSize + 4096 // 20 bytes for the message JSON + 4096 bytes for the data.
+
 func (c *Conn) ReadMessage(message *Message) (int, error) {
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, ReadMessageBufferSize)
 
 	read, err := c.Socket.Read(buffer)
 	if err != nil {
