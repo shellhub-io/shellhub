@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-list-item @click="showDialog = true" v-bind="$props" data-test="privatekey-edit-btn">
+    <v-list-item @click="showDialog = true" data-test="privatekey-edit-btn">
       <div class="d-flex align-center">
         <div data-test="privatekey-icon" class="mr-2">
           <v-icon>mdi-pencil</v-icon>
@@ -12,7 +12,7 @@
       </div>
     </v-list-item>
 
-    <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary">
           Edit Private Key
@@ -53,34 +53,23 @@
           </v-card-actions>
         </form>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref, PropType, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
 import { parsePrivateKeySsh } from "@/utils/validate";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
+import { IPrivateKey } from "@/interfaces/IPrivateKey";
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    required: false,
-  },
-  keyObject: {
-    type: Object as PropType<Partial<IPublicKey>>,
-    required: true,
-  },
-  style: {
-    type: [String, Object],
-    default: undefined,
-  },
-});
+const { privateKey } = defineProps<{ privateKey: IPrivateKey }>();
+
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
@@ -90,14 +79,14 @@ const {
   errorMessage: keyLocalDataError,
   setErrors: setKeyLocalDataError,
 } = useField<string>("privateKey", yup.string().required(), {
-  initialValue: props.keyObject.data,
+  initialValue: privateKey.data,
 });
 
 const {
   value: name,
   errorMessage: nameError,
 } = useField<string>("name", yup.string().required(), {
-  initialValue: props.keyObject.name ?? "", // Ensure name is a string
+  initialValue: privateKey.name ?? "", // Ensure name is a string
 });
 
 const isValid = ref(true);
@@ -123,7 +112,7 @@ const supportedKeys = ref(
 );
 
 const setPrivateKey = () => {
-  keyLocal.value = props.keyObject.data ?? "";
+  keyLocal.value = privateKey.data ?? "";
 };
 
 onMounted(() => {
