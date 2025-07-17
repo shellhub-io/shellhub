@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="700" @click:outside="close">
+  <BaseDialog v-model="showDialog" @click:outside="close">
     <v-card data-test="password-change-card" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
         Change Connection Announcement
@@ -11,7 +11,7 @@
             v-model="connectionAnnouncement"
             label="Connection Announcement"
             :error-messages="connectionAnnouncementError"
-            data-test="connectionAnnouncement-text"
+            data-test="connection-announcement-text"
             variant="underlined"
             hint="A connection announcement is a custom message written
       during a session when a connection is established on a device
@@ -43,7 +43,7 @@
 
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -54,12 +54,13 @@ import * as yup from "yup";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
 const namespace = computed(() => store.getters["namespaces/get"]);
 const tenant = computed(() => store.getters["auth/tenant"]);
-const show = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const emit = defineEmits(["update"]);
 
 const {
@@ -78,7 +79,7 @@ const {
 
 const close = () => {
   connectionAnnouncement.value = namespace.value.settings.connection_announcement;
-  show.value = false;
+  showDialog.value = false;
 };
 
 watch(namespace, (ns) => {
@@ -124,11 +125,11 @@ const updateAnnouncement = async () => {
     emit("update");
     snackbar.showSuccess("Connection announcement updated successfully.");
 
-    show.value = false;
+    showDialog.value = false;
   } catch (error) {
     handleUpdateNameError(error);
   }
 };
 
-defineExpose({ show });
+defineExpose({ showDialog });
 </script>

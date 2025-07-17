@@ -1,7 +1,6 @@
 <template>
-  <v-dialog v-model="showNoNamespace" :retain-focus="false" max-width="650px">
+  <BaseDialog v-model="showNoNamespaceDialog" :retain-focus="false">
     <v-card
-      v-model="showNoNamespace"
       class="bg-v-theme-surface"
     >
       <v-card-title class="bg-primary">
@@ -46,12 +45,12 @@
           <NamespaceAdd
             v-model="showNamespaceAdd"
             enableSwitchIn
-            data-test="namespaceAdd-component"
+            data-test="namespace-add-component"
           />
         </div>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -59,27 +58,15 @@ import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { envVariables } from "@/envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
+import BaseDialog from "../BaseDialog.vue";
 
 const route = useRoute();
-const props = defineProps({
-  show: {
-    type: Boolean,
-    required: true,
-  },
-});
 
-const emit = defineEmits(["update"]);
+const showDialog = defineModel<boolean>({ default: false });
 
 const showNamespaceAdd = ref(false);
 
-const showNoNamespace = computed({
-  get() {
-    return route.name === "AcceptInvite" ? false : props.show;
-  },
-  set(value: boolean) {
-    emit("update", value);
-  },
-});
+const showNoNamespaceDialog = computed(() => route.name === "AcceptInvite" ? false : showDialog.value);
 
 const openVersion = computed(() => !envVariables.isCloud && !envVariables.isEnterprise);
 </script>
