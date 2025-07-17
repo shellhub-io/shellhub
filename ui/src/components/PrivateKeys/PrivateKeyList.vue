@@ -38,7 +38,7 @@
             </template>
             <v-list class="bg-v-theme-surface" lines="two" density="compact">
               <PrivateKeyEdit
-                :keyObject="privateKey"
+                :private-key="privateKey"
                 @update="getPrivateKeys"
               />
 

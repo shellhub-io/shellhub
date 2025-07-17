@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 type PrivateKeyEditWrapper = VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
 
 const mockSnackbar = {
@@ -66,14 +62,12 @@ describe("Private Key Edit", () => {
   };
 
   const mockObject = {
+    id: 1,
     name: "test-name",
     data: "test-data",
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -87,12 +81,9 @@ describe("Private Key Edit", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
-        keyObject: mockObject,
+        privateKey: mockObject,
       },
     });
     store.commit("auth/authSuccess", authData);
@@ -121,8 +112,8 @@ describe("Private Key Edit", () => {
     expect(dialog.find('[data-test="pk-edit-save-btn"]').exists()).toBe(true);
   });
 
-  it("Checks if the private key data is valid", async () => {
-    await wrapper.vm.setPrivateKey();
+  it("Checks if the private key data is valid", () => {
+    wrapper.vm.setPrivateKey();
     const privateKeyData = wrapper.vm.keyLocal;
     expect(privateKeyData).toBeDefined();
     expect(wrapper.vm.isValid).toBe(true);
@@ -134,14 +125,14 @@ describe("Private Key Edit", () => {
     expect(nameField).toBeDefined();
   });
 
-  it("Checks if the update function emits an update event", async () => {
-    await wrapper.vm.update();
+  it("Checks if the update function emits an update event", () => {
+    wrapper.vm.update();
     expect(wrapper.emitted().update).toBeTruthy();
   });
 
   it("Checks if the edit function updates the store on success", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
-    await wrapper.vm.setPrivateKey();
+    wrapper.vm.setPrivateKey();
     const keySend = { name: wrapper.vm.name, data: wrapper.vm.keyLocal };
     await wrapper.vm.edit();
     expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", keySend);
@@ -149,7 +140,7 @@ describe("Private Key Edit", () => {
   });
 
   it("Checks if the edit function handles error on failure", async () => {
-    await wrapper.vm.setPrivateKey();
+    wrapper.vm.setPrivateKey();
     await wrapper.vm.edit();
     await flushPromises();
     expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update private key.");
