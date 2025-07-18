@@ -144,9 +144,6 @@ describe("Details Sessions", () => {
     wrapper = mount(DetailsSessions, {
       global: {
         plugins: [[store, key], vuetify, [router], SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
