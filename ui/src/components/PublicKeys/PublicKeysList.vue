@@ -8,7 +8,7 @@
       :totalCount="publicKeysCount"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
-      data-test="publicKeys-list"
+      data-test="public-keys-list"
     >
       <template v-slot:rows>
         <tr v-for="(item, i) in publicKeys" :key="i" data-test="public-key-item">
@@ -79,8 +79,8 @@
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <PublicKeyEdit
-                        :keyObject="item"
-                        :notHasAuthorization="!hasAuthorizationFormDialogEdit"
+                        :publicKey="item"
+                        :hasAuthorization="hasAuthorizationFormDialogEdit"
                         @update="refreshPublicKeys"
                       />
                     </div>
@@ -97,7 +97,7 @@
                     <div v-bind="props">
                       <PublicKeyDelete
                         :fingerprint="item.fingerprint"
-                        :notHasAuthorization="!hasAuthorizationFormDialogRemove"
+                        :hasAuthorization="hasAuthorizationFormDialogRemove"
                         @update="refreshPublicKeys"
                       />
                     </div>
@@ -167,24 +167,14 @@ const publicKeys = computed(() => store.getters["publicKeys/list"]);
 const publicKeysCount = computed(
   () => store.getters["publicKeys/getNumberPublicKeys"],
 );
-
 const hasAuthorizationFormDialogEdit = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.publicKey.edit);
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.publicKey.edit);
 });
 
 const hasAuthorizationFormDialogRemove = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.publicKey.remove,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.publicKey.remove);
 });
 
 const getPublicKeysList = async (

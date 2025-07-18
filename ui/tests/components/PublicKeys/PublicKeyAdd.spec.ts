@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 type PublicKeyAddWrapper = VueWrapper<InstanceType<typeof PublicKeyAdd>>;
 
 describe("Public Key Add", () => {
@@ -63,9 +59,6 @@ describe("Public Key Add", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -85,9 +78,6 @@ describe("Public Key Add", () => {
     wrapper = mount(PublicKeyAdd, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
