@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
     <v-container>
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary" data-test="card-title">
@@ -30,7 +30,7 @@
               v-model="privateKeyData"
               label="Private key data"
               required
-              :messages="supportedKeys"
+              messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
               :error-messages="privateKeyDataError"
               :update:modelValue="validatePrivateKeyData"
               @change="validatePrivateKeyData"
@@ -60,25 +60,22 @@
         </form>
       </v-card>
     </v-container>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
 import { parsePrivateKeySsh, validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
-const dialog = defineModel({ default: false });
-const supportedKeys = ref(
-  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
-);
+const showDialog = defineModel({ default: false });
 
 const {
   value: name,
@@ -139,7 +136,7 @@ const resetFields = () => {
 
 const close = () => {
   resetFields();
-  dialog.value = false;
+  showDialog.value = false;
 };
 
 const create = async () => {
@@ -177,5 +174,5 @@ const create = async () => {
   }
 };
 
-defineExpose({ privateKeyDataError, nameError, dialog });
+defineExpose({ privateKeyDataError, nameError, showDialog });
 </script>

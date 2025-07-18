@@ -69,7 +69,6 @@ describe("Device Rename", () => {
   };
 
   beforeEach(async () => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -86,9 +85,6 @@ describe("Device Rename", () => {
     wrapper = mount(DeviceRename, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: device.uid,

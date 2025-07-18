@@ -174,21 +174,19 @@ describe("Device Action Button", () => {
   });
 
   it("Renders the component data table", async () => {
-    await wrapper.setProps({ name: "test-device", uid: "test-uid", isInNotification: true, show: true });
+    await wrapper.setProps({ name: "test-device", uid: "test-uid", isInNotification: true });
     const notificationButton = wrapper.find('[data-test="notification-action-button"]');
     expect(notificationButton.exists()).toBe(true);
     await notificationButton.trigger("click");
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="dialog"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="device-action-dialog"]').exists()).toBe(true);
   });
 
-  it("Clicking on notification button toggles dialog visibility", async () => {
+  it("Clicking on notification button opens dialog", async () => {
     await wrapper.setProps({ isInNotification: true });
     const notificationButton = wrapper.find('[data-test="notification-action-button"]');
     await notificationButton.trigger("click");
-    expect(wrapper.vm.dialog).toBe(true);
-    await notificationButton.trigger("click");
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(true);
   });
 
   it("Closing dialog sets dialog value to false", async () => {
@@ -196,14 +194,14 @@ describe("Device Action Button", () => {
       if (message.includes("click:outside")) return;
       console.log(message);
     });
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     const dialogComponent = wrapper.findComponent({ name: "VDialog" });
     await dialogComponent.vm.$emit("click:outside");
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(false);
   });
 
   it("Close button in dialog emits 'update' event with false", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await wrapper.setProps({ isInNotification: true });
     const closeButton = wrapper.findComponent('[data-test="close-btn"]');
     await closeButton.trigger("click");

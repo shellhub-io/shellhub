@@ -1,5 +1,5 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="toggleDialog" :disabled="notHasAuthorization" data-test="connector-edit-btn">
+  <v-list-item v-bind="$attrs" @click="showDialog = true" :disabled="notHasAuthorization" data-test="connector-edit-btn">
     <div class="d-flex align-center">
       <div data-test="connector-edit-icon" class="mr-2">
         <v-icon> mdi-pencil </v-icon>
@@ -17,9 +17,9 @@
     :initialPort="props.portAddress"
     :initialSecure="props.secure"
     :uid="props.uid"
-    :show-dialog="dialog"
+    v-model="showDialog"
     :store-method="editConnector"
-    @close="toggleDialog"
+    @update="$emit('update')"
   />
 </template>
 
@@ -51,16 +51,11 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update"]);
-const dialog = ref(false);
+defineEmits(["update"]);
+const showDialog = ref(false);
 const store = useStore();
 
 const editConnector = async (payload) => {
   await store.dispatch("connectors/edit", payload);
-  emit("update");
-};
-
-const toggleDialog = () => {
-  dialog.value = !dialog.value;
 };
 </script>

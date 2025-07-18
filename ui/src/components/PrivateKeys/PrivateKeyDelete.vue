@@ -11,7 +11,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="450" v-model="showDialog">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="privatekey-dialog-title">
         Are you sure?
@@ -38,22 +38,19 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { useStore } from "@/store";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  id: {
-    type: Number,
-    required: true,
-  },
-});
-const snackbar = useSnackbar();
+const props = defineProps<{ id: number }>();
 const emit = defineEmits(["update"]);
+
+const snackbar = useSnackbar();
 const showDialog = ref(false);
 const store = useStore();
 

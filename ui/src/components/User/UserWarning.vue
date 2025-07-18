@@ -1,7 +1,7 @@
 <template>
   <DeviceChooser
     v-if="isBillingEnabled && hasWarning"
-    data-test="deviceChooser-component"
+    data-test="device-chooser-component"
   />
 
   <Welcome
@@ -11,43 +11,41 @@
   />
 
   <NamespaceInstructions
-    v-if="showInstructions"
-    v-model:show="showInstructions"
-    @update="showInstructions = false"
-    data-test="namespaceInstructions-component"
+    v-model="showInstructions"
+    data-test="namespace-instructions-component"
   />
 
   <BillingWarning
     v-if="isBillingEnabled"
-    data-test="billingWarning-component"
+    data-test="billing-warning-component"
   />
 
   <AnnouncementsModal
     :show="showAnnouncements"
     :announcement="announcement"
     @update="showAnnouncements = false"
-    data-test="announcementsModal-component"
+    data-test="announcements-modal-component"
   />
 
   <DeviceAcceptWarning
     v-model:show="showDeviceWarning"
     @update="showDeviceWarning = false"
-    data-test="DeviceAcceptWarning-component"
+    data-test="device-accept-warning-component"
   />
 
   <RecoveryHelper
     v-model="showRecoverHelper"
-    data-test="RecoveryHelper-component"
+    data-test="recovery-helper-component"
   />
 
   <MfaForceRecoveryMail
     v-model="showForceRecoveryMail"
-    data-test="MfaForceRecoveryMail-component"
+    data-test="mfa-force-recovery-mail-component"
   />
 
   <PaywallDialog
     v-model="showPaywall"
-    data-test="PaywallDialog-component"
+    data-test="paywall-dialog-component"
   />
 </template>
 
@@ -134,7 +132,7 @@ const showScreenWelcome = async () => {
   show.value = status;
 };
 
-const ShowAnnouncementsCheck = async () => {
+const checkAnnouncements = async () => {
   if (!envVariables.announcementsEnable) {
     return;
   }
@@ -194,7 +192,7 @@ const showDialogs = async () => {
 
 onMounted(() => {
   showDialogs();
-  ShowAnnouncementsCheck();
+  checkAnnouncements();
 
   if (showRecoverHelper.value === true) {
     router.push("/settings");

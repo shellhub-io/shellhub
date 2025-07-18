@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-btn
-      @click="dialog = !dialog"
+      @click="showDialog = true"
       color="primary"
       variant="flat"
       tabindex="0"
@@ -19,7 +19,7 @@
       </p>
     </div>
 
-    <v-dialog v-model="dialog" width="1000" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" breakpoint="md" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface content" max-height="700">
         <div class="pa-5">
           <v-row>
@@ -82,10 +82,10 @@
             </v-col>
           </v-row>
 
-          <v-btn variant="text" data-test="close-btn" @click="dialog = false">Close</v-btn>
+          <v-btn variant="text" data-test="close-btn" @click="showDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -97,8 +97,9 @@ import QuickConnectionList from "./QuickConnectionList.vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const dialog = ref(false);
+const showDialog = ref(false);
 const snackbar = useSnackbar();
 const filter = ref("");
 const listRef = ref<InstanceType<typeof QuickConnectionList> | null>(null);
@@ -118,7 +119,7 @@ useMagicKeys({
   onEventFired(event) {
     if (event.ctrlKey && event.key.toLowerCase() === "k" && event.type === "keydown") {
       event.preventDefault();
-      dialog.value = !dialog.value;
+      showDialog.value = !showDialog.value;
     } else if ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.type === "keydown") {
       event.preventDefault();
       listRef.value?.rootEl?.focus?.();
@@ -139,7 +140,7 @@ const searchDevices = () => {
     encodedFilter = btoa(JSON.stringify(filterObj));
   }
 
-  if (!dialog.value) {
+  if (!showDialog.value) {
     encodedFilter = "";
   }
 
@@ -153,7 +154,7 @@ const searchDevices = () => {
   });
 };
 
-watch(dialog, async (isOpen) => {
+watch(showDialog, async (isOpen) => {
   if (!isOpen) return;
 
   try {

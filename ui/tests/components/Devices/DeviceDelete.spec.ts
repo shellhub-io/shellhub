@@ -8,10 +8,6 @@ import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi, tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const devices = [
   {
     uid: "a582b47a42d",
@@ -129,10 +125,6 @@ describe("Device Delete", () => {
   let mockTags: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockBilling = new MockAdapter(billingApi.getAxios());
@@ -157,15 +149,11 @@ describe("Device Delete", () => {
     wrapper = mount(DeviceDelete, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: "a582b47a42d",
         variant: "device",
       },
-      attachTo: el,
     });
   });
 

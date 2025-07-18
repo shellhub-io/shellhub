@@ -14,7 +14,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="450" v-model="showDialog" data-test="delete-dialog">
+  <BaseDialog v-model="showDialog" data-test="delete-dialog">
     <v-card class="bg-v-theme-surface" data-test="device-delete-card">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="dialog-title">
         Are you sure?
@@ -46,7 +46,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -55,6 +55,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps({
   uid: {
