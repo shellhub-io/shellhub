@@ -37,7 +37,7 @@ export interface ResizeMessage {
 
 export interface InputMessage {
   kind: MessageKind.Input;
-  data: number[];
+  data: string; // Input data, limited to 4096 characters
 }
 
 export interface SignatureMessage {

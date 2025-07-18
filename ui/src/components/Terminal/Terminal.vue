@@ -44,7 +44,6 @@ const terminal = ref<HTMLElement>({} as HTMLElement); // Terminal DOM container
 const xterm = ref<Terminal>({} as Terminal); // xterm.js terminal instance
 const fitAddon = ref<FitAddon>(new FitAddon()); // Auto-fit terminal to container
 const ws = ref<WebSocket>({} as WebSocket); // Active WebSocket connection
-const textEncoder = new TextEncoder(); // Converts strings to Uint8Array
 
 // Initializes the xterm.js terminal and applies styling and behavior.
 const initializeTerminal = () => {
@@ -90,7 +89,7 @@ const setupTerminalEvents = () => {
 
     const message: InputMessage = {
       kind: MessageKind.Input,
-      data: [...textEncoder.encode(data)],
+      data: data.slice(0, 4096), // Limit input to 4096 characters
     };
     ws.value.send(JSON.stringify(message));
   });

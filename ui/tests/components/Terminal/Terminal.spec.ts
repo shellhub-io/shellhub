@@ -106,7 +106,7 @@ describe("Terminal.vue", () => {
       expect.stringContaining('"kind":1'),
     );
     expect(mockWs.send).toHaveBeenCalledWith(
-      expect.stringContaining('"data":[116,101,115,116,32,105,110,112,117,116]'),
+      expect.stringContaining('"data":"test input"'),
     );
   });
 
