@@ -87,10 +87,11 @@ const setupTerminalEvents = () => {
   // Send user input over WebSocket
   xterm.value.onData((data) => {
     if (!isWebSocketOpen()) return;
+    const encodedData = textEncoder.encode(data).slice(0, 1023); // Limited to 1024 bytes
 
     const message: InputMessage = {
       kind: MessageKind.Input,
-      data: [...textEncoder.encode(data)],
+      data: [...encodedData],
     };
     ws.value.send(JSON.stringify(message));
   });
