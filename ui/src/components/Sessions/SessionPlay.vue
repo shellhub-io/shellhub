@@ -20,9 +20,9 @@
       <span>{{ tooltipMessage }}</span>
     </v-tooltip>
 
-    <v-dialog
+    <BaseDialog
       :transition="false"
-      :fullscreen="true"
+      :forceFullscreen="true"
       v-model="showDialog"
     >
       <v-card class="bg-v-theme-surface position-relative">
@@ -36,7 +36,7 @@
 
         <Player :logs @close="closeDialog" />
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -52,6 +52,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps<{
   uid: string;

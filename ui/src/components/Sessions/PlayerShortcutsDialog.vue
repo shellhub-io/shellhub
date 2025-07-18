@@ -1,6 +1,5 @@
 <template>
-  <v-dialog
-    :fullscreen="false"
+  <BaseDialog
     v-model="showDialog"
   >
     <v-card title="Keyboard Shortcuts">
@@ -13,11 +12,13 @@
         <div class="shortcut"><v-kbd>,</v-kbd>/<v-kbd>.</v-kbd>: step back / forward, a frame at a time (only when paused)</div>
       </v-card-text>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
-const showDialog = defineModel<boolean>("showDialog");
+import BaseDialog from "../BaseDialog.vue";
+
+const showDialog = defineModel({ default: false });
 </script>
 
 <style lang="scss" scoped>

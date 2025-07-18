@@ -109,9 +109,9 @@
                         v-if="session.active"
                         :uid="session.uid"
                         :device="session.device"
-                        :notHasAuthorization="!hasAuthorizationRemoveRecord()"
+                        :hasAuthorization="hasAuthorizationRemoveRecord()"
                         @update="refreshSessions"
-                        data-test="sessionDeleteRecord-component"
+                        data-test="session-close-component"
                       />
                     </div>
                   </template>

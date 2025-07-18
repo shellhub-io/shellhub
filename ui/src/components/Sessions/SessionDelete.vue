@@ -2,7 +2,7 @@
   <div>
     <v-list-item
       @click="showDialog = true"
-      :disabled="notHasAuthorization"
+      :disabled="!hasAuthorization"
     >
       <div class="d-flex align-center">
         <div class="mr-2">
@@ -15,7 +15,7 @@
       </div>
     </v-list-item>
 
-    <v-dialog max-width="500" v-model="showDialog">
+    <BaseDialog v-model="showDialog">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary">
           Are you sure?
@@ -42,7 +42,7 @@
           </v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -51,21 +51,12 @@ import { ref } from "vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  uid: {
-    type: String,
-    required: true,
-  },
-  notHasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-  style: {
-    type: [String, Object],
-    default: undefined,
-  },
-});
+const props = defineProps<{
+  uid: string;
+  hasAuthorization: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
