@@ -79,8 +79,8 @@
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <PublicKeyEdit
-                        :keyObject="item"
-                        :notHasAuthorization="!hasAuthorizationFormDialogEdit"
+                        :publicKey="item"
+                        :hasAuthorization="hasAuthorizationFormDialogEdit"
                         @update="refreshPublicKeys"
                       />
                     </div>
@@ -97,7 +97,7 @@
                     <div v-bind="props">
                       <PublicKeyDelete
                         :fingerprint="item.fingerprint"
-                        :notHasAuthorization="!hasAuthorizationFormDialogRemove"
+                        :hasAuthorization="hasAuthorizationFormDialogRemove"
                         @update="refreshPublicKeys"
                       />
                     </div>

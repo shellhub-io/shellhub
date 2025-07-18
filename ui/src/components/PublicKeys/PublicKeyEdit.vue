@@ -3,7 +3,7 @@
     <v-list-item
       @click="open()"
       v-bind="$attrs"
-      :disabled="notHasAuthorization"
+      :disabled="!hasAuthorization"
       data-test="public-key-edit-title-btn"
     >
       <div class="d-flex align-center">
@@ -17,7 +17,7 @@
       </div>
     </v-list-item>
 
-    <v-dialog v-model="showDialog" width="520" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary" data-test="public-key-edit-title">
           Edit Public Key
@@ -95,7 +95,7 @@
               label="Public key data"
               :error-messages="publicKeyDataError"
               required
-              :messages="supportedKeys"
+              messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
               data-test="data-field"
               rows="2"
             />
@@ -120,7 +120,7 @@
           </v-card-actions>
         </form>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -139,18 +139,14 @@ import { useStore } from "@/store";
 import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps({
-  show: {
-    type: Boolean,
-    required: false,
-  },
-  keyObject: {
+  publicKey: {
     type: Object,
     required: true,
-    default: Object as unknown as IPublicKey,
   },
-  notHasAuthorization: {
+  hasAuthorization: {
     type: Boolean,
     default: false,
   },
@@ -194,15 +190,12 @@ const keyLocal = ref<Partial<IPublicKey>>({
   username: "",
   data: "",
 });
-const supportedKeys = ref(
-  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
-);
 
 const {
   value: name,
   errorMessage: nameError,
 } = useField<string>("name", yup.string().required(), {
-  initialValue: prop.value.keyObject.name,
+  initialValue: prop.value.publicKey.name,
 });
 
 watch(name, () => {
@@ -214,7 +207,7 @@ const {
   errorMessage: usernameError,
   setErrors: setUsernameError,
 } = useField<string>("username", yup.string().required(), {
-  initialValue: prop.value.keyObject.username,
+  initialValue: prop.value.publicKey.username,
 });
 
 watch(username, () => {
@@ -226,20 +219,20 @@ const {
   errorMessage: hostnameError,
   setErrors: setHostnameError,
 } = useField<string>("hostname", yup.string().required(), {
-  initialValue: prop.value.keyObject.filter?.hostname || "",
+  initialValue: prop.value.publicKey.filter?.hostname || "",
 });
 
 const {
   value: publicKeyData,
   errorMessage: publicKeyDataError,
 } = useField<string>("publicKeyData", yup.string().required(), {
-  initialValue: prop.value.keyObject.data,
+  initialValue: prop.value.publicKey.data,
 });
 
 const hasTags = computed(() => {
-  const { keyObject } = props;
-  if (!keyObject) return false;
-  return Reflect.ownKeys(keyObject.filter)[0] === "tags";
+  const { publicKey } = props;
+  if (!publicKey) return false;
+  return Reflect.ownKeys(publicKey.filter)[0] === "tags";
 });
 
 watch(choiceFilter, async () => {
@@ -271,11 +264,11 @@ watch(tagChoices, (list) => {
 const handleUpdate = () => {
   if (showDialog.value) {
     if (hasTags.value) {
-      const { tags } = props.keyObject.filter;
+      const { tags } = props.publicKey.filter;
       tagChoices.value = tags;
       choiceFilter.value = "tags";
     } else {
-      const { hostname: hostnameLocal } = props.keyObject.filter;
+      const { hostname: hostnameLocal } = props.publicKey.filter;
       if (!!hostnameLocal && hostnameLocal !== ".*") {
         choiceFilter.value = "hostname";
         hostname.value = hostnameLocal;
@@ -284,7 +277,7 @@ const handleUpdate = () => {
       }
     }
 
-    const { username: usernameLocal } = props.keyObject;
+    const { username: usernameLocal } = props.publicKey;
     choiceUsername.value = usernameLocal === ".*" ? "all" : "username";
     username.value = usernameLocal;
   }
@@ -329,8 +322,8 @@ const chooseUsername = () => {
 };
 
 const setLocalVariable = () => {
-  keyLocal.value = { ...props.keyObject };
-  keyLocal.value.data = atob(props.keyObject.data);
+  keyLocal.value = { ...props.publicKey };
+  keyLocal.value.data = atob(props.publicKey.data);
 };
 
 const hasError = () => {
@@ -353,7 +346,7 @@ const hasError = () => {
 
 const open = () => {
   showDialog.value = true;
-  publicKeyData.value = props.keyObject.data;
+  publicKeyData.value = props.publicKey.data;
 };
 
 onMounted(async () => {
