@@ -16,10 +16,6 @@ const mockSnackbar = {
 };
 
 describe("Quick Connection", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: QuickConnectionWrapper;
 
   const vuetify = createVuetify();
@@ -89,9 +85,6 @@ describe("Quick Connection", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -112,9 +105,6 @@ describe("Quick Connection", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -156,8 +146,6 @@ describe("Quick Connection", () => {
   });
 
   it("Checks if the fetch function handles error on failure", async () => {
-    mockDevices.reset();
-
     mockDevices
       // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
