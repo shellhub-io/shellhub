@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -69,9 +65,6 @@ describe("Public Key Delete", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -89,13 +82,10 @@ describe("Public Key Delete", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         fingerprint: "fake-fingerprint",
-        notHasAuthorization: false,
+        hasAuthorization: true,
       },
     });
   });
@@ -121,7 +111,7 @@ describe("Public Key Delete", () => {
     expect(dialog.find('[data-test="remove-btn"]').exists()).toBe(true);
   });
 
-  it("Succesfully removes a Public Key", async () => {
+  it("Successfully removes a Public Key", async () => {
     await wrapper.findComponent('[data-test="public-key-remove-btn"]').trigger("click");
     mockSsh.onDelete("http://localhost:3000/api/sshkeys/public-keys/fake-fingerprint").reply(200);
     const removeSpy = vi.spyOn(store, "dispatch");

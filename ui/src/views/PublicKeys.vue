@@ -25,7 +25,7 @@
         <p>SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</p>
       </template>
       <template #action>
-        <PublicKeyAdd />
+        <PublicKeyAdd @update="refresh" />
       </template>
     </NoItemsMessage>
   </div>
