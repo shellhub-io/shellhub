@@ -54,7 +54,7 @@
               location="bottom"
               class="text-center"
               :disabled="hasAuthorizationRemoveRecord()"
-              data-test="sessionClose-tooltip"
+              data-test="session-close-tooltip"
             >
               <template v-slot:activator="{ props }">
                 <div v-bind="props">
@@ -62,9 +62,9 @@
                     v-if="session.active"
                     :uid="session.uid"
                     :device="session.device"
-                    :notHasAuthorization="!hasAuthorizationRemoveRecord()"
+                    :hasAuthorization="hasAuthorizationRemoveRecord()"
                     @update="refreshSessions"
-                    data-test="sessionClose-component"
+                    data-test="session-close-component"
                   />
                 </div>
               </template>
@@ -75,16 +75,16 @@
               location="bottom"
               class="text-center"
               :disabled="hasAuthorizationRemoveRecord()"
-              data-test="sessionDelete-tooltip"
+              data-test="session-delete-tooltip"
             >
               <template v-slot:activator="{ props }">
                 <div v-bind="props">
                   <SessionDelete
                     v-if="session.uid"
                     :uid="session.uid"
-                    :notHasAuthorization="!hasAuthorizationRemoveRecord()"
+                    :hasAuthorization="hasAuthorizationRemoveRecord()"
                     @update="refreshSessions"
-                    data-test="sessionDeleteRecord-component"
+                    data-test="session-delete-record-component"
                   />
 
                 </div>
@@ -207,22 +207,11 @@ const refreshSessions = async () => {
 
 const hasAuthorizationRemoveRecord = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.session.removeRecord,
-    );
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.session.removeRecord);
 };
 
 const hasAuthorizationPlay = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.session.play);
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.session.play);
 };
 </script>

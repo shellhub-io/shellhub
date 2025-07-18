@@ -113,7 +113,7 @@ describe("Asciinema Player", () => {
     const dialogBtn = wrapper.find('[data-test="shortcuts-btn"]');
     await dialogBtn.trigger("click");
 
-    expect(wrapper.vm.showDialog).toBe(true);
+    expect(wrapper.vm.showShortcutsDialog).toBe(true);
     expect(wrapper.vm.player.pause).toHaveBeenCalled();
   });
 

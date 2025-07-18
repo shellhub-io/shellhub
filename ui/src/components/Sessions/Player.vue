@@ -82,7 +82,7 @@
   </v-card-actions>
 
   <PlayerShortcutsDialog
-    v-model:showDialog="showDialog"
+    v-model="showShortcutsDialog"
   />
 </template>
 
@@ -105,7 +105,7 @@ const player = ref<AsciinemaPlayer.AsciinemaPlayer | null>(null);
 const playerWrapper = ref<HTMLDivElement | null>(null);
 
 const { smAndUp, mdAndUp } = useDisplay();
-const showDialog = ref(false);
+const showShortcutsDialog = ref(false);
 
 const isPlaying = ref(true);
 const sessionEnded = ref(false);
@@ -148,7 +148,7 @@ const pause = () => {
 
 const openDialog = () => {
   pause();
-  showDialog.value = true;
+  showShortcutsDialog.value = true;
 };
 
 const createPlayer = (startAt = 0) => {
@@ -209,9 +209,9 @@ onUnmounted(() => {
   player.value?.dispose();
 });
 
-watchEffect(() => !showDialog.value && changeFocusToPlayer());
+watchEffect(() => !showShortcutsDialog.value && changeFocusToPlayer());
 
-defineExpose({ player, currentSpeed, currentTime, isPlaying, showDialog, pause });
+defineExpose({ player, currentSpeed, currentTime, isPlaying, showShortcutsDialog, pause });
 </script>
 
 <style lang="scss" scoped>
