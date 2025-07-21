@@ -11,7 +11,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="450" v-model="showDialog">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface" data-test="member-delete-card">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="member-delete-dialog-title">
         Are you sure?
@@ -38,7 +38,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -46,17 +46,13 @@ import { ref } from "vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "@/components/BaseDialog.vue";
+import { INamespaceMember } from "@/interfaces/INamespace";
 
-const props = defineProps({
-  member: {
-    type: Object,
-    required: true,
-  },
-  hasAuthorization: {
-    type: Boolean,
-    required: true,
-  },
-});
+const props = defineProps<{
+  member: INamespaceMember;
+  hasAuthorization: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);

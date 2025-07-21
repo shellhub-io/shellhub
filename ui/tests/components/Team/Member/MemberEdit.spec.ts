@@ -17,10 +17,6 @@ const mockSnackbar = {
 };
 
 describe("Member Edit", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: MemberEditWrapper;
 
   const vuetify = createVuetify();
@@ -66,9 +62,6 @@ describe("Member Edit", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -87,9 +80,8 @@ describe("Member Edit", () => {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
-      attachTo: el,
       props: {
-        member: members[0], notHasAuthorization: false,
+        member: members[0], hasAuthorization: true,
       },
     });
   });

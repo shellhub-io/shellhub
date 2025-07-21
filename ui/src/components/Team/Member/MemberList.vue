@@ -76,7 +76,7 @@
                       <MemberEdit
                         :member="member"
                         @update="refresh"
-                        :notHasAuthorization="!hasAuthorizationEditMember()"
+                        :hasAuthorization="hasAuthorizationEditMember()"
                       />
                     </div>
                   </template>
@@ -158,24 +158,14 @@ const namespace = computed(() => store.getters["namespaces/get"].members);
 
 const hasAuthorizationEditMember = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.namespace.editMember,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.editMember);
 };
+
 const hasAuthorizationRemoveMember = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.namespace.removeMember,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.removeMember);
 };
+
 const getNamespace = async () => {
   try {
     await store.dispatch("namespaces/get", tenant.value);
@@ -192,8 +182,8 @@ const getNamespace = async () => {
     }
   }
 };
-const refresh = () => {
-  getNamespace();
+const refresh = async () => {
+  await getNamespace();
 };
 
 const isNamespaceOwner = (role: string) => role === "owner";
