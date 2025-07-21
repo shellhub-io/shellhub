@@ -1,9 +1,8 @@
 <template>
-  <v-dialog
-    v-model="dialog"
+  <BaseDialog
+    v-model="showDialog"
+    breakpoint="md"
     transition="dialog-bottom-transition"
-    max-width="650"
-    height="800"
     @click:outside="close"
     @keydown.esc="close"
   >
@@ -88,17 +87,18 @@
         </v-card-actions>
       </v-container>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "@/store";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
-const dialog = ref(false);
+const showDialog = ref(false);
 const close = () => {
-  dialog.value = false;
+  showDialog.value = false;
   store.commit("users/setShowPaywall", false);
 };
 const items = computed(() => store.getters["users/getPremiumContent"]);
@@ -107,7 +107,7 @@ onMounted(() => {
   store.dispatch("users/getPremiumContent");
 });
 
-defineExpose({ dialog });
+defineExpose({ showDialog });
 </script>
 
 <style scoped>

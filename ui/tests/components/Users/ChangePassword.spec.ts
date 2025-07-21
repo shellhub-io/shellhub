@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -43,9 +39,6 @@ describe("Change Password", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -61,9 +54,6 @@ describe("Change Password", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -77,7 +67,7 @@ describe("Change Password", () => {
   });
 
   it("Renders components", async () => {
-    wrapper.vm.show = true;
+    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
     expect(dialog.find('[data-test="password-change-card"]').exists()).toBe(true);
@@ -92,9 +82,9 @@ describe("Change Password", () => {
   it("Successfully Change Password", async () => {
     mockUser.onPatch("http://localhost:3000/api/users").reply(200);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(store, "dispatch");
 
-    wrapper.vm.show = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="password-input"]').setValue("xxxxxx");
@@ -103,7 +93,7 @@ describe("Change Password", () => {
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
 
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("users/patchPassword", {
+    expect(storeSpy).toHaveBeenCalledWith("users/patchPassword", {
       name: "test",
       username: undefined,
       email: "test@test.com",
@@ -118,7 +108,7 @@ describe("Change Password", () => {
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
-    wrapper.vm.show = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="password-input"]').setValue("xxxxxx");

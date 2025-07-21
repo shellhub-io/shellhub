@@ -3,7 +3,7 @@
     fluid
     data-test="account-profile-container"
   >
-    <UserDelete v-model:show="showDeleteAccountDialog" data-test="delete-user-dialog" />
+    <UserDelete v-model="showDeleteAccountDialog" data-test="delete-user-dialog" />
     <v-card
       variant="flat"
       class="bg-transparent"
