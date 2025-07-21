@@ -18,10 +18,6 @@ const mockSnackbar = {
 };
 
 describe("Member Invite", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: MemberInviteWrapper;
 
   const vuetify = createVuetify();
@@ -34,7 +30,7 @@ describe("Member Invite", () => {
     {
       id: "xxxxxxxx",
       username: "test",
-      role: "owner",
+      role: "owner" as const,
     },
   ];
 
@@ -67,9 +63,6 @@ describe("Member Invite", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -88,7 +81,6 @@ describe("Member Invite", () => {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
-      attachTo: el,
     });
   });
 
@@ -107,7 +99,7 @@ describe("Member Invite", () => {
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
-    expect(dialog.find('[data-test="namespaceNewMember-dialog"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="namespace-new-member-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="email-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="role-select"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
