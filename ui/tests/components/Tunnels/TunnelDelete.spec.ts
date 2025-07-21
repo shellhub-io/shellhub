@@ -10,10 +10,6 @@ import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type TunnelDeleteWrapper = VueWrapper<InstanceType<typeof TunnelDelete>>;
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -108,9 +104,6 @@ describe("Tunnel Delete", async () => {
   let mockTunnels: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
@@ -129,9 +122,6 @@ describe("Tunnel Delete", async () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: "fake-uid",
@@ -165,7 +155,7 @@ describe("Tunnel Delete", async () => {
   it("Successfully delete tunnel", async () => {
     mockTunnels.onDelete("http://localhost:3000/api/devices/fake-uid/tunnels/fake-address").reply(200);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="tunnel-delete-dialog-btn"]').trigger("click");
 
@@ -173,7 +163,7 @@ describe("Tunnel Delete", async () => {
 
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith("tunnels/delete", {
+    expect(storeSpy).toHaveBeenCalledWith("tunnels/delete", {
       uid: "fake-uid",
       address: "fake-address",
     });

@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     v-bind="$attrs"
-    @click="dialog = true"
+    @click="showDialog = true"
     :disabled="!hasAuthorizationCreateTunnel"
     data-test="tunnel-create-dialog-btn"
   >
@@ -13,7 +13,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog v-model="dialog" max-width="450" @click:outside="close()">
+  <BaseDialog v-model="showDialog" @click:outside="close()">
     <v-card data-test="tunnel-create-dialog" class="bg-v-theme-surface">
       <v-card-title class="bg-primary" data-test="create-dialog-title">
         Create Device Tunnel
@@ -86,7 +86,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -99,12 +99,13 @@ import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({ uid: { type: String, required: true } });
+const props = defineProps<{ uid: string }>();
 const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
-const dialog = ref(false);
+const showDialog = ref(false);
 const alertText = ref();
 
 const predefinedTimeouts = ref([
@@ -153,13 +154,13 @@ const timeout = computed(() => (selectedTimeout.value === "custom" ? customTimeo
 
 const hasAuthorizationCreateTunnel = () => {
   const role = store.getters["auth/role"];
-  return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
+  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 
 const hasErrors = () => !!(portError.value || hostError.value || customTimeoutError.value || !port.value || !host.value || !timeout.value);
 
 const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; resetCustomTimeout(); };
-const close = () => { resetFields(); dialog.value = false; };
+const close = () => { resetFields(); showDialog.value = false; };
 const update = () => { emit("update"); close(); };
 
 const addTunnel = async () => {
