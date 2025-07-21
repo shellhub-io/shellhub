@@ -136,8 +136,8 @@
                     <div v-bind="props">
                       <TagFormUpdate
                         :device-uid="item.uid"
-                        :tagsList="item.tags"
-                        :notHasAuthorization="!hasAuthorizationFormUpdate()"
+                        :tags-list="item.tags"
+                        :has-authorization="hasAuthorizationFormUpdate()"
                         @update="refreshDevices"
                       />
                     </div>
@@ -254,7 +254,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed, PropType } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { store } from "@/store";
 import { actions, authorizer } from "@/authorizer";
@@ -274,24 +274,12 @@ import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
 import { IContainerMethods } from "@/interfaces/IContainer";
 
-const props = defineProps({
-  storeMethods: {
-    type: Object as PropType<IDeviceMethods | IContainerMethods>,
-    required: true,
-  },
-  status: {
-    type: String as PropType<"accepted" | "pending" | "rejected">,
-    required: true,
-  },
-  header: {
-    type: String as PropType<"primary" | "secondary">,
-    required: true,
-  },
-  variant: {
-    type: String as PropType<"device" | "container">,
-    required: true,
-  },
-});
+const props = defineProps<{
+  storeMethods: IDeviceMethods | IContainerMethods;
+  status: "accepted" | "pending" | "rejected";
+  header: "primary" | "secondary";
+  variant: "device" | "container";
+}>();
 
 const { fetchDevices, setSort, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
 
@@ -441,26 +429,18 @@ const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
   copyFn(sshidAddress(item));
 };
 
-const refreshDevices = () => {
-  getDevices(itemsPerPage.value, page.value, filter.value);
+const refreshDevices = async () => {
+  await getDevices(itemsPerPage.value, page.value, filter.value);
 };
 
 const hasAuthorizationFormUpdate = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
 };
 
 const hasAuthorizationRemove = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.device.remove);
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.device.remove);
 };
 
 defineExpose({ page, getSortStatusField, getSortStatusString, showTerminalHelper, openTerminalHelper });

@@ -2,7 +2,7 @@
   <v-list-item
     v-bind="$attrs"
     @click="open"
-    :disabled="notHasAuthorization"
+    :disabled="!hasAuthorization"
     data-test="open-tags-btn"
   >
     <div class="d-flex align-center">
@@ -10,13 +10,13 @@
         <v-icon> mdi-tag </v-icon>
       </div>
 
-      <v-list-item-title data-test="hastags-verification">
+      <v-list-item-title data-test="has-tags-verification">
         {{ hasTags ? "Edit tags" : "Add Tags" }}
       </v-list-item-title>
     </div>
   </v-list-item>
 
-  <v-dialog v-model="showDialog" min-width="280" max-width="450">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
         {{ hasTags ? "Edit tags" : "Add Tags" }}
@@ -53,12 +53,12 @@
           Close
         </v-btn>
 
-        <v-btn variant="text" data-test="save-btn" @click="save()">
+        <v-btn variant="text" data-test="save-btn" color="primary" @click="save()">
           Save
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -67,22 +67,13 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  deviceUid: {
-    type: String,
-    required: true,
-  },
-  tagsList: {
-    type: Array<string>,
-    required: true,
-    default: [],
-  },
-  notHasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  deviceUid: string;
+  tagsList: string[];
+  hasAuthorization: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();

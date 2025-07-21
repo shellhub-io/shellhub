@@ -2,7 +2,7 @@
   <v-list-item
     @click="open"
     v-bind="$attrs"
-    :disabled="notHasAuthorization"
+    :disabled="!hasAuthorization"
     data-test="open-tag-edit"
   >
     <div class="d-flex align-center">
@@ -16,7 +16,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog v-model="showDialog" min-width="300" max-width="600">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary"> Update Tag </v-card-title>
       <v-divider />
@@ -43,12 +43,13 @@
           variant="text"
           data-test="edit-btn"
           @click="edit()"
+          :disabled="!!tagsError"
         >
           Edit
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -56,17 +57,13 @@ import { ref, computed, watch } from "vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  tag: {
-    type: String,
-    required: true,
-  },
-  notHasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  tag: string;
+  hasAuthorization: boolean;
+}>();
+
 const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
@@ -78,7 +75,7 @@ const tagsHasLessThan3Characters = computed(() => inputTags.value.length < 3);
 
 watch(inputTags, () => {
   if (inputTags.value.length > 255) {
-    tagsError.value = "Maximum of 3 tags";
+    tagsError.value = "The maximum length is 255 characters";
   } else if (tagsHasLessThan3Characters.value) {
     tagsError.value = "The minimum length is 3 characters";
   } else {
