@@ -92,7 +92,7 @@ exports[`Device List > Renders the component 1`] = `
                 <div class="v-field__input" data-no-activator="">
                   <!---->
                   <!---->
-                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-12" aria-describedby="input-v-12-messages" outlined="" value="10">
+                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-12" outlined="" value="10">
                 </div>
                 <!---->
               </div>

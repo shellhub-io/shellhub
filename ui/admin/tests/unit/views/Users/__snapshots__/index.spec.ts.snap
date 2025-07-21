@@ -28,7 +28,7 @@ exports[`Users > Renders the component 1`] = `
             <!----><label class="v-label v-field-label" for="input-v-0">
               <!---->Search by username
             </label>
-            <!----><input size="1" type="text" id="input-v-0" aria-describedby="input-v-0-messages" class="v-field__input" value="">
+            <!----><input size="1" type="text" id="input-v-0" class="v-field__input" value="">
             <!---->
           </div>
           <!---->
@@ -134,7 +134,7 @@ exports[`Users > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-4" aria-describedby="input-v-4-messages" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-4" outlined="" value="10">
                   </div>
                   <!---->
                 </div>

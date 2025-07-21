@@ -674,7 +674,7 @@ exports[`License > Renders the component 1`] = `
         <!----><i class="mdi-paperclip mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Select license file prepended action"></i>
       </div>
       <div class="v-input__control">
-        <div class="v-field v-field--appended v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr" prepend-icon="$file">
+        <div class="v-field v-field--appended v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr" prependicon="$file">
           <div class="v-field__overlay"></div>
           <div class="v-field__loader">
             <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -708,7 +708,7 @@ exports[`License > Renders the component 1`] = `
           </div>
           <div class="v-field__outline">
             <div class="v-field__outline__start"></div>
-            <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-7">
+            <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" for="input-v-7" aria-hidden="true">
                 <!---->Select license file
               </label></div>
             <div class="v-field__outline__end"></div>

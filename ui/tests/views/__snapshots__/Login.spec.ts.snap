@@ -34,7 +34,7 @@ exports[`Login > Renders the component 1`] = `
             <div class="v-field__prepend-inner"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
               <!---->
             </div>
-            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-0">
+            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-0" aria-hidden="true">
                 <!---->Username or email address
               </label><label class="v-label v-field-label" for="input-v-0">
                 <!---->Username or email address
@@ -80,7 +80,7 @@ exports[`Login > Renders the component 1`] = `
             <div class="v-field__prepend-inner"><i class="mdi-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
               <!---->
             </div>
-            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-2">
+            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="true">
                 <!---->Password
               </label><label class="v-label v-field-label" for="input-v-2">
                 <!---->Password

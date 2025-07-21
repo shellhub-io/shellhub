@@ -16,7 +16,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
           <div class="v-slider-track__fill bg-white" style="inset-inline-start: 0%; width: 0%;"></div>
           <!---->
         </div>
-        <div class="v-slider-thumb v-locale--is-ltr" style="--v-slider-thumb-position: 0%; --v-slider-thumb-size: 20px;" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-readonly="false" aria-orientation="horizontal" aria-describedby="input-v-1-messages" elevation="2">
+        <div class="v-slider-thumb v-locale--is-ltr" style="--v-slider-thumb-position: 0%; --v-slider-thumb-size: 20px;" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-readonly="false" aria-orientation="horizontal" elevation="2">
           <div class="v-slider-thumb__surface text-white elevation-2"></div>
           <div class="v-slider-thumb__ripple text-white"></div>
           <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
@@ -61,7 +61,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
           <div class="v-field__input" data-no-activator="">
             <!---->
             <!---->
-            <div class="v-select__selection"><span class="v-select__selection-text">1<!----></span></div><input size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" inputmode="none" aria-label="Open" title="Open" value="1">
+            <div class="v-select__selection"><span class="v-select__selection-text">1<!----></span></div><input size="1" type="text" id="input-v-2" inputmode="none" aria-label="Open" title="Open" value="1">
           </div>
           <!---->
         </div>

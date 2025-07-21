@@ -10,7 +10,7 @@ exports[`Setting Session Recording > Renders the component 1`] = `
           <!---->
           <!---->
         </div>
-        <div class="v-selection-control__input"><input checked="" disabled="" id="switch-v-0" aria-disabled="true" type="checkbox" aria-describedby="switch-v-0-messages" value="true">
+        <div class="v-selection-control__input"><input checked="" disabled="" id="switch-v-0" aria-disabled="true" type="checkbox" value="true">
           <div class="v-switch__thumb">
             <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
               <!---->

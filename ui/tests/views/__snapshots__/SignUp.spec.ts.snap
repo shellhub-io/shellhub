@@ -38,7 +38,7 @@ exports[`Sign Up > Renders the component 1`] = `
             <!---->
             <!---->
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-0">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-0" aria-hidden="true">
                 <!---->Name
               </label>
             </div>
@@ -84,7 +84,7 @@ exports[`Sign Up > Renders the component 1`] = `
             <!---->
             <!---->
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-2">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="true">
                 <!---->Username
               </label>
             </div>
@@ -130,7 +130,7 @@ exports[`Sign Up > Renders the component 1`] = `
             <!---->
             <!---->
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-4">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-4" aria-hidden="true">
                 <!---->Email
               </label>
             </div>
@@ -178,7 +178,7 @@ exports[`Sign Up > Renders the component 1`] = `
               <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
             </div>
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-6">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-6" aria-hidden="true">
                 <!---->Password
               </label>
             </div>
@@ -226,7 +226,7 @@ exports[`Sign Up > Renders the component 1`] = `
               <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Confirm Password appended action"></i>
             </div>
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-8">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
                 <!---->Confirm Password
               </label>
             </div>
@@ -248,7 +248,7 @@ exports[`Sign Up > Renders the component 1`] = `
           <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
             <div class="v-selection-control__wrapper">
               <!---->
-              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-10" aria-disabled="false" type="checkbox" aria-describedby="checkbox-v-10-messages" value="true"></div>
+              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-10" aria-disabled="false" type="checkbox" value="true"></div>
             </div><label class="v-label v-label--clickable" for="checkbox-v-10">
               <!----><span class="caption"> I agree to the <a href="https://www.shellhub.io/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
             </label>
@@ -263,7 +263,7 @@ exports[`Sign Up > Renders the component 1`] = `
           <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
             <div class="v-selection-control__wrapper">
               <!---->
-              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-13" aria-disabled="false" type="checkbox" aria-describedby="checkbox-v-13-messages" value="true"></div>
+              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-13" aria-disabled="false" type="checkbox" value="true"></div>
             </div><label class="v-label v-label--clickable" for="checkbox-v-13">
               <!---->
               <p> I accept to receive news and updates from ShellHub via email. </p>
