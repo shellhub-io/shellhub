@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="540">
+  <BaseDialog v-model="showDialog">
     <v-card data-test="user-delete-dialog" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test=title>
         Confirm Account Deletion
@@ -16,7 +16,7 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn variant="text" data-test="close-btn" @click="show = !show">
+        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
           Cancel
         </v-btn>
 
@@ -30,7 +30,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -38,11 +38,12 @@ import { useRouter } from "vue-router";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
 const router = useRouter();
-const show = defineModel<boolean>({ default: false });
+const showDialog = defineModel<boolean>({ default: false });
 
 const deleteAccount = async () => {
   try {
@@ -55,5 +56,5 @@ const deleteAccount = async () => {
   }
 };
 
-defineExpose({ show });
+defineExpose({ showDialog });
 </script>

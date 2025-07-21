@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { namespacesApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const members = [
   {
     id: "xxxxxxxx",
@@ -92,9 +88,6 @@ describe("PaywallDialog", async () => {
   })));
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
@@ -122,7 +115,7 @@ describe("PaywallDialog", async () => {
   });
 
   it("Renders the component table", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
@@ -131,34 +124,13 @@ describe("PaywallDialog", async () => {
     expect(dialog.find('[data-test="upgrade-heading"]').exists()).toBe(true);
     expect(dialog.find('[data-test="upgrade-description"]').exists()).toBe(true);
 
-    // expect(dialog.find('[data-test="item-card-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-card-1"]').exists()).toBe(true);
-
-    // expect(dialog.find('[data-test="item-title-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-title-1"]').exists()).toBe(true);
-
-    // expect(dialog.find('[data-test="item-content-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-content-1"]').exists()).toBe(true);
-
-    // expect(dialog.find('[data-test="item-content-row-0-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-content-row-0-1"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-content-row-1-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-content-row-1-1"]').exists()).toBe(true);
-
-    // expect(dialog.find('[data-test="pricing-btn-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="pricing-btn-1"]').exists()).toBe(true);
-
-    // expect(dialog.find('[data-test="item-actions-0"]').exists()).toBe(true);
-    // expect(dialog.find('[data-test="item-actions-1"]').exists()).toBe(true);
-
-    expect(dialog.find('[data-test="card-actions"]').exists()).toBe(true);
     expect(dialog.find('[data-test="card-actions"]').exists()).toBe(true);
 
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
   });
 
   it("Renders the component table with a successful request to get card infos", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
@@ -188,7 +160,7 @@ describe("PaywallDialog", async () => {
   });
 
   it("Renders the component table with a successful request to get card infos", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
 
     store.commit("users/setPremiumContent", []);
