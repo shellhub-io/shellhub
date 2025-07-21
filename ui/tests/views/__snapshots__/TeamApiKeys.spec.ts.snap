@@ -6,7 +6,7 @@ exports[`Team Api Keys > Renders the component 1`] = `
   <div class="v-spacer"></div>
   <div class="d-flex" data-test="api-key-generate">
     <div>
-      <div aria-describedby="v-tooltip-v-0"><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="namespace-generate-main-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div aria-describedby="v-tooltip-v-0"><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="api-key-generate-main-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""> Generate key </span>
           <!---->
           <!---->
