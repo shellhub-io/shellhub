@@ -1,8 +1,7 @@
 <template>
-  <v-dialog
+  <BaseDialog
     v-model="showDialog"
-    :fullscreen="!showLoginForm || smAndDown"
-    :max-width="smAndDown || !showLoginForm ? undefined : thresholds.sm"
+    :forceFullscreen="!showLoginForm"
     @click:outside="close"
   >
     <v-card data-test="terminal-card" class="bg-v-theme-surface">
@@ -26,7 +25,7 @@
       />
 
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -34,7 +33,6 @@ import { ref, watch } from "vue";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
 import { useRoute } from "vue-router";
-import { useDisplay } from "vuetify";
 import {
   IConnectToTerminal,
   LoginFormData,
@@ -47,6 +45,7 @@ import Terminal from "./Terminal.vue";
 
 // Utility to create key fingerprint for private key auth
 import { createKeyFingerprint } from "@/utils/validate";
+import BaseDialog from "../BaseDialog.vue";
 
 // Props: Device UID to connect the terminal session to
 const { deviceUid } = defineProps<{
@@ -57,9 +56,6 @@ const route = useRoute(); // current route
 const showLoginForm = ref(true); // controls whether login or terminal is shown
 const terminalKey = ref(0);
 const showDialog = defineModel<boolean>(); // controls visibility of dialog
-
-// Vuetify breakpoint info
-const { smAndDown, thresholds } = useDisplay();
 
 // Token and private key values for terminal connection
 const token = ref("");
