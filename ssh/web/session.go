@@ -239,9 +239,9 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 			switch message.Kind {
 			case messageKindInput:
-				buffer := message.Data.([]byte)
+				buffer := message.Data.(string)
 
-				if _, err := stdin.Write(buffer); err != nil {
+				if _, err := stdin.Write([]byte(buffer)); err != nil {
 					logger.WithError(err).Error("failed to write the message data on the SSH session")
 
 					return
