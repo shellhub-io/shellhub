@@ -29,6 +29,9 @@ func NewConn(socket Socket) *Conn {
 	}
 }
 
+// CharacterSize is the size of a single character in bytes when encoded in UTF-8.
+const CharacterSize = 4
+
 // ReadMessageBufferSize is the size of the buffer used to read messages from the websocket connection.
 //
 // [termios] is a POSIX-defined API for configuring terminal I/O settings in Unix-like systems (Linux, macOS, *BSD, etc.).
@@ -51,15 +54,11 @@ func NewConn(socket Socket) *Conn {
 //	always receive more input until at least one line can be read.
 //
 // As we read JSON messages from the websocket connection, we need to ensure that the buffer size is large enough
-// so, we have decided to use a buffer size of 4096 bytes, which is the maximum line length according to what was said.
-//
-// The buffer size is calculated as follows:
-//   - 20 bytes for the minimum size of a message, which is the size of the JSON object without data (the
-//     [MessageMinSize] constant).
-//   - 4096 bytes for the data, which is the maximum line length according to termios documentation.
+// so, we have decided to use a buffer size of 16404 bytes, which is the maximum line length according to what was
+// said.
 //
 // [termios]: https://www.man7.org/linux/man-pages/man3/termios.3.html
-const ReadMessageBufferSize = MessageMinSize + 4096 // 20 bytes for the message JSON + 4096 bytes for the data.
+const ReadMessageBufferSize = MessageMinSize + (4096 * CharacterSize)
 
 func (c *Conn) ReadMessage(message *Message) (int, error) {
 	buffer := make([]byte, ReadMessageBufferSize)
@@ -78,13 +77,13 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 
 	switch message.Kind {
 	case messageKindInput:
-		var bytes []byte
+		var bts []byte
 
-		if err = json.Unmarshal(data, &bytes); err != nil {
+		if err = json.Unmarshal(data, &bts); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
-		message.Data = bytes
+		message.Data = bts
 	case messageKindResize:
 		var dim Dimensions
 
@@ -94,13 +93,13 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 
 		message.Data = dim
 	case messageKindSignature:
-		var signed string
+		var sig string
 
-		if err = json.Unmarshal(data, &signed); err != nil {
+		if err = json.Unmarshal(data, &sig); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
-		message.Data = signed
+		message.Data = sig
 	default:
 		return 0, errors.Join(ErrConnReadMessageKindInvalid)
 	}

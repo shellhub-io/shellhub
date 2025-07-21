@@ -39,9 +39,9 @@ func TestConnReadMessage_input(t *testing.T) {
 		{
 			description: "fail when data read is not a JSON object",
 			requiredMocks: func() {
-				buffer := make([]byte, 4116)
+				buffer := make([]byte, 16404)
 
-				socket.On("Read", buffer).Return(4116, nil).Once()
+				socket.On("Read", buffer).Return(16404, nil).Once()
 			},
 			expect: Expected{
 				message: &Message{Data: new(json.RawMessage)},
@@ -52,7 +52,7 @@ func TestConnReadMessage_input(t *testing.T) {
 		{
 			description: "success to read the message",
 			requiredMocks: func() {
-				buffer := make([]byte, 4116)
+				buffer := make([]byte, 16404)
 
 				socket.On("Read", buffer).Return(24, nil).Run(func(args mock.Arguments) {
 					b := args.Get(0).([]byte)
@@ -119,9 +119,9 @@ func TestConnReadMessage_resize(t *testing.T) {
 		{
 			description: "fail when data read is not a JSON object",
 			requiredMocks: func() {
-				buffer := make([]byte, 4116)
+				buffer := make([]byte, 16404)
 
-				socket.On("Read", buffer).Return(4116, nil).Once()
+				socket.On("Read", buffer).Return(16404, nil).Once()
 			},
 			expect: Expected{
 				message: &Message{Data: new(json.RawMessage)},
@@ -132,7 +132,7 @@ func TestConnReadMessage_resize(t *testing.T) {
 		{
 			description: "success to read the message",
 			requiredMocks: func() {
-				buffer := make([]byte, 4116)
+				buffer := make([]byte, 16404)
 
 				socket.On("Read", buffer).Return(40, nil).Run(func(args mock.Arguments) {
 					b := args.Get(0).([]byte)
