@@ -33,7 +33,7 @@
                   <div v-bind="props">
                     <TagEdit
                       :tag="tag"
-                      :not-has-authorization="!hasAuthorizationEdit()"
+                      :has-authorization="hasAuthorizationEdit()"
                       @update="getTags()"
                     />
                   </div>
@@ -46,7 +46,7 @@
                   <div v-bind="props">
                     <TagRemove
                       :tag="tag"
-                      :not-has-authorization="!hasAuthorizationRemove()"
+                      :has-authorization="hasAuthorizationRemove()"
                       @update="getTags()"
                     />
                   </div>
@@ -95,18 +95,12 @@ const tags = computed(() => store.getters["tags/list"]);
 
 const hasAuthorizationEdit = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.tag.edit);
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.tag.edit);
 };
 
 const hasAuthorizationRemove = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.tag.remove);
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.tag.remove);
 };
 
 const getTags = async () => {

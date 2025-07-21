@@ -141,6 +141,8 @@ import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import TunnelList from "../components/Tunnels/TunnelList.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
@@ -192,6 +194,11 @@ const refreshDevices = async () => {
     snackbar.showError("There was an error loading the device details.");
     handleError(error);
   }
+};
+
+const hasAuthorizationFormUpdate = () => {
+  const role = store.getters["auth/role"];
+  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
 };
 
 const receiveName = (params: string) => {

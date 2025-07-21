@@ -8,10 +8,6 @@ import { router } from "@/router";
 import { namespacesApi, devicesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -134,10 +130,6 @@ describe("Tag Form Update", async () => {
   let mockDevices: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
@@ -160,8 +152,8 @@ describe("Tag Form Update", async () => {
       props: {
         deviceUid: devices[0].uid,
         tagsList: devices[0].tags,
+        hasAuthorization: true,
       },
-      attachTo: el,
     });
   });
 
@@ -178,7 +170,7 @@ describe("Tag Form Update", async () => {
     await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
     await flushPromises();
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    expect(wrapper.find('[data-test="hastags-verification"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="has-tags-verification"]').exists()).toBe(true);
     expect(dialog.find('[data-test="title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="deviceTag-combobox"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);

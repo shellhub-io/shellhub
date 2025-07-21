@@ -8,10 +8,6 @@ import { router } from "@/router";
 import { namespacesApi, devicesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -106,9 +102,6 @@ describe("Tag Form Edit", async () => {
   let mockTags: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
@@ -127,12 +120,10 @@ describe("Tag Form Edit", async () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         tag: "test",
+        hasAuthorization: true,
       },
     });
     await wrapper.setProps({ tag: "tag-test" });
