@@ -86,7 +86,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="test">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-1" required="" class="v-field__input" value="test">
                     <!---->
                   </div>
                   <!---->
@@ -185,7 +185,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <!---->
                       <!---->
                     </div>
-                    <div class="v-selection-control__input"><input checked="" id="switch-v-6" aria-disabled="false" type="checkbox" aria-describedby="switch-v-6-messages" value="true">
+                    <div class="v-selection-control__input"><input checked="" id="switch-v-6" aria-disabled="false" type="checkbox" value="true">
                       <div class="v-switch__thumb">
                         <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->

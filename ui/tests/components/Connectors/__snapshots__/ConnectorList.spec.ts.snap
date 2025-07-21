@@ -32,7 +32,7 @@ exports[`Connector List > Renders the component 1`] = `
                             <!---->
                             <!---->
                           </div>
-                          <div class="v-selection-control__input"><input checked="" id="switch-v-0" aria-disabled="false" type="checkbox" aria-describedby="switch-v-0-messages" value="true">
+                          <div class="v-selection-control__input"><input checked="" id="switch-v-0" aria-disabled="false" type="checkbox" value="true">
                             <div class="v-switch__thumb">
                               <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                                 <!---->
@@ -120,7 +120,7 @@ exports[`Connector List > Renders the component 1`] = `
               <div class="v-field__input" data-no-activator="">
                 <!---->
                 <!---->
-                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-9" aria-describedby="input-v-9-messages" outlined="" value="10">
+                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-9" outlined="" value="10">
               </div>
               <!---->
             </div>

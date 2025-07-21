@@ -43,7 +43,7 @@ exports[`Setup Account > Renders the component 1`] = `
                     <!---->
                     <!---->
                     <div class="v-field__outline">
-                      <!----><label class="v-label v-field-label v-field-label--floating" aria-hidden="true" for="input-v-1">
+                      <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
                         <!---->Sign
                       </label>
                     </div>
