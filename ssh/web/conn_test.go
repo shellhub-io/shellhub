@@ -28,20 +28,20 @@ func TestConnReadMessage_input(t *testing.T) {
 		{
 			description: "fail when socket reading fail",
 			requiredMocks: func() {
-				socket.On("Read", mock.Anything).Return(0, errors.New("")).Once()
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(0, errors.New("")).Once()
 			},
 			expect: Expected{
-				message: new(Message),
-				read:    0,
-				err:     ErrConnReadMessageSocketRead,
+				message: &Message{
+					Data: new(json.RawMessage),
+				},
+				read: 0,
+				err:  ErrConnReadMessageJSONInvalid,
 			},
 		},
 		{
 			description: "fail when data read is not a JSON object",
 			requiredMocks: func() {
-				buffer := make([]byte, 16404)
-
-				socket.On("Read", buffer).Return(16404, nil).Once()
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(512, nil).Once()
 			},
 			expect: Expected{
 				message: &Message{Data: new(json.RawMessage)},
@@ -52,9 +52,7 @@ func TestConnReadMessage_input(t *testing.T) {
 		{
 			description: "success to read the message",
 			requiredMocks: func() {
-				buffer := make([]byte, 16404)
-
-				socket.On("Read", buffer).Return(24, nil).Run(func(args mock.Arguments) {
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(24, nil).Run(func(args mock.Arguments) {
 					b := args.Get(0).([]byte)
 
 					buf, _ := json.Marshal(Message{
@@ -108,20 +106,18 @@ func TestConnReadMessage_resize(t *testing.T) {
 		{
 			description: "fail when socket reading fail",
 			requiredMocks: func() {
-				socket.On("Read", mock.Anything).Return(0, errors.New("")).Once()
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(0, errors.New("")).Once()
 			},
 			expect: Expected{
-				message: new(Message),
+				message: &Message{Data: new(json.RawMessage)},
 				read:    0,
-				err:     ErrConnReadMessageSocketRead,
+				err:     ErrConnReadMessageJSONInvalid,
 			},
 		},
 		{
 			description: "fail when data read is not a JSON object",
 			requiredMocks: func() {
-				buffer := make([]byte, 16404)
-
-				socket.On("Read", buffer).Return(16404, nil).Once()
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(512, nil).Once()
 			},
 			expect: Expected{
 				message: &Message{Data: new(json.RawMessage)},
@@ -132,9 +128,7 @@ func TestConnReadMessage_resize(t *testing.T) {
 		{
 			description: "success to read the message",
 			requiredMocks: func() {
-				buffer := make([]byte, 16404)
-
-				socket.On("Read", buffer).Return(40, nil).Run(func(args mock.Arguments) {
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(40, nil).Run(func(args mock.Arguments) {
 					b := args.Get(0).([]byte)
 
 					buf, _ := json.Marshal(Message{

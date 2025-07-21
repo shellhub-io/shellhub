@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
 
@@ -61,25 +62,23 @@ const CharacterSize = 4
 const ReadMessageBufferSize = MessageMinSize + (4096 * CharacterSize)
 
 func (c *Conn) ReadMessage(message *Message) (int, error) {
-	buffer := make([]byte, ReadMessageBufferSize)
-
-	read, err := c.Socket.Read(buffer)
-	if err != nil {
-		return read, errors.Join(ErrConnReadMessageSocketRead, err)
-	}
+	limit := io.LimitReader(c.Socket, ReadMessageBufferSize)
+	decoder := json.NewDecoder(limit)
 
 	var data json.RawMessage
 	message.Data = &data
 
-	if err = json.Unmarshal(buffer[:read], &message); err != nil {
-		return 0, errors.Join(ErrConnReadMessageJSONInvalid)
+	if err := decoder.Decode(message); err != nil {
+		log.WithError(err).Error("failed to read a line from the websocket connection")
+
+		return 0, errors.Join(ErrConnReadMessageJSONInvalid, err)
 	}
 
 	switch message.Kind {
 	case messageKindInput:
 		var bts []byte
 
-		if err = json.Unmarshal(data, &bts); err != nil {
+		if err := json.Unmarshal(data, &bts); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
@@ -87,7 +86,7 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 	case messageKindResize:
 		var dim Dimensions
 
-		if err = json.Unmarshal(data, &dim); err != nil {
+		if err := json.Unmarshal(data, &dim); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
@@ -95,7 +94,7 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 	case messageKindSignature:
 		var sig string
 
-		if err = json.Unmarshal(data, &sig); err != nil {
+		if err := json.Unmarshal(data, &sig); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
@@ -104,7 +103,7 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 		return 0, errors.Join(ErrConnReadMessageKindInvalid)
 	}
 
-	return read, nil
+	return int(decoder.InputOffset()), nil
 }
 
 func (c *Conn) WriteMessage(message *Message) (int, error) {
