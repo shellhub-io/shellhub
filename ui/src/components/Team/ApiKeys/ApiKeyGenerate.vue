@@ -6,8 +6,8 @@
           <v-btn
             :disabled="!hasAuthorization"
             color="primary"
-            @click="dialog = !dialog"
-            data-test="namespace-generate-main-btn"
+            @click="showDialog = true"
+            data-test="api-key-generate-main-btn"
           >
             Generate key
           </v-btn>
@@ -16,8 +16,8 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <v-dialog v-model="dialog" @click:outside="close" max-width="450">
-      <v-card data-test="namespace-generate-dialog" class="bg-v-theme-surface">
+    <BaseDialog v-model="showDialog" @click:outside="close">
+      <v-card data-test="api-key-generate-dialog" class="bg-v-theme-surface">
         <v-card-title class="bg-primary">New Api Key</v-card-title>
 
         <v-card-text v-if="failKey">
@@ -25,16 +25,15 @@
             :text="errorMessage"
             type="error"
             class="mt-1"
-            data-test="failMessage-alert"
+            data-test="fail-message-alert"
           />
         </v-card-text>
 
-        <v-card-text data-test="namespace-generate-title">
+        <v-card-text data-test="api-key-generate-title">
           Generate a key that is scoped to the namespace and is appropriate for personal API usage via HTTPS.
-        </v-card-text>
 
-        <v-card-text>
           <v-text-field
+            class="mt-6"
             v-model="keyName"
             :error-messages="keyInputError"
             label="Key Name"
@@ -42,12 +41,9 @@
             required
             data-test="key-name-text"
             messages="Provide a distinct name for this key,
-            which might be visible to resource owners or individuals in possession of the key."
+          which might be visible to resource owners or individuals in possession of the key."
           />
-        </v-card-text>
-
-        <v-card-text class="mt-2">
-          <v-row>
+          <v-row class="mt-6">
             <v-col>
               <v-select
                 v-model="selectedDate"
@@ -56,7 +52,7 @@
                 :item-props="true"
                 :hint="expirationHint"
                 return-object
-                data-test="namespace-generate-date"
+                data-test="api-key-generate-date"
               />
             </v-col>
             <v-col>
@@ -67,18 +63,18 @@
                 :items="itemsRoles"
                 :item-props="true"
                 return-object
-                data-test="namespace-generate-role"
+                data-test="api-key-generate-role"
               />
             </v-col>
           </v-row>
-        </v-card-text>
 
+        </v-card-text>
         <v-card-text v-if="successKey">
           <v-alert
             text="Make sure to copy your key now as you will not be able to see it again."
             type="success"
             class="mb-2"
-            data-test="successKey-alert"
+            data-test="success-key-alert"
           />
           <CopyWarning :copied-item="'API Key'">
             <template #default="{ copyText }">
@@ -89,7 +85,7 @@
                 readonly
                 density="compact"
                 @click="copyText(keyResponse)"
-                data-test="keyResponse-text"
+                data-test="key-response-text"
               />
             </template>
           </CopyWarning>
@@ -105,7 +101,7 @@
           </v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -121,28 +117,21 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import BaseDialog from "@/components/BaseDialog.vue";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const store = useStore();
-
-const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.apiKey.create,
-    );
-  }
-  return false;
-});
-
-const dialog = ref(false);
+const showDialog = ref(false);
 const successKey = ref(false);
 const failKey = ref(false);
 const errorMessage = ref("");
 const keyResponse = computed(() => store.getters["apiKeys/apiKey"]);
 const isAdmin = computed(() => ["administrator", "owner"].includes(store.getters["auth/role"]));
+const hasAuthorization = computed(() => {
+  const role = store.getters["auth/role"];
+  return !!role && hasPermission(authorizer.role[role], actions.apiKey.create);
+});
 
 const {
   value: keyName,
@@ -273,8 +262,8 @@ const generateKey = async () => {
 };
 
 const close = () => {
+  showDialog.value = false;
   failKey.value = false;
-  dialog.value = false;
   successKey.value = false;
   keyName.value = "";
   [selectedDate.value] = itemsDate;

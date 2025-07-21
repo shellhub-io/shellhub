@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 type ApiKeyEditWrapper = VueWrapper<InstanceType<typeof ApiKeyEdit>>;
 
 const mockSnackbar = {
@@ -86,9 +82,6 @@ describe("Api Key Edit", () => {
   ];
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -110,9 +103,6 @@ describe("Api Key Edit", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         keyName: "fake-id",
