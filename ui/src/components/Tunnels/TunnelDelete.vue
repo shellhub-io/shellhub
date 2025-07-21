@@ -9,7 +9,7 @@
     :disabled="!hasAuthorizationDeleteTunnel"
     data-test="tunnel-delete-dialog-btn"
   />
-  <v-dialog max-width="450" v-model="showDialog">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="title">
         Are you sure?
@@ -32,7 +32,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -41,21 +41,16 @@ import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps({
-  uid: {
-    type: String,
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  uid: string;
+  address: string;
+}>();
 
 const emit = defineEmits(["update"]);
 const showDialog = defineModel({ default: false });
@@ -69,13 +64,7 @@ const update = () => {
 
 const hasAuthorizationDeleteTunnel = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.tunnel.delete,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.tunnel.delete);
 };
 
 const remove = async () => {

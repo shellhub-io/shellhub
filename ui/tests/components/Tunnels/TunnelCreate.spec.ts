@@ -10,10 +10,6 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type TunnelCreateWrapper = VueWrapper<InstanceType<typeof TunnelCreate>>;
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const devices = [
   {
     uid: "a582b47a42d",
@@ -111,9 +107,6 @@ describe("Tunnel Create", async () => {
   let mockTunnels: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
