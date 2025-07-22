@@ -280,16 +280,16 @@ const handleInviteError = (error: unknown) => {
   }
 };
 
+const getInvitePayload = () => ({
+  email: email.value,
+  tenant_id: store.getters["auth/tenant"],
+  role: selectedRole.value.toLocaleLowerCase(),
+});
+
 const generateLinkInvite = async () => {
   try {
-    await store.dispatch("namespaces/generateInvitationLink", {
-      email: email.value,
-      tenant_id: store.getters["auth/tenant"],
-      role: selectedRole.value,
-    });
-
+    await store.dispatch("namespaces/generateInvitationLink", getInvitePayload());
     snackbar.showSuccess("Invitation link generated successfully.");
-
     formWindow.value = "form-2";
   } catch (error) {
     handleInviteError(error);
@@ -298,14 +298,8 @@ const generateLinkInvite = async () => {
 
 const sendEmailInvite = async () => {
   try {
-    await store.dispatch("namespaces/sendEmailInvitation", {
-      email: email.value,
-      tenant_id: store.getters["auth/tenant"],
-      role: selectedRole.value.toLocaleLowerCase(),
-    });
-
+    await store.dispatch("namespaces/sendEmailInvitation", getInvitePayload());
     snackbar.showSuccess("Invitation email sent successfully.");
-
     update();
     resetFields();
   } catch (error) {
