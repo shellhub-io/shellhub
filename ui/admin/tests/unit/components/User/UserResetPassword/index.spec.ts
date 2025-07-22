@@ -3,14 +3,10 @@ import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
+import UserResetPassword from "@admin/components/User/UserResetPassword.vue";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import UserResetPassword from "../../../../../src/components/User/UserResetPassword.vue";
 
 type UserResetPasswordWrapper = VueWrapper<InstanceType<typeof UserResetPassword>>;
-
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
 
 const mockSnackbar = {
   showInfo: vi.fn(),
@@ -23,8 +19,6 @@ describe("User Reset Password", () => {
   const mockProps = { userId: "user123" };
 
   beforeEach(() => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
     setActivePinia(createPinia());
 
     const userStore = useUsersStore();
@@ -58,7 +52,7 @@ describe("User Reset Password", () => {
 
   it("opens the dialog when the icon is clicked", async () => {
     await wrapper.find("[data-test='open-dialog-icon']").trigger("click");
-    expect(wrapper.vm.dialog).toBe(true);
+    expect(wrapper.vm.showDialog).toBe(true);
   });
 
   it("closes the dialog and resets step", async () => {
@@ -69,7 +63,7 @@ describe("User Reset Password", () => {
 
     await dialog.find("[data-test='close-btn']").trigger("click");
 
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(false);
     expect(wrapper.vm.step).toBe("step-1");
   });
 

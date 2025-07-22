@@ -48,7 +48,7 @@ describe("UserFormDialog With prop 'createUser' equals false", () => {
       },
     });
 
-    wrapper.vm.openDialog();
+    wrapper.vm.showDialog = true;
   });
 
   it("Is a Vue instance", () => {
@@ -103,6 +103,6 @@ describe("UserFormDialog With prop 'createUser' equals true", () => {
   it("Compare data with default value", () => {
     expect(wrapper.vm.titleCard).toEqual("Add User");
     expect(wrapper.vm.createUser).toEqual(true);
-    expect(wrapper.vm.isConfirmed).toBeUndefined();
+    expect(wrapper.vm.isConfirmed).toBe(false);
   });
 });
