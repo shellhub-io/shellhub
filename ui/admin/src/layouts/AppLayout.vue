@@ -1,143 +1,141 @@
 <template>
-  <v-app :theme="getStatusDarkMode">
-    <v-app-bar theme="dark">
-      <v-app-bar-nav-icon class="hidden-lg-and-up" @click.stop="drawer = !drawer" aria-label="Toggle Menu" />
+  <v-app-bar theme="dark">
+    <v-app-bar-nav-icon class="hidden-lg-and-up" @click.stop="drawer = !drawer" aria-label="Toggle Menu" />
 
-      <v-app-bar-title>
-        <router-link :to="{ name: 'dashboard' }" class="admin-name text-decoration-none">
-          <div class="d-flex">
-            <v-img
-              :src="Logo"
-              max-width="180"
-              alt="Shell logo, a cloud with the writing 'Admin' on the right side"
-            />
-            <span class="mt-4 text-overline">admin</span>
+    <v-app-bar-title>
+      <router-link :to="{ name: 'dashboard' }" class="admin-name text-decoration-none">
+        <div class="d-flex">
+          <v-img
+            :src="Logo"
+            max-width="180"
+            alt="Shell logo, a cloud with the writing 'Admin' on the right side"
+          />
+          <span class="mt-4 text-overline">admin</span>
+        </div>
+      </router-link>
+    </v-app-bar-title>
+
+    <v-spacer />
+
+    <v-menu anchor="bottom">
+      <template v-slot:activator="{ props }">
+        <v-chip dark v-bind="props" class="mr-8">
+          <v-icon left class="mr-2"> mdi-account </v-icon>
+          {{ currentUser || "ADMIN DF" }}
+          <v-icon right> mdi-chevron-down </v-icon>
+        </v-chip>
+      </template>
+      <v-list class="mr-8">
+        <v-list-item
+          v-for="item in menu"
+          :key="item.title"
+          :value="item"
+          :data-test="item.title"
+          @click="triggerClick(item)"
+        >
+          <div class="d-flex align-center">
+            <div>
+              <v-icon :icon="item.icon" />
+            </div>
+
+            <v-list-item-title>
+              {{ item.title }}
+            </v-list-item-title>
           </div>
-        </router-link>
-      </v-app-bar-title>
+        </v-list-item>
 
-      <v-spacer />
+        <v-divider />
 
-      <v-menu anchor="bottom">
-        <template v-slot:activator="{ props }">
-          <v-chip dark v-bind="props" class="mr-8">
-            <v-icon left class="mr-2"> mdi-account </v-icon>
-            {{ currentUser || "ADMIN DF" }}
-            <v-icon right> mdi-chevron-down </v-icon>
-          </v-chip>
-        </template>
-        <v-list class="mr-8">
-          <v-list-item
-            v-for="item in menu"
-            :key="item.title"
-            :value="item"
-            :data-test="item.title"
-            @click="triggerClick(item)"
-          >
-            <div class="d-flex align-center">
-              <div>
-                <v-icon :icon="item.icon" />
-              </div>
+        <v-list-item density="compact">
+          <v-switch
+            label="Dark Mode"
+            :model-value="isDarkMode"
+            @change="toggleDarkMode"
+            density="compact"
+            data-test="dark-mode-switch"
+            color="primary"
+            hide-details
+          />
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </v-app-bar>
 
+  <v-navigation-drawer v-if="isLoggedIn" theme="dark" v-model="drawer" expand-on-hover>
+    <v-list density="compact" data-test="list">
+      <template v-for="item in visibleItems" :key="item.title">
+        <v-list-group
+          v-if="item.children"
+          prepend-icon="mdi-chevron-down"
+          v-model="subMenuState[item.title]"
+          data-test="list-group"
+        >
+          <template v-slot:activator="{ props }">
+            <v-list-item
+              lines="two"
+              v-bind="props"
+            >
+              <template #prepend>
+                <v-icon data-test="icon">
+                  {{ item.icon }}
+                </v-icon>
+              </template>
               <v-list-item-title>
                 {{ item.title }}
               </v-list-item-title>
-            </div>
-          </v-list-item>
-
-          <v-divider />
-
-          <v-list-item density="compact">
-            <v-switch
-              label="Dark Mode"
-              :model-value="isDarkMode"
-              @change="toggleDarkMode"
-              density="compact"
-              data-test="dark-mode-switch"
-              color="primary"
-              hide-details
-            />
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-app-bar>
-
-    <v-navigation-drawer v-if="isLoggedIn" theme="dark" v-model="drawer" expand-on-hover>
-      <v-list density="compact" data-test="list">
-        <template v-for="item in visibleItems" :key="item.title">
-          <v-list-group
-            v-if="item.children"
-            prepend-icon="mdi-chevron-down"
-            v-model="subMenuState[item.title]"
-            data-test="list-group"
-          >
-            <template v-slot:activator="{ props }">
-              <v-list-item
-                lines="two"
-                v-bind="props"
-              >
-                <template #prepend>
-                  <v-icon data-test="icon">
-                    {{ item.icon }}
-                  </v-icon>
-                </template>
-                <v-list-item-title>
-                  {{ item.title }}
-                </v-list-item-title>
-              </v-list-item>
-            </template>
-
-            <v-list-item
-              v-for="child in getFilteredChildren(item.children)"
-              :key="child.title"
-              :to="child.path"
-              data-test="list-item"
-            >
-              <v-list-item-title :data-test="`${child.title}-listItem`">
-                {{ child.title }}
-              </v-list-item-title>
             </v-list-item>
-          </v-list-group>
+          </template>
 
           <v-list-item
-            v-else
-            :to="item.path"
-            lines="two"
-            class="mb-2"
+            v-for="child in getFilteredChildren(item.children)"
+            :key="child.title"
+            :to="child.path"
             data-test="list-item"
           >
-            <template #prepend>
-              <v-icon data-test="icon">
-                {{ item.icon }}
-              </v-icon>
-            </template>
-            <v-list-item-title :data-test="`${item.icon}-listItem`">
-              {{ item.title }}
+            <v-list-item-title :data-test="`${child.title}-listItem`">
+              {{ child.title }}
             </v-list-item-title>
           </v-list-item>
-        </template>
-      </v-list>
-    </v-navigation-drawer>
+        </v-list-group>
 
-    <Snackbar />
+        <v-list-item
+          v-else
+          :to="item.path"
+          lines="two"
+          class="mb-2"
+          data-test="list-item"
+        >
+          <template #prepend>
+            <v-icon data-test="icon">
+              {{ item.icon }}
+            </v-icon>
+          </template>
+          <v-list-item-title :data-test="`${item.icon}-listItem`">
+            {{ item.title }}
+          </v-list-item-title>
+        </v-list-item>
+      </template>
+    </v-list>
+  </v-navigation-drawer>
 
-    <v-main>
-      <slot>
-        <v-container class="pa-8" fluid>
-          <router-view :key="currentRoute.value.path" />
-        </v-container>
-      </slot>
-    </v-main>
+  <Snackbar />
 
-    <v-overlay v-model="hasSpinner">
-      <div class="full-width-height d-flex justify-center align-center">
-        <v-progress-circular
-          indeterminate
-          size="64"
-        />
-      </div>
-    </v-overlay>
-  </v-app>
+  <v-main>
+    <slot>
+      <v-container class="pa-8" fluid>
+        <router-view :key="currentRoute.value.path" />
+      </v-container>
+    </slot>
+  </v-main>
+
+  <v-overlay v-model="hasSpinner">
+    <div class="full-width-height d-flex justify-center align-center">
+      <v-progress-circular
+        indeterminate
+        size="64"
+      />
+    </div>
+  </v-overlay>
 </template>
 
 <script setup lang="ts">

@@ -1,153 +1,149 @@
 <template>
-  <v-app
-    :theme="getStatusDarkMode"
-    v-bind="$attrs"
+  <v-navigation-drawer
+    theme="dark"
+    v-model="showNavigationDrawer"
+    :permanent="permanent"
+    absolute
+    app
+    class="bg-v-theme-surface"
+    data-test="navigation-drawer"
+
   >
-    <v-navigation-drawer
-      theme="dark"
-      v-model="showNavigationDrawer"
-      :permanent="permanent"
-      absolute
-      app
-      class="bg-v-theme-surface"
-      data-test="navigation-drawer"
-    >
-      <v-toolbar class="bg-v-theme-surface" data-test="drawer-toolbar">
-        <v-spacer />
-        <router-link
-          to="/"
-          class="text-decoration-none"
-        >
-          <v-img
-            :src="Logo"
-            min-width="140"
-            alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
-            data-test="logo"
-          />
-        </router-link>
-        <v-spacer />
-      </v-toolbar>
-
-      <div class="pa-2" v-if="hasNamespaces">
-        <Namespace data-test="namespace-component" />
-      </div>
-
-      <div class="d-flex justify-center" v-else>
-        <v-btn
-          color="primary"
-          @click="showNamespaceAdd = true"
-          data-test="save-btn">
-          Add Namespace
-        </v-btn>
-        <NamespaceAdd
-          v-model="showNamespaceAdd"
-          enableSwitchIn
-          data-test="namespaceAdd-component"
+    <v-toolbar class="bg-v-theme-surface" data-test="drawer-toolbar">
+      <v-spacer />
+      <router-link
+        to="/"
+        class="text-decoration-none"
+      >
+        <v-img
+          :src="Logo"
+          min-width="140"
+          alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
+          data-test="logo"
         />
-      </div>
+      </router-link>
+      <v-spacer />
+    </v-toolbar>
 
-      <v-list density="compact" class="bg-v-theme-surface" data-test="list">
-        <template v-for="item in visibleItems" :key="item.title">
-          <v-list-group
-            v-if="item.children"
-            prepend-icon="mdi-chevron-down"
-            v-model="subMenuState[item.title]"
-            data-test="list-group"
-          >
-            <template v-slot:activator="{ props }">
-              <v-list-item
-                lines="two"
-                v-bind="props"
-                :disabled="disableItem(item.title)">
-                <template #prepend>
-                  <v-icon data-test="icon">
-                    {{ item.icon }}
-                  </v-icon>
-                </template>
-                <v-list-item-title>
-                  {{ item.title }}
-                </v-list-item-title>
-              </v-list-item>
-            </template>
+    <div class="pa-2" v-if="hasNamespaces">
+      <Namespace data-test="namespace-component" />
+    </div>
 
+    <div class="d-flex justify-center" v-else>
+      <v-btn
+        color="primary"
+        @click="showNamespaceAdd = true"
+        data-test="save-btn">
+        Add Namespace
+      </v-btn>
+      <NamespaceAdd
+        v-model="showNamespaceAdd"
+        enableSwitchIn
+        data-test="namespaceAdd-component"
+      />
+    </div>
+
+    <v-list density="compact" class="bg-v-theme-surface" data-test="list">
+      <template v-for="item in visibleItems" :key="item.title">
+        <v-list-group
+          v-if="item.children"
+          prepend-icon="mdi-chevron-down"
+          v-model="subMenuState[item.title]"
+          data-test="list-group"
+        >
+          <template v-slot:activator="{ props }">
             <v-list-item
-              v-for="child in getFilteredChildren(item.children)"
-              :key="child.title"
-              :to="child.path"
-              :disabled="disableItem(item.title)"
-              data-test="list-item"
-            >
-              <v-list-item-title :data-test="child.title + '-listItem'">
-                {{ child.title }}
+              lines="two"
+              v-bind="props"
+              :disabled="disableItem(item.title)">
+              <template #prepend>
+                <v-icon data-test="icon">
+                  {{ item.icon }}
+                </v-icon>
+              </template>
+              <v-list-item-title>
+                {{ item.title }}
               </v-list-item-title>
             </v-list-item>
-          </v-list-group>
+          </template>
 
           <v-list-item
-            v-else
-            :to="item.path"
-            lines="two"
-            class="mb-2"
+            v-for="child in getFilteredChildren(item.children)"
+            :key="child.title"
+            :to="child.path"
             :disabled="disableItem(item.title)"
             data-test="list-item"
           >
-            <template #prepend>
-              <v-icon data-test="icon">
-                {{ item.icon }}
-              </v-icon>
-            </template>
-            <template #append>
-              <v-icon
-                v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
-                color="yellow"
-                size="x-small"
-                icon="mdi-crown"
-                data-test="icon"
-              />
-            </template>
-            <v-list-item-title :data-test="item.icon + '-listItem'">
-              {{ item.title }}
+            <v-list-item-title :data-test="child.title + '-listItem'">
+              {{ child.title }}
             </v-list-item-title>
           </v-list-item>
-        </template>
+        </v-list-group>
 
-        <v-col class="d-flex align-end justify-center">
-          <QuickConnection />
-        </v-col>
-      </v-list>
-    </v-navigation-drawer>
-
-    <Snackbar />
-
-    <AppBar v-model="showNavigationDrawer" data-test="app-bar" />
-
-    <v-main data-test="main">
-      <slot>
-        <v-container
-          :class="{ 'pa-8': true, 'container-light-bg': getStatusDarkMode == 'light' }"
-          fluid
-          data-test="container"
+        <v-list-item
+          v-else
+          :to="item.path"
+          lines="two"
+          class="mb-2"
+          :disabled="disableItem(item.title)"
+          data-test="list-item"
         >
-          <router-view :key="currentRoute.value.path" />
-        </v-container>
-      </slot>
-    </v-main>
+          <template #prepend>
+            <v-icon data-test="icon">
+              {{ item.icon }}
+            </v-icon>
+          </template>
+          <template #append>
+            <v-icon
+              v-if="item.isPremium && envVariables.isCommunity && envVariables.premiumPaywall"
+              color="yellow"
+              size="x-small"
+              icon="mdi-crown"
+              data-test="icon"
+            />
+          </template>
+          <v-list-item-title :data-test="item.icon + '-listItem'">
+            {{ item.title }}
+          </v-list-item-title>
+        </v-list-item>
+      </template>
 
-    <v-overlay
-      :model-value="hasSpinner"
-      :scrim="false"
-      contained
-      class="align-center justify-center w-100 h-100"
-      data-test="overlay"
-    >
-      <v-progress-circular
-        indeterminate
-        size="64"
-        alt="Request loading"
-        data-test="progress-circular"
-      />
-    </v-overlay>
-  </v-app>
+      <v-col class="d-flex align-end justify-center">
+        <QuickConnection />
+      </v-col>
+    </v-list>
+  </v-navigation-drawer>
+
+  <Snackbar />
+
+  <AppBar v-model="showNavigationDrawer" data-test="app-bar" />
+
+  <v-main data-test="main">
+    <slot>
+      <v-container
+        :class="{ 'pa-8': true, 'container-light-bg': getStatusDarkMode == 'light' }"
+        fluid
+        data-test="container"
+      >
+        <router-view :key="currentRoute.value.path" />
+      </v-container>
+    </slot>
+  </v-main>
+
+  <v-overlay
+    :model-value="hasSpinner"
+    :scrim="false"
+    contained
+    class="align-center justify-center w-100 h-100"
+    data-test="overlay"
+  >
+    <v-progress-circular
+      indeterminate
+      size="64"
+      alt="Request loading"
+      data-test="progress-circular"
+    />
+  </v-overlay>
 
   <UserWarning data-test="userWarning-component" />
 </template>

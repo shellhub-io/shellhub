@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :theme="getStatusDarkMode">
     <component
       :is="layout"
       :data-test="`${layout}-component`" />
@@ -18,6 +18,6 @@ const components = {
 };
 
 const layoutStore = useLayoutStore();
-
+const getStatusDarkMode = computed(() => layoutStore.getStatusDarkMode);
 const layout = computed(() => components[layoutStore.getLayout]);
 </script>

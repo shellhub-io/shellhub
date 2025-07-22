@@ -1,7 +1,7 @@
 <template>
   <v-snackbar
     v-model="show"
-    location="top"
+    location="top center"
     :timeout="4000"
     :color="color"
     transition="slide-x-transition"
