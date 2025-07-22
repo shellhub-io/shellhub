@@ -33,7 +33,7 @@ func NewConn(socket Socket) *Conn {
 // CharacterSize is the size of a single character in bytes when encoded in UTF-8.
 const CharacterSize = 4
 
-// ReadMessageBufferSize is the size of the buffer used to read messages from the websocket connection.
+// TermniosMaxLineLength is the maximum line length for a terminal input in characters.
 //
 // [termios] is a POSIX-defined API for configuring terminal I/O settings in Unix-like systems (Linux, macOS, *BSD, etc.).
 // It provides fine-grained control over how terminals (TTYs and PTYs) handle input, output, and line discipline
@@ -54,12 +54,15 @@ const CharacterSize = 4
 //	newline is discarded.  This ensures that the terminal can
 //	always receive more input until at least one line can be read.
 //
-// As we read JSON messages from the websocket connection, we need to ensure that the buffer size is large enough
-// so, we have decided to use a buffer size of 16404 bytes, which is the maximum line length according to what was
-// said.
-//
 // [termios]: https://www.man7.org/linux/man-pages/man3/termios.3.html
-const ReadMessageBufferSize = MessageMinSize + (4096 * CharacterSize)
+const TermniosMaxLineLength = 4096
+
+// ReadMessageBufferSize is the size of the buffer used to read messages from the websocket connection.
+//
+// As we read JSON messages from the websocket connection, we need to ensure that the buffer size is large enough
+// so, we have decided to use a buffer size of 16404 bytes, which is the [TermniosMaxLineLength] plus the size of the
+// minimum message size [MessageMinSize].
+const ReadMessageBufferSize = MessageMinSize + (TermniosMaxLineLength * CharacterSize)
 
 func (c *Conn) ReadMessage(message *Message) (int, error) {
 	limit := io.LimitReader(c.Socket, ReadMessageBufferSize)
@@ -76,13 +79,13 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 
 	switch message.Kind {
 	case messageKindInput:
-		var bts []byte
+		var str string
 
-		if err := json.Unmarshal(data, &bts); err != nil {
+		if err := json.Unmarshal(data, &str); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
 		}
 
-		message.Data = bts
+		message.Data = str
 	case messageKindResize:
 		var dim Dimensions
 
