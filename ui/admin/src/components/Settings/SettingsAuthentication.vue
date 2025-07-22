@@ -1,5 +1,5 @@
 <template>
-  <ConfigureSSO v-model="dialogSSO" data-test="configure-sso-dialog" />
+  <ConfigureSSO v-model="showSSODialog" data-test="configure-sso-dialog" />
 
   <div class="pb-2">
     <h1 data-test="auth-header">Authentication</h1>
@@ -150,7 +150,7 @@
             </v-tooltip>
           </v-col>
           <v-col md="1" sm="3" class="ml-auto d-flex w-100 justify-end align-center">
-            <v-btn @click="dialogSSO = true" data-test="sso-config-btn">{{ ssoSettings.saml?.enabled ? "Edit" : "Configure" }}</v-btn>
+            <v-btn @click="showSSODialog = true" data-test="sso-config-btn">{{ ssoSettings.saml?.enabled ? "Edit" : "Configure" }}</v-btn>
           </v-col>
         </v-row>
       </div>
@@ -165,7 +165,7 @@ import useInstanceStore from "@admin/store/modules/instance";
 import useSnackbar from "@/helpers/snackbar";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
 
-const dialogSSO = ref(false);
+const showSSODialog = ref(false);
 const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
 
@@ -201,7 +201,7 @@ const samlEnabled = computed({
 
       instanceStore.updateSamlAuthentication(payload);
     } else {
-      dialogSSO.value = true;
+      showSSODialog.value = true;
     }
   },
 });
@@ -240,7 +240,7 @@ const changeSamlAuthStatus = async () => {
 
       await instanceStore.updateSamlAuthentication(payload);
     } else {
-      dialogSSO.value = true;
+      showSSODialog.value = true;
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -285,5 +285,5 @@ const copyAssertionURL = (value: string | undefined) => {
   }
 };
 
-defineExpose({ dialogSSO, samlEnabled, certificate });
+defineExpose({ showSSODialog, samlEnabled, certificate });
 </script>
