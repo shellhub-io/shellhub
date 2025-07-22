@@ -52,12 +52,12 @@ func TestConnReadMessage_input(t *testing.T) {
 		{
 			description: "success to read the message",
 			requiredMocks: func() {
-				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(24, nil).Run(func(args mock.Arguments) {
+				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(21, nil).Run(func(args mock.Arguments) {
 					b := args.Get(0).([]byte)
 
 					buf, _ := json.Marshal(Message{
 						Kind: messageKindInput,
-						Data: []byte("a"),
+						Data: "a",
 					})
 
 					copy(b, buf)
@@ -66,9 +66,9 @@ func TestConnReadMessage_input(t *testing.T) {
 			expect: Expected{
 				message: &Message{
 					Kind: messageKindInput,
-					Data: []byte("a"),
+					Data: "a",
 				},
-				read: 24,
+				read: 21,
 				err:  nil,
 			},
 		},
