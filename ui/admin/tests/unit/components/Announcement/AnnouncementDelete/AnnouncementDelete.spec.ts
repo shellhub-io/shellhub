@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import AnnouncementDelete from "@admin/components/Announcement/AnnouncementDelete.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import AnnouncementDelete from "../../../../../src/components/Announcement/AnnouncementDelete.vue";
-import routes from "../../../../../src/router";
 
 type AnnouncementDeleteWrapper = VueWrapper<InstanceType<typeof AnnouncementDelete>>;
 
@@ -43,7 +43,12 @@ describe("Announcement Delete", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", () => {
-    expect(wrapper.vm.dialog).toBe(false);
+  it("Opens the dialog on delete button click", async () => {
+    expect(wrapper.vm.showDialog).toBe(false);
+
+    const deleteButton = wrapper.find('[data-test="delete-button"]');
+    await deleteButton.trigger("click");
+
+    expect(wrapper.vm.showDialog).toBe(true);
   });
 });

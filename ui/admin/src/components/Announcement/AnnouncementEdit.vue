@@ -2,27 +2,25 @@
   <v-tooltip bottom anchor="bottom">
     <template v-slot:activator="{ props }">
       <v-icon
-        @click="dialog = !dialog"
-        tag="a"
+        @click="open"
+        tag="button"
         dark
         v-bind="props"
         tabindex="0"
-        aria-label="Dialog edit announcement"
-        @keypress.enter="dialog = !dialog"
+        data-test="edit-button"
+        @keypress.enter="open"
       >mdi-pencil
       </v-icon>
     </template>
     <span>Edit</span>
   </v-tooltip>
 
-  <v-dialog
-    v-model="dialog"
-    max-width="70vw"
+  <BaseDialog
+    v-model="showDialog"
     persistent
     :retain-focus="false"
     :eager="true"
     transition="dialog-bottom-transition"
-    z-index="1000"
   >
     <v-card>
       <v-card-title class="text-h5 pb-2"> Edit Announcement </v-card-title>
@@ -60,7 +58,7 @@
                     class="mt-2"
                     data-test="announcement-error"
                   >
-                    The announcement cannot be empty !
+                    The announcement cannot be empty!
                   </v-alert>
 
                   <v-alert
@@ -82,20 +80,21 @@
           <v-spacer />
           <v-btn
             text
-            @click="dialog = false"
+            @click="showDialog = false"
             aria-label="Cancel"
           >Cancel
           </v-btn>
           <v-btn
             text
             type="submit"
+            color="primary"
             aria-label="Edit"
           >Submit
           </v-btn>
         </v-card-actions>
       </form>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -106,21 +105,18 @@ import MarkdownIt from "markdown-it";
 import TurndownService from "turndown";
 import * as yup from "yup";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
 import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "../../envVariables";
 import handleError from "@/utils/handleError";
+import BaseDialog from "@/components/BaseDialog.vue";
 
-const props = defineProps({
-  announcementItem: {
-    type: Object,
-    required: true,
-  },
-});
+const props = defineProps<{ announcementItem: IAdminAnnouncementShort }>();
 
 const emit = defineEmits(["update"]);
 const announcementStore = useAnnouncementStore();
 const snackbar = useSnackbar();
-const dialog = ref(false);
+const showDialog = ref(false);
 const md = new MarkdownIt();
 const turndownService = new TurndownService();
 const tinyMceKey = computed(() => envVariables.tinyMceKey);
@@ -141,11 +137,10 @@ const getAnnouncement = async () => {
   contentInHtml.value = md.render(announcement.value.content as string);
 };
 
-watch(dialog, async (val) => {
-  if (val) {
-    await getAnnouncement();
-  }
-});
+const open = async () => {
+  await getAnnouncement();
+  showDialog.value = true;
+};
 
 watch(contentInHtml, () => {
   if (contentInHtml.value) {
@@ -164,7 +159,7 @@ const onSubmit = async () => {
     const contentInMarkdown = turndownService.turndown(contentInHtml.value);
     await announcementStore.updateAnnouncement(announcement.value.uuid as string, { title: title.value ?? "", content: contentInMarkdown });
     snackbar.showSuccess("Announcement updated successfully.");
-    dialog.value = false;
+    showDialog.value = false;
     emit("update");
   } catch (error) {
     handleError(error);
@@ -172,7 +167,7 @@ const onSubmit = async () => {
   }
 };
 
-defineExpose({ dialog, announcement, contentInHtml, contentError, title });
+defineExpose({ showDialog, announcement, contentInHtml, contentError, title });
 </script>
 
 <style lang="scss">

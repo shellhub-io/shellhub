@@ -2,10 +2,11 @@
   <v-tooltip bottom anchor="bottom">
     <template v-slot:activator="{ props }">
       <v-icon
-        tag="a"
+        tag="button"
         dark
         v-bind="props"
-        @click="dialog = !dialog"
+        data-test="delete-button"
+        @click="showDialog = true"
       >
         mdi-delete
       </v-icon>
@@ -13,7 +14,7 @@
     <span>Remove</span>
   </v-tooltip>
 
-  <v-dialog max-width="450" v-model="dialog">
+  <BaseDialog v-model="showDialog">
     <v-card>
       <v-card-title class="lighten-2 text-center mt-2">
         Are you sure?
@@ -28,12 +29,12 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn text @click="dialog = !dialog"> Cancel </v-btn>
+        <v-btn text @click="showDialog = false"> Cancel </v-btn>
 
         <v-btn color="red darken-1" text @click="remove()"> Remove </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -41,30 +42,26 @@ import { ref } from "vue";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
+import BaseDialog from "@/components/BaseDialog.vue";
 
-const props = defineProps({
-  uuid: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{ uuid: string }>();
 
 const emit = defineEmits(["update"]);
-const dialog = ref(false);
+const showDialog = ref(false);
 const announcement = useAnnouncementStore();
 const snackbar = useSnackbar();
-const remove = async () => {
-  dialog.value = !dialog.value;
 
+const remove = async () => {
   try {
     await announcement.deleteAnnouncement(props.uuid);
     emit("update");
     snackbar.showSuccess("Announcement deleted successfully.");
+    showDialog.value = false;
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to delete announcement.");
   }
 };
 
-defineExpose({ dialog });
+defineExpose({ showDialog });
 </script>
