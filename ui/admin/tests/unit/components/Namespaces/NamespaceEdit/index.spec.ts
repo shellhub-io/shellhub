@@ -3,14 +3,10 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
+import NamespaceEdit from "@admin/components/Namespace/NamespaceEdit.vue";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import NamespaceEdit from "../../../../../src/components/Namespace/NamespaceEdit.vue";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
-
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
 
 const namespace = {
   billing: {
@@ -54,8 +50,6 @@ describe("Namespace Edit", () => {
   let wrapper: NamespaceEditWrapper;
 
   beforeEach(() => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
     setActivePinia(createPinia());
 
     const vuetify = createVuetify();
@@ -82,6 +76,12 @@ describe("Namespace Edit", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it("Has the correct initial data", () => {
+    expect(wrapper.vm.name).toBe(namespace.name);
+    expect(wrapper.vm.maxDevices).toBe(namespace.max_devices);
+    expect(wrapper.vm.sessionRecord).toBe(namespace.settings.session_record);
   });
 
   it("Calls namespace store and snackbar on form submission", async () => {

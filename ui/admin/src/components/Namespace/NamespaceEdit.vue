@@ -2,21 +2,20 @@
   <v-tooltip bottom anchor="bottom">
     <template v-slot:activator="{ props }">
       <v-icon
-        @click="dialog = !dialog"
-        tag="a"
+        @click="showDialog = true"
+        tag="button"
         dark
         v-bind="props"
         tabindex="0"
         aria-label="Edit Namespace"
         data-test="dialog-btn"
-        @keypress.enter="dialog = !dialog"
       >mdi-pencil
       </v-icon>
     </template>
     <span>Edit</span>
   </v-tooltip>
 
-  <v-dialog v-model="dialog" max-width="400" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
     <v-card>
       <v-card-title class="text-h5 pb-2"> Edit Namespace </v-card-title>
       <v-divider />
@@ -64,51 +63,46 @@
         </v-card-text>
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn class="mr-2" color="dark" @click="dialog = false" type="reset"> Cancel </v-btn>
-          <v-btn color="dark" type="submit" class="mr-4"> Save </v-btn>
+          <v-btn class="mr-2" @click="showDialog = false" type="reset"> Cancel </v-btn>
+          <v-btn color="primary" type="submit" class="mr-4"> Save </v-btn>
         </v-card-actions>
       </form>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref, PropType, onMounted, watch } from "vue";
+import { ref } from "vue";
 import * as yup from "yup";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminNamespace } from "../../interfaces/INamespace";
+import BaseDialog from "@/components/BaseDialog.vue";
 
-const props = defineProps({
-  namespace: {
-    type: Object as PropType<IAdminNamespace>,
-    required: true,
-  },
-});
+const props = defineProps<{ namespace: IAdminNamespace }>();
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
-
-const dialog = ref(false);
+const showDialog = ref(false);
 
 const { value: name, errorMessage: nameError } = useField<string | undefined>(
   "name",
   yup.string().required(),
+  { initialValue: props.namespace.name },
 );
 
 const { value: maxDevices, errorMessage: maxDevicesError } = useField<number | undefined>(
   "maxDevices",
   yup.number().required(),
+  { initialValue: props.namespace.max_devices },
 );
 
-const { value: sessionRecord, errorMessage: sessionRecordError } = useField<boolean>("sessionRecord", yup.boolean());
-
-onMounted(() => {
-  name.value = props.namespace.name;
-  maxDevices.value = props.namespace.max_devices;
-  sessionRecord.value = props.namespace.settings.session_record || false;
-});
+const { value: sessionRecord, errorMessage: sessionRecordError } = useField<boolean>(
+  "sessionRecord",
+  yup.boolean(),
+  { initialValue: props.namespace.settings.session_record || false },
+);
 
 const hasErrors = () => nameError.value || maxDevicesError.value || sessionRecordError.value;
 
@@ -122,18 +116,11 @@ const onSubmit = async () => {
     });
     await namespacesStore.refresh();
     snackbar.showSuccess("Namespace updated successfully.");
-    dialog.value = false;
+    showDialog.value = false;
   } else {
     snackbar.showError("Please fill in all required fields.");
   }
 };
 
-watch(dialog, () => {
-  if (!dialog.value) {
-    name.value = props.namespace.name;
-    maxDevices.value = props.namespace.max_devices;
-    sessionRecord.value = props.namespace.settings.session_record;
-  }
-});
-defineExpose({ dialog, onSubmit });
+defineExpose({ name, maxDevices, sessionRecord, onSubmit });
 </script>
