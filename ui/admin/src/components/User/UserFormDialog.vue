@@ -1,12 +1,11 @@
 <template>
   <v-btn
     v-if="createUser"
-    @click="openDialog"
+    @click="showDialog = true"
     class="mr-2"
     outlined
     tabindex="0"
     aria-label="Dialog Add user"
-    @keypress.enter="openDialog"
     data-test="user-add-btn"
   >
     Add User
@@ -15,20 +14,19 @@
   <v-tooltip v-else bottom anchor="bottom">
     <template v-slot:activator="{ props }">
       <v-icon
-        @click="openDialog"
-        tag="a"
+        @click="showDialog = true"
+        tag="button"
         dark
         v-bind="props"
         tabindex="0"
         aria-label="Dialog edit user"
-        @keypress.enter="openDialog"
       >mdi-pencil
       </v-icon>
     </template>
     <span>Edit</span>
   </v-tooltip>
 
-  <v-dialog v-model="dialog" max-width="400" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" @click:outside="close" transition="dialog-bottom-transition">
     <v-card>
       <v-card-title class="text-h5 pb-2">{{ titleCard }}</v-card-title>
       <v-divider />
@@ -122,78 +120,77 @@
         </v-card-text>
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn class="mr-2" color="dark" @click="dialog = false" type="reset">Cancel</v-btn>
-          <v-btn class="mr-2" color="dark" type="submit">
-            <span v-if="createUser">Create</span>
-            <span v-else>Update</span>
-          </v-btn>
+          <v-btn class="mr-2" @click="close" type="reset">Cancel</v-btn>
+          <v-btn class="mr-2" color="primary" type="submit">{{ createUser ? "Create" : "Update" }}</v-btn>
         </v-card-actions>
       </form>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, PropType } from "vue";
+import { ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
 import { IUser } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "@/components/BaseDialog.vue";
 
-const props = defineProps({
-  createUser: {
-    type: Boolean,
-    default: false,
-  },
-  user: {
-    type: Object as PropType<IUser>,
-    default: () => ({}),
-  },
-  titleCard: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  createUser?: boolean;
+  user?: IUser;
+  titleCard: string;
+}>();
 
-const dialog = ref(false);
+const showDialog = ref(false);
 const showPassword = ref(false);
-const changeNamespaceLimit = ref(false);
+const changeNamespaceLimit = ref(props.user?.max_namespaces !== -1);
 const disableNamespaceCreation = ref(false);
 const maxNamespaces = ref(props.user?.max_namespaces || 0);
-const canChangeStatus = props.user.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
+const canChangeStatus = props.user?.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
 const userStore = useUsersStore();
-const statusTooltipMessage = props.user.status === "invited"
+const statusTooltipMessage = props.user?.status === "invited"
   ? "You cannot change the status of an invited user."
   : "You cannot remove confirmation from a user.";
 
 const { value: name,
   errorMessage: nameError,
   resetField: resetName,
-} = useField<string | undefined>("name", yup.string().required());
+} = useField<string | undefined>("name", yup.string().required(), {
+  initialValue: props.user?.name,
+});
 
 const { value: email,
   errorMessage: emailError,
   resetField: resetEmail,
-} = useField<string | undefined>("email", yup.string().email().required());
+} = useField<string | undefined>("email", yup.string().email().required(), {
+  initialValue: props.user?.email,
+});
 
 const { value: username,
   errorMessage: usernameError,
   resetField: resetUsername,
-} = useField<string | undefined>("username", yup.string().required());
+} = useField<string | undefined>("username", yup.string().required(), {
+  initialValue: props.user?.username,
+});
 
 const {
   value: password,
   errorMessage: passwordError,
   resetField: resetPassword,
-} = useField<string | undefined>("password");
+} = useField<string | undefined>("password", undefined, {
+  initialValue: undefined,
+});
 
 const {
   value: isConfirmed,
   resetField: resetIsConfirmed,
-} = useField<boolean | undefined>("isConfirmed");
+} = useField<boolean | undefined>("isConfirmed", undefined, {
+  initialValue: props.user?.status === "confirmed",
+});
 
 const resetFormFields = () => {
   resetName();
@@ -201,24 +198,6 @@ const resetFormFields = () => {
   resetUsername();
   resetPassword();
   resetIsConfirmed();
-};
-
-const populateFieldsFromProps = () => {
-  name.value = props.user?.name;
-  email.value = props.user?.email;
-  username.value = props.user?.username;
-  password.value = undefined;
-  isConfirmed.value = props.user?.status === "confirmed";
-  maxNamespaces.value = props.user?.max_namespaces || 0;
-  changeNamespaceLimit.value = props.user?.max_namespaces !== -1;
-};
-
-const openDialog = () => {
-  dialog.value = true;
-  resetFormFields();
-  if (!props.createUser) {
-    populateFieldsFromProps();
-  }
 };
 
 const togglePasswordVisibility = () => {
@@ -263,7 +242,7 @@ const submitUser = async (isCreating: boolean, userData: Record<string, unknown>
     snackbar.showSuccess(`User ${isCreating ? "added" : "updated"} successfully.`);
 
     await userStore.refresh();
-    dialog.value = false;
+    showDialog.value = false;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       handleErrors(error as AxiosError);
@@ -304,9 +283,10 @@ const onSubmit = handleSubmit(async () => {
   }
 });
 
-watch(dialog, (newValue) => {
-  if (!newValue) resetFormFields();
-});
+const close = () => {
+  showDialog.value = false;
+  resetFormFields();
+};
 
 watch(changeNamespaceLimit, (newValue) => {
   if (!newValue) disableNamespaceCreation.value = false;
@@ -317,7 +297,7 @@ watch(disableNamespaceCreation, (newValue) => {
 });
 
 defineExpose({
-  openDialog,
+  showDialog,
   password,
   name,
   email,

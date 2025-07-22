@@ -3,8 +3,8 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
+import UserExport from "@admin/components/User/UserExport.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import UserExport from "../../../../../src/components/User/UserExport.vue";
 
 type UserExportWrapper = VueWrapper<InstanceType<typeof UserExport>>;
 
