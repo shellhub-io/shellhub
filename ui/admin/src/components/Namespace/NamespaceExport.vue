@@ -1,7 +1,7 @@
 <template>
   <v-btn @click="showDialog = true" class="mr-2" data-test="namespaces-export-btn">Export CSV</v-btn>
 
-  <v-dialog v-model="showDialog" max-width="400" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
     <v-card>
       <v-card-title class="text-h5 pb-2">Export namespaces data</v-card-title>
       <v-divider />
@@ -31,7 +31,7 @@
         </v-card-actions>
       </v-form>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -44,6 +44,7 @@ import getFilter from "@admin/hooks/namespaceExport";
 import { AdminNamespaceFilterOptions } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
+import BaseDialog from "@/components/BaseDialog.vue";
 
 const showDialog = ref(false);
 const isLoading = ref(false);
