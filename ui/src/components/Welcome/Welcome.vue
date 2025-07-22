@@ -1,8 +1,6 @@
 <template>
-  <v-dialog
-    v-model="showWelcome"
-    max-width="800px"
-    min-width="60vw"
+  <BaseDialog
+    v-model="showDialog"
     :retain-focus="false"
     persistent
   >
@@ -80,11 +78,11 @@
         </v-window-item>
       </v-window>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useStore } from "@/store";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
@@ -92,29 +90,16 @@ import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 type Timer = ReturnType<typeof setInterval>;
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    required: true,
-  },
-});
-const emit = defineEmits(["update"]);
+const showDialog = defineModel<boolean>({ required: true });
 const store = useStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
 const polling = ref<Timer | undefined>(undefined);
 const enable = ref(false);
-const showWelcome = computed<boolean>({
-  get() {
-    return props.show;
-  },
-  set(value) {
-    emit("update", value);
-  },
-});
 
 const curl = ref({
   hostname: window.location.hostname,
@@ -168,8 +153,7 @@ const command = () => {
 };
 
 const close = () => {
-  emit("update", false);
-  showWelcome.value = false;
+  showDialog.value = false;
   if (polling.value) {
     clearTimeout(polling.value);
   }

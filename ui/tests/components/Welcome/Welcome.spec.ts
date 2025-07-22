@@ -1,7 +1,7 @@
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import { store, key } from "@/store";
 import Welcome from "@/components/Welcome/Welcome.vue";
 import { envVariables } from "@/envVariables";
@@ -12,10 +12,6 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 type WelcomeWrapper = VueWrapper<InstanceType<typeof Welcome>>;
 
 describe("Welcome", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: WelcomeWrapper;
 
   const vuetify = createVuetify();
@@ -53,10 +49,6 @@ describe("Welcome", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
-
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -70,12 +62,9 @@ describe("Welcome", () => {
     wrapper = mount(Welcome, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
-        show: true,
+        modelValue: true,
       },
     });
   });

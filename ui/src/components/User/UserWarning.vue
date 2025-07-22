@@ -5,8 +5,7 @@
   />
 
   <Welcome
-    v-model:show="show"
-    @update="show = false"
+    v-model="showWelcome"
     data-test="welcome-component"
   />
 
@@ -73,7 +72,7 @@ const snackbar = useSnackbar();
 const store = useStore();
 const router = useRouter();
 const showInstructions = ref(false);
-const show = ref<boolean>(false);
+const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
 const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
@@ -128,7 +127,7 @@ const showScreenWelcome = async () => {
     status = true;
   }
 
-  show.value = status;
+  showWelcome.value = status;
 };
 
 const checkAnnouncements = async () => {
