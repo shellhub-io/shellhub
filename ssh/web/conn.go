@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"time"
+	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	log "github.com/sirupsen/logrus"
@@ -83,6 +84,12 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 
 		if err := json.Unmarshal(data, &str); err != nil {
 			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
+		}
+
+		// NOTE: Enforce the maximum line length for terminal input even when the buffer store more characters than
+		// [TermniosMaxLineLength], as the PTY slave will truncate the input to 4096 characters.
+		if utf8.RuneCountInString(str) > TermniosMaxLineLength {
+			return 0, errors.Join(ErrConnReadMessageInputTooLong)
 		}
 
 		message.Data = str
