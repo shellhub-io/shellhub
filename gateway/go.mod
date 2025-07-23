@@ -12,7 +12,7 @@ require (
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.14.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.32.0
 	golang.org/x/sys v0.28.0
 )
