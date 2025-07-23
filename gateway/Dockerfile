@@ -32,7 +32,7 @@ RUN go build
 # development stage
 FROM base AS development
 
-COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
+COPY --from=openresty/openresty:1.25.3.2-5-alpine-apk /usr/local/openresty /usr/local/openresty
 
 RUN mkdir /etc/shellhub-gateway
 
@@ -60,7 +60,7 @@ FROM alpine:3.22.1 AS production
 
 RUN apk add libgcc curl certbot certbot-nginx certbot-dns certbot-dns-digitalocean certbot-dns-cloudflare
 
-COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
+COPY --from=openresty/openresty:1.25.3.2-5-alpine-apk /usr/local/openresty /usr/local/openresty
 
 RUN mkdir /etc/shellhub-gateway
 
