@@ -1,6 +1,0 @@
-{
-  "extends": ["config:base"],
-  "enabledManagers": [],
-  "prHourlyLimit": 0,
-  "prConcurrentLimit": 0
-}
