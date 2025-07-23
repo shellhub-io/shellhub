@@ -1,6 +1,7 @@
 package web
 
 import (
+	"math"
 	"net/http"
 	"testing"
 
@@ -123,8 +124,8 @@ func TestGetDimensions(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when cols or rows exceed the uint8 limit",
-			uri:         "http://localhost?cols=256&rows=256",
+			description: "fail when cols or rows exceed the uint32 limit",
+			uri:         "http://localhost?cols=4294967296&rows=4294967296",
 			expected: Expected{
 				cols: 0,
 				rows: 0,
@@ -132,11 +133,11 @@ func TestGetDimensions(t *testing.T) {
 			},
 		},
 		{
-			description: "success to get the cols and rows unint8 limit",
-			uri:         "http://localhost?cols=255&rows=255",
+			description: "success to get the cols and rows uint32 limit",
+			uri:         "http://localhost?cols=4294967295&rows=4294967295",
 			expected: Expected{
-				cols: 255,
-				rows: 255,
+				cols: math.MaxUint32,
+				rows: math.MaxUint32,
 				err:  nil,
 			},
 		},

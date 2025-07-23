@@ -17,8 +17,8 @@ func getToken(req *http.Request) (string, error) {
 }
 
 func getDimensions(req *http.Request) (int, int, error) {
-	toUint8 := func(text string) (uint64, error) {
-		integer, err := strconv.ParseUint(text, 10, 8)
+	toUint32 := func(text string) (uint64, error) {
+		integer, err := strconv.ParseUint(text, 10, 32)
 		if err != nil {
 			return 0, err
 		}
@@ -26,17 +26,17 @@ func getDimensions(req *http.Request) (int, int, error) {
 		return integer, nil
 	}
 
-	cols, err := toUint8(req.URL.Query().Get("cols"))
+	cols, err := toUint32(req.URL.Query().Get("cols"))
 	if err != nil {
 		return 0, 0, errors.Join(ErrGetDimensions, err)
 	}
 
-	rows, err := toUint8(req.URL.Query().Get("rows"))
+	rows, err := toUint32(req.URL.Query().Get("rows"))
 	if err != nil {
 		return 0, 0, errors.Join(ErrGetDimensions, err)
 	}
 
-	// nolint: gosec // cols and rows are uint8, so we can safely convert them to int.
+	// nolint: gosec // cols and rows are uint32, so we can safely convert them to int.
 	return int(cols), int(rows), nil
 }
 
