@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
@@ -85,7 +86,7 @@ func EncodeUserClaims(claims authorizer.UserClaims, privateKey *rsa.PrivateKey) 
 // EncodeDeviceClaims encodes the provided device claims into a signed JWT token. It returns
 // the encoded token and an error, if any.
 func EncodeDeviceClaims(claims authorizer.DeviceClaims, privateKey *rsa.PrivateKey) (string, error) {
-	now := time.Now()
+	now := clock.Now()
 	jwtClaims := deviceClaims{
 		Kind:         kindDeviceClaims,
 		DeviceClaims: claims,
