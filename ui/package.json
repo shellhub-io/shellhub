@@ -32,7 +32,7 @@
     "@stripe/stripe-js": "^1.38.1",
     "@tinymce/tinymce-vue": "^6.1.0",
     "@vue/eslint-config-airbnb": "^7.0.0",
-    "@vue/eslint-config-typescript": "^11.0.2",
+    "@vue/eslint-config-typescript": "^14.0.0",
     "@vue/runtime-dom": "^3.2.40",
     "@vueuse/core": "^8.2.0",
     "assert": "^2.0.0",
