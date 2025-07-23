@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/Masterminds/semver v1.5.0
-	github.com/shellhub-io/shellhub v0.13.4
+	github.com/shellhub-io/shellhub v0.19.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
 )

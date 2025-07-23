@@ -11,7 +11,7 @@ require (
 	github.com/labstack/gommon v0.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/mongotest v0.0.0-20230928124937-e33b07010742
-	github.com/shellhub-io/shellhub v0.13.4
+	github.com/shellhub-io/shellhub v0.19.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
 	github.com/square/mongo-lock v0.0.0-20230808145049-cfcf499f6bf0
