@@ -19,7 +19,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/jarcoal/httpmock v1.3.1
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/labstack/echo/v4 v4.13.4
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
 	github.com/openwall/yescrypt-go v1.0.0
