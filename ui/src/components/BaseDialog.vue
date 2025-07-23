@@ -1,5 +1,6 @@
 <template>
   <v-dialog
+    v-model="showDialog"
     :fullscreen
     :max-width
   >
@@ -23,7 +24,10 @@ const props = defineProps<{
   forceFullscreen?: boolean
 }>();
 
+const showDialog = defineModel<boolean>({ required: true });
 const { smAndDown, thresholds } = useDisplay();
 const fullscreen = computed(() => props.forceFullscreen || smAndDown.value);
 const maxWidth = computed(() => fullscreen.value ? undefined : thresholds.value[props.breakpoint || "sm"]);
+
+defineExpose({ fullscreen, maxWidth });
 </script>
