@@ -31,7 +31,7 @@
     "@sentry/vue": "^7.91.0",
     "@stripe/stripe-js": "^1.38.1",
     "@tinymce/tinymce-vue": "^6.1.0",
-    "@vue/eslint-config-airbnb": "^7.0.0",
+    "@vue/eslint-config-airbnb": "^8.0.0",
     "@vue/eslint-config-typescript": "^11.0.2",
     "@vue/runtime-dom": "^3.2.40",
     "@vueuse/core": "^8.2.0",
