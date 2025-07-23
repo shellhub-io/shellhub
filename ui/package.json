@@ -79,7 +79,7 @@
     "asciinema-player": "^3.9.0",
     "axios-mock-adapter": "^1.21.4",
     "buffer": "^6.0.3",
-    "eslint": "^8.57.1",
+    "eslint": "^9.0.0",
     "eslint-plugin-vue": "^9.6.0",
     "events": "^3.3.0",
     "jsdom": "^26.0.0",
