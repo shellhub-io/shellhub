@@ -54,7 +54,7 @@
     "vee-validate": "^4.12.4",
     "vite-node": "^1.2.0",
     "vue": "^3.5.13",
-    "vue-gtag": "^2.0.1",
+    "vue-gtag": "^3.0.0",
     "vue-router": "4",
     "vuetify": "^3.4.9",
     "vuex": "^4.0.2",
