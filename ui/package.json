@@ -29,7 +29,7 @@
     "@rushstack/eslint-patch": "^1.2.0",
     "@sentry/tracing": "^7.52.1",
     "@sentry/vue": "^7.91.0",
-    "@stripe/stripe-js": "^1.38.1",
+    "@stripe/stripe-js": "^7.0.0",
     "@tinymce/tinymce-vue": "^6.1.0",
     "@vue/eslint-config-airbnb": "^7.0.0",
     "@vue/eslint-config-typescript": "^11.0.2",
