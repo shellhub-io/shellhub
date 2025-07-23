@@ -85,7 +85,7 @@
     "jsdom": "^26.0.0",
     "process": "0.11.10",
     "resize-observer-polyfill": "^1.5.1",
-    "rollup-plugin-polyfill-node": "^0.12.0",
+    "rollup-plugin-polyfill-node": "^0.13.0",
     "terser": "^5.15.0",
     "typescript": "^5.0.4",
     "util": "^0.12.4",
