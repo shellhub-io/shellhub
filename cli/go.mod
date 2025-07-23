@@ -2,7 +2,7 @@ module github.com/shellhub-io/shellhub/cli
 
 go 1.23.0
 
-toolchain go1.23.9
+toolchain go1.24.5
 
 require (
 	github.com/shellhub-io/shellhub v0.13.4
