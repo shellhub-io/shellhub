@@ -55,7 +55,7 @@ const { deviceUid } = defineProps<{
 const route = useRoute(); // current route
 const showLoginForm = ref(true); // controls whether login or terminal is shown
 const terminalKey = ref(0);
-const showDialog = defineModel<boolean>(); // controls visibility of dialog
+const showDialog = defineModel<boolean>({ required: true }); // controls visibility of dialog
 
 // Token and private key values for terminal connection
 const token = ref("");
