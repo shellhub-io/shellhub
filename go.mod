@@ -8,7 +8,7 @@ require (
 	github.com/adhocore/gronx v1.8.1
 	github.com/creack/pty v1.1.18
 	github.com/docker/docker v27.1.1+incompatible
-	github.com/gliderlabs/ssh v0.3.5
+	github.com/gliderlabs/ssh v0.3.8
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-redis/cache/v8 v8.4.4
