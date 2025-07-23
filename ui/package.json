@@ -42,7 +42,7 @@
     "file-saver": "^2.0.5",
     "font-logos": "^1.0.0",
     "gitter-sidecar": "^1.5.0",
-    "markdown-it": "^13.0.2",
+    "markdown-it": "^14.0.0",
     "moment": "^2.29.4",
     "pinia": "^3.0.1",
     "node-rsa": "^1.1.1",
