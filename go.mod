@@ -29,7 +29,7 @@ require (
 	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
-	github.com/testcontainers/testcontainers-go/modules/redis v0.32.0
+	github.com/testcontainers/testcontainers-go/modules/redis v0.38.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/sys v0.28.0
