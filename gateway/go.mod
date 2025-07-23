@@ -14,7 +14,7 @@ require (
 	github.com/spf13/afero v1.14.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.32.0
-	golang.org/x/sys v0.28.0
+	golang.org/x/sys v0.34.0
 )
 
 require (
