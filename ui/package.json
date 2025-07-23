@@ -97,7 +97,7 @@
     "vitest": "^2.1.8",
     "vue-cli-plugin-vuetify": "^2.5.8",
     "vue-stripe-js": "^1.0.1",
-    "vue-tsc": "^2.0.22",
+    "vue-tsc": "^3.0.0",
     "yup": "^1.0.0"
   }
 }
