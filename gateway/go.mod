@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.7
 
 require (
-	github.com/fsnotify/fsnotify v1.7.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.9.0
