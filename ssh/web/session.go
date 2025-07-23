@@ -205,7 +205,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		return err
 	}
 
-	if err := agent.RequestPty("xterm", dim.Rows, dim.Cols, ssh.TerminalModes{
+	if err := agent.RequestPty("xterm", int(dim.Rows), int(dim.Cols), ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
@@ -249,7 +249,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 			case messageKindResize:
 				dim := message.Data.(Dimensions)
 
-				if err := agent.WindowChange(dim.Rows, dim.Cols); err != nil {
+				if err := agent.WindowChange(int(dim.Rows), int(dim.Cols)); err != nil {
 					logger.WithError(err).Error("failed to change the size of window for terminal session")
 
 					return

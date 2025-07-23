@@ -59,8 +59,8 @@ func TestGetToken(t *testing.T) {
 
 func TestGetDimensions(t *testing.T) {
 	type Expected struct {
-		cols int
-		rows int
+		cols uint32
+		rows uint32
 		err  error
 	}
 

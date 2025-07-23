@@ -65,8 +65,8 @@ func (c *Credentials) isPassword() bool {
 
 // Dimensions represents a web SSH terminal dimensions.
 type Dimensions struct {
-	Cols int `json:"cols"`
-	Rows int `json:"rows"`
+	Cols uint32 `json:"cols"`
+	Rows uint32 `json:"rows"`
 }
 
 type Info struct {
