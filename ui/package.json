@@ -34,7 +34,7 @@
     "@vue/eslint-config-airbnb": "^7.0.0",
     "@vue/eslint-config-typescript": "^11.0.2",
     "@vue/runtime-dom": "^3.2.40",
-    "@vueuse/core": "^8.2.0",
+    "@vueuse/core": "^13.0.0",
     "assert": "^2.0.0",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
