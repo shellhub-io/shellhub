@@ -1,4 +1,4 @@
-package sysinfo
+package os
 
 import (
 	"bufio"

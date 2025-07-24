@@ -1,4 +1,4 @@
-package selfupdater
+package updater
 
 import (
 	"github.com/Masterminds/semver"

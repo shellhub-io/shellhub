@@ -1,4 +1,4 @@
-package containers
+package docker
 
 import (
 	"context"
@@ -8,35 +8,35 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
+	"github.com/shellhub-io/shellhub/agent/ssh/modes/container/engines"
 )
 
-var _ Containers = new(DockerContainers)
+var _ engines.Engine = new(DockerEngine)
 
-// DockerContainers is a struct that represents a connector that uses Docker as the container runtime.
-type DockerContainers struct {
+// DockerEngine is a struct that represents a connector that uses Docker as the container runtime.
+type DockerEngine struct {
 	// cli is the Docker client.
 	cli *dockerclient.Client
 }
 
-func NewDockerConnectorWithClient(cli *dockerclient.Client, server string, tenant string, privateKey string) (Containers, error) {
-	return &DockerContainers{
+func NewDockerConnectorWithClient(cli *dockerclient.Client, server string, tenant string, privateKey string) (engines.Engine, error) {
+	return &DockerEngine{
 		cli: cli,
 	}, nil
 }
 
-// NewDockerConnector creates a new [Containers] that uses Docker as the container runtime.
-func NewDockerConnector() (Containers, error) {
+func NewDockerEngine() (engines.Engine, error) {
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
 
-	return &DockerContainers{
+	return &DockerEngine{
 		cli: cli,
 	}, nil
 }
 
-func (d *DockerContainers) List(ctx context.Context, opts ListOptions) ([]types.Container, error) {
+func (d *DockerEngine) List(ctx context.Context, opts engines.ListOptions) ([]types.Container, error) {
 	return d.cli.ContainerList(ctx, container.ListOptions{
 		Size:   opts.Size,
 		All:    opts.All,
@@ -47,7 +47,7 @@ func (d *DockerContainers) List(ctx context.Context, opts ListOptions) ([]types.
 	})
 }
 
-func (d *DockerContainers) Info(ctx context.Context, id string) (*types.ContainerJSON, error) {
+func (d *DockerEngine) Info(ctx context.Context, id string) (*types.ContainerJSON, error) {
 	info, err := d.cli.ContainerInspect(ctx, id)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (d *DockerContainers) Info(ctx context.Context, id string) (*types.Containe
 	return &info, nil
 }
 
-func (d *DockerContainers) Exec(ctx context.Context, id string, opts ExecOptions) (*types.HijackedResponse, error) {
+func (d *DockerEngine) Exec(ctx context.Context, id string, opts engines.ExecOptions) (*types.HijackedResponse, error) {
 	config := container.ExecOptions{
 		Cmd:          strings.Split(opts.Cmd, " "),
 		AttachStdin:  true,
@@ -86,27 +86,27 @@ func (d *DockerContainers) Exec(ctx context.Context, id string, opts ExecOptions
 	return &resp, nil
 }
 
-func (d *DockerContainers) Start(ctx context.Context, id string, opts StartOptions) error {
+func (d *DockerEngine) Start(ctx context.Context, id string, opts engines.StartOptions) error {
 	return d.cli.ContainerStart(ctx, id, container.StartOptions{})
 }
 
-func (d *DockerContainers) Stop(ctx context.Context, id string, opts StopOptions) error {
+func (d *DockerEngine) Stop(ctx context.Context, id string, opts engines.StopOptions) error {
 	return d.cli.ContainerStop(ctx, id, container.StopOptions{
 		Timeout: opts.Timeout,
 	})
 }
 
-func (d *DockerContainers) Restart(ctx context.Context, id string, opts RestartOptions) error {
+func (d *DockerEngine) Restart(ctx context.Context, id string, opts engines.RestartOptions) error {
 	return d.cli.ContainerRestart(ctx, id, container.StopOptions{
 		Timeout: opts.Timeout,
 	})
 }
 
-func (d *DockerContainers) Kill(ctx context.Context, id string, opts KillOptions) error {
+func (d *DockerEngine) Kill(ctx context.Context, id string, opts engines.KillOptions) error {
 	return d.cli.ContainerKill(ctx, id, opts.Signal)
 }
 
-func (d *DockerContainers) Remove(ctx context.Context, id string, opts RemoveOptions) error {
+func (d *DockerEngine) Remove(ctx context.Context, id string, opts engines.RemoveOptions) error {
 	return d.cli.ContainerRemove(ctx, id, container.RemoveOptions{
 		Force:         opts.Force,
 		RemoveVolumes: opts.RemoveVolumes,
@@ -114,15 +114,15 @@ func (d *DockerContainers) Remove(ctx context.Context, id string, opts RemoveOpt
 	})
 }
 
-func (d *DockerContainers) Pause(ctx context.Context, id string) error {
+func (d *DockerEngine) Pause(ctx context.Context, id string) error {
 	return d.cli.ContainerPause(ctx, id)
 }
 
-func (d *DockerContainers) Unpause(ctx context.Context, id string) error {
+func (d *DockerEngine) Unpause(ctx context.Context, id string) error {
 	return d.cli.ContainerUnpause(ctx, id)
 }
 
-func (d *DockerContainers) Logs(ctx context.Context, id string, opts LogsOptions) (io.ReadCloser, error) {
+func (d *DockerEngine) Logs(ctx context.Context, id string, opts engines.LogsOptions) (io.ReadCloser, error) {
 	return d.cli.ContainerLogs(ctx, id, container.LogsOptions{
 		Follow:     opts.Follow,
 		ShowStdout: true, // NOTE: We always show stdout logs.
@@ -135,7 +135,7 @@ func (d *DockerContainers) Logs(ctx context.Context, id string, opts LogsOptions
 	})
 }
 
-func (d *DockerContainers) Stats(ctx context.Context, id string, opts StatsOptions) (container.StatsResponseReader, error) {
+func (d *DockerEngine) Stats(ctx context.Context, id string, opts engines.StatsOptions) (container.StatsResponseReader, error) {
 	resp, err := d.cli.ContainerStats(ctx, id, opts.Stream)
 	if err != nil {
 		return container.StatsResponseReader{}, err
@@ -144,11 +144,11 @@ func (d *DockerContainers) Stats(ctx context.Context, id string, opts StatsOptio
 	return resp, nil
 }
 
-func (d *DockerContainers) Top(ctx context.Context, id string, opts TopOptions) (container.ContainerTopOKBody, error) {
+func (d *DockerEngine) Top(ctx context.Context, id string, opts engines.TopOptions) (container.ContainerTopOKBody, error) {
 	return d.cli.ContainerTop(ctx, id, []string{opts.PsArgs})
 }
 
-func (d *DockerContainers) Changes(ctx context.Context, id string) ([]container.FilesystemChange, error) {
+func (d *DockerEngine) Changes(ctx context.Context, id string) ([]container.FilesystemChange, error) {
 	changes, err := d.cli.ContainerDiff(ctx, id)
 	if err != nil {
 		return nil, err
@@ -165,24 +165,22 @@ func (d *DockerContainers) Changes(ctx context.Context, id string) ([]container.
 	return result, nil
 }
 
-// Container file operations
-func (d *DockerContainers) CopyToContainer(ctx context.Context, id string, path string, content io.Reader, opts CopyOptions) error {
+func (d *DockerEngine) CopyToContainer(ctx context.Context, id string, path string, content io.Reader, opts engines.CopyOptions) error {
 	return d.cli.CopyToContainer(ctx, id, path, content, container.CopyToContainerOptions{
 		AllowOverwriteDirWithFile: opts.AllowOverwrite,
 		CopyUIDGID:                opts.CopyUIDGID,
 	})
 }
 
-func (d *DockerContainers) CopyFromContainer(ctx context.Context, id string, path string) (io.ReadCloser, container.PathStat, error) {
+func (d *DockerEngine) CopyFromContainer(ctx context.Context, id string, path string) (io.ReadCloser, container.PathStat, error) {
 	return d.cli.CopyFromContainer(ctx, id, path)
 }
 
-// Container management operations
-func (d *DockerContainers) Rename(ctx context.Context, id string, opts RenameOptions) error {
+func (d *DockerEngine) Rename(ctx context.Context, id string, opts engines.RenameOptions) error {
 	return d.cli.ContainerRename(ctx, id, opts.Name)
 }
 
-func (d *DockerContainers) Update(ctx context.Context, id string, opts UpdateOptions) (container.ContainerUpdateOKBody, error) {
+func (d *DockerEngine) Update(ctx context.Context, id string, opts engines.UpdateOptions) (container.ContainerUpdateOKBody, error) {
 	return d.cli.ContainerUpdate(ctx, id, container.UpdateConfig{
 		Resources: container.Resources{
 			CPUShares:          opts.CPUShares,
@@ -206,14 +204,14 @@ func (d *DockerContainers) Update(ctx context.Context, id string, opts UpdateOpt
 	})
 }
 
-func (d *DockerContainers) Resize(ctx context.Context, id string, opts ResizeOptions) error {
+func (d *DockerEngine) Resize(ctx context.Context, id string, opts engines.ResizeOptions) error {
 	return d.cli.ContainerResize(ctx, id, container.ResizeOptions{
 		Height: opts.Height,
 		Width:  opts.Width,
 	})
 }
 
-func (d *DockerContainers) Commit(ctx context.Context, id string, opts CommitOptions) (types.IDResponse, error) {
+func (d *DockerEngine) Commit(ctx context.Context, id string, opts engines.CommitOptions) (types.IDResponse, error) {
 	return d.cli.ContainerCommit(ctx, id, container.CommitOptions{
 		Reference: opts.Repo + ":" + opts.Tag,
 		Comment:   opts.Comment,
@@ -224,7 +222,7 @@ func (d *DockerContainers) Commit(ctx context.Context, id string, opts CommitOpt
 	})
 }
 
-func (d *DockerContainers) Wait(ctx context.Context, id string, opts WaitOptions) (<-chan container.WaitResponse, <-chan error) {
+func (d *DockerEngine) Wait(ctx context.Context, id string, opts engines.WaitOptions) (<-chan container.WaitResponse, <-chan error) {
 	condition := container.WaitConditionNotRunning
 	if opts.Condition != "" {
 		condition = container.WaitCondition(opts.Condition)
@@ -233,6 +231,6 @@ func (d *DockerContainers) Wait(ctx context.Context, id string, opts WaitOptions
 	return d.cli.ContainerWait(ctx, id, condition)
 }
 
-func (d *DockerContainers) Export(ctx context.Context, id string) (io.ReadCloser, error) {
+func (d *DockerEngine) Export(ctx context.Context, id string) (io.ReadCloser, error) {
 	return d.cli.ContainerExport(ctx, id)
 }

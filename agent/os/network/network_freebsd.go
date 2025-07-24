@@ -1,7 +1,7 @@
 //go:build freebsd
 // +build freebsd
 
-package sysinfo
+package network
 
 import (
 	"net"

@@ -1,4 +1,4 @@
-package osauth
+package auth
 
 //go:generate mockery --name=Backend --filename=backend.go
 type Backend interface {

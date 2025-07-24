@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/shellhub-io/shellhub/agent/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes/host/command"
+	"github.com/shellhub-io/shellhub/agent/updater"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
@@ -51,7 +51,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			updater, err := selfupdater.NewUpdater(AgentVersion)
+			updater, err := updater.NewUpdater(AgentVersion)
 			if err != nil {
 				log.Panic(err)
 			}

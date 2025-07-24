@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/agent/containers"
+	"github.com/shellhub-io/shellhub/agent/ssh/modes/container/engines"
+	"github.com/shellhub-io/shellhub/agent/ssh/modes/container/engines/docker"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -56,7 +57,7 @@ func stream(reader io.Reader, c echo.Context) error {
 func ContainersHandler(e *echo.Echo) {
 	log.Info("initializing containers handler")
 
-	c, err := containers.NewDockerConnector()
+	c, err := docker.NewDockerEngine()
 	if err != nil {
 		log.WithError(err).Fatal("failed to create docker connector")
 	}
@@ -95,7 +96,7 @@ func ContainersHandler(e *echo.Echo) {
 		logger := log.NewEntry(log.StandardLogger())
 		logger.Info("received request to list containers")
 
-		opts := containers.ListOptions{}
+		opts := engines.ListOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind list options")
 
@@ -172,7 +173,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.RemoveOptions{}
+		opts := engines.RemoveOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind remove options")
 
@@ -213,7 +214,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.StartOptions{}
+		opts := engines.StartOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind start options")
 
@@ -251,7 +252,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.StopOptions{}
+		opts := engines.StopOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind stop options")
 
@@ -287,7 +288,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.RestartOptions{}
+		opts := engines.RestartOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind restart options")
 
@@ -319,7 +320,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.KillOptions{}
+		opts := engines.KillOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind kill options")
 
@@ -402,7 +403,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.LogsOptions{}
+		opts := engines.LogsOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind logs options")
 
@@ -446,7 +447,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.StatsOptions{}
+		opts := engines.StatsOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind stats options")
 
@@ -485,7 +486,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.TopOptions{}
+		opts := engines.TopOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind top options")
 
@@ -572,7 +573,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.WaitOptions{}
+		opts := engines.WaitOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind wait options")
 
@@ -618,7 +619,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainerInvalidParam, errors.New("path parameter is required")))
 		}
 
-		opts := containers.CopyOptions{}
+		opts := engines.CopyOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind copy options")
 
@@ -714,7 +715,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainerInvalidParam, errors.New("name parameter is required")))
 		}
 
-		opts := containers.RenameOptions{Name: name}
+		opts := engines.RenameOptions{Name: name}
 		if err := c.Rename(ctx, id, opts); err != nil {
 			logger.WithError(err).Error("failed to rename container")
 
@@ -740,7 +741,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.UpdateOptions{}
+		opts := engines.UpdateOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind update options")
 
@@ -772,7 +773,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.ResizeOptions{}
+		opts := engines.ResizeOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind resize options")
 
@@ -807,7 +808,7 @@ func ContainersHandler(e *echo.Echo) {
 			return e.JSON(http.StatusBadRequest, errors.Join(ErrAgentContainersIDInvalid, errors.New("container id is required")))
 		}
 
-		opts := containers.CommitOptions{}
+		opts := engines.CommitOptions{}
 		if err := e.Bind(&opts); err != nil {
 			logger.WithError(err).Error("failed to bind commit options")
 

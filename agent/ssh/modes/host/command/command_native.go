@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	log "github.com/sirupsen/logrus"
 )
 
-func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
+func NewCmd(u *auth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	user, _ := user.Lookup(u.Username)
 	userGroups, _ := user.GroupIds()
 

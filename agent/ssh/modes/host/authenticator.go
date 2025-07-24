@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -58,9 +58,9 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 	var ok bool
 
 	if a.singleUserPassword == "" {
-		ok = osauth.AuthUser(ctx.User(), pass)
+		ok = auth.AuthUser(ctx.User(), pass)
 	} else {
-		ok = osauth.VerifyPasswordHash(a.singleUserPassword, pass)
+		ok = auth.VerifyPasswordHash(a.singleUserPassword, pass)
 	}
 
 	if ok {
@@ -74,7 +74,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 
 // PublicKey handles the server's SSH public key authentication when server is running in host mode.
 func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh.PublicKey) bool {
-	if _, err := osauth.LookupUser(ctx.User()); err != nil {
+	if _, err := auth.LookupUser(ctx.User()); err != nil {
 		return false
 	}
 

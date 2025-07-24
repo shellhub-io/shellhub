@@ -12,8 +12,8 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/go-playground/assert/v2"
-	"github.com/shellhub-io/shellhub/agent/osauth"
-	osauthMocks "github.com/shellhub-io/shellhub/agent/osauth/mocks"
+	"github.com/shellhub-io/shellhub/agent/auth"
+	osauthMocks "github.com/shellhub-io/shellhub/agent/auth/mocks"
 	clientMocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/mock"
@@ -211,7 +211,7 @@ func TestPublicKey(t *testing.T) {
 
 func TestPassword(t *testing.T) {
 	mock := &osauthMocks.Backend{}
-	osauth.DefaultBackend = mock
+	auth.DefaultBackend = mock
 
 	tests := []struct {
 		ctx           gliderssh.Context

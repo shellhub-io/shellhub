@@ -7,7 +7,7 @@ import (
 	dockercontainer "github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/process"
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes"
 )
 
@@ -16,19 +16,19 @@ type Mode struct {
 	modes.Sessioner
 }
 
-func attachShellToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]int) (*types.HijackedResponse, string, error) {
+func attachShellToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *auth.User, size [2]int) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "shell", container, user, true, []string{}, size)
 }
 
-func attachExecToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
+func attachExecToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *auth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "exec", container, user, isPty, commands, size)
 }
 
-func attachHereDocToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]int) (*types.HijackedResponse, string, error) {
+func attachHereDocToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *auth.User, size [2]int) (*types.HijackedResponse, string, error) {
 	return attachToContainer(ctx, cli, "heredoc", container, user, false, []string{}, size)
 }
 
-func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestType string, container string, user *osauth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
+func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestType string, container string, user *auth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
 	if user.Shell == "" {
 		user.Shell = "/bin/sh"
 	}

@@ -9,7 +9,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes"
 	log "github.com/sirupsen/logrus"
 )
@@ -43,7 +43,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 
 	logger := log.WithField("container", container)
 
-	user, ok := session.Context().Value("user").(*osauth.User)
+	user, ok := session.Context().Value("user").(*auth.User)
 	if !ok {
 		logger.Error("User not found in session context")
 
@@ -101,7 +101,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	// NOTICE(r): To identify what the container the connector should connect to, we use the `deviceName` as the container name
 	container := s.container
 
-	user, ok := session.Context().Value("user").(*osauth.User)
+	user, ok := session.Context().Value("user").(*auth.User)
 	if !ok {
 		return ErrUserNotFound
 	}
@@ -165,7 +165,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 
 	container := s.container
 
-	user, ok := session.Context().Value("user").(*osauth.User)
+	user, ok := session.Context().Value("user").(*auth.User)
 	if !ok {
 		return ErrUserNotFound
 	}

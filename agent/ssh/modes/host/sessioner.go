@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes/host/command"
 	"github.com/shellhub-io/shellhub/agent/ssh/utmp"
@@ -57,7 +57,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		log.Warn(err)
 	}
 
-	u, err := osauth.LookupUser(session.User())
+	u, err := auth.LookupUser(session.User())
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return nil
 	}
 
-	user, err := osauth.LookupUser(session.User())
+	user, err := auth.LookupUser(session.User())
 	if err != nil {
 		return err
 	}

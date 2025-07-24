@@ -8,7 +8,7 @@ import (
 	"os/exec"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes/host/command"
 )
 
@@ -18,7 +18,7 @@ func generateShellCmd(deviceName string, session gliderssh.Session, term string)
 
 	shell := os.Getenv("SHELL")
 
-	user, err := osauth.LookupUser(username)
+	user, err := auth.LookupUser(username)
 	if err != nil {
 		return nil
 	}

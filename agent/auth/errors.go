@@ -1,4 +1,4 @@
-package osauth
+package auth
 
 import "errors"
 

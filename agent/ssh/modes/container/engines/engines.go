@@ -1,4 +1,4 @@
-package containers
+package engines
 
 import (
 	"context"
@@ -160,8 +160,8 @@ type WaitOptions struct {
 	Condition string `query:"condition"`
 }
 
-// Containers is an interface that defines the methods that a containers implementation must provide.
-type Containers interface {
+// Engine is an interface that defines the methods that a containers implementation must provide.
+type Engine interface {
 	// List lists all containers running on the host.
 	List(ctx context.Context, opts ListOptions) ([]types.Container, error)
 	// Info returns detailed information about a container by ID.

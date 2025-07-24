@@ -1,4 +1,4 @@
-package osauth
+package auth
 
 type User struct {
 	UID      uint32 // The user ID of the account.

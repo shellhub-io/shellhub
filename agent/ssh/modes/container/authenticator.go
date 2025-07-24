@@ -12,7 +12,7 @@ import (
 
 	dockerclient "github.com/docker/docker/client"
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/osauth"
+	"github.com/shellhub-io/shellhub/agent/auth"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -91,7 +91,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	user, err := osauth.LookupUserFromPasswd(username, passwd)
+	user, err := auth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
 		logger.WithError(err).Error("failed to lookup for the user on passwd file")
 
@@ -112,7 +112,7 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	if !osauth.AuthUserFromShadow(username, password, shadow) {
+	if !auth.AuthUserFromShadow(username, password, shadow) {
 		logger.WithError(err).Error("failed to authenticate the user on the device")
 
 		return false
@@ -142,7 +142,7 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 		return false
 	}
 
-	user, err := osauth.LookupUserFromPasswd(username, passwd)
+	user, err := auth.LookupUserFromPasswd(username, passwd)
 	if err != nil {
 		logger.WithError(err).Error("failed to lookup for the user on passwd file")
 

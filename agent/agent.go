@@ -20,10 +20,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/keygen"
+	os1 "github.com/shellhub-io/shellhub/agent/os"
+	"github.com/shellhub-io/shellhub/agent/os/network"
 	server "github.com/shellhub-io/shellhub/agent/ssh"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes/container"
 	"github.com/shellhub-io/shellhub/agent/ssh/modes/host"
-	"github.com/shellhub-io/shellhub/agent/sysinfo"
 	"github.com/shellhub-io/shellhub/agent/tunnel"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -247,7 +248,7 @@ func (a *Agent) generateDeviceIdentity() error {
 	}
 
 	// get identity from network interface.
-	iface, err := sysinfo.PrimaryInterface()
+	iface, err := network.PrimaryInterface()
 	if err != nil {
 		return err
 	}
@@ -261,7 +262,7 @@ func (a *Agent) generateDeviceIdentity() error {
 
 // loadDeviceInfo load some device informations like OS name, version, arch and platform.
 func (a *Agent) loadDeviceInfo() error {
-	osrelease, err := sysinfo.GetOSRelease()
+	osrelease, err := os1.GetOSRelease()
 	if err != nil {
 		return err
 	}
