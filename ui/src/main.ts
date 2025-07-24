@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/vue";
-import VueGtag from "vue-gtag";
+import { configure as configGtag } from "vue-gtag";
 import { createChatWoot } from "@productdevbook/chatwoot/vue";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
@@ -36,8 +36,9 @@ loadFonts();
 app.use(vuetify);
 app.use(router);
 app.use(store, key);
-app.use(VueGtag, {
-  config: { id: envVariables.googleAnalyticsID || "" },
+
+configGtag({
+  tagId: envVariables.googleAnalyticsID || "",
 });
 
 if ((envVariables.isCloud) && (envVariables.chatWootWebsiteToken && envVariables.chatWootBaseURL)) {
