@@ -162,6 +162,10 @@ import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const router = useRouter();
 const store = useStore();
 const currentRoute = computed(() => router.currentRoute);

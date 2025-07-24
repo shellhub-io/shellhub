@@ -1,6 +1,6 @@
 <template>
   <Snackbar />
-  <v-main class="d-flex justify-center align-center">
+  <v-main class="d-flex justify-center align-center" v-bind="$attrs">
     <v-container
       class="full-height d-flex justify-center align-center"
       fluid
