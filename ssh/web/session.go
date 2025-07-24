@@ -278,6 +278,15 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 			return err
 		}
 
+		if nr == 0 {
+			// NOTE: "Callers should treat a return of 0 and nil as indicating that nothing happened; in particular it
+			// does not indicate EOF", in such a case, the caller should not interpret it as EOF, but instead wait for
+			// more data.
+			//
+			// https://pkg.go.dev/io#Reader
+			continue
+		}
+
 		buflen = start + nr
 		for end = buflen - 1; end >= 0; end-- {
 			if utf8.RuneStart(buf[end]) {
