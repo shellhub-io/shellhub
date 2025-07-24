@@ -282,9 +282,9 @@ type TunnelsCertificate struct {
 	fs afero.Fs
 }
 
-// NewTunnelsCertificate creates a new TunnelsCertificate instance for generating
+// NewWebEndpointsCertificate creates a new TunnelsCertificate instance for generating
 // wildcard certificates using DNS-01 challenges.
-func NewTunnelsCertificate(domain string, provider DNSProvider, token string) Certificate {
+func NewWebEndpointsCertificate(domain string, provider DNSProvider, token string) Certificate {
 	return &TunnelsCertificate{
 		Domain: domain,
 
