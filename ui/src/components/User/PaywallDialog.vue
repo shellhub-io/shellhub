@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="showDialog"
-    breakpoint="md"
+    threshold="md"
     transition="dialog-bottom-transition"
     @click:outside="close"
     @keydown.esc="close"

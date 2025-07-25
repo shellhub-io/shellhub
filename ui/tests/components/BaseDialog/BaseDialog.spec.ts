@@ -29,17 +29,17 @@ describe("BaseDialog", () => {
   let dialog: DOMWrapper<HTMLElement>;
   let wrapper: BaseDialogWrapper;
 
-  const breakpointTests = [
-    { breakpoint: "sm", expectedWidth: 600 },
-    { breakpoint: "md", expectedWidth: 960 },
-    { breakpoint: "lg", expectedWidth: 1280 },
-    { breakpoint: "xl", expectedWidth: 1920 },
-    { breakpoint: "xxl", expectedWidth: 2560 },
+  const thresholdTests = [
+    { threshold: "sm", expectedWidth: 600 },
+    { threshold: "md", expectedWidth: 960 },
+    { threshold: "lg", expectedWidth: 1280 },
+    { threshold: "xl", expectedWidth: 1920 },
+    { threshold: "xxl", expectedWidth: 2560 },
   ] as const;
 
   const slotContent = "<div>Test content</div>";
 
-  const mountWrapper = (props: { forceFullscreen?: boolean; breakpoint?: "sm" | "md" | "lg" | "xl" | "xxl" } = {}) => mount(BaseDialog, {
+  const mountWrapper = (props: { forceFullscreen?: boolean; threshold?: "sm" | "md" | "lg" | "xl" | "xxl" } = {}) => mount(BaseDialog, {
     global: { plugins: [vuetify] },
     slots: { default: slotContent },
     props: { modelValue: true, ...props },
@@ -67,7 +67,7 @@ describe("BaseDialog", () => {
     expect(dialog.html()).toContain("Test content");
   });
 
-  it("Uses default sm breakpoint (600px) when no breakpoint is specified", () => {
+  it("Uses default sm threshold (600px) when no threshold is specified", () => {
     expect(wrapper.vm.maxWidth).toBe(600);
     expect(wrapper.vm.fullscreen).toBe(false);
   });
@@ -78,9 +78,9 @@ describe("BaseDialog", () => {
     expect(wrapper.vm.fullscreen).toBe(true);
   });
 
-  breakpointTests.forEach(({ breakpoint, expectedWidth }) => {
-    it(`Uses correct width for ${breakpoint} breakpoint (${expectedWidth}px)`, () => {
-      wrapper = mountWrapper({ breakpoint });
+  thresholdTests.forEach(({ threshold, expectedWidth }) => {
+    it(`Uses correct width for ${threshold} threshold (${expectedWidth}px)`, () => {
+      wrapper = mountWrapper({ threshold });
 
       expect(wrapper.vm.maxWidth).toBe(expectedWidth);
       expect(wrapper.vm.fullscreen).toBe(false);
