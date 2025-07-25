@@ -9,6 +9,7 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/pkg/agent"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
@@ -30,6 +31,8 @@ type DockerConnector struct {
 	cli *dockerclient.Client
 	// privateKeys is the path to the directory that contains the private keys for the containers.
 	privateKeys string
+	// Label is the label used to identify the containers managed by the ShellHub agent.
+	Label string
 	// cancels is a map that contains the cancel functions for each container.
 	// This is used to stop the agent for a container, marking as done its context and closing the agent.
 	cancels map[string]context.CancelFunc
@@ -55,6 +58,9 @@ type Config struct {
 	// has a direct impact of the bandwidth used by the device when in idle
 	// state. Default is 30 seconds.
 	KeepAliveInterval int `env:"KEEPALIVE_INTERVAL,overwrite,default=30"`
+
+	// Label is the label used to identify the containers managed by the ShellHub agent.
+	Label string `env:"CONNECTOR_LABEL,default="`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
@@ -73,39 +79,44 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 	return cfg, nil, nil
 }
 
-func NewDockerConnectorWithClient(cli *dockerclient.Client, server string, tenant string, privateKey string) (Connector, error) {
-	return &DockerConnector{
-		server:      server,
-		tenant:      tenant,
-		cli:         cli,
-		privateKeys: privateKey,
-		cancels:     make(map[string]context.CancelFunc),
-	}, nil
-}
-
 // NewDockerConnector creates a new [Connector] that uses Docker as the container runtime.
-func NewDockerConnector(server string, tenant string, privateKey string) (Connector, error) {
+func NewDockerConnector(config *Config) (Connector, error) {
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
 
 	return &DockerConnector{
-		server:      server,
-		tenant:      tenant,
 		cli:         cli,
-		privateKeys: privateKey,
+		server:      config.ServerAddress,
+		tenant:      config.TenantID,
+		privateKeys: config.PrivateKeys,
+		Label:       config.Label,
 		cancels:     make(map[string]context.CancelFunc),
 	}, nil
 }
 
 // events returns the docker events.
 func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-chan error) {
-	return d.cli.Events(ctx, events.ListOptions{})
+	filters := filters.NewArgs()
+	if d.Label != "" {
+		filters.Add("label", d.Label)
+	}
+
+	return d.cli.Events(ctx, events.ListOptions{
+		Filters: filters,
+	})
 }
 
 func (d *DockerConnector) List(ctx context.Context) ([]Container, error) {
-	containers, err := d.cli.ContainerList(ctx, container.ListOptions{})
+	filters := filters.NewArgs()
+	if d.Label != "" {
+		filters.Add("label", d.Label)
+	}
+
+	containers, err := d.cli.ContainerList(ctx, container.ListOptions{
+		Filters: filters,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +198,7 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 		case err := <-errs:
 			return err
 		case container := <-events:
-			// NOTICE: "start" and "die" Docker's events are call every time a new container start or stop,
+			// NOTE: "start" and "die" Docker's events are call every time a new container start or stop,
 			// independently how the command was run. For example, if a container was started with `docker run -d`, the
 			// "start" event will be called, but if the same container was started with `docker start <container-id>`,
 			// the "start" event will be called too. The same happens with the "die" event.

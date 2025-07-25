@@ -227,7 +227,7 @@ func main() {
 			logger.Info("Starting ShellHub Agent Connector")
 
 			connector.ConnectorVersion = AgentVersion
-			connector, err := connector.NewDockerConnector(cfg.ServerAddress, cfg.TenantID, cfg.PrivateKeys)
+			connector, err := connector.NewDockerConnector(cfg)
 			if err != nil {
 				logger.Fatal("Failed to create ShellHub Agent Connector")
 			}
