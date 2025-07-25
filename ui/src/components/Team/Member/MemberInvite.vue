@@ -90,29 +90,10 @@
             </v-card-text>
 
             <v-card-text class="mt-n10">
-              <v-select
+              <RoleSelect
                 v-model="selectedRole"
-                :items="items"
-                item-title="value"
-                item-value="value"
-                label="Role"
-                :error-messages="selectedRoleError"
-                required
                 data-test="role-select"
-              >
-                <template v-slot:item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <v-list-item-subtitle class="description-text">
-                      {{ item.raw.description }}
-                    </v-list-item-subtitle>
-                  </v-list-item>
-                </template>
-
-                <template v-slot:selection="{ item }">
-                  <span>{{ item.value }}</span>
-                </template>
-              </v-select>
-
+              />
               <v-checkbox
                 v-if="envVariables.isCloud"
                 v-model="getInvitationCheckbox"
@@ -188,23 +169,8 @@ import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "@/components/BaseDialog.vue";
-
-const items = [
-  {
-    value: "Administrator",
-    // eslint-disable-next-line vue/max-len
-    description: "Full access to the namespace, can perform all actions except managing billing.\nThis includes user and device management, but excludes billing-related operations.",
-  },
-  {
-    value: "Operator",
-    // eslint-disable-next-line vue/max-len
-    description: "Can manage and operate devices, but has limited administrative privileges.\nOperators cannot change billing or ownership settings.",
-  },
-  {
-    value: "Observer",
-    description: "Can view device details and sessions but cannot make any changes.\nObservers have read-only access to monitor activity.",
-  },
-];
+import RoleSelect from "../RoleSelect.vue";
+import { BasicRole } from "@/interfaces/INamespace";
 
 const emit = defineEmits(["update"]);
 const store = useStore();
@@ -213,6 +179,7 @@ const showDialog = ref(false);
 const getInvitationCheckbox = ref(false);
 const invitationLink = computed(() => store.getters["namespaces/getInvitationLink"]);
 const formWindow = ref("form-1");
+const selectedRole = ref<BasicRole>("administrator");
 
 const {
   value: email,
@@ -221,14 +188,6 @@ const {
   resetField: resetIdentifier,
 } = useField<string>("identifier", yup.string().email().required(), {
   initialValue: "",
-});
-
-const {
-  value: selectedRole,
-  errorMessage: selectedRoleError,
-  resetField: resetSelectedRole,
-} = useField<string>("selectedRole", yup.string().required(), {
-  initialValue: undefined,
 });
 
 const hasAuthorization = () => {
@@ -240,12 +199,12 @@ const getAvatar = (index: number) => multiavatar(`${Math.floor(Math.random() * (
 
 const resetFields = () => {
   resetIdentifier();
-  resetSelectedRole();
+  selectedRole.value = "administrator";
 };
 
 const close = () => {
-  resetFields();
   showDialog.value = false;
+  resetFields();
   formWindow.value = "form-1";
 };
 
@@ -276,7 +235,7 @@ const handleInviteError = (error: unknown) => {
 const getInvitePayload = () => ({
   email: email.value,
   tenant_id: store.getters["auth/tenant"],
-  role: selectedRole.value.toLocaleLowerCase(),
+  role: selectedRole.value,
 });
 
 const generateLinkInvite = async () => {
@@ -319,12 +278,4 @@ defineExpose({ emailError, formWindow, invitationLink });
     z-index: #{$i};
   }
 }
-
-.description-text {
-  white-space: normal;
-  word-break: break-word;
-  max-width: 400px;
-  display: block;
-}
-
 </style>
