@@ -1,6 +1,6 @@
 <template>
   <Snackbar />
-  <router-view :key="currentRoute.value.path" />
+  <router-view :key="currentRoute.value.path" v-bind="$attrs" />
 </template>
 
 <script setup lang="ts">
