@@ -110,7 +110,7 @@ describe("Member Edit", () => {
   });
 
   it("Edit Member Error Validation", async () => {
-    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(409);
+    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(409);
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
@@ -132,7 +132,7 @@ describe("Member Edit", () => {
   });
 
   it("Edit Member Success Validation", async () => {
-    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(200);
+    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
