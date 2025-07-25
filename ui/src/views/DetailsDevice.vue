@@ -30,9 +30,8 @@
           <v-list class="bg-v-theme-surface" lines="two" density="compact">
             <DeviceRename
               :uid="device.uid"
-              :name="device.name"
               @newHostname="receiveName"
-              data-test="deviceRename-component"
+              data-test="device-rename-component"
             />
 
             <TunnelCreate
@@ -43,16 +42,19 @@
 
             <TagFormUpdate
               :device-uid="device.uid"
-              :tagsList="device.tags"
-              @update="refreshUsers"
-              data-test="tagFormUpdate-component"
+              :tags-list="device.tags"
+              :has-authorization="hasAuthorizationFormUpdate()"
+              @update="refreshDevices"
+              data-test="tag-form-update-component"
             />
 
             <DeviceDelete
               variant="device"
+              :has-authorization="true"
+              :redirect="true"
               :uid="device.uid"
-              @update="refreshUsers"
-              data-test="deviceDelete-component"
+              @update="refreshDevices"
+              data-test="device-delete-component"
             />
           </v-list>
         </v-menu>
@@ -64,14 +66,14 @@
     <v-card-text class="pa-4 pt-0">
       <div>
         <div class="text-overline mt-3">uid:</div>
-        <div data-test="deviceUid-field">
+        <div data-test="device-uid-field">
           <p>{{ device.uid }}</p>
         </div>
       </div>
 
       <div v-if="device.identity">
         <div class="text-overline mt-3">mac:</div>
-        <div data-test="deviceMac-field">
+        <div data-test="device-mac-field">
           <code>
             {{ device.identity.mac }}
           </code>
@@ -80,7 +82,7 @@
 
       <div v-if="device.info">
         <div class="text-overline mt-3">Operating System:</div>
-        <div data-test="devicePrettyName-field">
+        <div data-test="device-pretty-name-field">
           <DeviceIcon :icon="device.info.id" class="mr-2" />
           <span>{{ device.info.pretty_name }}</span>
         </div>
@@ -88,14 +90,14 @@
 
       <div v-if="device.info">
         <div class="text-overline mt-3">Agent Version:</div>
-        <div data-test="deviceVersion-field">
+        <div data-test="device-version-field">
           <p>{{ device.info.version }}</p>
         </div>
       </div>
 
       <div>
         <div class="text-overline mt-3">Tags:</div>
-        <div v-if="device.tags" data-test="deviceTags-field">
+        <div v-if="device.tags" data-test="device-tags-field">
           <v-tooltip
             v-for="(tag, index) in device.tags"
             :key="index"
@@ -116,7 +118,7 @@
       </div>
       <div>
         <div class="text-overline mt-3">Last Seen:</div>
-        <div data-test="deviceConvertDate-field">
+        <div data-test="device-last-seen-field">
           <p>{{ formatFullDateTime(device.last_seen) }}</p>
         </div>
       </div>
@@ -139,6 +141,8 @@ import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import TunnelList from "../components/Tunnels/TunnelList.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
@@ -180,7 +184,7 @@ const getTunnels = async () => {
   await store.dispatch("tunnels/get", deviceUid.value);
 };
 
-const refreshUsers = async () => {
+const refreshDevices = async () => {
   try {
     await store.dispatch("devices/get", deviceUid.value);
     if (envVariables.isEnterprise) {
@@ -190,6 +194,11 @@ const refreshUsers = async () => {
     snackbar.showError("There was an error loading the device details.");
     handleError(error);
   }
+};
+
+const hasAuthorizationFormUpdate = () => {
+  const role = store.getters["auth/role"];
+  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
 };
 
 const receiveName = (params: string) => {

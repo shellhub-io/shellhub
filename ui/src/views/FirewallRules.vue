@@ -44,7 +44,7 @@
           IP addresses to a specific or a group of devices using a given username.</p>
       </template>
       <template #action>
-        <FirewallRuleAdd />
+        <FirewallRuleAdd @update="refresh" />
       </template>
     </NoItemsMessage>
   </div>

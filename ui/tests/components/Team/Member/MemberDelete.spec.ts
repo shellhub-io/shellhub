@@ -17,10 +17,6 @@ const mockSnackbar = {
 };
 
 describe("Member Delete", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: MemberDeleteWrapper;
 
   const vuetify = createVuetify();
@@ -33,7 +29,7 @@ describe("Member Delete", () => {
     {
       id: "xxxxxxxx",
       username: "test",
-      role: "owner",
+      role: "owner" as const,
     },
   ];
 
@@ -66,9 +62,6 @@ describe("Member Delete", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
@@ -86,15 +79,11 @@ describe("Member Delete", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         member: members[0],
         hasAuthorization: true,
       },
-      attachTo: el,
     });
   });
 

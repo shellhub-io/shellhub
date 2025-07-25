@@ -15,19 +15,18 @@
           <div data-test="status-connector" :class="(item.status.state === 'connected' ? 'enabled' : 'disabled') + ' text-center'" />
         </td>
         <td class="text-center">
-          <v-row>
-            <v-col
-              class="d-flex justify-center"
-              data-test="switch-enable">
-              <v-switch
-                v-model="item.enable"
-                @click="switchConnector(item.uid, item.enable)"
-                inset
-                hide-details
-                :color="item.enable ? 'primary' : 'grey-darken-2'"
-              />
-            </v-col>
-          </v-row>
+          <div
+            class="d-flex justify-center"
+            data-test="switch-enable"
+          >
+            <v-switch
+              v-model="item.enable"
+              @click="switchConnector(item.uid, item.enable)"
+              inset
+              hide-details
+              :color="item.enable ? 'primary' : 'grey-darken-2'"
+            />
+          </div>
         </td>
         <td class="text-center">
           <CopyWarning :copied-item="'Connector host'">
@@ -96,7 +95,7 @@
                       :secure="item.secure"
                       :portAddress="item.port"
                       :uid="item.uid"
-                      :notHasAuthorization="!hasAuthorizationEdit()"
+                      :hasAuthorization="hasAuthorizationEdit()"
                       @update="refresh()"
                     />
                   </div>
@@ -113,7 +112,7 @@
                   <div v-bind="props">
                     <ConnectorDelete
                       :uid="item.uid"
-                      :notHasAuthorization="!hasAuthorizationRemove()"
+                      :hasAuthorization="hasAuthorizationRemove()"
                       @update="refresh()"
                     />
                   </div>
@@ -180,24 +179,12 @@ const connectors = computed(() => store.getters["connectors/list"]);
 
 const hasAuthorizationEdit = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.connector.edit,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
 };
 
 const hasAuthorizationRemove = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.connector.remove,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
 };
 
 const getConnectors = async (perPageValue: number, pageValue: number) => {

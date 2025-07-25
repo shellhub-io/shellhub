@@ -2,7 +2,7 @@
   <div>
     <v-list-item
       @click="showDialog = true"
-      :disabled="notHasAuthorization"
+      :disabled="!hasAuthorization"
       data-test="member-edit-btn"
     >
       <div class="d-flex align-center">
@@ -16,7 +16,7 @@
       </div>
     </v-list-item>
 
-    <v-dialog max-width="450" v-model="showDialog">
+    <BaseDialog v-model="showDialog">
       <v-card class="bg-v-theme-surface" data-test="member-edit-dialog">
         <v-card-title class="text-h5 pa-4 bg-primary" data-test="member-edit-dialog-title">
           Update member role
@@ -54,7 +54,7 @@
           </v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -65,18 +65,13 @@ import { INamespaceMember } from "@/interfaces/INamespace";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "@/components/BaseDialog.vue";
 
-const { member, notHasAuthorization } = defineProps({
-  member: {
-    type: Object as () => INamespaceMember,
-    required: false,
-    default: {} as INamespaceMember,
-  },
-  notHasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-});
+const { member, hasAuthorization } = defineProps<{
+  member: INamespaceMember;
+  hasAuthorization: boolean;
+}>();
+
 const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();

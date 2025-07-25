@@ -18,16 +18,10 @@ const mockSnackbar = {
 
 type NamespaceExportWrapper = VueWrapper<InstanceType<typeof NamespaceExport>>;
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 describe("NamespaceExport", () => {
   let wrapper: NamespaceExportWrapper;
 
   beforeEach(() => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
     setActivePinia(createPinia());
     const vuetify = createVuetify();
 
@@ -50,7 +44,7 @@ describe("NamespaceExport", () => {
   });
 
   it("Renders the component", () => {
-    expect(wrapper.find("[data-test='namespaces-export-btn']").exists()).toBe(true);
+    expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Opens the dialog and interacts with form", async () => {

@@ -1,12 +1,12 @@
 <template>
   <v-tooltip bottom anchor="bottom">
     <template v-slot:activator="{ props }">
-      <v-icon tag="a" dark v-bind="props" @click="dialog = !dialog">mdi-delete </v-icon>
+      <v-icon tag="a" dark v-bind="props" @click="showDialog = true">mdi-delete </v-icon>
     </template>
     <span>Remove</span>
   </v-tooltip>
 
-  <v-dialog max-width="450" v-model="dialog">
+  <BaseDialog v-model="showDialog">
     <v-card>
       <v-card-title class="lighten-2 text-center mt-2"> Are you sure? </v-card-title>
       <v-divider />
@@ -19,12 +19,12 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn text @click="dialog = !dialog"> Close </v-btn>
+        <v-btn text @click="showDialog = false"> Close </v-btn>
 
         <v-btn color="red darken-1" text @click="remove()"> Remove </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -32,40 +32,33 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "@/components/BaseDialog.vue";
+import handleError from "@/utils/handleError";
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
+const props = defineProps<{
+  id: string;
+  redirect?: boolean;
+}>();
 
-  redirect: {
-    type: Boolean,
-  },
-});
 const emit = defineEmits(["update"]);
-const dialog = ref(false);
+const showDialog = ref(false);
 const router = useRouter();
 const snackbar = useSnackbar();
 const userStore = useUsersStore();
 
 const remove = async () => {
-  dialog.value = !dialog.value;
-
   try {
     await userStore.remove(props.id);
-
-    if (props.redirect) {
-      router.push("/users");
-    }
-
+    if (props.redirect) router.push("/users");
     snackbar.showSuccess("User removed successfully.");
     await userStore.refresh();
+    showDialog.value = false;
     emit("update");
-  } catch {
+  } catch (error) {
+    handleError(error);
     snackbar.showError("Failed to remove the user.");
   }
 };
 
-defineExpose({ dialog });
+defineExpose({ showDialog });
 </script>

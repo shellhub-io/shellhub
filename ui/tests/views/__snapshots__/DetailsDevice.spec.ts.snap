@@ -55,31 +55,31 @@ exports[`Details Device > Renders the component 1`] = `
   <div class="v-card-text pa-4 pt-0">
     <div>
       <div class="text-overline mt-3">uid:</div>
-      <div data-test="deviceUid-field">
+      <div data-test="device-uid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">mac:</div>
-      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
+      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
       <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
+      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
       <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="deviceVersion-field">
+      <div data-test="device-version-field">
         <p>latest</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">Tags:</div>
-      <div data-test="deviceTags-field"></div>
+      <div data-test="device-tags-field"></div>
     </div>
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="deviceConvertDate-field">
+      <div data-test="device-last-seen-field">
         <p></p>
       </div>
     </div>
@@ -145,31 +145,31 @@ exports[`Details Device > Renders the component when device has no last seen dat
   <div class="v-card-text pa-4 pt-0">
     <div>
       <div class="text-overline mt-3">uid:</div>
-      <div data-test="deviceUid-field">
+      <div data-test="device-uid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">mac:</div>
-      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
+      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
       <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
+      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
       <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="deviceVersion-field">
+      <div data-test="device-version-field">
         <p>latest</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">Tags:</div>
-      <div data-test="deviceTags-field"></div>
+      <div data-test="device-tags-field"></div>
     </div>
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="deviceConvertDate-field">
+      <div data-test="device-last-seen-field">
         <p></p>
       </div>
     </div>
@@ -235,31 +235,31 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
   <div class="v-card-text pa-4 pt-0">
     <div>
       <div class="text-overline mt-3">uid:</div>
-      <div data-test="deviceUid-field">
+      <div data-test="device-uid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">mac:</div>
-      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
+      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
       <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
+      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
       <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="deviceVersion-field">
+      <div data-test="device-version-field">
         <p>latest</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">Tags:</div>
-      <div data-test="deviceTags-field"></div>
+      <div data-test="device-tags-field"></div>
     </div>
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="deviceConvertDate-field">
+      <div data-test="device-last-seen-field">
         <p></p>
       </div>
     </div>
@@ -325,31 +325,31 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
   <div class="v-card-text pa-4 pt-0">
     <div>
       <div class="text-overline mt-3">uid:</div>
-      <div data-test="deviceUid-field">
+      <div data-test="device-uid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">mac:</div>
-      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
+      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
       <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
+      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
       <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="deviceVersion-field">
+      <div data-test="device-version-field">
         <p>latest</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">Tags:</div>
-      <div data-test="deviceTags-field"></div>
+      <div data-test="device-tags-field"></div>
     </div>
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="deviceConvertDate-field">
+      <div data-test="device-last-seen-field">
         <p></p>
       </div>
     </div>
@@ -399,31 +399,31 @@ exports[`Details Device > Renders the component when device status is not accept
   <div class="v-card-text pa-4 pt-0">
     <div>
       <div class="text-overline mt-3">uid:</div>
-      <div data-test="deviceUid-field">
+      <div data-test="device-uid-field">
         <p>123456</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">mac:</div>
-      <div data-test="deviceMac-field"><code>00-00-00-00-00-01</code></div>
+      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
     </div>
     <div>
       <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="devicePrettyName-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
+      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
     </div>
     <div>
       <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="deviceVersion-field">
+      <div data-test="device-version-field">
         <p>latest</p>
       </div>
     </div>
     <div>
       <div class="text-overline mt-3">Tags:</div>
-      <div data-test="deviceTags-field"></div>
+      <div data-test="device-tags-field"></div>
     </div>
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="deviceConvertDate-field">
+      <div data-test="device-last-seen-field">
         <p></p>
       </div>
     </div>

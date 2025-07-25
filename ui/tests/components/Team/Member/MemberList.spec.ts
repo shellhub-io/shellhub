@@ -1,7 +1,7 @@
 import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import { store, key } from "@/store";
 import MemberList from "@/components/Team/Member/MemberList.vue";
 import { envVariables } from "@/envVariables";
@@ -89,7 +89,6 @@ describe("Member List", () => {
   };
 
   beforeEach(async () => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 

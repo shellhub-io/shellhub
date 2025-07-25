@@ -2,7 +2,7 @@
 
 exports[`Public Key List > Renders the component 1`] = `
 "<div>
-  <div data-test="publicKeys-list">
+  <div data-test="public-keys-list">
     <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
       <!---->
       <div class="v-table__wrapper">

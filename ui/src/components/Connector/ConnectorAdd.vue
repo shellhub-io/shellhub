@@ -5,16 +5,16 @@
     variant="elevated"
     aria-label="Dialog Connectors Add"
     data-test="connector-add-btn"
-    @click="toggleDialog"
+    @click="showDialog = true"
   >
     Add Docker Connector
   </v-btn>
 
   <ConnectorForm
+    v-model="showDialog"
     :is-editing="false"
-    :show-dialog="dialog"
     :store-method="addConnector"
-    @close="toggleDialog"
+    @update="$emit('update')"
     data-test="connector-form-component"
   />
 </template>
@@ -24,16 +24,11 @@ import { ref } from "vue";
 import ConnectorForm from "./ConnectorForm.vue";
 import { useStore } from "@/store";
 
-const dialog = ref(false);
+defineEmits(["update"]);
+const showDialog = ref(false);
 const store = useStore();
-const emit = defineEmits(["update"]);
 
 const addConnector = async (payload) => {
   await store.dispatch("connectors/post", payload);
-  emit("update");
-};
-
-const toggleDialog = () => {
-  dialog.value = !dialog.value;
 };
 </script>

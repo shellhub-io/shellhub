@@ -1,9 +1,8 @@
 <template>
-  <v-dialog
+  <BaseDialog
     v-if="hasAuthorization"
-    v-model="showMessage"
+    v-model="showDialog"
     transition="dialog-bottom-transition"
-    width="650"
     data-test="device-accept-warning-dialog"
   >
     <v-card class="bg-v-theme-surface" data-test="card-dialog">
@@ -24,7 +23,7 @@
         <v-btn variant="text" data-test="close-btn" @click="close()"> Close </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -32,38 +31,16 @@ import { computed } from "vue";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const device = computed(() => store.getters["devices/getDeviceToBeRenamed"]);
+const showDialog = computed(() => store.getters["users/deviceDuplicationError"]);
 
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.billing.subscribe,
-    );
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 
-const close = () => {
-  if (store.getters["users/deviceDuplicationError"]) {
-    store.dispatch("users/setDeviceDuplicationOnAcceptance", false);
-  }
-};
-
-const showMessage = computed({
-  get() {
-    return (
-      (store.getters["users/deviceDuplicationError"])
-    );
-  },
-  set() {
-    close();
-  },
-});
-
-defineExpose({ showMessage });
+const close = () => { store.dispatch("users/setDeviceDuplicationOnAcceptance", false); };
 </script>

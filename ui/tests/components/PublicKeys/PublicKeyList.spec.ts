@@ -115,7 +115,7 @@ describe("Public Key List", () => {
   });
 
   it("Renders components", async () => {
-    expect(wrapper.find('[data-test="publicKeys-list"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="public-keys-list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="public-key-item"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="public-key-name"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="public-key-fingerprint"]').exists()).toBe(true);

@@ -125,13 +125,7 @@ const numberKeys = computed<number>(
 const keyList = computed(() => store.getters["apiKeys/apiKeyList"]);
 const hasAuthorizationRemoveKey = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.apiKey.delete,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.apiKey.delete);
 };
 
 const now = moment().utc();
@@ -184,12 +178,12 @@ const getKey = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-onMounted(() => {
-  getKey(itemsPerPage.value, page.value);
+onMounted(async () => {
+  await getKey(itemsPerPage.value, page.value);
 });
 
-const refresh = () => {
-  getKey(itemsPerPage.value, page.value);
+const refresh = async () => {
+  await getKey(itemsPerPage.value, page.value);
 };
 
 watch([page, itemsPerPage], async () => {

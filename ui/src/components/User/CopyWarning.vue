@@ -2,7 +2,7 @@
   <div>
     <slot :copyText="handleCopy" />
 
-    <v-dialog v-model="showDialog" width="500">
+    <BaseDialog v-model="showDialog">
       <v-card class="bg-grey-darken-4 bg-v-theme-surface">
         <v-card-title class="text-h5 pa-5 bg-primary">Copying is not allowed</v-card-title>
         <v-card-text>
@@ -14,7 +14,7 @@
           <v-btn color="primary" @click="showDialog = false">OK</v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -22,6 +22,7 @@
 import { ref, onMounted } from "vue";
 import { useClipboard, useMagicKeys } from "@vueuse/core";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const props = defineProps<{
   macro?: string;

@@ -1,53 +1,49 @@
 <template>
   <DeviceChooser
     v-if="isBillingEnabled && hasWarning"
-    data-test="deviceChooser-component"
+    data-test="device-chooser-component"
   />
 
   <Welcome
-    v-model:show="show"
-    @update="show = false"
+    v-model="showWelcome"
     data-test="welcome-component"
   />
 
   <NamespaceInstructions
-    v-if="showInstructions"
-    v-model:show="showInstructions"
-    @update="showInstructions = false"
-    data-test="namespaceInstructions-component"
+    v-model="showInstructions"
+    data-test="namespace-instructions-component"
   />
 
   <BillingWarning
     v-if="isBillingEnabled"
-    data-test="billingWarning-component"
+    data-test="billing-warning-component"
   />
 
   <AnnouncementsModal
-    :show="showAnnouncements"
+    v-model="showAnnouncements"
     :announcement="announcement"
-    @update="showAnnouncements = false"
-    data-test="announcementsModal-component"
+    data-test="announcements-modal-component"
   />
 
   <DeviceAcceptWarning
     v-model:show="showDeviceWarning"
     @update="showDeviceWarning = false"
-    data-test="DeviceAcceptWarning-component"
+    data-test="device-accept-warning-component"
   />
 
   <RecoveryHelper
     v-model="showRecoverHelper"
-    data-test="RecoveryHelper-component"
+    data-test="recovery-helper-component"
   />
 
   <MfaForceRecoveryMail
     v-model="showForceRecoveryMail"
-    data-test="MfaForceRecoveryMail-component"
+    data-test="mfa-force-recovery-mail-component"
   />
 
   <PaywallDialog
     v-model="showPaywall"
-    data-test="PaywallDialog-component"
+    data-test="paywall-dialog-component"
   />
 </template>
 
@@ -76,7 +72,7 @@ const snackbar = useSnackbar();
 const store = useStore();
 const router = useRouter();
 const showInstructions = ref(false);
-const show = ref<boolean>(false);
+const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
 const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
@@ -131,10 +127,10 @@ const showScreenWelcome = async () => {
     status = true;
   }
 
-  show.value = status;
+  showWelcome.value = status;
 };
 
-const ShowAnnouncementsCheck = async () => {
+const checkAnnouncements = async () => {
   if (!envVariables.announcementsEnable) {
     return;
   }
@@ -194,7 +190,7 @@ const showDialogs = async () => {
 
 onMounted(() => {
   showDialogs();
-  ShowAnnouncementsCheck();
+  checkAnnouncements();
 
   if (showRecoverHelper.value === true) {
     router.push("/settings");

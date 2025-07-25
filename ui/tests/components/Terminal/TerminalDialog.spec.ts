@@ -38,6 +38,7 @@ describe("Terminal Dialog", async () => {
         plugins: [[store, key], vuetify, router],
       },
       props: {
+        modelValue: true,
         deviceUid: "a582b47a42d",
       },
     });

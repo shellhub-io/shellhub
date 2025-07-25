@@ -4,13 +4,13 @@
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-btn
-            @click="dialog = !dialog"
+            @click="showDialog = true"
             color="primary"
             tabindex="0"
             variant="elevated"
-            aria-label="Dialog Add Public Key"
+            aria-label="Add Public Key"
             :disabled="!hasAuthorization"
-            @keypress.enter="dialog = !dialog"
+            @keypress.enter="showDialog = true"
             :size="size"
             data-test="public-key-add-btn"
           >
@@ -21,7 +21,7 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <v-dialog v-model="dialog" width="520" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary" data-test="pk-add-title">
           New Public Key
@@ -94,7 +94,7 @@
               label="Public key data"
               :error-messages="publicKeyDataError"
               required
-              :messages="supportedKeys"
+              messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
               data-test="data-field"
               rows="2"
             />
@@ -102,7 +102,6 @@
           <v-card-actions>
             <v-spacer />
             <v-btn
-              color="primary"
               @click="close"
               data-test="pk-add-cancel-btn"
             >
@@ -118,7 +117,7 @@
           </v-card-actions>
         </form>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -133,18 +132,13 @@ import hasPermission from "@/utils/permission";
 import { validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  size: {
-    type: String,
-    default: "default",
-    required: false,
-  },
-});
-const size = computed(() => props.size);
+const { size } = defineProps<{ size?: string }>();
+
 const emit = defineEmits(["update"]);
 const store = useStore();
-const dialog = ref(false);
+const showDialog = ref(false);
 const snackbar = useSnackbar();
 const validateLength = ref(true);
 const choiceFilter = ref("all");
@@ -176,9 +170,6 @@ const filterList = ref([
     filterText: "Restrict access by tags",
   },
 ]);
-const supportedKeys = ref(
-  "Supports RSA, DSA, ECDSA (nistp-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.",
-);
 
 const {
   value: name,
@@ -219,13 +210,7 @@ const tagNames = computed(() => store.getters["tags/list"]);
 
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.publicKey.create,
-    );
-  }
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.publicKey.create);
 });
 
 watch(tagChoices, (list) => {
@@ -304,14 +289,14 @@ const setLocalVariable = () => {
   choiceUsername.value = "all";
 };
 
-watch(dialog, (value) => {
+watch(showDialog, (value) => {
   if (!value) {
     setLocalVariable();
   }
 });
 
 const close = () => {
-  dialog.value = false;
+  showDialog.value = false;
   setLocalVariable();
 };
 

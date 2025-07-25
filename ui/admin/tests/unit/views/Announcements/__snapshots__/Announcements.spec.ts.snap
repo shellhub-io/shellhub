@@ -74,12 +74,12 @@ exports[`Announcement Details > Renders the component 1`] = `
               <td>December 15, 2022</td>
               <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-2"></a>
                 <!--teleport start-->
-                <!--teleport end--><a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3" aria-label="Dialog edit announcement"></a>
+                <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3" data-test="edit-button"></button>
                 <!--teleport start-->
                 <!--teleport end-->
                 <!---->
                 <!--teleport start-->
-                <!--teleport end--><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-8"></a>
+                <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-8" data-test="delete-button"></button>
                 <!--teleport start-->
                 <!--teleport end-->
                 <!---->

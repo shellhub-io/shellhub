@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
+import UserDelete from "@admin/components/User/UserDelete.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../../src/router";
-import UserDelete from "../../../../../src/components/User/UserDelete.vue";
 
 type UserDeleteWrapper = VueWrapper<InstanceType<typeof UserDelete>>;
 
@@ -47,6 +47,6 @@ describe("User Delete", () => {
   });
 
   it("Dialog should be false by default", () => {
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(false);
   });
 });

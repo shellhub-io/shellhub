@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 type ApiKeyGenerateWrapper = VueWrapper<InstanceType<typeof ApiKeyGenerate>>;
 
 const mockSnackbar = {
@@ -90,9 +86,6 @@ describe("Api Key Generate", () => {
   ];
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -114,9 +107,6 @@ describe("Api Key Generate", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -130,14 +120,14 @@ describe("Api Key Generate", () => {
   });
 
   it("Renders components", async () => {
-    expect(wrapper.find('[data-test="namespace-generate-main-btn"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    expect(wrapper.find('[data-test="api-key-generate-main-btn"]').exists()).toBe(true);
+    await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
-    expect(dialog.find('[data-test="namespace-generate-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="namespace-generate-title"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="api-key-generate-dialog"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="api-key-generate-title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="key-name-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="namespace-generate-date"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="api-key-generate-date"]').exists()).toBe(true);
     expect(dialog.find('[data-test="successKey-alert"]').exists()).toBe(false);
     expect(dialog.find('[data-test="keyResponse-text"]').exists()).toBe(false);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
@@ -149,7 +139,7 @@ describe("Api Key Generate", () => {
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="key-name-text"]').setValue("my api key");
 
@@ -166,7 +156,7 @@ describe("Api Key Generate", () => {
   it("Fails to Generate Api Key", async () => {
     mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(500);
 
-    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
 
     await wrapper.findComponent('[data-test="key-name-text"]').setValue("my api key");
@@ -177,13 +167,13 @@ describe("Api Key Generate", () => {
 
     expect(wrapper.vm.errorMessage).toBe("An error occurred while generating your API key. Please try again later.");
 
-    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="fail-message-alert"]').exists()).toBe(true);
   });
 
   it("Fails to Generate Api Key (400)", async () => {
     mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(400);
 
-    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
 
     await wrapper.findComponent('[data-test="key-name-text"]').setValue("");
@@ -194,13 +184,13 @@ describe("Api Key Generate", () => {
 
     expect(wrapper.vm.errorMessage).toBe("Please provide a name for the API key.");
 
-    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="fail-message-alert"]').exists()).toBe(true);
   });
 
   it("Fails to Generate Api Key (401)", async () => {
     mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(401);
 
-    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
 
     const dialog = new DOMWrapper(document.body);
 
@@ -210,13 +200,13 @@ describe("Api Key Generate", () => {
 
     await flushPromises();
 
-    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="fail-message-alert"]').exists()).toBe(true);
   });
 
   it("Fails to Generate Api Key (409)", async () => {
     mockApiKeys.onPost("http://localhost:3000/api/namespaces/api-key").reply(409);
 
-    await wrapper.findComponent('[data-test="namespace-generate-main-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
 
     await wrapper.findComponent('[data-test="key-name-text"]').setValue("my api key");
@@ -226,6 +216,6 @@ describe("Api Key Generate", () => {
 
     expect(wrapper.vm.errorMessage).toBe("An API key with the same name already exists.");
 
-    expect(dialog.find('[data-test="failMessage-alert"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="fail-message-alert"]').exists()).toBe(true);
   });
 });

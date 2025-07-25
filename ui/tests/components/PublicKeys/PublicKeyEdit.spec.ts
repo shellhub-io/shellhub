@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 type PublicKeyEditWrapper = VueWrapper<InstanceType<typeof PublicKeyEdit>>;
 
 describe("Public Key Edit", () => {
@@ -62,15 +58,19 @@ describe("Public Key Edit", () => {
     },
   };
 
-  const keyObjectMock = {
+  const mockPublicKey = {
     name: "test-name",
     data: "test-data",
+    filter: {
+      hostname: ".*",
+    },
+    username: ".*",
+    fingerprint: "fake-fingerprint",
+    created_at: "2023-01-01T00:00:00Z",
+    tenant_id: "fake-tenant",
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -95,7 +95,7 @@ describe("Public Key Edit", () => {
         },
       },
       props: {
-        keyObject: keyObjectMock,
+        publicKey: mockPublicKey,
       },
     });
   });
@@ -133,7 +133,7 @@ describe("Public Key Edit", () => {
 
   it("Allows editing a public key with username restriction", async () => {
     await wrapper.setProps({
-      keyObject: {
+      publicKey: {
         data: "fake key",
         filter: {
           hostname: ".*",
@@ -141,6 +141,8 @@ describe("Public Key Edit", () => {
         name: "my edited public key",
         username: ".*",
         fingerprint: "fingerprint123",
+        created_at: "2023-01-01T00:00:00Z",
+        tenant_id: "fake-tenant",
       },
     });
     mockSsh.onPut("http://localhost:3000/api/sshkeys/public-keys/fingerprint123").reply(200);
@@ -159,6 +161,8 @@ describe("Public Key Edit", () => {
       name: "my edited public key",
       username: ".*",
       fingerprint: "fingerprint123",
+      created_at: "2023-01-01T00:00:00Z",
+      tenant_id: "fake-tenant",
     });
   });
 

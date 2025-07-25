@@ -1,8 +1,7 @@
 <template>
-  <v-dialog
-    max-width="400px"
-    scrollable
+  <BaseDialog
     v-model="showDialog"
+    scrollable
     @click:outside="close"
     data-test="dialog"
   >
@@ -47,7 +46,7 @@
               variant="underlined" />
             <v-row>
               <v-col class="text-subtitle-2 mt-2">
-                If you lost your MFA TOPT Provider, and want to use your recovery code,
+                If you lost your MFA TOTP Provider, and want to use your recovery code,
                 <v-btn
                   class="pl-0"
                   @click="goToNextStep()"
@@ -156,7 +155,7 @@
         <v-btn @click="close" data-test="close-btn">Close</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -166,6 +165,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Logo from "@/assets/logo-inverted.png";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();

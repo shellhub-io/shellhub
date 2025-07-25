@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -67,9 +63,6 @@ describe("Connector Delete", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -87,14 +80,11 @@ describe("Connector Delete", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
       props: {
         uid: "fake-fingerprint",
+        hasAuthorization: true,
       },
-      attachTo: el,
     });
   });
 
@@ -119,7 +109,7 @@ describe("Connector Delete", () => {
     expect(dialog.find('[data-test="remove-btn"]').exists()).toBe(true);
   });
 
-  it("Succesfully removes a Public Key", async () => {
+  it("Successfully removes a connector", async () => {
     await wrapper.setProps({ uid: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
     mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(200);
@@ -128,7 +118,7 @@ describe("Connector Delete", () => {
     expect(removeSpy).toHaveBeenCalledWith("connectors/remove", "fake-fingerprint");
   });
 
-  it("Shows error snackbar if removing a Public Key fails", async () => {
+  it("Shows error snackbar if removing a connector fails", async () => {
     await wrapper.setProps({ uid: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
     mockNamespace.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(404); // non-existent key

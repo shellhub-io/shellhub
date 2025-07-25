@@ -2,7 +2,7 @@
   <v-list-item
     v-bind="$attrs"
     @click="showDialog = true"
-    :disabled="notHasAuthorization"
+    :disabled="!hasAuthorization"
     data-test="device-delete-item"
   >
     <div class="d-flex align-center">
@@ -14,7 +14,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="450" v-model="showDialog" data-test="delete-dialog">
+  <BaseDialog v-model="showDialog" data-test="delete-device-dialog">
     <v-card class="bg-v-theme-surface" data-test="device-delete-card">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="dialog-title">
         Are you sure?
@@ -46,7 +46,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -55,25 +55,15 @@ import { useRouter } from "vue-router";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  uid: {
-    type: String,
-    required: true,
-  },
-  redirect: {
-    type: Boolean,
-    default: false,
-  },
-  notHasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-  variant: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  uid: string;
+  redirect?: boolean;
+  hasAuthorization?: boolean;
+  variant: string;
+}>();
+
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const snackbar = useSnackbar();

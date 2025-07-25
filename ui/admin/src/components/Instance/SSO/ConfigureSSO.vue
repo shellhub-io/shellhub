@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" @click:outside="close" max-width="700">
+  <BaseDialog v-model="showDialog" @click:outside="close">
     <v-card>
       <v-card-title class="text-h5 pb-2" data-test="dialog-title">Configure Single Sign-on</v-card-title>
       <v-container>
@@ -152,7 +152,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -163,10 +163,11 @@ import * as yup from "yup";
 import { IAdminSAMLConfig } from "@admin/interfaces/IInstance";
 import useSnackbar from "@/helpers/snackbar";
 import { validateX509Certificate } from "@/utils/validate";
+import BaseDialog from "@/components/BaseDialog.vue";
 
 const checkbox = ref(false);
 const signRequest = ref(false);
-const dialog = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
 
@@ -220,7 +221,7 @@ const resetFields = () => {
 };
 
 const close = () => {
-  dialog.value = false;
+  showDialog.value = false;
   resetFields();
 };
 
@@ -304,11 +305,11 @@ const updateSAMLConfiguration = async (): Promise<void> => {
   try {
     await instanceStore.updateSamlAuthentication(data);
     snackbar.showSuccess("Successfully updated SAML configuration.");
-    dialog.value = false;
+    showDialog.value = false;
   } catch {
     snackbar.showError("Failed to update SAML configuration.");
   }
 };
 
-defineExpose({ IdPMetadataURL, checkbox, mappings, dialog });
+defineExpose({ IdPMetadataURL, checkbox, mappings, showDialog });
 </script>

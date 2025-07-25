@@ -45,7 +45,7 @@ describe("TerminalHelper", () => {
   });
 
   it("updates command line when username is entered", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     const input = wrapper.findComponent("[data-test='username-input']");
@@ -60,7 +60,7 @@ describe("TerminalHelper", () => {
   });
 
   it("closes the dialog when Close button is clicked", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     const closeBtn = wrapper.findComponent("[data-test='close-btn']");
@@ -72,7 +72,7 @@ describe("TerminalHelper", () => {
   it("sets user ID in localStorage when checkbox is checked", async () => {
     localStorage.clear();
 
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     const checkbox = wrapper.findComponent("[data-test='dispense-checkbox']");
@@ -85,7 +85,7 @@ describe("TerminalHelper", () => {
   it("removes user ID from localStorage when checkbox is unchecked", async () => {
     localStorage.setItem("dispenseTerminalHelper", JSON.stringify(["test-user-id"]));
 
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     // This code is to ensure the checkbox it is checked first

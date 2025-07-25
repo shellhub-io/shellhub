@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import AnnouncementEdit from "@admin/components/Announcement/AnnouncementEdit.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import AnnouncementEdit from "../../../../../src/components/Announcement/AnnouncementEdit.vue";
-import routes from "../../../../../src/router";
 
 type AnnouncementEditWrapper = VueWrapper<InstanceType<typeof AnnouncementEdit>>;
 
@@ -54,12 +54,21 @@ describe("Announcement Edit", () => {
   });
 
   it("Renders the correct data", () => {
-    expect(wrapper.vm.dialog).toBe(false);
+    expect(wrapper.vm.showDialog).toBe(false);
     expect(wrapper.vm.announcement.uuid).toBe(propAnnouncement.uuid);
     expect(wrapper.vm.announcement.title).toBe(propAnnouncement.title);
     expect(wrapper.vm.announcement.date).toBe(propAnnouncement.date);
     expect(wrapper.vm.contentInHtml).toBe("");
     expect(wrapper.vm.contentError).toBe(false);
     expect(wrapper.vm.title).toBe(announcement.title);
+  });
+
+  it("Opens the dialog on edit button click", async () => {
+    expect(wrapper.vm.showDialog).toBe(false);
+
+    const editButton = wrapper.find('[data-test="edit-button"]');
+    await editButton.trigger("click");
+
+    expect(wrapper.vm.showDialog).toBe(true);
   });
 });

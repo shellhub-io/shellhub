@@ -1,19 +1,17 @@
 <template>
   <v-btn
-    @click="dialog = !dialog"
+    @click="showDialog = true"
     color="primary"
     tabindex="0"
     variant="elevated"
-    aria-label="Dialog Add Docker"
-    @keypress.enter="dialog = !dialog"
-    data-test="device-add-btn"
-    :size="props.size"
+    @keypress.enter="showDialog = true"
+    data-test="container-add-btn"
   >
     Add Docker Host
   </v-btn>
 
-  <v-dialog v-model="dialog" width="800" transition="dialog-bottom-transition" data-test="dialog">
-    <v-card class="bg-v-theme-surface">
+  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition" data-test="container-add-dialog">
+    <v-card class="bg-v-theme-surface text-justify">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test="dialog-title">
         Registering a Docker host
       </v-card-title>
@@ -66,28 +64,22 @@
 
       <v-card-actions>
         <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="dialog = !dialog">
+        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
           Close
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useStore } from "@/store";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  size: {
-    type: String,
-    default: "default",
-    required: false,
-  },
-});
 const store = useStore();
-const dialog = ref(false);
+const showDialog = ref(false);
 
 const tenant = computed(() => store.getters["auth/tenant"]);
 

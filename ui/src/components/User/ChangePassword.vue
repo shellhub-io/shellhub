@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="540" @click:outside="close">
+  <BaseDialog v-model="showDialog" @click:outside="close">
     <v-card data-test="password-change-card" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
         Change Password
@@ -66,7 +66,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -77,10 +77,11 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();
-const show = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 
 const {
   value: currentPassword,
@@ -136,7 +137,7 @@ const username = computed(() => store.getters["auth/currentUser"]);
 const recoveryEmail = computed(() => store.getters["auth/recoveryEmail"]);
 
 const close = () => {
-  show.value = false;
+  showDialog.value = false;
   resetCurrentPassword();
   resetNewPassword();
   resetNewPasswordConfirm();
@@ -182,5 +183,5 @@ const updatePassword = async () => {
   }
 };
 
-defineExpose({ show, newPasswordConfirmError, newPasswordError });
+defineExpose({ showDialog, newPasswordConfirmError, newPasswordError });
 </script>

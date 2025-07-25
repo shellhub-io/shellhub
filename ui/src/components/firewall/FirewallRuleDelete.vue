@@ -2,7 +2,7 @@
   <v-list-item
     @click="showDialog = true"
     v-bind="$attrs"
-    :disabled="notHasAuthorization"
+    :disabled="!hasAuthorization"
     data-test="firewall-delete-dialog-btn"
   >
     <div class="d-flex align-center">
@@ -14,7 +14,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="450" v-model="showDialog">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface" data-test="firewallRuleDelete-card">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="text-title">
         Are you sure?
@@ -48,7 +48,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -56,17 +56,13 @@ import { ref } from "vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  notHasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  id: string;
+  hasAuthorization: boolean;
+}>();
+
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();

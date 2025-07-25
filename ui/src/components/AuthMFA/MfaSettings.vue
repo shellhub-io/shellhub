@@ -1,6 +1,12 @@
 <template>
-  <v-dialog v-model="showDialog" width="auto" scrollable transition="dialog-bottom-transition" data-test="dialog" @click:outside="close()">
-    <v-card class="bg-v-theme-surface content" width="650" data-test="card-first-page">
+  <BaseDialog
+    v-model="showDialog"
+    scrollable
+    transition="dialog-bottom-transition"
+    data-test="dialog"
+    @click:outside="close()"
+  >
+    <v-card class="bg-v-theme-surface content" data-test="card-first-page">
       <v-container>
         <v-window v-model="el">
           <v-window-item :value="1">
@@ -246,20 +252,20 @@
         </v-window>
       </v-container>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import { ref, computed, watch } from "vue";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import QrcodeVue from "qrcode.vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import BaseDialog from "../BaseDialog.vue";
 
 const store = useStore();
 const snackbar = useSnackbar();

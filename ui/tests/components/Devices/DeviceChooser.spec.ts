@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { namespacesApi, billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const devices = [
   {
     uid: "a582b47a42d",
@@ -129,10 +125,6 @@ describe("Device Chooser", () => {
   let mockDevices: MockAdapter;
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockBilling = new MockAdapter(billingApi.getAxios());
@@ -156,7 +148,6 @@ describe("Device Chooser", () => {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
-      attachTo: el,
     });
   });
 
@@ -170,13 +161,13 @@ describe("Device Chooser", () => {
 
   it("Renders the component data table", async () => {
     const wrapper = new DOMWrapper(document.body);
-    expect(wrapper.find('[data-test="dialog"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-chooser-dialog"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="subtext"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deviceListChooser-component"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-list-chooser-component"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="close-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="accept-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="deviceChooser-dialog"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="device-chooser-card"]').exists()).toBe(true);
   });
 
   it("Render V-Tabs", async () => {

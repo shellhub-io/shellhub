@@ -9,10 +9,6 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
-const node = document.createElement("div");
-node.setAttribute("id", "app");
-document.body.appendChild(node);
-
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -43,9 +39,6 @@ describe("User Delete", () => {
   };
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
     envVariables.isCloud = true;
 
@@ -60,9 +53,6 @@ describe("User Delete", () => {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
@@ -76,7 +66,7 @@ describe("User Delete", () => {
   });
 
   it("Renders components", async () => {
-    wrapper.vm.show = true;
+    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
     expect(dialog.find('[data-test="user-delete-dialog"]').exists()).toBe(true);
@@ -91,7 +81,7 @@ describe("User Delete", () => {
 
     const StoreSpy = vi.spyOn(store, "dispatch");
 
-    wrapper.vm.show = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="delete-user-btn"]').trigger("click");
@@ -103,7 +93,7 @@ describe("User Delete", () => {
   it("Fails to add Delete User", async () => {
     mockUser.onDelete("http://localhost:3000/api/user").reply(400);
 
-    wrapper.vm.show = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="delete-user-btn"]').trigger("click");

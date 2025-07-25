@@ -1,8 +1,7 @@
 <template>
-  <v-dialog
-    v-model="dialog"
+  <BaseDialog
+    v-model="showDialog"
     transition="dialog-bottom-transition"
-    max-width="600"
     @click:outside="close"
     @keydown.esc="close"
   >
@@ -56,17 +55,19 @@
         </v-card-actions>
       </v-container>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
-const dialog = defineModel({ default: false });
+import BaseDialog from "../BaseDialog.vue";
+
+const showDialog = defineModel({ default: false });
 
 const close = () => {
-  dialog.value = false;
+  showDialog.value = false;
 };
 
-defineExpose({ dialog });
+defineExpose({ showDialog });
 </script>
 
 <style scoped>

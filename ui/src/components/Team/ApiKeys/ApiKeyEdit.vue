@@ -12,7 +12,7 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="450" v-model="showDialog">
+  <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface" min-height="300">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="title">
         Edit Api Key Name
@@ -61,7 +61,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
@@ -72,29 +72,18 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "@/components/BaseDialog.vue";
 
 defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps({
-  keyName: {
-    type: String,
-    required: true,
-  },
-  keyRole: {
-    type: String,
-    required: true,
-  },
-  hasAuthorization: {
-    type: Boolean,
-    required: true,
-  },
-  disabled: {
-    type: Boolean,
-    required: true,
-  },
-});
+const props = defineProps<{
+  keyName: string;
+  keyRole: string;
+  hasAuthorization: boolean;
+  disabled: boolean;
+}>();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();

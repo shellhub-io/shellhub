@@ -9,8 +9,8 @@
     </div>
   </v-list-item>
 
-  <v-dialog max-width="500" v-model="showDialog">
-    <v-card class="bg-v-theme-surface" data-test="deviceRename-card">
+  <BaseDialog v-model="showDialog" data-test="device-rename-dialog" @click:outside="close">
+    <v-card class="bg-v-theme-surface" data-test="device-rename-card">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="text-title">
         Rename Device
       </v-card-title>
@@ -45,24 +45,20 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  uid: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{ uid: string }>();
 const emit = defineEmits(["new-hostname"]);
 const showDialog = ref(false);
 const snackbar = useSnackbar();
@@ -88,12 +84,6 @@ const close = () => {
   setEditNameError("");
   showDialog.value = false;
 };
-
-watch(showDialog, (newValue, oldValue) => {
-  if (oldValue === true && newValue === false) {
-    close();
-  }
-});
 
 const rename = async () => {
   try {

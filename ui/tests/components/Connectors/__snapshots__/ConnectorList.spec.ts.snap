@@ -21,31 +21,29 @@ exports[`Connector List > Renders the component 1`] = `
               <div data-v-6fdd6bd6="" data-test="status-connector" class="disabled text-center"></div>
             </td>
             <td data-v-6fdd6bd6="" class="text-center">
-              <div data-v-6fdd6bd6="" class="v-row">
-                <div data-v-6fdd6bd6="" class="v-col d-flex justify-center" data-test="switch-enable">
-                  <div data-v-6fdd6bd6="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset">
-                    <!---->
-                    <div class="v-input__control">
-                      <div class="v-selection-control v-selection-control--dirty v-selection-control--density-default">
-                        <div class="v-selection-control__wrapper text-primary">
-                          <div class="v-switch__track bg-primary">
-                            <!---->
-                            <!---->
-                          </div>
-                          <div class="v-selection-control__input"><input checked="" id="switch-v-0" aria-disabled="false" type="checkbox" value="true">
-                            <div class="v-switch__thumb">
-                              <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
-                                <!---->
-                              </transition-stub>
-                            </div>
+              <div data-v-6fdd6bd6="" class="d-flex justify-center" data-test="switch-enable">
+                <div data-v-6fdd6bd6="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch v-switch--inset">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-selection-control v-selection-control--dirty v-selection-control--density-default">
+                      <div class="v-selection-control__wrapper text-primary">
+                        <div class="v-switch__track bg-primary">
+                          <!---->
+                          <!---->
+                        </div>
+                        <div class="v-selection-control__input"><input checked="" id="switch-v-0" aria-disabled="false" type="checkbox" value="true">
+                          <div class="v-switch__thumb">
+                            <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
+                              <!---->
+                            </transition-stub>
                           </div>
                         </div>
-                        <!---->
                       </div>
+                      <!---->
                     </div>
-                    <!---->
-                    <!---->
                   </div>
+                  <!---->
+                  <!---->
                 </div>
               </div>
             </td>

@@ -2,10 +2,10 @@
   <v-tooltip bottom anchor="bottom">
     <template v-slot:activator="{ props }">
       <v-icon
-        tag="a"
+        tag="button"
         dark
         v-bind="props"
-        @click="dialog = true"
+        @click="showDialog = true"
         tabindex="0"
         data-test="open-dialog-icon"
       >mdi-account-lock-open
@@ -14,7 +14,7 @@
     <span>Enable Local Authentication</span>
   </v-tooltip>
 
-  <v-dialog v-model="dialog" @click:outside="close" max-width="500">
+  <BaseDialog v-model="showDialog" @click:outside="close">
     <v-card>
       <v-card-title class="text-h5 pb-2">Enable Local Authentication</v-card-title>
       <v-divider />
@@ -65,32 +65,27 @@
         </v-window-item>
       </v-window>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
+import BaseDialog from "@/components/BaseDialog.vue";
 
-const props = defineProps({
-  userId: {
-    type: String,
-    default: "",
-    required: true,
-  },
-});
+const props = defineProps<{ userId: string }>();
 
 const emit = defineEmits(["update"]);
 
 const snackbar = useSnackbar();
 const userStore = useUsersStore();
-const dialog = ref(false);
+const showDialog = ref(false);
 const step = ref("step-1");
 const generatedPassword = computed(() => userStore.generatedPassword);
 
 const close = () => {
-  dialog.value = false;
+  showDialog.value = false;
   step.value = "step-1";
   emit("update");
 };
@@ -111,5 +106,5 @@ const proceedToSecondStep = async () => {
   }
 };
 
-defineExpose({ dialog, step });
+defineExpose({ showDialog, step });
 </script>

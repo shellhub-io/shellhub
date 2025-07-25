@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" @click:outside="clearData" width="500" transition="dialog-bottom-transition" data-test="dialog">
+  <BaseDialog v-model="showDialog" @click:outside="clearData" transition="dialog-bottom-transition" data-test="dialog">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h6 pa-4 bg-primary" data-test="dialog-title">
         Generate a SSH command line
@@ -59,35 +59,31 @@
 
       <v-card-actions>
         <v-spacer />
-        <v-btn variant="text" color="primary" data-test="close-btn" @click="dialog = false">
+        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
           Close
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps({
-  sshid: {
-    type: String,
-    required: true,
-  },
-  userId: {
-    type: String,
-    required: false,
-    default: "",
-  },
-  showCheckbox: {
-    type: Boolean,
-    default: false,
-  },
+interface Props {
+  sshid: string;
+  userId?: string;
+  showCheckbox?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  userId: "",
+  showCheckbox: false,
 });
 
-const dialog = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const username = ref("");
 const dispenseHelper = ref(false);
 const LS_KEY = "dispenseTerminalHelper";
@@ -122,7 +118,7 @@ watch(dispenseHelper, (isDispensed) => {
   setDispensedUsers(users);
 });
 
-watch(dialog, (isOpen) => {
+watch(showDialog, (isOpen) => {
   if (isOpen) {
     const users = getDispensedUsers();
     dispenseHelper.value = users.includes(props.userId);
@@ -131,10 +127,10 @@ watch(dialog, (isOpen) => {
 
 const clearData = () => {
   username.value = "";
-  dialog.value = false;
+  showDialog.value = false;
 };
 
-defineExpose({ dialog });
+defineExpose({ showDialog });
 </script>
 
 <style scoped lang="scss">

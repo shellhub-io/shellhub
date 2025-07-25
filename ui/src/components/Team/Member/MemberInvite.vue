@@ -10,7 +10,7 @@
           <v-btn
             :disabled="!hasAuthorization()"
             color="primary"
-            @click="dialog = !dialog"
+            @click="showDialog = true"
             data-test="invite-dialog-btn"
           >
             Invite Member
@@ -20,13 +20,12 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <v-dialog
-      v-model="dialog"
-      max-width="450"
+    <BaseDialog
+      v-model="showDialog"
       @click:outside="close()"
     >
       <v-card
-        data-test="namespaceNewMember-dialog"
+        data-test="namespace-new-member-dialog"
         class="bg-v-theme-surface"
       >
         <div class="mt-4 mb-4">
@@ -171,7 +170,7 @@
 
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -188,6 +187,7 @@ import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import BaseDialog from "@/components/BaseDialog.vue";
 
 const items = [
   {
@@ -209,7 +209,7 @@ const items = [
 const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
-const dialog = ref(false);
+const showDialog = ref(false);
 const getInvitationCheckbox = ref(false);
 const invitationLink = computed(() => store.getters["namespaces/getInvitationLink"]);
 const formWindow = ref("form-1");
@@ -233,14 +233,7 @@ const {
 
 const hasAuthorization = () => {
   const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.namespace.addMember,
-    );
-  }
-
-  return false;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.addMember);
 };
 
 const getAvatar = (index: number) => multiavatar(`${Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - index + 1)) + index}`);
@@ -252,7 +245,7 @@ const resetFields = () => {
 
 const close = () => {
   resetFields();
-  dialog.value = false;
+  showDialog.value = false;
   formWindow.value = "form-1";
 };
 

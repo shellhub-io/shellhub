@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`UserFormDialog With prop 'createUser' equals false > Renders the component 1`] = `
-"<a class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-0" aria-label="Dialog edit user"></a>
+"<button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-0" aria-label="Dialog edit user"></button>
 <!--teleport start-->
 <!--teleport end-->
 <!--teleport start-->

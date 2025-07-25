@@ -15,6 +15,17 @@ Object.assign(navigator, {
   },
 });
 
+window.matchMedia = vi.fn().mockImplementation((query) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+}));
+
 type SettingsAuthenticationWrapper = VueWrapper<InstanceType<typeof SettingsAuthentication>>;
 
 const authData = {
@@ -46,17 +57,6 @@ describe("Authentication", () => {
   let mockAdminApi: MockAdapter;
 
   beforeEach(async () => {
-    window.matchMedia = vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
-
     setActivePinia(createPinia());
 
     const vuetify = createVuetify();
@@ -91,7 +91,7 @@ describe("Authentication", () => {
 
   it("shows the SSO dialog when 'Configure' is clicked", async () => {
     await wrapper.find("[data-test='sso-config-btn']").trigger("click");
-    expect(wrapper.vm.dialogSSO).toBe(true);
+    expect(wrapper.vm.showSSODialog).toBe(true);
   });
 
   it("calls updateLocalAuthentication when clicking switch", async () => {

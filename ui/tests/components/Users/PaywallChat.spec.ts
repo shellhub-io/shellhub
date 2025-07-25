@@ -77,7 +77,7 @@ describe("PaywallChat", () => {
   });
 
   it("renders dialog elements when opened", async () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     await flushPromises();
 
     const dialog = new DOMWrapper(document.body);
@@ -93,7 +93,7 @@ describe("PaywallChat", () => {
   });
 
   it("ensures the upgrade button has correct href", () => {
-    wrapper.vm.dialog = true;
+    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     expect(dialog.find('[data-test="upgrade-btn"]').attributes("href")).toBe("https://www.shellhub.io/pricing");
   });
