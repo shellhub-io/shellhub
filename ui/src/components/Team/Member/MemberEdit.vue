@@ -24,18 +24,10 @@
         <v-divider />
 
         <v-card-text class="mt-4 mb-0 pb-1">
-          <v-row align="center">
-            <v-col cols="12">
-              <v-select
-                v-model="newRole"
-                :items="items"
-                label="Role"
-                :error-messages="errorMessage"
-                require
-                data-test="role-select"
-              />
-            </v-col>
-          </v-row>
+          <RoleSelect
+            v-model="newRole"
+            data-test="role-select"
+          />
         </v-card-text>
 
         <v-card-actions>
@@ -61,11 +53,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import axios from "axios";
-import { INamespaceMember } from "@/interfaces/INamespace";
+import { BasicRole, INamespaceMember } from "@/interfaces/INamespace";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
+import RoleSelect from "@/components/Team/RoleSelect.vue";
 
 const { member, hasAuthorization } = defineProps<{
   member: INamespaceMember;
@@ -76,9 +69,7 @@ const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
-const newRole = ref(member.role);
-const errorMessage = ref("");
-const items = ["administrator", "operator", "observer"];
+const newRole = ref(member.role as BasicRole);
 
 const close = () => {
   showDialog.value = false;
@@ -94,23 +85,20 @@ const handleEditMemberError = (error: unknown) => {
     const status = error.response?.status;
     switch (status) {
       case 400:
-        errorMessage.value = "The user isn't linked to the namespace.";
+        snackbar.showError("The user isn't linked to the namespace.");
         break;
       case 403:
-        errorMessage.value = "You don't have permission to assign a role to the user.";
+        snackbar.showError("You don't have permission to assign a role to the user.");
         break;
       case 404:
-        errorMessage.value = "The username doesn't exist.";
+        snackbar.showError("The username doesn't exist.");
         break;
       default:
-        handleError(error);
+        snackbar.showError("Failed to update user role.");
     }
+  } else snackbar.showError("Failed to update user role.");
 
-    snackbar.showError("Failed to update user role.");
-  } else {
-    snackbar.showError("Failed to update user role.");
-    handleError(error);
-  }
+  handleError(error);
 };
 
 const editMember = async () => {
