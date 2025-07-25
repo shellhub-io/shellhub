@@ -1,6 +1,7 @@
 import { IBilling } from "./IBilling";
 
-export type Role = "administrator" | "operator" | "observer" | "owner";
+export type BasicRole = "administrator" | "operator" | "observer";
+export type Role = BasicRole | "owner";
 
 export interface INamespaceMember {
   id: string;
