@@ -25,6 +25,7 @@ podman_install() {
             MODE="connector"
             DEFAULT_CONTAINER_NAME="shellhub-connector"
             ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
+            ARGS="$ARGS -e SHELLHUB_CONNECTOR_LABEL=${SHELLHUB_CONNECTOR_LABEL}"
 
             echo "🚀 Starting ShellHub container in Docker Connector mode..."
             shift 1
@@ -96,6 +97,7 @@ docker_install() {
             MODE="connector"
             DEFAULT_CONTAINER_NAME="shellhub-connector"
             ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
+            ARGS="$ARGS -e SHELLHUB_CONNECTOR_LABEL=${SHELLHUB_CONNECTOR_LABEL}"
 
             echo "🚀 Starting ShellHub container in Docker Connector mode..."
             shift 1
