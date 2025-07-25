@@ -19,7 +19,7 @@
       </p>
     </div>
 
-    <BaseDialog v-model="showDialog" breakpoint="md" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" threshold="md" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface content" max-height="700">
         <div class="pa-5">
           <v-row>
