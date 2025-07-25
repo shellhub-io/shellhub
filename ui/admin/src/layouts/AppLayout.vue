@@ -167,6 +167,10 @@ type DrawerItem = {
   children?: DrawerItem[];
 };
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const spinnerStore = useSpinnerStore();
 const licenseStore = useLicenseStore();
 const layoutStore = useLayoutStore();
