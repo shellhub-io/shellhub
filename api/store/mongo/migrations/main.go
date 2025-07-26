@@ -116,6 +116,7 @@ func GenerateMigrations() []migrate.Migration {
 		migration104,
 		migration105,
 		migration106,
+		migration107,
 	}
 }
 
