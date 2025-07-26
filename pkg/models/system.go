@@ -26,9 +26,16 @@ type SystemAuthenticationSAML struct {
 	Sp      *SystemSpSAML  `json:"sp" bson:"sp"`
 }
 
+type SystemAuthenticationSignonURLs struct {
+	Post     string `json:"post" bson:"post"`
+	Redirect string `json:"redirect" bson:"redirect"`
+	// PreferredBinding defines the preferred SAML binding method.
+	PreferredBinding string `json:"preferred_binding" bson:"preferred_binding"`
+}
+
 type SystemIdpSAML struct {
-	EntityID  string `json:"entity_id" bson:"entity_id"`
-	SignonURL string `json:"signon_url" bson:"signon_url"`
+	EntityID   string                          `json:"entity_id" bson:"entity_id"`
+	SignonURLs *SystemAuthenticationSignonURLs `json:"signon_urls" bson:"signon_urls"`
 	// Certificates is a list of X.509 certificates provided by the IdP. These certificates are used
 	// by the SP to validate the digital signatures of SAML assertions issued by the IdP.
 	Certificates []string `json:"certificates" bson:"certificates"`
@@ -58,4 +65,47 @@ type SystemSpSAML struct {
 	// The IdP verifies the signature using the [SystemSpSAML.Certificate]. It is only populated
 	// when [SystemSpSAML.SignAuthRequests] is true.
 	PrivateKey string `json:"-" bson:"private_key"`
+}
+
+type SAMLBinding struct {
+	URL     string
+	Binding string
+}
+
+const (
+	SAMLBindingPost     = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+	SAMLBindingRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+)
+
+func (s *SystemIdpSAML) GetBinding() SAMLBinding {
+	if s.SignonURLs.PreferredBinding != "" {
+		switch s.SignonURLs.PreferredBinding {
+		case "post":
+			if s.SignonURLs.Post != "" {
+				return SAMLBinding{
+					URL:     s.SignonURLs.Post,
+					Binding: SAMLBindingPost,
+				}
+			}
+		case "redirect":
+			if s.SignonURLs.Redirect != "" {
+				return SAMLBinding{
+					URL:     s.SignonURLs.Redirect,
+					Binding: SAMLBindingRedirect,
+				}
+			}
+		}
+	} else if s.SignonURLs.Post != "" {
+		return SAMLBinding{
+			URL:     s.SignonURLs.Post,
+			Binding: SAMLBindingPost,
+		}
+	} else {
+		return SAMLBinding{
+			URL:     s.SignonURLs.Redirect,
+			Binding: SAMLBindingRedirect,
+		}
+	}
+
+	return SAMLBinding{}
 }
