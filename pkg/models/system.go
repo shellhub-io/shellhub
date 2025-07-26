@@ -26,9 +26,16 @@ type SystemAuthenticationSAML struct {
 	Sp      *SystemSpSAML  `json:"sp" bson:"sp"`
 }
 
+type SystemAuthenticationBinding struct {
+	Post     string `json:"post" bson:"post"`
+	Redirect string `json:"redirect" bson:"redirect"`
+	// PreferredBinding defines the preferred SAML binding method.
+	Preferred string `json:"preferred" bson:"preferred"`
+}
+
 type SystemIdpSAML struct {
-	EntityID  string `json:"entity_id" bson:"entity_id"`
-	SignonURL string `json:"signon_url" bson:"signon_url"`
+	EntityID string                       `json:"entity_id" bson:"entity_id"`
+	Binding  *SystemAuthenticationBinding `json:"binding" bson:"binding"`
 	// Certificates is a list of X.509 certificates provided by the IdP. These certificates are used
 	// by the SP to validate the digital signatures of SAML assertions issued by the IdP.
 	Certificates []string `json:"certificates" bson:"certificates"`
@@ -58,4 +65,26 @@ type SystemSpSAML struct {
 	// The IdP verifies the signature using the [SystemSpSAML.Certificate]. It is only populated
 	// when [SystemSpSAML.SignAuthRequests] is true.
 	PrivateKey string `json:"-" bson:"private_key"`
+}
+
+type SAMLBinding struct {
+	URL     string
+	Binding string
+}
+
+const (
+	SAMLBindingPost     = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+	SAMLBindingRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+)
+
+func (s *SystemIdpSAML) GetBinding() SAMLBinding {
+	if s.Binding.Preferred == "post" {
+		return SAMLBinding{URL: s.Binding.Post, Binding: SAMLBindingPost}
+	} else if s.Binding.Preferred == "redirect" {
+		return SAMLBinding{URL: s.Binding.Redirect, Binding: SAMLBindingRedirect}
+	} else if s.Binding.Post != "" {
+		return SAMLBinding{URL: s.Binding.Post, Binding: SAMLBindingPost}
+	} else {
+		return SAMLBinding{URL: s.Binding.Redirect, Binding: SAMLBindingRedirect}
+	}
 }
