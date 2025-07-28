@@ -56,13 +56,9 @@
               />
             </v-col>
             <v-col>
-              <v-select
+              <RoleSelect
                 v-if="hasAuthorization"
                 v-model="selectedRole"
-                label="Key Role"
-                :items="itemsRoles"
-                :item-props="true"
-                return-object
                 data-test="api-key-generate-role"
               />
             </v-col>
@@ -118,6 +114,8 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "@/components/BaseDialog.vue";
+import RoleSelect from "@/components/Team/RoleSelect.vue";
+import { BasicRole } from "@/interfaces/INamespace";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
@@ -127,7 +125,6 @@ const successKey = ref(false);
 const failKey = ref(false);
 const errorMessage = ref("");
 const keyResponse = computed(() => store.getters["apiKeys/apiKey"]);
-const isAdmin = computed(() => ["administrator", "owner"].includes(store.getters["auth/role"]));
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
   return !!role && hasPermission(authorizer.role[role], actions.apiKey.create);
@@ -166,22 +163,6 @@ const getExpiryDate = (item) => {
   };
 };
 
-const itemsRoles = [
-  {
-    title: "observer",
-    value: "observer",
-  },
-  {
-    title: "operator",
-    value: "operator",
-  },
-  {
-    title: "administrator",
-    value: "administrator",
-    disabled: !hasAuthorization.value || !isAdmin.value,
-  },
-];
-
 const itemsDate = [
   {
     title: "30 days",
@@ -211,7 +192,7 @@ const itemsDate = [
 ];
 
 const selectedDate = ref(itemsDate[0]);
-const selectedRole = ref(itemsRoles[0]);
+const selectedRole = ref<BasicRole>("administrator");
 const expirationHint = ref(getExpiryDate(selectedDate.value.title).expirationDate);
 const tenant = computed(() => localStorage.getItem("tenant"));
 
@@ -251,7 +232,7 @@ const generateKey = async () => {
       tenant: tenant.value,
       name: keyName.value,
       expires_at: selectedDate.value.time,
-      role: selectedRole.value.title,
+      role: selectedRole.value,
     });
     successKey.value = true;
     failKey.value = false;
@@ -267,7 +248,7 @@ const close = () => {
   successKey.value = false;
   keyName.value = "";
   [selectedDate.value] = itemsDate;
-  [selectedRole.value] = itemsRoles;
+  selectedRole.value = "administrator";
 };
 defineExpose({ errorMessage });
 </script>

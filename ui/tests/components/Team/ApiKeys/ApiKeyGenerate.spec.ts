@@ -147,7 +147,7 @@ describe("Api Key Generate", () => {
     await flushPromises();
     expect(storeSpy).toHaveBeenCalledWith("apiKeys/generateApiKey", {
       name: "my api key",
-      role: "observer",
+      role: "administrator",
       expires_at: 30,
       tenant: "fake-tenant",
     });
