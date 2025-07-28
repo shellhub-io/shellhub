@@ -39,14 +39,9 @@
         </v-row>
         <v-row>
           <v-col>
-            <v-select
+            <RoleSelect
               v-if="hasAuthorization"
               v-model="selectedRole"
-              label="Key Role"
-              :items="itemsRoles"
-              :item-props="true"
-              variant="outlined"
-              return-object
               data-test="namespace-generate-role"
             />
           </v-col>
@@ -73,6 +68,8 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
+import RoleSelect from "@/components/Team/RoleSelect.vue";
+import { BasicRole } from "@/interfaces/INamespace";
 
 defineOptions({
   inheritAttrs: false,
@@ -89,7 +86,6 @@ const showDialog = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
 const keyGetter = computed(() => props.keyName);
-const isOwner = computed(() => store.getters["auth/role"] === "owner");
 const {
   value: keyInput,
   errorMessage: keyInputError,
@@ -117,34 +113,18 @@ const update = () => {
   showDialog.value = false;
 };
 
-const itemsRoles = [
-  {
-    title: "observer",
-    value: "observer",
-  },
-  {
-    title: "operator",
-    value: "operator",
-  },
-  {
-    title: "administrator",
-    value: "administrator",
-    disabled: !props.hasAuthorization || !isOwner.value,
-  },
-];
-
-const selectedRole = ref(itemsRoles.find((role) => role.value === props.keyRole) || itemsRoles[0]);
+const selectedRole = ref<BasicRole>(props.keyRole as BasicRole);
 
 const edit = async () => {
   const equalName = props.keyName === keyInput.value;
-  const equalRole = props.keyRole === selectedRole.value.value;
+  const equalRole = props.keyRole === selectedRole.value;
   const payload: { key: string; name?: string; role?: string } = { key: props.keyName };
 
   if (!equalName) {
     payload.name = keyInput.value;
   }
   if (!equalRole) {
-    payload.role = selectedRole.value.value;
+    payload.role = selectedRole.value;
   }
 
   try {
