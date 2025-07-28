@@ -27,6 +27,7 @@
   },
   "typeAcquisition": { "enable": true },
   "include": [
+    "eslint.config.mjs",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.vue",
