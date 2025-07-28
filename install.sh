@@ -46,11 +46,6 @@ podman_install() {
 
   CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
 
-  if ! $SUDO systemctl is-active --quiet podman.socket; then
-    echo "❌ Podman is not running as a systemd unit service. Please start it and try again."
-    exit 1
-  fi
-
   $SUDO podman run -d \
     --name=$CONTAINER_NAME \
     --replace \
@@ -120,7 +115,7 @@ docker_install() {
 
   CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
 
-  docker run -d \
+  $SUDO docker run -d \
     --name=$CONTAINER_NAME \
     --restart=on-failure \
     --privileged \
@@ -140,7 +135,6 @@ docker_install() {
     $ARGS \
     shellhubio/agent:$AGENT_VERSION \
     $MODE
-
 }
 
 snap_install() {
@@ -344,47 +338,6 @@ RUNC_ARCH=$RUNC_ARCH
 INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
 TMP_DIR="${TMP_DIR:-$(mktemp -d -t shellhub-installer-XXXXXX)}"
 
-# Checking for podman first as it can be aliased for docker in some systems
-# Always running podman as root as we need to mount system directories
-if type podman >/dev/null 2>&1; then
-  if [ "$(id -u)" -ne 0 ]; then
-    [ -z "$SUDO" ] && SUDO="sudo" || { SUDO=""; }
-  fi
-  if $SUDO podman info >/dev/null 2>&1; then
-    INSTALL_METHOD="${INSTALL_METHOD:-podman}"
-  fi
-fi
-
-if [ -z "$INSTALL_METHOD" ] && type docker >/dev/null 2>&1; then
-  while :; do
-    if $SUDO docker info >/dev/null 2>&1; then
-      INSTALL_METHOD="${INSTALL_METHOD:-docker}"
-      break
-    elif [ "$(id -u)" -ne 0 ]; then
-      [ -z "$SUDO" ] && SUDO="sudo" || { SUDO="" && break; }
-    fi
-  done
-fi
-
-if [ -z "$INSTALL_METHOD" ] && type snap >/dev/null 2>&1; then
-  INSTALL_METHOD="snap"
-fi
-
-# Check if running on WSL
-if [ -e /proc/sys/fs/binfmt_misc/WSLInterop ]; then
-  WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
-  WSL_VERSION=$($WSL_EXE -l -v | tr -d '\0' | grep ${WSL_DISTRO_NAME} | awk '{print $NF}' | tr -d -c '0-9')
-
-  if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
-    echo "❌ ERROR: WSL version 2 is required to run ShellHub."
-    exit 1
-  fi
-
-  INSTALL_METHOD="wsl"
-fi
-
-INSTALL_METHOD="${INSTALL_METHOD:-standalone}"
-
 # Auto detect arch if it has not already been set
 if [ -z "$AGENT_ARCH" ]; then
   case $(uname -m) in
@@ -407,14 +360,90 @@ if [ -z "$AGENT_ARCH" ]; then
   esac
 fi
 
-echo "🛠️ Welcome to the ShellHub Agent Installer Script"
+echo "🛠️ ShellHub Agent Installer"
 echo
-echo "📝 Summary of chosen options:"
+if [ -z "$INSTALL_METHOD" ]; then
+  echo "This script will install the ShellHub agent on your system."
+  echo "It will auto-detect the best available installation method."
+  echo
+  echo "Installation methods (priority order):"
+  echo "  1. Docker     - If Docker is installed and accessible in rootful mode"
+  echo "  2. Podman     - If Podman is installed and accessible in rootful mode"
+  echo "  3. Snap       - If Snap package manager is available"
+  echo "  4. WSL        - If running in WSL2 with systemd and mirrored networking"
+  echo "  5. Standalone - Fallback method using runc and systemd"
+  echo
+fi
+
+echo "⚙️ Detected settings:"
 echo "- Server address: $SERVER_ADDRESS"
 echo "- Tenant ID: $TENANT_ID"
-echo "- Install method: $INSTALL_METHOD"
 echo "- Agent version: $AGENT_VERSION"
+echo "- Architecture: $AGENT_ARCH"
+[ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"
 echo
+
+if [ -z "$INSTALL_METHOD" ] && type docker >/dev/null 2>&1; then
+  echo "🔍 Checking if Docker is available and accessible in rootful mode..."
+
+  export DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
+
+  for prefix in "" "sudo"; do
+    if $prefix docker info >/dev/null 2>&1; then
+      SUDO=$prefix
+      INSTALL_METHOD="docker"
+      break
+    fi
+  done
+
+  [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Docker is not accessible in rootful mode."
+fi
+
+if [ -z "$INSTALL_METHOD" ] && type podman >/dev/null 2>&1; then
+  echo "🔍 Checking if Podman is available and accessible in rootful mode..."
+
+  export CONTAINER_HOST="${CONTAINER_HOST:-unix:///var/run/podman/podman.sock}"
+
+  for prefix in "" "sudo"; do
+    if $prefix podman info >/dev/null 2>&1; then
+      SUDO=$prefix
+      INSTALL_METHOD="podman"
+      break
+    fi
+  done
+
+  [ -z "$INSTALL_METHOD" ] && echo "ℹ️ Podman is not accessible in rootful mode."
+fi
+
+if [ -z "$INSTALL_METHOD" ]; then
+  echo
+  echo "⚠️  NOTE: No recommended installation method was detected."
+  echo "⚠️  For best performance, easier updates, and better isolation, it is strongly recommended to use Docker or Podman."
+  echo "ℹ️  The installer will proceed with an alternative method (Snap, Standalone, or WSL), but these may have limitations."
+  echo
+fi
+
+if [ -z "$INSTALL_METHOD" ] && type snap >/dev/null 2>&1; then
+  echo "🔍 Detected Snap package manager..."
+  INSTALL_METHOD="snap"
+fi
+
+# Check if running on WSL
+if grep -qi Microsoft /proc/version; then
+  echo "🔍 Detected WSL environment..."
+
+  WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
+  WSL_VERSION=$($WSL_EXE -l -v | tr -d '\0' | grep ${WSL_DISTRO_NAME} | awk '{print $NF}' | tr -d -c '0-9')
+
+  if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
+    echo "❌ ERROR: WSL version 2 is required to run ShellHub."
+    exit 1
+  fi
+
+  INSTALL_METHOD="wsl"
+fi
+
+[ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
 
 case "$INSTALL_METHOD" in
 podman)
