@@ -36,7 +36,7 @@ exports[`Team Api Keys > Renders the component 1`] = `
             <tbody>
               <tr>
                 <td class="text-warning text-center"><i class="mdi-clock-alert-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-1" aria-hidden="true"></i> fake-api-key</td>
-                <td class="text-warning text-center" data-test="key-name">owner</td>
+                <td class="text-warning text-center text-capitalize" data-test="key-name">owner</td>
                 <td class="text-warning text-center" data-test="key-name">Expired on Jan 1 1970.</td>
                 <td class="text-center" data-test="menu-key-component"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-4"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
