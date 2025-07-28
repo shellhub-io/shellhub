@@ -17,7 +17,7 @@
             <v-icon class="mr-1" :icon="formatKey(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" />
             {{ item.name }}
           </td>
-          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" data-test="key-name">
+          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" class="text-capitalize" data-test="key-name">
             {{ item.role }}
           </td>
           <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" data-test="key-name">
