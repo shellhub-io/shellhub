@@ -81,6 +81,10 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		return err
 	}
 
+	if err := d.removeContainer(parent); err != nil {
+		return err
+	}
+
 	_, pv := parent.splitImageVersion()
 	v, _ := semver.NewVersion(pv)
 	v0_4_0, _ := semver.NewVersion("v0.4.0")
@@ -135,7 +139,7 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		return err
 	}
 
-	if err := d.stopContainer(container); err != nil {
+	if err := d.removeContainer(container); err != nil {
 		return err
 	}
 
@@ -179,10 +183,14 @@ func (d *dockerUpdater) stopContainer(container *dockerContainer) error {
 		return err
 	}
 
-	opts := containertypes.RemoveOptions{Force: true, RemoveVolumes: true}
-	err := d.api.ContainerRemove(ctx, container.info.ID, opts)
+	return nil
+}
 
-	return err
+func (d *dockerUpdater) removeContainer(container *dockerContainer) error {
+	ctx := context.Background()
+
+	opts := containertypes.RemoveOptions{Force: true, RemoveVolumes: true}
+	return d.api.ContainerRemove(ctx, container.info.ID, opts)
 }
 
 func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) (*dockerContainer, error) { //nolint:unparam
