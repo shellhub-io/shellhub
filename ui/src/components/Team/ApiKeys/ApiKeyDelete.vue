@@ -44,10 +44,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
+import useApiKeysStore from "@/store/modules/api_keys";
 
 const props = defineProps<{
   keyId: string;
@@ -57,7 +57,7 @@ const props = defineProps<{
 const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const apiKeyStore = useApiKeysStore();
 
 const update = () => {
   emit("update");
@@ -66,7 +66,7 @@ const update = () => {
 
 const remove = async () => {
   try {
-    await store.dispatch("apiKeys/removeApiKey", {
+    await apiKeyStore.removeApiKey({
       key: props.keyId,
     });
     update();

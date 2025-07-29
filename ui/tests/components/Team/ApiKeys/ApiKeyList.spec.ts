@@ -1,66 +1,25 @@
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import moment from "moment";
+import { createPinia, setActivePinia } from "pinia";
 import ApiKeyList from "@/components/Team/ApiKeys/ApiKeyList.vue";
-import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
+import { apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useApiKeysStore from "@/store/modules/api_keys";
 
 type ApiKeyListWrapper = VueWrapper<InstanceType<typeof ApiKeyList>>;
 
 describe("Api Key List", () => {
   let wrapper: ApiKeyListWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
+  const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
+  const apiKeysStore = useApiKeysStore();
 
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  let mockApiKeys: MockAdapter;
-
-  const members = [
-    {
-      id: "507f1f77bcf86cd799439011",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const getKeyResponse = [
+  const mockApiKeys = [
     {
       name: "aaaa2",
       tenant_id: "00000-0000-0000-0000-00000000000",
@@ -82,30 +41,15 @@ describe("Api Key List", () => {
   ];
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, getKeyResponse, { "x-total-count": 2 });
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
+    mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, mockApiKeys, { "x-total-count": 2 });
+    apiKeysStore.$patch({
+      apiKeys: mockApiKeys,
+      apiKeysCount: 2,
+    });
 
     wrapper = mount(ApiKeyList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
+        plugins: [[store, key], vuetify, SnackbarPlugin],
       },
     });
   });
@@ -143,19 +87,19 @@ describe("Api Key List", () => {
     });
 
     it("Returns false when unixTime is -1", () => {
-      const result = wrapper.vm.formatKey(-1);
+      const result = wrapper.vm.hasKeyExpired(-1);
       expect(result).toBe(false);
     });
 
     it("Returns true when unixTime is in the past", () => {
       const pastUnixTime = moment().subtract(1, "day").unix();
-      const result = wrapper.vm.formatKey(pastUnixTime);
+      const result = wrapper.vm.hasKeyExpired(pastUnixTime);
       expect(result).toBe(true);
     });
 
     it("Returns false when unixTime is in the future", () => {
       const futureUnixTime = moment().add(1, "day").unix();
-      const result = wrapper.vm.formatKey(futureUnixTime);
+      const result = wrapper.vm.hasKeyExpired(futureUnixTime);
       expect(result).toBe(false);
     });
 
@@ -193,14 +137,14 @@ describe("Api Key List", () => {
         const pastUnixTime = moment().subtract(1, "day").unix();
         const item = { expires_in: pastUnixTime };
 
-        const formatted = wrapper.vm.formatKey(item.expires_in);
+        const formatted = wrapper.vm.hasKeyExpired(item.expires_in);
         expect(formatted).toBe(true);
       });
 
       it("Formats items that will not expire with formatKey correctly", () => {
         const item = { expires_in: -1 };
 
-        const formatted = wrapper.vm.formatKey(item.expires_in);
+        const formatted = wrapper.vm.hasKeyExpired(item.expires_in);
         expect(formatted).toBe(false);
       });
     });

@@ -1,82 +1,25 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import TeamApiKeys from "@/views/TeamApiKeys.vue";
-import { namespacesApi, usersApi, apiKeysApi, devicesApi } from "@/api/http";
+import { apiKeysApi } from "@/api/http";
 import { store, key } from "@/store";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
+import useApiKeysStore from "@/store/modules/api_keys";
 
 type TeamApiKeysWrapper = VueWrapper<InstanceType<typeof TeamApiKeys>>;
 
 describe("Team Api Keys", () => {
   let wrapper: TeamApiKeysWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
+  const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
+  const apiKeysStore = useApiKeysStore();
 
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  let mockDevices: MockAdapter;
-
-  let mockApiKeys: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const res = {
-    data: [namespaceData],
-    headers: {
-      "x-total-count": 1,
-    },
-  };
-
-  const stats = {
-    data: {
-      registered_devices: 2,
-      online_devices: 1,
-      active_sessions: 0,
-      pending_devices: 24,
-      rejected_devices: 1,
-    },
-  };
-
-  const apiKeys = [
+  const mockApiKeys = [
     {
       name: "fake-api-key",
       tenant_id: "00000000-0000-4000-0000-000000000000",
@@ -84,49 +27,29 @@ describe("Team Api Keys", () => {
       created_by: "xxxxxxxx",
       created_at: "",
       updated_at: "",
-      expires_in: "",
+      expires_in: 1753815353,
     },
   ];
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(
+    mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(
       200,
-      { data: apiKeys, headers: { "x-total-count": "1" } },
+      { data: mockApiKeys, headers: { "x-total-count": "1" } },
     );
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("namespaces/setNamespaces", res);
-    store.commit("stats/setStats", stats);
-    store.commit("apiKeys/setKeyList", { data: apiKeys, headers: { "x-total-count": "1" } });
+    apiKeysStore.$patch({
+      apiKeys: mockApiKeys,
+      apiKeysCount: 1,
+    });
 
     wrapper = mount(TeamApiKeys, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
     wrapper.unmount();
   });
 
