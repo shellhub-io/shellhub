@@ -21,7 +21,6 @@ import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 import { billing } from "./modules/billing";
 import { customer, CustomerState } from "./modules/customer";
-import { announcement, AnnouncementState } from "./modules/announcement";
 import { connectors, ConnectorState } from "./modules/connectors";
 import apiPlugin from "./plugins/api";
 
@@ -47,7 +46,6 @@ export interface State {
   support: SupportState;
   tags: TagsState;
   users: UsersState;
-  announcement: AnnouncementState;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol("store");
@@ -75,7 +73,6 @@ export const store = createStore<State>({
     support,
     tags,
     users,
-    announcement,
   },
   plugins: [
     apiPlugin,
