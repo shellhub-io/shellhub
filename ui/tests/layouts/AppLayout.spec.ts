@@ -1,4 +1,4 @@
-// AppLayout.spec.ts
+import { createPinia, setActivePinia } from "pinia";
 import { defineComponent, nextTick } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
@@ -18,7 +18,7 @@ let mockContainers: MockAdapter;
 
 describe("App Layout Component", () => {
   let wrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify({
     components,
     directives,
