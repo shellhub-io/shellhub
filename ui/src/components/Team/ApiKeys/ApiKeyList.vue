@@ -4,23 +4,23 @@
       v-model:page="page"
       v-model:itemsPerPage="itemsPerPage"
       :headers
-      :items="keyList"
-      :totalCount="numberKeys"
+      :items="apiKeys"
+      :totalCount="apiKeysCount"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
       @update:sort="sortByItem"
       data-test="api-key-list"
     >
       <template v-slot:rows>
-        <tr v-for="(item, i) in keyList" :key="i">
-          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'">
-            <v-icon class="mr-1" :icon="formatKey(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" />
+        <tr v-for="item in apiKeys" :key="item.id">
+          <td :class="{ 'text-warning': hasKeyExpired(item.expires_in) }" class="text-center">
+            <v-icon class="mr-1" :icon="hasKeyExpired(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" />
             {{ item.name }}
           </td>
-          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" class="text-capitalize" data-test="key-name">
+          <td :class="{ 'text-warning': hasKeyExpired(item.expires_in) }" class="text-center text-capitalize" data-test="key-name">
             {{ item.role }}
           </td>
-          <td :class="formatKey(item.expires_in) ? 'text-warning text-center' : 'text-center'" data-test="key-name">
+          <td :class="{ 'text-warning': hasKeyExpired(item.expires_in) }" class="text-center" data-test="key-expiry-date">
             {{ formatDate(item.expires_in) }}
           </td>
           <td class="text-center" data-test="menu-key-component">
@@ -48,7 +48,7 @@
                         :key-id="item.id"
                         :key-role="item.role"
                         :has-authorization="hasAuthorizationRemoveKey()"
-                        :disabled="formatKey(item.expires_in)"
+                        :disabled="hasKeyExpired(item.expires_in)"
                         @update="refresh()"
                       />
                     </div>
@@ -93,6 +93,7 @@ import handleError from "@/utils/handleError";
 import ApiKeyDelete from "./ApiKeyDelete.vue";
 import ApiKeyEdit from "./ApiKeyEdit.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useApiKeysStore from "@/store/modules/api_keys";
 
 const headers = [
   {
@@ -117,12 +118,13 @@ const headers = [
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
+const sortField = ref<string>("name");
+const sortOrder = ref<"asc" | "desc">("asc");
 const store = useStore();
+const apiKeyStore = useApiKeysStore();
 const snackbar = useSnackbar();
-const numberKeys = computed<number>(
-  () => store.getters["apiKeys/getNumberApiKeys"],
-);
-const keyList = computed(() => store.getters["apiKeys/apiKeyList"]);
+const apiKeysCount = computed(() => apiKeyStore.apiKeysCount);
+const apiKeys = computed(() => apiKeyStore.apiKeys);
 const hasAuthorizationRemoveKey = () => {
   const role = store.getters["auth/role"];
   return !!role && hasPermission(authorizer.role[role], actions.apiKey.delete);
@@ -130,7 +132,7 @@ const hasAuthorizationRemoveKey = () => {
 
 const now = moment().utc();
 
-const formatKey = (unixTime: number): boolean => {
+const hasKeyExpired = (unixTime: number): boolean => {
   if (unixTime === -1) {
     return false;
   }
@@ -153,14 +155,14 @@ const formatDate = (unixTime: number): string => {
     : `Expires on ${expiryDate.format(format)}.`;
 };
 
-const getKey = async (perPageValue: number, pageValue: number) => {
+const fetchApiKeys = async () => {
   try {
     loading.value = true;
-    await store.dispatch("apiKeys/getApiKey", {
-      page: pageValue,
-      perPage: perPageValue,
-      sortStatusField: store.getters["apiKeys/getSortStatusField"],
-      sortStatusString: store.getters["apiKeys/getSortStatusString"],
+    await apiKeyStore.fetchApiKeys({
+      page: page.value,
+      perPage: itemsPerPage.value,
+      sortField: sortField.value,
+      sortOrder: sortOrder.value,
     });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -178,31 +180,25 @@ const getKey = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-onMounted(async () => {
-  await getKey(itemsPerPage.value, page.value);
-});
-
 const refresh = async () => {
-  await getKey(itemsPerPage.value, page.value);
+  await fetchApiKeys();
 };
 
 watch([page, itemsPerPage], async () => {
-  await getKey(itemsPerPage.value, page.value);
+  await fetchApiKeys();
 });
 
-const getSortOrder = () => {
-  const currentOrder = store.getters["apiKeys/getSortStatusString"];
-  if (currentOrder === "asc") return "desc";
-  return "asc";
-};
+const toggleSortOrder = () => sortOrder.value === "asc" ? "desc" : "asc";
 
 const sortByItem = async (field: string) => {
-  await store.dispatch("apiKeys/setSortStatus", {
-    sortStatusField: field,
-    sortStatusString: getSortOrder(),
-  });
-  await getKey(itemsPerPage.value, page.value);
+  sortField.value = field;
+  sortOrder.value = toggleSortOrder();
+  await fetchApiKeys();
 };
 
-defineExpose({ refresh, formatKey, formatDate, itemsPerPage });
+onMounted(async () => {
+  await fetchApiKeys();
+});
+
+defineExpose({ refresh, hasKeyExpired, formatDate, itemsPerPage });
 </script>

@@ -16,11 +16,11 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <BaseDialog v-model="showDialog" @click:outside="close">
+    <BaseDialog v-model="showDialog" @update:modelValue="(value: boolean) => !value && close()">
       <v-card data-test="api-key-generate-dialog" class="bg-v-theme-surface">
         <v-card-title class="bg-primary">New Api Key</v-card-title>
 
-        <v-card-text v-if="failKey">
+        <v-card-text v-if="errorMessage">
           <v-alert
             :text="errorMessage"
             type="error"
@@ -35,7 +35,7 @@
           <v-text-field
             class="mt-6"
             v-model="keyName"
-            :error-messages="keyInputError"
+            :error-messages="keyNameError"
             label="Key Name"
             prepend-inner-icon="mdi-key-outline"
             required
@@ -65,7 +65,7 @@
           </v-row>
 
         </v-card-text>
-        <v-card-text v-if="successKey">
+        <v-card-text v-if="generatedApiKey">
           <v-alert
             text="Make sure to copy your key now as you will not be able to see it again."
             type="success"
@@ -75,12 +75,12 @@
           <CopyWarning :copied-item="'API Key'">
             <template #default="{ copyText }">
               <v-text-field
-                v-model="keyResponse"
+                v-model="generatedApiKey"
                 append-inner-icon="mdi-content-copy"
                 variant="solo-filled"
                 readonly
                 density="compact"
-                @click="copyText(keyResponse)"
+                @click="copyText(generatedApiKey)"
                 data-test="key-response-text"
               />
             </template>
@@ -92,7 +92,7 @@
           <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
           <v-spacer />
 
-          <v-btn color="success" variant="flat" data-test="add-btn" @click="generateKey()" :disabled="successKey">
+          <v-btn color="success" variant="flat" data-test="add-btn" @click="generateKey()" :disabled="!!generatedApiKey || !!keyNameError">
             Generate Api Key
           </v-btn>
         </v-card-actions>
@@ -116,15 +116,15 @@ import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
+import useApiKeysStore from "@/store/modules/api_keys";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const store = useStore();
+const apiKeyStore = useApiKeysStore();
 const showDialog = ref(false);
-const successKey = ref(false);
-const failKey = ref(false);
 const errorMessage = ref("");
-const keyResponse = computed(() => store.getters["apiKeys/apiKey"]);
+const generatedApiKey = ref("");
 const hasAuthorization = computed(() => {
   const role = store.getters["auth/role"];
   return !!role && hasPermission(authorizer.role[role], actions.apiKey.create);
@@ -132,8 +132,8 @@ const hasAuthorization = computed(() => {
 
 const {
   value: keyName,
-  errorMessage: keyInputError,
-} = useField<string | undefined>(
+  errorMessage: keyNameError,
+} = useField<string>(
   "name",
   yup
     .string()
@@ -194,15 +194,12 @@ const itemsDate = [
 const selectedDate = ref(itemsDate[0]);
 const selectedRole = ref<BasicRole>("administrator");
 const expirationHint = ref(getExpiryDate(selectedDate.value.title).expirationDate);
-const tenant = computed(() => localStorage.getItem("tenant"));
 
 watch(selectedDate, (newVal) => {
   expirationHint.value = getExpiryDate(newVal.title).expirationDate;
 });
 
 const handleGenerateKeyError = (error: unknown) => {
-  failKey.value = true;
-  successKey.value = false;
   snackbar.showError("Failed to generate API Key.");
 
   if (axios.isAxiosError(error)) {
@@ -228,14 +225,11 @@ const handleGenerateKeyError = (error: unknown) => {
 
 const generateKey = async () => {
   try {
-    await store.dispatch("apiKeys/generateApiKey", {
-      tenant: tenant.value,
+    generatedApiKey.value = await apiKeyStore.generateApiKey({
       name: keyName.value,
-      expires_at: selectedDate.value.time,
+      expires_in: selectedDate.value.time,
       role: selectedRole.value,
     });
-    successKey.value = true;
-    failKey.value = false;
     emit("update");
   } catch (error: unknown) {
     handleGenerateKeyError(error);
@@ -244,8 +238,7 @@ const generateKey = async () => {
 
 const close = () => {
   showDialog.value = false;
-  failKey.value = false;
-  successKey.value = false;
+  generatedApiKey.value = "";
   keyName.value = "";
   [selectedDate.value] = itemsDate;
   selectedRole.value = "administrator";
