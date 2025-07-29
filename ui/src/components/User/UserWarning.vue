@@ -20,7 +20,7 @@
 
   <AnnouncementsModal
     v-model="showAnnouncements"
-    :announcement="announcement"
+    :announcement="currentAnnouncement"
     data-test="announcements-modal-component"
   />
 
@@ -62,6 +62,7 @@ import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useAnnouncementStore from "@/store/modules/announcement";
 
 defineOptions({
   inheritAttrs: false,
@@ -69,6 +70,7 @@ defineOptions({
 
 const snackbar = useSnackbar();
 const store = useStore();
+const announcementStore = useAnnouncementStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
@@ -78,8 +80,7 @@ const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]
 const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const stats = computed(() => store.getters["stats/stats"]);
-const announcements = computed(() => store.getters["announcement/list"]);
-const announcement = computed(() => store.getters["announcement/get"]);
+const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
@@ -129,28 +130,20 @@ const showScreenWelcome = async () => {
   showWelcome.value = status;
 };
 
-const checkAnnouncements = async () => {
-  if (!envVariables.announcementsEnable) {
-    return;
-  }
+const checkForNewAnnouncements = async () => {
+  if (!envVariables.announcementsEnable) return;
 
   try {
-    await store.dispatch("announcement/getListAnnouncements", {
-      page: 1,
-      perPage: 1,
-      orderBy: "desc",
-    });
+    const announcements = await announcementStore.fetchAnnouncements();
 
-    if (announcements.value.length > 0) {
-      const announcementTest = announcements.value[0];
-      await store.dispatch(
-        "announcement/getAnnouncement",
-        announcementTest.uuid,
-      );
+    if (announcements.length > 0) {
+      const latestAnnouncement = announcements[0];
+      await announcementStore.fetchById(latestAnnouncement.uuid);
 
-      const announcementStorage = localStorage.getItem("announcement");
-      const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value));
-      if (announcementStorage !== lastAnnouncementEncoded) {
+      const storedAnnouncementHash = localStorage.getItem("announcement");
+      const currentAnnouncementHash = btoa(JSON.stringify(currentAnnouncement));
+
+      if (storedAnnouncementHash !== currentAnnouncementHash) {
         showAnnouncements.value = true;
       }
     }
@@ -172,25 +165,19 @@ const showDialogs = async () => {
       await store.dispatch("stats/get");
 
       showScreenWelcome();
-      if (envVariables.isCloud && !store.getters["billing/active"]) {
-        await billingWarning();
-      }
-    } else {
-      // this shows the namespace instructions when the user has no namespace
-      showInstructions.value = true;
-    }
+
+      if (envVariables.isCloud && !store.getters["billing/active"]) await billingWarning();
+    } else showInstructions.value = true;
   } catch (error: unknown) {
     snackbar.showError("An error occurred while fetching the namespaces.");
     handleError(error);
   }
 };
 
-onMounted(() => {
-  showDialogs();
-  checkAnnouncements();
+onMounted(async () => {
+  await showDialogs();
+  await checkForNewAnnouncements();
 
-  if (showRecoverHelper.value === true) {
-    router.push("/settings");
-  }
+  if (showRecoverHelper.value === true) router.push("/settings");
 });
 </script>
