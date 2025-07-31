@@ -1,13 +1,12 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import NamespaceEdit from "@/components/Namespace/NamespaceEdit.vue";
-import { namespacesApi, usersApi } from "@/api/http";
+import { namespacesApi } from "@/api/http";
 import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
@@ -19,12 +18,10 @@ const mockSnackbar = {
 
 describe("Namespace Edit", () => {
   let wrapper: NamespaceEditWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   const members = [
     {
@@ -48,37 +45,15 @@ describe("Namespace Edit", () => {
     created_at: "",
   };
 
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockNamespace.onGet("http://localhost:3000/api/namespaces?filter=&page=1&per_page=10").reply(200, [namespaceData]);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?filter=&page=1&per_page=10").reply(200, [namespaceData]);
     store.commit("namespaces/setNamespace", namespaceData);
 
     wrapper = mount(NamespaceEdit, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [[store, key], vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -116,7 +91,7 @@ describe("Namespace Edit", () => {
       },
     };
 
-    mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, changeNamespaceData);
+    mockNamespacesApi.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, changeNamespaceData);
 
     await wrapper.findComponent('[data-test="connection-announcement-text"]').setValue("test");
 
@@ -131,7 +106,7 @@ describe("Namespace Edit", () => {
   it("Fails to change namespace data", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    mockNamespace.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
+    mockNamespacesApi.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
 
     await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
 

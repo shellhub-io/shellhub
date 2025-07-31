@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -15,7 +16,7 @@ type SetupWrapper = VueWrapper<InstanceType<typeof Setup>>;
 describe("Setup Account", () => {
   let wrapper: SetupWrapper;
   const vuetify = createVuetify();
-
+  setActivePinia(createPinia());
   let mock: MockAdapter;
 
   beforeEach(() => {

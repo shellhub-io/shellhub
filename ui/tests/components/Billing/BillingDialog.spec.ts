@@ -1,9 +1,10 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import BillingDialog from "@/components/Billing/BillingDialog.vue";
-import { billingApi, namespacesApi, usersApi } from "@/api/http";
+import { billingApi, namespacesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
@@ -13,14 +14,10 @@ type BillingDialogWrapper = VueWrapper<InstanceType<typeof BillingDialog>>;
 
 describe("Billing Dialog", () => {
   let wrapper: BillingDialogWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  let mockBilling: MockAdapter;
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+  const mockBillingApi = new MockAdapter(billingApi.getAxios());
 
   const members = [
     {
@@ -43,21 +40,6 @@ describe("Billing Dialog", () => {
     created_at: "",
   };
 
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
   const customerData = {
     id: "cus_test",
     name: "test",
@@ -76,22 +58,12 @@ describe("Billing Dialog", () => {
   };
 
   beforeEach(async () => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockBilling = new MockAdapter(billingApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockBilling.onPost("http://localhost:3000/api/billing/customer").reply(200);
-    mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockBillingApi.onPost("http://localhost:3000/api/billing/customer").reply(200);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
 
     wrapper = mount(BillingDialog, {
       global: {
@@ -147,12 +119,10 @@ describe("Billing Dialog", () => {
     wrapper.vm.el = 3;
     await flushPromises();
 
-    mockBilling.onPost("http://localhost:3000/api/billing/subscription").reply(200);
+    mockBillingApi.onPost("http://localhost:3000/api/billing/subscription").reply(200);
 
     const subscribeSpy = vi.spyOn(store, "dispatch");
     await wrapper.findComponent('[data-test="checkout-button"]').trigger("click");
-
-    vi.runOnlyPendingTimers();
 
     expect(subscribeSpy).toHaveBeenCalledWith("customer/createSubscription");
   });

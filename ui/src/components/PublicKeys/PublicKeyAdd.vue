@@ -133,11 +133,13 @@ import { validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const { size } = defineProps<{ size?: string }>();
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const authStore = useAuthStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const validateLength = ref(true);
@@ -209,7 +211,7 @@ const {
 const tagNames = computed(() => store.getters["tags/list"]);
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.publicKey.create);
 });
 

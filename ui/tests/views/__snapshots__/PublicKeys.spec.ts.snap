@@ -6,7 +6,7 @@ exports[`Public Keys > Renders the component 1`] = `
   <div class="v-spacer"></div>
   <div class="v-spacer"></div>
   <div>
-    <div aria-describedby="v-tooltip-v-0"><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" tabindex="0" aria-label="Add Public Key" data-test="public-key-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div aria-describedby="v-tooltip-v-0"><button type="button" class="v-btn v-btn--disabled v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" disabled="" tabindex="0" aria-label="Add Public Key" data-test="public-key-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""> Add Public Key </span>
         <!---->
         <!---->
@@ -18,47 +18,106 @@ exports[`Public Keys > Renders the component 1`] = `
   </div>
 </div>
 <div data-test="public-keys-components">
-  <div class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center" data-test="no-items-message-component">
-    <!---->
-    <div class="v-card__loader">
-      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+  <div>
+    <div data-test="public-keys-list">
+      <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
         <!---->
-        <div class="v-progress-linear__background"></div>
-        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-          <div class="v-progress-linear__indeterminate">
-            <div class="v-progress-linear__indeterminate long"></div>
-            <div class="v-progress-linear__indeterminate short"></div>
-          </div>
-        </transition-stub>
+        <div class="v-table__wrapper">
+          <table>
+            <thead class="bg-v-theme-background">
+              <tr>
+                <th class="text-center"><span>Name</span></th>
+                <th class="text-center"><span>Fingerprint</span></th>
+                <th class="text-center"><span>Filter</span></th>
+                <th class="text-center"><span>Username</span></th>
+                <th class="text-center"><span>Created At</span></th>
+                <th class="text-center"><span>Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-test="public-key-item">
+                <td class="text-center" data-test="public-key-name">public-key-test</td>
+                <td class="text-center" data-test="public-key-fingerprint">00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:01</td>
+                <td class="text-center" data-test="public-key-filter">
+                  <div>All devices</div>
+                </td>
+                <td class="text-center" data-test="public-key-username">All users</td>
+                <td class="text-center" data-test="public-key-created-at"></td>
+                <td class="text-center" data-test="public-key-actions"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" data-test="public-key-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                    <!---->
+                    <!---->
+                  </button>
+                  <!--teleport start-->
+                  <!--teleport end-->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <!---->
       </div>
-    </div>
-    <!---->
-    <!---->
-    <div class="v-card-title d-flex flex-column justify-center pa-5 ga-6">
-      <div><i class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" data-test="message-icon"></i></div>
-      <div class="text-sm-h5 text-wrap font-weight-medium" data-test="message-title"> Looks like you don't have any Public Keys</div>
-    </div>
-    <div class="v-card-text pb-0 px-4 py-1 d-flex flex-column ga-2 text-subtitle-1" data-test="message-content">
-      <p>You can connect to your devices using password-based logins, but we strongly recommend using SSH key pairs instead.</p>
-      <p>SSH keys are more secure than passwords and can help you log in without having to remember long passwords.</p>
-    </div>
-    <div class="v-card-actions justify-center pt-8 pb-0">
-      <div>
-        <div aria-describedby="v-tooltip-v-2"><button type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" tabindex="0" aria-label="Add Public Key" data-test="public-key-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-            <!----><span class="v-btn__content" data-no-activator=""> Add Public Key </span>
+      <!--v-if-->
+      <!--v-if-->
+      <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+        <div>
+          <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+            <!---->
+            <div class="v-input__control">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8">
+                <div class="v-field__overlay"></div>
+                <div class="v-field__loader">
+                  <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                    <!---->
+                    <div class="v-progress-linear__background"></div>
+                    <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                    <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                      <div class="v-progress-linear__indeterminate">
+                        <div class="v-progress-linear__indeterminate long"></div>
+                        <div class="v-progress-linear__indeterminate short"></div>
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                </div>
+                <!---->
+                <div class="v-field__field" data-no-activator="">
+                  <!---->
+                  <!---->
+                  <!---->
+                  <div class="v-field__input" data-no-activator="">
+                    <!---->
+                    <!---->
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-6" outlined="" value="10">
+                  </div>
+                  <!---->
+                </div>
+                <!---->
+                <div class="v-field__append-inner">
+                  <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="false" tabindex="-1" aria-label="Open" title="Open"></i>
+                  <!---->
+                </div>
+                <div class="v-field__outline">
+                  <!---->
+                  <!---->
+                </div>
+              </div>
+            </div>
+            <!---->
+            <!---->
+          </div>
+        </div>
+        <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+            <!---->
+            <!---->
+          </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
           </button></div>
-        <!--teleport start-->
-        <!--teleport end-->
-        <!---->
-        <!---->
       </div>
     </div>
-    <!---->
-    <!----><span class="v-card__underlay"></span>
   </div>
 </div>"
 `;

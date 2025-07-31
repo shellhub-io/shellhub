@@ -116,6 +116,7 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   isEditing: boolean;
@@ -126,6 +127,7 @@ const props = defineProps<{
   initialSecure?: boolean;
 }>();
 
+const authStore = useAuthStore();
 const showDialog = defineModel<boolean>({ default: false });
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
@@ -136,7 +138,7 @@ const store = useStore();
 const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})$/;
 
 const hasAuthorizationAdd = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.add);
 };
 
