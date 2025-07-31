@@ -173,9 +173,11 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const snackbar = useSnackbar();
 const store = useStore();
+const authStore = useAuthStore();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const active = ref(true);
@@ -248,7 +250,7 @@ const filterSelectOptions = [
 ];
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.firewall.create);
 });
 

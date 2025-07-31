@@ -141,6 +141,7 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { router } from "@/router";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const headers = [
   {
@@ -168,7 +169,7 @@ const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-
+const authStore = useAuthStore();
 const store = useStore();
 
 const connectorsCount = computed<number>(
@@ -178,12 +179,12 @@ const connectorsCount = computed<number>(
 const connectors = computed(() => store.getters["connectors/list"]);
 
 const hasAuthorizationEdit = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
 };
 

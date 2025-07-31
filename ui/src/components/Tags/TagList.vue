@@ -59,7 +59,7 @@
       </tr>
     </tbody>
     <div v-else class="text-start mt-2 mb-3">
-      <span class="ml-4">No data avaliable</span>
+      <span class="ml-4">No data available</span>
     </div>
   </v-table>
 </template>
@@ -73,8 +73,10 @@ import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const headers = ref([
   {
@@ -94,12 +96,12 @@ const headers = ref([
 const tags = computed(() => store.getters["tags/list"]);
 
 const hasAuthorizationEdit = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tag.edit);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tag.remove);
 };
 

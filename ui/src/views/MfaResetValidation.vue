@@ -84,11 +84,11 @@ import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../store";
 import handleError from "../utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -114,8 +114,8 @@ const verifyDisableProcessingStatus = computed(() => disableProcessingStatus.val
 
 const validationAccount = async () => {
   try {
-    await store.dispatch("auth/resetMfa", {
-      id: route.query.id,
+    await authStore.resetMfa({
+      id: route.query.id as string,
       main_email_code: primaryEmail.value,
       recovery_email_code: recoveryEmail.value,
     });

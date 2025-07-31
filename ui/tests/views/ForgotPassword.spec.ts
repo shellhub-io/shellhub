@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -14,7 +15,7 @@ type ForgotPasswordWrapper = VueWrapper<InstanceType<typeof ForgotPassword>>;
 describe("Forgot Password", () => {
   let wrapper: ForgotPasswordWrapper;
   const vuetify = createVuetify();
-
+  setActivePinia(createPinia());
   let mock: MockAdapter;
 
   beforeEach(() => {

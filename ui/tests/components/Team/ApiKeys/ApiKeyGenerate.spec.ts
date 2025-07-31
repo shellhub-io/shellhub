@@ -9,6 +9,7 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useApiKeysStore from "@/store/modules/api_keys";
+import useAuthStore from "@/store/modules/auth";
 
 type ApiKeyGenerateWrapper = VueWrapper<InstanceType<typeof ApiKeyGenerate>>;
 
@@ -38,9 +39,10 @@ describe("Api Key Generate", () => {
   const vuetify = createVuetify();
   const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
   const apiKeysStore = useApiKeysStore();
+  const authStore = useAuthStore();
 
   beforeEach(async () => {
-    store.commit("auth/authSuccess", authData);
+    authStore.$patch(authData);
     wrapper = mount(ApiKeyGenerate, {
       global: {
         plugins: [[store, key], vuetify, router],

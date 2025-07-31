@@ -133,6 +133,7 @@ import FirewallRuleDelete from "./FirewallRuleDelete.vue";
 import FirewallRuleEdit from "./FirewallRuleEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const headers = [
   {
@@ -166,6 +167,7 @@ const headers = [
 ];
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
@@ -228,20 +230,12 @@ const formatHostnameFilter = (filter: HostnameFilter) => filter.hostname === ".*
 const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 
 const hasAuthorizationFormDialogEdit = () => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.firewall.edit);
-  }
-
-  return false;
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.firewall.edit);
 };
 
 const hasAuthorizationFormDialogRemove = () => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(authorizer.role[role], actions.firewall.remove);
-  }
-
-  return false;
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.firewall.remove);
 };
 </script>

@@ -58,12 +58,14 @@ import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 import { envVariables } from "@/envVariables";
 
 const props = defineProps<{ tenant: string }>();
 const emit = defineEmits(["billing-in-debt"]);
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel({ default: false });
@@ -71,7 +73,7 @@ const name = ref("");
 const tenant = computed(() => props.tenant);
 const billingActive = computed(() => store.getters["billing/active"]);
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
 });
 
@@ -98,7 +100,7 @@ const remove = async () => {
   try {
     await store.dispatch("namespaces/remove", tenant.value);
     snackbar.showSuccess("Namespace deleted successfully.");
-    await store.dispatch("auth/logout");
+    authStore.logout();
     await router.push({ name: "Login" });
     showDialog.value = false;
   } catch (error: unknown) {

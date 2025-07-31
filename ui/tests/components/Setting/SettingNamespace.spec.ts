@@ -1,23 +1,24 @@
+import MockAdapter from "axios-mock-adapter";
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
 import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
-import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { router } from "@/router";
+import { namespacesApi, usersApi } from "@/api/http";
+import useAuthStore from "@/store/modules/auth";
 
 type SettingNamespaceWrapper = VueWrapper<InstanceType<typeof SettingNamespace>>;
 
 describe("Setting Namespace", () => {
   let wrapper: SettingNamespaceWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-  let mockUser: MockAdapter;
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   const members = [
     {
@@ -55,21 +56,6 @@ describe("Setting Namespace", () => {
     },
   };
 
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
   beforeEach(async () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
@@ -82,26 +68,16 @@ describe("Setting Namespace", () => {
       dispatchEvent: vi.fn(),
     }));
 
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData.data);
+    mockUsersApi.onGet("http://localhost:3000/api/users/security").reply(200, true);
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("billing/setSubscription", billingData);
+    authStore.tenantId = "fake-tenant";
 
     wrapper = mount(SettingNamespace, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });

@@ -256,7 +256,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import { store } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
@@ -273,6 +272,7 @@ import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
 import { IContainerMethods } from "@/interfaces/IContainer";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   storeMethods: IDeviceMethods | IContainerMethods;
@@ -282,7 +282,7 @@ const props = defineProps<{
 }>();
 
 const { fetchDevices, setSort, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
-
+const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
 const filter = computed(() => getFilter());
@@ -295,7 +295,7 @@ const page = ref(1);
 const status = computed(() => props.status);
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
-const userId = computed(() => store.getters["auth/id"]);
+const userId = authStore.id;
 
 const headers = [
   {
@@ -415,7 +415,7 @@ const openTerminalHelper = (item: IDevice) => {
 const shouldOpenTerminalHelper = () => {
   try {
     const dispensedUsers = JSON.parse(localStorage.getItem("dispenseTerminalHelper") || "[]");
-    return !dispensedUsers.includes(userId.value);
+    return !dispensedUsers.includes(userId);
   } catch {
     return true;
   }
@@ -434,12 +434,12 @@ const refreshDevices = async () => {
 };
 
 const hasAuthorizationFormUpdate = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.device.remove);
 };
 

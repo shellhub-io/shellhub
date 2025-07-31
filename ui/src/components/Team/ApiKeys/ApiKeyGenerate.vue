@@ -108,7 +108,6 @@ import * as yup from "yup";
 import axios from "axios";
 import { useField } from "vee-validate";
 import hasPermission from "@/utils/permission";
-import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -117,16 +116,17 @@ import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useApiKeysStore from "@/store/modules/api_keys";
+import useAuthStore from "@/store/modules/auth";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
-const store = useStore();
 const apiKeyStore = useApiKeysStore();
+const authStore = useAuthStore();
 const showDialog = ref(false);
 const errorMessage = ref("");
 const generatedApiKey = ref("");
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.apiKey.create);
 });
 
@@ -140,7 +140,7 @@ const {
     .required()
     .min(3)
     .max(20)
-    .matches(/^(?!.*\s).*$/, "This field cannot contain any blankspaces"),
+    .matches(/^(?!.*\s).*$/, "This field cannot contain any blank spaces"),
   {
     initialValue: "",
   },

@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -9,16 +10,13 @@ type SettingsWrapper = VueWrapper<InstanceType<typeof Settings>>;
 
 describe("Settings View", () => {
   let wrapper: SettingsWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(async () => {
     wrapper = mount(Settings, {
       global: {
         plugins: [[store, key], vuetify, router],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });

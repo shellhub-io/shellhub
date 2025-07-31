@@ -31,8 +31,7 @@
                     > {{ connector.address + ":" + connector.port }}
                     </span>
                   </template>
-                  <span v-if="connector.secure">Secure Connetion</span>
-                  <span v-else>Insecure Connetion</span>
+                  <span>{{ connector.secure ? 'Secure' : 'Insecure' }} Connection</span>
                 </v-tooltip>
               </v-chip>
             </code>
@@ -164,8 +163,10 @@ import hasPermission from "../utils/permission";
 import { actions, authorizer } from "../authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -221,12 +222,12 @@ const redirectContainers = async () => {
 };
 
 const hasAuthorizationEdit = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
 };
 

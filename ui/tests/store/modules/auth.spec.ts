@@ -1,58 +1,41 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { flushPromises } from "@vue/test-utils";
-import { store } from "@/store";
-import { mfaApi, usersApi, apiKeysApi } from "@/api/http";
+import { createPinia, setActivePinia } from "pinia";
+import { mfaApi, usersApi } from "@/api/http";
+import useAuthStore from "@/store/modules/auth";
 
-describe("Auth Store Actions", () => {
-  let mockMfa: MockAdapter;
-  let mockUser: MockAdapter;
-  let mockApiKeys: MockAdapter;
+describe("Auth Pinia Store", () => {
+  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
+  let authStore: ReturnType<typeof useAuthStore>;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant");
-    mockMfa = new MockAdapter(mfaApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mockMfa.reset();
-    mockUser.reset();
-    mockApiKeys.reset();
+    setActivePinia(createPinia());
+    authStore = useAuthStore();
   });
 
   describe("Default Values", () => {
     it("should return the default authentication variables", () => {
-      expect(store.getters["auth/currentUser"]).toEqual("");
-      expect(store.getters["auth/currentName"]).toEqual("");
-      expect(store.getters["auth/tenant"]).toEqual("");
-      expect(store.getters["auth/email"]).toEqual("");
-      expect(store.getters["auth/recoveryEmail"]).toEqual("");
-      expect(store.getters["auth/getLoginTimeout"]).toEqual(0);
-      expect(store.getters["auth/stateToken"]).toEqual("");
-      expect(store.getters["auth/authStatus"]).toEqual("");
-      expect(store.getters["auth/link_mfa"]).toEqual("");
-      expect(store.getters["auth/isMfa"]).toEqual(false);
-      expect(store.getters["auth/recoveryCodes"]).toEqual([]);
-      expect(store.getters["auth/secret"]).toEqual("");
-      expect(store.getters["auth/showRecoveryModal"]).toEqual(false);
+      expect(authStore.username).toEqual("");
+      expect(authStore.name).toEqual("");
+      expect(authStore.tenantId).toEqual("");
+      expect(authStore.email).toEqual("");
+      expect(authStore.recoveryEmail).toEqual("");
+      expect(authStore.loginTimeout).toEqual(0);
+      expect(authStore.token).toEqual("");
+      expect(authStore.isMfaEnabled).toEqual(false);
+      expect(authStore.showRecoveryModal).toEqual(false);
     });
   });
 
   describe("MFA Actions", () => {
     it("should disable MFA", async () => {
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
 
-      mockMfa.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
+      await authStore.disableMfa({ code: "000000" });
 
-      await store.dispatch("auth/disableMfa", { code: "000000" });
-
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/disableMfa", { code: "000000" });
-      expect(store.getters["auth/isMfa"]).toEqual(false);
+      expect(authStore.isMfaEnabled).toEqual(false);
     });
 
     it("should enable MFA", async () => {
@@ -63,64 +46,57 @@ describe("Auth Store Actions", () => {
         recovery_codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
       };
 
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      mockMfaApi.onPut("http://localhost:3000/api/user/mfa/enable").reply(200, enableMfaResponse);
 
-      mockMfa.onPut("http://localhost:3000/api/user/mfa/enable").reply(200, enableMfaResponse);
-
-      await store.dispatch("auth/enableMfa", enableMfaData);
+      await authStore.enableMfa(enableMfaData);
       await flushPromises();
 
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/enableMfa", enableMfaData);
+      expect(authStore.isMfaEnabled).toEqual(true);
     });
 
     it("should validate MFA", async () => {
       const validateMfaResponse = { token: "token" };
-      const validateMfaData = { code: "000000" };
+      const verificationCode = "000000";
 
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      // Set up MFA token first
+      authStore.mfaToken = "test-mfa-token";
 
-      mockMfa.onPost("http://localhost:3000/api/user/mfa/auth").reply(200, validateMfaResponse);
+      mockMfaApi.onPost("http://localhost:3000/api/user/mfa/auth").reply(200, validateMfaResponse);
 
-      await store.dispatch("auth/validateMfa", validateMfaData);
+      await authStore.validateMfa(verificationCode);
       await flushPromises();
 
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/validateMfa", validateMfaData);
-      expect(store.getters["auth/stateToken"]).toEqual(validateMfaResponse.token);
+      expect(authStore.mfaToken).toEqual(validateMfaResponse.token);
     });
 
     it("should recover MFA", async () => {
       const recoveryMfaResponse = { token: "token" };
-      const recoveryMfaData = { code: "000000" };
+      const recoveryCode = "000000";
 
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      mockMfaApi.onPost("http://localhost:3000/api/user/mfa/recover").reply(200, recoveryMfaResponse);
 
-      mockMfa.onPost("http://localhost:3000/api/user/mfa/recover").reply(200, recoveryMfaResponse);
-
-      await store.dispatch("auth/recoverLoginMfa", recoveryMfaData);
+      await authStore.recoverMfa(recoveryCode);
+      authStore.isMfaEnabled = true; // Simulate MFA being enabled
       await flushPromises();
 
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/recoverLoginMfa", recoveryMfaData);
-      expect(store.getters["auth/stateToken"]).toEqual(recoveryMfaResponse.token);
-      expect(store.getters["auth/showRecoveryModal"]).toEqual(true);
+      expect(authStore.mfaToken).toEqual(recoveryMfaResponse.token);
+      expect(authStore.showRecoveryModal).toEqual(true);
     });
 
     it("should generate MFA", async () => {
       const generateMfaResponse = {
         secret: "secret-mfa",
-        link: "link-mfa",
+        link: "qr-code-link",
         recovery_codes: ["HW2wlxV40B", "2xsmMUHHHb", "DTQgVsaVac", "KXPBoXvuWD", "QQYTPfotBi", "XWiKBEPyb4"],
       };
 
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      mockMfaApi.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, generateMfaResponse);
 
-      mockMfa.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, generateMfaResponse);
+      const result = await authStore.generateMfa();
 
-      await store.dispatch("auth/generateMfa");
-
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/generateMfa");
-      expect(store.getters["auth/link_mfa"]).toEqual(generateMfaResponse.link);
-      expect(store.getters["auth/secret"]).toEqual(generateMfaResponse.secret);
-      expect(store.getters["auth/recoveryCodes"]).toEqual(generateMfaResponse.recovery_codes);
+      expect(result.secret).toEqual(generateMfaResponse.secret);
+      expect(result.link).toEqual(generateMfaResponse.link);
+      expect(result.recovery_codes).toEqual(generateMfaResponse.recovery_codes);
     });
   });
 
@@ -133,25 +109,26 @@ describe("Auth Store Actions", () => {
         user: "username",
         name: "testname",
         email: "test@test.com",
-        tenant: "fake-tenant",
+        tenantId: "fake-tenant",
         role: "administrator",
+        recovery_email: "recovery@test.com",
+        auth_methods: ["local", "oauth"],
       };
 
-      mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, getUserStatusResponse);
+      mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, getUserStatusResponse);
 
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      await authStore.getUserInfo();
 
-      await store.dispatch("auth/getUserInfo");
-
-      expect(dispatchSpy).toHaveBeenCalledWith("auth/getUserInfo");
-      expect(store.getters["auth/stateToken"]).toEqual(getUserStatusResponse.token);
-      expect(store.getters["auth/currentUser"]).toEqual(getUserStatusResponse.user);
-      expect(store.getters["auth/currentName"]).toEqual(getUserStatusResponse.name);
-      expect(store.getters["auth/tenant"]).toEqual(getUserStatusResponse.tenant);
-      expect(store.getters["auth/email"]).toEqual(getUserStatusResponse.email);
-      expect(store.getters["auth/id"]).toEqual(getUserStatusResponse.id);
-      expect(store.getters["auth/role"]).toEqual(getUserStatusResponse.role);
-      expect(store.getters["auth/isMfa"]).toEqual(getUserStatusResponse.mfa);
+      expect(authStore.token).toEqual(getUserStatusResponse.token);
+      expect(authStore.username).toEqual(getUserStatusResponse.user);
+      expect(authStore.name).toEqual(getUserStatusResponse.name);
+      expect(authStore.tenantId).toEqual(getUserStatusResponse.tenantId);
+      expect(authStore.email).toEqual(getUserStatusResponse.email);
+      expect(authStore.id).toEqual(getUserStatusResponse.id);
+      expect(authStore.role).toEqual(getUserStatusResponse.role);
+      expect(authStore.isMfaEnabled).toEqual(getUserStatusResponse.mfa);
+      expect(authStore.recoveryEmail).toEqual(getUserStatusResponse.recovery_email);
+      expect(authStore.authMethods).toEqual(getUserStatusResponse.auth_methods);
     });
   });
 });

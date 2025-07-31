@@ -1,25 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Device > Renders correctly 1`] = `
-"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/containers"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
-    <!---->
-    <!---->
-  </a><a class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/containers/pending"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Pending</span>
-    <!---->
-    <!---->
-  </a><a class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/containers/rejected"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
-    <!---->
-    <!---->
-  </a></div>
-<div>
-  <!---->
-</div>"
-`;
-
-exports[`Device > Renders the component 1`] = `
+exports[`Containers > Renders the component 1`] = `
 "<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/containers"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
     <!---->

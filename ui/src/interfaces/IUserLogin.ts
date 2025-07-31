@@ -3,28 +3,34 @@ export interface IUserLogin {
   password: string;
 }
 
-export interface MfaValidation {
+export interface IMfaGenerate {
+  link: string,
+  secret: string,
+  recovery_codes: Array<string>
+}
+
+export interface IMfaEnable {
   code: string,
   secret: string,
   recovery_codes: Array<string>
 }
 
-export interface MfaAuth {
+export interface IMfaAuth {
   token: string,
   code: string
 }
 
-export interface MfaDisable {
+export interface IMfaDisable {
   code: string,
   recovery_code: string
 }
 
-export interface MfaRecover {
+export interface IMfaRecover {
   identifier: string,
   recovery_code: string
 }
 
-export interface MfaReset {
+export interface IMfaReset {
   id: string,
   main_email_code: string,
   recovery_email_code: string,

@@ -1,27 +1,22 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
-import { namespacesApi, usersApi, devicesApi } from "@/api/http";
+import { devicesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
 
 describe("Home", () => {
   let wrapper: HomeWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  let mockDevices: MockAdapter;
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   const members = [
     {
@@ -44,21 +39,6 @@ describe("Home", () => {
     created_at: "",
   };
 
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
   const statsMock = {
     registered_devices: 0,
     online_devices: 0,
@@ -75,36 +55,17 @@ describe("Home", () => {
   };
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
+    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
     store.commit("namespaces/setNamespaces", res);
 
     wrapper = mount(Home, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
     wrapper.unmount();
   });
 
@@ -124,7 +85,7 @@ describe("Home", () => {
   });
 
   it("Displays error message if API call fails with 403 status code", async () => {
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(403);
+    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(403);
 
     await flushPromises();
 

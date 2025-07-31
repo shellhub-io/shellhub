@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -6,7 +7,6 @@ import AccountCreated from "@/components/Account/AccountCreated.vue";
 import { namespacesApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey, SnackbarPlugin } from "@/plugins/snackbar";
 
 type AccountCreatedWrapper = VueWrapper<InstanceType<typeof AccountCreated>>;
@@ -19,22 +19,16 @@ const mockSnackbar = {
 describe("Account Created", () => {
   let wrapper: AccountCreatedWrapper;
   const vuetify = createVuetify();
-
+  setActivePinia(createPinia());
   let usersMock: MockAdapter;
   let namespacesMock: MockAdapter;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-
-    envVariables.isCloud = true;
-
     usersMock = new MockAdapter(usersApi.getAxios());
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    usersMock.reset();
+    wrapper.unmount();
   });
 
   describe("With messageKind = 'normal'", () => {

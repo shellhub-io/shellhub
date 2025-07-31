@@ -1,80 +1,30 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeyAdd from "@/components/PublicKeys/PublicKeyAdd.vue";
-import { namespacesApi, usersApi, sshApi, tagsApi } from "@/api/http";
+import { sshApi, tagsApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 type PublicKeyAddWrapper = VueWrapper<InstanceType<typeof PublicKeyAdd>>;
 
 describe("Public Key Add", () => {
   let wrapper: PublicKeyAddWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-  let mockTags: MockAdapter;
-  let mockUser: MockAdapter;
-  let mockSsh: MockAdapter;
-
-  const members = [
-    {
-      id: "507f1f77bcf86cd799439011",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
+  const mockSshApi = new MockAdapter(sshApi.getAxios());
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
+    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, []);
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockTags = new MockAdapter(tagsApi.getAxios());
-    mockSsh = new MockAdapter(sshApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockTags.onGet("http://localhost:3000/api/tags").reply(200, []);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
+    authStore.role = "owner";
     wrapper = mount(PublicKeyAdd, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
@@ -113,7 +63,7 @@ describe("Public Key Add", () => {
   });
 
   it("Allows adding a public key with username restriction", async () => {
-    mockSsh.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
+    mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
     const pkAdd = vi.spyOn(store, "dispatch");
 
@@ -133,7 +83,7 @@ describe("Public Key Add", () => {
   });
 
   it("Displays error message if public key creation fails", async () => {
-    mockSsh.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(409);
+    mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(409);
 
     await wrapper.findComponent('[data-test="public-key-add-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="name-field"]').setValue("test");
@@ -144,7 +94,7 @@ describe("Public Key Add", () => {
   });
 
   it("Allows adding a public key with hostname restriction", async () => {
-    mockSsh.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
+    mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
     const pkAdd = vi.spyOn(store, "dispatch");
 
@@ -166,7 +116,7 @@ describe("Public Key Add", () => {
   });
 
   it("Allows adding a public key with tag restriction", async () => {
-    mockSsh.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
+    mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
     const pkAdd = vi.spyOn(store, "dispatch");
 

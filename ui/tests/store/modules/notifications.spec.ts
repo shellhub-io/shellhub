@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import { afterEach, describe, expect, it } from "vitest";
 import { store } from "@/store";
@@ -7,7 +8,7 @@ import { containersApi, devicesApi } from "@/api/http";
 describe("Notifications Vuex Module", () => {
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
   const mockContainersApi = new MockAdapter(containersApi.getAxios());
-
+  setActivePinia(createPinia());
   const mockDevice = {
     uid: "device1",
     name: "Device 1",

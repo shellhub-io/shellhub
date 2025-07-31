@@ -32,13 +32,15 @@ import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
+const authStore = useAuthStore();
 const store = useStore();
 const device = computed(() => store.getters["devices/getDeviceToBeRenamed"]);
 const showDialog = computed(() => store.getters["users/deviceDuplicationError"]);
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 

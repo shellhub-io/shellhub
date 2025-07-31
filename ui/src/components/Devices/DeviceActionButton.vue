@@ -59,6 +59,7 @@ import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 interface DeviceActionButtonProps {
   name?: string;
@@ -76,11 +77,12 @@ const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const billingActive = computed(() => store.getters["billing/active"]);
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.device[props.action]);
 });
 

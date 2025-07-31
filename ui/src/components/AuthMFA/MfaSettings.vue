@@ -52,7 +52,7 @@
                 variant="text"
                 color="primary"
                 data-test="disable-btn"
-                @click="updateUserData"
+                @click="updateRecoveryEmail"
               >
                 Save Recovery Email
               </v-btn>
@@ -152,7 +152,7 @@
               </v-row>
               <v-row>
                 <v-col align="center" data-test="qr-code">
-                  <qrcode-vue :value="value" :size="250" level="L" render-as="svg" :margin="2" />
+                  <qrcode-vue :value="mfaQRCode" :size="250" level="L" render-as="svg" :margin="2" />
                 </v-col>
               </v-row>
               <v-row>
@@ -258,7 +258,7 @@
 <script setup lang="ts">
 import * as yup from "yup";
 import { useField } from "vee-validate";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import QrcodeVue from "qrcode.vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
@@ -266,21 +266,23 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
-const emit = defineEmits(["enabled", "resetForm"]);
+const emit = defineEmits(["update:recovery-email"]);
 const showDialog = defineModel({ default: false });
-const value = computed(() => store.getters["auth/link_mfa"]);
-const secret = computed(() => store.getters["auth/secret"]);
-const recoveryCodes = computed(() => store.getters["auth/recoveryCodes"]);
-const hasRecoveryEmail = computed(() => store.getters["auth/recoveryEmail"]);
+const mfaQRCode = ref("");
+const secret = ref("");
+const recoveryCodes = ref<Array<string>>([]);
+const email = computed(() => authStore.email);
+const hasRecoveryEmail = computed(() => !!authStore.recoveryEmail);
 const verificationCode = ref("");
 const checkbox = ref(false);
 const errorAlert = ref(false);
 const errorMessage = ref("");
-const email = computed(() => store.getters["auth/email"]);
 
 const {
   value: recoveryEmail,
@@ -304,7 +306,10 @@ const {
 
 const generateMfa = async () => {
   try {
-    await store.dispatch("auth/generateMfa");
+    const data = await authStore.generateMfa();
+    mfaQRCode.value = data.link; // QR Code
+    secret.value = data.secret;
+    recoveryCodes.value = data.recovery_codes;
     checkbox.value = false;
   } catch (error) {
     handleError(error);
@@ -316,17 +321,15 @@ const goToNextStep = async () => {
   if (el.value === 2) await generateMfa();
 };
 
-const updateUserData = async () => {
-  const data = {
-    id: store.getters["auth/id"],
-    recovery_email: recoveryEmail.value,
-  };
-
+const updateRecoveryEmail = async () => {
   try {
-    await store.dispatch("users/patchData", data);
-    store.dispatch("auth/changeRecoveryEmail", data.recovery_email);
+    await store.dispatch("users/patchData", {
+      id: authStore.id,
+      recovery_email: recoveryEmail.value,
+    });
+    authStore.recoveryEmail = recoveryEmail.value;
     snackbar.showSuccess("Recovery email updated successfully.");
-    emit("resetForm");
+    emit("update:recovery-email", recoveryEmail.value);
     goToNextStep();
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -360,7 +363,7 @@ const downloadRecoveryCodes = () => {
 
 const enableMfa = async () => {
   try {
-    await store.dispatch("auth/enableMfa", {
+    await authStore.enableMfa({
       code: verificationCode.value,
       secret: secret.value,
       recovery_codes: recoveryCodes.value,
@@ -389,10 +392,10 @@ const close = () => {
   errorAlert.value = false;
 };
 
-onMounted(async () => {
-  if (hasRecoveryEmail.value) {
-    await generateMfa();
+watch(showDialog, async (newValue) => {
+  if (newValue && hasRecoveryEmail.value) {
     el.value = 2;
+    await generateMfa();
   }
 });
 

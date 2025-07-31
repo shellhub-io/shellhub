@@ -1,13 +1,13 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import UserDelete from "@/components/User/UserDelete.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import { router } from "@/router";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -18,40 +18,15 @@ type UserDeleteWrapper = VueWrapper<InstanceType<typeof UserDelete>>;
 
 describe("User Delete", () => {
   let wrapper: UserDeleteWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
-
-  let mockUser: MockAdapter;
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
+  const authStore = useAuthStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
-
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-
     wrapper = mount(UserDelete, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [router, vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -77,21 +52,20 @@ describe("User Delete", () => {
   });
 
   it("Successfully Delete User", async () => {
-    mockUser.onDelete("http://localhost:3000/api/user").reply(200);
+    mockUsersApi.onDelete("http://localhost:3000/api/user").reply(200);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(authStore, "deleteUser");
 
     wrapper.vm.showDialog = true;
     await flushPromises();
 
     await wrapper.findComponent('[data-test="delete-user-btn"]').trigger("click");
 
-    await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("auth/deleteUser");
+    expect(storeSpy).toHaveBeenCalled();
   });
 
   it("Fails to add Delete User", async () => {
-    mockUser.onDelete("http://localhost:3000/api/user").reply(400);
+    mockUsersApi.onDelete("http://localhost:3000/api/user").reply(400);
 
     wrapper.vm.showDialog = true;
     await flushPromises();

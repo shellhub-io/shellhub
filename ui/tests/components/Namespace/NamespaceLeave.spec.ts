@@ -1,13 +1,14 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import NamespaceLeave from "@/components/Namespace/NamespaceLeave.vue";
-import { namespacesApi, usersApi } from "@/api/http";
+import { namespacesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -18,12 +19,11 @@ type NamespaceLeaveWrapper = VueWrapper<InstanceType<typeof NamespaceLeave>>;
 
 describe("Namespace Leave", () => {
   let wrapper: NamespaceLeaveWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const vuetify = createVuetify();
 
   let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
 
   const members = [
     {
@@ -47,34 +47,12 @@ describe("Namespace Leave", () => {
     created_at: "",
   };
 
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "administrator",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
-
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
     store.commit("namespaces/setNamespace", namespaceData);
+    authStore.role = "administrator";
 
     wrapper = mount(NamespaceLeave, {
       global: {

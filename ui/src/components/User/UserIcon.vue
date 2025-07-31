@@ -12,16 +12,12 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue";
-import { useStore } from "@/store";
+import useAuthStore from "@/store/modules/auth";
 
-interface Props {
-  size: string | number;
-}
+defineProps<{ size: string | number }>();
 
-defineProps<Props>();
-
-const store = useStore();
-const userEmail = computed(() => store.getters["auth/email"]);
+const authStore = useAuthStore();
+const userEmail = computed(() => authStore.email);
 
 const avatarLoadingFailed = ref(false);
 const avatarUrl = ref("");
@@ -29,6 +25,7 @@ const avatarUrl = ref("");
 const generateGravatarUrl = async (email: string | null) => {
   if (!email) {
     avatarUrl.value = "";
+    avatarLoadingFailed.value = true;
     return;
   }
   const encoder = new TextEncoder();
@@ -41,7 +38,7 @@ const generateGravatarUrl = async (email: string | null) => {
 };
 
 watch(
-  () => userEmail.value,
+  userEmail,
   (newEmail) => {
     avatarLoadingFailed.value = false;
     generateGravatarUrl(newEmail);

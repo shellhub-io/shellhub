@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -7,6 +8,7 @@ import { store, key } from "@/store";
 import WebEndpoints from "@/views/WebEndpoints.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { webEndpointsApi } from "@/api/http";
+import { router } from "@/router";
 
 type WebEndpointsWrapper = VueWrapper<InstanceType<typeof WebEndpoints>>;
 
@@ -15,7 +17,14 @@ const mockEndpoints = {
     {
       address: "123abc",
       full_address: "localhost:8080",
-      device: "device-uid",
+      device: {
+        uid: "device-abc",
+        name: "device-abc-name",
+        info: {
+          id: "linuxmint",
+          pretty_name: "Linux Mint",
+        },
+      },
       host: "localhost",
       port: 8080,
       expires_in: "2099-01-01T00:00:00Z",
@@ -26,21 +35,14 @@ const mockEndpoints = {
 
 describe("WebEndpoints.vue", () => {
   let wrapper: WebEndpointsWrapper;
-  let mockWebEndpoints: MockAdapter;
-
+  const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(() => {
-    mockWebEndpoints = new MockAdapter(webEndpointsApi.getAxios());
-
-    mockWebEndpoints
+    mockWebEndpointsApi
       .onGet("http://localhost:3000/api/web-endpoints?filter=&page=1&per_page=10&sort_by=uid&order_by=asc")
       .reply(200, mockEndpoints.data, mockEndpoints.headers);
-
-    store.commit("auth/authSuccess", {
-      role: "owner",
-      tenant: "fake-tenant",
-    });
 
     store.commit("webEndpoints/setWebEndpoints", {
       data: mockEndpoints.data,
@@ -59,7 +61,7 @@ describe("WebEndpoints.vue", () => {
 
     wrapper = mount(WebEndpoints, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [[store, key], router, vuetify, SnackbarPlugin],
       },
     });
   });

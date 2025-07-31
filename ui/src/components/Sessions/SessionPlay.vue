@@ -53,6 +53,7 @@ import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   uid: string;
@@ -62,6 +63,7 @@ const props = defineProps<{
 
 const showDialog = ref(false);
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
 const loading = ref(false);
@@ -72,7 +74,7 @@ const tooltipMessage = computed(() => props.recorded
   : "This session was not recorded.");
 
 const hasAuthorizationToPlay = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.session.play);
 };
 
