@@ -90,12 +90,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from "vue";
+import { ref, onUnmounted } from "vue";
 import { useMagicKeys } from "@vueuse/core";
-import axios, { AxiosError } from "axios";
 import QuickConnectionList from "./QuickConnectionList.vue";
 import { useStore } from "@/store";
-import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 
@@ -153,22 +151,6 @@ const searchDevices = () => {
     snackbar.showError("An error occurred while searching for devices.");
   });
 };
-
-watch(showDialog, async (isOpen) => {
-  if (!isOpen) return;
-
-  try {
-    await store.dispatch("stats/get");
-  } catch (err: unknown) {
-    const error = err as AxiosError;
-    if (axios.isAxiosError(error) && error.response?.status === 403) {
-      snackbar.showError("You don't have permission to access this feature.");
-    } else {
-      snackbar.showError("An error occurred while fetching stats.");
-    }
-    handleError(error);
-  }
-});
 
 onUnmounted(() => {
   store.dispatch("devices/setFilter", "");

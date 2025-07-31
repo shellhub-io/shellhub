@@ -1,7 +1,6 @@
 import { InjectionKey } from "vue";
 import { createStore, Store, useStore as vuexUseStore } from "vuex";
 
-import { auth, AuthState } from "./modules/auth";
 import { layout, LayoutState } from "./modules/layout";
 import { users, UsersState } from "./modules/users";
 import { tags, TagsState } from "./modules/tags";
@@ -21,10 +20,8 @@ import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 import { billing } from "./modules/billing";
 import { customer, CustomerState } from "./modules/customer";
 import { connectors, ConnectorState } from "./modules/connectors";
-import apiPlugin from "./plugins/api";
 
 export interface State {
-  auth: AuthState;
   billing: NamespacesState;
   customer: CustomerState;
   connectors: ConnectorState;
@@ -50,7 +47,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    auth,
     billing,
     connectors,
     container,
@@ -71,9 +67,6 @@ export const store = createStore<State>({
     tags,
     users,
   },
-  plugins: [
-    apiPlugin,
-  ],
 });
 
 export function useStore(): Store<State> {
