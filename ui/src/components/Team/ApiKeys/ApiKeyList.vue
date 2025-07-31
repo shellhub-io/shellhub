@@ -85,7 +85,6 @@
 import { computed, onMounted, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import moment from "moment";
-import { useStore } from "@/store";
 import DataTable from "@/components/DataTable.vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
@@ -94,6 +93,7 @@ import ApiKeyDelete from "./ApiKeyDelete.vue";
 import ApiKeyEdit from "./ApiKeyEdit.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useApiKeysStore from "@/store/modules/api_keys";
+import useAuthStore from "@/store/modules/auth";
 
 const headers = [
   {
@@ -120,13 +120,13 @@ const itemsPerPage = ref(10);
 const page = ref(1);
 const sortField = ref<string>("name");
 const sortOrder = ref<"asc" | "desc">("asc");
-const store = useStore();
 const apiKeyStore = useApiKeysStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const apiKeysCount = computed(() => apiKeyStore.apiKeysCount);
 const apiKeys = computed(() => apiKeyStore.apiKeys);
 const hasAuthorizationRemoveKey = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.apiKey.delete);
 };
 

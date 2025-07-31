@@ -1,6 +1,7 @@
 import Axios from "axios";
 import { router } from "@/router";
 import { store } from "..";
+import useAuthStore from "../modules/auth";
 
 export default () => {
   const axios = Axios.create({
@@ -9,6 +10,8 @@ export default () => {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
+
+  const { logout } = useAuthStore();
 
   axios.interceptors.request.use(
     (config) => {
@@ -28,7 +31,7 @@ export default () => {
     async (error) => {
       store.dispatch("spinner/setStatus", false);
       if (error.response.status === 401) {
-        await store.dispatch("auth/logout");
+        logout();
         await router.push({ name: "Login" });
       }
       throw error;

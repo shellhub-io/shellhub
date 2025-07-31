@@ -1,12 +1,12 @@
+import { createPinia, setActivePinia } from "pinia";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import QuickConnection from "@/components/QuickConnection/QuickConnection.vue";
-import { envVariables } from "@/envVariables";
 import { router } from "@/router";
-import { namespacesApi, devicesApi } from "@/api/http";
+import { devicesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type QuickConnectionWrapper = VueWrapper<InstanceType<typeof QuickConnection>>;
@@ -17,12 +17,9 @@ const mockSnackbar = {
 
 describe("Quick Connection", () => {
   let wrapper: QuickConnectionWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockDevices: MockAdapter;
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   const devices = [
     {
@@ -46,60 +43,11 @@ describe("Quick Connection", () => {
     },
   ];
 
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "user",
-    owner: "xxxxxxxx",
-    tenant_id: "fake-tenant-data",
-    members,
-    max_devices: 3,
-    devices_count: 3,
-    devices: 2,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-  };
-
-  const stats = {
-    registered_devices: 2,
-    online_devices: 1,
-    active_sessions: 0,
-    pending_devices: 0,
-    rejected_devices: 0,
-  };
-
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockDevices
+    mockDevicesApi
       // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
       .reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
 
     wrapper = mount(QuickConnection, {
       global: {
@@ -146,7 +94,7 @@ describe("Quick Connection", () => {
   });
 
   it("Checks if the fetch function handles error on failure", async () => {
-    mockDevices
+    mockDevicesApi
       // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
       .reply(403);

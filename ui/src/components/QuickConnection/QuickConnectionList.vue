@@ -114,12 +114,14 @@ import DeviceIcon from "../Devices/DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 interface Device {
   online: boolean
 }
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
@@ -129,7 +131,7 @@ const selectedDeviceUid = ref("");
 const showDialog = ref(false);
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
-const userId = computed(() => store.getters["auth/id"]);
+const userId = authStore.id;
 
 defineExpose({ rootEl });
 
@@ -207,7 +209,7 @@ const openTerminalHelper = (item: IDevice) => {
 const shouldOpenTerminalHelper = () => {
   try {
     const dispensedUsers = JSON.parse(localStorage.getItem("dispenseTerminalHelper") || "[]");
-    return !dispensedUsers.includes(userId.value);
+    return !dispensedUsers.includes(userId);
   } catch {
     return true;
   }

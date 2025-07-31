@@ -3,6 +3,7 @@ import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
+import useAuthStore from "@/store/modules/auth";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   try {
@@ -12,7 +13,7 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
       sig: to.query.sig || from.query.sig,
     });
     const userStatus = store.getters["namespaces/getUserStatus"];
-    const isLoggedIn = store.getters["auth/isLoggedIn"];
+    const { isLoggedIn } = useAuthStore();
 
     switch (userStatus) {
       case "invited":
@@ -437,8 +438,7 @@ export const router = createRouter({
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     await store.dispatch("users/fetchSystemInfo");
-
-    const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
+    const { isLoggedIn } = useAuthStore();
     const requiresAuth = to.meta.requiresAuth ?? true;
 
     const layout = to.meta.layout || "AppLayout";

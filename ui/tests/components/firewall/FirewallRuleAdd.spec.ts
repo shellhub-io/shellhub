@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -5,9 +6,10 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import FirewallRuleAdd from "@/components/firewall/FirewallRuleAdd.vue";
 import { router } from "@/router";
-import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
+import { rulesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
+import useAuthStore from "@/store/modules/auth";
 
 type FirewallRuleAddWrapper = VueWrapper<InstanceType<typeof FirewallRuleAdd>>;
 
@@ -18,56 +20,14 @@ const mockSnackbar = {
 
 describe("Firewall Rule Add", () => {
   let wrapper: FirewallRuleAddWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-  let mockFirewall: MockAdapter;
-  let mockTags: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "user",
-    owner: "xxxxxxxx",
-    tenant_id: "fake-tenant-data",
-    members,
-    max_devices: 3,
-    devices_count: 3,
-    devices: 2,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-  };
+  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
   beforeEach(async () => {
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockFirewall = new MockAdapter(rulesApi.getAxios());
-    mockTags = new MockAdapter(tagsApi.getAxios());
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockFirewall = new MockAdapter(rulesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockTags.onGet("http://localhost:3000/api/tags").reply(200, []);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
+    authStore.role = "owner";
 
     wrapper = mount(FirewallRuleAdd, {
       global: {
@@ -130,7 +90,7 @@ describe("Firewall Rule Add", () => {
   it("Successful on adding firewall rules", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
 
-    mockFirewall.onPost("http://localhost:3000/api/firewall/rules").reply(200);
+    mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(200);
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 
@@ -149,7 +109,7 @@ describe("Firewall Rule Add", () => {
   });
 
   it("Fails on adding firewall rules", async () => {
-    mockFirewall.onPost("http://localhost:3000/api/firewall/rules").reply(400);
+    mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(400);
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 

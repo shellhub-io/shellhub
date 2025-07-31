@@ -45,11 +45,13 @@ import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 

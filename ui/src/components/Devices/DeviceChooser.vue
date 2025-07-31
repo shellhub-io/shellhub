@@ -116,13 +116,15 @@ import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
+const authStore = useAuthStore();
 const store = useStore();
 const snackbar = useSnackbar();
 const showDialog = computed(() => store.getters["devices/getDeviceChooserStatus"]);
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.device.chooser);
 });
 

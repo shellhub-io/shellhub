@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -8,7 +9,7 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Terminal Connect Button", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalConnectButton>>;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(async () => {

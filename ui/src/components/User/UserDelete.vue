@@ -35,19 +35,19 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel<boolean>({ default: false });
 
 const deleteAccount = async () => {
   try {
-    await store.dispatch("auth/deleteUser");
+    await authStore.deleteUser();
     snackbar.showSuccess("Account deleted successfully.");
     router.push({ name: "Login" });
   } catch (error: unknown) {

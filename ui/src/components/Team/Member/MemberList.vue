@@ -127,6 +127,7 @@ import MemberDelete from "./MemberDelete.vue";
 import MemberEdit from "./MemberEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const headers = [
   {
@@ -152,23 +153,24 @@ const headers = [
 ];
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
-const tenant = computed(() => store.getters["auth/tenant"]);
+const tenant = authStore.tenantId;
 const namespace = computed(() => store.getters["namespaces/get"].members);
 
 const hasAuthorizationEditMember = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.editMember);
 };
 
 const hasAuthorizationRemoveMember = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.removeMember);
 };
 
 const getNamespace = async () => {
   try {
-    await store.dispatch("namespaces/get", tenant.value);
+    await store.dispatch("namespaces/get", tenant);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;

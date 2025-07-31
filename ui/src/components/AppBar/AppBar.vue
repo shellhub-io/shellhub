@@ -107,6 +107,7 @@ import NotificationsMenu from "./Notifications/NotificationsMenu.vue";
 import PaywallChat from "../User/PaywallChat.vue";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 type MenuItem = {
   title: string;
@@ -127,6 +128,7 @@ defineOptions({
 
 const { setUser, setConversationCustomAttributes, toggle, reset } = useChatWoot();
 const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -134,10 +136,10 @@ const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
 const isChatCreated = computed(() => store.getters["support/getCreatedStatus"]);
-const tenant = computed(() => store.getters["auth/tenant"]);
-const userEmail = computed(() => store.getters["auth/email"]);
-const userId = computed(() => store.getters["auth/id"]);
-const currentUser = computed(() => store.getters["auth/currentUser"]);
+const tenant = computed(() => authStore.tenantId);
+const userEmail = computed(() => authStore.email);
+const userId = computed(() => authStore.id);
+const currentUser = computed(() => authStore.username);
 const billingActive = computed(() => store.getters["billing/active"]);
 const identifier = computed(() => store.getters["support/getIdentifier"]);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
@@ -159,7 +161,7 @@ const triggerClick = (item: MenuItem): void => {
 
 const logout = async () => {
   try {
-    await store.dispatch("auth/logout");
+    authStore.logout();
     await store.dispatch("stats/clear");
     await store.dispatch("namespaces/clearNamespaceList");
     if (isChatCreated.value) {

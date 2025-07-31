@@ -37,8 +37,10 @@ import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "@/store";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -76,14 +78,14 @@ const handleInviteError = (error: unknown) => {
 
 const acceptInvite = async () => {
   try {
-    const tenant = (route.query["tenant-id"] || route.query.tenantid) as string;
+    const tenantId = (route.query["tenant-id"] || route.query.tenantid) as string;
     const sig = route.query.sig as string;
 
-    await store.dispatch("namespaces/acceptInvite", { tenant, sig });
+    await store.dispatch("namespaces/acceptInvite", { tenantId, sig });
 
     message.value = "Your invitation has been successfully accepted! You are now a member of the namespace.";
 
-    await store.dispatch("auth/enterInvitedNamespace", { tenant_id: tenant });
+    await authStore.enterInvitedNamespace(tenantId);
     await store.dispatch("namespaces/fetch", { page: 1, perPage: 10, filter: "" });
     await router.push({ name: "Home" });
     close();

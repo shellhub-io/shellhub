@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, afterEach } from "vitest";
@@ -29,6 +30,7 @@ const mockNotifications = [
 describe("Notifications List", async () => {
   let wrapper: VueWrapper<InstanceType<typeof NotificationsList>>;
   const vuetify = createVuetify();
+  setActivePinia(createPinia());
 
   beforeEach(async () => {
     wrapper = mount(NotificationsList, {

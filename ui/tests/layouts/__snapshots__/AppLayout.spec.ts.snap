@@ -301,7 +301,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           </div>
         </div>
         <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-10" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-          <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><i data-v-09753bb1="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default text-surface" aria-hidden="true" data-test="gravatar-placeholder"></i><!----><span class="v-avatar__underlay"></span>
       </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!----></button>
       <!---->
@@ -343,8 +343,7 @@ exports[`App Layout Component > Renders the component 1`] = `
   <!---->
   <!---->
   <!--v-if-->
-  <!---->
-  <!---->
+  <!--v-if-->
   <!---->
   <!---->
   <!---->

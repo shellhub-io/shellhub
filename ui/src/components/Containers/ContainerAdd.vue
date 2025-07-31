@@ -73,22 +73,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useStore } from "@/store";
+import { ref } from "vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 const showDialog = ref(false);
-
-const tenant = computed(() => store.getters["auth/tenant"]);
+const { tenantId } = authStore;
 
 const command = () => {
   const port = window.location.port ? `:${window.location.port}` : "";
   const { hostname } = window.location;
 
   // eslint-disable-next-line vue/max-len
-  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenant.value} SERVER_ADDRESS=${window.location.protocol}//${hostname}${port} sh -s connector`;
+  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${window.location.protocol}//${hostname}${port} sh -s connector`;
 };
 </script>
 

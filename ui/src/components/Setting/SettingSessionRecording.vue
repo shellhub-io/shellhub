@@ -16,15 +16,12 @@ import { actions, authorizer } from "@/authorizer";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
-const props = defineProps({
-  hasTenant: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{ hasTenant: boolean }>();
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 
 const updateSessionRecordingStatus = async (value: boolean) => {
@@ -49,13 +46,8 @@ const sessionRecordingStatus = computed({
 });
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
-  if (role === "") return false;
-
-  return hasPermission(
-    authorizer.role[role],
-    actions.namespace.enableSessionRecord,
-  );
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.enableSessionRecord);
 });
 
 onMounted(async () => {

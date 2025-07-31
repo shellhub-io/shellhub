@@ -41,7 +41,7 @@
               data-test="verification-code"
               required
               v-model="verificationCode"
-              @keyup.enter="verificationCode ? mfaValidate() : false"
+              @keyup.enter="verificationCode ? disableMfa() : false"
               label="Verification Code"
               variant="underlined" />
             <v-row>
@@ -68,7 +68,7 @@
                     color="primary"
                     variant="tonal"
                     block
-                    @click="mfaValidate()"
+                    @click="disableMfa()"
                   >
                     Verify
                   </v-btn>
@@ -103,7 +103,7 @@
               v-model="recoveryCode"
               color="primary"
               required
-              @keyup.enter="recoveryCode ? mfaValidate() : false"
+              @keyup.enter="recoveryCode ? disableMfa() : false"
               label="Recovery Code"
               variant="outlined"
               data-test="recovery-code"
@@ -115,7 +115,7 @@
                 color="primary"
                 variant="tonal"
                 block
-                @click="mfaValidate()"
+                @click="disableMfa()"
               >
                 Recover Account
               </v-btn>
@@ -161,34 +161,30 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Logo from "@/assets/logo-inverted.png";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const verificationCode = ref("");
 const recoveryCode = ref("");
-const el = ref<number>(1);
+const el = ref<1 | 2 | 3>(1);
 const showAlert = ref(false);
 const alertMessage = ref("");
 const showDialog = defineModel({ default: false });
 const userMail = computed(() => localStorage.getItem("email"));
 
-const mfaValidate = async () => {
+const disableMfa = async () => {
   try {
-    switch (el.value) {
-      case 1:
-        await store.dispatch("auth/disableMfa", { code: verificationCode.value });
-        break;
-      case 2:
-        await store.dispatch("auth/disableMfa", { recovery_code: recoveryCode.value });
-        break;
-      default:
-        break;
-    }
+    const params = {
+      1: { code: verificationCode.value },
+      2: { recovery_code: recoveryCode.value },
+    }[el.value as 1 | 2];
+
+    await authStore.disableMfa(params);
     snackbar.showSuccess("MFA disabled successfully.");
     showDialog.value = false;
   } catch (error) {
@@ -217,7 +213,7 @@ const goToNextStep = () => {
 
 const requestMail = async () => {
   try {
-    await store.dispatch("auth/reqResetMfa", userMail.value);
+    await authStore.requestMfaReset();
     goToNextStep();
   } catch (error) {
     if (axios.isAxiosError(error)) {

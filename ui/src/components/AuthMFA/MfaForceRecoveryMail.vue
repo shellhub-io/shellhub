@@ -58,11 +58,13 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const showDialog = ref(false);
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
-const email = computed(() => store.getters["auth/email"]);
+const email = computed(() => authStore.email);
 const {
   value: recoveryEmail,
   errorMessage: recoveryEmailError,
@@ -85,13 +87,13 @@ const {
 
 const updateUserData = async () => {
   const data = {
-    id: store.getters["auth/id"],
+    id: authStore.id,
     recovery_email: recoveryEmail.value,
   };
 
   try {
     await store.dispatch("users/patchData", data);
-    store.dispatch("auth/changeUserData", data);
+    authStore.updateUserData(data);
     snackbar.showSuccess("Recovery email updated successfully.");
   } catch (error) {
     if (axios.isAxiosError(error)) {

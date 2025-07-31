@@ -157,12 +157,13 @@ import handleError from "../utils/handleError";
 import useSnackbar from "../helpers/snackbar";
 import useCountdown from "@/utils/countdownTimeout";
 import { envVariables } from "@/envVariables";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbar();
-
+const authStore = useAuthStore();
 const showPassword = ref(false);
 const loginToken = ref(false);
 const invalid = reactive({ title: "", msg: "", timeout: false });
@@ -173,13 +174,13 @@ const validForm = ref(false);
 const cloudEnvironment = isCloudEnvironment();
 const invalidCredentials = ref(false);
 const isCountdownFinished = ref(false);
-const isMfa = computed(() => store.getters["auth/isMfa"]);
-const loginTimeout = computed(() => store.getters["auth/getLoginTimeout"]);
+const isMfaEnabled = computed(() => authStore.isMfaEnabled);
+const loginTimeout = computed(() => authStore.loginTimeout);
+const isLoggedIn = computed(() => authStore.isLoggedIn);
 const ssoStatus = computed(() => store.getters["users/getSystemInfo"].authentication);
 const samlUrl = computed(() => store.getters["users/getSamlURL"]);
 // Alerts for user status on accept namespace invitation logic
 const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
-const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
 
 const cameFromAcceptInvite = computed(() => isLoggedIn.value === false && route.query.redirect?.includes("/accept-invite"));
 
@@ -227,21 +228,21 @@ onMounted(async () => {
 
   await store.dispatch("stats/clear");
   await store.dispatch("namespaces/clearNamespaceList");
-  await store.dispatch("auth/logout");
-  await store.dispatch("auth/loginToken", route.query.token);
+  authStore.logout();
+  await authStore.loginWithToken(route.query.token as string);
 
   window.location.href = "/";
 });
 
 const login = async () => {
   try {
-    await store.dispatch("auth/login", { username: username.value, password: password.value });
+    await authStore.login({ username: username.value, password: password.value });
 
     const redirectPath = route.query.redirect ? route.query.redirect.toString() : "/";
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { redirect, ...cleanedQuery } = route.query;
 
-    if (isMfa.value === true) {
+    if (isMfaEnabled.value === true) {
       await router.push({ name: "MfaLogin" });
       localStorage.setItem("name", username.value);
     } else {
