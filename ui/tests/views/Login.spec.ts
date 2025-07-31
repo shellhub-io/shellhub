@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,20 +9,19 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
 
 describe("Login", () => {
   let wrapper: LoginWrapper;
   const vuetify = createVuetify();
-
-  let mock: MockAdapter;
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(() => {
     envVariables.isCloud = true;
-
-    // Create a mock adapter for the usersApi instance
-    mock = new MockAdapter(usersApi.getAxios());
 
     wrapper = mount(Login, {
       global: {
@@ -31,8 +31,6 @@ describe("Login", () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    mock.reset();
     wrapper.unmount();
   });
 
@@ -92,9 +90,9 @@ describe("Login", () => {
     };
 
     // mock error below
-    mock.onPost("http://localhost:3000/api/login").reply(200, responseData);
+    mockUsersApi.onPost("http://localhost:3000/api/login").reply(200, responseData);
 
-    const loginSpy = vi.spyOn(store, "dispatch");
+    const loginSpy = vi.spyOn(authStore, "login");
     const routerPushSpy = vi.spyOn(router, "push");
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
@@ -103,7 +101,7 @@ describe("Login", () => {
     await flushPromises();
 
     // Assert the login action dispatch
-    expect(loginSpy).toHaveBeenCalledWith("auth/login", {
+    expect(loginSpy).toHaveBeenCalledWith({
       username: "test",
       password: "password",
     });
@@ -128,9 +126,9 @@ describe("Login", () => {
     };
 
     // mock error below
-    mock.onPost("http://localhost:3000/api/login").reply(200, responseData);
+    mockUsersApi.onPost("http://localhost:3000/api/login").reply(200, responseData);
 
-    const loginSpy = vi.spyOn(store, "dispatch");
+    const loginSpy = vi.spyOn(authStore, "login");
     const routerPushSpy = vi.spyOn(router, "push");
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
@@ -139,7 +137,7 @@ describe("Login", () => {
     await flushPromises();
 
     // Assert the login action dispatch
-    expect(loginSpy).toHaveBeenCalledWith("auth/login", {
+    expect(loginSpy).toHaveBeenCalledWith({
       username: "testuser",
       password: "password",
     });
@@ -149,10 +147,10 @@ describe("Login", () => {
   });
 
   it("shows an error message for a 401 response", async () => {
-    const loginSpy = vi.spyOn(store, "dispatch");
+    const loginSpy = vi.spyOn(authStore, "login");
 
     // mock error below
-    mock.onPost("http://localhost:3000/api/login").reply(401);
+    mockUsersApi.onPost("http://localhost:3000/api/login").reply(401);
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
@@ -160,7 +158,7 @@ describe("Login", () => {
     await flushPromises();
 
     // Assert the login action dispatch
-    expect(loginSpy).toHaveBeenCalledWith("auth/login", {
+    expect(loginSpy).toHaveBeenCalledWith({
       username: "testuser",
       password: "password",
     });
@@ -169,11 +167,11 @@ describe("Login", () => {
   });
 
   it("redirects to ConfirmAccount route on 403 response", async () => {
-    const loginSpy = vi.spyOn(store, "dispatch");
+    const loginSpy = vi.spyOn(authStore, "login");
     const routerPushSpy = vi.spyOn(router, "push");
 
     // mock error below
-    mock.onPost("http://localhost:3000/api/login").reply(403);
+    mockUsersApi.onPost("http://localhost:3000/api/login").reply(403);
 
     await wrapper.findComponent('[data-test="username-text"]').setValue("testuser");
     await wrapper.findComponent('[data-test="password-text"]').setValue("password");
@@ -181,7 +179,7 @@ describe("Login", () => {
     await flushPromises();
 
     // Assert the login action dispatch
-    expect(loginSpy).toHaveBeenCalledWith("auth/login", {
+    expect(loginSpy).toHaveBeenCalledWith({
       username: "testuser",
       password: "password",
     });
@@ -201,7 +199,7 @@ describe("Login", () => {
     const lockoutDuration = 7 * 24 * 60 * 60; // 7 days in seconds
     let attempts = 0;
 
-    mock.onPost("http://localhost:3000/api/login").reply((config) => {
+    mockUsersApi.onPost("http://localhost:3000/api/login").reply((config) => {
       const { username: reqUsername, password } = JSON.parse(config.data);
       if (reqUsername === username && password === "wrongpassword") {
         attempts++;

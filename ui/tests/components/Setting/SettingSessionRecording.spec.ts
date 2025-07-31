@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,10 +12,9 @@ type SettingSessionRecordingWrapper = VueWrapper<InstanceType<typeof SettingSess
 
 describe("Setting Session Recording", () => {
   let wrapper: SettingSessionRecordingWrapper;
-
+  setActivePinia(createPinia());
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
   const vuetify = createVuetify();
-
-  let mockUser: MockAdapter;
 
   beforeEach(async () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -29,9 +29,8 @@ describe("Setting Session Recording", () => {
     }));
 
     localStorage.setItem("tenant", "fake-tenant-data");
-    mockUser = new MockAdapter(usersApi.getAxios());
 
-    mockUser.onGet("http://localhost:3000/api/users/security").reply(200, true);
+    mockUsersApi.onGet("http://localhost:3000/api/users/security").reply(200, true);
     store.commit("sessionRecording/setEnabled", true);
 
     wrapper = mount(SettingSessionRecording, {
@@ -53,7 +52,7 @@ describe("Setting Session Recording", () => {
   });
 
   it("Changes status in store when ref is mutated", async () => {
-    mockUser.onPut("http://localhost:3000/api/users/security/fake-tenant-data").reply(200);
+    mockUsersApi.onPut("http://localhost:3000/api/users/security/fake-tenant-data").reply(200);
 
     const dispatchSpy = vi.spyOn(store, "dispatch");
     wrapper.vm.sessionRecordingStatus = false;

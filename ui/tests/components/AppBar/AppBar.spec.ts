@@ -3,12 +3,14 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { VLayout } from "vuetify/components";
-import { containersApi, devicesApi, namespacesApi, systemApi, usersApi } from "@/api/http";
+import { createPinia, setActivePinia } from "pinia";
+import { containersApi, devicesApi, namespacesApi, systemApi } from "@/api/http";
 import AppBar from "@/components/AppBar/AppBar.vue";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const Component = {
   template: "<v-layout><AppBar /></v-layout>",
@@ -22,60 +24,30 @@ vi.mock("@productdevbook/chatwoot/vue", () => ({
   }),
 }));
 
-let mockNamespace: MockAdapter;
-let mockDevices: MockAdapter;
-let mockContainers: MockAdapter;
-let mockUser: MockAdapter;
-let mockSystem: MockAdapter;
+const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+const mockSystemApi = new MockAdapter(systemApi.getAxios());
+const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const namespaceData = {
-  name: "test",
-  owner: "test",
-  tenant_id: "fake-tenant-data",
-  members,
-  settings: {
-    session_record: true,
-    connection_announcement: "",
-  },
-  max_devices: 3,
-  devices_count: 3,
+const billingData = {
+  active: true,
+  status: "active",
+  customer_id: "cus_test",
+  subscription_id: "sub_test",
+  current_period_end: 999999999999,
   created_at: "",
-  billing: {
-    active: true,
-    status: "active",
-    customer_id: "cus_test",
-    subscription_id: "sub_test",
-    current_period_end: 999999999999,
-    created_at: "",
-    updated_at: "",
-  },
+  updated_at: "",
 };
 
-const authData = {
-  status: "success",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-  mfa: {
-    enable: false,
-    validate: false,
-  },
+const authStoreData = {
+  id: "507f1f77bcf86cd799439011",
+  username: "test",
+  email: "test@example.com",
+  tenantId: "fake-tenant-data",
 };
 
 const systemInfo = {
-  version: "v0.18.0",
+  version: "v0.19.2",
   endpoints:
   {
     ssh: "localhost:2222",
@@ -92,9 +64,10 @@ const systemInfo = {
 describe("AppBar Component", () => {
   let wrapper: VueWrapper<unknown>;
   const vuetify = createVuetify();
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
 
   beforeEach(async () => {
-    envVariables.isCloud = true;
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
@@ -106,23 +79,16 @@ describe("AppBar Component", () => {
       dispatchEvent: vi.fn(),
     }));
 
-    vi.useFakeTimers();
+    envVariables.isCloud = true;
     localStorage.setItem("tenant", "fake-tenant-data");
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockSystem = new MockAdapter(systemApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-    mockContainers = new MockAdapter(containersApi.getAxios());
+    store.commit("billing/setSubscription", billingData);
 
-    store.commit("auth/userInfo", { tenant: "fake-tenant-data" });
-    store.commit("billing/setSubscription", namespaceData.billing);
+    mockSystemApi.onGet("http://localhost:3000/info").reply(200, systemInfo);
+    mockDevicesApi.onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending").reply(200);
+    mockContainersApi.onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending").reply(200);
 
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockSystem.onGet("http://localhost:3000/info").reply(200, systemInfo);
-    mockDevices.onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending").reply(200);
-    mockContainers.onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending").reply(200);
+    authStore.$patch(authStoreData);
 
     wrapper = mount(Component, {
       global: {
@@ -136,8 +102,6 @@ describe("AppBar Component", () => {
   });
 
   afterEach(async () => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
     wrapper.unmount();
   });
 
@@ -159,7 +123,7 @@ describe("AppBar Component", () => {
   });
 
   it("Opens the ShellHub help page when the support button is clicked", async () => {
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data/support").reply(200, { identifier: "fake-identifier" });
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data/support").reply(200, { identifier: "fake-identifier" });
 
     const drawer = wrapper.findComponent(AppBar);
 
@@ -207,7 +171,7 @@ describe("AppBar Component", () => {
   });
 
   it("Uses Chatwoot if identifier is set", async () => {
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data/support").reply(200, { identifier: "fake-identifier" });
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data/support").reply(200, { identifier: "fake-identifier" });
 
     const drawer = wrapper.findComponent(AppBar);
 

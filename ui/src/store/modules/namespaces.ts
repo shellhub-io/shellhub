@@ -164,13 +164,13 @@ export const namespaces: Module<NamespacesState, State> = {
       context.commit("clearNamespaceList");
     },
 
-    switchNamespace: async (context, data) => {
+    switchNamespace: async (context, tenantId) => {
       localStorage.removeItem("role");
 
-      const res = await apiNamespace.tenantSwitch(data);
+      const res = await apiNamespace.switchNamespace(tenantId);
       if (res.status === 200) {
         localStorage.setItem("token", res.data.token || "");
-        localStorage.setItem("tenant", data.tenant_id);
+        localStorage.setItem("tenant", tenantId);
         localStorage.setItem("role", res.data.role || "");
       }
     },

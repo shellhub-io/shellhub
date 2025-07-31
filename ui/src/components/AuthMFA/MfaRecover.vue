@@ -60,23 +60,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const recoveryCode = ref("");
 const showAlert = ref(false);
 const alertMessage = ref("");
-const userMail = computed(() => localStorage.getItem("name"));
 
 const loginMfa = async () => {
   try {
-    await store.dispatch("auth/recoverLoginMfa", { identifier: userMail.value, recovery_code: recoveryCode.value });
-    store.commit("auth/setRecoveryCode", recoveryCode.value);
+    await authStore.recoverMfa(recoveryCode.value);
     router.push("/");
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -98,7 +96,7 @@ const loginMfa = async () => {
 
 const requestMail = async () => {
   try {
-    await store.dispatch("auth/reqResetMfa", userMail.value);
+    await authStore.requestMfaReset();
     router.push("/recover-mfa/mail-sucessful");
   } catch (error) {
     showAlert.value = true;

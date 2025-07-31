@@ -200,7 +200,7 @@ exports[`MfaLogin > Renders the component 1`] = `
       <!---->
     </button></div>
   <div class="v-col text-caption d-flex align-center justify-center pa-4 mx-auto pt-4 pb-0"> Did you <button type="button" class="v-btn v-theme--light text-primary v-btn--density-compact v-btn--size-default v-btn--variant-plain pl-1 text-caption" data-test="redirect-recover"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-      <!----><span class="v-btn__content" data-no-activator=""> Lost your TOPT password? </span>
+      <!----><span class="v-btn__content" data-no-activator=""> Lost your TOTP password? </span>
       <!---->
       <!---->
     </button></div>

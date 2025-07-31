@@ -93,22 +93,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useStore } from "@/store";
+import { onMounted, reactive, ref, watch } from "vue";
 import handleError from "@/utils/handleError";
 import useCountdown from "@/utils/countdownTimeout";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
-const showDialog = ref(false);
+const showDialog = defineModel({ default: false });
+const authStore = useAuthStore();
 const checkbox = ref(false);
 const invalid = reactive({ title: "", msg: "", timeout: false });
 const tokenCountdownAlert = ref(true);
 const isCountdownFinished = ref(false);
-const store = useStore();
 const snackbar = useSnackbar();
-const disableTimeout = computed(() => store.getters["auth/getDisableTokenTimeout"]);
-const recoveryCode = computed(() => store.getters["auth/stateRecoveryCode"]);
+const { disableTimeout, recoveryCode } = authStore;
 const { startCountdown, countdown } = useCountdown();
 
 const countdownTimer = ref("");
@@ -122,24 +121,24 @@ watch(countdown, (newValue) => {
   }
 });
 
+const close = async () => {
+  authStore.isRecoveringMfa = false;
+  showDialog.value = false;
+};
+
 const disableMFA = async () => {
   try {
-    await store.dispatch("auth/disableMfa", { recovery_code: recoveryCode.value });
+    await authStore.disableMfa({ recovery_code: recoveryCode });
     snackbar.showSuccess("MFA disabled successfully.");
-    store.commit("auth/accountRecoveryHelper");
-    showDialog.value = false;
+    close();
   } catch (error) {
     snackbar.showError("An error occurred while disabling MFA.");
     handleError(error);
   }
 };
-const close = async () => {
-  store.commit("auth/accountRecoveryHelper");
-  showDialog.value = false;
-};
 
 onMounted(() => {
-  startCountdown(disableTimeout.value);
+  startCountdown(disableTimeout);
   tokenCountdownAlert.value = true;
   Object.assign(invalid, {
     title: "Your recovery code will expire in ",

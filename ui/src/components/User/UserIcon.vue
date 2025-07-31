@@ -11,17 +11,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
-import { useStore } from "@/store";
+import { ref, watch, onMounted } from "vue";
+import { useAuthStore } from "@/store/modules/auth";
 
-interface Props {
-  size: string | number;
-}
+defineProps<{ size: string | number }>();
 
-defineProps<Props>();
-
-const store = useStore();
-const userEmail = computed(() => store.getters["auth/email"]);
+const authStore = useAuthStore();
+const userEmail = authStore.email;
 
 const avatarLoadingFailed = ref(false);
 const avatarUrl = ref("");
@@ -41,7 +37,7 @@ const generateGravatarUrl = async (email: string | null) => {
 };
 
 watch(
-  () => userEmail.value,
+  () => userEmail,
   (newEmail) => {
     avatarLoadingFailed.value = false;
     generateGravatarUrl(newEmail);
@@ -54,7 +50,7 @@ const onImageError = () => {
 };
 
 onMounted(() => {
-  generateGravatarUrl(userEmail.value);
+  generateGravatarUrl(userEmail);
 });
 </script>
 

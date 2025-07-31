@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -6,8 +7,9 @@ import { nextTick } from "vue";
 import { store, key } from "@/store";
 import DeviceChooser from "@/components/Devices/DeviceChooser.vue";
 import { router } from "@/router";
-import { namespacesApi, billingApi, devicesApi } from "@/api/http";
+import { billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const devices = [
   {
@@ -48,65 +50,6 @@ const devices = [
   },
 ];
 
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const billingData = {
-  active: false,
-  status: "canceled",
-  customer_id: "cus_test",
-  subscription_id: "sub_test",
-  current_period_end: 2068385820,
-  created_at: "",
-  updated_at: "",
-  invoices: [],
-};
-
-const namespaceData = {
-  name: "test",
-  owner: "xxxxxxxx",
-  tenant_id: "fake-tenant-data",
-  members,
-  max_devices: 3,
-  devices_count: 3,
-  devices: 2,
-  created_at: "",
-  billing: billingData,
-};
-
-const authData = {
-  status: "",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-};
-
-const customerData = {
-  id: "cus_test",
-  name: "test",
-  email: "test@test.com",
-  payment_methods: [
-    {
-      id: "test_id",
-      number: "xxxxxxxxxxxx4242",
-      brand: "visa",
-      exp_month: 3,
-      exp_year: 2029,
-      cvc: "",
-      default: true,
-    },
-  ],
-};
-
 const stats = {
   registered_devices: 3,
   online_devices: 1,
@@ -117,32 +60,22 @@ const stats = {
 
 describe("Device Chooser", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceChooser>>;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-  let mockBilling: MockAdapter;
-  let mockDevices: MockAdapter;
+  const mockBillingApi = new MockAdapter(billingApi.getAxios());
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
-    mockBilling = new MockAdapter(billingApi.getAxios());
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-    mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("billing/setSubscription", billingData);
-    store.commit("customer/setCustomer", customerData);
+    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, stats);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
+    store.commit("stats/setStats", { data: stats });
     store.commit("devices/setDeviceChooserStatus", true);
+    authStore.role = "owner";
 
     wrapper = mount(DeviceChooser, {
       global: {
@@ -178,10 +111,10 @@ describe("Device Chooser", () => {
   });
 
   it("Accepts the devices listed (Suggested Devices)", async () => {
-    mockBilling.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
-    mockBilling.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices });
+    mockBillingApi.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
+    mockBillingApi.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices });
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="Suggested-tab"]').trigger("click");
     await nextTick();
@@ -189,7 +122,7 @@ describe("Device Chooser", () => {
 
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith(
+    expect(storeSpy).toHaveBeenCalledWith(
       "devices/postDevicesChooser",
       {
         devices: [
@@ -236,11 +169,11 @@ describe("Device Chooser", () => {
   });
 
   it("Accepts the devices listed(All Devices)", async () => {
-    mockBilling.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
-    mockBilling.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices: [devices] });
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=5&status=accepted").reply(200, devices);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
+    mockBillingApi.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices: [devices] });
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=5&status=accepted").reply(200, devices);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(store, "dispatch");
 
     await wrapper.findComponent('[data-test="All-tab"]').trigger("click");
     await nextTick();
@@ -248,7 +181,7 @@ describe("Device Chooser", () => {
 
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith(
+    expect(storeSpy).toHaveBeenCalledWith(
       "devices/setDevicesForUserToChoose",
       {
         filter: "",
