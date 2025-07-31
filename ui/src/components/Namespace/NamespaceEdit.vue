@@ -55,11 +55,13 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const namespace = computed(() => store.getters["namespaces/get"]);
-const tenant = computed(() => store.getters["auth/tenant"]);
+const { tenantId } = authStore;
 const showDialog = defineModel({ default: false });
 const emit = defineEmits(["update"]);
 
@@ -87,8 +89,8 @@ watch(namespace, (ns) => {
 });
 
 onMounted(() => {
-  if (!store.getters["auth/isLoggedIn"]) return;
-  store.dispatch("namespaces/get", tenant.value);
+  if (!authStore.isLoggedIn) return;
+  store.dispatch("namespaces/get", tenantId);
 });
 
 const handleUpdateNameError = (error: unknown): void => {
@@ -110,7 +112,7 @@ const handleUpdateNameError = (error: unknown): void => {
 const updateAnnouncement = async () => {
   try {
     await store.dispatch("namespaces/put", {
-      tenant_id: tenant.value,
+      tenant_id: tenantId,
       settings: {
         connection_announcement: connectionAnnouncement.value,
       },

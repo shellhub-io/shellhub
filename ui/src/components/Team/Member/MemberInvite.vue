@@ -171,9 +171,11 @@ import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "../RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
+import useAuthStore from "@/store/modules/auth";
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const getInvitationCheckbox = ref(false);
@@ -191,7 +193,7 @@ const {
 });
 
 const hasAuthorization = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.addMember);
 };
 
@@ -234,7 +236,7 @@ const handleInviteError = (error: unknown) => {
 
 const getInvitePayload = () => ({
   email: email.value,
-  tenant_id: store.getters["auth/tenant"],
+  tenant_id: authStore.tenantId,
   role: selectedRole.value,
 });
 

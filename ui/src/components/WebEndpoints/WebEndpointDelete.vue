@@ -42,6 +42,7 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 defineOptions({
   inheritAttrs: false,
@@ -57,6 +58,7 @@ const props = defineProps({
 const emit = defineEmits(["update"]);
 const showDialog = defineModel({ default: false });
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 
 const update = () => {
@@ -65,14 +67,8 @@ const update = () => {
 };
 
 const hasAuthorizationDeleteWebEndpoint = () => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.webendpoint.delete,
-    );
-  }
-  return false;
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.webendpoint.delete);
 };
 
 const remove = async () => {

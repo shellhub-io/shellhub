@@ -173,8 +173,10 @@ import SessionClose from "../components/Sessions/SessionClose.vue";
 import SessionPlay from "../components/Sessions/SessionPlay.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const route = useRoute();
 const snackbar = useSnackbar();
 const sessionId = computed(() => route.params.id);
@@ -192,7 +194,7 @@ onMounted(async () => {
 
 const sessionIsEmpty = computed(
   () => store.getters["sessions/get"]
-        && store.getters["sessions/get"].lenght === 0,
+        && store.getters["sessions/get"].length === 0,
 );
 
 const refreshSessions = async () => {
@@ -206,12 +208,12 @@ const refreshSessions = async () => {
 };
 
 const hasAuthorizationRemoveRecord = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.session.removeRecord);
 };
 
 const hasAuthorizationPlay = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.session.play);
 };
 </script>

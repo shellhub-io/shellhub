@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -6,7 +7,6 @@ import ConfirmAccount from "@/views/ConfirmAccount.vue";
 import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type ConfirmAccountWrapper = VueWrapper<InstanceType<typeof ConfirmAccount>>;
@@ -20,32 +20,20 @@ const mockSnackbar = {
 describe("Confirm Account", () => {
   let wrapper: ConfirmAccountWrapper;
   const vuetify = createVuetify();
-
-  let mock: MockAdapter;
-
+  setActivePinia(createPinia());
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
   beforeEach(async () => {
-    vi.useFakeTimers();
-    envVariables.isCloud = true;
     await router.push(`/confirm-account?username=${username}`);
-
-    // Create a mock adapter for the usersApi instance
-    mock = new MockAdapter(usersApi.getAxios());
 
     wrapper = mount(ConfirmAccount, {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
     wrapper.unmount();
   });
 
@@ -67,7 +55,7 @@ describe("Confirm Account", () => {
   it("Resends an email to the user", async () => {
     const resendEmailSpy = vi.spyOn(store, "dispatch");
 
-    mock.onPost("http://localhost:3000/api/user/resend_email").reply(200);
+    mockUsersApi.onPost("http://localhost:3000/api/user/resend_email").reply(200);
     await wrapper.findComponent('[data-test="resendEmail-btn"]').trigger("click");
     await flushPromises();
 
@@ -75,7 +63,7 @@ describe("Confirm Account", () => {
   });
 
   it("Error case on resends an email to the user", async () => {
-    mock.onPost("http://localhost:3000/api/user/resend_email").reply(400);
+    mockUsersApi.onPost("http://localhost:3000/api/user/resend_email").reply(400);
     await wrapper.findComponent('[data-test="resendEmail-btn"]').trigger("click");
     await flushPromises();
 

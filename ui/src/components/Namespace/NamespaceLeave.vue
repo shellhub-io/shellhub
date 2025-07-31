@@ -43,15 +43,17 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const tenant = computed(() => localStorage.getItem("tenant"));
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.leave);
 });
 

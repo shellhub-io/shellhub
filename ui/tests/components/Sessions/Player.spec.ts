@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { describe, beforeEach, vi, it, expect, afterEach } from "vitest";
 import { nextTick } from "vue";
@@ -25,6 +26,7 @@ type PlayerWrapper = VueWrapper<InstanceType<typeof Player>>;
 describe("Asciinema Player", () => {
   let wrapper: PlayerWrapper;
   const vuetify = createVuetify();
+  setActivePinia(createPinia());
 
   // eslint-disable-next-line vue/max-len
   const logsMock = "{\"version\": 2, \"width\": 80, \"height\": 24}\n[0.123, \"r\", \"80x24\"]\n[1.0, \"o\", \"Asciinema player test\"]\n[2.0, \"o\", \"logout\"]";

@@ -59,6 +59,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const { member, hasAuthorization } = defineProps<{
   member: INamespaceMember;
@@ -67,6 +68,7 @@ const { member, hasAuthorization } = defineProps<{
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const newRole = ref(member.role as BasicRole);
@@ -105,7 +107,7 @@ const editMember = async () => {
   try {
     await store.dispatch("namespaces/editUser", {
       user_id: member.id,
-      tenant_id: store.getters["auth/tenant"],
+      tenant_id: authStore.tenantId,
       role: newRole.value,
     });
 

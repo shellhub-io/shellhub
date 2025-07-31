@@ -164,8 +164,10 @@ import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import formatCurrency from "@/utils/currency";
 import { formatUnixToDate } from "@/utils/date";
 import handleError from "@/utils/handleError";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const billing = computed(() => store.getters["billing/get"]);
 const active = computed(() => store.getters["billing/active"]);
 const status = computed(() => store.getters["billing/status"]);
@@ -179,14 +181,8 @@ const formattedDate = ref();
 const formattedCurrency = ref();
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.billing.subscribe,
-    );
-  }
-  return false;
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 
 useEventListener("pageshow", (event) => {

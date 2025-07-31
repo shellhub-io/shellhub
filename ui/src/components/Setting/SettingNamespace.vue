@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
-    <NamespaceDelete :tenant="tenant" @billing-in-debt="billingInDebt = true" v-model="namespaceDelete" />
-    <NamespaceLeave :tenant="tenant" v-model="namespaceLeave" />
+    <NamespaceDelete :tenant="tenantId" @billing-in-debt="billingInDebt = true" v-model="namespaceDelete" />
+    <NamespaceLeave :tenant="tenantId" v-model="namespaceLeave" />
     <NamespaceEdit v-model="editAnnouncement" @update="getNamespace" />
     <v-card
       variant="flat"
@@ -94,12 +94,12 @@
                       <template #default="{ copyText }">
                         <span
                           v-bind="props"
-                          @click="copyText(tenant)"
-                          @keypress="copyText(tenant)"
+                          @click="copyText(tenantId)"
+                          @keypress="copyText(tenantId)"
                           class="hover-text"
                           data-test="tenant-copy-btn"
                         >
-                          {{ tenant }}
+                          {{ tenantId }}
                           <v-icon icon="mdi-content-copy" />
                         </span>
                       </template>
@@ -201,12 +201,14 @@ import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const namespace = computed(() => store.getters["namespaces/get"]);
 const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
-const tenant = computed(() => store.getters["auth/tenant"]);
+const { tenantId } = authStore;
 const billingInDebt = ref(false);
 const namespaceLeave = ref(false);
 const namespaceDelete = ref(false);
@@ -239,7 +241,7 @@ const cancel = (type: string) => {
 
 const getNamespace = async () => {
   try {
-    await store.dispatch("namespaces/get", tenant.value);
+    await store.dispatch("namespaces/get", tenantId);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -276,7 +278,7 @@ const updateName = async () => {
 
   try {
     await store.dispatch("namespaces/put", {
-      tenant_id: tenant.value,
+      tenant_id: tenantId,
       name: name.value,
     });
 
@@ -295,23 +297,15 @@ const updateName = async () => {
 };
 
 const hasAuthorizationEdit = computed(() => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return !hasPermission(
-      authorizer.role[role],
-      actions.namespace.rename,
-    );
-  }
-  return false;
+  const { role } = authStore;
+  return !!role && !hasPermission(authorizer.role[role], actions.namespace.rename);
 });
 
 onMounted(async () => {
-  if (tenant.value) {
-    await getNamespace();
-  }
+  if (tenantId) await getNamespace();
 });
 
-const hasTenant = () => tenant.value !== "";
+const hasTenant = () => tenantId !== "";
 </script>
 
 <style scoped>

@@ -91,21 +91,17 @@ import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 type Timer = ReturnType<typeof setInterval>;
 
 const showDialog = defineModel<boolean>({ required: true });
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
 const polling = ref<Timer | undefined>(undefined);
 const enable = ref(false);
-
-const curl = ref({
-  hostname: window.location.hostname,
-  tenant: store.getters["auth/tenant"],
-});
-
 const pollingDevices = () => {
   polling.value = setInterval(async () => {
     try {
@@ -146,10 +142,11 @@ const acceptDevice = async () => {
 
 const command = () => {
   const port = window.location.port ? `:${window.location.port}` : "";
-  const { hostname } = window.location;
+  const { hostname, protocol } = window.location;
+  const { tenantId } = authStore;
 
   // eslint-disable-next-line vue/max-len
-  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${curl.value.tenant} SERVER_ADDRESS=${window.location.protocol}//${hostname} sh`;
+  return `curl -sSf ${protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${protocol}//${hostname} sh`;
 };
 
 const close = () => {

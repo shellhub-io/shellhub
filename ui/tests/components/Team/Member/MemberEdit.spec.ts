@@ -1,13 +1,14 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MemberEdit from "@/components/Team/Member/MemberEdit.vue";
-import { namespacesApi, usersApi } from "@/api/http";
+import { namespacesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 type MemberEditWrapper = VueWrapper<InstanceType<typeof MemberEdit>>;
 
@@ -16,64 +17,24 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
+const members = [
+  {
+    id: "xxxxxxxx",
+    username: "test",
+    role: "owner" as const,
+  },
+];
+
 describe("Member Edit", () => {
   let wrapper: MemberEditWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner" as const,
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
+    authStore.tenantId = "fake-tenant-data";
 
     wrapper = mount(MemberEdit, {
       global: {
@@ -110,7 +71,7 @@ describe("Member Edit", () => {
   });
 
   it("Edit Member Error Validation", async () => {
-    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(409);
+    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(409);
 
     const storeSpy = vi.spyOn(store, "dispatch");
 
@@ -132,7 +93,7 @@ describe("Member Edit", () => {
   });
 
   it("Edit Member Success Validation", async () => {
-    mockNamespace.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
+    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
 
     const storeSpy = vi.spyOn(store, "dispatch");
 

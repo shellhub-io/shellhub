@@ -73,15 +73,17 @@ import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const filter = ref("");
 const show = computed(() => store.getters["webEndpoints/getShowWebEndpoints"]);
 const showWebEndpointCreate = ref(false);
 
 const hasAuthorizationCreateWebEndpoint = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 

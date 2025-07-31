@@ -1,6 +1,6 @@
 <template>
   <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-first-screen-name">
-    Hello, <strong> {{ name }} </strong> !
+    Hello, <strong> {{ name }} </strong>!
   </p>
   <p class="mt-4 ml-4 mr-4 text-subtitle-2" data-test="welcome-first-screen-text">
     ShellHub is a modern SSH server for remotely accessing Linux devices via CLI
@@ -13,13 +13,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "@/store";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
-
-const name = computed(
-  () => store.getters["auth/currentName"] || store.getters["auth/currentUser"],
-);
+const authStore = useAuthStore();
+const name = computed(() => authStore.name || authStore.username);
 
 defineExpose({ name });
 </script>

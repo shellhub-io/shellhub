@@ -37,28 +37,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, watch } from "vue";
+import { computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
-const props = defineProps({
-  messageKind: {
-    type: String as PropType<"sig" | "normal">,
-    required: true,
-  },
-  show: {
-    type: Boolean,
-    required: true,
-  },
-  username: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  messageKind: "sig" | "normal";
+  show: boolean;
+  username: string;
+}>();
+
 const emit = defineEmits(["show"]);
-
+const authStore = useAuthStore();
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
@@ -108,7 +101,7 @@ const handleAction = async () => {
 
 watch(showMessage, (newValue) => {
   if (newValue && props.messageKind === "sig") {
-    store.commit("auth/setToken", token.value);
+    authStore.token = token.value;
     setTimeout(redirect, 5000);
   }
 });
