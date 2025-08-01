@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -6,7 +7,6 @@ import UpdatePassword from "@/views/UpdatePassword.vue";
 import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type UpdatePasswordWrapper = VueWrapper<InstanceType<typeof UpdatePassword>>;
@@ -20,31 +20,22 @@ const mockSnackbar = {
 describe("Update Password", () => {
   let wrapper: UpdatePasswordWrapper;
   const vuetify = createVuetify();
-
-  let mock: MockAdapter;
+  setActivePinia(createPinia());
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-    envVariables.isCloud = true;
-
-    mock = new MockAdapter(usersApi.getAxios());
     await router.push(`/update-password?id=${uid}&token=testtoken`);
 
     wrapper = mount(UpdatePassword, {
       global: {
         plugins: [[store, key], vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
+    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
@@ -71,7 +62,7 @@ describe("Update Password", () => {
       id: uid,
     };
 
-    mock.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(200);
+    mockUsersApi.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(200);
 
     const updatePasswordSpy = vi.spyOn(store, "dispatch");
     const routerPushSpy = vi.spyOn(router, "push");
@@ -88,7 +79,7 @@ describe("Update Password", () => {
   });
 
   it("Error in updating password", async () => {
-    mock.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(400);
+    mockUsersApi.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(400);
 
     await wrapper.findComponent('[data-test="password-text"]').setValue("12345");
     await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("12345");

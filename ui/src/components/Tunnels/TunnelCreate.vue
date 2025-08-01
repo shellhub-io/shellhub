@@ -100,10 +100,12 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{ uid: string }>();
 const emit = defineEmits(["update"]);
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const alertText = ref();
@@ -153,7 +155,7 @@ const selectedTimeout = ref<number | "custom">(-1);
 const timeout = computed(() => (selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value));
 
 const hasAuthorizationCreateTunnel = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 

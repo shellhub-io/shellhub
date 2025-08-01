@@ -153,10 +153,12 @@ import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";
 import useSnackbar from "@/helpers/snackbar";
+import { useAuthStore } from "@/store/modules/auth";
 
 type DeviceResolver = "uid" | "hostname";
 
 const store = useStore();
+const authStore = useAuthStore();
 const route = useRoute();
 const snackbar = useSnackbar();
 const { identifier } = route.params;
@@ -197,7 +199,7 @@ const refreshDevices = async () => {
 };
 
 const hasAuthorizationFormUpdate = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
 };
 

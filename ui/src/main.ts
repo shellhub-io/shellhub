@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { createPinia } from "pinia";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/vue";
 import { configure as configGtag } from "vue-gtag";
@@ -9,11 +10,10 @@ import { key, store } from "./store";
 import { router } from "./router";
 import App from "./App.vue";
 import "asciinema-player/dist/bundle/asciinema-player.css";
-
 import { loadFonts } from "./plugins/webfontloader";
-
 import { SnackbarPlugin } from "./plugins/snackbar";
 
+const pinia = createPinia();
 const app = createApp(App);
 
 Sentry.init({
@@ -35,6 +35,7 @@ loadFonts();
 
 app.use(vuetify);
 app.use(router);
+app.use(pinia);
 app.use(store, key);
 
 configGtag({

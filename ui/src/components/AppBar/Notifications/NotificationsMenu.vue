@@ -58,13 +58,15 @@ import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import NotificationsList from "./NotificationsList.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const notifications = computed(() => store.getters["notifications/notifications"]);
 const notificationCount = computed(() => store.getters["notifications/total"]);
 const canViewNotifications = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.notification.view);
 });
 const showNotifications = computed(() => notificationCount.value > 0 && canViewNotifications.value);

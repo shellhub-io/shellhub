@@ -239,19 +239,21 @@ import UserIcon from "../User/UserIcon.vue";
 import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 type ErrorResponseData = { field: string; message: string }[];
 
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
-const mfaEnabled = computed(() => store.getters["auth/isMfa"]);
+const mfaEnabled = computed(() => authStore.isMfaEnabled);
 const dialogMfaSettings = ref(false);
 const dialogMfaDisable = ref(false);
 const showChangePassword = ref(false);
 const showDeleteAccountDialog = ref(false);
-const getAuthMethods = computed(() => store.getters["auth/getAuthMethods"]);
+const getAuthMethods = computed(() => authStore.authMethods);
 const isLocalAuth = computed(() => getAuthMethods.value.includes("local"));
 const { isCloud, isCommunity } = envVariables;
 const { lgAndUp } = useDisplay();
@@ -319,13 +321,6 @@ const {
   },
 );
 
-const setUserData = () => {
-  name.value = store.getters["auth/currentName"];
-  username.value = store.getters["auth/currentUser"];
-  email.value = store.getters["auth/email"];
-  recoveryEmail.value = store.getters["auth/recoveryEmail"];
-};
-
 const toggleMfa = () => {
   if (mfaEnabled.value) {
     dialogMfaDisable.value = true;
@@ -389,7 +384,7 @@ const updateUserData = async () => {
 
     try {
       await store.dispatch("users/patchData", data);
-      store.dispatch("auth/changeUserData", data);
+      authStore.updateUserData(data);
       snackbar.showSuccess("Profile data updated successfully.");
       enableEdit("data");
     } catch (error: unknown) {
@@ -406,6 +401,13 @@ const updateUserData = async () => {
   }
 };
 
+const setUserData = () => {
+  name.value = authStore.name;
+  username.value = authStore.username;
+  email.value = authStore.email;
+  recoveryEmail.value = authStore.recoveryEmail;
+};
+
 const cancel = (type: string) => {
   if (type === "data") {
     setUserData();
@@ -413,8 +415,8 @@ const cancel = (type: string) => {
   }
 };
 
-onMounted(() => {
-  store.dispatch("auth/getUserInfo");
+onMounted(async () => {
+  await authStore.getUserInfo();
   setUserData();
 });
 </script>

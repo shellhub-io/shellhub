@@ -51,29 +51,28 @@
         data-test="redirect-recover"
       >
 
-        Lost your TOPT password?
+        Lost your TOTP password?
       </v-btn>
     </v-col>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const verificationCode = ref("");
 const showAlert = ref(false);
 const alertMessage = ref("");
-const mfaValue = computed(() => store.getters["auth/mfaToken"]);
 
 const loginMfa = async () => {
   try {
-    await store.dispatch("auth/validateMfa", { token: mfaValue.value, code: verificationCode.value });
+    await authStore.validateMfa(verificationCode.value);
     router.push("/");
   } catch (error) {
     if (axios.isAxiosError(error)) {

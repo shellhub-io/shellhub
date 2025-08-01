@@ -21,7 +21,7 @@
 
   <AnnouncementsModal
     v-model="showAnnouncements"
-    :announcement="announcement"
+    :announcement="currentAnnouncement"
     data-test="announcements-modal-component"
   />
 
@@ -32,7 +32,8 @@
   />
 
   <RecoveryHelper
-    v-model="showRecoverHelper"
+    v-if="showRecoverHelper"
+    v-model:showDialog="showRecoverHelper"
     data-test="recovery-helper-component"
   />
 
@@ -63,6 +64,8 @@ import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useAnnouncementStore from "@/store/modules/announcement";
+import useAuthStore from "@/store/modules/auth";
 
 defineOptions({
   inheritAttrs: false,
@@ -70,17 +73,19 @@ defineOptions({
 
 const snackbar = useSnackbar();
 const store = useStore();
+const announcementStore = useAnnouncementStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
 const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
-const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
-const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
+const showRecoverHelper = computed(() => authStore.showRecoveryModal);
+const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const stats = computed(() => store.getters["stats/stats"]);
-const announcements = computed(() => store.getters["announcement/list"]);
-const announcement = computed(() => store.getters["announcement/get"]);
+// eslint-disable-next-line prefer-destructuring
+const currentAnnouncement = announcementStore.currentAnnouncement;
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
@@ -123,35 +128,30 @@ const showScreenWelcome = async () => {
 
   const tenantID = await store.getters["namespaces/get"].tenant_id;
   if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
-    store.dispatch("auth/setShowWelcomeScreen", tenantID);
+    authStore.setShowWelcomeScreen(tenantID);
     status = true;
   }
 
   showWelcome.value = status;
 };
 
-const checkAnnouncements = async () => {
+const checkForNewAnnouncements = async () => {
   if (!envVariables.announcementsEnable) {
     return;
   }
 
   try {
-    await store.dispatch("announcement/getListAnnouncements", {
-      page: 1,
-      perPage: 1,
-      orderBy: "desc",
-    });
+    await announcementStore.fetchAll({ page: 1, perPage: 1, orderBy: "desc" });
+    const { announcements } = announcementStore;
 
-    if (announcements.value.length > 0) {
-      const announcementTest = announcements.value[0];
-      await store.dispatch(
-        "announcement/getAnnouncement",
-        announcementTest.uuid,
-      );
+    if (announcements.length > 0) {
+      const latestAnnouncement = announcements[0];
+      await announcementStore.fetchById(latestAnnouncement.uuid);
 
-      const announcementStorage = localStorage.getItem("announcement");
-      const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value));
-      if (announcementStorage !== lastAnnouncementEncoded) {
+      const storedAnnouncementHash = localStorage.getItem("announcement");
+      const currentAnnouncementHash = btoa(JSON.stringify(currentAnnouncement));
+
+      if (storedAnnouncementHash !== currentAnnouncementHash) {
         showAnnouncements.value = true;
       }
     }
@@ -164,7 +164,7 @@ const isBillingEnabled = computed(() => envVariables.billingEnable);
 
 const showDialogs = async () => {
   try {
-    if (!store.getters["auth/isLoggedIn"]) return;
+    if (!authStore.isLoggedIn) return;
 
     await store.dispatch("namespaces/fetch", {
       page: 1,
@@ -190,7 +190,7 @@ const showDialogs = async () => {
 
 onMounted(() => {
   showDialogs();
-  checkAnnouncements();
+  checkForNewAnnouncements();
 
   if (showRecoverHelper.value === true) {
     router.push("/settings");

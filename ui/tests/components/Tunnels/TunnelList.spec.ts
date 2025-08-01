@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -7,89 +8,10 @@ import { nextTick } from "vue";
 import { store, key } from "@/store";
 import TunnelList from "@/components/Tunnels/TunnelList.vue";
 import { routes } from "@/router";
-import { namespacesApi, devicesApi, tunnelApi } from "@/api/http";
+import { tunnelApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type TunnelListWrapper = VueWrapper<InstanceType<typeof TunnelList>>;
-
-const devices = [
-  {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    online: false,
-    namespace: "user",
-    status: "accepted",
-    tags: ["test"],
-  },
-  {
-    uid: "a582b47a42e",
-    name: "39-5e-2b",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T19:58:53.276Z",
-    online: true,
-    namespace: "user",
-    status: "accepted",
-    tags: ["test2"],
-  },
-];
-
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const namespaceData = {
-  name: "test",
-  owner: "xxxxxxxx",
-  tenant_id: "fake-tenant-data",
-  members,
-  max_devices: 3,
-  devices_count: 3,
-  devices: 2,
-  created_at: "",
-};
-
-const authData = {
-  status: "",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-};
-
-const stats = {
-  registered_devices: 3,
-  online_devices: 1,
-  active_sessions: 0,
-  pending_devices: 0,
-  rejected_devices: 0,
-};
 
 const tunnelResponse = [{
   address: "9a8df9321368d567cfac8679cec7848c",
@@ -101,46 +23,23 @@ const tunnelResponse = [{
 
 describe("Tunnel List", () => {
   let wrapper: TunnelListWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
+  const mockTunnelsApi = new MockAdapter(tunnelApi.getAxios());
 
-  let mockNamespace: MockAdapter;
-  let mockDevices: MockAdapter;
-  let mockTunnels: MockAdapter;
-
-  let router;
+  const router = createRouter({
+    history: createWebHistory(),
+    routes,
+  });
 
   beforeEach(async () => {
-    router = createRouter({
-      history: createWebHistory(),
-      routes,
-    });
-
     router.push("/devices/fake-uid");
-
-    await router.isReady();
-
-    localStorage.setItem("tenant", "fake-tenant-data");
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-    mockTunnels = new MockAdapter(tunnelApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-    mockTunnels.onGet("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, tunnelResponse);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("devices/setDeviceChooserStatus", true);
+    mockTunnelsApi.onGet("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, tunnelResponse);
 
     wrapper = mount(TunnelList, {
       global: {
         plugins: [[store, key], vuetify, [router], SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
+
       },
       props: {
         deviceUid: "a582b47a42d",
@@ -182,7 +81,7 @@ describe("Tunnel List", () => {
 
   it("Renders empty state if no tunnels", async () => {
     await wrapper.setProps({ deviceUid: "fake-uid" });
-    mockTunnels.onGet("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, []);
+    mockTunnelsApi.onGet("http://localhost:3000/api/devices/fake-uid/tunnels").reply(200, []);
     await wrapper.vm.getTunnels();
     await nextTick();
 
