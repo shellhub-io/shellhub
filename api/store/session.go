@@ -19,6 +19,6 @@ type SessionStore interface {
 	SessionSetType(ctx context.Context, uid models.UID, kind string) error
 	SessionCreateActive(ctx context.Context, uid models.UID, session *models.Session) error
 	SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error
-	SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error)
+	SessionListEvents(ctx context.Context, uid models.UID, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.SessionEvent, int, error)
 	SessionDeleteEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error
 }
