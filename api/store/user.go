@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -16,7 +15,7 @@ const (
 )
 
 type UserStore interface {
-	UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error)
+	UserList(ctx context.Context, opts ...QueryOption) ([]models.User, int, error)
 
 	// UserCreate creates a new user with the provided data. `user.CreatedAt` is set to now before save.
 	// It returns the inserted ID or an error, if any.

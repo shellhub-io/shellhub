@@ -18,10 +18,13 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestListNamespaces(t *testing.T) {
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -46,8 +49,16 @@ func TestListNamespaces(t *testing.T) {
 			},
 			ctx: ctx,
 			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}).
+					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -65,8 +76,16 @@ func TestListNamespaces(t *testing.T) {
 			},
 			ctx: ctx,
 			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("NamespaceList", ctx, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}).
+					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Namespace{
 							{

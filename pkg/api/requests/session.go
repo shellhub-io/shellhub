@@ -1,11 +1,20 @@
 package requests
 
-import "time"
+import (
+	"time"
+
+	"github.com/shellhub-io/shellhub/pkg/api/query"
+)
 
 // SessionIDParam is a structure to represent and validate a session UID as path param.
 type SessionIDParam struct {
 	// UID is the session's UID.
 	UID string `param:"uid" validate:"required"`
+}
+
+type ListSessions struct {
+	TenantID string `header:"X-Tenant-ID"`
+	query.Paginator
 }
 
 // SessionGet is the structure to represent the request data for get session endpoint.
