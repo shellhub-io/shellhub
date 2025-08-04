@@ -15,12 +15,16 @@ func (s *Store) Options() store.QueryOptions {
 
 func (*queryOptions) InNamespace(tenantID string) store.QueryOption {
 	return func(ctx context.Context) error {
-		query, ok := ctx.Value("query").(*bson.M)
+		query, ok := ctx.Value("query").(*[]bson.M)
 		if !ok {
 			return errors.New("query not found in context")
 		}
 
-		(*query)["tenant_id"] = tenantID
+		*query = append(*query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenantID,
+			},
+		})
 
 		return nil
 	}
@@ -28,12 +32,16 @@ func (*queryOptions) InNamespace(tenantID string) store.QueryOption {
 
 func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOption {
 	return func(ctx context.Context) error {
-		query, ok := ctx.Value("query").(*bson.M)
+		query, ok := ctx.Value("query").(*[]bson.M)
 		if !ok {
 			return errors.New("query not found in context")
 		}
 
-		(*query)["status"] = status
+		*query = append(*query, bson.M{
+			"$match": bson.M{
+				"status": status,
+			},
+		})
 
 		return nil
 	}

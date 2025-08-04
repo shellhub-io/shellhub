@@ -163,12 +163,6 @@ func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver
 		matchStage["identity"] = bson.M{"mac": value}
 	}
 
-	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
-			return nil, err
-		}
-	}
-
 	query := []bson.M{
 		{
 			"$match": matchStage,
@@ -205,6 +199,12 @@ func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver
 		{
 			"$unwind": "$namespace",
 		},
+	}
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, err
+		}
 	}
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
