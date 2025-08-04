@@ -11,11 +11,13 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 type SettingBillingWrapper = VueWrapper<InstanceType<typeof SettingBilling>>;
 
 setActivePinia(createPinia());
 const authStore = useAuthStore();
+const billingStore = useBillingStore();
 const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 const mockBillingApi = new MockAdapter(billingApi.getAxios());
 const vuetify = createVuetify();
@@ -146,18 +148,20 @@ describe("Billing Settings Premium Usage", () => {
   ];
 
   const billingData = {
+    id: "sub_test",
     active: true,
     status: "active",
     customer_id: "cus_test",
     subscription_id: "sub_test",
     current_period_end: 2068385820,
+    end_at: 2068385820,
     created_at: "",
     updated_at: "",
     invoices: [
       {
         id: "xxxxx",
-        status: "open",
-        currency: "brl",
+        status: "open" as const,
+        currency: "brl" as const,
         amount: 12,
       },
     ],
@@ -182,7 +186,7 @@ describe("Billing Settings Premium Usage", () => {
     mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
     mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
 
-    store.commit("billing/setSubscription", billingData);
+    billingStore.billing = billingData;
     authStore.role = "owner";
     wrapper = mount(SettingBilling, {
       global: {
@@ -220,24 +224,26 @@ describe("Billing Settings Premium Usage", () => {
 
   it("Render alerts for status", async () => {
     const billingData = {
+      id: "sub_test",
       active: true,
       status: "to_cancel_at_end_of_period",
       customer_id: "cus_test",
       subscription_id: "sub_test",
       current_period_end: 2068385820,
+      end_at: 2068385820,
       created_at: "",
       updated_at: "",
       invoices: [
         {
           id: "xxxxx",
-          status: "open",
-          currency: "brl",
+          status: "open" as const,
+          currency: "brl" as const,
           amount: 12,
         },
       ],
     };
     mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-    store.commit("billing/setSubscription", billingData);
+    billingStore.billing = billingData;
     await nextTick();
     await flushPromises();
     expect(wrapper.find('[data-test="billing-status-message"]')).toBeTruthy();

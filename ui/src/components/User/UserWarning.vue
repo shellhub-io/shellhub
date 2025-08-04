@@ -65,6 +65,7 @@ import PaywallDialog from "./PaywallDialog.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useAnnouncementStore from "@/store/modules/announcement";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 defineOptions({
   inheritAttrs: false,
@@ -74,6 +75,7 @@ const snackbar = useSnackbar();
 const store = useStore();
 const announcementStore = useAnnouncementStore();
 const authStore = useAuthStore();
+const billingStore = useBillingStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
@@ -99,7 +101,7 @@ const statusWarning = async () => {
 
   return (
     store.getters["stats/stats"].registered_devices > 3
-        && !store.getters["billing/active"]
+        && !billingStore.isActive
   );
 };
 
@@ -178,6 +180,7 @@ const showDialogs = async () => {
 };
 
 onMounted(async () => {
+  await billingStore.getSubscriptionInfo();
   await showDialogs();
   await checkForNewAnnouncements();
 

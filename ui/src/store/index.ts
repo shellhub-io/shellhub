@@ -17,7 +17,6 @@ import { devices, DevicesState } from "./modules/devices";
 import { container, ContainerState } from "./modules/container";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
-import { billing } from "./modules/billing";
 import { customer, CustomerState } from "./modules/customer";
 import { connectors, ConnectorState } from "./modules/connectors";
 
@@ -47,7 +46,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    billing,
     connectors,
     container,
     customer,

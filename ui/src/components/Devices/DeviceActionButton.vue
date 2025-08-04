@@ -32,7 +32,7 @@
         <v-divider />
         <v-container>
           <v-alert
-            v-if="billingActive"
+            v-if="isBillingActive"
             type="warning"
             text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period." />
           <v-card-text class="mt-4 mb-0 pb-1">
@@ -60,6 +60,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 interface DeviceActionButtonProps {
   name?: string;
@@ -78,8 +79,9 @@ const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
 const emit = defineEmits(["update"]);
 const store = useStore();
 const authStore = useAuthStore();
+const billingStore = useBillingStore();
 const snackbar = useSnackbar();
-const billingActive = computed(() => store.getters["billing/active"]);
+const isBillingActive = computed(() => billingStore.isActive);
 
 const hasAuthorization = computed(() => {
   const { role } = authStore;

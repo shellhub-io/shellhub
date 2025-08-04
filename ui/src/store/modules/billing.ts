@@ -1,35 +1,39 @@
-/* eslint-disable */
-import { Module } from "vuex";
-import * as apiBilling from "../api/billing";
-import { namespaces, NamespacesState } from "./namespaces";
-import { State } from "..";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
+import * as billingApi from "../api/billing";
+import { IBilling } from "@/interfaces/IBilling";
+import { envVariables } from "@/envVariables";
 
-export const billing: Module<NamespacesState, State> = {
-  namespaced: true,
-  state: namespaces.state,
-  getters: {
-    get: (state) => state.billing,
-    active: (state) => state.billing.active || false,
-    status: (state) => state.billing.status || "inactive",
-    invoices: (state) => state.billing.invoices || [],
-  },
+const useBillingStore = defineStore("billing", () => {
+  const billing = ref<IBilling>({} as IBilling);
+  const isActive = computed(() => billing.value.active ?? false);
+  const status = computed(() => billing.value.status ?? "inactive");
+  const invoices = computed(() => billing.value.invoices ?? []);
 
-  mutations: {
-    setSubscription: (state, data) => {
-      state.billing = data;
-    }, 
-  },
-
-  actions: {
-    getSubscription: async (context) => {
-      try {
-        const res = await apiBilling.getSubscriptionInfo();
-        if (res.status === 200) {
-          context.commit("setSubscription", res.data);
-        }
-      } catch (error) {
-        throw error;
+  const getSubscriptionInfo = async (): Promise<void> => {
+    try {
+      if (envVariables.isCloud) {
+        const res = await billingApi.getSubscriptionInfo();
+        billing.value = res.data as IBilling;
       }
-    },
-  },
-};
+    } catch (error) {
+      billing.value.active = false;
+    }
+  };
+
+  const openBillingPortal = async (): Promise<void> => {
+    const res = await billingApi.getBillingPortalUrl();
+    window.open(res.data.url, "_blank");
+  };
+
+  return {
+    billing,
+    isActive,
+    status,
+    invoices,
+    getSubscriptionInfo,
+    openBillingPortal,
+  };
+});
+
+export default useBillingStore;
