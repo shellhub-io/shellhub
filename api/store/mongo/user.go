@@ -121,13 +121,14 @@ func (s *Store) UserResolve(ctx context.Context, resolver store.UserResolver, va
 		matchStage["username"] = value
 	}
 
+	query := []bson.M{{"$match": matchStage}}
 	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
 			return nil, err
 		}
 	}
 
-	cursor, err := s.db.Collection("users").Aggregate(ctx, []bson.M{{"$match": matchStage}})
+	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
