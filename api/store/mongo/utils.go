@@ -14,15 +14,37 @@ import (
 
 // AggregateCount takes a pipeline and count the results.
 func AggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson.M) (int, error) {
+	excludeStages := map[string]bool{
+		"$skip":  true,
+		"$limit": true,
+		"$sort":  true,
+	}
+
+	countPipeline := make([]bson.M, 0)
+
+	for _, stage := range pipeline {
+		filtered := make(bson.M)
+		for key, value := range stage {
+			if !excludeStages[key] {
+				filtered[key] = value
+			}
+		}
+
+		if len(filtered) > 0 {
+			countPipeline = append(countPipeline, filtered)
+		}
+	}
+
+	countPipeline = append(countPipeline, bson.M{"$count": "count"})
+
 	resp := struct {
 		Count int `bson:"count"`
 	}{}
 
-	cursor, err := coll.Aggregate(ctx, pipeline)
+	cursor, err := coll.Aggregate(ctx, countPipeline)
 	if err != nil {
 		return 0, err
 	}
-
 	defer cursor.Close(ctx)
 
 	if !cursor.Next(ctx) {

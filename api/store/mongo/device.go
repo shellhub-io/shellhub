@@ -7,8 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -19,7 +17,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, sorter query.Sorter, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -106,13 +104,6 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	if sorter.By == "" {
-		sorter.By = "last_seen"
-	}
-
-	query = append(query, queries.FromSorter(&sorter)...)
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	query = append(query, []bson.M{
 		{

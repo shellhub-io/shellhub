@@ -6,15 +6,13 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) UserList(ctx context.Context, paginator query.Paginator, opts ...store.QueryOption) ([]models.User, int, error) {
+func (s *Store) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
 	query := []bson.M{}
 
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
@@ -58,8 +56,6 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, opts ..
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	users := make([]models.User, 0)
 	cursor, err := s.db.Collection("users").Aggregate(ctx, query)

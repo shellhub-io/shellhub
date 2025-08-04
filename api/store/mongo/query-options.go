@@ -103,3 +103,43 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 		return nil
 	}
 }
+
+func (*queryOptions) Paginate(paginator *query.Paginator) store.QueryOption {
+	return func(ctx context.Context) error {
+		pipeline, ok := ctx.Value("query").(*[]bson.M)
+		if !ok {
+			return errors.New("query not found in context")
+		}
+
+		if paginator.PerPage < 1 {
+			return nil
+		}
+
+		*pipeline = append(*pipeline, []bson.M{{"$skip": paginator.PerPage * (paginator.Page - 1)}, {"$limit": paginator.PerPage}}...)
+
+		return nil
+	}
+}
+
+func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
+	return func(ctx context.Context) error {
+		if sorter.By == "" {
+			return nil
+		}
+
+		pipeline, ok := ctx.Value("query").(*[]bson.M)
+		if !ok {
+			return errors.New("query not found in context")
+		}
+
+		options := map[string]int{query.OrderAsc: 1, query.OrderDesc: -1}
+		order, ok := options[sorter.Order]
+		if !ok {
+			order = -1
+		}
+
+		*pipeline = append(*pipeline, bson.M{"$sort": bson.M{sorter.By: order}})
+
+		return nil
+	}
+}

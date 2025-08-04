@@ -5,8 +5,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
-func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
+func (s *Store) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -36,6 +34,12 @@ func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]m
 		})
 	}
 
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
+	}
+
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
 	count, err := AggregateCount(ctx, s.db.Collection("sessions"), queryCount)
@@ -49,7 +53,6 @@ func (s *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]m
 		},
 	})
 
-	query = append(query, queries.FromPaginator(&paginator)...)
 	query = append(query, []bson.M{
 		{
 			"$lookup": bson.M{
@@ -350,7 +353,7 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 	return nil
 }
 
-func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error) {
+func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -366,14 +369,18 @@ func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int,
 		},
 	}
 
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
+	}
+
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
 	count, err := AggregateCount(ctx, s.db.Collection("sessions_events"), queryCount)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	cursosr, err := s.db.Collection("sessions_events").Aggregate(ctx, query)
 	if err != nil {

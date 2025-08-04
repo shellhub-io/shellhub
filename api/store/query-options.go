@@ -20,4 +20,8 @@ type QueryOptions interface {
 
 	// Match applies the provided query filters to match records
 	Match(fs *query.Filters) QueryOption
+
+	Paginate(paginator *query.Paginator) QueryOption
+
+	Sort(sorter *query.Sorter) QueryOption
 }
