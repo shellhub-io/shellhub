@@ -22,7 +22,7 @@ type NamespaceStore interface {
 	//
 	// It returns the list of namespaces, the total count of matching documents (ignoring pagination), and
 	// an error if any.
-	NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.Namespace, int, error)
+	NamespaceList(ctx context.Context, paginator query.Paginator, opts ...QueryOption) ([]models.Namespace, int, error)
 
 	// NamespaceResolve fetches a namespace using a specific resolver.
 	//

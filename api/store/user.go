@@ -16,7 +16,7 @@ const (
 )
 
 type UserStore interface {
-	UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error)
+	UserList(ctx context.Context, paginator query.Paginator, opts ...QueryOption) ([]models.User, int, error)
 
 	// UserCreate creates a new user with the provided data. `user.CreatedAt` is set to now before save.
 	// It returns the inserted ID or an error, if any.

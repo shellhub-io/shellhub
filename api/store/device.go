@@ -31,7 +31,7 @@ type DeviceStore interface {
 	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
 
-	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable DeviceAcceptable) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, sorter query.Sorter, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int, error)
 
 	// DeviceResolve fetches a device using a specific resolver within a given tenant ID.
 	//
