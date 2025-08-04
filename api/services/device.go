@@ -57,8 +57,20 @@ type DeviceService interface {
 }
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
+	opts := []store.QueryOption{}
+
+	if req.DeviceStatus != "" {
+		opts = append(opts, s.store.Options().WithDeviceStatus(req.DeviceStatus))
+	}
+
+	if req.TenantID != "" {
+		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
+	}
+
+	opts = append(opts, s.store.Options().Match(&req.Filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
+
 	if req.DeviceStatus == models.DeviceStatusRemoved {
-		return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
+		return s.store.DeviceList(ctx, store.DeviceAcceptableFromRemoved, opts...)
 	}
 
 	if req.TenantID != "" {
@@ -71,19 +83,19 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 			switch {
 			case envs.IsCloud():
 				if ns.HasLimitDevicesReached() {
-					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
+					return s.store.DeviceList(ctx, store.DeviceAcceptableFromRemoved, opts...)
 				}
 			case envs.IsEnterprise():
 				fallthrough
 			case envs.IsCommunity():
 				if ns.HasMaxDevicesReached() {
-					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableAsFalse)
+					return s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
 				}
 			}
 		}
 	}
 
-	return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableIfNotAccepted)
+	return s.store.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted, opts...)
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {

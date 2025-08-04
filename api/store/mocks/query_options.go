@@ -6,6 +6,8 @@ import (
 	models "github.com/shellhub-io/shellhub/pkg/models"
 	mock "github.com/stretchr/testify/mock"
 
+	query "github.com/shellhub-io/shellhub/pkg/api/query"
+
 	store "github.com/shellhub-io/shellhub/api/store"
 )
 
@@ -25,6 +27,66 @@ func (_m *QueryOptions) InNamespace(tenantID string) store.QueryOption {
 	var r0 store.QueryOption
 	if rf, ok := ret.Get(0).(func(string) store.QueryOption); ok {
 		r0 = rf(tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+
+	return r0
+}
+
+// Match provides a mock function with given fields: fs
+func (_m *QueryOptions) Match(fs *query.Filters) store.QueryOption {
+	ret := _m.Called(fs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Match")
+	}
+
+	var r0 store.QueryOption
+	if rf, ok := ret.Get(0).(func(*query.Filters) store.QueryOption); ok {
+		r0 = rf(fs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+
+	return r0
+}
+
+// Paginate provides a mock function with given fields: paginator
+func (_m *QueryOptions) Paginate(paginator *query.Paginator) store.QueryOption {
+	ret := _m.Called(paginator)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Paginate")
+	}
+
+	var r0 store.QueryOption
+	if rf, ok := ret.Get(0).(func(*query.Paginator) store.QueryOption); ok {
+		r0 = rf(paginator)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+
+	return r0
+}
+
+// Sort provides a mock function with given fields: sorter
+func (_m *QueryOptions) Sort(sorter *query.Sorter) store.QueryOption {
+	ret := _m.Called(sorter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Sort")
+	}
+
+	var r0 store.QueryOption
+	if rf, ok := ret.Get(0).(func(*query.Sorter) store.QueryOption); ok {
+		r0 = rf(sorter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.QueryOption)
