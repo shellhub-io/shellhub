@@ -108,6 +108,7 @@ import PaywallChat from "../User/PaywallChat.vue";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 type MenuItem = {
   title: string;
@@ -129,6 +130,7 @@ defineOptions({
 const { setUser, setConversationCustomAttributes, toggle, reset } = useChatWoot();
 const store = useStore();
 const authStore = useAuthStore();
+const billingStore = useBillingStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -140,7 +142,7 @@ const tenant = computed(() => authStore.tenantId);
 const userEmail = computed(() => authStore.email);
 const userId = computed(() => authStore.id);
 const currentUser = computed(() => authStore.username);
-const billingActive = computed(() => store.getters["billing/active"]);
+const isBillingActive = computed(() => billingStore.isActive);
 const identifier = computed(() => store.getters["support/getIdentifier"]);
 const isDarkMode = ref(getStatusDarkMode.value === "dark");
 const chatSupportPaywall = ref(false);
@@ -225,11 +227,11 @@ const redirectToGitHub = (): void => {
 
 const openShellhubHelp = async (): Promise<void> => {
   switch (true) {
-    case envVariables.isCloud && billingActive.value:
+    case envVariables.isCloud && isBillingActive.value:
       await openChatwoot();
       break;
 
-    case envVariables.isCommunity || (envVariables.isCloud && !billingActive.value):
+    case envVariables.isCommunity || (envVariables.isCloud && !isBillingActive.value):
       openPaywall();
       break;
 
