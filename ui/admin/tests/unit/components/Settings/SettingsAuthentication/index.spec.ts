@@ -4,10 +4,10 @@ import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import useInstanceStore from "@admin/store/modules/instance";
+import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
+import { adminApi } from "@admin/api/http";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { adminApi } from "../../../../../src/api/http";
-import SettingsAuthentication from "../../../../../src/components/Settings/SettingsAuthentication.vue";
-import routes from "../../../../../src/router";
 
 Object.assign(navigator, {
   clipboard: {
@@ -38,7 +38,10 @@ const authData = {
     assertion_url: "http://example/api/user/saml/auth",
     idp: {
       entity_id: "entity-id-example",
-      signon_url: "https://signon.example.com",
+      binding: {
+        post: "https://example.com/signon-post",
+        redirect: "https://example.com/signon-redirect",
+      },
       certificates: ["certificate-string"],
       mappings: {
         email: "emailAddress",
@@ -104,7 +107,8 @@ describe("Authentication", () => {
   });
 
   it("renders SAML settings when enabled", () => {
-    expect(wrapper.find("[data-test='idp-signon-value']").exists()).toBe(true);
+    expect(wrapper.find("[data-test='idp-signon-post-value']").exists()).toBe(true);
+    expect(wrapper.find("[data-test='idp-signon-redirect-value']").exists()).toBe(true);
     expect(wrapper.find("[data-test='idp-entity-value']").exists()).toBe(true);
   });
 

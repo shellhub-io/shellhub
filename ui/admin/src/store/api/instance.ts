@@ -1,5 +1,5 @@
-import { adminApi } from "./../../api/http";
-import { IAdminSAMLConfig } from "../../interfaces/IInstance";
+import { adminApi } from "@admin/api/http";
+import { IAdminSAMLConfig } from "@admin/interfaces/IInstance";
 
 const getAuthenticationSettings = async () => adminApi.getAuthenticationSettings();
 

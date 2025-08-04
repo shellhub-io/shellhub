@@ -450,12 +450,6 @@ export interface ConfigureSAMLAuthenticationRequestIdp {
      */
     'entity_id'?: string;
     /**
-     * The Sign-On URL of the IdP.
-     * @type {string}
-     * @memberof ConfigureSAMLAuthenticationRequestIdp
-     */
-    'signon_url'?: string;
-    /**
      * The public X509 certificate of the IdP. It can be provided with or without  the PEM delimiters (`-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----`). 
      * @type {string}
      * @memberof ConfigureSAMLAuthenticationRequestIdp
@@ -463,11 +457,50 @@ export interface ConfigureSAMLAuthenticationRequestIdp {
     'certificate'?: string;
     /**
      * 
+     * @type {ConfigureSAMLAuthenticationRequestIdpBinding}
+     * @memberof ConfigureSAMLAuthenticationRequestIdp
+     */
+    'binding'?: ConfigureSAMLAuthenticationRequestIdpBinding;
+    /**
+     * 
      * @type {ConfigureSAMLAuthenticationRequestIdpMappings}
      * @memberof ConfigureSAMLAuthenticationRequestIdp
      */
     'mappings'?: ConfigureSAMLAuthenticationRequestIdpMappings;
 }
+/**
+ * Configuration for SAML binding methods that define how authentication requests  and responses are transmitted between ShellHub and the IdP. SAML supports  different binding protocols for flexibility in deployment scenarios. 
+ * @export
+ * @interface ConfigureSAMLAuthenticationRequestIdpBinding
+ */
+export interface ConfigureSAMLAuthenticationRequestIdpBinding {
+    /**
+     * The Single Sign-On URL for HTTP-POST binding. This URL is where ShellHub  will redirect users for authentication using the HTTP-POST method, which  sends SAML data in the body of an HTTP POST request. This binding is more  secure as it doesn\'t expose SAML data in URL parameters. 
+     * @type {string}
+     * @memberof ConfigureSAMLAuthenticationRequestIdpBinding
+     */
+    'post'?: string;
+    /**
+     * The Single Sign-On URL for HTTP-Redirect binding. This URL is where ShellHub  will redirect users for authentication using the HTTP-Redirect method, which  sends SAML data as URL parameters. This binding is simpler but has URL length  limitations and exposes SAML data in browser history and server logs. 
+     * @type {string}
+     * @memberof ConfigureSAMLAuthenticationRequestIdpBinding
+     */
+    'redirect'?: string;
+    /**
+     * Specifies which binding method ShellHub should prefer when both POST and  Redirect bindings are available. If only one binding URL is provided,  that binding will be used regardless of this preference setting. If left blank or empty, POST binding is preferred by default. 
+     * @type {string}
+     * @memberof ConfigureSAMLAuthenticationRequestIdpBinding
+     */
+    'preferred'?: ConfigureSAMLAuthenticationRequestIdpBindingPreferredEnum;
+}
+
+export const ConfigureSAMLAuthenticationRequestIdpBindingPreferredEnum = {
+    Post: 'post',
+    Redirect: 'redirect'
+} as const;
+
+export type ConfigureSAMLAuthenticationRequestIdpBindingPreferredEnum = typeof ConfigureSAMLAuthenticationRequestIdpBindingPreferredEnum[keyof typeof ConfigureSAMLAuthenticationRequestIdpBindingPreferredEnum];
+
 /**
  * Defines how SAML attributes from the IdP should be mapped to ShellHub user attributes. 
  * @export
@@ -1039,12 +1072,6 @@ export interface GetAuthenticationSettings200ResponseSamlIdp {
      */
     'entity_id'?: string;
     /**
-     * The Sign-On URL of the IdP.
-     * @type {string}
-     * @memberof GetAuthenticationSettings200ResponseSamlIdp
-     */
-    'signon_url'?: string;
-    /**
      * The list of public X509 certificates of the IdP.
      * @type {Array<string>}
      * @memberof GetAuthenticationSettings200ResponseSamlIdp
@@ -1052,11 +1079,50 @@ export interface GetAuthenticationSettings200ResponseSamlIdp {
     'certificates'?: Array<string>;
     /**
      * 
+     * @type {GetAuthenticationSettings200ResponseSamlIdpBinding}
+     * @memberof GetAuthenticationSettings200ResponseSamlIdp
+     */
+    'binding'?: GetAuthenticationSettings200ResponseSamlIdpBinding;
+    /**
+     * 
      * @type {GetAuthenticationSettings200ResponseSamlIdpMappings}
      * @memberof GetAuthenticationSettings200ResponseSamlIdp
      */
     'mappings'?: GetAuthenticationSettings200ResponseSamlIdpMappings;
 }
+/**
+ * Configuration for SAML binding methods that define how authentication requests  and responses are transmitted between ShellHub and the IdP. 
+ * @export
+ * @interface GetAuthenticationSettings200ResponseSamlIdpBinding
+ */
+export interface GetAuthenticationSettings200ResponseSamlIdpBinding {
+    /**
+     * The Single Sign-On URL for HTTP-POST binding. This URL is where ShellHub  will redirect users for authentication using the HTTP-POST method. 
+     * @type {string}
+     * @memberof GetAuthenticationSettings200ResponseSamlIdpBinding
+     */
+    'post'?: string;
+    /**
+     * The Single Sign-On URL for HTTP-Redirect binding. This URL is where ShellHub  will redirect users for authentication using the HTTP-Redirect method. 
+     * @type {string}
+     * @memberof GetAuthenticationSettings200ResponseSamlIdpBinding
+     */
+    'redirect'?: string;
+    /**
+     * Specifies which binding method ShellHub prefers when both POST and  Redirect bindings are available. If left blank or empty, POST binding is preferred. 
+     * @type {string}
+     * @memberof GetAuthenticationSettings200ResponseSamlIdpBinding
+     */
+    'preferred'?: GetAuthenticationSettings200ResponseSamlIdpBindingPreferredEnum;
+}
+
+export const GetAuthenticationSettings200ResponseSamlIdpBindingPreferredEnum = {
+    Post: 'post',
+    Redirect: 'redirect'
+} as const;
+
+export type GetAuthenticationSettings200ResponseSamlIdpBindingPreferredEnum = typeof GetAuthenticationSettings200ResponseSamlIdpBindingPreferredEnum[keyof typeof GetAuthenticationSettings200ResponseSamlIdpBindingPreferredEnum];
+
 /**
  * 
  * @export
