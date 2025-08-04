@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
+func (s *Store) UserList(ctx context.Context, paginator query.Paginator, opts ...store.QueryOption) ([]models.User, int, error) {
 	query := []bson.M{}
 
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
@@ -46,11 +46,11 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 		},
 	}...)
 
-	queryMatch, err := queries.FromFilters(&filters)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
-	query = append(query, queryMatch...)
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})

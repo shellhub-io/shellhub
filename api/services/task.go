@@ -70,7 +70,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 	return func(ctx context.Context) error {
 		log.Info("Starting device cleanup for removed devices")
 
-		filter := query.Filters{
+		filter := &query.Filters{
 			Data: []query.Filter{
 				{
 					Type:   query.FilterTypeProperty,
@@ -84,7 +84,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Order: query.OrderAsc,
 		}
 
-		_, totalCount, err := s.store.DeviceList(ctx, models.DeviceStatusRemoved, query.Paginator{}, filter, sorter, store.DeviceAcceptableAsFalse)
+		_, totalCount, err := s.store.DeviceList(ctx, models.DeviceStatusRemoved, query.Paginator{}, sorter, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))
 		if err != nil {
 			log.WithError(err).Error("Failed to get total count of removed devices")
 
@@ -108,7 +108,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 		for page := range totalPages {
 			paginator := query.Paginator{Page: page, PerPage: pageSize}
 
-			devices, _, err := s.store.DeviceList(ctx, models.DeviceStatusRemoved, paginator, filter, sorter, store.DeviceAcceptableAsFalse)
+			devices, _, err := s.store.DeviceList(ctx, models.DeviceStatusRemoved, paginator, sorter, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))
 			if err != nil {
 				log.WithFields(log.Fields{"page": page, "error": err}).Error("Failed to list removed devices for page")
 

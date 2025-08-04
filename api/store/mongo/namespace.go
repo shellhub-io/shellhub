@@ -18,14 +18,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.Namespace, int, error) {
+func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	query := []bson.M{}
-
-	queryMatch, err := queries.FromFilters(&filters)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-	query = append(query, queryMatch...)
 
 	// Only match for the respective tenant if requested
 	if id := gateway.IDFromContext(ctx); id != nil {
@@ -118,6 +112,12 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, fi
 			"$unset": "userDetails",
 		},
 	)
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
+	}
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})

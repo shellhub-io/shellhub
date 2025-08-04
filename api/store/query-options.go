@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -16,4 +17,7 @@ type QueryOptions interface {
 
 	// WithDeviceStatus matches a device with the provided status
 	WithDeviceStatus(models.DeviceStatus) QueryOption
+
+	// Match applies the provided query filters to match records
+	Match(fs *query.Filters) QueryOption
 }
