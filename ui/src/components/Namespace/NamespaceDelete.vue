@@ -7,7 +7,7 @@
 
       <v-card-text class="mt-4 mb-3 pb-1">
         <div
-          v-if="billingActive"
+          v-if="isBillingActive"
           data-test="content-subscription-text"
         >
           <p class="mb-2">
@@ -38,7 +38,7 @@
           variant="text"
           data-test="remove-btn"
           @click="remove()"
-          :disabled="billingActive || !hasAuthorization"
+          :disabled="isBillingActive || !hasAuthorization"
         >
           Remove
         </v-btn>
@@ -60,18 +60,20 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 const props = defineProps<{ tenant: string }>();
 const emit = defineEmits(["billing-in-debt"]);
 
 const store = useStore();
 const authStore = useAuthStore();
+const billingStore = useBillingStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel({ default: false });
 const name = ref("");
 const tenant = computed(() => props.tenant);
-const billingActive = computed(() => store.getters["billing/active"]);
+const isBillingActive = computed(() => billingStore.isActive);
 const hasAuthorization = computed(() => {
   const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
@@ -80,13 +82,11 @@ const hasAuthorization = computed(() => {
 const isBillingEnabled = envVariables.billingEnable;
 
 const getSubscriptionInfo = async () => {
-  if (billingActive.value) {
-    try {
-      await store.dispatch("billing/getSubscription");
-    } catch (error: unknown) {
-      snackbar.showError("An error occurred while fetching subscription information.");
-      handleError(error);
-    }
+  try {
+    await billingStore.getSubscriptionInfo();
+  } catch (error: unknown) {
+    snackbar.showError("An error occurred while fetching subscription information.");
+    handleError(error);
   }
 };
 

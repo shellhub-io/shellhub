@@ -23,7 +23,7 @@
               color="primary"
               variant="text"
               class="bg-secondary align-content-lg-center text-none text-uppercase"
-              :disabled="status === ''"
+              :disabled="billingStatus === ''"
               @click="dialogCheckout = true"
               data-test="subscribe-button"
             >
@@ -58,7 +58,7 @@
                 :disabled="noCustomer.value"
                 color="primary"
                 class="mt-2 text-none text-uppercase"
-                @click="portal"
+                @click="openBillingPortal"
                 data-test="billing-portal-button"
               >
                 Open Billing Portal
@@ -76,14 +76,14 @@
             <template #title>
               <span class="text-subtitle-1" data-test="billing-plan-title">Plan</span>
             </template>
-            <div v-if="!active" data-test="billing-plan-description-free">
+            <div v-if="!isBillingActive" data-test="billing-plan-description-free">
               You can add up to 3 devices while using the 'Free' plan.
             </div>
             <div v-else data-test="billing-plan-description-premium">
               In this plan, the amount is charged according to the number of devices used.
             </div>
             <template #append>
-              <h3 v-if="!active" data-test="billing-plan-free">
+              <h3 v-if="!isBillingActive" data-test="billing-plan-free">
                 Free
               </h3>
               <h3 v-else data-test="billing-plan-premium">
@@ -92,7 +92,7 @@
             </template>
           </v-card-item>
           <v-divider data-test="billing-divider" />
-          <div v-if="hasAuthorization && active" data-test="billing-active-section">
+          <div v-if="hasAuthorization && isBillingActive" data-test="billing-active-section">
             <v-card-item
               style="grid-template-columns: max-content 1.5fr 2fr"
               v-if="message"
@@ -150,12 +150,11 @@
 import {
   ref,
   computed,
-  watch,
   onMounted,
   reactive,
 } from "vue";
+import { storeToRefs } from "pinia";
 import { useEventListener } from "@vueuse/core";
-import axios from "axios";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
@@ -165,12 +164,12 @@ import formatCurrency from "@/utils/currency";
 import { formatUnixToDate } from "@/utils/date";
 import handleError from "@/utils/handleError";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 const store = useStore();
 const authStore = useAuthStore();
-const billing = computed(() => store.getters["billing/get"]);
-const active = computed(() => store.getters["billing/active"]);
-const status = computed(() => store.getters["billing/status"]);
+const billingStore = useBillingStore();
+const { billing: billingInfo, isActive: isBillingActive, status: billingStatus } = storeToRefs(billingStore);
 const namespace = computed(() => store.getters["namespaces/get"]);
 const el = ref<number>(1);
 const dialogCheckout = ref(false);
@@ -194,9 +193,8 @@ useEventListener("pageshow", (event) => {
   }
 });
 
-const errorTreatment = async () => {
-  switch (status.value) {
-    // eslint-disable-next-line vue/camelcase, camelcase
+const handleErrors = async () => {
+  switch (billingStatus.value) {
     case "to_cancel_at_end_of_period":
       message.value = `Your subscription will be canceled at ${formattedDate.value
       }, if you want to renew your subscription to premium, please, access our billing portal.`;
@@ -221,22 +219,17 @@ const errorTreatment = async () => {
 };
 
 const getSubscriptionInfo = async () => {
-  if (active.value && hasAuthorization.value) {
+  if (hasAuthorization.value) {
     try {
-      await store.dispatch("billing/getSubscription");
-      formattedDate.value = formatUnixToDate(billing.value?.end_at);
-      formattedCurrency.value = formatCurrency(billing.value?.invoices[0].amount, billing.value?.invoices[0].currency.toUpperCase());
+      await billingStore.getSubscriptionInfo();
+      const invoice = billingStore.invoices[0];
+      formattedDate.value = formatUnixToDate(billingInfo.value.end_at);
+      formattedCurrency.value = formatCurrency(invoice?.amount, invoice?.currency.toUpperCase());
     } catch (error: unknown) {
       handleError(error);
     }
   }
 };
-
-watch(active, (val) => {
-  if (val) {
-    getSubscriptionInfo();
-  }
-});
 
 onMounted(async () => {
   const tenant = computed(() => localStorage.getItem("tenant"));
@@ -245,18 +238,12 @@ onMounted(async () => {
     noCustomer.value = true;
   }
   await getSubscriptionInfo();
-  await errorTreatment();
+  await handleErrors();
 });
 
-const portal = async () => {
+const openBillingPortal = async () => {
   try {
-    const res = await axios.post("/api/billing/portal", {}, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-
-    const { url } = res.data;
-
-    window.open(url, "_self");
+    await billingStore.openBillingPortal();
   } catch (error: unknown) {
     handleError(error);
   }
