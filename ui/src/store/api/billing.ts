@@ -1,5 +1,6 @@
+import axios from "axios";
 import { ChoiceDevicesRequest } from "@/api/client";
-import { billingApi } from "@/api/http";
+import { billingApi, configuration } from "@/api/http";
 
 export const getCustomer = async () => billingApi.getCustomer();
 
@@ -18,3 +19,7 @@ export const postDevicesChooser = async (data: ChoiceDevicesRequest) => billingA
 export const getSubscriptionInfo = async () => billingApi.getSubscription();
 
 export const getDevicesMostUsed = async () => billingApi.getDevicesMostUsed();
+
+export const getBillingPortalUrl = async () => axios.post("/api/billing/portal", {}, {
+  headers: { Authorization: `Bearer ${configuration.accessToken}` },
+});
