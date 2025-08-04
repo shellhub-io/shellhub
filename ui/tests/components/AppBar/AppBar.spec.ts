@@ -11,6 +11,7 @@ import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 const Component = {
   template: "<v-layout><AppBar /></v-layout>",
@@ -30,13 +31,16 @@ const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
 const billingData = {
+  id: "sub_test",
   active: true,
   status: "active",
   customer_id: "cus_test",
   subscription_id: "sub_test",
   current_period_end: 999999999999,
+  end_at: 999999999999,
   created_at: "",
   updated_at: "",
+  invoices: [],
 };
 
 const authStoreData = {
@@ -66,6 +70,7 @@ describe("AppBar Component", () => {
   const vuetify = createVuetify();
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const billingStore = useBillingStore();
 
   beforeEach(async () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -82,13 +87,12 @@ describe("AppBar Component", () => {
     envVariables.isCloud = true;
     localStorage.setItem("tenant", "fake-tenant-data");
 
-    store.commit("billing/setSubscription", billingData);
-
     mockSystemApi.onGet("http://localhost:3000/info").reply(200, systemInfo);
     mockDevicesApi.onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending").reply(200);
     mockContainersApi.onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending").reply(200);
 
     authStore.$patch(authStoreData);
+    billingStore.billing = billingData;
 
     wrapper = mount(Component, {
       global: {
