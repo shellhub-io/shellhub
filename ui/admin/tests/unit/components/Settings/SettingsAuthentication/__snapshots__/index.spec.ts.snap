@@ -174,7 +174,7 @@ exports[`Authentication > renders correctly 1`] = `
       </div>
       <div class="v-row">
         <div class="v-col-sm-auto v-col-md-auto v-col">
-          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-label">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-post-label">
             <!---->
             <div class="v-card__loader">
               <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -191,14 +191,14 @@ exports[`Authentication > renders correctly 1`] = `
               </div>
             </div>
             <!---->
-            <!---->IdP SignOn URL
+            <!---->IdP SignOn POST URL
             <!---->
             <!----><span class="v-card__underlay"></span>
           </div>
         </div>
         <div class="v-spacer"></div>
         <div class="v-col-sm-auto v-col-md-auto v-col ml-auto">
-          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-value">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-post-value">
             <!---->
             <div class="v-card__loader">
               <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -215,7 +215,56 @@ exports[`Authentication > renders correctly 1`] = `
               </div>
             </div>
             <!---->
-            <!---->https://signon.example.com
+            <!---->https://example.com/signon-post
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </div>
+      <div class="v-row">
+        <div class="v-col-sm-auto v-col-md-auto v-col">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-redirect-label">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->IdP SignOn Redirect URL
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+        <div class="v-spacer"></div>
+        <div class="v-col-sm-auto v-col-md-auto v-col ml-auto">
+          <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated" data-test="idp-signon-redirect-value">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->https://example.com/signon-redirect
             <!---->
             <!----><span class="v-card__underlay"></span>
           </div>

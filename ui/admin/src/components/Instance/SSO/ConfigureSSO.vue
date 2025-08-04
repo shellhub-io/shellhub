@@ -5,11 +5,11 @@
       <v-container>
         <v-card-text>
           <v-checkbox
-            v-model="checkbox"
+            v-model="useMetadataUrl"
             label="Use IDP Metadata URL"
             data-test="checkbox-idp-metadata"
           />
-          <div v-if="checkbox" data-test="idp-metadata-section">
+          <div v-if="useMetadataUrl" data-test="idp-metadata-section">
             <v-text-field
               v-model="IdPMetadataURL"
               :error-messages="IdPMetadataURLError"
@@ -20,13 +20,29 @@
             />
           </div>
           <div v-else data-test="idp-manual-section">
+            <v-alert
+              type="warning"
+              class="mb-4"
+              data-test="manual-config-info"
+              v-if="!isAtLeastOneUrlValid()"
+            >
+              You need to provide at least one of the following URLs: POST URL or Redirect URL.
+            </v-alert>
             <v-text-field
-              v-model="acsUrl"
-              :error-messages="acsUrlError"
-              label="IdP SignOn URL"
+              v-model="postUrl"
+              :error-messages="postUrlError"
+              label="IdP SignOn POST URL"
               variant="underlined"
-              required
-              data-test="idp-signon-url"
+              :required="!redirectUrl"
+              data-test="idp-signon-post-url"
+            />
+            <v-text-field
+              v-model="redirectUrl"
+              :error-messages="redirectUrlError"
+              label="IdP SignOn Redirect URL"
+              variant="underlined"
+              :required="!postUrl"
+              data-test="idp-signon-redirect-url"
             />
             <v-text-field
               v-model="entityID"
@@ -147,7 +163,7 @@
           Close
         </v-btn>
         <v-spacer />
-        <v-btn :disabled="hasError" @click="updateSAMLConfiguration" data-test="save-btn">
+        <v-btn :disabled="hasErrors" @click="updateSAMLConfiguration" color="primary" data-test="save-btn">
           Save Configuration
         </v-btn>
       </v-card-actions>
@@ -165,7 +181,7 @@ import useSnackbar from "@/helpers/snackbar";
 import { validateX509Certificate } from "@/utils/validate";
 import BaseDialog from "@/components/BaseDialog.vue";
 
-const checkbox = ref(false);
+const useMetadataUrl = ref(false);
 const signRequest = ref(false);
 const showDialog = defineModel({ default: false });
 const snackbar = useSnackbar();
@@ -179,9 +195,13 @@ const { value: IdPMetadataURL,
   errorMessage: IdPMetadataURLError,
 } = useField<string>("IdPMetadataURL", yup.string().url(), { initialValue: "" });
 
-const { value: acsUrl,
-  errorMessage: acsUrlError,
-} = useField<string>("acsUrl", yup.string().url(), { initialValue: "" });
+const { value: postUrl,
+  errorMessage: postUrlError,
+} = useField<string>("postUrl", yup.string().url(), { initialValue: "" });
+
+const { value: redirectUrl,
+  errorMessage: redirectUrlError,
+} = useField<string>("redirectUrl", yup.string().url(), { initialValue: "" });
 
 const mappings = ref<{ key: string; value: string }[]>([]);
 
@@ -211,10 +231,11 @@ const removeMapping = (index: number) => {
 };
 
 const resetFields = () => {
-  checkbox.value = false;
+  useMetadataUrl.value = false;
   signRequest.value = false;
   IdPMetadataURL.value = "";
-  acsUrl.value = "";
+  postUrl.value = "";
+  redirectUrl.value = "";
   entityID.value = "";
   x509Certificate.value = "";
   mappings.value = [];
@@ -242,16 +263,24 @@ const handleCertificateChange = (value: string) => {
   }
 };
 
-const hasError = computed((): boolean => {
+const isAtLeastOneUrlValid = (): boolean => {
+  const isPostUrlValid = postUrl.value.trim() !== "" && !postUrlError.value;
+  const isRedirectUrlValid = redirectUrl.value.trim() !== "" && !redirectUrlError.value;
+
+  return isPostUrlValid || isRedirectUrlValid;
+};
+
+const hasErrors = computed((): boolean => {
   // ✅ If using metadata URL, validate only it and stop.
-  if (checkbox.value) {
+  if (useMetadataUrl.value) {
     return IdPMetadataURL.value.trim() === "" || !!IdPMetadataURLError.value;
   }
 
   // Manual configuration checks
   if (
-    acsUrl.value.trim() === ""
-    || !!acsUrlError.value
+    !isAtLeastOneUrlValid()
+    || postUrlError.value
+    || redirectUrlError.value
     || entityID.value.trim() === ""
     || x509Certificate.value.trim() === ""
     || !isCertificateValid.value
@@ -271,11 +300,14 @@ const hasError = computed((): boolean => {
 });
 
 const updateSAMLConfiguration = async (): Promise<void> => {
-  const idpConfig: IAdminSAMLConfig["idp"] = checkbox.value
+  const idpConfig: IAdminSAMLConfig["idp"] = useMetadataUrl.value
     ? { metadata_url: IdPMetadataURL.value }
     : {
       entity_id: entityID.value,
-      signon_url: acsUrl.value,
+      binding: {
+        post: postUrl.value,
+        redirect: redirectUrl.value,
+      },
       certificate: x509Certificate.value,
     };
 
@@ -311,5 +343,5 @@ const updateSAMLConfiguration = async (): Promise<void> => {
   }
 };
 
-defineExpose({ IdPMetadataURL, checkbox, mappings, showDialog });
+defineExpose({ IdPMetadataURL, useMetadataUrl, mappings, showDialog });
 </script>

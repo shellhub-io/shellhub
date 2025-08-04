@@ -82,14 +82,26 @@
           </v-col>
         </v-row>
 
-        <v-row>
+        <v-row v-if="ssoSettings.saml?.idp.binding.post">
           <v-col md="auto" sm="auto">
-            <v-card tile :elevation="0" data-test="idp-signon-label">IdP SignOn URL</v-card>
+            <v-card tile :elevation="0" data-test="idp-signon-post-label">IdP SignOn POST URL</v-card>
           </v-col>
           <v-spacer />
           <v-col md="auto" sm="auto" class="ml-auto">
-            <v-card tile :elevation="0" data-test="idp-signon-value">
-              {{ ssoSettings.saml?.idp.signon_url }}
+            <v-card tile :elevation="0" data-test="idp-signon-post-value">
+              {{ ssoSettings.saml?.idp.binding.post }}
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <v-row v-if="ssoSettings.saml?.idp.binding.redirect">
+          <v-col md="auto" sm="auto">
+            <v-card tile :elevation="0" data-test="idp-signon-redirect-label">IdP SignOn Redirect URL</v-card>
+          </v-col>
+          <v-spacer />
+          <v-col md="auto" sm="auto" class="ml-auto">
+            <v-card tile :elevation="0" data-test="idp-signon-redirect-value">
+              {{ ssoSettings.saml?.idp.binding.redirect }}
             </v-card>
           </v-col>
         </v-row>

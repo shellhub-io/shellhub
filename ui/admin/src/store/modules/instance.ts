@@ -14,7 +14,10 @@ export interface InstanceState {
       assertion_url: string;
       idp: {
         entity_id: string;
-        signon_url: string;
+        binding: {
+          post?: string;
+          redirect?: string;
+        };
         certificates: string[];
       };
       sp: {
@@ -37,7 +40,10 @@ export const useInstanceStore = defineStore("instance", {
         assertion_url: "",
         idp: {
           entity_id: "",
-          signon_url: "",
+          binding: {
+            post: "",
+            redirect: "",
+          },
           certificates: [],
         },
         sp: {

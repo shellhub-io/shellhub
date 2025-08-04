@@ -15,7 +15,10 @@ describe("Instance Pinia Store", () => {
       assertion_url: "https://example.com/assertion",
       idp: {
         entity_id: "entity123",
-        signon_url: "https://example.com/signon",
+        binding: {
+          post: "https://example.com/signon-post",
+          redirect: "https://example.com/signon-redirect",
+        },
         certificates: ["cert123"],
       },
       sp: {
@@ -40,7 +43,10 @@ describe("Instance Pinia Store", () => {
           assertion_url: "",
           idp: {
             entity_id: "",
-            signon_url: "",
+            binding: {
+              post: "",
+              redirect: "",
+            },
             certificates: [],
           },
           sp: {

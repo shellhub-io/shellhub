@@ -38,17 +38,17 @@ describe("Configure SSO", () => {
   });
 
   it("resets fields when 'close' is clicked", async () => {
-    wrapper.vm.checkbox = true;
+    wrapper.vm.useMetadataUrl = true;
     wrapper.vm.IdPMetadataURL = "https://example.com/metadata";
 
     await wrapper.findComponent("[data-test='close-btn']").trigger("click");
 
     expect(wrapper.vm.IdPMetadataURL).toBe("");
-    expect(wrapper.vm.checkbox).toBe(false);
+    expect(wrapper.vm.useMetadataUrl).toBe(false);
   });
 
   it("disables save button if required fields are empty", () => {
-    wrapper.vm.checkbox = true;
+    wrapper.vm.useMetadataUrl = true;
     wrapper.vm.IdPMetadataURL = "";
 
     expect(wrapper.findComponent("[data-test='save-btn']").attributes("disabled")).toBeDefined();
